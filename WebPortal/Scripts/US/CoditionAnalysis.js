@@ -1,7 +1,7 @@
 ﻿var global_analysisid = 0;
 var conAnalysis_table;
 var analysisStartTime;
- 
+var test='1';
 
 function condAnalysis_bindGrid() {
 
