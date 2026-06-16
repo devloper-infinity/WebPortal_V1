@@ -111,7 +111,7 @@ namespace WebPortal.US
             htParam.Add("Finding", Finding);
             htParam.Add("Severity", Severity);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            returnvalue = 10;// new bllUS().InsertOnShoreUSFeedbacks(htParam);                
+            returnvalue = new bllUS().InsertOnShoreUSFeedbacks(htParam);
             return returnvalue;
         }
 
@@ -138,7 +138,7 @@ namespace WebPortal.US
             htParam.Add("NoOfRentalProperties", NoOfRentalProperties);
             htParam.Add("Comments", Comments);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            returnvalue = 10;// new bllUS().InsertOnShoreUSATRFeedbacks(htParam);
+            returnvalue = new bllUS().InsertOnShoreUSATRFeedbacks(htParam);
             return returnvalue;
         }
     }
