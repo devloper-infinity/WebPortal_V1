@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -83,7 +84,7 @@ namespace WebPortal.Admin
             DataTable dt = new bllMaster().GetAllWorkingDetailsByCode(
                 int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            DataTable dtLogin = new bllMaster().GetAllEmployeeDetailsByIDsForProductivity(
+            DataTable dtLogin = GetAllEmployeeDetailsByIDsForProductivity(
                 HttpContext.Current.User.Identity.Name.ToString());
 
             return new
@@ -92,6 +93,14 @@ namespace WebPortal.Admin
                 summary = ConvertDataTableToList(dt),
                 login = ConvertDataTableToList(dtLogin)
             };
+        }
+
+        public static DataTable GetAllEmployeeDetailsByIDsForProductivity(string Ids)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllEmployeeDetailsByCodes_Productivity_1]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Ids);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
         }
 
         private static List<Dictionary<string, object>> ConvertDataTableToList(DataTable dt)
