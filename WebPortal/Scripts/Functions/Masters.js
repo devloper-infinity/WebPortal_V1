@@ -1,0 +1,2084 @@
+﻿var setappr_gr_table;
+var roam_table;
+var roam_html;
+var roam_roambranchid;
+var apprdesc_table;
+var apprdesc_html;
+var poshtestres_table;
+var poshtestres_html = '';
+var posh_ans_table;
+var posh_ans_html;
+var poshtestSummary_table;
+var poshtestSummary_html;
+var doc_appDate = '';
+
+function roam_bindbranches() {
+    var select = document.getElementById("roam_branch");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#roam_branch").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "RoamingBranch.aspx/GetBranches", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $("#roam_branch").append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            })
+        }
+    });
+}
+
+function roam_bindemployee() {
+    var select = document.getElementById("roam_employee");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#roam_employee").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "RoamingBranch.aspx/GetCodes", dataType: "json", contentType: "application/json",
+
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                $("#roam_employee").append($("<option></option>").val(value.EmployeeID).html(value.Code + ' : ' + value.Name));
+            })
+        }
+    });
+}
+
+function roam_Message() {
+    $('#roam_dverror').modal('hide');
+    document.getElementById("roam_employee").selectedIndex = 0;
+    document.getElementById("roam_branch").selectedIndex = 0;
+    roam_Binddata();
+}
+
+function roam_delete(rbid, index) {
+    roam_roambranchid = rbid;
+    $('#roam_deleteroamingbranch').modal('show');
+}
+
+function roam_deleteroamingbranch() {
+    PageMethods.DeleteRoamingBranch(roam_roambranchid, roam_DeleteOnSuccess, roam_DeleteOnError);
+    return false;
+}
+
+function roam_DeleteOnSuccess(result) {
+    if (result > 0) {
+        $('#roam_deleteroamingbranch').modal('hide');
+        document.getElementById("roam_errmsg").innerHTML = "Roaming branch deleted successfully!";
+        $('#roam_dverror').modal('show');
+
+    }
+    else {
+        $('#roam_deleteroamingbranch').modal('hide');
+        document.getElementById("roam_errmsg").innerHTML = "Oops! Error occured while deleting roaming branch. Please contact administrator!";
+        document.getElementById("roam_errmsg").style.color = 'red';
+        $('#roam_dverror').modal('show');
+
+    }
+    return false;
+}
+
+function roam_DeleteOnError(error) {
+    alert(error);
+}
+
+function blankForNull(s) {
+    return s == "null" || s == null ? "" : s;
+}
+
+function roam_Binddata() {
+    $('#load1').show();
+    roam_html = '';
+    $.ajax({
+        url: "RoamingBranch.aspx/BindGrid",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                var addeddate;
+                if (value.AddedDate != null)
+                    addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
+                roam_html += '<tr>';
+                roam_html += '<td style="display:none;">' + value.RomingBranchID + '</td>';
+                roam_html += '<td style="text-align:center;"><a title="Delete Record" class="dropdown-item" href="#!" id="Actions" onclick="roam_delete(' + value.RomingBranchID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-trash"></i></span></a></td>';
+                roam_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';
+                roam_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.User) + '</td>';
+                roam_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.BranchName) + '</td>';
+                roam_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.AddedByName) + '</td>';
+                roam_html += '<td style="text-wrap: nowrap; ">' + blankForNull(addeddate) + '</td>';
+                roam_html += '</tr>';
+            });
+
+            if ($.fn.dataTable.isDataTable('#roam_table')) {
+                roam_table.destroy();
+            }
+            $('#roam_table tbody').html(roam_html);
+            //else
+            roam_table = $('#roam_table').DataTable({
+                dom: 'lBftip',
+                scrollX: true,
+                destroy: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                },
+
+                buttons: [
+                    {
+                        extend: 'excelHtml5', title: 'Roaming Branch', autoFilter: true,
+                        exportOptions: {
+                            columns: [0, 1, 2],
+                        }
+                    },
+                ],
+            });
+
+            //$('#fnalize tbody').on('click', 'tr', function () {
+            //    row = table.row(this).data();
+            //});
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+function roam_submit() {
+    var ddlemp = document.getElementById("roam_employee");
+    var roam_employee = ddlemp.options[ddlemp.selectedIndex].text;
+    var ddlbranch = document.getElementById("roam_branch");
+    var roam_branch = ddlbranch.options[ddlbranch.selectedIndex].value;
+    if (roam_employee == "") {
+        alert("Please select employee");
+        document.getElementById("roam_employee").focus();
+        return false;
+    }
+    if (roam_branch == "") {
+        alert("Please select branch");
+        document.getElementById("roam_branch").focus();
+        return false;
+    }
+
+    PageMethods.InsertRoamingBranch(roam_employee, roam_branch, roam_OnSuccess, roam_OnError);
+    return false;
+}
+
+function roam_OnSuccess(result) {
+    if (result > 0) {
+        document.getElementById("roam_errmsg").innerHTML = "Roaming branch added successfully!";
+        $('#roam_dverror').modal('show');
+        return false;
+    }
+    else {
+        document.getElementById("roam_errmsg").innerHTML = "Oops! Error occured while adding roaming branch. Please contact administrator!";
+        document.getElementById("roam_errmsg").style.color = 'red';
+        $('#roam_dverror').modal('show');
+        return false;
+    }
+    return false;
+}
+
+function roam_OnError(error) {
+    alert(error);
+}
+
+
+function rup_bindusers() {
+    var select = document.getElementById("rup_user");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#rup_user").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ResetUserPassword.aspx/GetAllUsers", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                $("#rup_user").append($("<option></option>").val(value.EMPID).html(value.Code + ' : ' + value.NAME));
+            })
+        }
+    });
+}
+
+function brup_reset() {
+    var ddluser = document.getElementById("rup_user");
+    var user = ddluser.options[ddluser.selectedIndex].value;
+    if (user == "") {
+        alert("Please select employee.");
+        return false;
+    }
+    PageMethods.ResetUserPasswords(user, rup_OnSuccess, rup_OnError);
+    return false;
+}
+
+function rup_OnSuccess(result) {
+    if (result > 0) {
+        document.getElementById("rup_errmsg").innerHTML = "Password reset successfully!";
+        $('#rup_dverror').modal('show');
+        return false;
+    }
+    else {
+        document.getElementById("rup_errmsg").innerHTML = "Oops! Error occured while reset password. Please contact administrator!";
+        document.getElementById("rup_errmsg").style.color = 'red';
+        $('#rup_dverror').modal('show');
+        return false;
+    }
+    return false;
+}
+
+function rup_OnError(error) {
+    alert(error);
+}
+
+
+/*------------ Document Generation ------------*/
+
+
+function bindemployeedocumentheader() {
+    $('#load1').show();
+    $.ajax({
+        url: "EmployeeDocuments.aspx/GetUserInformation",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                document.getElementById("empdoc_code").innerHTML = blankForNull(value.Code);
+                document.getElementById("empdoc_name").innerHTML = blankForNull(value.FirstName) + ' ' + blankForNull(value.MiddleName) + ' ' + blankForNull(value.lastName);
+                document.getElementById("empdoc_joiningdate").innerHTML = blankForNull(value.JoiningDate);
+                document.getElementById("empdoc_branch").innerHTML = blankForNull(value.WorkingBranchName);
+                document.getElementById("empdoc_department").innerHTML = blankForNull(value.DepartmentName);
+                document.getElementById("empdoc_designation").innerHTML = blankForNull(value.DesignationName);
+                document.getElementById("empdoc_subdomain_hid").value = blankForNull(value.SubDomain);
+                doc_appDate = blankForNull(value.AppointmentDate1);
+            });
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    $('#load1').hide();
+}
+
+function getoptions() {
+
+    var ddl = document.getElementById("empdoc_doctype");
+    var value = ddl.options[ddl.selectedIndex].value;
+
+    if ((value == "AppointmentLetter" || value == "EmployeeAgreementWithoutBondForExpAnalyst" || value == "EmployeeAgreementWithoutBondForExpAnalyst4" || value == "EmployeeAgreementWithoutBondForExpAnalyst5") && (document.getElementById("empdoc_subdomain_hid").value == "Credit" || document.getElementById("empdoc_subdomain_hid").value == "Servicing")) {
+
+        document.getElementById("trprocess").style.display = '';
+        document.getElementById("trincentive").style.display = '';
+        document.getElementById("trAppoint").style.display = '';
+
+        var date = new Date(doc_appDate);
+        var day = date.getDate();
+        if (day < 10)
+            day = '0' + day;
+        var month = date.getMonth() + 1;
+        if (month < 10)
+            month = '0' + month;
+        var year = date.getFullYear();
+        var actualdate = year + "-" + (month) + "-" + (day);
+
+        $("#empdoc_appoint").val(actualdate);
+    }
+    else if (value == "EmployeeAgreementWithoutBond4" || value == "EmployeeAgreementWithoutBond" || value == "EmployeeAgreementWithoutBondForExp" || value == "EmployeeAgreementWithoutBondForExpAnalyst" || value == "EmployeeAgreement5") {
+
+        document.getElementById("trAppoint").style.display = '';
+        document.getElementById("trprocess").style.display = 'none';
+        document.getElementById("trincentive").style.display = 'none';
+
+        var date = new Date(doc_appDate);
+        var day = date.getDate();
+        if (day < 10)
+            day = '0' + day;
+        var month = date.getMonth() + 1;
+        if (month < 10)
+            month = '0' + month;
+        var year = date.getFullYear();
+        var actualdate = year + "-" + (month) + "-" + (day);
+
+        $("#empdoc_appoint").val(actualdate);
+    }
+    else {
+        document.getElementById("empdoc_appoint").value = '';
+        document.getElementById("trprocess").style.display = 'none';
+        document.getElementById("trincentive").style.display = 'none';
+        document.getElementById("trAppoint").style.display = 'none';
+    }
+
+    return false;
+}
+
+function getamount() {
+    var ddl = document.getElementById("empdoc_process");
+    var value = ddl.options[ddl.selectedIndex].value;
+    if (value == "Loan Set-up") {
+        document.getElementById("empdoc_incentive").value = "50000";
+    }
+    else if (value == "Credit Analyst") {
+        document.getElementById("empdoc_incentive").value = "80000";
+    }
+    else if (value == "Compliance Analyst") {
+        document.getElementById("empdoc_incentive").value = "80000";
+    }
+    else if (value == "Process Lead (QC)") {
+        document.getElementById("empdoc_incentive").value = "100000";
+    }
+    else {
+        document.getElementById("empdoc_incentive").value = "";
+    }
+}
+
+function bindEmpInfoForDocs() {
+    $.ajax({
+        url: "GenerateEmpDocs.aspx/GetUserInformation",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d || "[]");
+
+            $.each(dataArray, function (index, value) {
+                var code = blankForNull(value.Code);
+                var fullName = [
+                    blankForNull(value.FirstName),
+                    blankForNull(value.MiddleName),
+                    blankForNull(value.lastName)
+                ].join(' ').replace(/\s+/g, ' ').trim();
+
+                $('#empdoc_code').text(code);
+                $('#empdoc_name').text(fullName);
+                $('#empdoc_joining').text(blankForNull(value.JoiningDate));
+                $('#empdoc_branch').text(blankForNull(value.WorkingBranchName));
+                $('#empdoc_department').text(blankForNull(value.DepartmentName));
+                $('#empdoc_designation').text(blankForNull(value.DesignationName));
+
+                $('#empdoc_subdomain_hid').val(blankForNull(value.SubDomain));
+
+                doc_appDate = blankForNull(value.AppointmentDate1);
+            });
+        },
+
+        error: function (xhr) {
+            alert('error: ' + xhr.responseText);
+        }
+    });
+}
+
+function empdoc_bindddl() {
+    var code = '';
+    var type = '';
+    const urlParams = new URLSearchParams(window.location.search);
+    var param = urlParams.toString().indexOf("Exists");
+    if (param != -1) {
+        code = urlParams.get('Exists');
+        type = 'Exists';
+    }
+    else {
+        param = urlParams.toString().indexOf("Dropout");
+        if (param != -1) {
+            code = urlParams.get('Dropout');
+            type = 'Dropout';
+        }
+        else
+            code = '';
+    }
+    if (code != '' && type == 'Exists') {
+        $.ajax({
+            url: "EmployeeDocuments.aspx/GetDropoutInformation",
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                var dataArray = JSON.parse(data.d);//
+                if (dataArray == null || dataArray == '') {
+                    $("#empdoc_doctype").append($("<option></option>").val("").html("Select"));
+                    $("#empdoc_doctype").append($("<option></option>").val("OfferLetter").html("Offer Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("AppointmentLetter").html("Appointment Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("ConfirmationLetter").html("Confirmation Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("IdemnityBond").html("Idemnity Bond"));
+                    $("#empdoc_doctype").append($("<option></option>").val("AppendixA").html("Appendix A"));
+                    $("#empdoc_doctype").append($("<option></option>").val("EmployeeAgreementWithoutBond").html("Employee Agreement 3"));
+                    $("#empdoc_doctype").append($("<option></option>").val("PromotionLetter").html("Promotion Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("SalaryRivisionLetter").html("Salary Revision Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("AddressVerificationLetter").html("Address Verification Letter"));
+                    /*$("#empdoc_doctype").append($("<option></option>").val("SelfTransport").html("Self Transport Affidavit (Undertaking)"));*/
+                    $("#empdoc_doctype").append($("<option></option>").val("Annexure").html("Annexure"));
+                    $("#empdoc_doctype").append($("<option></option>").val("Account Transfer Letter").html("Account Transfer Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("Renewal Agreement").html("Renewal Agreement"));
+                    $("#empdoc_doctype").append($("<option></option>").val("Psuedo Name").html("Psuedo Name"));
+                    /*$("#empdoc_doctype").append($("<option></option>").val("Transfer Letter").html("Transfer Letter"));*/
+                    $("#empdoc_doctype").append($("<option></option>").val("Addendum to the Employment Agreement - 2").html("Addendum 2"));
+                    $("#empdoc_doctype").append($("<option></option>").val("Addendum to the Employment Agreement").html("Addendum 2.5"));
+                    $("#empdoc_doctype").append($("<option></option>").val("EmployeeAgreementWithoutBondForExpAnalyst").html("Employee Agreement - Analyst"));
+                    $("#empdoc_doctype").append($("<option></option>").val("ClientAcknowledgementLetterNew").html("Client Acknowledgement Letter"));
+                    /*$("#empdoc_doctype").append($("<option></option>").val("ShowCauseNotice").html("Show Cause Notice"));*/
+                    $("#empdoc_doctype").append($("<option></option>").val("JoiningDocumentsChecklist").html("Joining Documents Checklist"));
+                    $("#empdoc_doctype").append($("<option></option>").val("PersonalDetailsForm").html("Personal Details Form"));
+                    $("#empdoc_doctype").append($("<option></option>").val("BackgroundVerificationForm").html("Background Verification Form"));
+                    $("#empdoc_doctype").append($("<option></option>").val("AppendixB").html("Appendix B"));
+                    $("#empdoc_doctype").append($("<option></option>").val("EmployeeAgreementWithoutBond4").html("Employee Agreement 4"));
+                    $("#empdoc_doctype").append($("<option></option>").val("EmployeeAgreementWithoutBondForExpAnalyst4").html("Employee Agreement 4 - Analyst"));
+                    $("#empdoc_doctype").append($("<option></option>").val("POSH Policy - Acknowledgement Form").html("POSH Policy - Acknowledgement Form"));
+                    $("#empdoc_doctype").append($("<option></option>").val("POSH Policy Document").html("POSH Policy Document"));
+                    $("#empdoc_doctype").append($("<option></option>").val("PF Declaration Form - 11 - 2017").html("PF Declaration Form - 11 - 2017"));
+                    $("#empdoc_doctype").append($("<option></option>").val("PF Declaration Form - 11 - 2019").html("PF Declaration Form - 11 - 2019"));
+                    $("#empdoc_doctype").append($("<option></option>").val("EmployeeAgreement5").html("Employee Agreement 5"));
+                    $("#empdoc_doctype").append($("<option></option>").val("EmployeeAgreementWithoutBondForExpAnalyst5").html("Employee Agreement 5 Analyst"));
+                }
+                else {
+                    $("#empdoc_doctype").append($("<option></option>").val("").html("Select"));
+                    $("#empdoc_doctype").append($("<option></option>").val("Relievingletter").html("Relieving Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("Experienceletter").html("Experience Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("ClientAcknowledgementLetterNew").html("Client Acknowledgement Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("NoDueCertificate").html("No Due Certificate"));
+                    $("#empdoc_doctype").append($("<option></option>").val("ExitInterviewForm").html("Exit Interview Form"));
+                    $("#empdoc_doctype").append($("<option></option>").val("UnderTakingLetterUnderwriter").html("UnderTaking Letter"));
+                    $("#empdoc_doctype").append($("<option></option>").val("ExitChecklist").html("Exit Checklist"));
+                    $("#empdoc_doctype").append($("<option></option>").val("ExitDocumentsChecklist").html("Exit Documents Checklist"));
+                }
+            },
+            error: function (error) {
+                alert('error; ' + eval(error));
+                alert('error; ' + error.responseText);
+            }
+        });
+    }
+    else if (code != '' && type == 'Dropout') {
+        $("#empdoc_doctype").append($("<option></option>").val("").html("Select"));
+        $("#empdoc_doctype").append($("<option></option>").val("Relievingletter").html("Relieving Letter"));
+        $("#empdoc_doctype").append($("<option></option>").val("Experienceletter").html("Experience Letter"));
+        $("#empdoc_doctype").append($("<option></option>").val("ClientAcknowledgementLetterNew").html("Client Acknowledgement Letter"));
+        $("#empdoc_doctype").append($("<option></option>").val("NoDueCertificate").html("No Due Certificate"));
+        $("#empdoc_doctype").append($("<option></option>").val("ExitInterviewForm").html("Exit Interview Form"));
+        $("#empdoc_doctype").append($("<option></option>").val("UnderTakingLetterUnderwriter").html("UnderTaking Letter"));
+        $("#empdoc_doctype").append($("<option></option>").val("ExitChecklist").html("Exit Checklist"));
+        $("#empdoc_doctype").append($("<option></option>").val("ExitDocumentsChecklist").html("Exit Documents Checklist"));
+    }
+}
+
+
+/*------------ Appreciation and Desciplinary Actions ------------*/
+
+function apprdesc_bindmastertable() {
+
+    apprdesc_html = '';
+    $.ajax({
+        url: "AppreciationAndDisciplinaryActionMaster.aspx/GetAllAppreciationDisciplinary",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                var addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
+                apprdesc_html += '<tr>';
+                apprdesc_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';
+                apprdesc_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.actionformat) + '</td>';
+                apprdesc_html += '<td style="text-wrap: wrap; ">' + blankForNull(value.Title) + '</td>';
+                apprdesc_html += '<td style="text-wrap: wrap; ">' + blankForNull(value.Description) + '</td>';
+                apprdesc_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.AddedByName) + '</td>';
+                apprdesc_html += '<td style="text-wrap: nowrap; ">' + blankForNull(addeddate) + '</td>';
+                apprdesc_html += '</tr>';
+            });
+
+            if ($.fn.dataTable.isDataTable('#apprdesc_table')) {
+                apprdesc_table.destroy();
+            }
+            $('#apprdesc_table tbody').html(apprdesc_html);
+            //else
+            apprdesc_table = $('#apprdesc_table').DataTable({
+                dom: 'tip',
+                scrollX: true,
+                destroy: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                },
+
+
+            });
+
+
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+function apprdesc_submit() {
+    var ddltype = document.getElementById("apprdesc_type");
+    var type = ddltype.options[ddltype.selectedIndex].value;
+    if (type == "") {
+        alert("Please select type.");
+        return false;
+    }
+    var title = document.getElementById("apprdesc_title").value;
+    if (title == "") {
+        alert("Please enter title.");
+        return false;
+    }
+    var description = CKEDITOR.instances['apprdesc_description'].getData();
+    if (description == "") {
+        alert("Please enter description.");
+        return false;
+    }
+
+    PageMethods.InsertAppreciationDesceplinaryAction(type, title, description, apprdesc_OnSuccess, apprdesc_OnError);
+    return false;
+}
+
+function apprdesc_OnSuccess(result) {
+    if (result > 0) {
+        document.getElementById("apprdesc_errmsg").innerHTML = "Details added successfully!";
+        $('#apprdesc_dverror').modal('show');
+        return false;
+    }
+    else {
+        document.getElementById("apprdesc_errmsg").innerHTML = "Oops! Error occured while adding details. Please contact administrator!";
+        document.getElementById("apprdesc_errmsg").style.color = 'red';
+        $('#apprdesc_dverror').modal('show');
+        return false;
+    }
+    return false;
+}
+
+function apprdesc_OnError(error) {
+    alert(error);
+}
+
+function setappr_BindUsers() {
+    var select = document.getElementById("setappr_employee");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#setappr_employee").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "SetAppreciationDisciplinaryAction.aspx/GetAllUsers", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                $("#setappr_employee").append($("<option></option>").val(value.Code).html(value.Code + ' : ' + value.Name));
+            })
+        }
+
+    });
+}
+
+function setappr_getEmpInfo(ddlemp) {
+    var code = ddlemp.options[ddlemp.selectedIndex].value;
+    $.ajax({
+        type: "POST", url: "SetAppreciationDisciplinaryAction.aspx/GetUserInformation", dataType: "json", contentType: "application/json",
+        data: "{Code:'" + code + "'}",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                document.getElementById("setappr_empname").innerHTML = blankForNull(value.FullName);
+                document.getElementById("setappr_joiningdate").innerHTML = blankForNull(value.JoiningDate);
+                document.getElementById("setappr_department").innerHTML = blankForNull(value.DepartmentName);
+                document.getElementById("setappr_designation").innerHTML = blankForNull(value.DesignationName);
+                document.getElementById("setappr_repotingmanager").innerHTML = blankForNull(value.ReportingManager);
+            })
+        }
+
+    });
+
+}
+
+function setappr_getApprTitle(ddltype) {
+    var type = ddltype.options[ddltype.selectedIndex].value;
+    var select = document.getElementById("setappr_title");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#setappr_title").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "SetAppreciationDisciplinaryAction.aspx/GetTypewiseTitle", dataType: "json", contentType: "application/json",
+        data: "{Type:'" + type + "'}",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                $("#setappr_title").append($("<option></option>").val(value.Title).html(value.Title));
+            })
+        }
+
+    });
+
+    if (type == "Appreciation") {
+        document.getElementById("setappr_trother").style.display = "none";
+    }
+    else if (type == "DisciplinaryAction") {
+        document.getElementById("setappr_trother").style.display = "";
+        document.getElementById("setappr_tdperiodheader").style.display = "";
+        document.getElementById("setappr_tdperiodrow").style.display = "";
+        document.getElementById("setappr_tdeffectivedateheader").style.display = "none";
+        document.getElementById("setappr_tdeffectivedaterow").style.display = "none";
+
+        var select = document.getElementById("setappr_period");
+        let options = select.getElementsByTagName('option');
+
+        for (var i = options.length; i--;) {
+            select.removeChild(options[i]);
+        }
+        $("#setappr_period").append($("<option></option>").val("").html("Select"));
+        $("#setappr_period").append($("<option></option>").val("5").html("5 Days"));
+        $("#setappr_period").append($("<option></option>").val("10").html("10 Days"));
+        $("#setappr_period").append($("<option></option>").val("15").html("15 Days"));
+        $("#setappr_period").append($("<option></option>").val("20").html("20 Days"));
+        $("#setappr_period").append($("<option></option>").val("25").html("25 Days"));
+        $("#setappr_period").append($("<option></option>").val("30").html("30 Days"));
+    }
+    else if (type == "PerformanceImprovementPlan") {
+        document.getElementById("setappr_trother").style.display = "";
+        document.getElementById("setappr_tdperiodheader").style.display = "";
+        document.getElementById("setappr_tdperiodrow").style.display = "";
+        document.getElementById("setappr_tdeffectivedateheader").style.display = "";
+        document.getElementById("setappr_tdeffectivedaterow").style.display = "";
+
+        var select = document.getElementById("setappr_period");
+        let options = select.getElementsByTagName('option');
+
+        for (var i = options.length; i--;) {
+            select.removeChild(options[i]);
+        }
+        $("#setappr_period").append($("<option></option>").val("").html("Select"));
+        $("#setappr_period").append($("<option></option>").val("1 Week").html("1 Week"));
+        $("#setappr_period").append($("<option></option>").val("2 Weeks").html("2 Weeks"));
+        $("#setappr_period").append($("<option></option>").val("3 Weeks").html("3 Weeks"));
+        $("#setappr_period").append($("<option></option>").val("4 Weeks").html("4 Weeks"));
+    }
+}
+
+function setappr_getApprDesc(ddltitle) {
+    var title = ddltitle.options[ddltitle.selectedIndex].value;
+    var ddltype = document.getElementById("setappr_type");
+    var type = ddltype.options[ddltype.selectedIndex].value;
+    $.ajax({
+        type: "POST", url: "SetAppreciationDisciplinaryAction.aspx/GetTypeandTitlewiseDescription", dataType: "json", contentType: "application/json",
+        data: "{Type:'" + type + "', Title:'" + title + "'}",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                CKEDITOR.instances['setappr_description'].setData(blankForNull(value.DesignDescription));
+                document.getElementById("setappr_apprid").innerHTML = blankForNull(value.AppreciationDisciplinaryID);
+            })
+        }
+
+    });
+}
+
+function setappr_preview() {
+    var ddltitle = document.getElementById("setappr_title");
+    var title = ddltitle.options[ddltitle.selectedIndex].value;
+    var ddltype = document.getElementById("setappr_type");
+    var type = ddltype.options[ddltype.selectedIndex].value;
+    var sub = "";
+    if (type = "DisciplinaryAction")
+        sub = "Warning: " + title;
+    else
+        sub = ddltype.options[ddltype.selectedIndex].value + ": " + title;
+    document.getElementById("setappr_popname").innerHTML = document.getElementById("setappr_empname").innerHTML;
+    document.getElementById("setappr_popdoj").innerHTML = document.getElementById("setappr_joiningdate").innerHTML;
+    document.getElementById("setappr_popsubject").innerHTML = sub;
+    document.getElementById("setappr_popdesc").innerHTML = CKEDITOR.instances['setappr_description'].getData();
+    document.getElementById("setappr_popdate").innerHTML = new Date().toLocaleDateString("en-US");
+    $("#setappr_previewpop").modal("show");
+    return false;
+}
+
+function setappr_submit() {
+    var ddluser = document.getElementById("setappr_employee");
+    var empid = ddluser.options[ddluser.selectedIndex].value;
+    var ddltitle = document.getElementById("setappr_title");
+    var title = ddltitle.options[ddltitle.selectedIndex].value;
+    var ddltype = document.getElementById("setappr_type");
+    var type = ddltype.options[ddltype.selectedIndex].value;
+    var ddlperiod = document.getElementById("setappr_period");
+    var period = ddlperiod.options[ddlperiod.selectedIndex].value;
+    var apprdescID = document.getElementById("setappr_apprid").innerHTML;
+    var editor = CKEDITOR.instances['setappr_description'].getData();
+    $('#waitingpanel').modal('show');
+    PageMethods.SetAppreciationDescAction(empid, apprdescID, editor, title, type, period, setappr_sub_OnSuccess, setappr_sub_OnError);
+    return false;
+}
+
+function setappr_sub_OnSuccess(result) {
+    $('#waitingpanel').modal('hide');
+    if (result > 0) {
+        document.getElementById("setappr_errmsg").innerHTML = "Record added successfully.!";
+        $('#setappr_dverror').modal('show');
+        return false;
+    }
+    else {
+        document.getElementById("setappr_errmsg").innerHTML = "Oops! Error occured while sending notification. <br /> Please contact administrator!";
+        document.getElementById("setappr_errmsg").style.color = 'red';
+        $('#setappr_dverror').modal('show');
+        return false;
+    }
+    return false;
+}
+
+function setappr_sub_OnError(error) {
+    alert(error);
+}
+
+function setappr_bindgrid() {
+    $('#load1').show();
+
+    var setapp_gr_html = '';
+    $.ajax({
+        url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsRecords",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                setapp_gr_html += '<tr>';
+                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.BranchName) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DepartmentName) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DesignationName) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ReportingManager) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ActionMonth) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ActionYear) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'Appreciation\')">' + blankForNull(value.Appreciation) + '</a></td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'DisciplinaryAction\')">' + blankForNull(value.Warnings) + '</a></td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'PerformanceImprovementPlan\')">' + blankForNull(value.PIP) + '</a></td>';
+
+                setapp_gr_html += '</tr>';
+            });
+
+            if ($.fn.dataTable.isDataTable('#setappr_gr_table')) {
+                setappr_gr_table.destroy();
+            }
+            $('#setappr_gr_table tbody').html(setapp_gr_html);
+            //else
+            setappr_gr_table = $('#setappr_gr_table').DataTable({
+                dom: 'ftip',
+                scrollX: true,
+                destroy: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+
+                }
+            });
+            var column = setappr_gr_table.column(4);
+
+            var select = $('#filterLocation');
+
+            column.data().unique().sort().each(function (d) {
+                select.append('<option value="' + d + '">' + d + '</option>')
+            });
+
+            column = setappr_gr_table.column(5);
+
+            select = $('#filterDepartment');
+
+            column.data().unique().sort().each(function (d) {
+                select.append('<option value="' + d + '">' + d + '</option>')
+            });
+
+            //setappr_gr_table.column(8).data().unique().sort().each(function (d) {
+            //    $('#filterYear').append('<option value="' + d + '">' + d + '</option>');
+            //});
+            var columnYear = setappr_gr_table.column(8);   // year column index
+            var years = columnYear.data().unique().toArray().sort().reverse();
+
+            $.each(years, function (i, d) {
+                $('#filterYear').append('<option value="' + d + '">' + d + '</option>');
+            });
+            //columnYear.data().unique().sort().each(function (d) {
+            //    $('#filterYear').append('<option value="' + d + '">' + d + '</option>');
+            //});
+
+            var months = [];
+
+            setappr_gr_table.column(7).data().unique().each(function (d) {
+                months.push(d);
+            });
+
+            months.sort(function (a, b) {
+                return new Date(Date.parse(a + " 1, 2012")) - new Date(Date.parse(b + " 1, 2012"));
+            });
+
+            $.each(months, function (i, m) {
+                $('#filterMonth').append('<option value="' + m + '">' + m + '</option>');
+            });
+
+            // Month filter
+            //setappr_gr_table.column(7).data().unique().sort().each(function (d) {
+            //    $('#filterMonth').append('<option value="' + d + '">' + d + '</option>');
+            //});
+
+            $('#filterLocation').on('change', function () {
+                setappr_gr_table.column(4).search(this.value).draw();
+            });
+
+            $('#filterDepartment').on('change', function () {
+                setappr_gr_table.column(5).search(this.value).draw();
+            });
+
+            $('#filterMonth').on('change', function () {
+                setappr_gr_table.column(7).search(this.value).draw();
+            });
+
+            $('#filterYear').on('change', function () {
+                setappr_gr_table.column(8).search(this.value).draw();
+            });
+
+
+        },
+
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+
+function setappr_bindgrid_core() {
+    $('#load1').show();
+
+    var setapp_gr_html = '';
+    $.ajax({
+        url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsRecords",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                setapp_gr_html += '<tr>';
+                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.BranchName) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DepartmentName) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DesignationName) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ReportingManager) + '</td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'Appreciation\')">' + blankForNull(value.Appreciation) + '</a></td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'DisciplinaryAction\')">' + blankForNull(value.Warnings) + '</a></td>';
+                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'PerformanceImprovementPlan\')">' + blankForNull(value.PIP) + '</a></td>';
+
+                setapp_gr_html += '</tr>';
+            });
+
+            if ($.fn.dataTable.isDataTable('#setappr_gr_table')) {
+                setappr_gr_table.destroy();
+            }
+            $('#setappr_gr_table tbody').html(setapp_gr_html);
+            //else
+            setappr_gr_table = $('#setappr_gr_table').DataTable({
+                dom: 'ftip',
+                scrollX: true,
+                destroy: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+        },
+
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+function setappr_binddetailsbyType(empid, type) {
+    $("#setappr_viewdetails").modal('show')
+    $('#load1').show();
+    var setapp_gr_html = '';
+    $.ajax({
+        url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsByType",
+        type: "POST",
+        dataType: "json",
+        data: "{EmployeeID:" + empid + ", Type:'" + type + "'}",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            var dvmain = document.getElementById("dvslidermain");
+            dvmain.innerHTML = "";
+            var dvinner = document.createElement("div");
+            dvinner.id = "carouselExampleIndicators";
+            dvinner.setAttribute("data-ride", "carousel");
+            dvinner.classList.add("carousel");
+            dvinner.classList.add("slide");
+
+            if (dataArray.length > 1) {
+                var a = document.createElement("a");
+                a.classList.add("carousel-control-prev");
+                a.setAttribute("href", "#carouselExampleIndicators");
+                a.setAttribute("role", "button");
+                a.setAttribute("data-slide", "prev");
+                var span = document.createElement("span");
+                span.classList.add("carousel-control-prev-icon");
+                a.appendChild(span);
+                dvinner.appendChild(a);
+                a = document.createElement("a");
+                a.classList.add("carousel-control-next");
+                a.setAttribute("href", "#carouselExampleIndicators");
+                a.setAttribute("role", "button");
+                a.setAttribute("data-slide", "next");
+                span = document.createElement("span");
+                span.classList.add("carousel-control-next-icon");
+                a.appendChild(span);
+                dvinner.appendChild(a);
+            }
+
+            var dvinner2 = document.createElement("div");
+            dvinner2.classList.add("carousel-inner");
+            dvinner2.setAttribute("role", "listbox");
+
+            $.each(dataArray, function (index, value) {
+                var dvslide = document.createElement("div");
+                dvslide.classList.add("carousel-item");
+                if (index == 0)
+                    dvslide.classList.add("active");
+                var dvouter12 = document.createElement("div");
+                dvouter12.classList.add("col-lg-12");
+                var dvrow = document.createElement("div");
+                dvrow.classList.add("row");
+                var dvleft = document.createElement("div");
+                dvleft.classList.add("col-md-10");
+                var table = document.createElement("table");
+                var tr = document.createElement("tr");
+                var td = document.createElement("td");
+                td.innerHTML = "<b>Name:</b> " + blankForNull(value.Name);
+                tr.appendChild(td);
+                table.appendChild(tr);
+                tr = document.createElement("tr");
+                td = document.createElement("td");
+                td.innerHTML = "<b>Joining Date:</b> " + blankForNull(value.JoiningDate);
+                tr.appendChild(td);
+                table.appendChild(tr);
+                tr = document.createElement("tr");
+                td = document.createElement("td");
+                td.innerHTML = "<b>Location:</b> " + blankForNull(value.BranchName);
+                tr.appendChild(td);
+                table.appendChild(tr);
+                dvleft.appendChild(table);
+                dvrow.appendChild(dvleft);
+                var dvright = document.createElement("div");
+                dvright.classList.add("col-md-2");
+                var addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
+                dvright.innerHTML = "<b>Date:</b> " + blankForNull(addeddate);
+                dvrow.appendChild(dvright);
+                dvouter12.appendChild(dvrow);
+
+                dvrow = document.createElement("div");
+                dvrow.classList.add("row");
+                var dvcenter = document.createElement("div");
+                dvcenter.classList.add("col-md-12");
+                dvcenter.style.textAlign = "center";
+                var hr = document.createElement("hr");
+                dvcenter.appendChild(hr);
+                var h5 = document.createElement("h5");
+                h5.innerHTML = blankForNull(value.Title);
+                dvcenter.appendChild(h5);
+                hr = document.createElement("hr");
+                dvcenter.appendChild(hr);
+                dvrow.appendChild(dvcenter);
+                dvouter12.appendChild(dvrow);
+
+
+                dvrow = document.createElement("div");
+                dvrow.classList.add("row");
+                dvcenter = document.createElement("div");
+                dvcenter.classList.add("col-md-12");
+                var lbl = document.createElement("label");
+                lbl.innerHTML = blankForNull(value.Description);
+                dvcenter.appendChild(lbl);
+                dvrow.appendChild(dvcenter);
+                dvouter12.appendChild(dvrow);
+                dvslide.appendChild(dvouter12);
+                dvinner2.appendChild(dvslide);
+                dvinner.appendChild(dvinner2);
+
+                dvmain.appendChild(dvinner);
+
+
+            });
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    $('#load1').hide();
+    return false;
+}
+
+
+/*-------------------  Project Configuration -------------------*/
+
+function projectconf_binddomaingroups() {
+    var select = document.getElementById("projectconf_domain");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#projectconf_domain").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ProjectConfiguration.aspx/GetAllDomainGroups", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            $.each(dataArray, function (data, value) {
+                $("#projectconf_domain").append($("<option></option>").val(value.DomainGroupId).html(value.DomainGroupName));
+            })
+        }
+
+    });
+}
+
+function projectconf_domainchange() {
+    var select = document.getElementById("projectconf_subdomain");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+
+    var ddlDomain = document.getElementById('projectconf_domain');
+    var index = ddlDomain.selectedIndex;
+    var DomainGroupId = ddlDomain.options[index].value;
+    $("#projectconf_subdomain").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ProjectConfiguration.aspx/GetSubdomains", dataType: "json", contentType: "application/json",
+        data: "{DomainGroupId:" + DomainGroupId + "}",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+
+            $.each(dataArray, function (data, value) {
+                $("#projectconf_subdomain").append($("<option></option>").val(value.SubdomainID).html(value.SubdomainName));
+            })
+        }
+    });
+    return false;
+}
+
+
+/*------------------- POSH Test -------------------*/
+
+function posh_BindTest() {
+
+    $('#load1').show();
+    var Current;
+    var Prev;
+    $.ajax({
+        type: "POST", url: "PoshTest.aspx/GetPoshQuestions", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            var index = 0;
+            var questionno = 1;
+            var dvmain = document.getElementById("dvposhtest");
+            var dvHeader;
+            $.each(dataArray, function (data, value) {
+                Current = blankForNull(value.Section);
+                if (index == 0 || Current != Prev) {
+                    dvHeader = document.createElement("div");
+                    dvHeader.classList.add("col-12");
+                    dvHeader.classList.add("col-md");
+                    var h4 = document.createElement("h5");
+                    h4.innerHTML = blankForNull(value.Section);
+                    if (index > 0)
+                        h4.style.paddingTop = "20px";
+                    dvHeader.appendChild(h4);
+                    var hr = document.createElement("hr");
+                    dvHeader.appendChild(hr);
+
+                    if (questionno == 19) {
+                        var p1 = document.createElement("p");
+                        p1.innerHTML = "<h6>Read the following case and answer the questions below:</h6>";
+                        dvHeader.appendChild(p1);
+                        var p2 = document.createElement("p");
+                        p2.innerHTML = "<h6><b>Case:</b> A colleague regularly makes inappropriate comments about your appearance and shares sexually suggestive memes via email.You have politely told them to stop, but the behavior continues.</h6><br />";
+                        dvHeader.appendChild(p2);
+                    }
+
+                    var p = document.createElement("h6");
+                    p.innerHTML = questionno + ": " + blankForNull(value.Question);
+                    p.style.marginLeft = "5%";
+                    p.classList.add("mb-2");
+                    p.classList.add("mt-0");
+                    p.classList.add("text-body-primary");
+                    p.classList.add("fs-0");
+                    dvHeader.appendChild(p);
+                    questionno++;
+
+                    var select = document.createElement("select");
+                    select.id = "option_" + blankForNull(value.QuestionID);
+                    select.style.width = "300px";
+                    select.style.marginLeft = "5%";
+                    select.classList.add("form-control");
+                    var option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "Select";
+                    select.appendChild(option);
+                    if (blankForNull(value.Option1) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option1);
+                        option.textContent = blankForNull(value.Option1);
+                        select.appendChild(option);
+                    }
+                    if (blankForNull(value.Option2) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option2);
+                        option.textContent = blankForNull(value.Option2);
+                        select.appendChild(option);
+                    }
+                    if (blankForNull(value.Option3) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option3);
+                        option.textContent = blankForNull(value.Option3);
+                        select.appendChild(option);
+                    }
+                    if (blankForNull(value.Option4) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option4);
+                        option.textContent = blankForNull(value.Option4);
+                        select.appendChild(option);
+                    }
+                    dvHeader.appendChild(select);
+                    dvmain.appendChild(dvHeader);
+                }
+                else {
+                    var p = document.createElement("h6");
+                    p.innerHTML = questionno + ": " + blankForNull(value.Question);
+                    p.style.marginLeft = "5%";
+                    p.style.paddingTop = "20px";
+                    p.classList.add("mb-2");
+                    p.classList.add("mt-0");
+                    p.classList.add("text-body-primary");
+                    p.classList.add("fs-0");
+                    dvHeader.appendChild(p);
+                    questionno++;
+
+                    var select = document.createElement("select");
+                    select.id = "option_" + blankForNull(value.QuestionID);
+                    select.style.width = "300px";
+                    select.style.marginLeft = "5%";
+                    select.classList.add("form-control");
+                    var option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "Select";
+                    select.appendChild(option);
+                    if (blankForNull(value.Option1) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option1);
+                        option.textContent = blankForNull(value.Option1);
+                        select.appendChild(option);
+                    }
+                    if (blankForNull(value.Option2) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option2);
+                        option.textContent = blankForNull(value.Option2);
+                        select.appendChild(option);
+                    }
+                    if (blankForNull(value.Option3) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option3);
+                        option.textContent = blankForNull(value.Option3);
+                        select.appendChild(option);
+                    }
+                    if (blankForNull(value.Option4) != "") {
+                        option = document.createElement("option");
+                        option.value = blankForNull(value.Option4);
+                        option.textContent = blankForNull(value.Option4);
+                        select.appendChild(option);
+                    }
+                    dvHeader.appendChild(select);
+                    dvmain.appendChild(dvHeader);
+                }
+
+                Prev = Current;
+                index++;
+
+            })
+            var btn = document.createElement("button");
+            btn.id = "posh_btnsubmit";
+            btn.classList.add("btn");
+            btn.classList.add("btn-primary");
+            btn.style.marginLeft = "50%";
+            btn.setAttribute("onclick", "return posh_submit();");
+            btn.innerHTML = "Submit";
+            dvmain.appendChild(btn);
+        }
+
+    });
+    $('#load1').hide();
+}
+
+function posh_submit() {
+
+    var params = "";
+    var parameters = "";
+    $.ajax({
+        type: "POST", url: "PoshTest.aspx/GetPoshQuestions", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            var index = 0;
+            var questionno = 1;
+
+            $.each(dataArray, function (data, value) {
+                var control = document.getElementById("option_" + blankForNull(value.QuestionID));
+                var id = control.id;
+                var value = control.options[control.selectedIndex].value;
+                params = id + '~' + value;
+                parameters = parameters + ':' + params;
+                if (value == "") {
+                    alert("All questions are mandatory. Please fill Question #" + questionno);
+                    parameters = "";
+                    document.getElementById("option_" + blankForNull(value.QuestionID)).focus();
+                    return false;
+                }
+                questionno++;
+
+            })
+            if (parameters != "") {
+                $('#waitingpanel').modal('show');
+                PageMethods.InsertPoshTest(parameters, poshtest_OnSuccess, poshtest_OnError);
+            }
+        }
+    });
+
+    return false;
+}
+
+function poshtest_OnSuccess(result) {
+
+    $('#waitingpanel').modal('hide');
+    if (result > 0) {
+        document.getElementById("posh_errmsg").innerHTML = "Induction test submitted succesfully.!";
+        $('#posh_dverror').modal('show');
+        return false;
+    }
+    else {
+        document.getElementById("posh_errmsg").innerHTML = "Oops! Error occured while submitting indeuction test. <br /> Please contact administrator!";
+        document.getElementById("posh_errmsg").style.color = 'red';
+        $('#posh_dverror').modal('show');
+        return false;
+    }
+}
+
+function poshtest_OnError(error) {
+
+    alert(error);
+}
+
+function posh_Message() {
+
+    $('#posh_dverror').modal('hide');
+    $.ajax({
+        type: "POST", url: "PoshTest.aspx/GetPoshTestResult", dataType: "json", contentType: "application/json",
+        success: function (data) {
+            var dataArray1 = JSON.parse(data.d);
+            $.each(dataArray1, function (data1, value1) {
+                if (value1.Result == "Pass")
+                    location.href = "DashboardEmployee.aspx";
+                if (value1.Result == "Fail") {
+                    document.getElementById("dvposhtest").innerHTML = "<h5>You have successfully completed test. Please check your result below.<br /><br />Marks:&nbsp;" + value1.Marks + " &nbsp;&nbsp;&nbsp;&nbsp;Result:&nbsp;" + value1.Result + "</h5>";
+                    document.getElementById("dvposhtest").innerHTML += "<br /><h5>Please <a style='font-style:italic;' href='#url' onclick='return posh_setretest();'>click here</a> for one more attempt.<h5>";
+                }
+            });
+        }
+    });
+}
+
+function posh_setretest() {
+    PageMethods.SetPoshRetest(poshretest_OnSuccess, poshretest_OnError);
+    return false;
+}
+
+function poshretest_OnSuccess(result) {
+    ChekIfPoshTestExists();
+    return false;
+}
+
+function poshretest_OnError(error) {
+    alert(error);
+}
+
+function posh_setretestvideo() {
+    PageMethods.SetPoshRetest(poshretestvideo_OnSuccess, poshretestvideo_OnError);
+    return false;
+}
+
+function poshretestvideo_OnSuccess(result) {
+    location.href = "POSHVideo.aspx";
+    return false;
+}
+
+function poshretestvideo_OnError(error) {
+    alert(error);
+}
+
+function ChekIfPoshTestExists() {
+
+    $.ajax({
+        type: "POST", url: "PoshTest.aspx/GetExistanceOfPoshTest", dataType: "json", contentType: "application/json",
+
+        success: function (res) {
+            var dataArray = JSON.parse(res.d);
+            var index = 0;
+            var questionno = 1;
+            if (dataArray == null || dataArray == '') {
+
+                $.ajax({
+                    type: "POST", url: "PoshTest.aspx/GetPoshTestResult", dataType: "json", contentType: "application/json",
+
+                    success: function (data) {
+
+                        var dataArray1 = JSON.parse(data.d);
+
+                        $.each(dataArray1, function (data1, value1) {
+                            document.getElementById("dvposhtest").innerHTML = "<h5>You have successfully completed test. Please check your result below.<br /><br />Marks:&nbsp;" + value1.Marks + " &nbsp;&nbsp;&nbsp;&nbsp;Result:&nbsp;" + value1.Result + "</h5>";
+                            if (value1.Result == "Fail")
+                                document.getElementById("dvposhtest").innerHTML += "<br /><h5>Please <a style='font-style:italic;' href='#url' onclick='return posh_setretestvideo();'>click here</a> to watch the video again, or <a style='font-style:italic;' href='#url' onclick='return posh_setretest();'>click here</a> to skip it and reattempt the test.<h5>";
+                        });
+                    }
+                });
+            }
+            else {
+                document.getElementById("dvposhtest").innerHTML = "";
+                // $.each(dataArray, function (data, value) {
+                posh_BindTest();
+                // })
+            }
+        }
+    });
+
+}
+
+function poshvi_Message() {
+    location.href = "PoshTest.aspx";
+}
+
+
+/*------------- POSH Test Result ------------- */
+
+function poshtestres_bindyear() {
+    var start = new Date().getFullYear();
+
+    var select = document.getElementById("poshtestres_year");
+    let options = select.getElementsByTagName('option');
+
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+
+    $("#poshtestres_year").append($("<option></option>").val("Select").html("Select"));
+    for (var i = start; i > start - 15; i--) {
+        $("#poshtestres_year").append($("<option></option>").val(i).html(i));
+    }
+}
+
+function poshtestres_submit() {
+    var ddlmonth = document.getElementById("poshtestres_month");
+    var month = ddlmonth.options[ddlmonth.selectedIndex].value;
+    var ddlyear = document.getElementById("poshtestres_year");
+    var year = ddlyear.options[ddlyear.selectedIndex].value;
+
+    if (month == "") {
+        alert("Please select Month");
+        return false;
+    }
+    if (year == "") {
+        alert("Please select Year");
+        return false;
+    }
+
+    bind_poshtestSummary(month, year);
+
+    $('#load1').show();
+    poshtestres_html = '';
+    $.ajax({
+        url: "PoshTestResult.aspx/getPoshTestReport",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        data: "{Month:'" + month + "',Year:'" + year + "'}",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                poshtestres_html += '<tr>';
+                poshtestres_html += '<td style="display:none;">' + value.EmployeeID + '</td>';
+
+                if (value.Status == "Completed")
+                    poshtestres_html += '<td style="text-align:center;"><a class="dropdown-item" href="#!" id="Actions" onclick="poshtestres_paper_showanswersheet(' + value.EmployeeID + ',' + index + ');" title="Show Answer Sheet"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file-check" style="font-size:16px;"></i></span></a></td>';
+                else
+                    poshtestres_html += '<td style="text-align:center;"><a class="dropdown-item isDisabled" href="#!" id="Actions" onclick="poshtestres_paper_showanswersheet(' + value.EmployeeID + ',' + index + ');" title="Show Answer Sheet"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file-check" style="font-size:16px;"></i></span></a></td>';
+
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.BranchName) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.TestStatus) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.TestDate) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Marks) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Result) + '</td>';
+                poshtestres_html += '<td style="text-wrap: nowrap; display:none;"><a href="#url">View Result</a></td>';
+                poshtestres_html += '</tr>';
+            });
+
+            if ($.fn.dataTable.isDataTable('#poshtestres_table')) {
+                poshtestres_table.destroy();
+            }
+            $('#poshtestres_table tbody').html(poshtestres_html);
+            //else
+            poshtestres_table = $('#poshtestres_table').DataTable({
+                dom: 'Bftip',
+                scrollX: true,
+                destroy: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                },
+
+                buttons: [
+                    {
+                        extend: 'excelHtml5', title: 'POSH Test Result Report', autoFilter: true,
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                        }
+                    },
+                ],
+            });
+
+            //$('#fnalize tbody').on('click', 'tr', function () {
+            //    row = table.row(this).data();
+            //});
+        },
+
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+function poshtestres_paper_showanswersheet(EmpID, index) {
+
+    location.href = 'POSHAnswerSheet.aspx?EmpID=' + EmpID;
+}
+
+function posh_ans_BindGrid() {
+
+    var title = "POSH Answer Sheet";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const EmpID = urlParams.get('EmpID');
+
+
+    if (EmpID != '') {
+        $('#load1').show();
+
+        posh_ans_html = '';
+        $.ajax({
+            url: "POSHAnswerSheet.aspx/GetPoshAnswerSheet",
+            type: "POST",
+            data: "{EmpID:" + EmpID + "}",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                var dataArray = JSON.parse(data.d);
+
+                var TotalMarks = 0;
+                var ObtainMark = 0;
+
+                $.each(dataArray, function (index, value) {
+
+                    posh_ans_html += '<tr>';
+                    posh_ans_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(index + 1) + '</td>';
+                    posh_ans_html += '<td style="text-wrap: wrap; text-align:left;">' + blankForNull(value.Section) + '</td>';
+                    posh_ans_html += '<td style="text-wrap: wrap; text-align:left;">' + blankForNull(value.Question) + '</td>';
+                    posh_ans_html += '<td style="text-wrap: wrap; text-align:left;">' + blankForNull(value.Answer) + '</td>';
+                    posh_ans_html += '<td style="text-wrap: wrap; text-align:left;">' + blankForNull(value.CorrectAnswer) + '</td>';
+                    posh_ans_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.Weightage) + '</td>';
+                    posh_ans_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.ObtainMarks) + '</td>';
+                    posh_ans_html += '</tr>';
+
+                    TotalMarks = parseInt(value.Weightage) + TotalMarks;
+                    ObtainMark = parseInt(value.ObtainMarks) + ObtainMark;
+
+                    document.getElementById("posh_ans_marks").innerHTML = "<b>Obtain Marks : </b>" + ObtainMark + " / " + TotalMarks;
+                    document.getElementById("posh_ans_name").innerHTML = "<b>Employee Name : </b>" + blankForNull(value.EmpName);
+                    document.getElementById("posh_ans_examdate").innerHTML = "<b>Exam Date : </b>" + blankForNull(value.ExamDate);
+                });
+
+
+                if (parseInt(ObtainMark) >= 35) {
+                    document.getElementById("posh_answer_result").innerHTML = "Result : PASS";
+                    document.getElementById("posh_answer_result").style.color = "green";
+                    document.getElementById("posh_answer_result").style.font.bold = true;
+                }
+                else if (parseInt(ObtainMark) < 35 && parseInt(ObtainMark) > 0) {
+                    document.getElementById("posh_answer_result").innerHTML = "Result : FAIL";
+                    document.getElementById("posh_answer_result").style.color = "red";
+                    document.getElementById("posh_answer_result").style.font.bold = true;
+                }
+                else {
+                    document.getElementById("posh_answer_result").innerHTML = "Result : Test Pending";
+                    document.getElementById("posh_answer_result").style.color = "black";
+                    document.getElementById("posh_answer_result").style.font.bold = true;
+                }
+
+                if ($.fn.dataTable.isDataTable('#table_posh_ans')) {
+                    posh_ans_table.destroy();
+                }
+                $('#table_posh_ans tbody').html(posh_ans_html);
+                //else
+                posh_ans_table = $('#table_posh_ans').DataTable({
+                    dom: 't',
+                    destroy: true,
+                    scrollX: true,
+                    "paging": false,
+                    "autoWidth": true,
+                    select: true,
+                    "ordering": false,
+                    processing: true,
+                    'select': {
+                        'style': 'single'
+                    },
+
+                    initComplete: function () {
+                        $('#load1').hide();
+                    },
+
+                    footerCallback: function (row, data, start, end, display) {
+                        let api = this.api();
+
+                        // Remove the formatting to get integer data for summation
+                        let intVal = function (i) {
+                            return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+                        };
+
+                        // Total over all pages
+                        totalLoan = api.column(5).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+                        totalAmt = api.column(6).data().reduce((a, b) => intVal(a) + intVal(b), 0);
+
+                        // Total over this page
+
+                        // Update footer
+                        api.column(5).footer().innerHTML = Number(totalLoan).toFixed(2);
+                        api.column(6).footer().innerHTML = Number(totalAmt).toFixed(2);
+                    },
+
+                    //buttons: [
+                    //    {
+                    //        extend: 'excelHtml5', title: title, autoFilter: true,
+                    //        exportOptions: {
+                    //            columns: [0, 1, 2, 3],
+                    //        }
+                    //    },
+                    //],
+                });
+            },
+            error: function (error) {
+                alert('error; ' + eval(error));
+                alert('error; ' + error.responseText);
+            }
+        });
+    }
+    return false;
+}
+
+function bind_poshtestSummary(Month, Year) {
+
+    $('#load1').show();
+    poshtestSummary_html = '';
+    $.ajax({
+        url: "PoshTestResult.aspx/GetPOSHDataForSummary_MonthWise",
+        data: "{Month:'" + Month + "', Year:'" + Year + "'}",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);
+            $.each(dataArray, function (index, value) {
+                poshtestSummary_html += '<tr>';
+                poshtestSummary_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';
+                poshtestSummary_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.BranchName) + '</td>';
+                poshtestSummary_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.Total) + '</td>';
+                poshtestSummary_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.Completed) + '</td>';
+                poshtestSummary_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.Pending) + '</td>';
+                poshtestSummary_html += '</tr>';
+            });
+
+            if ($.fn.dataTable.isDataTable('#table_poshtestSummary')) {
+                poshtestSummary_table.destroy();
+            }
+            $('#table_poshtestSummary tbody').html(poshtestSummary_html);
+            poshtestSummary_table = $('#table_poshtestSummary').DataTable({
+                dom: 'fti',
+                scrollX: true,
+                destroy: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                },
+            });
+
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+
+/*----------- Underwriting Test Result ----------- */
+
+function cruw_send_Submit() {
+    var fromdate = document.getElementById("cruw_send_from").value;
+    var todate = document.getElementById("cruw_send_to").value;
+
+    if (fromdate == "") {
+        alert("Please select from date");
+        return false;
+    }
+    if (todate == "") {
+        alert("Please select to date");
+        return false;
+    }
+    $('#load1').show();
+    cruw_send_html = '';
+    $.ajax({
+        url: "UnderwritingTestModule.aspx/GetCredit_UWCandidateForSendMail",
+        type: "POST",
+        data: "{FromDate:'" + fromdate + "', ToDate:'" + todate + "'}",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $.each(dataArray, function (index, value) {
+                cruw_send_html += '<tr>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(index + 1) + '</td>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="checkbox" class="custom-checkbox" id="chk' + blankForNull(value.AppID) + '"></td>';
+                cruw_send_html += '<td style="text-wrap: wrap; text-align:left;">' + blankForNull(value.AppID) + '</td>';
+                cruw_send_html += '<td style="text-wrap: wrap; text-align:left;">' + blankForNull(value.Name) + '</td>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.Position) + '</td>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.EmailID) + '</td>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.CellPhoneNo) + '</td>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.Result) + '</td>';
+                cruw_send_html += '<td style="text-wrap: nowrap; text-align:left;">' + blankForNull(value.MarksObtained) + '</td>';
+                cruw_send_html += '</tr>';
+            });
+            if ($.fn.dataTable.isDataTable('#cruw_send_table')) {
+                cruw_send_table.destroy();
+            }
+            $('#cruw_send_table tbody').html(cruw_send_html);
+            //else
+            cruw_send_table = $('#cruw_send_table').DataTable({
+                dom: 'lBftip',
+                destroy: true,
+                "paging": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                'select': {
+                    'style': 'single'
+                },
+                initComplete: function () {
+                    $('#load1').hide();
+                    $("#cruw_table").wrap("<div style='overflow:auto; width:100%;position:relative;'></div>");
+
+                },
+
+                buttons: [
+                    {
+                        extend: 'excelHtml5', title: 'Credit Test Candidates', autoFilter: true,
+                        exportOptions: {
+                            columns: [0, 2, 3, 4, 5, 6, 7, 8],
+                        }
+
+                    },
+
+
+                ],
+
+            });
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+    return false;
+}
+
+
+// Worked Holiday
+
+function core_wholiday_bindgrid() {
+    $('#load1').show();
+    $.ajax({
+        url: "WorkedHolidays.aspx/GetAllEmployeeWorkedHoliday",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $('#wholidays_table').DataTable({
+                dom: 'ftip',
+                destroy: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: true,
+                "paging": false,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                filter: true,
+                'select': {
+                    'style': 'single'
+                },
+                "serverSide": false,
+                "data": dataArray,
+                columns: [
+                    { data: '' },
+                    { data: 'Code' },
+                    { data: 'FullName' },
+                    { data: 'Branch' },
+                    { data: 'Days' },
+                    { data: 'ReportingManager' }
+
+                ],
+                fnCreatedRow: function (nRow, aData, iDataIndex) {
+                    $(nRow).children("td").css("text-wrap", "nowrap");
+                },
+                columnDefs: [
+                    {
+                        targets: 0,
+                        "width": "45px",
+                        render: function (data, type, row, meta) {
+                            return '<a class="dropdown-item" href="#!" id="Actions" onclick="wholiday_showpopup(' + meta.row + ');"><span style="color: forestgreen;"><i class="uil fs-1 me-2 uil-search"></i></span></a>';
+                            //return '<input type="button" class="btn-primary" id=viewdetails-"' + meta.row + '" value="Details" onclick="return ViewPolicyDetails(\'' + meta.row + '\');" />&nbsp;<input type="button" class="btn-default" id=viewtasks-"' + meta.row + '" value="Tasks"  onclick="return ViewTaskDetails(\'' + meta.row + '\');"/>';
+                        }
+
+                    }
+                ],
+
+                initComplete: function () {
+                    $('#load1').hide();
+
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5', title: 'Employees Due For Increment', autoFilter: true,
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+                        }
+
+                    },
+
+
+                ],
+
+            });
+        },
+
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+
+    return false;
+}
+
+function wholiday_bindgrid() {
+
+    $('#load1').show();
+
+    // Destroy only if already initialized
+    if ($.fn.DataTable.isDataTable('#wholidays_table')) {
+        $('#wholidays_table').DataTable().clear().destroy();
+    }
+
+    $.ajax({
+        url: "WorkedHolidays.aspx/GetAllEmployeeWorkedHoliday",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (response) {
+
+            let dataArray = [];
+
+            try {
+                dataArray = JSON.parse(response.d) || [];
+            } catch (e) {
+                console.error("JSON parse error", e);
+            }
+
+            $('#wholidays_table').DataTable({
+                dom: 'ftip',
+                data: dataArray,
+                destroy: true,
+                processing: true,
+                deferRender: true,   // ✅ improves speed for large data
+                scrollX: true,
+                autoWidth: false,
+                paging: true,
+                ordering: false,
+                searching: true,
+                fixedHeader: true,
+
+                select: { style: 'single' },
+
+                columns: [
+                    { data: null, defaultContent: '' },
+                    { data: 'Code' },
+                    { data: 'FullName' },
+                    { data: 'Branch' },
+                    { data: 'Days' },
+                    { data: 'ReportingManager' }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: 0,
+                        width: "45px",
+                        orderable: false,
+                        render: function (data, type, row, meta) {
+                            return `<a href="#!" title="View Worked Holiday Details" onclick="wholiday_showpopup(${meta.row})"><i class="uil uil-search" style="color: dodgerblue;" ></i></a>`;
+                        }
+                    }
+                ],
+
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+        },
+
+        error: function (xhr) {
+            $('#load1').hide();
+            console.error("Error:", xhr.responseText);
+            alert("Something went wrong while loading data.");
+        }
+    });
+
+    return false;
+}
+
+function wholiday_showpopup(index) {
+
+    var rows = $('#wholidays_table').DataTable().row(index).data();
+    document.getElementById("wholiday_popup_name").innerHTML = rows.Code + ' : ' + rows.FullName;
+
+    $('#load1').show();
+    $.ajax({
+        url: "WorkedHolidays.aspx/GetWorkedHolidayLogDetails",
+        type: "POST",
+        dataType: "json",
+        data: "{Code:'" + rows.Code + "'}",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);//
+            $('#wholiday_logdetails').DataTable({
+                dom: 't',
+                destroy: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: true,
+                "paging": false,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                filter: true,
+                'select': {
+                    'style': 'single'
+                },
+                "serverSide": false,
+                "data": dataArray,
+                columns: [
+                    { data: '' },
+                    { data: 'date' },
+                    { data: 'In_Time' },
+                    { data: 'Out_Time2' },
+                    { data: 'TotalHrs' },
+                    { data: 'IN_IP_SD' },
+                    { data: 'OUT_IP_SD' }
+
+                ],
+                fnCreatedRow: function (nRow, aData, iDataIndex) {
+                    $(nRow).children("td").css("text-wrap", "nowrap");
+                },
+
+                columnDefs: [
+                    {
+                        targets: 0,
+                        "width": "45px",
+                        render: function (data, type, row, meta) {
+                            return '<input type="checkbox" id="' + meta.row + '" name="' + meta.row + '" onclick="GetCheckedDates(this);" class="nodata" value="No Volume" /> ';
+                            //return '<input type="button" class="btn-primary" id=viewdetails-"' + meta.row + '" value="Details" onclick="return ViewPolicyDetails(\'' + meta.row + '\');" />&nbsp;<input type="button" class="btn-default" id=viewtasks-"' + meta.row + '" value="Tasks"  onclick="return ViewTaskDetails(\'' + meta.row + '\');"/>';
+                        }
+
+                    }
+                ],
+
+                initComplete: function () {
+                    $('#load1').hide();
+
+                }
+            });
+        },
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+
+    $("#wholiday_detailspop").modal("show");
+    return false;
+
+}
+
+const w_chkIds = [];
+
+function GetCheckedDates(ID) {
+    if (ID.checked) {
+        if (!w_chkIds.includes(ID.id)) {
+            w_chkIds.push(ID.id);
+        }
+    }
+    else {
+        if (w_chkIds.includes(ID.id)) {
+            w_chkIds.splice(w_chkIds.indexOf(ID.id), 1);
+        }
+    }
+
+    return false;
+}
+
+function wholiday_pupup_submit() {
+
+    var name = document.getElementById("wholiday_popup_name").innerHTML;
+    var code = name.substring(0, 3);
+    var remark = document.getElementById("wholiday_popup_remark").value;
+    if (remark == "") {
+        alert("Please enter remark.");
+        return false;
+    }
+    var dates = "";
+    if (w_chkIds.length > 0) {
+        for (let i = 0; i < w_chkIds.length; i++) {
+            var rows = $('#wholiday_logdetails').DataTable().row(w_chkIds[i]).data();
+            if (i == 0) {
+                dates = rows.date;
+            }
+            else {
+                dates = dates + "," + rows.date;
+            }
+        }
+        PageMethods.ApproveWorkedHolidays(code, dates, remark, wholiday_popup_OnSuccess, wholiday_popup_OnError);
+    }
+    return false;
+}
+
+function wholiday_popup_OnSuccess(result) {
+    $('#load1').hide();
+    alert("Worked holiday approved successfully.");
+    location.reload();
+    return false;
+}
+
+function wholiday_popup_OnError(error) {
+    alert(error.get_message());
+}
+
+
+
