@@ -2632,5 +2632,17 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetProjectProcesswiseProductivity(Code, FromDate, ToDate);
         }
+        public int InsertSecuritizationRelLetterBilling_Unbilled(Hashtable htParam)
+        {
+            return dalMaster.InsertSecuritizationRelLetterBilling_Unbilled(htParam);
+        }
+        public DataTable GetExistingLoanList_Unbilled()
+        {
+            return dalMaster.GetExistingLoanList_Unbilled();
+        }
+        public DataTable GetLoanTrackingHistory(Hashtable ht)
+        {
+            return new dalMaster().GetLoanTrackingHistory(ht);
+        }
     }
 }

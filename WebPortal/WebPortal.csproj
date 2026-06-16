@@ -215,6 +215,7 @@
     <Content Include="Admin\ImportCCStatement.aspx" />
     <Content Include="Admin\ImportFeedback.aspx" />
     <Content Include="Admin\ImportSecuritizationLoans.aspx" />
+    <Content Include="Admin\LoanLevelHistory.aspx" />
     <Content Include="Admin\LogInDetails.aspx" />
     <Content Include="Admin\ManagementVolumeReport.aspx" />
     <Content Include="Admin\OtherTask.aspx" />
@@ -244,6 +245,7 @@
     <Content Include="Accounts\SalaryIncrementDueReport.aspx" />
     <Content Include="Admin\Securitization561.aspx" />
     <Content Include="Admin\SecuritizationBilling.aspx" />
+    <Content Include="Admin\SecuritizationBillingImport.aspx" />
     <Content Include="Admin\SecuritizationBillingSent.aspx" />
     <Content Include="Admin\SecuritizationSummary.aspx" />
     <Content Include="Admin\SecuritizationTracking.aspx" />
@@ -2651,6 +2653,7 @@
     <Content Include="Scripts\Functions\ImportSecuritizationLoans.js" />
     <Content Include="Scripts\Functions\Incentive.js" />
     <Content Include="Scripts\Functions\EmployeeComments.js" />
+    <Content Include="Scripts\Functions\LoanTrackingHistory.js" />
     <Content Include="Scripts\Functions\LogInDetails.js" />
     <Content Include="Scripts\Functions\NewDash2.js" />
     <Content Include="Scripts\Functions\NewDashboard.js" />
@@ -2663,6 +2666,7 @@
     <Content Include="Scripts\Functions\QualityReport.js" />
     <Content Include="Scripts\Functions\Resignation.js" />
     <Content Include="Scripts\Functions\SecruitizationBilling.js" />
+    <Content Include="Scripts\Functions\SecuritizationBillingImport.js" />
     <Content Include="Scripts\Functions\SLAReport.js" />
     <Content Include="Scripts\Functions\TicketQueue.js" />
     <Content Include="Scripts\Functions\AssetMasters.js" />
@@ -3415,6 +3419,13 @@
     <Compile Include="Admin\ImportSecuritizationLoans.aspx.designer.cs">
       <DependentUpon>ImportSecuritizationLoans.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\LoanLevelHistory.aspx.cs">
+      <DependentUpon>LoanLevelHistory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\LoanLevelHistory.aspx.designer.cs">
+      <DependentUpon>LoanLevelHistory.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\LogInDetails.aspx.cs">
       <DependentUpon>LogInDetails.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3614,6 +3625,13 @@
     </Compile>
     <Compile Include="Admin\SecuritizationBilling.aspx.designer.cs">
       <DependentUpon>SecuritizationBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\SecuritizationBillingImport.aspx.cs">
+      <DependentUpon>SecuritizationBillingImport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\SecuritizationBillingImport.aspx.designer.cs">
+      <DependentUpon>SecuritizationBillingImport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\SecuritizationBillingSent.aspx.cs">
       <DependentUpon>SecuritizationBillingSent.aspx</DependentUpon>
