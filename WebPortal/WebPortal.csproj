@@ -244,6 +244,7 @@
     <Content Include="Accounts\SalaryIncrementDueReport.aspx" />
     <Content Include="Admin\Securitization561.aspx" />
     <Content Include="Admin\SecuritizationBilling.aspx" />
+    <Content Include="Admin\SecuritizationBillingImport.aspx" />
     <Content Include="Admin\SecuritizationBillingSent.aspx" />
     <Content Include="Admin\SecuritizationSummary.aspx" />
     <Content Include="Admin\SecuritizationTracking.aspx" />
@@ -3614,6 +3615,13 @@
     </Compile>
     <Compile Include="Admin\SecuritizationBilling.aspx.designer.cs">
       <DependentUpon>SecuritizationBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\SecuritizationBillingImport.aspx.cs">
+      <DependentUpon>SecuritizationBillingImport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\SecuritizationBillingImport.aspx.designer.cs">
+      <DependentUpon>SecuritizationBillingImport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\SecuritizationBillingSent.aspx.cs">
       <DependentUpon>SecuritizationBillingSent.aspx</DependentUpon>

@@ -5886,5 +5886,38 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+        public int InsertSecuritizationRelLetterBilling_Unbilled(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertSecuritizationRelianceLetterBilling_Unbilled");
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["BillingPeriod"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectId", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Description", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["Description"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanCount", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["LoanCount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NoOfHoursLoans", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["NoOfHoursLoans"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AssociateRemark", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["AssociateRemark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingType", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["BillingType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+        public DataTable GetExistingLoanList_Unbilled()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetSecRelBilledLoanList_Unbilled]");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+        public DataTable GetLoanTrackingHistory(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertSecuritizationRelianceLetterBilling_Unbilled");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectId", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
     }
 }
