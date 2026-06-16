@@ -62,11 +62,10 @@ namespace WebPortal.Tracking
         }
 
 
-
         [WebMethod]
-        public static object GetProcessDetailsForFeedbackUser(string UserName)
+        public static object GetUserOrders(string UserName, string FromDate, string ToDate)
         {
-            DataTable dt = new bllTracking().GetProcessDetailsForFeedbackUser(UserName);
+            DataTable dt = new bllTracking().GetProcessDetailsForFeedbackUser(UserName, FromDate, ToDate);
 
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 

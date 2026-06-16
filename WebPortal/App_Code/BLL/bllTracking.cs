@@ -179,9 +179,9 @@ namespace WebPortal.App_Code.BLL
         }
 
 
-        public DataTable GetProcessDetailsForFeedbackUser(string UserName)
+        public DataTable GetProcessDetailsForFeedbackUser(string UserName, string FromDate, string ToDate)
         {
-            return dalTracking.GetProcessDetailsForFeedbackUser(UserName);
+            return dalTracking.GetProcessDetailsForFeedbackUser(UserName,  FromDate,  ToDate);
         }
     }
 }

@@ -348,10 +348,12 @@ namespace WebPortal.App_Code.DAL
 
         }
         
-        public DataTable GetProcessDetailsForFeedbackUser(string UserName)
+        public DataTable GetProcessDetailsForFeedbackUser(string UserName, string FromDate, string ToDate)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User"); //usp_getuniquecolumn
             SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, ToDate);
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             return dt;
         }

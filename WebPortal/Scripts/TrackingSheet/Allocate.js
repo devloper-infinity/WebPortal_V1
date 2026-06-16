@@ -331,3 +331,91 @@ function enableHoldRemark(obj) {
 
 
 /*---------------- Tab 3 - Order Allocation ----------------*/
+
+function allocate_GetLoanReport() {
+
+    var fromDate = $("#allocate_FromDate").val();
+    var toDate = $("#allocate_ToDate").val();
+
+    if (fromDate == "") {
+        Swal.fire('Validation', 'Please select From Date.', 'warning');
+        return false;
+    }
+
+    if (toDate == "") {
+        Swal.fire('Validation', 'Please select To Date.', 'warning');
+        return false;
+    }
+
+    // $('#load1').show();
+
+    allocate_GetLoanReport_Grid(fromDate, toDate);
+}
+
+function allocate_GetLoanReport_Grid(fromDate, toDate) {
+
+    var UserName = '';
+  
+    $.ajax({
+        type: "POST",
+        url: "Allocate.aspx/GetUserOrders",
+        data: JSON.stringify({ UserName: UserName, FromDate: fromDate, ToDate: toDate }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data) {
+
+            var dataArray = data.d;
+
+            // Destroy existing DataTable
+            if ($.fn.DataTable.isDataTable('#table_Orderreport')) {
+                $('#table_Orderreport').DataTable().destroy();
+            }
+
+            $('#table_Orderreport').DataTable({
+
+                data: dataArray,
+                dom: 'ftip',
+                scrollX: true,
+                paging: true,
+                autoWidth: false,
+                ordering: false,
+                processing: true,
+
+                select: {
+                    style: 'single'
+                },
+
+                columns: [
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: "ProjectName" },
+                    { data: "DealNo" },
+                    { data: "OrderNumber" },
+                    { data: "OrderStatus" },
+                    { data: "Remark" },/* "HoldReason" */
+                    { data: "Remark" },
+                    { data: "StartDate" },
+                    { data: "ProcessDate" },
+                    { data: "TAT" }
+                ],
+
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+        },
+
+        error: function (xhr) {
+
+            $('#load1').hide();
+
+            console.error(xhr.responseText);
+
+            alert("Error loading data");
+        }
+    });
+}

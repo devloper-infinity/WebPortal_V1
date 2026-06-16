@@ -1,8 +1,5 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Tracking/Tracking.Master" AutoEventWireup="true" CodeBehind="Allocate.aspx.cs" Inherits="WebPortal.Tracking.Allocate" %>
 
-
-
-
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -625,7 +622,6 @@
         });
     </script>
 
-
     <script>
 
         $(document).ready(function () {
@@ -637,8 +633,6 @@
         });
 
     </script>
-
-    <script src="../Scripts/TrackingSheet/Allocate.js"></script>
 
     <style>
         .sec-hero {
@@ -813,7 +807,7 @@
             padding: 13px 14px !important;
             border-bottom: 1px solid #d9e2f1 !important;
             white-space: nowrap !important;
-            vertical-align: middle !important;
+            /* vertical-align: middle !important;*/
         }
 
         /* Body cells */
@@ -842,7 +836,9 @@
             overflow-x: auto !important;
         }
     </style>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../Scripts/TrackingSheet/Allocate.js"></script>
 
 </asp:Content>
 
@@ -902,7 +898,6 @@
                                 <div class="col-lg-3 col-md-4">
                                     <button id="allocate_btnSubmit" class="bank-submit-btn" onclick="return allocate_GetOrder();">
                                         <i class="fas fa-save mr-1"></i>Get Order
-                                   
                                     </button>
                                 </div>
                             </div>
@@ -932,8 +927,9 @@
                     </div>
 
                     <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+
                         <div style="overflow: auto;">
-                            <table class="table" id="table_OrderComplete" style="width: 100%;">
+                            <table class="table dataTable no-footer" id="table_OrderComplete" style="width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>Sr. #</th>
@@ -954,19 +950,42 @@
                     </div>
 
                     <div class="tab-pane fade" id="custom-tabs-one-messages" role="tabpanel" aria-labelledby="custom-tabs-one-messages-tab">
-                        <table class="table" id="table_report" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">User</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process End Time</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="bank-form-panel mb-4">
+                            <div class="row align-items-end">
+                                <div class="col-lg-4 col-md-8 mb-3 mb-md-0">
+                                    <label for="bank_name" class="bank-form-label">From Date</label>
+                                    <input type="date" id="allocate_FromDate" name="allocate_FromDate" class="form-control" />
+                                </div>
+                                <div class="col-lg-4 col-md-8 mb-3 mb-md-0">
+                                    <label for="bank_name" class="bank-form-label">To Date</label>
+                                    <input type="date" id="allocate_ToDate" name="allocate_ToDate" class="form-control" />
+                                </div>
+                                <div class="col-lg-4 col-md-8 mb-3 mb-md-0">
+                                    <button id="allocate_btnGetData" class="bank-submit-btn" onclick="return allocate_GetLoanReport();">
+                                         <i class="fas fa-file-alt"></i> &nbsp;&nbsp;Get Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="overflow: auto;">
+                            <table class="table dataTable no-footer" id="table_Orderreport" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Sr. #</th>
+                                        <th>Project</th>
+                                        <th>Deal #</th>
+                                        <th>Loan #</th>
+                                        <th>Status</th>
+                                        <th>Hold Reason</th>
+                                        <th>Remark</th>
+                                        <th>Start Date</th>
+                                        <th>Complition Date</th>
+                                        <th>TAT</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
