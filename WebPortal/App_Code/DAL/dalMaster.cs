@@ -5912,8 +5912,8 @@ namespace WebPortal.App_Code.DAL
         }
         public DataTable GetLoanTrackingHistory(Hashtable htParam)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertSecuritizationRelianceLetterBilling_Unbilled");
-            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectId", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectId"]);
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLoanLevelSecRelTracking");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
