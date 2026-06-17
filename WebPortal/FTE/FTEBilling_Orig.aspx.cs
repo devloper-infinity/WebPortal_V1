@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -16,7 +15,7 @@ using WebPortal.App_Code.DAL;
 
 namespace WebPortal.FTE
 {
-    public partial class FTEBilling : Page
+    public partial class FTEBilling_Orig : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -46,68 +45,6 @@ namespace WebPortal.FTE
         public static string GetBillingReport(int ProjectID, string BillingPeriod)
         {
             BillingReportResult result = BuildBillingReport(ProjectID, BillingPeriod);
-            return SerializeObject(result);
-        }
-
-
-
-        [WebMethod]
-        public static string GetExtraFteRows(int ProjectID, string BillingPeriod)
-        {
-            DataTable dt = GetExtraFteDetails(ProjectID, NormalizePeriod(BillingPeriod));
-            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-
-            foreach (DataRow row in dt.Rows)
-            {
-                DateTime workDate = Convert.ToDateTime(row["WorkDate"]);
-                decimal hours = ToDecimal(Convert.ToString(row["Hours"]));
-                rows.Add(new Dictionary<string, object>
-                {
-                    { "WorkDateText", workDate.ToString("dd-MMM-yyyy") },
-                    { "ExtraOperatorNo", Convert.ToInt32(row["ExtraOperatorNo"]) },
-                    { "Hours", FormatDecimal(hours) }
-                });
-            }
-
-            return SerializeObject(rows);
-        }
-
-        [WebMethod]
-        public static string SaveExtraFteRows(int ProjectID, string BillingPeriod, string DetailsJson)
-        {
-            BillingActionResult result = new BillingActionResult();
-
-            try
-            {
-                if (ProjectID <= 0 || string.IsNullOrWhiteSpace(BillingPeriod) || string.Equals(BillingPeriod, "Select", StringComparison.OrdinalIgnoreCase))
-                {
-                    result.Success = false;
-                    result.Message = "Please select project and billing period.";
-                    return SerializeObject(result);
-                }
-
-                JavaScriptSerializer serializer = new JavaScriptSerializer();
-                List<ExtraFteEntry> entries = serializer.Deserialize<List<ExtraFteEntry>>(DetailsJson ?? "[]") ?? new List<ExtraFteEntry>();
-                DataTable details = BuildExtraFteSaveTable(entries);
-
-                SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_SaveFTEBillingExtraOperators");
-                SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 10, ParameterDirection.Input, ProjectID);
-                SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", SqlDbType.NVarChar, 500, ParameterDirection.Input, NormalizePeriod(BillingPeriod));
-                SqlParameter tvp = cmd.Parameters.AddWithValue("@Details", details);
-                tvp.SqlDbType = SqlDbType.Structured;
-                tvp.TypeName = "dbo.FTEBillingExtraOperatorType";
-                SQLHelper.AddParamToSQLCmd(cmd, "@CreatedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, GetCurrentEmployeeId());
-                SQLHelper.ExecuteNonQueryCmd(cmd);
-
-                result.Success = true;
-                result.Message = "Extra FTE hours saved successfully.";
-            }
-            catch (Exception ex)
-            {
-                result.Success = false;
-                result.Message = ex.Message;
-            }
-
             return SerializeObject(result);
         }
 
@@ -172,7 +109,6 @@ namespace WebPortal.FTE
         {
             string normalizedPeriod = NormalizePeriod(billingPeriod);
             DataTable dt = GetBillingDetails(projectID, normalizedPeriod);
-            AppendExtraFteOperatorColumns(dt, projectID, normalizedPeriod);
 
             BillingReportResult result = new BillingReportResult();
             result.Rows = DataTableToDictionaryList(dt);
@@ -236,7 +172,6 @@ namespace WebPortal.FTE
                 decimal totalFteHours = approvedFte * workingHours;
 
                 totalFteHours = ApplyProjectHourOverride(projectID, normalizedPeriod, totalFteHours);
-                totalFteHours += GetExtraFteTotalHours(projectID, normalizedPeriod);
                 summary["WorkingHours"] = FormatDecimal(workingHours);
                 summary["TotalFTEHours"] = FormatDecimal(totalFteHours);
                 return summary;
@@ -274,119 +209,6 @@ namespace WebPortal.FTE
             if (projectID == 531 && period == "01-May-2023 ~ 31-May-2023") return 387;
             if (projectID == 531 && period == "01-Jun-2025 ~ 30-Jun-2025") return 351;
             return fallback;
-        }
-
-
-
-        private static void AppendExtraFteOperatorColumns(DataTable dt, int projectID, string billingPeriod)
-        {
-            if (dt == null || dt.Rows.Count == 0)
-            {
-                return;
-            }
-
-            DataTable extra = GetExtraFteDetails(projectID, billingPeriod);
-            if (extra == null || extra.Rows.Count == 0)
-            {
-                return;
-            }
-
-            int maxOperator = extra.AsEnumerable().Select(r => Convert.ToInt32(r["ExtraOperatorNo"])).DefaultIfEmpty().Max();
-            for (int i = 1; i <= maxOperator; i++)
-            {
-                string columnName = "Extra Operator " + i + " (Hours)";
-                if (!dt.Columns.Contains(columnName))
-                {
-                    dt.Columns.Add(columnName);
-                }
-            }
-
-            string dateColumn = dt.Columns.Contains("Date") ? "Date" : string.Empty;
-            if (string.IsNullOrEmpty(dateColumn))
-            {
-                return;
-            }
-
-            foreach (DataRow billingRow in dt.Rows)
-            {
-                DateTime billingDate;
-                if (!TryParseBillingDate(Convert.ToString(billingRow[dateColumn]), out billingDate))
-                {
-                    continue;
-                }
-
-                foreach (DataRow extraRow in extra.AsEnumerable().Where(r => Convert.ToDateTime(r["WorkDate"]).Date == billingDate.Date))
-                {
-                    int operatorNo = Convert.ToInt32(extraRow["ExtraOperatorNo"]);
-                    decimal hours = ToDecimal(Convert.ToString(extraRow["Hours"]));
-                    billingRow["Extra Operator " + operatorNo + " (Hours)"] = FormatHoursText(hours);
-                }
-            }
-        }
-
-        private static DataTable GetExtraFteDetails(int projectID, string billingPeriod)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetFTEBillingExtraOperators");
-            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 10, ParameterDirection.Input, projectID);
-            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", SqlDbType.NVarChar, 500, ParameterDirection.Input, billingPeriod);
-            return SQLHelper.ExecuteDataTableCmd(cmd);
-        }
-
-        private static decimal GetExtraFteTotalHours(int projectID, string billingPeriod)
-        {
-            DataTable extra = GetExtraFteDetails(projectID, billingPeriod);
-            if (extra == null || extra.Rows.Count == 0 || !extra.Columns.Contains("Hours"))
-            {
-                return 0;
-            }
-
-            return extra.AsEnumerable().Sum(r => ToDecimal(Convert.ToString(r["Hours"])));
-        }
-
-        private static DataTable BuildExtraFteSaveTable(List<ExtraFteEntry> entries)
-        {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("WorkDate", typeof(DateTime));
-            dt.Columns.Add("ExtraOperatorNo", typeof(int));
-            dt.Columns.Add("Hours", typeof(decimal));
-
-            foreach (ExtraFteEntry entry in entries ?? new List<ExtraFteEntry>())
-            {
-                DateTime workDate;
-                if (!TryParseBillingDate(entry.WorkDateText, out workDate))
-                {
-                    continue;
-                }
-
-                if (entry.ExtraOperatorNo <= 0 || entry.Hours < 0 || entry.Hours > 24)
-                {
-                    continue;
-                }
-
-                DataRow row = dt.NewRow();
-                row["WorkDate"] = workDate.Date;
-                row["ExtraOperatorNo"] = entry.ExtraOperatorNo;
-                row["Hours"] = entry.Hours;
-                dt.Rows.Add(row);
-            }
-
-            return dt;
-        }
-
-        private static bool TryParseBillingDate(string text, out DateTime value)
-        {
-            string input = Convert.ToString(text).Trim();
-            string[] formats = { "dd-MMM-yyyy", "d-MMM-yyyy", "dd-MMM-yy", "d-MMM-yy", "dd/MM/yyyy", "MM/dd/yyyy" };
-            return DateTime.TryParseExact(input, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out value)
-                || DateTime.TryParse(input, CultureInfo.InvariantCulture, DateTimeStyles.None, out value)
-                || DateTime.TryParse(input, out value);
-        }
-
-        private static string FormatHoursText(decimal hours)
-        {
-            int wholeHours = Convert.ToInt32(Math.Floor(hours));
-            int minutes = Convert.ToInt32(Math.Round((hours - wholeHours) * 60, 0));
-            return string.Format("{0:00}:{1:00}:00", wholeHours, minutes);
         }
 
         private static DataTable GetBillingDetails(int projectID, string billingPeriod)
@@ -745,13 +567,6 @@ namespace WebPortal.FTE
             }
 
             return dt;
-        }
-
-        private class ExtraFteEntry
-        {
-            public string WorkDateText { get; set; }
-            public int ExtraOperatorNo { get; set; }
-            public decimal Hours { get; set; }
         }
 
         private class BillingReportResult

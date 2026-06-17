@@ -5,16 +5,16 @@
         .loading {
             display: none;
             position: fixed;
-            top: 350px;
+            top: 50%;
             left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
+            transform: translate(-50%, -50%);
             /*  background-color: #ccc;*/
             opacity: .85;
             border-radius: 25px;
             width: 192px;
             height: 192px;
             z-index: 99999;
+            text-align: center;
         }
 
         .dataTables_length, .dataTables_info {
@@ -52,6 +52,92 @@
             background: none !important;
             background-color: #fff !important;
         }
+
+        .fte-entry-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 22px;
+            border-radius: 8px;
+            color: #fff;
+            background: linear-gradient(120deg, #1d4ed8 0%, #0f9fbe 100%);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, .16);
+        }
+
+        .fte-entry-header h4 {
+            margin: 0;
+            font-weight: 800;
+        }
+
+        .fte-entry-header p {
+            margin: 4px 0 0;
+            color: rgba(255,255,255,.84);
+            font-size: 13px;
+        }
+
+        .fte-entry-panel {
+            border: 1px solid #dbe5f3;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .08);
+        }
+
+        .fte-entry-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e7eef8;
+        }
+
+        .fte-entry-panel-header h6 {
+            margin: 0;
+            color: #102a56;
+            font-weight: 800;
+        }
+
+        .fte-entry-panel-body {
+            padding: 16px;
+        }
+
+        .fte-entry-form {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px 16px;
+        }
+
+        .fte-entry-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #263a5f;
+            font-size: 13px;
+            font-weight: 700 !important;
+        }
+
+        .fte-entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .fte-entry-table {
+            overflow-x: auto;
+        }
+
+        @media (max-width: 900px) {
+            .fte-entry-form {
+                grid-template-columns: 1fr;
+            }
+
+            .fte-entry-header,
+            .fte-entry-panel-header,
+            .fte-entry-actions {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
     </style>
 
     <script>
@@ -71,96 +157,70 @@
     </div>
 
     <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>FTE Master</b></h6>
-                </div>
+        <div class="fte-entry-header">
+            <div>
+                <h4><i class="fas fa-keyboard"></i>&nbsp;&nbsp;FTE Data Entry</h4>
+                <p>Capture daily actual FTE count against configured project and process capacity.</p>
             </div>
         </div>
     </div>
 
     <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="card card-tabs">
-                    <div class="card-header p-0 pt-1">
-                        <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="custom-tabs-one-FTE-DataEntry-tab" data-toggle="pill" href="#custom-tabs-one-FTE-DataEntry" role="tab" aria-controls="custom-tabs-one-FTE-DataEntry" aria-selected="true"><b>FTE Data Entry</b></a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link disabled" id="custom-tabs-one-FTE-UserAttendance-tab" data-toggle="pill" href="#custom-tabs-one-FTE-UserAttendance" role="tab" aria-controls="custom-tabs-one-FTE-UserAttendance" aria-selected="false"><b>User Attendance</b></a>
-                            </li>
-                        </ul>
+        <div class="fte-entry-panel">
+            <div class="fte-entry-panel-header">
+                <h6><i class="fas fa-edit"></i>&nbsp;&nbsp;FTE Data Entry</h6>
+            </div>
+            <div class="fte-entry-panel-body">
+                <div class="fte-entry-form">
+                    <div class="fte-entry-field">
+                        <label for="fteEntry_project">Project</label>
+                        <select id="fteEntry_project" name="fteEntry_project" onchange="return getfteProcess(this);" class="form-control">
+                            <option value="Select">Select</option>
+                        </select>
                     </div>
-
-                    <div class="card-body">
-                        <div class="tab-content" id="custom-tabs-one-tabContent">
-                            <div class="tab-pane fade show active" id="custom-tabs-one-FTE-DataEntry" role="tabpanel" aria-labelledby="custom-tabs-one-FTE-DataEntry-tab">
-                                <table class="table">
-                                    <tr>
-                                        <td>
-                                            <b>Project :</b>
-                                        </td>
-                                        <td>
-                                            <select id="fteEntry_project" name="fteEntry_project" onchange="return getfteProcess(this);" class="form-control" style="width: 250px;">
-                                                <option value="Select">Select</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <b>Process :</b>
-                                        </td>
-                                        <td>
-                                            <select id="fteEntry_process" name="fteEntry_process" onchange="return bindGrid(this);" class="form-control" style="width: 250px;">
-                                                <option value="">Select</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <b>Approved FTE Count :</b>
-                                        </td>
-                                        <td>
-                                            <input type="number" id="fteEntry_appFTEcount" name="fteEntry_appFTEcount" class="form-control" style="width: 250px;" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>Date :</b></td>
-                                        <td>
-                                            <input type="date" id="fteEntry_Date" class="form-control" style="width: 250px;" />
-                                        </td>
-                                        <td><b>Actual Total FTE Count:</b></td>
-                                        <td>
-                                            <input type="number" id="fteEntry_ActualTotalFteCnt" class="form-control" style="width: 250px;" />
-                                        </td>
-                                        <td>
-                                            <button id="btnFteEntrySubmit" onclick="return btnFteEntrySubmitData();" class="btn btn-primary" style="display: inline;">Submit</button>
-                                            &nbsp;&nbsp;&nbsp;
-                                            <button id="btnFteEntryCancel" onclick="return location.reload();" class="btn btn-default" style="display: none;">Cancel</button>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <hr />
-                                <table class="table table-bordered" id="table_FTEDataEntry" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="sort border-top" style="text-align: center;">Action</th>
-                                            <th class="sort border-top" style="text-align: center;">Sr #</th>
-                                            <th class="sort border-top" style="display: none;">Project</th>
-                                            <th class="sort border-top" style="display: none;">Process</th>
-                                            <th class="sort border-top">Project</th>
-                                            <th class="sort border-top">Process</th>
-                                            <th class="sort border-top">Approved FTE Count</th>
-                                            <th class="sort border-top">Date</th>
-                                            <th class="sort border-top">Actual FTE Count</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-
-                            <div class="tab-pane fade show fade" id="custom-tabs-one-FTE-UserAttendance" role="tabpanel" aria-labelledby="custom-tabs-one-FTE-UserAttendance-tab"></div>
-                        </div>
+                    <div class="fte-entry-field">
+                        <label for="fteEntry_process">Process</label>
+                        <select id="fteEntry_process" name="fteEntry_process" onchange="return onFteProcessChange();" class="form-control">
+                            <option value="Select">Select</option>
+                        </select>
                     </div>
+                    <div class="fte-entry-field">
+                        <label for="fteEntry_appFTEcount">Approved FTE Count</label>
+                        <input type="number" id="fteEntry_appFTEcount" name="fteEntry_appFTEcount" class="form-control" readonly="readonly" />
+                    </div>
+                    <div class="fte-entry-field">
+                        <label for="fteEntry_Date">Date</label>
+                        <input type="date" id="fteEntry_Date" class="form-control" />
+                    </div>
+                    <div class="fte-entry-field">
+                        <label for="fteEntry_ActualTotalFteCnt">Actual Total FTE Count</label>
+                        <input type="number" id="fteEntry_ActualTotalFteCnt" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="fte-entry-actions">
+                    <button type="button" id="btnFteEntryCancel" onclick="return resetFteEntryForm();" class="btn btn-default" style="display: none;">Cancel</button>
+                    <button type="button" id="btnFteEntrySubmit" onclick="return btnFteEntrySubmitData();" class="btn btn-primary">Submit</button>
+                </div>
+
+                <hr />
+                <div class="fte-entry-table">
+                    <table class="table table-bordered" id="table_FTEDataEntry" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th class="sort border-top" style="text-align: center;">Action</th>
+                                <th class="sort border-top" style="text-align: center;">Sr #</th>
+                                <th class="sort border-top" style="display: none;">Project</th>
+                                <th class="sort border-top" style="display: none;">Process</th>
+                                <th class="sort border-top">Project</th>
+                                <th class="sort border-top">Process</th>
+                                <th class="sort border-top">Approved FTE Count</th>
+                                <th class="sort border-top">Date</th>
+                                <th class="sort border-top">Actual FTE Count</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>

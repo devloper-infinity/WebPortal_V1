@@ -55,9 +55,43 @@ namespace WebPortal.FTE
         }
 
         [WebMethod]
+        public static string GetApprovedFTECount(int ProjectID, int ProcessID)
+        {
+            if (ProjectID <= 0 || ProcessID <= 0)
+            {
+                return string.Empty;
+            }
+
+            DataTable dt = new bllMaster().GetFTEDetails();
+
+            if (dt == null)
+            {
+                return string.Empty;
+            }
+
+            foreach (DataRow row in dt.Rows)
+            {
+                int rowProjectID = ToInt(GetColumnValue(row, "ProjectID", "ProjectId"));
+                int rowProcessID = ToInt(GetColumnValue(row, "ProcessID", "ProcessId"));
+
+                if (rowProjectID == ProjectID && rowProcessID == ProcessID)
+                {
+                    return Convert.ToString(GetColumnValue(row, "ApprovedFTECount", "ApprovedCount"));
+                }
+            }
+
+            return string.Empty;
+        }
+
+        [WebMethod]
         public static int InsertFTEEntry(int ProjectID, int ProcessID, string ApprovedFTECount, string Date, string ActualTotalFteCnt)
         {
             int ReturnValue = 0;
+
+            if (ProjectID <= 0 || ProcessID <= 0 || string.IsNullOrWhiteSpace(ApprovedFTECount) || string.IsNullOrWhiteSpace(Date) || string.IsNullOrWhiteSpace(ActualTotalFteCnt))
+            {
+                return ReturnValue;
+            }
 
             Hashtable htParam = new Hashtable();
             htParam.Add("ProjectID", ProjectID);
@@ -67,12 +101,31 @@ namespace WebPortal.FTE
             htParam.Add("ActualCount", ActualTotalFteCnt);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            ReturnValue = new bllMaster().InsertFTEDetails(htParam);
+            ReturnValue = new bllMaster().InsertFTEEntry(htParam);
             if (ReturnValue > 0)
             {
 
             }
             return ReturnValue;
+        }
+
+        private static object GetColumnValue(DataRow row, params string[] columnNames)
+        {
+            foreach (string columnName in columnNames)
+            {
+                if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+                {
+                    return row[columnName];
+                }
+            }
+
+            return null;
+        }
+
+        private static int ToInt(object value)
+        {
+            int result;
+            return int.TryParse(Convert.ToString(value), out result) ? result : 0;
         }
     }
 }
