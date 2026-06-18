@@ -603,9 +603,15 @@
     <Content Include="FestivalWishesImages\WomenDay.jpg" />
     <Content Include="FestivalWishesImages\WomensDay.png" />
     <Content Include="ForgotPassword.aspx" />
+    <Content Include="FTE\FTEAttendance.aspx" />
     <Content Include="FTE\FTEBilling.aspx" />
+    <Content Include="FTE\FTEBilling_Orig.aspx" />
+    <Content Include="FTE\FTEConfiguration.aspx" />
     <Content Include="FTE\FTEEntry.aspx" />
+    <Content Include="FTE\FTEUserConfiguration.aspx" />
     <Content Include="FTE\FTEMaster.aspx" />
+    <Content Include="FTE\ProjectHolidaysMaster.aspx" />
+    <Content Include="FTE\ProjectMonthlyOperatorHours.aspx" />
     <Content Include="images\InfinityWatermark.JPG" />
     <Content Include="images\logo-login.png" />
     <Content Include="images\Welcome to POSH Awareness Training.mp4" />
@@ -2647,6 +2653,9 @@
     <Content Include="Scripts\Functions\EKYC.js" />
     <Content Include="Scripts\Functions\EmpLeave.js" />
     <Content Include="Scripts\Functions\Festival.js" />
+    <Content Include="Scripts\FTE\FTEBilling.js" />
+    <Content Include="Scripts\FTE\FTEEntry.js" />
+    <Content Include="Scripts\FTE\FTEMaster.js" />
     <Content Include="Scripts\Functions\HealthInsurance.js" />
     <Content Include="Scripts\Functions\HoursSpent.js" />
     <Content Include="Scripts\Functions\HRInvoice.js" />
@@ -3823,12 +3832,33 @@
     <Compile Include="FTE\FTE.Master.designer.cs">
       <DependentUpon>FTE.Master</DependentUpon>
     </Compile>
+    <Compile Include="FTE\FTEAttendance.aspx.cs">
+      <DependentUpon>FTEAttendance.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FTE\FTEAttendance.aspx.designer.cs">
+      <DependentUpon>FTEAttendance.aspx</DependentUpon>
+    </Compile>
     <Compile Include="FTE\FTEBilling.aspx.cs">
       <DependentUpon>FTEBilling.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="FTE\FTEBilling.aspx.designer.cs">
       <DependentUpon>FTEBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="FTE\FTEBilling_Orig.aspx.cs">
+      <DependentUpon>FTEBilling_Orig.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FTE\FTEBilling_Orig.aspx.designer.cs">
+      <DependentUpon>FTEBilling_Orig.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="FTE\FTEConfiguration.aspx.cs">
+      <DependentUpon>FTEConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FTE\FTEConfiguration.aspx.designer.cs">
+      <DependentUpon>FTEConfiguration.aspx</DependentUpon>
     </Compile>
     <Compile Include="FTE\FTEEntry.aspx.cs">
       <DependentUpon>FTEEntry.aspx</DependentUpon>
@@ -3837,12 +3867,33 @@
     <Compile Include="FTE\FTEEntry.aspx.designer.cs">
       <DependentUpon>FTEEntry.aspx</DependentUpon>
     </Compile>
+    <Compile Include="FTE\FTEUserConfiguration.aspx.cs">
+      <DependentUpon>FTEUserConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FTE\FTEUserConfiguration.aspx.designer.cs">
+      <DependentUpon>FTEUserConfiguration.aspx</DependentUpon>
+    </Compile>
     <Compile Include="FTE\FTEMaster.aspx.cs">
       <DependentUpon>FTEMaster.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="FTE\FTEMaster.aspx.designer.cs">
       <DependentUpon>FTEMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="FTE\ProjectHolidaysMaster.aspx.cs">
+      <DependentUpon>ProjectHolidaysMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FTE\ProjectHolidaysMaster.aspx.designer.cs">
+      <DependentUpon>ProjectHolidaysMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="FTE\ProjectMonthlyOperatorHours.aspx.cs">
+      <DependentUpon>ProjectMonthlyOperatorHours.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FTE\ProjectMonthlyOperatorHours.aspx.designer.cs">
+      <DependentUpon>ProjectMonthlyOperatorHours.aspx</DependentUpon>
     </Compile>
     <Compile Include="Handler\Download.ashx.cs">
       <DependentUpon>Download.ashx</DependentUpon>

@@ -6,10 +6,13 @@
 
 <html>
 <head runat="server">
-    <title>Infinity IPS ERP</title>
+    <title>Infinity IPS - ERP</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+
+    <!-- added for New dashboard  -->
+    <link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet">
+
     <!-- Font Awesome Icons -->
     <script src="../plugins/jquery/jquery.min.js"></script>
     <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
@@ -17,33 +20,315 @@
     <link rel="stylesheet" href="../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <!-- Theme style -->
-    <link rel="stylesheet" href="../dist/css/adminlte.min.css">
     <script src="../Scripts/SessionHandler.js"></script>
+    <link rel="stylesheet" href="../dist/css/adminlte.min.css">
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <style>
+        .professional-navbar {
+            position: relative;
+            z-index: 1040;
+            background: #203e8c;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .14);
+        }
 
-    <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
+        .professional-navbar .container {
+            max-width: 100%;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        #dynamicMenu {
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        #dynamicMenu .nav-link {
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 12px 14px;
+        }
+
+        #dynamicMenu .nav-link:hover,
+        #dynamicMenu .nav-item.show > .nav-link {
+            background: rgba(255, 255, 255, .13);
+            color: #fff;
+        }
+
+        #dynamicMenu .dropdown-menu {
+            z-index: 2200;
+        }
+
+        #dynamicMenu .fte-menu-panel {
+            width: auto;
+            min-width: 250px;
+            max-width: min(700px, calc(100vw - 24px));
+           /* max-height: calc(100vh - 112px);*/
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 12px;
+            border: 1px solid #dbe5f3 !important;
+            border-radius: 0 0 14px 14px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, .18) !important;
+        }
+
+        #dynamicMenu .fte-simple-menu {
+            width: max-content;
+            max-width: min(360px, calc(100vw - 24px));
+        }
+
+        #dynamicMenu .fte-mega-menu {
+            width: min(650px, calc(100vw - 24px));
+        }
+
+        #dynamicMenu .dropdown-menu-right {
+            right: 0;
+            left: auto;
+        }
+
+        .fte-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+        }
+
+        .fte-menu-section {
+            min-width: 0;
+        }
+
+        .fte-menu-title {
+            margin: 0 0 8px;
+            padding: 8px 10px;
+            border-left: 4px solid #25b4ff;
+            border-radius: 8px;
+            background: #eef6ff;
+            color: #143b78;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        #dynamicMenu .dropdown-item {
+            border-radius: 7px;
+            color: #0f1f3d;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.25;
+            margin-bottom: 2px;
+            padding: .25rem 1rem;
+            white-space: nowrap;
+        }
+
+        #dynamicMenu .dropdown-item:hover {
+            background: #eaf3ff;
+            color: #153d87;
+        }
+
+        @media (max-width: 767.98px) {
+            .professional-navbar .container {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            #navbarCollapse {
+                max-height: calc(100vh - 76px);
+                overflow-y: auto;
+            }
+
+            #dynamicMenu {
+                display: block;
+                width: 100%;
+            }
+
+            #dynamicMenu .nav-link {
+                border-radius: 8px;
+                padding: 10px 12px;
+            }
+
+            #dynamicMenu .dropdown-menu,
+            #dynamicMenu .fte-menu-panel,
+            #dynamicMenu .fte-simple-menu,
+            #dynamicMenu .fte-mega-menu {
+                position: static;
+                float: none;
+                width: 100%;
+                max-width: 100%;
+                max-height: auto;
+                margin: 4px 0 10px;
+                box-shadow: none !important;
+            }
+
+            .fte-menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
     <script>
+
         $(document).ready(function () {
-            getPendingTaskNotifications_Sidebar()
+            $.ajax({
+                type: "POST",
+                url: "../MenuService.aspx/LoadMenu",
+                contentType: "application/json",
+                dataType: "json",
+                success: function (res) {
+                    let menuTree = res.d;
+                    let html = "";
+                    menuTree.forEach(m => html += renderTopMenu(m));
+                    $("#dynamicMenu").html(html);
+                    fitOpenDynamicMenus();
+                }
+            });
+
+            $(document).on("shown.bs.dropdown", "#dynamicMenu .dropdown", function () {
+                fitDynamicMenu($(this).children(".dropdown-menu"));
+            });
+
+            $(window).on("resize", function () {
+                fitOpenDynamicMenus();
+            });
         });
+
+        // ----------------- Top Level Menu --------------------
+        function renderTopMenu(menu) {
+            let hasChildren = menu.Children.length > 0;
+
+            if (!hasChildren) {
+                return `
+            <li class="nav-item">
+                <a href="${menu.Url || '#'}" class="nav-link">${menu.MenuName}</a>
+            </li>`;
+            }
+
+            // Mega-menu detection: if children have SectionName
+            let isMega = menu.Children.some(x => x.SectionName || (x.Children && x.Children.length > 0));
+
+            if (!isMega) {
+                // Simple dropdown
+                return `
+            <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">${menu.MenuName}</a>
+                <div class="dropdown-menu fte-menu-panel fte-simple-menu border-0 shadow">
+                    ${menu.Children.map(renderSimpleItem).join("")}
+                </div>
+            </li>`;
+            }
+
+            // --------------- MEGA MENU ----------------
+            return `
+        <li class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">${menu.MenuName}</a>
+            <div class="dropdown-menu fte-menu-panel fte-mega-menu border-0 shadow">
+                <div class="fte-menu-grid">
+                    ${renderMegaSections(menu.Children)}
+                </div>
+            </div>
+        </li>`;
+
+        }
+
+        // ------------------ Simple Dropdown Items ----------------------
+        function renderSimpleItem(item) {
+            if (item.Children.length === 0) {
+                return `<a class="dropdown-item" href="${item.Url || '#'}">${item.MenuName}</a>`;
+            }
+
+            return renderMegaSection(item);
+        }
+
+        // ------------------ Mega Menu Sections & Items -----------------
+        function renderMegaSections(children) {
+            let html = "";
+            let looseItems = [];
+
+            children.forEach(section => {
+                if (section.Children && section.Children.length > 0) {
+                    html += renderMegaSection(section);
+                }
+                else {
+                    looseItems.push(section);
+                }
+            });
+
+            if (looseItems.length > 0) {
+                let title = looseItems.some(x => /report/i.test(x.MenuName || "")) ? "Reports" : "More";
+                html += renderMegaSection({
+                    MenuName: title,
+                    Children: looseItems
+                });
+            }
+
+            return html;
+        }
+
+        function renderMegaSection(section) {
+            return `
+                <div class="fte-menu-section">
+                    <div class="fte-menu-title">${section.MenuName}</div>
+                    ${(section.Children || []).map(renderMegaItem).join("")}
+                </div>`;
+        }
+
+        function renderMegaItem(item) {
+            return `<a href="${item.Url || '#'}" class="dropdown-item">${item.MenuName}</a>`;
+        }
+
+        function fitOpenDynamicMenus() {
+            $("#dynamicMenu .dropdown-menu.show").each(function () {
+                fitDynamicMenu($(this));
+            });
+        }
+
+        function fitDynamicMenu($menu) {
+            if (!$menu || !$menu.length || window.innerWidth < 768) {
+                return;
+            }
+
+            $menu.removeClass("dropdown-menu-right");
+            $menu.css({ left: "", right: "" });
+
+            window.setTimeout(function () {
+                let menu = $menu[0];
+                let rect = menu.getBoundingClientRect();
+                let parentRect = $menu.closest(".dropdown")[0].getBoundingClientRect();
+                let padding = 12;
+
+                if (rect.right > window.innerWidth - padding) {
+                    $menu.addClass("dropdown-menu-right");
+                    $menu.css({ left: "", right: "0" });
+                    rect = menu.getBoundingClientRect();
+                }
+
+                if (rect.left < padding) {
+                    $menu.removeClass("dropdown-menu-right");
+                    $menu.css({
+                        left: (padding - parentRect.left) + "px",
+                        right: "auto"
+                    });
+                }
+            }, 0);
+        }
+
     </script>
 </head>
 <body class="hold-transition sidebar-collapse layout-top-nav">
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/Functions/FTEMaster.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/FTEEntry.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/FTEBilling.js" />
+                <asp:ScriptReference Path="~/Scripts/FTE/FTEMaster.js" />
+                <asp:ScriptReference Path="~/Scripts/FTE/FTEEntry.js" />
+                <asp:ScriptReference Path="~/Scripts/FTE/FTEBilling.js" />
             </Scripts>
         </asp:ToolkitScriptManager>
-        <div class="wrapper">
 
+        <div class="wrapper">
             <!-- Navbar -->
             <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
                 <div class="container">
-                    <a href="DashboardEmployee.aspx" class="navbar-brand">
+                    <a href="../Admin/DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
                         <img src="../images/logo-login.png" style="height: 50px;" />
-                        <%--<span class="brand-text font-weight-light">INFINITY IPS</span>--%>
                     </a>
 
                     <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,17 +337,32 @@
 
                     <div class="collapse navbar-collapse order-3" id="navbarCollapse">
                         <!-- Left navbar links -->
-                        <ul class="navbar-nav">
+                        <ul id="dynamicMenu" class="navbar-nav"></ul>
+                        <ul class="navbar-nav" style="display: none;">
                             <li class="nav-item" style="display: none;">
                                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                             </li>
-                            <%-- <li class="nav-item dropdown">
+                            <li class="nav-item dropdown">
                                 <a id="quicklinks" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Quick links</a>
                                 <ul aria-labelledby="quicklinks" class="dropdown-menu border-0 shadow">
                                     <li><a href="DailyProductivity.aspx" class="dropdown-item">Daily Productivity</a></li>
-                                    <li><a href="#" class="dropdown-item">Attendance Correction (Self)</a></li>
+                                    <li><a href="AttendanceCorrectionSelf.aspx" class="dropdown-item">Attendance Correction (Self)</a></li>
                                     <li><a href="SelfLeaves.aspx" class="dropdown-item">Leaves Section (Self)</a></li>
-                                    <li><a href="#" class="dropdown-item">Compensatory Off</a></li>
+                                    <li><a href="EmployeeKYC.aspx" class="dropdown-item">Employee KYC</a></li>
+                                    <li><a href="../IT/AddTicket.aspx" class="dropdown-item" style="display: none;">Add Ticket</a></li>
+                                    <li><a href="#" class="dropdown-item" style="display: none;">Compensatory Off</a></li>
+                                    <li><a href="../IT/InvoiceVerification.aspx" id="InvoiceVerificationpage" style="display: none;" runat="server" class="dropdown-item">Invoice Verification</a></li>
+                                    <li class="dropdown-divider"></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown" id="specialmenu" runat="server" style="display: none;">
+                                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">HR Access</a>
+                                <ul aria-labelledby="quicklinks1" class="dropdown-menu border-0 shadow">
+                                    <li id="liAbscondingEmployeeFollowup" runat="server" style="display: none;"><a href="AbscondingEmployeeFollowup.aspx" class="dropdown-item">Absconding Employees Follow up</a></li>
+                                    <li id="liNewJoineeHrFollowUp" runat="server" style="display: none;"><a href="NewJoineeHRFollowup.aspx" class="dropdown-item">New Joinee HR Follow up</a></li>
+                                    <li id="liSkipLevelMeeting" runat="server" style="display: none;"><a href="SkipLevelMeeting.aspx" class="dropdown-item">Skip Level Meeting</a></li>
+                                    <li><a href="ViewEmployee.aspx" class="dropdown-item">View Employee</a></li>
+                                    <li id="ViewAllApplicantList" runat="server" style="display: none;"><a href="ViewAllApplicantList.aspx" class="dropdown-item">View All Applicants</a></li>
                                     <li class="dropdown-divider"></li>
                                 </ul>
                             </li>
@@ -76,21 +376,71 @@
                                     <li class="dropdown-divider"></li>
                                 </ul>
                             </li>
-                            <li class="nav-item dropdown" style="display: none;">
+                            <li class="nav-item dropdown" id="tabpmutilities" runat="server">
                                 <a id="pmutilities" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">PM Utilities</a>
-                                <ul aria-labelledby="pmutilities" class="dropdown-menu border-0 shadow">
-                                    <li><a href="LogInDetails.aspx" class="dropdown-item">Log Details</a></li>
-                                    <li><a href="#" class="dropdown-item">Attendance Correction</a></li>
-                                    <li><a href="UserLeaves.aspx" class="dropdown-item">Leave Section</a></li>
-                                    <li><a href="#" class="dropdown-item">Compensatory Off</a></li>
-                                    <li><a href="#" class="dropdown-item">Deduct No. of Hours</a></li>
-                                    <li class="dropdown-divider"></li>
+                                <ul aria-labelledby="pmutilities" class="dropdown-menu border-0 shadow" style="width: 700px; margin-left: auto; left: 50%;">
+                                    <div class="col-sm-12">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>General</b></h6>
+                                                </div>
+                                                <a href="ViewEmployee.aspx" class="dropdown-item">View Employees</a>
+                                                <a href="LogInDetails.aspx" class="dropdown-item">Log Details</a>
+                                                <a href="AttendanceCorrectionpm.aspx" class="dropdown-item">Attendance Correction</a>
+                                                <a href="EmployeeLeaves.aspx" class="dropdown-item">Leaves Section</a>
+                                                <a href="Resignation.aspx" class="dropdown-item">Employee Resignation</a>
+                                                <a href="#" class="dropdown-item" style="display: none;">Compensatory Off</a>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Reports</b></h6>
+                                                </div>
+                                                <a href="UserPerformanceReport.aspx" class="dropdown-item">User Performance Report</a>
+                                                <a href="ProductivityUpdate.aspx" class="dropdown-item">Review Daily Production</a>
+                                                <li><a href="AttritionReport.aspx" id="attritionReport" runat="server" class="dropdown-item">Attrition Report</a></li>
+
+                                                <%-- <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Masters</b></h6>
+                                                </div>
+                                                <a href="AppreciationAndDisciplinaryActionMaster.aspx" class="dropdown-item">Appreciation/ Disciplinary Action </a>
+                                                <a href="ProjectConfiguration.aspx" class="dropdown-item">Project Configuration </a>--%>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Miscellaneous</b></h6>
+                                                </div>
+                                                <a href="SetAppreciationDisciplinaryAction.aspx" class="dropdown-item">Appreciation and Disciplinary Action</a>
+                                                <a href="InfinityFeedback.aspx" class="dropdown-item">Feedback Analysis</a>
+                                                <a href="ResetUserPassword.aspx" class="dropdown-item">Reset User Password</a>
+                                                <a href="#" class="dropdown-item">Deduct No. of Hours</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12" style="padding-top: 10px!important;">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Master</b></h6>
+                                                </div>
+                                                <a href="PseudoName.aspx" class="dropdown-item">Update Pseudoname</a>
+                                            </div>
+
+                                            <div class="col-sm-4" id="pmDueDilligence" runat="server" style="display: none;">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Due Dilligence</b></h6>
+                                                </div>
+                                                <a href="SecuritizationTracking.aspx" class="dropdown-item">Securitization Tracking</a>
+                                                <a href="#" class="dropdown-item"></a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </ul>
                             </li>
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown" id="tabhraccess" runat="server">
                                 <a id="hraccess" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">HR Access</a>
                                 <ul class="dropdown-menu border-0 shadow" style="width: 700px; margin-left: auto; left: 50%;">
-
+                                    <%--transform: translate(-50%, 0px);--%>
                                     <div class="col-sm-12">
                                         <div class="row">
 
@@ -102,6 +452,8 @@
                                                 <a href="LogInDetails.aspx" class="dropdown-item">Log Details</a>
                                                 <a href="Resignation.aspx" class="dropdown-item">Employee Resignation</a>
                                                 <a href="SkipLevelMeeting.aspx" class="dropdown-item">Skip Level Meeting</a>
+                                                <a href="EmployeeInformation.aspx" class="dropdown-item">Employee Verification Details</a>
+                                                <a href="PendingToUpdateBankDetails.aspx" class="dropdown-item">Pending Bank Account</a>
                                             </div>
                                             <div class="col-sm-4">
                                                 <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
@@ -112,14 +464,11 @@
                                                 <a href="ViewAllApplicantList.aspx" class="dropdown-item">View All Applicants</a>
                                                 <a href="ViewSelectedCandidates.aspx" class="dropdown-item">View Selected Applicants</a>
                                                 <a href="UnderwritingTestModule.aspx" class="dropdown-item">Underwriting Test Module</a>
-
-
                                             </div>
                                             <div class="col-sm-4">
                                                 <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
                                                     <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Stamp Paper</b></h6>
                                                 </div>
-
                                                 <a href="StampPaperInformation.aspx" class="dropdown-item">Stamp Paper Information</a>
                                                 <a href="StampPaperInvoice.aspx" class="dropdown-item">Stamp Paper Invoice</a>
                                             </div>
@@ -131,11 +480,12 @@
                                                 <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
                                                     <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Masters</b></h6>
                                                 </div>
-
-                                                <a href="RequisitionProfile.aspx" class="dropdown-item">Recruitment Positions</a>
                                                 <a href="BankNameMaster.aspx" class="dropdown-item">Bank Name Master</a>
+                                                <a href="POSHQuestionMaster.aspx" class="dropdown-item">POSH Question Master</a>
+                                                <a href="RequisitionProfile.aspx" class="dropdown-item">Recruitment Positions</a>
                                                 <a href="RoamingBranch.aspx" class="dropdown-item">Roaming Branch</a>
                                                 <a href="HRReportInput.aspx" class="dropdown-item">Social Media Input</a>
+                                                <a href="MasterData.aspx" class="dropdown-item">Master Data</a>
                                             </div>
                                             <div class="col-sm-4">
                                                 <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
@@ -168,42 +518,111 @@
                                                 <a href="FlowCharts.aspx" class="dropdown-item">HR Process Flow Charts</a>
                                                 <a href="HRInduction.aspx" class="dropdown-item">HR Induction</a>
                                                 <a href="HRReport.aspx" class="dropdown-item">HR Report</a>
+                                                <a href="PoshTestResult.aspx" class="dropdown-item">POSH Induction Test Result</a>
+                                                <a href="PseudoName.aspx" class="dropdown-item">Update Pseudoname</a>
                                             </div>
                                         </div>
                                     </div>
                                     <li class="dropdown-divider"></li>
                                 </ul>
                             </li>
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown" id="tabhrreport" runat="server">
                                 <a id="reports" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Reports</a>
                                 <ul aria-labelledby="reports" class="dropdown-menu border-0 shadow">
                                     <li><a href="NewJoineeReport.aspx" class="dropdown-item">New Joined Employees</a></li>
                                     <li><a href="AllResignedEmployees.aspx" class="dropdown-item">All Resigned Employees</a></li>
                                     <li><a href="DropoutEmployeeReport.aspx" class="dropdown-item">Dropout Employees</a></li>
+                                    <li class="dropdown-divider"></li>
                                     <li><a href="BankDeatailsApprovalReport.aspx" class="dropdown-item">Bank Details Approval Report</a></li>
+                                    <li><a href="AbscondingAndLeaveReport.aspx" class="dropdown-item">Monthly Absconding and Leaves Report</a></li>
+                                    <li class="dropdown-divider"></li>
+                                    <li><a href="AttritionReport.aspx" class="dropdown-item">Attrition Report</a></li>
                                     <li><a href="#" class="dropdown-item" style="display: none;">Compensatory Off</a></li>
                                     <li><a href="#" class="dropdown-item" style="display: none;">Deduct No. of Hours</a></li>
                                     <li class="dropdown-divider"></li>
-                                    <li><a href="InvoiceVerification.aspx" class="dropdown-item">Update Invoice</a></li>
-                                    <li><a href="CreditCardReconiliation.aspx" class="dropdown-item">Invoice Reconciliation</a></li>
-                                    <li class="dropdown-divider"></li>
-                                    <li><a href="CanopyData.aspx" class="dropdown-item">Lauramac Database Volume</a></li>
+                                    <li><a href="InvoiceVerification.aspx" style="display: none;" class="dropdown-item">Update Invoice</a></li>
+                                    <li><a href="CreditCardReconiliation.aspx" style="display: none;" class="dropdown-item">Invoice Reconciliation</a></li>
+                                    <li class="dropdown-divider" style="display: none;"></li>
+                                    <li><a href="CanopyData.aspx" style="display: none;" class="dropdown-item">Lauramac Database Volume</a></li>
                                 </ul>
-                            </li>--%>
-
-                            <li class="nav-item dropdown">
-                                <a id="fte" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">FTE</a>
-                                <ul aria-labelledby="reports" class="dropdown-menu border-0 shadow">
-                                    <li><a href="FTEMaster.aspx" class="dropdown-item">FTE Master</a></li>
-                                    <li><a href="FTEEntry.aspx" class="dropdown-item">FTE Entry</a></li>
-
-                                    <%--     <li><a href="#" class="dropdown-item" style="display: none;">Compensatory Off</a></li>
-                                    <li><a href="#" class="dropdown-item" style="display: none;">Deduct No. of Hours</a></li>
+                            </li>
+                            <li class="nav-item dropdown" id="tabmgtreport" runat="server">
+                                <a id="mgtreport" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Management Reports</a>
+                                <ul aria-labelledby="pmutilities" class="dropdown-menu border-0 shadow">
+                                    <li id="credReport" runat="server"><a href="../Admin/CreditConsolidatedReport.aspx" class="dropdown-item">Credit Consolidated Report</a></li>
+                                    <li id="servReport" runat="server"><a href="../Admin/ServicingConsolidatedReport.aspx" class="dropdown-item">Servicing Consolidated Report</a></li>
+                                    <li id="detailfeedbackoutput" runat="server"><a href="../Admin/DetailedFeedbackReport.aspx" class="dropdown-item">Detailed Feedback Report</a></li>
                                     <li class="dropdown-divider"></li>
-                                    <li><a href="InvoiceVerification.aspx" class="dropdown-item">Update Invoice</a></li>
-                                    <li><a href="CreditCardReconiliation.aspx" class="dropdown-item">Invoice Reconciliation</a></li>
+                                    <li id="creditutilreport" runat="server"><a href="CreditUtilizationReport.aspx" class="dropdown-item">Credit Utilization Report</a></li>
+                                    <li id="lauramacreport" runat="server"><a href="../Admin/CanopyData.aspx" class="dropdown-item">Lauramac Database Volume</a></li>
+                                    <li id="LiUserAck" runat="server"><a href="UserPerformanceAckReport.aspx" class="dropdown-item">User Performance Acknowledgement Report</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown" id="tabcreditcard" runat="server">
+                                <a id="cardmaster" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Credit Card Utilities</a>
+                                <ul aria-labelledby="pmutilities" class="dropdown-menu border-0 shadow" style="width: 250px; margin-left: auto;">
+                                    <li id="ccm1" runat="server"><a href="../Accounts/CreditCardMaster.aspx" class="dropdown-item">Credit Card Master</a></li>
+                                    <li id="ccm2" runat="server"><a href="../Accounts/CreditCardMonthlyTransaction.aspx" class="dropdown-item">Credit Card Monthly Data</a></li>
+                                    <li id="ccm3" runat="server"><a href="../Accounts/ImportCCStatement.aspx" class="dropdown-item">Import Credit Card Statement</a></li>
+                                    <li id="Li2" runat="server"><a href="../Admin/ITCostReport.aspx" class="dropdown-item">Credit Card Deviation Report</a></li>
+                                    <%--<li><a href="#" class="dropdown-item">Attendance Correction</a></li>
+                                    <li><a href="UserLeaves.aspx" class="dropdown-item">Leave Section</a></li>
+                                    <li><a href="#" class="dropdown-item">Compensatory Off</a></li>
+                                    <li><a href="#" class="dropdown-item">Deduct No. of Hours</a></li>--%>
                                     <li class="dropdown-divider"></li>
-                                    <li><a href="CanopyData.aspx" class="dropdown-item">Lauramac Database Volume</a></li>--%>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown" id="tabhelpdesk" runat="server">
+                                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">IT Service Desk</a>
+                                <ul class="dropdown-menu border-0 shadow" style="width: 500px; margin-left: auto; left: 50%;">
+                                    <%--transform: translate(-50%, 0px);--%>
+                                    <div class="col-sm-12">
+                                        <div class="row">
+
+                                            <div class="col-sm-6">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Asset Masters</b></h6>
+                                                </div>
+                                                <a href="../IT/AddAsset.aspx" class="dropdown-item">Add New Asset</a>
+                                                <a href="../IT/AssetGroup.aspx" class="dropdown-item">Asset Group</a>
+                                                <a href="../IT/AssetType.aspx" class="dropdown-item">Asset Type</a>
+                                                <a href="../IT/Brand.aspx" class="dropdown-item">Brand Master</a>
+                                                <a href="../IT/VendorMaster.aspx" class="dropdown-item">Vendor Master</a>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Helpdesk</b></h6>
+                                                </div>
+                                                <a href="../IT/TIcketQueue.aspx" class="dropdown-item">Ticket Queue</a>
+                                            </div>
+                                        </div>
+                                        <div class="row" style="padding-top: 10px!important;">
+                                            <div class="col-sm-4">
+                                                <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
+                                                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Asset Reports</b></h6>
+                                                </div>
+                                                <a href="../IT/AssetMasterReport.aspx" class="dropdown-item">Asset Master Report</a>
+                                                <%--<a href="AssetMasterReport.aspx" class="dropdown-item">View/ Update Assets</a>--%>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <li class="dropdown-divider"></li>
+                                </ul>
+                            </li>
+                            <li id="liproductionsection" class="nav-item dropdown" runat="server" style="display: none;">
+                                <a id="aproductionsection" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Production</a>
+                                <ul aria-labelledby="productionsection" class="dropdown-menu border-0 shadow">
+                                    <li><a href="../Production/TrackingSheetConfiguration.aspx" class="dropdown-item">Tracking Sheet Configuration</a></li>
+                                    <li class="dropdown-divider"></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown" id="tabotherinks" runat="server">
+                                <a id="otherlink" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Other Links</a>
+                                <ul aria-labelledby="pmutilities" class="dropdown-menu border-0 shadow">
+                                    <a href="http://23.111.175.186/AP/Login.aspx" class="dropdown-item" target="_blank">AP Billing</a>
+                                    <a href="http://192.168.12.22/Underwriting/Login.aspx" class="dropdown-item" target="_blank">Client Billing</a>
+                                    <a href="http://23.111.175.186/MIS1/Login.aspx" class="dropdown-item" target="_blank">MIS Portal</a>
+                                    <li class="dropdown-divider"></li>
                                 </ul>
                             </li>
                         </ul>
@@ -215,17 +634,18 @@
 
                         <!-- Notifications Dropdown Menu -->
 
-                        <li class="nav-item">
+                        <li class="nav-item" id="lipendingTask">
                             <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
                                 <i class="fas fa-bell"></i>
                                 <span class="badge badge-danger navbar-badge" id="admin_pendingtask"></span>
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown" id="liLogout">
                             <a class="nav-link" data-toggle="dropdown" href="#">
                                 <i class="fas fa-cog" style="color: white;"></i>
+
                             </a>
-                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="divLogout">
                                 <span class="dropdown-header">Settings</span>
                                 <div class="dropdown-divider"></div>
                                 <a href="ChangePassword.aspx" class="dropdown-item">
@@ -233,6 +653,7 @@
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="../Logout.aspx" class="dropdown-item">
+                                    <%-- <a href="../LogoutNew.aspx" class="dropdown-item">--%>
                                     <i class="fas fa-sign-out-alt mr-2"></i>Logout
                                 </a>
                             </div>
@@ -255,9 +676,11 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-lg-12">
-                                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server"></asp:ContentPlaceHolder>
+                                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                                </asp:ContentPlaceHolder>
                             </div>
                             <!-- /.col-md-6 -->
+
                             <!-- /.col-md-6 -->
                         </div>
                         <!-- /.row -->
@@ -284,6 +707,12 @@
 
 
         <script src="../plugins/datatables/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+        <!-- PivotTable.js -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.js"></script>
         <script src="../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
         <script src="../plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
         <script src="../plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
@@ -299,6 +728,8 @@
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../dist/js/adminlte.min.js"></script>
         <!-- AdminLTE for demo purposes -->
+
+
     </form>
 </body>
 </html>
