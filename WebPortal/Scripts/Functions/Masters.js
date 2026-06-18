@@ -644,8 +644,15 @@ function setappr_getApprTitle(ddltype) {
 
     });
 
-    if (type == "Appreciation") {
+    document.getElementById("setappr_apprid").innerHTML = "";
+    if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances['setappr_description']) {
+        CKEDITOR.instances['setappr_description'].setData("");
+    }
+
+    if (type == "Appreciation" || type == "") {
         document.getElementById("setappr_trother").style.display = "none";
+        $("#setappr_period").html('<option value="">Select</option>');
+        document.getElementById("setappr_effectivedate").value = "";
     }
     else if (type == "DisciplinaryAction") {
         document.getElementById("setappr_trother").style.display = "";
@@ -699,7 +706,11 @@ function setappr_getApprDesc(ddltitle) {
         success: function (res) {
             var dataArray = JSON.parse(res.d);
             $.each(dataArray, function (data, value) {
-                CKEDITOR.instances['setappr_description'].setData(blankForNull(value.DesignDescription));
+                if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances['setappr_description']) {
+                    CKEDITOR.instances['setappr_description'].setData(blankForNull(value.DesignDescription));
+                } else {
+                    $("#setappr_description").val(blankForNull(value.DesignDescription));
+                }
                 document.getElementById("setappr_apprid").innerHTML = blankForNull(value.AppreciationDisciplinaryID);
             })
         }
@@ -707,36 +718,159 @@ function setappr_getApprDesc(ddltitle) {
     });
 }
 
+function setappr_selectedValue(id) {
+    var element = document.getElementById(id);
+    if (!element || element.selectedIndex < 0 || !element.options[element.selectedIndex]) {
+        return "";
+    }
+    return element.options[element.selectedIndex].value;
+}
+
+function setappr_editorData() {
+    if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances['setappr_description']) {
+        return CKEDITOR.instances['setappr_description'].getData();
+    }
+    return $("#setappr_description").val() || "";
+}
+
+function setappr_showMessage(message, isError, reloadOnClose) {
+    var button = $("#setappr_btnMessage");
+    $("#setappr_errmsg")
+        .html(message)
+        .css("color", isError ? "#fee2e2" : "#fff");
+
+    button.off("click").on("click", function () {
+        $("#setappr_dverror").modal("hide");
+        if (reloadOnClose) {
+            location.reload();
+        }
+    });
+
+    $("#setappr_dverror").modal("show");
+}
+
+function setappr_subject(type, title) {
+    if (type === "DisciplinaryAction") {
+        return "Warning: " + title;
+    }
+    if (type === "PerformanceImprovementPlan") {
+        return "Performance Improvement Plan: " + title;
+    }
+    return "Appreciation: " + title;
+}
+
+function setappr_formatDate(value) {
+    var text = blankForNull(value);
+    var match;
+    var date;
+
+    if (!text) {
+        return "";
+    }
+
+    match = /\/Date\((-?\d+)\)\//.exec(text);
+    if (match) {
+        date = new Date(parseInt(match[1], 10));
+    } else {
+        date = new Date(text);
+    }
+
+    if (isNaN(date.getTime())) {
+        return text;
+    }
+
+    return date.toLocaleDateString("en-US");
+}
+
+function setappr_detailHash(type) {
+    if (type === "DisciplinaryAction") {
+        return "#tab-disciplinary";
+    }
+    if (type === "PerformanceImprovementPlan") {
+        return "#tab-pip";
+    }
+    return "#tab-appreciation";
+}
+
+function setappr_countLink(employeeId, type, count) {
+    var id = parseInt(blankForNull(employeeId), 10) || 0;
+    return '<a href="#!" onclick="return setappr_binddetailsbyType(' + id + ',\'' + type + '\');">' + blankForNull(count) + '</a>';
+}
+
+function setappr_validateAction(requireDescription) {
+    var employee = setappr_selectedValue("setappr_employee");
+    var type = setappr_selectedValue("setappr_type");
+    var title = setappr_selectedValue("setappr_title");
+    var period = setappr_selectedValue("setappr_period");
+    var description = setappr_editorData();
+
+    if (!employee) {
+        setappr_showMessage("Please select employee.", true, false);
+        $("#setappr_employee").focus();
+        return false;
+    }
+    if (!type) {
+        setappr_showMessage("Please select type.", true, false);
+        $("#setappr_type").focus();
+        return false;
+    }
+    if (!title) {
+        setappr_showMessage("Please select title.", true, false);
+        $("#setappr_title").focus();
+        return false;
+    }
+    if (type !== "Appreciation" && !period) {
+        setappr_showMessage("Please select period.", true, false);
+        $("#setappr_period").focus();
+        return false;
+    }
+    if (requireDescription && !$.trim($("<div>").html(description).text())) {
+        setappr_showMessage("Please enter description.", true, false);
+        return false;
+    }
+
+    return true;
+}
+
 function setappr_preview() {
-    var ddltitle = document.getElementById("setappr_title");
-    var title = ddltitle.options[ddltitle.selectedIndex].value;
-    var ddltype = document.getElementById("setappr_type");
-    var type = ddltype.options[ddltype.selectedIndex].value;
-    var sub = "";
-    if (type = "DisciplinaryAction")
-        sub = "Warning: " + title;
-    else
-        sub = ddltype.options[ddltype.selectedIndex].value + ": " + title;
+    var title;
+    var type;
+
+    if (!setappr_validateAction(true)) {
+        return false;
+    }
+
+    title = setappr_selectedValue("setappr_title");
+    type = setappr_selectedValue("setappr_type");
+
     document.getElementById("setappr_popname").innerHTML = document.getElementById("setappr_empname").innerHTML;
     document.getElementById("setappr_popdoj").innerHTML = document.getElementById("setappr_joiningdate").innerHTML;
-    document.getElementById("setappr_popsubject").innerHTML = sub;
-    document.getElementById("setappr_popdesc").innerHTML = CKEDITOR.instances['setappr_description'].getData();
+    document.getElementById("setappr_popsubject").innerHTML = setappr_subject(type, title);
+    document.getElementById("setappr_popdesc").innerHTML = setappr_editorData();
     document.getElementById("setappr_popdate").innerHTML = new Date().toLocaleDateString("en-US");
     $("#setappr_previewpop").modal("show");
     return false;
 }
 
 function setappr_submit() {
-    var ddluser = document.getElementById("setappr_employee");
-    var empid = ddluser.options[ddluser.selectedIndex].value;
-    var ddltitle = document.getElementById("setappr_title");
-    var title = ddltitle.options[ddltitle.selectedIndex].value;
-    var ddltype = document.getElementById("setappr_type");
-    var type = ddltype.options[ddltype.selectedIndex].value;
-    var ddlperiod = document.getElementById("setappr_period");
-    var period = ddlperiod.options[ddlperiod.selectedIndex].value;
-    var apprdescID = document.getElementById("setappr_apprid").innerHTML;
-    var editor = CKEDITOR.instances['setappr_description'].getData();
+    var empid;
+    var title;
+    var type;
+    var period;
+    var apprdescID;
+    var editor;
+
+    if (!setappr_validateAction(true)) {
+        return false;
+    }
+
+    empid = setappr_selectedValue("setappr_employee");
+    title = setappr_selectedValue("setappr_title");
+    type = setappr_selectedValue("setappr_type");
+    period = type === "Appreciation" ? "" : setappr_selectedValue("setappr_period");
+    apprdescID = document.getElementById("setappr_apprid").innerHTML;
+    editor = setappr_editorData();
+
     $('#waitingpanel').modal('show');
     PageMethods.SetAppreciationDescAction(empid, apprdescID, editor, title, type, period, setappr_sub_OnSuccess, setappr_sub_OnError);
     return false;
@@ -745,334 +879,263 @@ function setappr_submit() {
 function setappr_sub_OnSuccess(result) {
     $('#waitingpanel').modal('hide');
     if (result > 0) {
-        document.getElementById("setappr_errmsg").innerHTML = "Record added successfully.!";
-        $('#setappr_dverror').modal('show');
-        return false;
+        setappr_showMessage("Record added successfully.", false, true);
     }
     else {
-        document.getElementById("setappr_errmsg").innerHTML = "Oops! Error occured while sending notification. <br /> Please contact administrator!";
-        document.getElementById("setappr_errmsg").style.color = 'red';
-        $('#setappr_dverror').modal('show');
-        return false;
+        setappr_showMessage("Oops! Error occurred while sending notification.<br />Please contact administrator.", true, false);
     }
     return false;
 }
 
 function setappr_sub_OnError(error) {
-    alert(error);
+    $('#waitingpanel').modal('hide');
+    setappr_showMessage("Oops! Error occurred while saving details.<br />Please contact administrator.", true, false);
+}
+
+function setappr_resetFilters() {
+    $("#filterYear").html('<option value="">All Years</option>').off("change");
+    $("#filterMonth").html('<option value="">All Months</option>').off("change");
+    $("#filterLocation").html('<option value="">All Locations</option>').off("change");
+    $("#filterDepartment").html('<option value="">All Departments</option>').off("change");
+}
+
+function setappr_bindFilters(table, hasMonthYear) {
+    var locationColumn = table.column(4);
+    var departmentColumn = table.column(5);
+
+    locationColumn.data().unique().sort().each(function (d) {
+        if (blankForNull(d)) {
+            $('#filterLocation').append('<option value="' + blankForNull(d) + '">' + blankForNull(d) + '</option>');
+        }
+    });
+
+    departmentColumn.data().unique().sort().each(function (d) {
+        if (blankForNull(d)) {
+            $('#filterDepartment').append('<option value="' + blankForNull(d) + '">' + blankForNull(d) + '</option>');
+        }
+    });
+
+    if (hasMonthYear) {
+        var years = table.column(8).data().unique().toArray().sort().reverse();
+        var months = [];
+
+        $.each(years, function (i, d) {
+            if (blankForNull(d)) {
+                $('#filterYear').append('<option value="' + blankForNull(d) + '">' + blankForNull(d) + '</option>');
+            }
+        });
+
+        table.column(7).data().unique().each(function (d) {
+            if (blankForNull(d)) {
+                months.push(d);
+            }
+        });
+
+        months.sort(function (a, b) {
+            return new Date(Date.parse(a + " 1, 2012")) - new Date(Date.parse(b + " 1, 2012"));
+        });
+
+        $.each(months, function (i, m) {
+            $('#filterMonth').append('<option value="' + blankForNull(m) + '">' + blankForNull(m) + '</option>');
+        });
+    }
+
+    $('#filterLocation').on('change', function () {
+        table.column(4).search(this.value).draw();
+    });
+
+    $('#filterDepartment').on('change', function () {
+        table.column(5).search(this.value).draw();
+    });
+
+    if (hasMonthYear) {
+        $('#filterMonth').on('change', function () {
+            table.column(7).search(this.value).draw();
+        });
+
+        $('#filterYear').on('change', function () {
+            table.column(8).search(this.value).draw();
+        });
+    }
+}
+
+function setappr_renderGridRows(dataArray, includeMonthYear) {
+    var html = '';
+
+    $.each(dataArray, function (index, value) {
+        html += '<tr>';
+        html += '<td>' + blankForNull(value.Code) + '</td>';
+        html += '<td>' + blankForNull(value.Name) + '</td>';
+        html += '<td>' + blankForNull(value.JoiningDate) + '</td>';
+        html += '<td>' + blankForNull(value.BranchName) + '</td>';
+        html += '<td>' + blankForNull(value.DepartmentName) + '</td>';
+        html += '<td>' + blankForNull(value.DesignationName) + '</td>';
+        html += '<td>' + blankForNull(value.ReportingManager) + '</td>';
+
+        if (includeMonthYear) {
+            html += '<td>' + blankForNull(value.ActionMonth) + '</td>';
+            html += '<td>' + blankForNull(value.ActionYear) + '</td>';
+        }
+
+        html += '<td class="text-center">' + setappr_countLink(value.EmployeeID, 'Appreciation', value.Appreciation) + '</td>';
+        html += '<td class="text-center">' + setappr_countLink(value.EmployeeID, 'DisciplinaryAction', value.Warnings) + '</td>';
+        html += '<td class="text-center">' + setappr_countLink(value.EmployeeID, 'PerformanceImprovementPlan', value.PIP) + '</td>';
+        html += '</tr>';
+    });
+
+    return html;
+}
+
+function setappr_initTable(hasMonthYear) {
+    setappr_gr_table = $('#setappr_gr_table').DataTable({
+        dom: 'ftip',
+        scrollX: true,
+        destroy: true,
+        paging: true,
+        autoWidth: false,
+        select: true,
+        ordering: false,
+        processing: true,
+        select: {
+            style: 'single'
+        },
+        initComplete: function () {
+            var tableApi = this.api();
+            setappr_gr_table = tableApi;
+            setappr_resetFilters();
+            setappr_bindFilters(tableApi, hasMonthYear);
+            $('#load1').hide();
+        }
+    });
 }
 
 function setappr_bindgrid() {
     $('#load1').show();
 
-    var setapp_gr_html = '';
     $.ajax({
         url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsRecords",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
-                setapp_gr_html += '<tr>';
-                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.BranchName) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DepartmentName) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DesignationName) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ReportingManager) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ActionMonth) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ActionYear) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'Appreciation\')">' + blankForNull(value.Appreciation) + '</a></td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'DisciplinaryAction\')">' + blankForNull(value.Warnings) + '</a></td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'PerformanceImprovementPlan\')">' + blankForNull(value.PIP) + '</a></td>';
-
-                setapp_gr_html += '</tr>';
-            });
+            var dataArray = JSON.parse(data.d);
 
             if ($.fn.dataTable.isDataTable('#setappr_gr_table')) {
-                setappr_gr_table.destroy();
+                $('#setappr_gr_table').DataTable().clear().destroy();
             }
-            $('#setappr_gr_table tbody').html(setapp_gr_html);
-            //else
-            setappr_gr_table = $('#setappr_gr_table').DataTable({
-                dom: 'ftip',
-                scrollX: true,
-                destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                'select': {
-                    'style': 'single'
-                },
 
-                initComplete: function () {
-                    $('#load1').hide();
-
-                }
-            });
-            var column = setappr_gr_table.column(4);
-
-            var select = $('#filterLocation');
-
-            column.data().unique().sort().each(function (d) {
-                select.append('<option value="' + d + '">' + d + '</option>')
-            });
-
-            column = setappr_gr_table.column(5);
-
-            select = $('#filterDepartment');
-
-            column.data().unique().sort().each(function (d) {
-                select.append('<option value="' + d + '">' + d + '</option>')
-            });
-
-            //setappr_gr_table.column(8).data().unique().sort().each(function (d) {
-            //    $('#filterYear').append('<option value="' + d + '">' + d + '</option>');
-            //});
-            var columnYear = setappr_gr_table.column(8);   // year column index
-            var years = columnYear.data().unique().toArray().sort().reverse();
-
-            $.each(years, function (i, d) {
-                $('#filterYear').append('<option value="' + d + '">' + d + '</option>');
-            });
-            //columnYear.data().unique().sort().each(function (d) {
-            //    $('#filterYear').append('<option value="' + d + '">' + d + '</option>');
-            //});
-
-            var months = [];
-
-            setappr_gr_table.column(7).data().unique().each(function (d) {
-                months.push(d);
-            });
-
-            months.sort(function (a, b) {
-                return new Date(Date.parse(a + " 1, 2012")) - new Date(Date.parse(b + " 1, 2012"));
-            });
-
-            $.each(months, function (i, m) {
-                $('#filterMonth').append('<option value="' + m + '">' + m + '</option>');
-            });
-
-            // Month filter
-            //setappr_gr_table.column(7).data().unique().sort().each(function (d) {
-            //    $('#filterMonth').append('<option value="' + d + '">' + d + '</option>');
-            //});
-
-            $('#filterLocation').on('change', function () {
-                setappr_gr_table.column(4).search(this.value).draw();
-            });
-
-            $('#filterDepartment').on('change', function () {
-                setappr_gr_table.column(5).search(this.value).draw();
-            });
-
-            $('#filterMonth').on('change', function () {
-                setappr_gr_table.column(7).search(this.value).draw();
-            });
-
-            $('#filterYear').on('change', function () {
-                setappr_gr_table.column(8).search(this.value).draw();
-            });
-
-
+            $('#setappr_gr_table tbody').empty();
+            $('#setappr_gr_table tbody').html(setappr_renderGridRows(dataArray, true));
+            setappr_initTable(true);
         },
-
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            setappr_showMessage('Unable to load action details.', true, false);
         }
     });
     return false;
 }
-
 
 function setappr_bindgrid_core() {
     $('#load1').show();
 
-    var setapp_gr_html = '';
     $.ajax({
         url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsRecords",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
-                setapp_gr_html += '<tr>';
-                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.BranchName) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DepartmentName) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.DesignationName) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ReportingManager) + '</td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'Appreciation\')">' + blankForNull(value.Appreciation) + '</a></td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'DisciplinaryAction\')">' + blankForNull(value.Warnings) + '</a></td>';
-                setapp_gr_html += '<td style="text-wrap: nowrap; text-align:center;"><a href=#! onclick="setappr_binddetailsbyType(' + blankForNull(value.EmployeeID) + ',\'PerformanceImprovementPlan\')">' + blankForNull(value.PIP) + '</a></td>';
-
-                setapp_gr_html += '</tr>';
-            });
+            var dataArray = JSON.parse(data.d);
 
             if ($.fn.dataTable.isDataTable('#setappr_gr_table')) {
-                setappr_gr_table.destroy();
+                $('#setappr_gr_table').DataTable().clear().destroy();
             }
-            $('#setappr_gr_table tbody').html(setapp_gr_html);
-            //else
-            setappr_gr_table = $('#setappr_gr_table').DataTable({
-                dom: 'ftip',
-                scrollX: true,
-                destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                'select': {
-                    'style': 'single'
-                },
 
-                initComplete: function () {
-                    $('#load1').hide();
-                }
-            });
+            $('#setappr_gr_table tbody').empty();
+            $('#setappr_gr_table tbody').html(setappr_renderGridRows(dataArray, true));
+            setappr_initTable(true);
         },
-
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            setappr_showMessage('Unable to load action details.', true, false);
         }
     });
     return false;
 }
 
+function setappr_slideHtml(value) {
+    var addedDate = setappr_formatDate(value.AddedDate);
+
+    return '' +
+        '<div class="setappr-slide-card">' +
+        '  <div class="setappr-slide-meta">' +
+        '    <div>' +
+        '      <div><b>Name:</b> ' + blankForNull(value.Name) + '</div>' +
+        '      <div><b>Joining Date:</b> ' + blankForNull(value.JoiningDate) + '</div>' +
+        '      <div><b>Location:</b> ' + blankForNull(value.BranchName) + '</div>' +
+        '    </div>' +
+        '    <div class="setappr-slide-date"><b>Date:</b> ' + blankForNull(addedDate) + '</div>' +
+        '  </div>' +
+        '  <div class="setappr-slide-subject"><h5>' + blankForNull(value.Title) + '</h5></div>' +
+        '  <div class="setappr-slide-content"><label>' + blankForNull(value.Description) + '</label></div>' +
+        '</div>';
+}
+
 function setappr_binddetailsbyType(empid, type) {
-    $("#setappr_viewdetails").modal('show')
+    var carouselId = "setapprActionCarousel";
+    var headerText = setappr_subject(type, "Details");
+    var modifyHref = "UsersAppreciationDisplinaryAction.aspx?EmployeeID=" + blankForNull(empid) + setappr_detailHash(type);
+
     $('#load1').show();
-    var setapp_gr_html = '';
+    $("#dvslidermain").html("");
+    $("#setappr_detailsheader").html('<i class="fas fa-copy"></i>' + headerText);
+    $("#setappr_openmodify").attr("href", modifyHref).show();
+
     $.ajax({
         url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsByType",
         type: "POST",
         dataType: "json",
-        data: "{EmployeeID:" + empid + ", Type:'" + type + "'}",
+        data: JSON.stringify({ EmployeeID: empid, Type: type }),
         contentType: "application/json; charset=utf-8",
-
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            var dvmain = document.getElementById("dvslidermain");
-            dvmain.innerHTML = "";
-            var dvinner = document.createElement("div");
-            dvinner.id = "carouselExampleIndicators";
-            dvinner.setAttribute("data-ride", "carousel");
-            dvinner.classList.add("carousel");
-            dvinner.classList.add("slide");
+            var dataArray = JSON.parse(data.d);
+            var html = '';
+            var indicators = '';
+            var slides = '';
 
-            if (dataArray.length > 1) {
-                var a = document.createElement("a");
-                a.classList.add("carousel-control-prev");
-                a.setAttribute("href", "#carouselExampleIndicators");
-                a.setAttribute("role", "button");
-                a.setAttribute("data-slide", "prev");
-                var span = document.createElement("span");
-                span.classList.add("carousel-control-prev-icon");
-                a.appendChild(span);
-                dvinner.appendChild(a);
-                a = document.createElement("a");
-                a.classList.add("carousel-control-next");
-                a.setAttribute("href", "#carouselExampleIndicators");
-                a.setAttribute("role", "button");
-                a.setAttribute("data-slide", "next");
-                span = document.createElement("span");
-                span.classList.add("carousel-control-next-icon");
-                a.appendChild(span);
-                dvinner.appendChild(a);
+            $('#load1').hide();
+
+            if (!dataArray.length) {
+                $("#dvslidermain").html('<div class="setappr-empty-state"><i class="fas fa-inbox"></i><br />No records found.</div>');
+                $("#setappr_viewdetails").modal('show');
+                return;
             }
 
-            var dvinner2 = document.createElement("div");
-            dvinner2.classList.add("carousel-inner");
-            dvinner2.setAttribute("role", "listbox");
-
             $.each(dataArray, function (index, value) {
-                var dvslide = document.createElement("div");
-                dvslide.classList.add("carousel-item");
-                if (index == 0)
-                    dvslide.classList.add("active");
-                var dvouter12 = document.createElement("div");
-                dvouter12.classList.add("col-lg-12");
-                var dvrow = document.createElement("div");
-                dvrow.classList.add("row");
-                var dvleft = document.createElement("div");
-                dvleft.classList.add("col-md-10");
-                var table = document.createElement("table");
-                var tr = document.createElement("tr");
-                var td = document.createElement("td");
-                td.innerHTML = "<b>Name:</b> " + blankForNull(value.Name);
-                tr.appendChild(td);
-                table.appendChild(tr);
-                tr = document.createElement("tr");
-                td = document.createElement("td");
-                td.innerHTML = "<b>Joining Date:</b> " + blankForNull(value.JoiningDate);
-                tr.appendChild(td);
-                table.appendChild(tr);
-                tr = document.createElement("tr");
-                td = document.createElement("td");
-                td.innerHTML = "<b>Location:</b> " + blankForNull(value.BranchName);
-                tr.appendChild(td);
-                table.appendChild(tr);
-                dvleft.appendChild(table);
-                dvrow.appendChild(dvleft);
-                var dvright = document.createElement("div");
-                dvright.classList.add("col-md-2");
-                var addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
-                dvright.innerHTML = "<b>Date:</b> " + blankForNull(addeddate);
-                dvrow.appendChild(dvright);
-                dvouter12.appendChild(dvrow);
-
-                dvrow = document.createElement("div");
-                dvrow.classList.add("row");
-                var dvcenter = document.createElement("div");
-                dvcenter.classList.add("col-md-12");
-                dvcenter.style.textAlign = "center";
-                var hr = document.createElement("hr");
-                dvcenter.appendChild(hr);
-                var h5 = document.createElement("h5");
-                h5.innerHTML = blankForNull(value.Title);
-                dvcenter.appendChild(h5);
-                hr = document.createElement("hr");
-                dvcenter.appendChild(hr);
-                dvrow.appendChild(dvcenter);
-                dvouter12.appendChild(dvrow);
-
-
-                dvrow = document.createElement("div");
-                dvrow.classList.add("row");
-                dvcenter = document.createElement("div");
-                dvcenter.classList.add("col-md-12");
-                var lbl = document.createElement("label");
-                lbl.innerHTML = blankForNull(value.Description);
-                dvcenter.appendChild(lbl);
-                dvrow.appendChild(dvcenter);
-                dvouter12.appendChild(dvrow);
-                dvslide.appendChild(dvouter12);
-                dvinner2.appendChild(dvslide);
-                dvinner.appendChild(dvinner2);
-
-                dvmain.appendChild(dvinner);
-
-
+                indicators += '<li data-target="#' + carouselId + '" data-slide-to="' + index + '"' + (index === 0 ? ' class="active"' : '') + '></li>';
+                slides += '<div class="carousel-item' + (index === 0 ? ' active' : '') + '">' + setappr_slideHtml(value) + '</div>';
             });
+
+            html += '<div id="' + carouselId + '" class="carousel slide" data-ride="carousel" data-interval="false">';
+            if (dataArray.length > 1) {
+                html += '<ol class="carousel-indicators">' + indicators + '</ol>';
+            }
+            html += '<div class="carousel-inner" role="listbox">' + slides + '</div>';
+            if (dataArray.length > 1) {
+                html += '<a class="carousel-control-prev" href="#' + carouselId + '" role="button" data-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span></a>';
+                html += '<a class="carousel-control-next" href="#' + carouselId + '" role="button" data-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span></a>';
+            }
+            html += '</div>';
+
+            $("#dvslidermain").html(html);
+            $("#" + carouselId).carousel({ interval: false, ride: false });
+            $("#setappr_viewdetails").modal('show');
         },
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            setappr_showMessage('Unable to load selected details.', true, false);
         }
     });
-    $('#load1').hide();
     return false;
 }
 
