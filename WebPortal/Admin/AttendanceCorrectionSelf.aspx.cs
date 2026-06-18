@@ -590,7 +590,7 @@ namespace WebPortal.Admin
 
                                     if (returnvalue > 0)
                                     {
-                                        SendAttendanceEmail_InOut(Code, InDateParam, InTime, OutDateParam, OutTime, TotalHours, UserReason, reasontypeParam);
+                                          SendAttendanceEmail_InOut(Code, InDateParam, InTime, OutDateParam, OutTime, TotalHours, UserReason, reasontypeParam);
                                     }
                                     else
                                     {
@@ -605,8 +605,9 @@ namespace WebPortal.Admin
                             else
                             {
                                 returnvalue = -1;
-                                #endregion
+
                             }
+                            #endregion
                         }
                         else
                         {
@@ -625,7 +626,7 @@ namespace WebPortal.Admin
                                 htAttendance.Add("ReasonType", reasontypeParam);
                                 htAttendance.Add("Reason", UserReason);
                                 htAttendance.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                                returnvalue = new bllMaster().InsertAttendanceCorrectRequest(htAttendance);
+                                returnvalue =  new bllMaster().InsertAttendanceCorrectRequest(htAttendance);
 
                                 if (returnvalue > 0)
                                 {
@@ -802,6 +803,10 @@ namespace WebPortal.Admin
                 DateTime? inDateTime = ParseDateTime(inDateParam, inTimeParam);
                 DateTime? outDateTime = ParseDateTime(outDateParam, outTimeParam);
 
+                // 👉 Convert times properly
+                DateTime time1 = DateTime.ParseExact(inTimeParam, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+                DateTime time2 = DateTime.ParseExact(outTimeParam, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+
                 if (inDateTime == null)
                     return -7;
 
@@ -817,6 +822,8 @@ namespace WebPortal.Admin
                     totalHours = $"{diff.Hours}:{diff.Minutes}";
                 }
 
+
+
                 // 👉 Prepare data
                 Hashtable ht = new Hashtable
                 {
@@ -824,7 +831,7 @@ namespace WebPortal.Admin
                     ["InTime"] = inDateTime?.ToString("HH:mm"),
                     ["OutTime"] = outDateTime?.ToString("HH:mm") ?? "",
                     ["InDate"] = inDateTime?.ToString("dd-MMM-yyyy"),
-                    ["OutDate"] = outDateTime?.ToString("dd-MMM-yyyy") ?? "Select",
+                    ["OutDate"] = outDateTime?.ToString("dd-MMM-yyyy") ?? "",
                     ["BreakOutTime"] = "",
                     ["BreakInTime"] = "",
                     ["BreakOutDate"] = "",
@@ -840,7 +847,10 @@ namespace WebPortal.Admin
                 //// 👉 Send email if success
                 //if (result > 0)
                 //{
-                //    SendAttendanceEmail_InOut(code, inDateParam, ht["InTime"].ToString(), outDateParam, ht["OutTime"].ToString(), totalHours, userReasonParam, reasonTypeParam);
+                //   SendAttendanceEmail_InOut(code, inDateParam, ht["InTime"].ToString(), outDateParam, ht["OutTime"].ToString(), totalHoursParam, userReasonParam, reasonTypeParam);
+
+                //  SendAttendanceEmail_InOut(code, inDateParam, time1.ToString(), outDateParam, time2.ToString(), totalHoursParam, userReasonParam, reasonTypeParam);
+
                 //}
 
                 return result;

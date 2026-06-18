@@ -256,8 +256,8 @@ function ekyc_submit() {
         { id: "ekyc_nomineerelation", type: "select", message: "Please select nominee relation" },
         { id: "ekyc_nomineebirthdate", message: "Nominee DOB is required" },
         { id: "ekyc_nomineecontact", message: "Nominee contact is required" },
-        { id: "ekyc_documenttype", type: "select", message: "Please select document type" },
-        { id: "ekyc_docno", message: "Document number is required" }
+        // { id: "ekyc_documenttype", type: "select", message: "Please select document type" },
+        // { id: "ekyc_docno", message: "Document number is required" }
     ])) {
         return false;
     }

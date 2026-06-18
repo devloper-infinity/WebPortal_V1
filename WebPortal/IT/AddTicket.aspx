@@ -1,419 +1,5 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/IT/Admin.Master" AutoEventWireup="true" CodeBehind="AddTicket.aspx.cs" Inherits="WebPortal.IT.AddTicket" %>
 
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
-    <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        .dataTables_length, .dataTables_info {
-            float: left !important;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            /*background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;*/
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none !important;
-            background-color: #fff !important;
-        }
-
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
-    </style>
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            addticket_bindrequestonbehalf();
-            addticket_bindrequestrelatedto();
-            addticket_Binddays();
-            addticket_Bindhours();
-            addticket_Bindminutes();
-            addticket_bindgrid();
-        });
-
-        var fileslist = '';
-        var fd = new FormData();
-
-        window.onload = function () {
-
-            document.getElementById('updateTicket_file').addEventListener('change', getFileName);
-            document.getElementById('addticket_file').addEventListener('change', getFileName);
-        }
-
-        const getFileName = (event) => {
-
-            for (var i = 0; i < event.target.files.length; i++) {
-                const files = event.target.files;
-                var file = files[i];
-                document.getElementById("fpAddTckAttach").value = files[i].name;
-                if (fileslist != '')
-                    fileslist = fileslist + ',' + file.name;
-                else
-                    fileslist = file.name;
-                // add all selected files
-                fd.append(event.target.name, file, file.name);
-                // create the request
-            }
-
-            const xhr = new XMLHttpRequest();
-
-            xhr.onload = () => {
-
-                // alert(xhr.status);
-
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    // we done!
-                }
-            };
-            var url = window.location.href;
-            // path to server would be where you'd normally post the form to
-            xhr.open('POST', url, true);
-            xhr.send(fd);
-            document.getElementById("dropzone").classList.add("dz-max-files-reached");
-            document.getElementById("conentdiv").style.display = '';
-            document.getElementById("filesdiv").innerHTML = fileslist;
-        }
-
-    </script>
-</asp:Content>
-
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <input id="fpAddTckAttach" style="display: none;" />
-    <input id="fpUpdateTckAttach" style="display: none;" />
-
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Add New Ticket</b></h6>
-                </div>
-            </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title"></h5>
-                <table class="table">
-                    <tr>
-                        <td><b>Request Related To:</b></td>
-                        <td>
-                            <select id="addticket_requestrelatedto" name="addticket_requestrelatedto" class="form-control" style="width: 250px;" onchange="getrequestdepartment(this);"></select>
-                        </td>
-                        <td><b>Department:</b></td>
-                        <td>
-                            <select id="addticket_department" name="addticket_department" class="form-control" style="width: 250px;"></select>
-                           
-                        </td>
-                        <td><b>Request On Behalf:</b></td>
-                        <td>
-                            <select id="addticket_onbehalf" name="addticket_onbehalf" class="form-control" style="width: 250px;"></select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Subject:</b></td>
-                        <td>
-                            <input type="text" id="addticket_subject" name="addticket_subject" class="form-control" style="width: 250px;" />
-                        </td>
-                        <td><b>Desk #:</b></td>
-                        <td>
-                            <input type="text" id="addticket_deskno" name="addticket_deskno" class="form-control" style="width: 250px;" />
-                        </td>
-                        <td><b>Attachment:</b></td>
-                        <td>
-                            <%-- <input type="file" id="addticket_file" name="addticket_file" class="form-control" style="width: 250px;" />
-                            <input type="file" id="addticket_file" name="addticket_file" class="form-control" style="width: 250px;" multiple />
-                            <div class="dropzone dropzone-multiple p-0 dz-clickable dz-file-processing dz-file-complete" id="dropzoneaddticketdoc" style="display: none;">
-                                <div class="dz-preview dz-preview-multiple m-0 d-flex flex-column" id="conentdivaddticketdoc" style="display: none!important;">
-                                    <div class="flex-1 d-flex flex-between-center">
-                                        <div id="filesdivaddticketdoc" style="margin-top: 10px; margin-bottom: 10px;"></div>
-                                        <div class="dropdown font-sans-serif">
-                                            <button class="btn btn-link text-600 btn-sm dropdown-toggle btn-reveal dropdown-caret-none" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></button>
-                                            <div class="dropdown-menu dropdown-menu-end border py-2"><a class="dropdown-item" href="#!" data-dz-remove="data-dz-remove">Remove File</a></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><b>Expected TAT:</b></td>
-                        <td colspan="2">
-                            <select id="addticket_days" name="addticket_days" class="form-control" style="width: 75px; display: inline;"></select>
-                            &nbsp;&nbsp; <span><b>Days</b></span>&nbsp;&nbsp; 
-                            <select id="addticket_hours" name="addticket_hours" class="form-control" style="width: 75px; display: inline;"></select>
-                            &nbsp;&nbsp; <span><b>Hours</b></span>
-                            &nbsp;&nbsp; 
-                            <select id="addticket_minutes" name="addticket_minutes" class="form-control" style="width: 75px; display: inline;"></select>
-                            &nbsp;&nbsp; <span><b>Minutes</b></span>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><b>Description:</b></td>
-                        <td colspan="5">
-                            <textarea id="addticket_description" name="addticket_description" class="form-control" style="width: 600px; height: 120px;"></textarea>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" style="text-align: center;">
-                            <button id="addticket_btnsubmit" name="addticket_btnsubmit" class="btn btn-primary" onclick="return addticket_submit();">Submit</button>
-                        </td>
-                    </tr>
-                </table>
-                <hr />
-                <table class="table" id="addticket_table" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; display: none;">TicketId</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; display: none;">RequestId</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Actions</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Ticket #</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Request Related To</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Request Date</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Department</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Subject</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Description</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="addTicket_reOpen" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="addTicket_reOpenLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addTicket_reOpenLabel"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <label id="addTicket_reOpenMsg" class="form-control" style="color: red; font-weight: bold; font-size: medium; display: none;"></label>
-                    <table class="table">
-                        <tr>
-                            <td><b>Status</b></td>
-                            <td>
-                                <input type="text" id="addTicket_reOpenStatus" name="addTicket_reOpenStatus" class="form-control" style="width: 250px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Remark</b>
-                            </td>
-                            <td>
-                                <textarea type="text" id="addTicket_reOpenRemark" name="addTicket_reOpenRemark" class="form-control" style="width: 670px; height: 100px;"></textarea>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="btnReopenTicket" onclick="return btnaddTicket_reOpen();">Re-Open</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="addTicket_closure" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="addTicket_closureLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addTicket_closureLabel"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table">
-                        <tr>
-                            <td><b>Status</b></td>
-                            <td>
-                                <input type="text" id="addTicket_closureStatus" name="addTicket_reOpenStatus" class="form-control" style="width: 250px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Remark</b>
-                            </td>
-                            <td>
-                                <textarea type="text" id="addTicket_closureRemark" name="addTicket_closureRemark" class="form-control" style="width: 670px; height: 100px;"></textarea>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="return btnaddTicket_closure();">Submit</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="addTicket_view" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="addTicket_viewLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addTicket_viewLabel"></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table">
-                        <tr>
-                            <td>
-                                <b>Description :</b>
-                            </td>
-                            <td>
-                                <textarea id="updateTicket_Description" name="updateTicket_Description" class="form-control" style="width: 400px;"></textarea>
-                            </td>
-                            <td>
-                                <b>Status :</b>
-                            </td>
-                            <td>
-                                <select id="updateTicket_Status" name="updateTicket_Status" class="form-control" style="width: 250px;">
-                                    <option value="Select">Select</option>
-                                    <option value="Open">Open</option>
-                                    <option value="Closed">Closed</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <label id="updateTicket_TATlabel" class="form-control" style="font-weight: bold; font-size: 11px;"></label>
-                            </td>
-                            <td>
-                                <select id="updateTicket_days" name="updateTicket_days" class="form-control" style="width: 75px; display: inline;"></select>
-                                &nbsp;&nbsp; <span><b>Days</b></span>&nbsp;&nbsp;&nbsp;  
-                            <select id="updateTicket_hours" name="updateTicket_hours" class="form-control" style="width: 75px; display: inline;"></select>
-                                &nbsp;&nbsp; <span><b>Hours</b></span>
-                                &nbsp;&nbsp;&nbsp;  
-                            <select id="updateTicket_minutes" name="updateTicket_minutes" class="form-control" style="width: 75px; display: inline;"></select>
-                                &nbsp;&nbsp; <span><b>Minutes</b></span>
-                            </td>
-                            <td><b>Attachment:</b></td>
-                            <td>
-                                <%-- <input type="file" id="updateTicket_file" name="updateTicket_file" class="form-control" style="width: 250px;" />
-                                <input type="file" id="updateTicket_file" name="updateTicket_file" class="form-control" style="width: 250px;" />
-                                <div class="dropzone dropzone-multiple p-0 dz-clickable dz-file-processing dz-file-complete" id="dropzoneupdatedoc" style="display: none;">
-                                    <div class="dz-preview dz-preview-multiple m-0 d-flex flex-column" id="conentdivupdatedoc" style="display: none!important;">
-                                        <div class="flex-1 d-flex flex-between-center">
-                                            <div id="filesdivupdatedoc" style="margin-top: 10px; margin-bottom: 10px;"></div>
-                                            <div class="dropdown font-sans-serif">
-                                                <button class="btn btn-link text-600 btn-sm dropdown-toggle btn-reveal dropdown-caret-none" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true"></button>
-                                                <div class="dropdown-menu dropdown-menu-end border py-2"><a class="dropdown-item" href="#!" data-dz-remove="data-dz-remove">Remove File</a></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td style="text-align: right;">
-                                <button type="button" class="btn btn-primary" onclick="return btnaddTicket_newRemark();">Submit</button>
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </table>
-                    <br />
-                    <table id="table_ticketHistory" class="table">
-                        <thead>
-                            <tr>
-                                <th class="sort border-top" style="width: 50px;">Sr. #</th>
-                                <th class="sort border-top" style="width: 100px;">Tickect #</th>
-                                <th class="sort border-top" style="width: 450px;">Remark</th>
-                                <th class="sort border-top" style="width: 70px;">Status</th>
-                                <th class="sort border-top" style="width: 150px;">Remark Added By</th>
-                                <th class="sort border-top" style="width: 150px;">Added Date</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="addticket_dverror">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="modal-title" id="addticket_errmsg"></h6>
-                </div>
-                <div class="modal-footer align-content-center">
-                    <button class="btn btn-primary" type="button" id="addticket_btnMessage" onclick="location.reload();">Okay</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
-    </div>
-
-    <div class="modal fade" id="waitingpanelAddTicket" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
-        <div class="modal-dialog text-center">
-            <img src="../Images/Load.gif" />
-            <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;" id="spntext">System is updating details. Please wait</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
-        </div>
-    </div>
-
-</asp:Content>--%>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
@@ -447,7 +33,6 @@
 
         .ticket-page {
             background: var(--ticket-bg);
-            padding: 18px 18px 30px;
             border-radius: 18px;
         }
 
@@ -529,6 +114,7 @@
 
         .ticket-field.full {
             grid-column: 1 / -1;
+           
         }
 
         .ticket-field.tat {
@@ -613,7 +199,7 @@
             }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--ticket-primary), var(--ticket-primary-dark));
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 55%, #f97316 120%);
             border: 0;
             box-shadow: 0 8px 18px rgba(37, 99, 235, .24);
         }
@@ -767,6 +353,8 @@
                     width: 100%;
                 }
         }
+        
+
     </style>
 
     <script type="text/javascript">
@@ -905,7 +493,7 @@
 
                 <div class="ticket-field full">
                     <label for="addticket_description">Description</label>
-                    <textarea id="addticket_description" name="addticket_description" class="form-control" placeholder="Describe the issue or request clearly"></textarea>
+                    <textarea id="addticket_description" name="addticket_description" class="form-control" style="height:100px;" placeholder="Describe the issue or request clearly"></textarea>
                 </div>
             </div>
 
@@ -1093,4 +681,5 @@
         </div>
     </div>
 </asp:Content>
+
 

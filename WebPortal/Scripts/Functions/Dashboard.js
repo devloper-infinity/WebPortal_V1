@@ -22,83 +22,107 @@ function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
 
+function log_applyStatusClass(row, remark) {
+    var statusClassMap = {
+        "worked holiday": "row-worked",
+        "paid leave": "row-leave",
+        "holiday": "row-holiday",
+        "absent": "row-absent",
+        "currentlogin": "row-current"
+    };
+
+    remark = (remark || "").toLowerCase().trim();
+
+    $(row)
+        .removeClass("row-holiday row-leave row-absent row-worked row-current")
+        .addClass(statusClassMap[remark] || "");
+}
+
 function log_BindLogDetails() {
     $('#load1').show();
-    html = '';
+
     $.ajax({
         url: "Log.aspx/GetDailyLog",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
-            var dataArray = JSON.parse(data.d);//  
-            $.each(dataArray, function(index, value) {
-                html += '<tr>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Date) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.InTime) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.OutTime) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ShiftTime) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.BreakOutTime) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.BreakInTime) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.TotalBreakHours) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Hours) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ExtraHours) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.NoofHours) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LateMark) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Partial) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ShiftRemark) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LeaveType) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.INIP) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.OutIP) + '</td>';
-                html += '</tr>';
-            });
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d || "[]");
 
             if ($.fn.dataTable.isDataTable('#log_table')) {
-                log_table.destroy();
+                $('#log_table').DataTable().clear().destroy();
             }
-            $('#log_table tbody').html(html);
-            //else
+
             log_table = $('#log_table').DataTable({
+                data: dataArray,
                 dom: 't',
                 scrollX: true,
-                destroy: true,
-                "paging": false,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
+                paging: false,
+                autoWidth: true,
+                ordering: false,
                 processing: true,
-                'select': {
-                    'style': 'single'
+                destroy: true,
+                select: {
+                    style: 'single'
                 },
 
-                initComplete: function() {
-                    $('#load1').hide();
+                columns: [
+                    { data: "Date", render: blankForNull },
+                    { data: "InTime", render: blankForNull },
+                    { data: "OutTime", render: blankForNull },
+                    { data: "ShiftTime", render: blankForNull },
+                    { data: "BreakOutTime", render: blankForNull },
+                    { data: "BreakInTime", render: blankForNull },
+                    { data: "TotalBreakHours", render: blankForNull },
+                    { data: "Hours", render: blankForNull },
+                    { data: "ExtraHours", render: blankForNull },
+                    { data: "NoofHours", render: blankForNull },
+                    { data: "LateMark", render: blankForNull },
+                    { data: "Partial", render: blankForNull },
+                    { data: "ShiftRemark", render: blankForNull },
+                    { data: "LeaveType", render: blankForNull },
+                    { data: "INIP", render: blankForNull },
+                    { data: "OutIP", render: blankForNull }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: "_all",
+                        className: "text-nowrap"
+                    }
+                ],
+
+                rowCallback: function (row, data) {
+                    log_applyStatusClass(row, data.ShiftRemark);
                 },
-                "rowCallback": function(row, data) {
-                    var val = data[3];
+
+                initComplete: function () {
+                    $('#load1').hide();
                 },
 
                 buttons: [
                     {
-                        extend: 'excelHtml5', title: 'New Joinee HR Follow up', autoFilter: true,
+                        extend: 'excelHtml5',
+                        title: 'Daily Log',
+                        autoFilter: true,
                         exportOptions: {
-                            columns: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
                         }
-                    },
-                ],
+                    }
+                ]
             });
-
-            //$('#fnalize tbody').on('click', 'tr', function () {
-            //    row = table.row(this).data();
-            //});
         },
-        error: function(error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+
+        error: function (xhr) {
+            $('#load1').hide();
+            alert('Error: ' + xhr.responseText);
         }
     });
+
     return false;
 }
+
 
 function dashboard_profileinfo() {
 

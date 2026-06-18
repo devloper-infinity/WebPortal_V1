@@ -1,66 +1,465 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="UserPerformanceReport.aspx.cs" Inherits="WebPortal.Admin.UserPerformanceReport" %>
+<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="UserPerformanceReport.aspx.cs" Inherits="WebPortal.Admin.UserPerformanceReport" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-  
     <style>
+        body {
+            background: #f4f7fb;
+        }
+
         .loading {
             display: none;
             position: fixed;
-            top: 350px;
+            top: 50%;
             left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
+            width: 180px;
+            min-height: 150px;
+            margin-top: -90px;
+            margin-left: -90px;
+            padding: 22px 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+            text-align: center;
             z-index: 99999;
         }
 
-        .dataTables_paginate {
-            float: left !important;
+        .loading img {
+            max-width: 64px;
+            margin-bottom: 12px;
         }
 
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
+        .upr-header {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+            padding: 18px;
+            border-radius: 8px;
+            background: #fff;
+            border: 1px solid #dbe5ec;
+            border-top: 3px solid #1f6feb;
+            color: #172033;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
         }
 
-        .buttons-excel {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
+        .upr-header-row {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .upr-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .upr-title-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #eaf2ff;
+            color: #1f6feb;
+            font-size: 14px;
+        }
+
+        .upr-subtitle {
+            margin: 7px 0 0 44px;
+            color: #667085;
+            font-size: 12px;
+        }
+
+        .upr-marketing-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            padding: 7px 12px;
+            border: 1px solid #b9cbe0;
+            border-radius: 6px;
+            background: #f8fbff;
+            color: #1f4f8f;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .upr-marketing-link:hover,
+        .upr-marketing-link:focus {
+            color: #153e75;
+            text-decoration: none;
+            background: #edf5ff;
+        }
+
+        .upr-page {
+            width: 100%;
+            padding: 0 2px 26px;
+        }
+
+        .upr-shell {
+            display: grid;
+            gap: 18px;
+        }
+
+        .upr-panel {
+            background: #fff;
+            border: 1px solid #dbe5ec;
+            border-radius: 8px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
+        }
+
+        .upr-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 16px 18px;
+            border-bottom: 1px solid #e5edf3;
+            background: #fbfdff;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .upr-panel-title {
+            margin: 0;
+            color: #172033;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .upr-panel-subtitle {
+            margin: 4px 0 0;
+            color: #6b7788;
+            font-size: 12px;
+        }
+
+        .upr-panel-body {
+            padding: 18px;
+        }
+
+        .upr-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .upr-field {
+            min-width: 0;
+        }
+
+        .upr-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #344054;
+            font-size: 12px;
+            font-weight: 700 !important;
+            border: none !important;
+        }
+
+        .upr-field .form-control,
+        .upr-field input {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid #cad6e2;
+            border-radius: 6px;
             box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
+            color: #172033;
+            font-size: 13px;
+        }
+
+        .upr-field .form-control:focus,
+        .upr-field input:focus {
+            border-color: #6ea8fe;
+            box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.12);
+        }
+
+        .upr-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            grid-column: span 2;
+        }
+
+        .upr-primary-action,
+        .upr-secondary-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .upr-primary-action {
             border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
+            background: #1f6feb;
+            box-shadow: 0 8px 18px rgba(31, 111, 235, 0.22);
         }
 
-        .table.dataTable th {
-            /*background:linear-gradient(to bottom, #0070C0, 80%, #ffffff);*/
-            background: linear-gradient(to bottom, #cbd0dd, 3%, #fff) !important;
-            color: #000;
+        .upr-primary-action:hover,
+        .upr-primary-action:focus {
+            background: #185abc;
         }
 
-        .table.dataTable tr td {
-            background: none;
+        .upr-secondary-action {
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #334155;
+        }
+
+        .upr-secondary-action:hover,
+        .upr-secondary-action:focus {
+            background: #f8fafc;
+            color: #172033;
+        }
+
+        .upr-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 16px 18px 0;
+            padding: 4px;
+            border: 1px solid #dbe5ec;
+            border-radius: 8px;
+            background: #f1f5f9;
+        }
+
+        .upr-tabs .nav-item {
+            margin-bottom: 0;
+        }
+
+        .upr-tabs .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 13px;
+        }
+
+        .upr-tabs .nav-link.active {
+            background: #fff;
+            color: #1f6feb;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+        }
+
+        .upr-tab-body {
+            padding: 16px 18px 18px;
+        }
+
+        .upr-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #dbe5ec;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .upr-data-table {
+            width: 100% !important;
+            margin: 0 !important;
+            border-collapse: separate !important;
+            border-spacing: 0;
+            color: #253044;
+            font-size: 12px;
+        }
+
+        .upr-data-table thead th,
+        table.dataTable thead th {
+            background: #edf3f6 !important;
+            border-color: #d7e2ea !important;
+            border-bottom: 1px solid #d7e2ea !important;
+            color: #263342 !important;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 11px 12px !important;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .upr-data-table tbody td,
+        table.dataTable tbody td {
+            border-bottom: 1px solid #edf2f7;
+            padding: 9px 12px !important;
+            vertical-align: top;
+            background: #fff !important;
+        }
+
+        .upr-data-table tbody tr:hover td,
+        table.dataTable tbody tr:hover td {
+            background: #f8fbfd !important;
         }
 
         .dt-center {
             text-align: center;
         }
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
+
+        .dataTables_wrapper .dataTables_filter {
+            margin: 0 12px 12px 0;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .dataTables_wrapper {
+            padding: 12px;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            height: 34px;
+            min-width: 220px;
+            margin-left: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 10px;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            padding-top: 12px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .dataTables_scroll {
+            clear: both;
+            border: 1px solid #dbe5ec;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .dataTables_scrollHead {
+            background: #edf3f6;
+        }
+
+        .dataTables_scrollBody {
+            border-bottom: 0 !important;
+        }
+
+        .dataTables_paginate {
+            float: left !important;
+            padding-top: 12px !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border: 1px solid #d7e2ea !important;
+            border-radius: 6px !important;
+            background: #fff !important;
+            color: #344054 !important;
+            margin: 0 3px !important;
+            padding: 5px 10px !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #1f6feb !important;
+            border-color: #1f6feb !important;
+            color: #fff !important;
+        }
+
+        div.dt-buttons {
+            position: static;
+            float: left;
+            padding: 0 10px 12px 0;
+        }
+
+        .buttons-excel,
+        .dt-button {
+            border: 1px solid #c7d6e3 !important;
+            border-radius: 6px !important;
+            background: #fff !important;
+            color: #1f2937 !important;
+            box-shadow: none !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            margin-right: 8px !important;
+            padding: 6px 12px !important;
+        }
+
+        .buttons-excel:hover,
+        .dt-button:hover {
+            background: #f8fafc !important;
+            color: #172033 !important;
+        }
+
+        .upr-waiting-panel .modal-dialog {
+            margin-top: 22vh;
+        }
+
+        .upr-waiting-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 22px;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.86);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .upr-waiting-content img {
+            width: 44px;
+            height: 44px;
+        }
+
+        @media (max-width: 1199px) {
+            .upr-filter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .upr-actions {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .upr-header-row,
+            .upr-panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .upr-marketing-link {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .upr-filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upr-actions {
+                grid-column: span 1;
+                flex-direction: column;
+            }
+
+            .upr-actions .btn {
+                width: 100%;
+            }
+        }
     </style>
 
     <link href="../dist/multi/chosen.css" rel="stylesheet" />
     <link href="../dist/multi/chosen.min.css" rel="stylesheet" />
     <script src="../dist/multi/chosen.jquery.min.js"></script>
     <script src="../dist/multi/chosen.proto.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
 
         $(document).ready(function () {
@@ -142,153 +541,181 @@
 
     </script>
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+
     <asp:Button ID="btn1" runat="server" Style="display: none;" OnClick="btn1_Click" />
     <div class="loading" id="load1">
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>User Performance Report</b></h6>
+
+    <div class="upr-header">
+        <div class="upr-header-row">
+            <div>
+                <h1 class="upr-title">
+                    <span class="upr-title-icon"><i class="fas fa-chart-line"></i></span>
+                    User Performance Report
+                </h1>
+                <p class="upr-subtitle">Review summary, production, feedback, and attendance performance for the selected period.</p>
+            </div>
+            <a class="upr-marketing-link" href="UserPerformanceReportMarketing.aspx" id="marketingPer">
+                <i class="fas fa-external-link-alt"></i>
+                Marketing Report
+            </a>
+        </div>
+    </div>
+
+    <div class="upr-page">
+        <div class="upr-shell">
+            <div class="upr-panel">
+                <div class="upr-panel-header">
+                    <div>
+                        <h3 class="upr-panel-title">Report Filters</h3>
+                        <p class="upr-panel-subtitle">Choose a date range, then load or export the report.</p>
+                    </div>
                 </div>
-                <div class="col-sm-6" style="text-align: right; font-size: 14px;" id="marketingPer">
-                    <%--<h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>User Performance Report Marketing</b></h6>--%>
-                    <a href="UserPerformanceReportMarketing.aspx"><b>User Performance Report Marketing</b></a>
+                <div class="upr-panel-body">
+                    <div class="upr-filter-grid">
+                        <div class="upr-field">
+                            <label for="upr_fromdate">From Date</label>
+                            <input type="date" id="upr_fromdate" name="upr_fromdate" class="form-control" />
+                        </div>
+
+                        <div class="upr-field">
+                            <label for="upr_todate">To Date</label>
+                            <input type="date" id="upr_todate" name="upr_todate" class="form-control" />
+                        </div>
+
+                        <div class="upr-actions">
+                            <button id="upr_btnsubmit" name="upr_btnsubmit" onclick="return upr_submit();" class="btn btn-primary upr-primary-action">
+                                <i class="fas fa-search"></i>
+                                Get Report
+                            </button>
+                            <button id="upr_btnexport" name="upr_btnsubmit" onclick="return upr_export();" class="btn upr-secondary-action">
+                                <i class="fas fa-file-excel"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td><b>From Date:</b></td>
-                        <td>
-                            <input type="date" id="upr_fromdate" name="upr_fromdate" class="form-control" style="width: 250px;" />
-                        </td>
-                        <td><b>To Date:</b></td>
-                        <td>
-                            <input type="date" id="upr_todate" name="upr_todate" class="form-control" style="width: 250px;" />
-                        </td>
-                        <td>
-                            <button id="upr_btnsubmit" name="upr_btnsubmit" onclick="return upr_submit();" class="btn btn-primary">Submit</button>
-                            <button id="upr_btnexport" name="upr_btnsubmit" onclick="return upr_export();" class="btn btn-primary">Export to excel</button>
-                        </td>
-                    </tr>
-                </table>
-                <hr />
-                <div class="card card-tabs">
-                    <div class="card-header p-0 pt-1">
-                        <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Summary</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" onclick="upr_getProdDetails();" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">Production Details</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" onclick="upr_getFeedbackDetails();" id="custom-tabs-one-feedback-tab" data-toggle="pill" href="#custom-tabs-one-feedback" role="tab" aria-controls="custom-tabs-one-feedback" aria-selected="false">Feedback Details</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" onclick="upr_getAttendanceDetails();" id="custom-tabs-one-attendance-tab" data-toggle="pill" href="#custom-tabs-one-attendance" role="tab" aria-controls="custom-tabs-one-attendance" aria-selected="false">Attendance Details</a>
-                            </li>
-                        </ul>
+
+            <div class="upr-panel">
+                <ul class="nav nav-tabs upr-tabs" id="custom-tabs-one-tab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">
+                            <i class="fas fa-table"></i>
+                            Summary
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="upr_getProdDetails();" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">
+                            <i class="fas fa-industry"></i>
+                            Production
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="upr_getFeedbackDetails();" id="custom-tabs-one-feedback-tab" data-toggle="pill" href="#custom-tabs-one-feedback" role="tab" aria-controls="custom-tabs-one-feedback" aria-selected="false">
+                            <i class="fas fa-comment-dots"></i>
+                            Feedback
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" onclick="upr_getAttendanceDetails();" id="custom-tabs-one-attendance-tab" data-toggle="pill" href="#custom-tabs-one-attendance" role="tab" aria-controls="custom-tabs-one-attendance" aria-selected="false">
+                            <i class="fas fa-user-clock"></i>
+                            Attendance
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content upr-tab-body" id="custom-tabs-one-tabContent">
+                    <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+                        <div class="upr-table-wrap">
+                            <table class="table table-hover upr-data-table" id="upr_table">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Year</th>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Pseudoname</th>
+                                        <th>Production Count</th>
+                                        <th>Production %</th>
+                                        <th>Quality %</th>
+                                        <th>Attendance %</th>
+                                        <th>Production Grade</th>
+                                        <th>Quality Grade</th>
+                                        <th>Attendance Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="tab-content" id="custom-tabs-one-tabContent">
-                            <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                                <table class="table table-bordered" id="upr_table" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Month</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Year</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Code</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Name</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Pseudoname</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Production Count</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Production %</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Quality %</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Attendance %</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Production Grade</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Quality Grade</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Attendance Grade</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
-                                <table class="table table-bordered" id="upr_tableprod" style="width: 100%;">
-                                </table>
-                            </div>
-                            <div class="tab-pane fade show" id="custom-tabs-one-feedback" role="tabpanel" aria-labelledby="custom-tabs-one-feedback-tab">
-                                <table class="table table-bordered" id="upr_feedbacktable" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Month</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Year</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Project #</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Deal #</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Loan #</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Order Date</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Process</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Error Done By</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Feedback Given By</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Error Type</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Severity</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Error Field</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Category</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Sub Category</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Error</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Should Be</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Feedback Type</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Feedback Date</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Remark</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Status</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Explaination</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">PM Status</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">PM Remark</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Added Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <div class="tab-pane fade show" id="custom-tabs-one-attendance" role="tabpanel" aria-labelledby="custom-tabs-one-attendance-tab">
-                                <table class="table table-bordered" id="upr_attendancetable" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Code</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Total Days
-                                                <br />
-                                                (Calender Days)</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Absent Days
-                                                <br />
-                                                (Full Days)</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Partial Days</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Partial days
-                                                <br />
-                                                (equivalent full days)</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Total Absents
-                                                <br />
-                                                (Full day + Partial Days)</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Present Days
-                                                <br />
-                                                (as per Final Salary Calculation)</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Attendance % on Total Days</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Latemarks</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Latemarks Removed</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Total Latemarks</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+
+                    <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                        <div class="upr-table-wrap">
+                            <table class="table table-hover upr-data-table" id="upr_tableprod"></table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="custom-tabs-one-feedback" role="tabpanel" aria-labelledby="custom-tabs-one-feedback-tab">
+                        <div class="upr-table-wrap">
+                            <table class="table table-hover upr-data-table" id="upr_feedbacktable">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Year</th>
+                                        <th>Project #</th>
+                                        <th>Deal #</th>
+                                        <th>Loan #</th>
+                                        <th>Order Date</th>
+                                        <th>Process</th>
+                                        <th>Error Done By</th>
+                                        <th>Feedback Given By</th>
+                                        <th>Error Type</th>
+                                        <th>Severity</th>
+                                        <th>Error Field</th>
+                                        <th>Category</th>
+                                        <th>Sub Category</th>
+                                        <th>Error</th>
+                                        <th>Should Be</th>
+                                        <th>Feedback Type</th>
+                                        <th>Feedback Date</th>
+                                        <th>Remark</th>
+                                        <th>Status</th>
+                                        <th>Explaination</th>
+                                        <th>PM Status</th>
+                                        <th>PM Remark</th>
+                                        <th>Added Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="custom-tabs-one-attendance" role="tabpanel" aria-labelledby="custom-tabs-one-attendance-tab">
+                        <div class="upr-table-wrap">
+                            <table class="table table-hover upr-data-table" id="upr_attendancetable">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Total Days<br />(Calender Days)</th>
+                                        <th>Absent Days<br />(Full Days)</th>
+                                        <th>Partial Days</th>
+                                        <th>Partial days<br />(equivalent full days)</th>
+                                        <th>Total Absents<br />(Full day + Partial Days)</th>
+                                        <th>Present Days<br />(as per Final Salary Calculation)</th>
+                                        <th>Attendance % on Total Days</th>
+                                        <th>Latemarks</th>
+                                        <th>Latemarks Removed</th>
+                                        <th>Total Latemarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -296,12 +723,12 @@
         </div>
     </div>
 
-    <div class="modal fade" id="waitingpanel" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal fade upr-waiting-panel" id="waitingpanel" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog text-center">
-            <img src="../Images/Load.gif" />
-            <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;" id="spntext">System is updating details. Please wait</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
+            <div class="upr-waiting-content">
+                <img src="../Images/Load.gif" />
+                <span id="spntext">System is updating details. Please wait</span>
+            </div>
         </div>
     </div>
 

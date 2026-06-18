@@ -27,7 +27,147 @@ function upr_BindUsers() {
     });
 }
 
+
+function perform_validations() {
+
+    var FromDate = $("#upr_fromdate").val();
+    var ToDate = $("#upr_todate").val();
+
+    // FromDate = '26-Apr-2026';
+    // ToDate = '25-May-2026';
+
+
+    if (!FromDate) {
+        Swal.fire("Validation", "Please select From Date.", "warning");
+        return false;
+    }
+
+    if (!ToDate) {
+        Swal.fire("Validation", "Please select To Date.", "warning");
+        return false;
+    }
+
+    var from = new Date(FromDate);
+    var to = new Date(ToDate);
+
+    if (isNaN(from.getTime())) {
+        Swal.fire("Validation", "Invalid From Date.", "warning");
+        return false;
+    }
+
+    if (isNaN(to.getTime())) {
+        Swal.fire("Validation", "Invalid To Date.", "warning");
+        return false;
+    }
+
+    if (to < from) {
+        Swal.fire("Validation", "To Date must be greater than or equal to From Date.", "warning");
+        return false;
+    }
+
+    upr_bindSummary();
+}
+
 function upr_submit() {
+
+    perform_validations();
+}
+
+function upr_bindSummary() {
+
+    Swal.fire({
+        title: "Please Wait",
+        text: "Generating user performance report...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    $.ajax({
+        url: "UserPerformanceReport.aspx/GetUserPerformanceReport",
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify({
+            FromDate: FromDate,
+            ToDate: ToDate
+        }),
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+
+            Swal.close();
+
+            var dataArray = JSON.parse(data.d);
+
+            if (!dataArray || dataArray.length === 0) {
+                Swal.fire("No Data", "No records found for selected date range.", "info");
+                return false;
+            }
+
+            upr_table = $('#upr_table').DataTable({
+                dom: 'Bftip',
+                destroy: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: true,
+                paging: true,
+                autoWidth: true,
+                ordering: false,
+                processing: true,
+                filter: true,
+                serverSide: false,
+                data: dataArray,
+                select: {
+                    style: 'single'
+                },
+                columns: [
+                    { data: 'Month' },
+                    { data: 'Year' },
+                    { data: 'Code' },
+                    { data: 'EmployeeName' },
+                    { data: 'Employee' },
+                    { data: 'LoanCount' },
+                    { data: 'ProdPerc' },
+                    { data: 'QualityPerc' },
+                    { data: 'AttPerc' },
+                    { data: 'ProdGrade' },
+                    { data: 'QualGrade' },
+                    { data: 'AttnGrade' }
+                ],
+                fnCreatedRow: function (nRow) {
+                    $(nRow).children("td").css({
+                        "text-wrap": "nowrap",
+                        "text-align": "center"
+                    });
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'User Performance Report',
+                        autoFilter: true
+                    }
+                ]
+            });
+        },
+
+        error: function (error) {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: error.responseText || "Something went wrong while generating report."
+            });
+        }
+    });
+
+    return false;
+}
+
+function core_upr_submit() {
 
     $('#load1').show();
     var FromDate = document.getElementById("upr_fromdate").value;

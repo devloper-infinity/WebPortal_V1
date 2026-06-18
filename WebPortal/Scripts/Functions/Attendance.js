@@ -5,8 +5,7 @@ var selfatt_html;
 var attnEmpReasonType;
 var attnUserReason;
 
-//****************** Self Attendance - START ******************//
-
+//Self Attendance - START
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
@@ -40,7 +39,6 @@ function selfatt_getIndates(ddl) {
     document.getElementById("selfatt_totaltime").value = '';
 
     if (value == "1" || value == "3" || value == "4" || value == "15") {
-
         BindInDates();
         BindOutDatesForConnectivity();
     }
@@ -49,64 +47,6 @@ function selfatt_getIndates(ddl) {
         BindInDatesForLogoutRequest();
         BindOutDatesForLogoutRequest();
     }
-}
-
-function checkcutofftimetovalidate(reqIn) {
-
-    var ddl = document.getElementById("selfatt_reason");
-    var value = ddl.options[ddl.selectedIndex].value;
-
-    var ddl1 = document.getElementById("selfatt_indate");
-    var self_intime = ddl1.options[ddl1.selectedIndex].value;
-
-    if (value == "1" || value == "3" || value == "4") {
-
-        PageMethods.CheckCutOffTimeValidation("", reqIn.value, self_intime, cutoffval_OnSuccess, cutoffval_OnError);
-    }
-
-    return false;
-}
-
-function cutoffval_OnSuccess(result) {
-
-    if (result <= 0) {
-        alert("Login is allowed only up to 30 minutes before the cut-off time! Please contact your reporting manager.");
-        location.reload();
-    }
-    return false;
-}
-
-function cutoffval_OnError(error) {
-    alert(error.get_message());
-}
-
-function checkcutofftimetovalidate_pm(reqIn) {
-
-    var ddl = document.getElementById("pmatt_reason");
-    var value = ddl.options[ddl.selectedIndex].value;
-    var ddlcode = document.getElementById("pmatt_user");
-    var code = ddlcode.options[ddlcode.selectedIndex].value;
-    var ddlIndatePm = document.getElementById("pmatt_indate");
-    var inPmDate = ddlIndatePm.options[ddlIndatePm.selectedIndex].value;
-
-    if (value == "1" || value == "3" || value == "4") {
-        PageMethods.CheckCutOffTimeValidation(code, reqIn.value, inPmDate, cutoffval_pm_OnSuccess, cutoffval_pm_OnError);
-    }
-
-    return false;
-}
-
-function cutoffval_pm_OnSuccess(result) {
-
-    if (result <= 0) {
-        alert("Login is allowed only up to 30 minutes before the cut-off time!");
-        location.reload();
-    }
-    return false;
-}
-
-function cutoffval_pm_OnError(error) {
-    alert(error.get_message());
 }
 
 function BindInDates() {
@@ -225,14 +165,12 @@ function selfatt_getInTime(dates) {
 }
 
 function selfatt_GetTotalHours() {
-
     var ddlInDate = document.getElementById("selfatt_indate");
     var indate = ddlInDate.options[ddlInDate.selectedIndex].value;
     var ddlOutDate = document.getElementById("selfatt_outdate");
     var outdate = ddlOutDate.options[ddlOutDate.selectedIndex].value;
     var intime = document.getElementById("selfatt_intime").value;
     var outtime = document.getElementById("selfatt_outtime").value;
-
     PageMethods.UserLoginGetTotalHours(intime, outtime, indate, outdate, totalhour_onsuccess, totalhour_onerror);
 }
 
@@ -343,83 +281,103 @@ function selfattsubmit_onerror(error) {
     alert(error.responseText);
 }
 
+
+
 function selfatt_BindGrid() {
     $('#load1').show();
 
-    selfatt_html = '';
     $.ajax({
         url: "AttendanceCorrectionSelf.aspx/GetAllAttendanceRequest",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
 
-                selfatt_html += '<tr>';
-                selfatt_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.InDate) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.InTime) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.OutDate) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.OutTime) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.Reason) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.AddedDate) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.Approved) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ApprovedByName) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ApprovedDate) + '</td>';
-                selfatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.RequestRemark) + '</td>';
-                selfatt_html += '</tr>';
+            var dataArray = JSON.parse(data.d || "[]");
+
+            var total = dataArray.length;
+            var pending = 0, approved = 0, rejected = 0;
+
+            dataArray.forEach(function (row, index) {
+                row.SrNo = index + 1;
+
+                var status = (row.Approved || "").toString().trim().toLowerCase();
+
+                if (status === "approved" || status === "approve" || status === "yes") {
+                    approved++;
+                } else if (status === "rejected" || status === "reject" || status === "no") {
+                    rejected++;
+                } else {
+                    pending++;
+                }
             });
 
             if ($.fn.dataTable.isDataTable('#selfatt_table')) {
-                selfatt_table.destroy();
-            }
-            $('#selfatt_table tbody').html(selfatt_html);
-            //else
-            selfatt_table = $('#selfatt_table').DataTable({
-                dom: 'tip',
-                scrollX: true,
-                destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                'select': {
-                    'style': 'single'
-                },
-
-                initComplete: function () {
-                    $('#load1').hide();
-                },
-
-                buttons: [
-                    {
-                        extend: 'excelHtml5', title: 'Attendance Correction Report', autoFilter: true,
+                selfatt_table.clear().rows.add(dataArray).draw();
+            } else {
+                selfatt_table = $('#selfatt_table').DataTable({
+                    dom: 'tip',
+                    data: dataArray,
+                    scrollX: true,
+                    paging: true,
+                    autoWidth: false,
+                    ordering: false,
+                    processing: true,
+                    deferRender: true,
+                    pageLength: 10,
+                    select: {
+                        style: 'single'
                     },
-                ],
+                    columns: [
+                        { data: 'SrNo', className: 'text-center nowrap' },
+                        { data: 'InDate', defaultContent: '', className: 'nowrap' },
+                        { data: 'InTime', defaultContent: '', className: 'nowrap' },
+                        { data: 'OutDate', defaultContent: '', className: 'nowrap' },
+                        { data: 'OutTime', defaultContent: '', className: 'nowrap' },
+                        { data: 'Reason', defaultContent: '', className: 'nowrap' },
+                        { data: 'AddedDate', defaultContent: '', className: 'nowrap' },
+                        { data: 'Approved', defaultContent: '', className: 'nowrap' },
+                        { data: 'ApprovedByName', defaultContent: '', className: 'nowrap' },
+                        { data: 'ApprovedDate', defaultContent: '', className: 'nowrap' },
+                        { data: 'RequestRemark', defaultContent: '', className: 'nowrap' }
+                    ],
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            title: 'Attendance Correction Report',
+                            autoFilter: true
+                        }
+                    ]
+                });
+            }
 
-            });
+            $("#acTotalRequests").text(total);
+            $("#acPendingRequests").text(pending);
+            $("#acApprovedRequests").text(approved);
+            $("#acRejectedRequests").text(rejected);
+
+            $('#load1').hide();
         },
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            alert('error: ' + error.responseText);
         }
     });
+
     return false;
 }
 
-//****************** Self Attendance - END ******************//
 
+//Self Attendance - END
 
-//****************** PM Attendance - START ******************//
+// PM Attendance - START
+
 
 function getattendancecount(ddl) {
     var code = ddl.options[ddl.selectedIndex].value;
     PageMethods.getAttendanceCount(code, attcount_OnSuccess, attcount_OnError);
     return false;
 }
-
 function attcount_OnSuccess(result) {
     if (result >= 4) {
         document.getElementById("pmatt_errmsg").innerHTML = "User has already exceeded maximum number of attendance correction request limit.!";
@@ -429,9 +387,13 @@ function attcount_OnSuccess(result) {
     return false;
 }
 
+
 function attcount_OnError(error) {
     alert(error.get_message());
 }
+
+
+
 
 function pmatt_bindusers() {
     var select = document.getElementById("pmatt_user");
@@ -853,10 +815,10 @@ function pmatt_BindGrid() {
                 pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.OutDate) + '</td>';
                 pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.OutTime) + '</td>';
                 pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.Reason) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.AddedDate) + '</td>';
+                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(addeddate) + '</td>';
                 pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.Approved) + '</td>';
                 pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ApprovedByName) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ApprovedDate) + '</td>';
+                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(appdate) + '</td>';
                 pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.RequestRemark) + '</td>';
 
                 pmatt_html += '</tr>';

@@ -15,13 +15,13 @@ namespace WebPortal.Admin
     {
 
         /// <summary>
-        /// aBack control.
+        /// aProposed control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor aBack;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor aProposed;
 
         /// <summary>
         /// txtCode control.
@@ -67,32 +67,5 @@ namespace WebPortal.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlYear;
-
-        /// <summary>
-        /// btnshow control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnshow;
-
-        /// <summary>
-        /// aProposed control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor aProposed;
-
-        /// <summary>
-        /// grdLog control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.GridView grdLog;
     }
 }

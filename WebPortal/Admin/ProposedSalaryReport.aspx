@@ -3,11 +3,9 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
-
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         body {
             background: #f4f7fb;
@@ -44,7 +42,6 @@
         .dashboard-subtitle {
             font-size: 12px;
             opacity: 0.9;
-            /*text-transform: uppercase;*/
         }
 
         .stat-box {
@@ -118,8 +115,6 @@
     <style>
         .stat-box {
             background: #ffffff;
-            /*  border-radius: 20px;*/
-            /*padding: 22px 20px;*/
             position: relative;
             overflow: hidden;
             border: 1px solid #edf0f5;
@@ -335,7 +330,7 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
-    <div class="container-fluid mt-4">
+    <%--<div class="container-fluid mt-4">    </div>--%>
 
         <!-- Header -->
         <div class="dashboard-header">
@@ -447,6 +442,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
+
 </asp:Content>
 

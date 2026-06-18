@@ -1,8 +1,8 @@
 ﻿
 var uprMark_attendancetable;
-var uprMarkprod_html;
+var uprMarkprod_html = "";
 var uprMarkprod_table;
-var uprSummaryMark_html;
+var uprSummaryMark_html = "";
 var uprSummaryMark_table;
 var uprMark_table;
 
@@ -30,6 +30,8 @@ function uprMark_submit() {
         uprMark_BindProductionGrid(FromDate, ToDate);
         uprMark_BindAttendanceGrid(FromDate, ToDate);
     }
+
+    return false;
 }
 
 function uprMark_BindSummaryGrid(FromDate, ToDate) {
@@ -47,6 +49,7 @@ function uprMark_BindSummaryGrid(FromDate, ToDate) {
 
         success: function (data) {
             var dataArray = JSON.parse(data.d);
+            uprSummaryMark_html = "";
 
             $.each(dataArray, function (index, value) {
 
@@ -99,6 +102,7 @@ function uprMark_BindSummaryGrid(FromDate, ToDate) {
 
         },
         error: function (error) {
+            $('#load1').hide();
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -122,6 +126,8 @@ function uprMark_BindProductionGrid(FromDate, ToDate) {
 
         success: function (data) {
             var dataArray = JSON.parse(data.d);
+            uprMarkprod_html = "";
+
             $.each(dataArray, function (index, value) {
                 uprMarkprod_html += '<tr>';
                 /*uprMarkprod_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';*/
@@ -170,6 +176,7 @@ function uprMark_BindProductionGrid(FromDate, ToDate) {
         },
 
         error: function (error) {
+            $('#load1').hide();
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -239,6 +246,7 @@ function uprMark_BindAttendanceGrid(FromDate, ToDate) {
         },
 
         error: function (error) {
+            $('#load1').hide();
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
