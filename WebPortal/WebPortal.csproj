@@ -259,6 +259,7 @@
     <Content Include="Admin\UnapprovedLeaveCount.aspx" />
     <Content Include="Admin\UpdateDomain.aspx" />
     <Content Include="Admin\UserAppreciationDisciplinaryActionReport.aspx" />
+    <Content Include="Admin\UsersAppreciationDisplinaryAction.aspx" />
     <Content Include="Admin\SetAppreciationDisciplinaryAction.aspx" />
     <Content Include="Admin\SetClientHoliday.aspx" />
     <Content Include="Admin\SyncInternalFeedback.aspx" />
@@ -641,6 +642,7 @@
     <Content Include="Admin\ProposedSalaryReport.aspx" />
     <Content Include="Admin\Requisition.aspx" />
     <Content Include="Admin\RequisitionProfile.aspx" />
+    <Content Include="Admin\InitiateResignation.aspx" />
     <Content Include="Admin\Resignation.aspx" />
     <Content Include="Admin\RewardAndRecognition.aspx" />
     <Content Include="Admin\RoamingBranch.aspx" />
@@ -2650,6 +2652,7 @@
     <Content Include="Scripts\Functions\DashboardTest.js" />
     <Content Include="Scripts\Functions\EditSecruitization.js" />
     <Content Include="Scripts\Functions\AppreciationDisciplinaryAction.js" />
+    <Content Include="Scripts\Functions\UsersAppreciationDisplinaryAction.js" />
     <Content Include="Scripts\Functions\EKYC.js" />
     <Content Include="Scripts\Functions\EmpLeave.js" />
     <Content Include="Scripts\Functions\Festival.js" />
@@ -2673,6 +2676,7 @@
     <Content Include="Scripts\Functions\ProjectConfiguration.js" />
     <Content Include="Scripts\Functions\ProjectNotifications.js" />
     <Content Include="Scripts\Functions\QualityReport.js" />
+    <Content Include="Scripts\Functions\InitiateResignation.js" />
     <Content Include="Scripts\Functions\Resignation.js" />
     <Content Include="Scripts\Functions\SecruitizationBilling.js" />
     <Content Include="Scripts\Functions\SecuritizationBillingImport.js" />
@@ -3733,6 +3737,13 @@
     <Compile Include="Admin\UserAppreciationDisciplinaryActionReport.aspx.designer.cs">
       <DependentUpon>UserAppreciationDisciplinaryActionReport.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\UsersAppreciationDisplinaryAction.aspx.cs">
+      <DependentUpon>UsersAppreciationDisplinaryAction.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\UsersAppreciationDisplinaryAction.aspx.designer.cs">
+      <DependentUpon>UsersAppreciationDisplinaryAction.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\SetAppreciationDisciplinaryAction.aspx.cs">
       <DependentUpon>SetAppreciationDisciplinaryAction.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4054,6 +4065,13 @@
     </Compile>
     <Compile Include="Admin\RequisitionProfile.aspx.designer.cs">
       <DependentUpon>RequisitionProfile.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\InitiateResignation.aspx.cs">
+      <DependentUpon>InitiateResignation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\InitiateResignation.aspx.designer.cs">
+      <DependentUpon>InitiateResignation.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\Resignation.aspx.cs">
       <DependentUpon>Resignation.aspx</DependentUpon>
