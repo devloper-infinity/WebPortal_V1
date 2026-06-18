@@ -14,7 +14,7 @@ namespace WebPortal.Tracking
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            DataTable dt = new bllLogin().GetUserInformation(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+           
         }
     }
 }

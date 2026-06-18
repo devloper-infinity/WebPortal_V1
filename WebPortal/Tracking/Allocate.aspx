@@ -4,62 +4,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <script>
-
-        function applyModernHrFormLayout() {
-            $('.tab-pane > table.table:first-child').each(function () {
-                var $table = $(this);
-                if ($table.data('modernized') === true) return;
-
-                $table.find('tr').each(function () {
-                    var $row = $(this);
-                    var $cells = $row.children('td').toArray();
-                    var $newCells = $();
-
-                    for (var i = 0; i < $cells.length; i++) {
-                        var $cell = $($cells[i]);
-                        var $label = $cell.children('b').first();
-                        var next = $cells[i + 1] ? $($cells[i + 1]) : null;
-
-                        if ($label.length && next && !next.children('b').length) {
-                            var $fieldCell = $('<td class="hr-field-cell"></td>');
-                            var $field = $('<div class="hr-form-field"></div>');
-                            $('<label></label>').html($label.html().replace(':', '')).appendTo($field);
-                            next.contents().appendTo($field);
-                            $field.appendTo($fieldCell);
-                            $newCells = $newCells.add($fieldCell);
-                            i++;
-                        } else if ($.trim($cell.text()).length || $cell.children().length) {
-                            $cell.addClass('hr-action-cell');
-                            $newCells = $newCells.add($cell);
-                        }
-                    }
-
-                    $row.empty().append($newCells);
-                });
-
-                $table.data('modernized', true).addClass('hr-modern-form');
-            });
-        }
-
-        $(document).ready(function () {
-            applyModernHrFormLayout();
-            $('a[data-toggle="pill"]').on('shown.bs.tab', applyModernHrFormLayout);
-        });
-    </script>
-
-    <script>
-
-        $(document).ready(function () {
-
-            allocate_bindProcess();
-            // allocate_bindAllocatedogrdes_Grid();
-            allocate_bindCompleteOrder_Grid();
-
-        });
-
-    </script>
-
     <style>
         .sec-hero {
             align-items: center;
@@ -262,6 +206,62 @@
             overflow-x: auto !important;
         }
     </style>
+    
+    <script>
+
+        function applyModernHrFormLayout() {
+            $('.tab-pane > table.table:first-child').each(function () {
+                var $table = $(this);
+                if ($table.data('modernized') === true) return;
+
+                $table.find('tr').each(function () {
+                    var $row = $(this);
+                    var $cells = $row.children('td').toArray();
+                    var $newCells = $();
+
+                    for (var i = 0; i < $cells.length; i++) {
+                        var $cell = $($cells[i]);
+                        var $label = $cell.children('b').first();
+                        var next = $cells[i + 1] ? $($cells[i + 1]) : null;
+
+                        if ($label.length && next && !next.children('b').length) {
+                            var $fieldCell = $('<td class="hr-field-cell"></td>');
+                            var $field = $('<div class="hr-form-field"></div>');
+                            $('<label></label>').html($label.html().replace(':', '')).appendTo($field);
+                            next.contents().appendTo($field);
+                            $field.appendTo($fieldCell);
+                            $newCells = $newCells.add($fieldCell);
+                            i++;
+                        } else if ($.trim($cell.text()).length || $cell.children().length) {
+                            $cell.addClass('hr-action-cell');
+                            $newCells = $newCells.add($cell);
+                        }
+                    }
+
+                    $row.empty().append($newCells);
+                });
+
+                $table.data('modernized', true).addClass('hr-modern-form');
+            });
+        }
+
+        $(document).ready(function () {
+            applyModernHrFormLayout();
+            $('a[data-toggle="pill"]').on('shown.bs.tab', applyModernHrFormLayout);
+        });
+    </script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            allocate_bindProcess();
+            // allocate_bindAllocatedogrdes_Grid();
+            allocate_bindCompleteOrder_Grid();
+
+        });
+
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../Scripts/TrackingSheet/Allocate.js"></script>

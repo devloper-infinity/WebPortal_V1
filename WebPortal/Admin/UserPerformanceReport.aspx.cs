@@ -199,6 +199,7 @@ namespace WebPortal.Admin
             range.Style.Borders[BordersLineType.DiagonalDown].LineStyle = LineStyleType.None;
         }
         #endregion
+
         static void releaseObject(object obj)
         {
             try

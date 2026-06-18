@@ -27,7 +27,6 @@ function upr_BindUsers() {
     });
 }
 
-
 function perform_validations() {
 
     var FromDate = $("#upr_fromdate").val();
@@ -73,7 +72,41 @@ function upr_submit() {
     perform_validations();
 }
 
-function upr_bindSummary() {
+function upr_submit() {
+
+    var FromDate = $("#upr_fromdate").val();
+    var ToDate = $("#upr_todate").val();
+
+    // FromDate = '26-Apr-2026';
+    // ToDate = '25-May-2026';
+
+    if (!FromDate) {
+        Swal.fire("Validation", "Please select From Date.", "warning");
+        return false;
+    }
+
+    if (!ToDate) {
+        Swal.fire("Validation", "Please select To Date.", "warning");
+        return false;
+    }
+
+    var from = new Date(FromDate);
+    var to = new Date(ToDate);
+
+    if (isNaN(from.getTime())) {
+        Swal.fire("Validation", "Invalid From Date.", "warning");
+        return false;
+    }
+
+    if (isNaN(to.getTime())) {
+        Swal.fire("Validation", "Invalid To Date.", "warning");
+        return false;
+    }
+
+    if (to < from) {
+        Swal.fire("Validation", "To Date must be greater than or equal to From Date.", "warning");
+        return false;
+    }
 
     Swal.fire({
         title: "Please Wait",

@@ -2976,6 +2976,7 @@
     <Compile Include="Admin\AssignUserGroups.aspx.designer.cs">
       <DependentUpon>AssignUserGroups.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\AttendanceCorrectionWebMethods.cs" />
     <Compile Include="Admin\AttendanceCorrectionpm.aspx.cs">
       <DependentUpon>AttendanceCorrectionpm.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

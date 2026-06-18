@@ -178,10 +178,14 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.ValidateUserProcessTAT(htParam);
         }
 
+        public DataTable GetAllProjectDealNo_OrderNo_UW_Process(string ProcessName, string Reviewer, string Type)
+        {
+            return dalTracking.GetAllProjectDealNo_OrderNo_UW_Process(ProcessName, Reviewer, Type);
+        }
 
         public DataTable GetProcessDetailsForFeedbackUser(string UserName, string FromDate, string ToDate)
         {
-            return dalTracking.GetProcessDetailsForFeedbackUser(UserName,  FromDate,  ToDate);
+            return dalTracking.GetProcessDetailsForFeedbackUser(UserName, FromDate, ToDate);
         }
     }
 }
