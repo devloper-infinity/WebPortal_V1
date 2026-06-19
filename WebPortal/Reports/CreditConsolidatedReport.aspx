@@ -337,6 +337,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="../Admin/ModernReportSecuritization.css" />
     <script>
         $(document).ready(function () {
             creditcons_bindyear();
@@ -534,7 +535,7 @@
     </div>
     <div class="credit-report-header">
         <div class="credit-report-title">
-            <span class="credit-report-title-icon"><i class="fas fa-chart-line"></i></span>
+            <span class="credit-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
             <div>
                 <h1>Credit Consolidated Report</h1>
                 <span>Monthly credit reporting workspace</span>

@@ -286,6 +286,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="ModernReportSecuritization.css" />
     <script>
         $(document).ready(function () {
             creditutil_bindyear();
@@ -319,7 +320,7 @@
     </div>
     <div class="modern-report-header">
         <div class="modern-report-title">
-            <span class="modern-report-title-icon"><i class="fas fa-chart-pie"></i></span>
+            <span class="modern-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
             <div>
                 <h1>Credit Utilization Report</h1>
                 <span>Generate monthly credit utilization output</span>

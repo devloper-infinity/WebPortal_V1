@@ -1,7 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="UserPerformanceAckReport.aspx.cs" Inherits="WebPortal.Admin.UserPerformanceAckReport" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
     <style>
         .loading {
             display: none;
@@ -254,6 +253,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="ModernReportSecuritization.css" />
 
     <script>
         $(document).ready(function () {
@@ -281,7 +281,7 @@
 
     <div class="modern-report-header">
         <div class="modern-report-title">
-            <span class="modern-report-title-icon"><i class="fas fa-clipboard-check"></i></span>
+            <span class="modern-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
             <div>
                 <h1>Monthly Performance Acknowledgement Report</h1>
                 <span>Review acknowledgement status and download performance letters</span>

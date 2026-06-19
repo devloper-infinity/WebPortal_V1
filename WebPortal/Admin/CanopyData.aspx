@@ -320,6 +320,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="ModernReportSecuritization.css" />
     <script>
         $(document).ready(function () {
             canopydata_bindyear();
@@ -336,7 +337,7 @@
     </div>
     <div class="modern-report-header">
         <div class="modern-report-title">
-            <span class="modern-report-title-icon"><i class="fas fa-database"></i></span>
+            <span class="modern-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
             <div>
                 <h1>Lauramac Database Volume</h1>
                 <span>Review loan and task volume by month and year</span>

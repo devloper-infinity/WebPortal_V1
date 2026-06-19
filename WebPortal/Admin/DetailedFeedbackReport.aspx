@@ -318,6 +318,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="ModernReportSecuritization.css" />
 
     <script>
         var fr_downloadBtnId = '<%= fr_newdownload.UniqueID %>';
@@ -636,7 +637,7 @@
     </div>
     <div class="modern-report-header">
         <div class="modern-report-title">
-            <span class="modern-report-title-icon"><i class="fas fa-file-alt"></i></span>
+            <span class="modern-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
             <div>
                 <h1>Detailed Feedback Output</h1>
                 <span>Import feedback data, validate it, and generate the output workbook</span>

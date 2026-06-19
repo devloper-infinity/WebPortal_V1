@@ -13,6 +13,8 @@ using System.Web;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using WebPortal.App_Code.Class;
+
 
 namespace WebPortal
 {
@@ -98,6 +100,8 @@ namespace WebPortal
             string CurrentLogin = string.Empty;
             if (HttpContext.Current.User.Identity.IsAuthenticated)
             {
+               
+
                 int poshteststatus = new bllMaster().GetPostTestStatus();
                 if (poshteststatus == 0)
                 {

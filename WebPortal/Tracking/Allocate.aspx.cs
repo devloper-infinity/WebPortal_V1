@@ -10,6 +10,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code;
 using WebPortal.App_Code.Class;
 using DataTable = System.Data.DataTable;
 
@@ -44,15 +45,17 @@ namespace WebPortal.Tracking
 
 
         [WebMethod]
-        public static object GetLoansToAllocate(string ProcessName, string Reviewer, string Type)
+        public static object GetLoansToAllocate(string ProcessName, string Type)
         {
+            string Reviewer = EmployeeInfo.Current.Code;
+
             //DataTable dt = new bllUS().GetAllOrderNoByProjectWise(ProjectID, DealNo, "", "", "Allocation2");
             DataTable dt = new bllTracking().GetAllProjectDealNo_OrderNo_UW_Process(ProcessName, Reviewer, Type);
-
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 
             return data;
         }
+
 
         [WebMethod]
         public static object GetUserLoans(string UserName)

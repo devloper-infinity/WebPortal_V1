@@ -177,6 +177,7 @@
             padding: 13px 14px !important;
             border-bottom: 1px solid #d9e2f1 !important;
             white-space: nowrap !important;
+            text-align: left;
             /* vertical-align: middle !important;*/
         }
 
@@ -186,6 +187,7 @@
             border-bottom: 1px solid #edf2f8 !important;
             white-space: nowrap !important;
             vertical-align: middle !important;
+            text-align: left;
         }
 
         /* Remove forced duplicate table header display */
@@ -206,7 +208,7 @@
             overflow-x: auto !important;
         }
     </style>
-    
+
     <script>
 
         function applyModernHrFormLayout() {
@@ -305,7 +307,7 @@
                             <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b>Allocation</b></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false"><b>Update Status</b></a>
+                            <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false"><b>Update Loan Status</b></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="custom-tabs-one-messages-tab" data-toggle="pill" href="#custom-tabs-one-messages" role="tab" aria-controls="custom-tabs-one-messages" aria-selected="false"><b>Report</b></a>
@@ -322,7 +324,7 @@
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-4">
-                                    <button id="allocate_btnSubmit" class="bank-submit-btn" onclick="return allocate_GetOrder();">
+                                    <button id="allocate_btnSubmit" type="button" class="bank-submit-btn" onclick="return GetLoansToAllocate();">
                                         <i class="fas fa-save mr-1"></i>Get Order
                                     </button>
                                 </div>
@@ -333,22 +335,15 @@
                             <thead>
                                 <tr>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Product Type</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remote-UW</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Hold Reason</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <%--  <th class="sort border-top ps-3" style="text-wrap: nowrap;">User</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>--%>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Added Date</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody style="text-align: left;"></tbody>
                         </table>
                     </div>
 
@@ -388,7 +383,7 @@
                                 </div>
                                 <div class="col-lg-4 col-md-8 mb-3 mb-md-0">
                                     <button id="allocate_btnGetData" class="bank-submit-btn" onclick="return allocate_GetLoanReport();">
-                                         <i class="fas fa-file-alt"></i> &nbsp;&nbsp;Get Report
+                                        <i class="fas fa-file-alt"></i>&nbsp;&nbsp;Get Report
                                     </button>
                                 </div>
                             </div>
