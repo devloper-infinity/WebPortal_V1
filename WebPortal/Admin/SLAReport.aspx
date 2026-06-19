@@ -1,139 +1,358 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="SLAReport.aspx.cs" Inherits="WebPortal.Admin.SLAReport" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
-    <%--    <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        .dataTables_scrollBody {
-            min-height: 100px !important;
-            height: auto;
-        }
-
-        .dataTables_length, .dataTables_info {
-            float: left !important;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none !important;
-            background-color: #fff !important;
-        }
-    </style>--%>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
     <style>
-    
-        .btn-gradient-primary {
-            /*  background: linear-gradient(135deg, #4da6ff, #1a8cff);*/
-            background: linear-gradient(to right, #90caf9, 10%, #047edf) !important;
-            color: #fff;
-            border-radius: 12px;
-            height: 40px;
-            font-weight: 400;
-            transition: 0.3s;
+        :root {
+            --ud-primary: #2563eb;
+            --ud-primary-dark: #1d4ed8;
+            --ud-accent: #22c1dc;
+            --ud-bg: #f5f7fb;
+            --ud-card: #ffffff;
+            --ud-text: #0f172a;
+            --ud-muted: #64748b;
+            --ud-border: #e2e8f0;
+            --ud-soft: #eff6ff;
+            --ud-shadow: 0 18px 45px rgba(15, 23, 42, .08);
         }
 
-            .btn-gradient-primary:hover {
-                transform: translateY(-2px);
-                /*background: linear-gradient(135deg, #4da6ff, #1a8cff);*/
-                background: linear-gradient(to right, #90caf9, 10%, #047edf) !important;
-                color: #fff;
+        body {
+            background: var(--ud-bg);
+        }
+
+        .ud-page {
+            width: 100%;
+        }
+
+        .ud-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 22px 28px;
+            border-radius: 22px;
+            color: #fff;
+            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 65%, #22c1dc 100%);
+            box-shadow: var(--ud-shadow);
+        }
+
+            .ud-hero:before,
+            .ud-hero:after {
+                content: "";
+                position: absolute;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, .12);
             }
 
-        .my-col-5 {
-            width: 45%;
-            padding-right: 15px;
+            .ud-hero:before {
+                width: 220px;
+                height: 220px;
+                right: 70px;
+                top: -120px;
+            }
+
+            .ud-hero:after {
+                width: 300px;
+                height: 300px;
+                right: -90px;
+                bottom: -170px;
+            }
+
+        .ud-hero-icon {
+            position: relative;
+            z-index: 1;
+            width: 50px;
             height: 50px;
-            font-weight: bold;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .22);
+            font-size: 24px;
         }
 
-        .btn-gradient-success {
-            background: linear-gradient(135deg, #1cc88a, #13855c);
-            color: #fff;
-            border-radius: 12px;
-            height: 40px;
+        .ud-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ud-title {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .ud-subtitle {
+            margin: 8px 0 0;
+            font-size: 12px;
+            opacity: .9;
+        }
+
+        .ud-card {
+            margin-top: 22px;
+            padding: 22px;
+            border: 1px solid var(--ud-border);
+            border-radius: 22px;
+            background: var(--ud-card);
+            box-shadow: var(--ud-shadow);
+        }
+
+        .ud-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: var(--ud-text);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+            .ud-section-title i {
+                width: 34px;
+                height: 34px;
+                display: inline-grid;
+                place-items: center;
+                border-radius: 12px;
+                background: var(--ud-soft);
+                color: var(--ud-primary);
+            }
+
+        .ud-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        label,
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--ud-muted);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .02em;
+        }
+
+        .form-control,
+        .form-select,
+        select,
+        input[type="date"] {
             width: 100%;
-            font-weight: 400;
-            transition: 0.3s;
+            height: 46px !important;
+            border: 1px solid var(--ud-border) !important;
+            padding: 9px 14px;
+            border-radius: 14px !important;
+            font-size: 13px;
+            color: var(--ud-text);
+            background-color: #fff;
+            outline: none;
+            box-shadow: none !important;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
         }
 
-            .btn-gradient-success:hover {
-                transform: translateY(-2px);
-                color: #fff;
+            .form-control:focus,
+            .form-select:focus,
+            select:focus,
+            input[type="date"]:focus {
+                border-color: var(--ud-primary) !important;
+                box-shadow: 0 0 0 4px rgba(37, 99, 235, .12) !important;
+            }
+
+        .btn,
+        .my-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 0 18px;
+            border: 0 !important;
+            border-radius: 14px !important;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+        }
+
+            .btn:hover,
+            .my-btn:hover {
+                transform: translateY(-1px);
+                text-decoration: none;
+            }
+
+        .btn-gradient-primary,
+        .btn-primary,
+        .primary {
+            background: linear-gradient(135deg, var(--ud-primary), var(--ud-accent)) !important;
+            color: #fff !important;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, .24);
+        }
+
+            .btn-gradient-primary:hover,
+            .btn-primary:hover,
+            .primary:hover {
+                color: #fff !important;
+                box-shadow: 0 16px 30px rgba(37, 99, 235, .32);
+            }
+
+        .btn-gradient-success,
+        .buttons-excel {
+            background: linear-gradient(to right, #ffbf96, #fe7096) !important;
+            color: #fff !important;
+            box-shadow: 0 12px 24px rgba(254, 112, 150, .24) !important;
+        }
+
+        .ud-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 18px;
+            background: #fff;
+        }
+
+            .ud-table-wrap table {
+                width: 100% !important;
+                margin: 0 !important;
+                border-collapse: separate !important;
+                border-spacing: 0;
+                white-space: nowrap;
+            }
+
+            .ud-table-wrap thead th,
+            .table.dataTable thead th {
+                border: 0 !important;
+              
+                font-size: 12px !important;
+                font-weight: 900 !important;
+                text-align: center !important;
+                vertical-align: middle !important;
+                letter-spacing: .02em;
+            }
+
+            .ud-table-wrap tbody td,
+            .table.dataTable tbody td {
+                border-bottom: 1px solid var(--ud-border) !important;
+                color: #334155;
+                font-size: 13px;
+                vertical-align: middle;
+                background: #fff;
+            }
+
+            .ud-table-wrap tbody tr:hover td,
+            .table.dataTable tbody tr:hover td {
+                background: #f8fbff !important;
+            }
+
+        table.dataTable thead th::before,
+        table.dataTable thead th::after {
+            display: none !important;
+        }
+
+        .top,
+        div.dt-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-bottom: 12px;
+            float: none !important;
+            position: static !important;
+            padding-left: 0 !important;
+        }
+
+        .dataTables_filter {
+            margin-left: auto;
+        }
+
+            .dataTables_filter input,
+            .dataTables_length select {
+                min-height: 34px !important;
+                height: 34px !important;
+                border: 1px solid var(--ud-border) !important;
+                border-radius: 12px !important;
+                padding: 6px 10px;
+                font-size: 12px;
+                outline: none;
             }
 
         .loading {
             display: none;
             position: fixed;
-            top: 350px;
+            top: 50%;
             left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
+            transform: translate(-50%, -50%);
+            padding: 22px;
+            width: 210px;
+            min-height: 190px;
+            text-align: center;
+            background: rgba(255,255,255,.92);
+            border: 1px solid var(--ud-border);
+            border-radius: 24px;
+            box-shadow: var(--ud-shadow);
             z-index: 99999;
         }
 
-        .right-border {
-            border-right: 2px solid #000;
-            border-color: #047edf;
+        @media (max-width: 991px) {
+            .ud-page {
+                padding: 16px;
+            }
+
+            .ud-filter-grid {
+                grid-template-columns: repeat(2, minmax(160px, 1fr));
+            }
+
+            .dataTables_filter {
+                margin-left: 0;
+            }
         }
 
-        /*   .row-overdue {
-            background-color: #ffcccc !important;
-        }*/
+        @media (max-width: 575px) {
+            .ud-hero {
+                align-items: flex-start;
+                padding: 20px;
+            }
 
-        .col-left {
-            font-weight: bold !important;
+            .ud-title {
+                font-size: 20px;
+            }
+
+            .ud-filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        #table_slareport thead th {
+            min-width: 92px;
+        }
+
+        #table_slareport thead tr:first-child th[colspan],
+        #table_slareport thead tr:nth-child(2) th,
+        #table_slareport thead tr:nth-child(3) th {
+          
+            
         }
 
         #table_slareport tbody tr.row-overdue td {
-            /*background-color: #f00000 !important;*/
-            color: #f00000 !important;
+            color: #ef4444 !important;
+            font-weight: 700;
         }
 
         #table_slareport tbody tr.row-left td {
-            background-color: #d6d6d6 !important; /*ffee32  #ffff24*/
-            /* color: yellow !important;*/
+            background-color: #f1f5f9 !important;
+            font-weight: 700;
+        }
+
+        .right-border {
+            border-right: 2px solid var(--ud-primary) !important;
+        }
+
+        .col-left {
+            font-weight: 800 !important;
         }
     </style>
 
@@ -143,255 +362,112 @@
 
     <script>
         $(document).ready(function () {
-
             /*  slareport_bindgrid('01-May-2026', '30-May-2026');*/
-
         });
     </script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
     <div class="loading" id="load1">
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
 
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>SLA Report</b></h6>
+    <div class="ud-page">
+        <section class="ud-hero">
+            <div class="ud-hero-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+            <div class="ud-hero-content">
+                <h1 class="ud-title">SLA Report</h1>
+                <p class="ud-subtitle">Review SLA timeline, TAT and process performance by date range.</p>
+            </div>
+        </section>
+
+        <div class="ud-card">
+            <div class="ud-section-title"><i class="bi bi-sliders"></i><span>Report Filters</span></div>
+            <div class="ud-filter-grid">
+                <div>
+                    <label class="form-label" for="slareport_fromDate">From Date</label>
+                    <input type="date" id="slareport_fromDate" class="form-control" />
+                </div>
+                <div>
+                    <label class="form-label" for="slareport_toDate">To Date</label>
+                    <input type="date" id="slareport_toDate" class="form-control" />
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-gradient-primary w-100" onclick="loadSLAReport();"><i class="bi bi-bar-chart-line"></i>Get Report</button>
+                </div>
+                <div>
+                    <label>&nbsp;</label>
+                    <asp:Button ID="btn_exportslareport" Text="Export Excel" class="btn btn-gradient-success w-100" runat="server" OnClick="btn_ExportSLAReport_Click" />
                 </div>
             </div>
         </div>
-        <!-- /.container-fluid -->
-    </div>
 
+        <div class="ud-card">
+            <div class="ud-section-title"><i class="bi bi-table"></i><span>SLA Report Results</span></div>
+            <div class="ud-table-wrap">
+                <table id="table_slareport" class="table table-bordered w-100">
+                    <thead>
+                        <!-- Level 1 -->
+                        <tr>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Sr #</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Deal #</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Loan #</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Unique Loan #</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Received Date</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Due Date</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Elapsed Time</th>
 
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card sla-card">
-                <div class="card-body">
-                    <div class="row align-items-end g-4">
+                            <th colspan="4" style="text-align: center; font-size: 14px; background: #cce5ff;">Loan Setup</th>
+                            <th colspan="4" style="text-align: center; font-size: 14px; background: #99caff;">Credit</th>
+                            <th colspan="8" style="text-align: center; font-size: 14px; background: #66b0ff;">Compliance</th>
 
-                        <!-- From Date -->
-                        <div class="col-md-3">
-                            <label class="form-label"><b>From Date</b></label>
-                            <div class="input-group">
-                                <input type="date" id="slareport_fromDate" class="form-control" style="height: 40px;">
-                            </div>
-                        </div>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Dispatch Date</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Total TAT</th>
+                            <th rowspan="3" style="text-align: center; font-size: 12px;">Business Days</th>
+                        </tr>
 
-                        <!-- To Date -->
-                        <div class="col-md-3">
-                            <label class="form-label"><b>To Date</b></label>
-                            <div class="input-group">
-                                <input type="date" id="slareport_toDate" class="form-control" style="height: 40px;">
-                            </div>
-                        </div>
+                        <!-- Level 2 -->
+                        <tr>
+                            <th colspan="4" style="text-align: center; font-size: 12px; background: #cce5ff;">Setup</th>
 
-                        <!-- Get Report -->
-                        <div class="col-md-3">
-                            <button type="button" class="btn btn-gradient-primary w-100" onclick="loadSLAReport();"><i class="bi bi-bar-chart-line"></i>Get Report</button>
-                        </div>
+                            <th colspan="4" style="text-align: center; font-size: 12px; background: #99caff;">Process</th>
 
-                        <!-- Export -->
-                        <div class="col-md-3">
-                            <asp:Button ID="btn_exportslareport" Text="Export Excel" class="btn btn-gradient-success flex-grow-1" Style="background: linear-gradient(to right, #ffbf96, #fe7096);" runat="server" OnClick="btn_ExportSLAReport_Click" />
-                        </div>
-                    </div>
-                </div>
+                            <th colspan="4" style="text-align: center; font-size: 12px; background: #66b0ff;">Review</th>
+                            <th colspan="4" style="text-align: center; font-size: 12px; background: #66b0ff;">QC</th>
+                        </tr>
 
-                <div class="card-body">
-                    <div style="overflow: auto;">
-                        <%--<table id="table_slareport" class="table table-bordered w-100"><thead></thead></table>--%>
+                        <!-- Level 3 -->
+                        <tr>
+                            <!-- Loan Setup -->
+                            <th style="text-align: center; font-size: 10px; background: #cce5ff;">User</th>
+                            <th style="text-align: center; font-size: 10px; background: #cce5ff;">Start Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #cce5ff;">End Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #cce5ff;">TAT</th>
 
-                        <table id="table_slareport" class="table table-bordered w-100">
-                            <thead>
-                                <!-- Level 1 -->
-                                <tr>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Sr #</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Deal #</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Loan #</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Unique Loan #</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Received Date</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Due Date</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Elapsed Time</th>
+                            <!-- Credit -->
+                            <th style="text-align: center; font-size: 10px; background: #99caff;">User</th>
+                            <th style="text-align: center; font-size: 10px; background: #99caff;">Start Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #99caff;">End Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #99caff;">TAT</th>
 
-                                    <th colspan="4" style="text-align: center; font-size: 14px; background: #cce5ff;">Loan Setup</th>
-                                    <th colspan="4" style="text-align: center; font-size: 14px; background: #99caff;">Credit</th>
-                                    <th colspan="8" style="text-align: center; font-size: 14px; background: #66b0ff;">Compliance</th>
+                            <!-- Compliance Review -->
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">Reviewer</th>
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">Start Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">End Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">TAT</th>
 
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Dispatch Date</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Total TAT</th>
-                                    <th rowspan="3" style="text-align: center; font-size: 12px;">Business Days</th>
-                                </tr>
-
-                                <!-- Level 2 -->
-                                <tr>
-                                    <th colspan="4" style="text-align: center; font-size: 12px; background: #cce5ff;">Setup</th>
-
-                                    <th colspan="4" style="text-align: center; font-size: 12px; background: #99caff;">Process</th>
-
-                                    <th colspan="4" style="text-align: center; font-size: 12px; background: #66b0ff;">Review</th>
-                                    <th colspan="4" style="text-align: center; font-size: 12px; background: #66b0ff;">QC</th>
-                                </tr>
-
-                                <!-- Level 3 -->
-                                <tr>
-                                    <!-- Loan Setup -->
-                                    <th style="text-align: center; font-size: 10px; background: #cce5ff;">User</th>
-                                    <th style="text-align: center; font-size: 10px; background: #cce5ff;">Start Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #cce5ff;">End Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #cce5ff;">TAT</th>
-
-                                    <!-- Credit -->
-                                    <th style="text-align: center; font-size: 10px; background: #99caff;">User</th>
-                                    <th style="text-align: center; font-size: 10px; background: #99caff;">Start Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #99caff;">End Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #99caff;">TAT</th>
-
-                                    <!-- Compliance Review -->
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">Reviewer</th>
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">Start Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">End Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">TAT</th>
-
-                                    <!-- Compliance QC -->
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">Q-Cier</th>
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">Start Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">End Date</th>
-                                    <th style="text-align: center; font-size: 10px; background: #66b0ff;">TAT Date</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+                            <!-- Compliance QC -->
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">Q-Cier</th>
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">Start Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">End Date</th>
+                            <th style="text-align: center; font-size: 10px; background: #66b0ff;">TAT Date</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
-
-    <style>
-        /* Main Bands */
-        .band-loan {
-            background: #cce5ff; /* light blue */
-            color: #1e3a8a;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .band-credit {
-            background: #99caff; /* light green */
-            color: #065f46;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .band-compliance {
-            background: #66b0ff; /* light yellow */
-            color: #92400e;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        /* Sub Bands */
-        .band-loan-sub {
-            background: #cce5ff;
-        }
-
-        .band-credit-sub {
-            background: #ecfdf5;
-        }
-
-        .band-compliance-sub {
-            background: #fffbeb;
-        }
-
-        /* Lowest Level */
-        .band-loan-light {
-            background: #f8fbff;
-        }
-
-        .band-credit-light {
-            background: #f3fdf8;
-        }
-
-        .band-compliance-light {
-            background: #fffdf5;
-        }
-
-        /* General header styling */
-        #table_slareport thead th {
-            text-align: center;
-            vertical-align: middle;
-            font-size: 12px;
-        }
-    </style>
-
-    <%--  <style>
-        /* Container feel */
-        #table_slareport {
-            border-collapse: separate;
-            border-spacing: 0;
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            font-family: "Segoe UI", Roboto, Arial, sans-serif;
-        }
-
-            /* Header styling */
-            #table_slareport thead {
-                /*   background: linear-gradient(90deg, #4f46e5, #6366f1);*/
-                color: white;
-            }
-
-                #table_slareport thead th {
-                    padding: 14px 16px;
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    font-size: 13px;
-                    letter-spacing: 0.5px;
-                }
-
-            /* Body cells */
-            #table_slareport tbody td {
-                padding: 12px 16px;
-                border-bottom: 1px solid #f1f1f1;
-                font-size: 14px;
-                color: #333;
-            }
-
-            /* Hover effect */
-            #table_slareport tbody tr {
-                transition: all 0.2s ease-in-out;
-            }
-
-                #table_slareport tbody tr:hover {
-                    background: #f8fafc;
-                    transform: scale(1.01);
-                }
-
-                /* Zebra striping */
-                #table_slareport tbody tr:nth-child(even) {
-                    background: #fcfcfc;
-                }
-
-                /* Rounded bottom */
-                #table_slareport tbody tr:last-child td {
-                    border-bottom: none;
-                }
-
-        /* Optional: small badge style (for status columns etc.) */
-        .badge-soft {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-    </style>--%>
 </asp:Content>

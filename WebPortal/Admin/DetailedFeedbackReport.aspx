@@ -63,6 +63,260 @@
         /*.form-control {
             font-size: 11px !important;
         }*/
+
+        .modern-report-header {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: space-between;
+            margin: 12px 15px 16px;
+            padding: 16px 18px;
+        }
+
+        .modern-report-title {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modern-report-title-icon {
+            align-items: center;
+            background: #edf4ff;
+            border-radius: 8px;
+            color: #1d4ed8;
+            display: inline-flex;
+            font-size: 18px;
+            height: 40px;
+            justify-content: center;
+            width: 40px;
+        }
+
+        .modern-report-title h1 {
+            color: #172033;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .modern-report-title span {
+            color: #667085;
+            display: block;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .modern-report-badge {
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e4e9f2;
+            border-radius: 6px;
+            color: #344054;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 8px;
+            padding: 8px 10px;
+        }
+
+        .modern-report-main {
+            padding: 0 15px 24px;
+        }
+
+        .modern-report-card {
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+            overflow: hidden;
+        }
+
+        .modern-report-card .card-body {
+            padding: 0;
+        }
+
+        .modern-filter-panel {
+            background: #fff;
+            border-bottom: 1px solid #e4e9f2;
+            padding: 16px;
+        }
+
+        .modern-filter-grid {
+            align-items: flex-end;
+            display: grid;
+            gap: 14px;
+            grid-template-columns: minmax(260px, 1.2fr) minmax(220px, .8fr) auto auto;
+        }
+
+        .modern-field label {
+            border: none !important;
+            color: #475467;
+            display: block;
+            font-size: 12px;
+            font-weight: 700 !important;
+            margin-bottom: 6px;
+        }
+
+        .modern-field .form-control {
+            border-color: #d0d7e2;
+            border-radius: 6px;
+            box-shadow: none;
+            min-height: 38px;
+        }
+
+        .modern-field .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 .15rem rgba(37, 99, 235, .12);
+        }
+
+        .modern-btn {
+            align-items: center;
+            border-radius: 6px;
+            display: inline-flex;
+            font-weight: 600;
+            gap: 8px;
+            justify-content: center;
+            min-height: 38px;
+            padding: 8px 14px;
+            white-space: nowrap;
+        }
+
+        .modern-btn-primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .modern-btn-primary:hover,
+        .modern-btn-primary:focus {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #fff;
+        }
+
+        .modern-btn-secondary {
+            background: #111827;
+            border-color: #111827;
+            color: #fff;
+        }
+
+        .modern-btn-secondary:hover,
+        .modern-btn-secondary:focus {
+            background: #0f172a;
+            border-color: #0f172a;
+            color: #fff;
+        }
+
+        .modern-table-panel {
+            background: #fff;
+            padding: 16px;
+        }
+
+        .modern-upload-preview {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            color: #475467;
+            margin-top: 8px;
+            min-height: 38px;
+            padding: 8px 10px;
+        }
+
+        .loading {
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, .16);
+            display: none;
+            height: auto;
+            left: 50%;
+            margin: 0;
+            min-height: 154px;
+            opacity: .96;
+            padding: 20px;
+            position: fixed;
+            text-align: center;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            z-index: 99999;
+        }
+
+        .loading img {
+            max-width: 72px;
+        }
+
+        .loading div {
+            color: #334155;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .table.dataTable th {
+            background: #f3f6fb !important;
+            border-bottom: 1px solid #d8e0ec !important;
+            color: #172033;
+            font-weight: 700;
+        }
+
+        .table.dataTable tr td {
+            background-color: #fff !important;
+            color: #344054;
+        }
+
+        .table.dataTable tbody tr:hover td {
+            background-color: #f8fbff !important;
+        }
+
+        .report-waiting-text {
+            color: #fff;
+            display: inline-block;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .report-waiting-dots {
+            animation: animate 1s linear infinite;
+            color: #fff;
+            display: inline-block;
+            font-size: 42px;
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        @media (max-width: 991px) {
+            .modern-filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .modern-report-header {
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+
+            .modern-report-main {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .modern-filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modern-btn {
+                width: 100%;
+            }
+        }
     </style>
 
     <script>
@@ -380,25 +634,28 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Detailed Feedback Output</b></h6>
-                </div>
+    <div class="modern-report-header">
+        <div class="modern-report-title">
+            <span class="modern-report-title-icon"><i class="fas fa-file-alt"></i></span>
+            <div>
+                <h1>Detailed Feedback Output</h1>
+                <span>Import feedback data, validate it, and generate the output workbook</span>
             </div>
         </div>
-        <!-- /.container-fluid -->
+        <div class="modern-report-badge">
+            <i class="fas fa-database"></i>
+            <span>Excel and database reports</span>
+        </div>
     </div>
-    <div class="col-lg-12">
-        <div class="card">
+    <div class="col-lg-12 modern-report-main">
+        <div class="card modern-report-card">
             <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td><b>Attachment:</b></td>
-                        <td>
-                            <input type="file" id="feedbackreport_file" name="feedbackreport_file" class="form-control" style="width: 250px;" />
-                            <div class="dropzone dropzone-multiple p-0 dz-clickable dz-file-processing dz-file-complete" id="dropzone">
+                <div class="modern-filter-panel">
+                    <div class="modern-filter-grid">
+                        <div class="modern-field">
+                            <label for="feedbackreport_file">Attachment</label>
+                            <input type="file" id="feedbackreport_file" name="feedbackreport_file" class="form-control" />
+                            <%--<div class="dropzone dropzone-multiple p-0 dz-clickable dz-file-processing dz-file-complete modern-upload-preview" id="dropzone">
                                 <div class="dz-preview dz-preview-multiple m-0 d-flex flex-column" id="conentdiv" style="display: none!important;">
                                     <div class="flex-1 d-flex flex-between-center">
                                         <div id="filesdivimport" style="margin-top: 10px; margin-bottom: 10px;"></div>
@@ -410,28 +667,29 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td><b>Report Base:</b></td>
-                        <td>
-                            <select id="feedbackreport_base" name="feedbackreport_base" class="form-control" style="width: 250px;">
+                            </div>--%>
+                        </div>
+                        <div class="modern-field">
+                            <label for="feedbackreport_base">Report Base</label>
+                            <select id="feedbackreport_base" name="feedbackreport_base" class="form-control">
                                 <option value="">Select</option>
                                 <option value="QC Date">QC Date</option>
                                 <option value="Review Date">Review Date</option>
                             </select>
-                        </td>
-                        <td>
-                            <button id="feedbackreport_btngenerate" name="feedbackreport_btngenerate" class="btn btn-primary" onclick="return feedbackreport_generate();">Generate Output File</button>
+                        </div>
+                        <div>
+                            <button id="feedbackreport_btngenerate" name="feedbackreport_btngenerate" class="btn modern-btn modern-btn-primary" onclick="return feedbackreport_generate();"><i class="fas fa-file-export"></i><span>Generate Output File</span></button>
                             <asp:Button ID="btn1" runat="server" Style="display: none;" OnClick="btn1_Click" />
-                        </td>
-                        <td>
-                            <button id="feedbackreport_btnGenerateDB" name="feedbackreport_btnGenerateDB" class="btn btn-success" onclick="return feedbackreport_getreportfromdatabase();">Generate Report from Database</button>
+                        </div>
+                        <div>
+                            <button id="feedbackreport_btnGenerateDB" name="feedbackreport_btnGenerateDB" class="btn modern-btn modern-btn-secondary" onclick="return feedbackreport_getreportfromdatabase();"><i class="fas fa-server"></i><span>Generate Report from Database</span></button>
                             <asp:Button ID="fr_newdownload" runat="server" Style="display: none;" OnClick="fr_newdownload_Click" />
-                        </td>
-                    </tr>
-                </table>
-                <hr />
-                <table class="table table-bordered" id="dfr_table" style="width: 100%;"></table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modern-table-panel">
+                    <table class="table table-bordered" id="dfr_table" style="width: 100%;"></table>
+                </div>
             </div>
         </div>
     </div>
@@ -439,8 +697,8 @@
         <div class="modal-dialog text-center">
             <img src="../Images/Load.gif" />
             <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;" id="spntext">System is updating details. Please wait</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
+            <span class="report-waiting-text" id="spntext">System is updating details. Please wait</span>
+            <span class="report-waiting-dots">&nbsp;. . . .</span>
         </div>
     </div>
     <div class="modal fade" id="feedbckreport_companyselection">

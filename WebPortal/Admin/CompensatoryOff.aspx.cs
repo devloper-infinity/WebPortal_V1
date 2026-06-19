@@ -108,7 +108,7 @@ namespace WebPortal.Admin
             htParam.Add("Remark", Remark);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            ReturnValue = new bllMaster().InsertUserCompOff(htParam);
+            ReturnValue =  new bllMaster().InsertUserCompOff(htParam);
 
             return ReturnValue;
         }
@@ -124,7 +124,7 @@ namespace WebPortal.Admin
             htParam.Add("IsApproved", IsApproved);
             htParam.Add("ApprovedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            ReturnValue = new bllMaster().ApproveRejectCompOff(htParam);
+            ReturnValue =  new bllMaster().ApproveRejectCompOff(htParam);
 
             return ReturnValue;
         }
@@ -145,7 +145,7 @@ namespace WebPortal.Admin
             htParam.Add("ApprovedDate", DateTime.Now);
             htParam.Add("ApprovalRemark", Remark);
 
-            ReturnValue = new bllMaster().InsertUserCompOff(htParam);
+            ReturnValue =  new bllMaster().InsertUserCompOff(htParam);
 
             return ReturnValue;
         }

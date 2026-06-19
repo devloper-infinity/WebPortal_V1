@@ -2,198 +2,395 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
+
     <style>
+        :root {
+            --ud-primary: #2563eb;
+            --ud-primary-dark: #1d4ed8;
+            --ud-accent: #22c1dc;
+            --ud-bg: #f5f7fb;
+            --ud-card: #ffffff;
+            --ud-text: #0f172a;
+            --ud-muted: #64748b;
+            --ud-border: #e2e8f0;
+            --ud-soft: #eff6ff;
+            --ud-shadow: 0 18px 45px rgba(15, 23, 42, .08);
+        }
+
+        body { background: var(--ud-bg); }
+
+      
+        .ud-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 22px 28px;
+            border-radius: 22px;
+            color: #fff;
+            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 65%, #22c1dc 100%);
+            box-shadow: var(--ud-shadow);
+        }
+
+        .ud-hero:before,
+        .ud-hero:after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .12);
+        }
+
+        .ud-hero:before {
+            width: 220px;
+            height: 220px;
+            right: 70px;
+            top: -120px;
+        }
+
+        .ud-hero:after {
+            width: 300px;
+            height: 300px;
+            right: -90px;
+            bottom: -170px;
+        }
+
+        .ud-hero-icon {
+            position: relative;
+            z-index: 1;
+            width: 50px;
+            height: 50px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .22);
+            font-size: 24px;
+        }
+
+        .ud-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ud-title {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .ud-subtitle {
+            margin: 8px 0 0;
+            font-size: 12px;
+            opacity: .9;
+        }
+
+        .ud-card {
+            margin-top: 22px;
+            padding: 22px;
+            border: 1px solid var(--ud-border);
+            border-radius: 22px;
+            background: var(--ud-card);
+            box-shadow: var(--ud-shadow);
+        }
+
+        .ud-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            color: var(--ud-text);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .ud-section-title i {
+            width: 34px;
+            height: 34px;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--ud-soft);
+            color: var(--ud-primary);
+        }
+
         .main-container {
             width: 100%;
-            padding: 15px 25px;
+            padding: 0;
         }
 
-        /* Custom Grid */
         .my-row {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(160px, 1fr));
+            gap: 16px;
+            align-items: end;
+            margin-bottom: 0;
             width: 100%;
         }
 
-        .my-col-3 {
-            width: 25%;
-            padding-right: 15px;
-        }
-
+        .my-col-3,
         .my-col-12 {
             width: 100%;
+            padding-right: 0;
         }
 
-        .my-input:focus, .my-select:focus {
-            border-color: #b5d3ff;
-            box-shadow: 0 0 4px rgba(181, 211, 255, 0.6);
-            outline: none;
-        }
-        /* Inputs */
-        .my-input, .my-select {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #dcdcdc;
-            padding: 6px;
-            border-radius: 5px;
-            font-size: 12px;
-            background-color: #fff;
-            transition: all 0.2s ease;
-        }
-
-        textarea.my-input {
-            height: 70px;
-            resize: none;
-        }
-
-        label {
-            font-size: 12px;
-            margin-bottom: 4px;
+        label,
+        .form-label {
             display: block;
+            margin-bottom: 8px;
+            color: var(--ud-muted);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .02em;
         }
 
-        .my-btn {
-            padding: 6px 18px;
-            border-radius: 4px;
-            border: none;
-            color: #fff;
-            font-size: 14px;
-            margin-right: 8px;
-        }
-
-        .primary {
-            background: #2f7ed8;
-        }
-
-        .success {
-            background: #28a745;
-        }
-
-        .warning {
-            background: #f0ad4e;
-        }
-
-        .my-btn:hover {
-            opacity: 0.9;
-        }
-
-        .req {
-            color: red;
-            font-weight: bold;
+        .req,
+        .text-danger {
+            color: #ef4444 !important;
+            font-weight: 900;
             margin-left: 3px;
         }
 
-        .top {
-            display: flex;
+        .my-input,
+        .my-select,
+        .form-select,
+        .form-control {
+            width: 100%;
+            height: 46px;
+            border: 1px solid var(--ud-border);
+            padding: 9px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--ud-text);
+            background-color: #fff;
+            outline: none;
+            box-shadow: none;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+
+        .my-input:focus,
+        .my-select:focus,
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--ud-primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+        }
+
+        textarea.my-input {
+            height: 90px;
+            resize: vertical;
+        }
+
+        .btn,
+        .my-btn {
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 0 18px;
+            border: 0;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
         }
 
-        .dataTables_length {
-            margin-right: 10px;
+        .btn:hover,
+        .my-btn:hover {
+            transform: translateY(-1px);
+            text-decoration: none;
         }
 
-        .dt-buttons {
-            margin-right: auto;
+        .btn-gradient-primary,
+        .btn-primary,
+        .primary {
+            background: linear-gradient(135deg, var(--ud-primary), var(--ud-accent)) !important;
+            color: #fff !important;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, .24);
         }
 
-        .dataTables_filter {
-            margin-left: auto;
+        .btn-gradient-primary:hover,
+        .btn-primary:hover,
+        .primary:hover {
+            color: #fff !important;
+            box-shadow: 0 16px 30px rgba(37, 99, 235, .32);
         }
 
-        .card {
-            transition: 0.3s ease;
-        }
-
-            .card:hover {
-                transform: translateY(-3px);
-            }
-
-        .btn {
-            border-radius: 10px;
-            font-weight: 400;
-        }
-
-        .form-select {
-            border-radius: 10px;
-        }
-
-        h5, h6 {
-            letter-spacing: 0.5px;
-        }
-
-        .btn-gradient-primary {
-            /* background: linear-gradient(135deg, #4e73df, #224abe);*/
-            background: linear-gradient(to right, #90caf9, 10%, #047edf) !important;
+        .success {
+            background: linear-gradient(135deg, #22c55e, #15803d);
             color: #fff;
-            border-radius: 12px;
-            height: 40px;
-            font-weight: 400;
-            transition: 0.3s;
         }
 
-            .btn-gradient-primary:hover {
-                transform: translateY(-2px);
-                background: linear-gradient(135deg, #224abe, #1a3a8f);
-                color: #fff;
-            }
-
-        .btn-gradient-success {
-            background: linear-gradient(135deg, #1cc88a, #13855c);
+        .warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #fff;
-            border-radius: 12px;
-            height: 50px;
-            width: 60%;
-            font-weight: 400;
-            transition: 0.3s;
         }
 
-            .btn-gradient-success:hover {
-                transform: translateY(-2px);
-                color: #fff;
-            }
+        .ud-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 18px;
+            background: #fff;
+        }
+
+        #table_updomain {
+            width: 100% !important;
+            margin: 0 !important;
+            border-collapse: separate !important;
+            border-spacing: 0;
+            white-space: nowrap;
+        }
+
+        #table_updomain thead th {
+            border: 0 !important;
+            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 65%, #22c1dc 100%) !important;
+            color: #fff !important;
+            font-size: 12px;
+            font-weight: 900;
+            text-align: center;
+            vertical-align: middle;
+            letter-spacing: .02em;
+        }
+
+        #table_updomain tbody td {
+            padding: 12px !important;
+            border-bottom: 1px solid var(--ud-border) !important;
+            color: #334155;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        #table_updomain tbody tr:hover td {
+            background: #f8fbff;
+        }
+
+        #table_updomain input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--ud-primary);
+        }
 
         table.dataTable thead th::before,
         table.dataTable thead th::after {
             display: none !important;
         }
 
-        #filter_rows input {
-            width: 100%;
-            height: 30px;
-            padding: 3px;
-            font-size: 12px;
-            box-sizing: border-box;
+        .top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-bottom: 12px;
         }
 
+        .dataTables_length,
+        .dt-buttons {
+            margin-right: 10px;
+        }
 
+        .dataTables_filter {
+            margin-left: auto;
+        }
+
+        .dataTables_filter input,
+        .dataTables_length select,
+        #filter_rows input,
         #filter_row input,
         #filter_row select {
-            /* width: 100%;*/
-            height: 22px;
+            min-height: 34px;
+            border: 1px solid var(--ud-border);
+            border-radius: 12px;
+            padding: 6px 10px;
             font-size: 12px;
-            padding: 4px;
-            border-radius: 4px;
-            border: 1px solid #ced4da;
+            outline: none;
         }
 
-        #filter_row {
-            background-color: #f8f9fa;
+        #filter_row { background-color: #f8fafc; }
+
+        .modal-content {
+            overflow: hidden;
+            border: 0;
+            border-radius: 22px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, .22);
+        }
+
+        .modal-header {
+            border-bottom: 0;
+            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 65%, #22c1dc 100%) !important;
+            color: #fff;
+            padding: 18px 22px;
+        }
+
+        #updomain_Header {
+            margin: 0;
+            color: #fff !important;
+            font-size: 18px !important;
+            font-weight: 900 !important;
+        }
+
+        .modal-body {
+            padding: 24px;
+            background: #f8fafc;
+        }
+
+        .modal-footer {
+            padding: 16px 22px;
+            border-top: 1px solid var(--ud-border);
+            background: #fff;
+        }
+
+        .btn-light {
+            background: #f1f5f9 !important;
+            color: #334155 !important;
+        }
+
+        .close {
+            opacity: 1;
+            text-shadow: none;
         }
 
         .loading {
             display: none;
             position: fixed;
-            top: 350px;
+            top: 50%;
             left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
+            transform: translate(-50%, -50%);
+            padding: 22px;
+            width: 210px;
+            min-height: 190px;
+            text-align: center;
+            background: rgba(255,255,255,.92);
+            border: 1px solid var(--ud-border);
+            border-radius: 24px;
+            box-shadow: var(--ud-shadow);
             z-index: 99999;
+        }
+
+        @media (max-width: 991px) {
+            .ud-page { padding: 16px; }
+            .my-row { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+            .dataTables_filter { margin-left: 0; }
+        }
+
+        @media (max-width: 575px) {
+            .ud-hero { align-items: flex-start; padding: 20px; }
+            .ud-title { font-size: 20px; }
+            .my-row { grid-template-columns: 1fr; }
         }
     </style>
 
@@ -205,33 +402,6 @@
         });
     </script>
 
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-
-    <!-- SweetAlert -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
-
-    <!-- FixedHeader CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css" />
-
-    <!-- FixedColumns CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css" />
-
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-    <!-- FixedHeader JS -->
-    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
-
-    <!-- FixedColumns JS -->
-    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
-
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -240,142 +410,94 @@
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
 
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Update Domain</b></h6>
-                </div>
+    <div class="ud-page">
+        <section class="ud-hero">
+            <div class="ud-hero-icon"><i class="bi bi-diagram-3-fill"></i></div>
+            <div class="ud-hero-content">
+                <h1 class="ud-title">Update Domain</h1>
+                <p class="ud-subtitle">Change employee domain, sub domain and process details quickly.</p>
             </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>
+        </section>
 
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card sla-card">
-                <div class="card-body">
-                    <div class="main-container">
-                        <div class="my-row">
+        <div class="ud-card">
+            <div class="ud-section-title"><i class="bi bi-sliders"></i><span>Domain Update Panel</span></div>
+            <div class="main-container">
+                <div class="my-row">
+                    <div class="my-col-3">
+                        <label>Domain<b><span class="req">*</span></b></label>
+                        <select class="my-select" id="updomain_domain" onchange="otherTask_bindProcess(this)"></select>
+                    </div>
 
-                            <div class="my-col-3">
-                                <label>Domain<b><span class="req">*</span></b></label>
-                                <select class="my-select" id="updomain_domain" onchange="otherTask_bindProcess(this)"></select>
-                            </div>
+                    <div class="my-col-3">
+                        <label>Sub Domain<b><span class="req">*</span></b></label>
+                        <select class="my-select" id="updomain_subdomain"></select>
+                    </div>
 
-                            <div class="my-col-3">
-                                <label>Sub Domain<b><span class="req">*</span></b></label>
-                                <select class="my-select" id="updomain_subdomain"></select>
-                            </div>
+                    <div class="my-col-3">
+                        <label>Process<span class="req"></span></label>
+                        <input type="text" id="updomain_process" class="my-select" />
+                    </div>
 
-                            <div class="my-col-3">
-                                <label>Process<span class="req"></span></label>
-                                <input type="text" id="updomain_process" class="my-select" />
-                            </div>
-
-                            <div class="my-col-3">
-                                <label><b><span class="req"></span></b></label>
-                                <button type="submit" id="updomain_update" class="btn btn-gradient-primary w-100" onclick="return updomain_submit();"><i class="bi bi-arrow-repeat"></i>&nbsp; Change</button>
-                            </div>
-                        </div>
+                    <div class="my-col-3">
+                        <label>&nbsp;</label>
+                        <button type="submit" id="updomain_update" class="btn btn-gradient-primary w-100" onclick="return updomain_submit();"><i class="bi bi-arrow-repeat"></i>&nbsp; Update Domain</button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="card-body">
-                    <%-- <div style="overflow: auto; height: 600px;"> </div>--%>
-                    <table class="table" id="table_updomain" style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th class="sort border-top" style="text-wrap: nowrap; width: 100px;">Sr. #</th>
-                                <th class="no-sort">
-                                    <input type="checkbox" id="updomain_selectAll" /></th>
-                                <th style="width: 50px;">Actions</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; width: 100px;">Code</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Name</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Joining Date</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Branch</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Department</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Designation</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Domain</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Subdomain</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Segment</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Reporting Manager</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Job Type</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Latest Login</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Current Status</th>
-                            </tr>
-                            <%--  <!-- ✅ Filter Row -->
-                            <tr id="filter_row">
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Code" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Name" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Date" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Branch" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Dept" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Designation" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Domain" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Subdomain" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Segment" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Manager" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Job Type" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Login" /></th>
-                                <th>
-                                    <input type="text" class="column-filter" placeholder="Search Status" /></th>
-                            </tr>--%>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-
-                </div>
+        <div class="ud-card">
+            <div class="ud-section-title"><i class="bi bi-people"></i><span>Employee Domain List</span></div>
+            <div class="ud-table-wrap">
+                <table class="table" id="table_updomain" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th class="sort border-top" style="text-wrap: nowrap; width: 100px;">Sr. #</th>
+                            <th class="no-sort"><input type="checkbox" id="updomain_selectAll" /></th>
+                            <th style="width: 50px;">Actions</th>
+                            <th class="sort border-top" style="text-wrap: nowrap; width: 100px;">Code</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Name</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Joining Date</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Branch</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Department</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Designation</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Domain</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Subdomain</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Segment</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Reporting Manager</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Job Type</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Latest Login</th>
+                            <th class="sort border-top" style="text-wrap: nowrap;">Current Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
-
-
 
     <div class="modal fade" id="updomain_popUp">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(to right, #90caf9, 10%, #047edf) !important;">
-                    <label id="updomain_Header" name="updomain_Header" style="font-weight: bolder; font-size: 18px; color: white;"></label>
+                <div class="modal-header">
+                    <label id="updomain_Header" name="updomain_Header"></label>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-
                     <div class="container-fluid">
-
                         <div class="row g-3">
-                            <!-- Domain -->
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Domain <span class="text-danger">*</span></label>
                                 <select class="my-select" id="popUp_domain" onchange="otherTask_bindProcess(this)"></select>
                             </div>
 
-                            <!-- Sub Domain -->
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Sub Domain <span class="text-danger">*</span></label>
                                 <select class="my-select" id="popUp_subdomain"></select>
                             </div>
 
-                            <!-- Process -->
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">Process <span class="text-danger">*</span></label>
                                 <input class="my-select" id="popUp_process" />
@@ -385,7 +507,7 @@
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
                     <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
-                    <button type="submit" id="popUp_update" class="btn btn-primary px-4" style="background: linear-gradient(to right, #90caf9, 10%, #047edf) !important;" onclick="return popUp_submit();"><i class="bi bi-arrow-repeat"></i>Update</button>
+                    <button type="submit" id="popUp_update" class="btn btn-primary px-4" onclick="return popUp_submit();"><i class="bi bi-arrow-repeat"></i>Update</button>
                 </div>
             </div>
         </div>
@@ -401,3 +523,4 @@
     </div>
 
 </asp:Content>
+

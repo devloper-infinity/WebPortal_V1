@@ -79,6 +79,180 @@
             padding: 2px;
             font-size: 12px;
         }
+
+        .modern-report-header {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: space-between;
+            margin: 12px 15px 16px;
+            padding: 16px 18px;
+        }
+
+        .modern-report-title {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modern-report-title-icon {
+            align-items: center;
+            background: #edf4ff;
+            border-radius: 8px;
+            color: #1d4ed8;
+            display: inline-flex;
+            font-size: 18px;
+            height: 40px;
+            justify-content: center;
+            width: 40px;
+        }
+
+        .modern-report-title h1 {
+            color: #172033;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .modern-report-title span {
+            color: #667085;
+            display: block;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .modern-report-badge {
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e4e9f2;
+            border-radius: 6px;
+            color: #344054;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 8px;
+            padding: 8px 10px;
+        }
+
+        .modern-report-main {
+            padding: 0 15px 24px;
+        }
+
+        .modern-report-card {
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+            overflow: hidden;
+        }
+
+        .modern-report-card > .card-body {
+            padding: 0;
+        }
+
+        .modern-filter-panel {
+            background: #fff;
+            border-bottom: 1px solid #e4e9f2;
+            padding: 16px;
+        }
+
+        .modern-filter-grid {
+            align-items: flex-end;
+            display: grid;
+            gap: 14px;
+            grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, 1fr);
+        }
+
+        .modern-field label {
+            border: none !important;
+            color: #475467;
+            display: block;
+            font-size: 12px;
+            font-weight: 700 !important;
+            margin-bottom: 6px;
+        }
+
+        .modern-field .form-control {
+            border-color: #d0d7e2;
+            border-radius: 6px;
+            box-shadow: none;
+            height: 38px !important;
+        }
+
+        .modern-field .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 .15rem rgba(37, 99, 235, .12);
+        }
+
+        .modern-btn {
+            align-items: center;
+            border-radius: 6px;
+            display: inline-flex;
+            font-weight: 600;
+            gap: 8px;
+            justify-content: center;
+            min-height: 38px;
+            padding: 8px 14px;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .modern-btn-primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .modern-btn-primary:hover,
+        .modern-btn-primary:focus {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #fff;
+        }
+
+        .modern-table-panel {
+            background: #fff;
+            overflow-x: auto;
+            padding: 16px;
+        }
+
+        .table.dataTable th {
+            background: #f3f6fb !important;
+            border-bottom: 1px solid #d8e0ec !important;
+            color: #172033;
+            font-weight: 700;
+        }
+
+        .table.dataTable tr td {
+            background-color: #fff !important;
+            color: #344054;
+        }
+
+        .table.dataTable tbody tr:hover td {
+            background-color: #f8fbff !important;
+        }
+
+        @media (max-width: 767px) {
+            .modern-report-header {
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+
+            .modern-report-main {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .modern-filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
     <script>
@@ -105,23 +279,27 @@
 
     <%--------------- UserPerformanceAcknowledgement.js ---------------------%>
 
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Monthly Performance Acknowledgement Report</b></h6>
-                </div>
+    <div class="modern-report-header">
+        <div class="modern-report-title">
+            <span class="modern-report-title-icon"><i class="fas fa-clipboard-check"></i></span>
+            <div>
+                <h1>Monthly Performance Acknowledgement Report</h1>
+                <span>Review acknowledgement status and download performance letters</span>
             </div>
+        </div>
+        <div class="modern-report-badge">
+            <i class="fas fa-file-pdf"></i>
+            <span>PDF acknowledgement</span>
         </div>
     </div>
 
-    <div class="col-lg-12">
-        <div class="card">
+    <div class="col-lg-12 modern-report-main">
+        <div class="card modern-report-card">
             <div class="card-body">
-                <div class="row align-items-end g-4">
-                    <div class="col-md-4">
-                        <label class="form-label"><b>Month</b></label>
-                        <div class="input-group">
+                <div class="modern-filter-panel">
+                    <div class="modern-filter-grid">
+                        <div class="modern-field">
+                            <label for="ack_month">Month</label>
                             <select id="ack_month" name="ack_month" class="form-control" style="height: 40px;">
                                 <option value="">Select</option>
                                 <option value="January">January</option>
@@ -138,61 +316,54 @@
                                 <option value="December">December</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Year -->
-                    <div class="col-md-4">
-                        <label class="form-label"><b>Year </b></label>
-                        <div class="input-group">
+                        <div class="modern-field">
+                            <label for="ack_year">Year</label>
                             <select id="ack_year" name="ack_year" class="form-control" style="height: 40px;">
                                 <option value="">Select</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Get Report -->
-                    <div class="col-md-4">
-                        <button id="ackMonthly_btnShow" type="button" class="btn btn-gradient-primary w-100" onclick="return showUserAckReport()">
-                            Get Record
-                        </button>
+                        <div>
+                            <button id="ackMonthly_btnShow" type="button" class="btn modern-btn modern-btn-primary" onclick="return showUserAckReport()"><i class="fas fa-search"></i><span>Get Record</span></button>
+                        </div>
                     </div>
                 </div>
 
-                <br />
-                <table class="table" id="table_ackUserReport" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <%-- <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; width:200px;" rowspan="2">View</th>--%>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; width: 200px;" rowspan="2">Download</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; width: 100px;" rowspan="2">Sr. #</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; vertical-align: center;" rowspan="2">Code</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Name</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Pseudo Name</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Reporting Manager</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Sub Domain</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="3">Production</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="3">Quality</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="3">Attendance</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="2">Error Count</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Acknowledgement Status</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Acknowledgement Date</th>
-                        </tr>
-                        <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Percentage</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Grade</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Rating Category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Percentage</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Grade</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Rating Category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Percentage</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Grade</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Rating Category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Critical</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Non-Critical</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="modern-table-panel">
+                    <table class="table" id="table_ackUserReport" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <%-- <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; width:200px;" rowspan="2">View</th>--%>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; width: 200px;" rowspan="2">Download</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; width: 100px;" rowspan="2">Sr. #</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center; vertical-align: center;" rowspan="2">Code</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Name</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Pseudo Name</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Reporting Manager</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Sub Domain</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="3">Production</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="3">Quality</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="3">Attendance</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;" colspan="2">Error Count</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Acknowledgement Status</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;" rowspan="2">Acknowledgement Date</th>
+                            </tr>
+                            <tr>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Percentage</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Grade</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Rating Category</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Percentage</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Grade</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Rating Category</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Percentage</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Grade</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Rating Category</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Critical</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Non-Critical</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

@@ -4,19 +4,12 @@
 
 function allocate_bindProcess() {
 
-    var processName = $('#allocate_process').val();
-
-    if (processName == '') {
-        Swal.fire('Validation Error', 'Please select an Allocate Process.', 'warning', confirmButtonText: 'OK');
-        return false;
-    }
-
-    var reviewer = "KIP";
-
+    var prjId = 17;
+ 
     $.ajax({
         type: "POST",
-        url: "Allocate.aspx/GetLoansToAllocate", // Update with your page/service path
-        data: JSON.stringify({ ProcessName: processName, Reviewer: reviewer, Type : "Allocation"}),
+        url: "Allocate.aspx/GetProcessByProject", // Update with your page/service path
+        data: JSON.stringify({ ProjectID: prjId }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
@@ -40,11 +33,21 @@ function allocate_bindProcess() {
 }
 
 function allocate_bindAllocatOrder_Grid() {
+    var processName = $('#allocate_process').val();
+
+    if (processName == '') {
+        Swal.fire('Validation Error', 'Please select an Allocate Process.', 'warning', confirmButtonText: 'OK');
+        return false;
+    }
+
+    var reviewer = "KIP";
 
     $.ajax({
         type: "POST",
-        url: "Allocate.aspx/GetProcessDetails",
-        data: JSON.stringify({ ProjectID: ProjectID }),
+        // url: "Allocate.aspx/GetProcessDetails",
+        // data: JSON.stringify({ ProjectID: ProjectID }),
+        url: "Allocate.aspx/GetLoansToAllocate", // Update with your page/service path
+        data: JSON.stringify({ ProcessName: processName, Reviewer: reviewer, Type: "Allocation" }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
