@@ -21,6 +21,7 @@
     <script src="../Scripts/SessionHandler.js"></script>
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
+    <link rel="stylesheet" href="AccountsModern.css" />
     <script>
         $(document).ready(function () {
 

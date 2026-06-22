@@ -116,6 +116,332 @@
             color: white;
             border: none;
         }
+
+        .alloc-feedback-modal .modal-dialog {
+            max-width: 1180px;
+        }
+
+        .alloc-open-feedback {
+            align-items: center;
+            background: #eefaf8;
+            border: 1px solid #c9e5e1;
+            border-radius: 8px;
+            color: #075e57;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 800;
+            gap: 7px;
+            height: 34px;
+            justify-content: center;
+            padding: 0 12px;
+            white-space: nowrap;
+        }
+
+        .alloc-open-feedback:hover,
+        .alloc-open-feedback:focus {
+            background: #dcf7f2;
+            color: #064e47;
+            outline: none;
+            text-decoration: none;
+        }
+
+        .alloc-feedback-modal .modal-content {
+            border: 0;
+            border-radius: 14px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, .24);
+            overflow: hidden;
+        }
+
+        .alloc-feedback-modal .modal-header {
+            align-items: center;
+            background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%);
+            border: 0;
+            color: #fff;
+            padding: 18px 22px;
+        }
+
+        .alloc-feedback-title {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+        }
+
+        .alloc-feedback-icon {
+            align-items: center;
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 8px;
+            display: inline-flex;
+            height: 46px;
+            justify-content: center;
+            width: 46px;
+        }
+
+        .alloc-feedback-title h5 {
+            font-size: 19px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .alloc-feedback-title p {
+            color: rgba(255,255,255,.84);
+            font-size: 12px;
+            font-weight: 700;
+            margin: 4px 0 0;
+        }
+
+        .alloc-feedback-modal .close {
+            color: #fff;
+            opacity: .9;
+            text-shadow: none;
+        }
+
+        .alloc-feedback-modal .modal-body {
+            background: #f5f8fc;
+            padding: 18px;
+        }
+
+        .alloc-context-grid {
+            background: #fff;
+            border: 1px solid #dfe8f2;
+            border-radius: 12px;
+            display: grid;
+            gap: 1px;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .alloc-context-item {
+            background: #fff;
+            min-width: 0;
+            padding: 12px 14px;
+        }
+
+        .alloc-context-item span {
+            color: #64748b;
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .alloc-context-item strong {
+            color: #102033;
+            display: block;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .alloc-feedback-tabs {
+            background: #eaf1fb;
+            border: 1px solid #d9e5f4;
+            border-radius: 12px;
+            display: grid !important;
+            gap: 10px !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            margin-bottom: 14px !important;
+            padding: 8px;
+        }
+
+        .alloc-feedback-tabs .nav-item {
+            width: 100%;
+        }
+
+        .alloc-feedback-tabs .nav-link {
+            align-items: center;
+            border: 1px solid transparent !important;
+            border-radius: 9px !important;
+            color: #17365d !important;
+            display: flex !important;
+            font-size: 12px;
+            font-weight: 800 !important;
+            gap: 8px;
+            height: 42px !important;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .alloc-feedback-tabs .nav-link.active {
+            background: #fff !important;
+            border-color: #d7e2f0 !important;
+            border-bottom: 3px solid #087c9a !important;
+            color: #083344 !important;
+            box-shadow: 0 8px 16px rgba(15,23,42,.10) !important;
+        }
+
+        .alloc-feedback-panel {
+            background: #fff;
+            border: 1px solid #e0e8f1;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .alloc-feedback-field {
+            margin-bottom: 14px;
+        }
+
+        .alloc-feedback-field label {
+            color: #334155;
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 7px;
+        }
+
+        .alloc-feedback-field .form-control {
+            background: #fff;
+            border: 1px solid #cfd9e7;
+            border-radius: 8px;
+            font-size: 13px;
+            min-height: 42px;
+        }
+
+        .alloc-feedback-field textarea.form-control {
+            height: auto;
+            min-height: 74px;
+            resize: vertical;
+        }
+
+        .alloc-feedback-actions {
+            align-items: center;
+            border-top: 1px solid #edf2f8;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 4px;
+            padding-top: 14px;
+        }
+
+        .alloc-outline-btn {
+            background: #eefaf8;
+            border: 1px solid #c9e5e1;
+            border-radius: 10px;
+            color: #075e57;
+            font-weight: 800;
+            height: 42px;
+            padding: 0 18px;
+        }
+
+        .alloc-dropzone {
+            align-items: center;
+            background: #f8fafc;
+            border: 2px dashed #b8c8dc;
+            border-radius: 12px;
+            color: #334155;
+            cursor: pointer;
+            display: flex;
+            gap: 16px;
+            min-height: 126px;
+            padding: 20px;
+            transition: border-color .18s ease, background .18s ease;
+        }
+
+        .alloc-dropzone i {
+            color: #0f766e;
+            font-size: 32px;
+        }
+
+        .alloc-dropzone strong {
+            color: #102033;
+            display: block;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .alloc-dropzone span {
+            color: #64748b;
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .alloc-dropzone.is-dragover {
+            background: #ecfdf5;
+            border-color: #0f766e;
+        }
+
+        .alloc-import-summary {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 14px 0;
+        }
+
+        .alloc-import-pill {
+            background: #fff;
+            border: 1px solid #dfe8f2;
+            border-left: 4px solid #1d4ed8;
+            border-radius: 10px;
+            padding: 11px 13px;
+        }
+
+        .alloc-import-pill span {
+            color: #64748b;
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .alloc-import-pill strong {
+            color: #0f172a;
+            font-size: 18px;
+        }
+
+        .alloc-import-results {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .alloc-result-table {
+            border: 1px solid #e0e8f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .alloc-result-title {
+            background: #eef6ff;
+            color: #17365d;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 10px 12px;
+        }
+
+        .alloc-result-scroll {
+            max-height: 220px;
+            overflow: auto;
+        }
+
+        .alloc-result-scroll table {
+            margin: 0;
+            width: 100%;
+        }
+
+        .alloc-result-scroll th,
+        .alloc-result-scroll td {
+            border-bottom: 1px solid #edf2f8;
+            font-size: 12px;
+            padding: 8px 10px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 991px) {
+            .alloc-context-grid,
+            .alloc-import-results {
+                grid-template-columns: 1fr;
+            }
+
+            .alloc-import-summary {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
     <style>
@@ -351,7 +677,7 @@
 
                         <div style="overflow: auto;">
                             <table class="table dataTable no-footer" id="table_OrderComplete" style="width: 100%;">
-                                <thead>
+                                <thead style="text-align: left;">
                                     <tr>
                                         <th>Sr. #</th>
                                         <th>Project</th>
@@ -359,6 +685,7 @@
                                         <th>Loan #</th>
                                         <th>Status</th>
                                         <th>Hold Reason</th>
+                                        <th>Add Feedback</th>
                                         <th>Remark</th>
                                         <th>Allocated Date</th>
                                         <th>Complition Date</th>
@@ -369,7 +696,6 @@
                             </table>
                         </div>
                     </div>
-
                     <div class="tab-pane fade" id="custom-tabs-one-messages" role="tabpanel" aria-labelledby="custom-tabs-one-messages-tab">
                         <div class="bank-form-panel mb-4">
                             <div class="row align-items-end">
@@ -412,6 +738,257 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade alloc-feedback-modal" id="popUp_addTrackingFeedback" tabindex="-1" role="dialog" aria-labelledby="allocFeedbackTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="alloc-feedback-title">
+                        <span class="alloc-feedback-icon"><i class="fas fa-comment-dots"></i></span>
+                        <div>
+                            <h5 id="allocFeedbackTitle">Tracking Feedback</h5>
+                            <p>Add feedback or import feedback rows for the selected loan.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alloc-context-grid">
+                        <div class="alloc-context-item">
+                            <span>Project</span>
+                            <strong id="allocfb_ctxProject">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Deal No</span>
+                            <strong id="allocfb_ctxDeal">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Loan No</span>
+                            <strong id="allocfb_ctxLoan">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Process</span>
+                            <strong id="allocfb_ctxProcess">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Order Date</span>
+                            <strong id="allocfb_ctxOrderDate">-</strong>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs alloc-feedback-tabs" id="allocFeedbackTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="allocfb-add-tab" data-toggle="tab" href="#allocfb-add" role="tab" aria-controls="allocfb-add" aria-selected="true">
+                                <i class="fas fa-plus-circle"></i>Add Feedback
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="allocfb-import-tab" data-toggle="tab" href="#allocfb-import" role="tab" aria-controls="allocfb-import" aria-selected="false">
+                                <i class="fas fa-file-import"></i>Import Feedback
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="allocFeedbackTabContent">
+                        <div class="tab-pane fade show active" id="allocfb-add" role="tabpanel" aria-labelledby="allocfb-add-tab">
+                            <div class="alloc-feedback-panel">
+                                <div class="row">
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_markedTo">Marked to</label>
+                                            <select id="allocfb_markedTo" class="form-control">
+                                                <option value="">Select</option>
+                                                <option value="Review">Review</option>
+                                                <option value="CNCReview">CNCReview</option>
+                                                <option value="SSReview">SSReview</option>
+                                                <option value="Loan Setup">Loan Setup</option>
+                                                <option value="Credit">Credit</option>
+                                                <option value="Compliance">Compliance</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_errorBy">Error By</label>
+                                            <select id="allocfb_errorBy" class="form-control">
+                                                <option value="">Select</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_feedbackBy">Feedback By</label>
+                                            <input id="allocfb_feedbackBy" type="text" class="form-control" readonly="readonly" />
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_errorType">Error Type</label>
+                                            <select id="allocfb_errorType" class="form-control">
+                                                <option value="">Select</option>
+                                                <option value="NoFeedback">NoFeedback</option>
+                                                <option value="Misindexed">Misindexed</option>
+                                                <option value="Misinterpretation">Misinterpretation</option>
+                                                <option value="Miscalculation">Miscalculation</option>
+                                                <option value="Conceptual">Conceptual</option>
+                                                <option value="Scienna Data Entry">Scienna Data Entry</option>
+                                                <option value="Careless">Careless</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_category">Category</label>
+                                            <select id="allocfb_category" class="form-control">
+                                                <option value="">Select</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_subCategory">Subcategory</label>
+                                            <select id="allocfb_subCategory" class="form-control">
+                                                <option value="">Select</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_severity">Severity</label>
+                                            <select id="allocfb_severity" class="form-control">
+                                                <option value="">Select</option>
+                                                <option value="Non-Critical">Non-Critical</option>
+                                                <option value="Critical">Critical</option>
+                                                <option value="Critical-Saleable">Critical-Saleable</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_errorField">Error Field</label>
+                                            <input id="allocfb_errorField" type="text" class="form-control" autocomplete="off" />
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_feedbackType">Feedback Type</label>
+                                            <select id="allocfb_feedbackType" class="form-control">
+                                                <option value="">Select</option>
+                                                <option value="Internal">Internal</option>
+                                                <option value="Client">Client</option>
+                                                <option value="On-Shore">On-Shore</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_error">Error</label>
+                                            <textarea id="allocfb_error" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_shouldBe">Should be</label>
+                                            <textarea id="allocfb_shouldBe" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="alloc-feedback-field">
+                                            <label for="allocfb_remark">Remark</label>
+                                            <textarea id="allocfb_remark" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alloc-feedback-actions">
+                                    <button type="button" class="alloc-outline-btn" id="allocfb_btnClear">
+                                        <i class="fas fa-eraser mr-1"></i>Clear
+                                    </button>
+                                    <button type="button" class="bank-submit-btn" id="allocfb_btnSave">
+                                        <i class="fas fa-save mr-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="allocfb-import" role="tabpanel" aria-labelledby="allocfb-import-tab">
+                            <div class="alloc-feedback-panel">
+                                <input id="allocfb_importFile" type="file" accept=".xls,.xlsx,.csv" style="display: none;" />
+                                <div class="alloc-dropzone" id="allocfb_dropzone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div>
+                                        <strong id="allocfb_fileName">Drop feedback file here or click to browse</strong>
+                                        <span>Supported formats: .xls, .xlsx, .csv. Columns must match the feedback import format.</span>
+                                    </div>
+                                </div>
+
+                                <div class="alloc-feedback-actions">
+                                    <button type="button" class="alloc-outline-btn" id="allocfb_btnFormat">
+                                        <i class="fas fa-download mr-1"></i>Download Format
+                                    </button>
+                                    <button type="button" class="bank-submit-btn" id="allocfb_btnUpload">
+                                        <i class="fas fa-file-upload mr-1"></i>Upload
+                                    </button>
+                                </div>
+
+                                <div class="alloc-import-summary">
+                                    <div class="alloc-import-pill">
+                                        <span>Total Rows</span>
+                                        <strong id="allocfb_importTotal">0</strong>
+                                    </div>
+                                    <div class="alloc-import-pill" style="border-left-color:#0f766e;">
+                                        <span>Imported</span>
+                                        <strong id="allocfb_importAdded">0</strong>
+                                    </div>
+                                    <div class="alloc-import-pill" style="border-left-color:#dc2626;">
+                                        <span>Not Imported</span>
+                                        <strong id="allocfb_importFailed">0</strong>
+                                    </div>
+                                </div>
+
+                                <div class="alloc-import-results">
+                                    <div class="alloc-result-table">
+                                        <div class="alloc-result-title">Imported feedback</div>
+                                        <div class="alloc-result-scroll">
+                                            <table id="allocfb_addedTable" class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Deal No</th>
+                                                        <th>Loan 1 #</th>
+                                                        <th>Process</th>
+                                                        <th>Error Type</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="alloc-result-table">
+                                        <div class="alloc-result-title">Could not import</div>
+                                        <div class="alloc-result-scroll">
+                                            <table id="allocfb_failedTable" class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Deal No</th>
+                                                        <th>Loan 1 #</th>
+                                                        <th>Process</th>
+                                                        <th>Reason</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </asp:Content>
 
 
