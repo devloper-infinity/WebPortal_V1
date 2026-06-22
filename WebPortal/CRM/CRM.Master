@@ -1,0 +1,163 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="CRM.Master.cs" Inherits="WebPortal.CRM.CRM" %>
+
+<%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="asp" %>
+
+<!DOCTYPE html>
+<html>
+<head runat="server">
+    <title>Infinity IPS - CRM</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <script src="../plugins/jquery/jquery.min.js"></script>
+    <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+    <link rel="stylesheet" href="../dist/css/adminlte.min.css">
+    <link rel="stylesheet" href="CRM.css">
+    <script src="../Scripts/SessionHandler.js"></script>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type: "POST",
+                url: "../MenuService.aspx/LoadMenu",
+                contentType: "application/json",
+                dataType: "json",
+                success: function (res) {
+                    var menuTree = res.d || [];
+                    var html = "";
+                    menuTree.forEach(function (m) { html += renderTopMenu(m); });
+                    $("#dynamicMenu").html(html);
+                }
+            });
+        });
+
+        function renderTopMenu(menu) {
+            var children = menu.Children || [];
+            if (children.length === 0) {
+                return '<li class="nav-item"><a href="' + (menu.Url || '#') + '" class="nav-link">' + menu.MenuName + '</a></li>';
+            }
+
+            var isMega = children.some(function (x) { return x.SectionName; });
+            if (!isMega) {
+                return '<li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">' + menu.MenuName + '</a><ul class="dropdown-menu border-0 shadow">' + children.map(renderSimpleItem).join("") + '</ul></li>';
+            }
+
+            return '<li class="nav-item dropdown"><a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">' + menu.MenuName + '</a><ul class="dropdown-menu border-0 shadow crm-mega-menu"><div class="col-sm-12"><div class="row">' + renderMegaSections(children) + '</div></div></ul></li>';
+        }
+
+        function renderSimpleItem(item) {
+            var children = item.Children || [];
+            if (children.length === 0) {
+                return '<li><a class="dropdown-item" href="' + (item.Url || '#') + '">' + item.MenuName + '</a></li>';
+            }
+            return "";
+        }
+
+        function renderMegaSections(children) {
+            var html = "";
+            children.forEach(function (section) {
+                var items = section.Children || [];
+                if (items.length > 0) {
+                    html += '<div class="col-sm-4"><div class="callout callout-info crm-menu-section"><h6 class="m-0"><b>' + section.MenuName + '</b></h6></div>' + items.map(function (item) {
+                        return '<a href="' + (item.Url || '#') + '" class="dropdown-item">' + item.MenuName + '</a>';
+                    }).join("") + '</div>';
+                }
+            });
+            return html;
+        }
+    </script>
+</head>
+<body class="hold-transition sidebar-collapse layout-top-nav crm-body">
+    <form id="form1" runat="server">
+        <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
+            <Scripts>
+                <asp:ScriptReference Path="~/Scripts/CRM/CRM.js" />
+            </Scripts>
+        </asp:ToolkitScriptManager>
+
+        <div class="wrapper">
+            <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
+                <div class="container">
+                    <a href="../Admin/DashboardEmployee.aspx" class="navbar-brand">
+                        <img src="../images/logo-login.png" style="height: 50px;" />
+                    </a>
+
+                    <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse order-3" id="navbarCollapse">
+                        <ul id="dynamicMenu" class="navbar-nav"></ul>
+                        <ul class="navbar-nav crm-local-nav" style="display:none;">
+                            <li class="nav-item"><a href="Dashboard.aspx" class="nav-link"><i class="fas fa-chart-pie"></i> CRM</a></li>
+                            <li class="nav-item"><a href="Leads.aspx" class="nav-link">Leads</a></li>
+                            <li class="nav-item"><a href="Accounts.aspx" class="nav-link">Accounts</a></li>
+                            <li class="nav-item"><a href="Contacts.aspx" class="nav-link">Contacts</a></li>
+                            <li class="nav-item"><a href="Deals.aspx" class="nav-link">Deals</a></li>
+                            <li class="nav-item"><a href="Activities.aspx" class="nav-link">Activities</a></li>
+                            <li class="nav-item"><a href="Reports.aspx" class="nav-link">Reports</a></li>
+                        </ul>
+                    </div>
+
+                    <ul class="order-1 order-md-3 navbar-nav navbar-no-expand ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge badge-danger navbar-badge" id="crm_pendingtask"></span>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link" data-toggle="dropdown" href="#">
+                                <i class="fas fa-cog" style="color: white;"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                                <span class="dropdown-header">Settings</span>
+                                <div class="dropdown-divider"></div>
+                                <a href="../Admin/ChangePassword.aspx" class="dropdown-item">
+                                    <i class="fas fa-envelope mr-2"></i>Change Password
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="../Logout.aspx" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="content-wrapper crm-wrapper">
+                <div class="content">
+                    <div class="container-fluid crm-container">
+                        <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                        </asp:ContentPlaceHolder>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="control-sidebar control-sidebar-dark crm-side-panel">
+                <h5><i class="fas fa-bell"></i>&nbsp;&nbsp;CRM Reminders</h5>
+                <div id="crmReminderPanel"></div>
+            </aside>
+        </div>
+
+        <script src="../plugins/datatables/jquery.dataTables.min.js"></script>
+        <script src="../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+        <script src="../plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+        <script src="../plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+        <script src="../plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+        <script src="../plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+        <script src="../plugins/jszip/jszip.min.js"></script>
+        <script src="../plugins/pdfmake/pdfmake.min.js"></script>
+        <script src="../plugins/pdfmake/vfs_fonts.js"></script>
+        <script src="../plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+        <script src="../plugins/datatables-buttons/js/buttons.print.min.js"></script>
+        <script src="../plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+        <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="../dist/js/adminlte.min.js"></script>
+    </form>
+</body>
+</html>
