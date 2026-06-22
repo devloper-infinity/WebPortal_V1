@@ -10,7 +10,7 @@ var inv_Disable_HeaderID = 0;
 var DisableEnableStatus = '';
 var cardnames = '';
 
-function socialsite_bindusers() {
+function invver_bindusers() {
     var select = document.getElementById("invdetails_users");
     let options = select.getElementsByTagName('option');
 
@@ -72,8 +72,8 @@ function addOtherUser(option) {
         document.getElementById("trOtherUser").style.display = '';
     }
     else {
-        document.getElementById("invetails_otheruser").Value = '';
-        document.getElementById("invetails_effectivedate").Value = '';
+        document.getElementById("invetails_otheruser").value = '';
+        document.getElementById("invetails_effectivedate").value = '';
         document.getElementById("trOtherUser").style.display = 'none';
     }
 }
@@ -124,8 +124,9 @@ function GetDifference(invamt, HeaderID, Index) {
     var row = inv_table.row(Index).data();
     var contamount = row[12];
 
-    var amount = document.getElementById(invamt.id).value;
-    var diff = parseFloat(amount) - parseFloat(contamount);
+    var amount = parseFloat(document.getElementById(invamt.id).value) || 0;
+    var contractAmount = parseFloat(contamount) || 0;
+    var diff = amount - contractAmount;
     document.getElementById("inv_AmountDifference_" + HeaderID).value = parseFloat(diff).toFixed(2);
     if (parseFloat(diff) > 0) {
         alert("Header is overcharged. Please specify the reason.");
@@ -142,10 +143,10 @@ function GetDifference(invamt, HeaderID, Index) {
 }
 
 function GetCardNames() {
-    $.ajax({
+    cardnames = '';
+    return $.ajax({
         type: "POST", url: "../Accounts/CreditCardMonthlyTransaction.aspx/GetCreditCards", dataType: "json", contentType: "application/json",
         success: function (res) {
-          
             var dataArray = JSON.parse(res.d);
             $.each(dataArray, function (data, value1) {
                 if (cardnames == "")
@@ -153,13 +154,14 @@ function GetCardNames() {
                 else
                     cardnames = cardnames + "/" + value1.CardName1;
             })
+        },
+        error: function () {
+            cardnames = '';
         }
     });
 }
 
 function BindInvoiceGrid() {
-    GetCardNames();
-
     var LoginID = document.getElementById("lbl_LoginEmpID").innerHTML;
     var ddlmonth = document.getElementById("inv_month");
     var month = ddlmonth.options[ddlmonth.selectedIndex].value;
@@ -179,7 +181,8 @@ function BindInvoiceGrid() {
     }
     $('#load1').show();
     inv_html = '';
-    $.ajax({
+    $.when(GetCardNames()).always(function () {
+        $.ajax({
         url: "InvoiceVerification.aspx/getAllInvocieHeaders",
         type: "POST",
         data: "{Month:'" + month + "', Year:'" + year + "'}",
@@ -249,12 +252,12 @@ function BindInvoiceGrid() {
                 inv_html += '<td style="text-wrap: nowrap;"><button id="btn_inv_' + value.HeaderID + '" class="btn btn-primary" onclick="return updaterowdata(' + value.HeaderID + ')";>Update</button></td>';
                 /* inv_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.CreditCardNumber) + '</td>';*/
               
+                inv_html += '<td style="text-wrap:nowrap;"><select id="sel_cardname_' + value.HeaderID + '">';
+                inv_html += '<option value="">Select</option>';
                 if (cardnames != '') {
-                    inv_html += '<td style="text-wrap:nowrap;"><select id="sel_cardname_' + value.HeaderID + '">';
-                    inv_html += '<option value="">Select</option>';
-                    const cardname = cardnames.split("/");
-                    for (let i = 0; i < cardname.length; i++) {
-                        let options = cardname[i];
+                    var cardname = cardnames.split("/");
+                    for (var i = 0; i < cardname.length; i++) {
+                        var options = cardname[i];
 
                         if (value.CreditCardNumber == options) {
 
@@ -263,23 +266,24 @@ function BindInvoiceGrid() {
                         else
                             inv_html += '<option value="' + options + '">' + options + '</option>';
                     }
-                    inv_html += '</select></td>';
                 }
+                inv_html += '</select></td>';
 
                 inv_html += '<td style="display:none;">' + blankForNull(value.HeaderStatus) + '</td>';
                 inv_html += '</tr>';
             });
 
             if ($.fn.dataTable.isDataTable('#invtable')) {
-                inv_table.destroy();
+                $('#invtable').DataTable().clear().destroy();
             }
+            $('#invtable tbody').empty();
             $('#invtable tbody').html(inv_html);
 
             inv_table = $('#invtable').DataTable({
-                dom: 'lftip',
+                dom: 'lfti',
                 scrollX: true,
                 destroy: true,
-                "paging": true,
+                "paging": false,
                 "autoWidth": true,
                 select: true,
                 "ordering": false,
@@ -305,9 +309,11 @@ function BindInvoiceGrid() {
         },
 
         error: function (error) {
+            $('#load1').hide();
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
+        });
     });
     return false;
 }
@@ -568,6 +574,7 @@ function OnError_AddNewProd(error) {
 function invdetails_closeuser() {
     $("#invdetailspopup_AddUser").modal("hide");
     $("#inv_detailspop").modal("show");
+    var HeaderID = document.getElementById("invdetails_headerid").innerHTML;
     BindInvDetails(HeaderID);
     return false;
 }
@@ -609,6 +616,7 @@ function invuser_OnErrorDel(error) {
 function invdetails_closedeluser() {
     $("#invdetailspopup_removeUser").modal("hide");
     $("#inv_detailspop").modal("show");
+    var HeaderID = document.getElementById("invdetails_headerid").innerHTML;
     BindInvDetails(HeaderID);
     return false;
 }
@@ -703,7 +711,8 @@ function BindInvDetails(HeaderID) {
 }
 
 function GetFiles(ID) {
-    ID.addEventListener('change', getFileName);
+    ID.onchange = getFileName;
+    return true;
 }
 
 function invoice_downloadinvoice(HeaderID, Index) {

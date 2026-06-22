@@ -58,6 +58,9 @@ namespace WebPortal.Production
             bool isCreate = false;
             int check = -1;
 
+            htParam.Add("DomainID", DomainID);
+            htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
             if (IsNameColume == true)
             {
                 String[] FinalArr = new String[] { "Final Status", "Final TAT" };
@@ -75,15 +78,12 @@ namespace WebPortal.Production
                         ReturnValue = new bllTracking().InsertDomainWiseField(htParam);
                     }
                 }
-                if (check == 1)
-                {
-                    htParam.Remove("FieldName");
-                    htParam.Remove("isNameColume");
-                    htParam.Remove("isCreate");
-                    htParam.Add("isNameColume", isNameColume);
-                    htParam.Add("isCreate", isCreate);
-                    htParam.Add("FieldName", fieldname);
-                }
+                htParam.Remove("FieldName");
+                htParam.Remove("isNameColume");
+                htParam.Remove("isCreate");
+                htParam.Add("isNameColume", isNameColume);
+                htParam.Add("isCreate", isCreate);
+                htParam.Add("FieldName", fieldname);
                 ReturnValue = new bllTracking().InsertDomainWiseField(htParam);
 
                 String[] myArr = new String[] { "Assign Date", "Start Time", "End Time", "Status", "TAT" };
@@ -101,10 +101,8 @@ namespace WebPortal.Production
             else
             {
                 htParam.Add("FieldName", FieldName);
-                htParam.Add("DomainID", DomainID);
                 htParam.Add("isNameColume", IsNameColume);
                 htParam.Add("isCreate", false);
-                htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
                 ReturnValue = new bllTracking().InsertDomainWiseField(htParam);
             }

@@ -139,6 +139,18 @@
     <Content Include="Accounts\PrepareCheques.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="CRM\Accounts.aspx" />
+    <Content Include="CRM\Activities.aspx" />
+    <Content Include="CRM\Contacts.aspx" />
+    <Content Include="CRM\CRM.css" />
+    <Content Include="CRM\CRM.Master" />
+    <Content Include="CRM\CRMService.aspx" />
+    <Content Include="CRM\Dashboard.aspx" />
+    <Content Include="CRM\Deals.aspx" />
+    <Content Include="CRM\Leads.aspx" />
+    <Content Include="CRM\Reports.aspx" />
+    <Content Include="DatabaseScripts\CRM_MenuMasterSeed.sql" />
+    <Content Include="DatabaseScripts\CRM_Module.sql" />
     <Content Include="Admin\AbscondingAndLeaveReport.aspx" />
     <Content Include="Admin\AbscondingEmployeeFollowup.aspx" />
     <Content Include="Admin\AddApplicantRemark.aspx" />
@@ -2637,12 +2649,16 @@
     <Content Include="plugins\uplot\uPlot.iife.js" />
     <Content Include="plugins\uplot\uPlot.iife.min.js" />
     <Content Include="plugins\uplot\uPlot.min.css" />
+    <Content Include="Production\ProjectTrackingFieldConfiguration.aspx" />
+    <Content Include="Production\ProjectTrackingReport.aspx" />
+    <Content Include="Production\ProjectTrackingSheet.aspx" />
     <Content Include="Production\TrackingSheetConfiguration.aspx" />
     <Content Include="Reports\ServicingConsolidatedReport.aspx" />
     <Content Include="Reports\CreditConsolidatedReport.aspx" />
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\Accounts\Advance.js" />
     <Content Include="Scripts\Accounts\SalarySlip.js" />
+    <Content Include="Scripts\CRM\CRM.js" />
     <Content Include="Scripts\Functions\AddAssets.js" />
     <Content Include="Scripts\Functions\AddressVerification.js" />
     <Content Include="Scripts\Functions\AgreementVersionsReport.js" />
@@ -2893,6 +2909,71 @@
     </Compile>
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
+    </Compile>
+    <Content Include="App_Code\BLL\bllProjectTracking.cs" />
+    <Content Include="App_Code\DAL\dalProjectTracking.cs" />
+    <Compile Include="CRM\Accounts.aspx.cs">
+      <DependentUpon>Accounts.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Accounts.aspx.designer.cs">
+      <DependentUpon>Accounts.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Activities.aspx.cs">
+      <DependentUpon>Activities.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Activities.aspx.designer.cs">
+      <DependentUpon>Activities.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Contacts.aspx.cs">
+      <DependentUpon>Contacts.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Contacts.aspx.designer.cs">
+      <DependentUpon>Contacts.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\CRM.Master.cs">
+      <DependentUpon>CRM.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\CRM.Master.designer.cs">
+      <DependentUpon>CRM.Master</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\CRMService.aspx.cs">
+      <DependentUpon>CRMService.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\CRMService.aspx.designer.cs">
+      <DependentUpon>CRMService.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Dashboard.aspx.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Dashboard.aspx.designer.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Deals.aspx.cs">
+      <DependentUpon>Deals.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Deals.aspx.designer.cs">
+      <DependentUpon>Deals.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Leads.aspx.cs">
+      <DependentUpon>Leads.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Leads.aspx.designer.cs">
+      <DependentUpon>Leads.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Reports.aspx.cs">
+      <DependentUpon>Reports.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Reports.aspx.designer.cs">
+      <DependentUpon>Reports.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\AbscondingAndLeaveReport.aspx.cs">
       <DependentUpon>AbscondingAndLeaveReport.aspx</DependentUpon>
@@ -3828,10 +3909,12 @@
       <DependentUpon>WorkedHolidays.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Code\BLL\bllAsset.cs" />
+    <Compile Include="App_Code\BLL\bllCRM.cs" />
     <Compile Include="App_Code\BLL\bllReport.cs" />
     <Compile Include="App_Code\BLL\bllTracking.cs" />
     <Compile Include="App_Code\BLL\bllUS.cs" />
     <Compile Include="App_Code\DAL\dalAsset.cs" />
+    <Compile Include="App_Code\DAL\dalCRM.cs" />
     <Compile Include="App_Code\DAL\dalReport.cs" />
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
@@ -4313,6 +4396,27 @@
     </Compile>
     <Compile Include="Production\Production.Master.designer.cs">
       <DependentUpon>Production.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Production\ProjectTrackingFieldConfiguration.aspx.cs">
+      <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Production\ProjectTrackingFieldConfiguration.aspx.designer.cs">
+      <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Production\ProjectTrackingReport.aspx.cs">
+      <DependentUpon>ProjectTrackingReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Production\ProjectTrackingReport.aspx.designer.cs">
+      <DependentUpon>ProjectTrackingReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Production\ProjectTrackingSheet.aspx.cs">
+      <DependentUpon>ProjectTrackingSheet.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Production\ProjectTrackingSheet.aspx.designer.cs">
+      <DependentUpon>ProjectTrackingSheet.aspx</DependentUpon>
     </Compile>
     <Compile Include="Production\TrackingSheetConfiguration.aspx.cs">
       <DependentUpon>TrackingSheetConfiguration.aspx</DependentUpon>

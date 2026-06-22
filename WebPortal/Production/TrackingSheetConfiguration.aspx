@@ -58,10 +58,10 @@
     <script>
         $(document).ready(function () {
 
-            // Bind_Domain();
-            //  BindDomainwiseColConfig_Grid(0);
-            // BindProjectWiseColConfig_Domain();
-            // BindProjectwiseColConfig_Grid(0);
+            Bind_Domain();
+            BindDomainwiseColConfig_Grid(0);
+            BindProjectWiseColConfig_Domain();
+            BindProjectwiseColConfig_Grid(0);
 
             //---------- Mapping -----------
             BindColMapping_Project();
@@ -271,10 +271,10 @@
                                             <td>
                                                 <select id="track_ColumnMappingDate" name="track_ColumnMappingDate" class="form-control" style="width: 250px;">
                                                     <option value="Select">Select</option>
-                                                    <option value="Select">mm/dd/yyyy</option>
-                                                    <option value="Select">dd-MMM-yyyy</option>
-                                                    <option value="Select">mm/dd/yyyy hh:mm:ss</option>
-                                                    <option value="Select">dd-MMM-yyyy hh:mm:ss</option>
+                                                    <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                                                    <option value="dd-MMM-yyyy">dd-MMM-yyyy</option>
+                                                    <option value="mm/dd/yyyy hh:mm:ss">mm/dd/yyyy hh:mm:ss</option>
+                                                    <option value="dd-MMM-yyyy hh:mm:ss">dd-MMM-yyyy hh:mm:ss</option>
                                                 </select>
                                             </td>
                                             <td><b>Field Length :</b></td>
