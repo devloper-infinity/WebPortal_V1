@@ -51,7 +51,7 @@ function bindPseudoNameGrid() {
                 buttons: [
                     {
                         extend: 'excelHtml5',
-                        text: 'Export Excel',
+                        text: 'Excel',
                         title: 'Pseudo Name Report',
                         exportOptions: { columns: ':visible:not(:first-child)' }
                     }
@@ -71,7 +71,6 @@ function bindPseudoNameGrid() {
     });
     return false;
 }
-
 
 function bindEmployee() {
 
@@ -102,33 +101,71 @@ function bindEmployee() {
     });
 }
 
-
 function pseudoName_Delete(id, index) {
 
-    if (confirm("Are you sure you want to delete record?") == true) {
+    Swal.fire({
+        icon: "warning",
+        title: "Are you sure?",
+        text: "Do you want to delete this record?",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Delete",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#d33"
+    }).then(function (result) {
 
-        PageMethods.DeletePsuedoName(id, OnSuccess_PNameDelete, OnError_PNameDelete);
-        return false;
-    }
-    else
-        return false;
-}
+        if (result.isConfirmed) {
 
-function OnSuccess_PNameDelete(result) {
-    if (result > 0) {
-        alert("Record deleted successfully");
-        location.reload();
-        return false;
-    }
-    else {
-        alert("Oops! Error occured while deleting record. Please contact administrator");
-        return false;
-    }
-}
+            Swal.fire({
+                title: "Please Wait",
+                text: "Deleting record...",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: function () {
+                    Swal.showLoading();
+                }
+            });
 
-function OnError_PNameDelete(error) {
+            PageMethods.DeletePsuedoName(
+                id,
 
-    alert(error.responseText);
+                function (result) {
+
+                    Swal.close();
+
+                    if (result > 0) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted",
+                            text: "Record deleted successfully."
+                        }).then(function () {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Oops! Error occurred while deleting record. Please contact administrator."
+                        });
+                    }
+
+                    return false;
+                },
+
+                function (error) {
+
+                    Swal.close();
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Server Error",
+                        text: error.responseText || "Unexpected error occurred."
+                    });
+                }
+            );
+        }
+    });
+
+    return false;
 }
 
 function displayCompany(id) {
@@ -148,54 +185,74 @@ function pseudoName_submit() {
     var pseudoName_Employee = document.getElementById("pseudoName_Employee");
     var Code = pseudoName_Employee.options[pseudoName_Employee.selectedIndex].value;
 
-    var Pname = document.getElementById("pseudoName_Name").value;
-    var Pcompany = document.getElementById("pseudoName_Company").value;
+    var Pname = document.getElementById("pseudoName_Name").value.trim();
+    var Pcompany = document.getElementById("pseudoName_Company").value.trim();
 
     var pseudoName_Location = document.getElementById("pseudoName_Location");
     var Plocation = pseudoName_Location.options[pseudoName_Location.selectedIndex].value;
 
-    if (Code == "Select") {
-        alert("Please select Employee.");
-        document.getElementById("pseudoName_Employee").focus();
+    if (Code === "Select") {
+        Swal.fire("Validation", "Please select Employee.", "warning").then(function () {
+            document.getElementById("pseudoName_Employee").focus();
+        });
         return false;
     }
 
-
-    if (Pname == " " || Pname == "") {
-        alert("Please enter Pseudo Name.");
-        document.getElementById("pseudoName_Name").focus();
+    if (Pname === "") {
+        Swal.fire("Validation", "Please enter Pseudo Name.", "warning").then(function () {
+            document.getElementById("pseudoName_Name").focus();
+        });
         return false;
     }
 
-    if (Code == "Other" && (Pcompany == "" || Pcompany == " ")) {
-        alert("Please enter Company.");
-        document.getElementById("pseudoName_Company").focus();
+    if (Code === "Other" && Pcompany === "") {
+        Swal.fire("Validation", "Please enter Company.", "warning").then(function () {
+            document.getElementById("pseudoName_Company").focus();
+        });
         return false;
     }
 
-    if (Plocation == "Select") {
-        alert("Please select Location.");
-        document.getElementById("pseudoName_Location").focus();
+    if (Plocation === "Select") {
+        Swal.fire("Validation", "Please select Location.", "warning").then(function () {
+            document.getElementById("pseudoName_Location").focus();
+        });
         return false;
     }
 
-    PageMethods.InseartPsuedoName(Code, Pname, Pcompany, Plocation, OnSuccess_PNameSubmit, OnError_PNameSubmit);
+    Swal.fire({
+        title: "Please Wait",
+        text: "Submitting pseudo name details...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.InseartPsuedoName(Code, Pname, Pcompany, Plocation,
+
+        function (result) {
+
+            Swal.close();
+
+            if (result > 0) {
+                Swal.fire({ icon: "success", title: "Success", text: "Pseudo name set successfully." }).then(function () {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({ icon: "error", title: "Error", text: "Oops! Error occurred while submitting data. Please contact administrator." });
+            }
+
+            return false;
+        },
+
+        function (error) {
+
+            Swal.close();
+
+            Swal.fire({ icon: "error", title: "Server Error", text: error.responseText || "Unexpected error occurred." });
+        }
+    );
+
     return false;
-}
-
-function OnSuccess_PNameSubmit(result) {
-    if (result > 0) {
-        alert("Pseudo name set successfully");
-        location.reload();
-        return false;
-    }
-    else {
-        alert("Oops! Error occured while submitting data. Please contact administrator");
-        return false;
-    }
-}
-
-function OnError_PNameSubmit(error) {
-
-    alert(error.responseText);
 }

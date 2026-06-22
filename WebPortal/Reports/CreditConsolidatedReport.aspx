@@ -2,24 +2,249 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
+        .credit-report-header {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: space-between;
+            margin: 12px 15px 16px;
+            padding: 16px 18px;
+        }
+
+        .credit-report-title {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+        }
+
+        .credit-report-title-icon {
+            align-items: center;
+            background: #edf4ff;
+            border-radius: 8px;
+            color: #1d4ed8;
+            display: inline-flex;
+            font-size: 18px;
+            height: 40px;
+            justify-content: center;
+            width: 40px;
+        }
+
+        .credit-report-title h1 {
+            color: #172033;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .credit-report-title span {
+            color: #667085;
+            display: block;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .credit-report-badge {
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e4e9f2;
+            border-radius: 6px;
+            color: #344054;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 8px;
+            padding: 8px 10px;
+        }
+
+        .report-main {
+            padding: 0 15px 24px;
+        }
+
+        .report-shell {
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+            overflow: hidden;
+        }
+
+        .report-shell-body {
+            padding: 0;
+        }
+
+        .report-filter-panel {
+            background: #fff;
+            border-bottom: 1px solid #e4e9f2;
+            padding: 16px;
+        }
+
+        .report-filter-grid {
+            align-items: flex-end;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .report-filter-field {
+            flex: 0 1 220px;
+            min-width: 180px;
+        }
+
+        .report-filter-field label {
+            border: none !important;
+            color: #475467;
+            display: block;
+            font-size: 12px;
+            font-weight: 700 !important;
+            margin-bottom: 6px;
+        }
+
+        .report-filter-field .form-control {
+            border-color: #d0d7e2;
+            border-radius: 6px;
+            box-shadow: none;
+            height: 38px;
+        }
+
+        .report-filter-field .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 .15rem rgba(37, 99, 235, .12);
+        }
+
+        .report-button-group {
+            align-items: center;
+            display: flex;
+            flex: 1 1 280px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .report-btn {
+            align-items: center;
+            border-radius: 6px;
+            display: inline-flex;
+            font-weight: 600;
+            gap: 8px;
+            justify-content: center;
+            min-height: 38px;
+            padding: 8px 14px;
+        }
+
+        .report-btn-primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .report-btn-primary:hover,
+        .report-btn-primary:focus {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #fff;
+        }
+
+        .report-btn-secondary {
+            background: #111827;
+            border-color: #111827;
+            color: #fff;
+        }
+
+        .report-btn-secondary:hover,
+        .report-btn-secondary:focus {
+            background: #0f172a;
+            border-color: #0f172a;
+            color: #fff;
+        }
+
+        .report-tabs-bar {
+            background: #f8fafc;
+            border-bottom: 1px solid #e4e9f2;
+            padding: 10px 12px 0;
+        }
+
+        .credit-report-tabs {
+            border-bottom: 0;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 10px;
+        }
+
+        .credit-report-tabs .nav-item {
+            flex: 0 0 auto;
+        }
+
+        .credit-report-tabs .nav-link {
+            background: #fff;
+            border: 1px solid #d8e0ec !important;
+            border-radius: 6px !important;
+            color: #42526e;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 12px;
+            white-space: nowrap;
+        }
+
+        .credit-report-tabs .nav-link.active {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 8px 16px rgba(37, 99, 235, .18);
+            color: #fff !important;
+        }
+
+        .report-content {
+            padding: 16px;
+        }
+
+        .report-content .tab-pane {
+            min-height: 260px;
+            overflow-x: auto;
+        }
+
         .loading {
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, .16);
             display: none;
-            position: fixed;
-            top: 350px;
+            height: auto;
             left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
+            margin: 0;
+            min-height: 154px;
+            opacity: .96;
+            padding: 20px;
+            position: fixed;
+            text-align: center;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
             z-index: 99999;
         }
 
+        .loading img {
+            max-width: 72px;
+        }
+
+        .loading div {
+            color: #334155;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
         .dataTables_scrollBody {
-            min-height: 100px !important;
+            border: 1px solid #e8edf5;
+            border-radius: 6px;
             height: auto;
+            min-height: 100px !important;
         }
 
         .dataTables_length, .dataTables_info {
@@ -32,38 +257,87 @@
         }
 
         div.dt-buttons {
-            position: static;
-            padding-left: 50px;
             float: left;
+            padding-left: 50px;
+            position: static;
         }
 
         .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
+            background: #16a34a;
             border: 0;
+            border-radius: 6px;
+            box-shadow: none;
+            color: #fff;
             font-weight: bold;
-            margin: 0px 10px;
+            margin: 0 10px;
         }
 
         .table.dataTable th {
-            background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
-            color: #000;
+            background: #f3f6fb !important;
+            border-bottom: 1px solid #d8e0ec !important;
+            color: #172033;
+            font-weight: 700;
         }
 
         .table.dataTable tr td {
             background: none !important;
             background-color: #fff !important;
+            color: #344054;
         }
 
+        .table.dataTable tbody tr:hover td {
+            background-color: #f8fbff !important;
+        }
 
+        #waitingpanel .modal-dialog,
+        #us_waitingpanel .modal-dialog {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 55vh;
+        }
 
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
+        .report-waiting-text {
+            color: #fff;
+            display: inline-block;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .report-waiting-dots {
+            color: #fff;
+            display: inline-block;
+            font-size: 42px;
+            font-style: normal;
+            font-weight: 700;
+            animation: animate 1s linear infinite;
+        }
+
+        @media (max-width: 767px) {
+            .credit-report-header {
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+
+            .report-main {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .report-filter-field,
+            .report-button-group {
+                flex-basis: 100%;
+            }
+
+            .report-btn {
+                width: 100%;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="../Admin/ModernReportSecuritization.css" />
     <script>
         $(document).ready(function () {
             creditcons_bindyear();
@@ -259,23 +533,26 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Credit Consolidated Report</b></h6>
-                </div>
+    <div class="credit-report-header">
+        <div class="credit-report-title">
+            <span class="credit-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
+            <div>
+                <h1>Credit Consolidated Report</h1>
+                <span>Monthly credit reporting workspace</span>
             </div>
         </div>
-        <!-- /.container-fluid -->
+        <div class="credit-report-badge">
+            <i class="fas fa-layer-group"></i>
+            <span>13 report views</span>
+        </div>
     </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td style="width: 50px;"><b>Month:</b></td>
-                        <td style="width: 150px;">
+    <div class="col-lg-12 report-main">
+        <div class="card report-shell">
+            <div class="card-body report-shell-body">
+                <div class="report-filter-panel">
+                    <div class="report-filter-grid">
+                        <div class="report-filter-field">
+                            <label for="creditcons_month">Month</label>
                             <select id="creditcons_month" name="creditcons_month" class="form-control">
                                 <option value="">Select</option>
                                 <option value="January">January</option>
@@ -291,28 +568,24 @@
                                 <option value="November">November</option>
                                 <option value="December">December</option>
                             </select>
-                        </td>
-                        <td style="width: 50px;">
-                            <b>Year:</b>
-                        </td>
-                        <td style="width: 150px;">
+                        </div>
+                        <div class="report-filter-field">
+                            <label for="creditcons_year">Year</label>
                             <select id="creditcons_year" name="creditcons_year" class="form-control">
                                 <option value="">Select</option>
                             </select>
-                        </td>
-                        <td style="width: 100px;">
-                            <button id="btnShow" class="btn btn-primary" onclick="return BindAllGrids();">Show</button>
-                            &nbsp;
-                            <button id="creditcons_btnexport" class="btn btn-primary" onclick="return creditcons_Submit()">Export to excel</button>
+                        </div>
+                        <div class="report-button-group">
+                            <button id="btnShow" class="btn report-btn report-btn-primary" onclick="return BindAllGrids();"><i class="fas fa-search"></i><span>Show</span></button>
+                            <button id="creditcons_btnexport" class="btn report-btn report-btn-secondary" onclick="return creditcons_Submit()"><i class="fas fa-file-excel"></i><span>Export to Excel</span></button>
                             <%--onclick="return BindMagnaGrid();"--%>
                             <asp:Button ID="btn1" runat="server" Style="display: none;" OnClick="btn1_Click" />
-                        </td>
-                    </tr>
-                </table>
-                <hr />
+                        </div>
+                    </div>
+                </div>
 
-                <div class="card-header p-0 pt-1">
-                    <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+                <div class="card-header report-tabs-bar">
+                    <ul class="nav nav-tabs credit-report-tabs" id="custom-tabs-one-tab" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Project Inflow</a>
                         </li>
@@ -352,10 +625,11 @@
                         <li class="nav-item">
                             <a class="nav-link" onclick="return Credit_OpenReport(13);" id="custom-tabs-one-errortrendinguser-tab" data-toggle="pill" href="#custom-tabs-one-errortrendinguser" role="tab" aria-controls="custom-tabs-one-errortrendinguser" aria-selected="false">Error Trending - User wise</a>
                         </li>
+                       
                     </ul>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body report-content">
                     <div class="tab-content" id="custom-tabs-one-tabContent">
                         <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
                             <table class="table table-bordered" id="project_table" style="width: 100%;"></table>
@@ -444,6 +718,9 @@
                         <div class="tab-pane fade" id="custom-tabs-one-errortrendinguser" role="tabpanel" aria-labelledby="custom-tabs-one-errortrendinguser-tab">
                             <table class="table table-bordered" id="errortrendinguser_table" style="width: 100%;"></table>
                         </div>
+
+                       
+
                     </div>
                 </div>
             </div>
@@ -454,8 +731,8 @@
         <div class="modal-dialog text-center">
             <img src="../Images/Load.gif" />
             <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;" id="spntext">System is updating details. Please wait</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
+            <span class="report-waiting-text" id="spntext">System is updating details. Please wait</span>
+            <span class="report-waiting-dots">&nbsp;. . . .</span>
         </div>
     </div>
 </asp:Content>

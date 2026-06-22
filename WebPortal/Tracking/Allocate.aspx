@@ -4,62 +4,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-    <script>
-
-        function applyModernHrFormLayout() {
-            $('.tab-pane > table.table:first-child').each(function () {
-                var $table = $(this);
-                if ($table.data('modernized') === true) return;
-
-                $table.find('tr').each(function () {
-                    var $row = $(this);
-                    var $cells = $row.children('td').toArray();
-                    var $newCells = $();
-
-                    for (var i = 0; i < $cells.length; i++) {
-                        var $cell = $($cells[i]);
-                        var $label = $cell.children('b').first();
-                        var next = $cells[i + 1] ? $($cells[i + 1]) : null;
-
-                        if ($label.length && next && !next.children('b').length) {
-                            var $fieldCell = $('<td class="hr-field-cell"></td>');
-                            var $field = $('<div class="hr-form-field"></div>');
-                            $('<label></label>').html($label.html().replace(':', '')).appendTo($field);
-                            next.contents().appendTo($field);
-                            $field.appendTo($fieldCell);
-                            $newCells = $newCells.add($fieldCell);
-                            i++;
-                        } else if ($.trim($cell.text()).length || $cell.children().length) {
-                            $cell.addClass('hr-action-cell');
-                            $newCells = $newCells.add($cell);
-                        }
-                    }
-
-                    $row.empty().append($newCells);
-                });
-
-                $table.data('modernized', true).addClass('hr-modern-form');
-            });
-        }
-
-        $(document).ready(function () {
-            applyModernHrFormLayout();
-            $('a[data-toggle="pill"]').on('shown.bs.tab', applyModernHrFormLayout);
-        });
-    </script>
-
-    <script>
-
-        $(document).ready(function () {
-
-            allocate_bindProcess();
-            // allocate_bindAllocatedogrdes_Grid();
-            allocate_bindCompleteOrder_Grid();
-
-        });
-
-    </script>
-
     <style>
         .sec-hero {
             align-items: center;
@@ -233,6 +177,7 @@
             padding: 13px 14px !important;
             border-bottom: 1px solid #d9e2f1 !important;
             white-space: nowrap !important;
+            text-align: left;
             /* vertical-align: middle !important;*/
         }
 
@@ -242,6 +187,7 @@
             border-bottom: 1px solid #edf2f8 !important;
             white-space: nowrap !important;
             vertical-align: middle !important;
+            text-align: left;
         }
 
         /* Remove forced duplicate table header display */
@@ -262,6 +208,62 @@
             overflow-x: auto !important;
         }
     </style>
+
+    <script>
+
+        function applyModernHrFormLayout() {
+            $('.tab-pane > table.table:first-child').each(function () {
+                var $table = $(this);
+                if ($table.data('modernized') === true) return;
+
+                $table.find('tr').each(function () {
+                    var $row = $(this);
+                    var $cells = $row.children('td').toArray();
+                    var $newCells = $();
+
+                    for (var i = 0; i < $cells.length; i++) {
+                        var $cell = $($cells[i]);
+                        var $label = $cell.children('b').first();
+                        var next = $cells[i + 1] ? $($cells[i + 1]) : null;
+
+                        if ($label.length && next && !next.children('b').length) {
+                            var $fieldCell = $('<td class="hr-field-cell"></td>');
+                            var $field = $('<div class="hr-form-field"></div>');
+                            $('<label></label>').html($label.html().replace(':', '')).appendTo($field);
+                            next.contents().appendTo($field);
+                            $field.appendTo($fieldCell);
+                            $newCells = $newCells.add($fieldCell);
+                            i++;
+                        } else if ($.trim($cell.text()).length || $cell.children().length) {
+                            $cell.addClass('hr-action-cell');
+                            $newCells = $newCells.add($cell);
+                        }
+                    }
+
+                    $row.empty().append($newCells);
+                });
+
+                $table.data('modernized', true).addClass('hr-modern-form');
+            });
+        }
+
+        $(document).ready(function () {
+            applyModernHrFormLayout();
+            $('a[data-toggle="pill"]').on('shown.bs.tab', applyModernHrFormLayout);
+        });
+    </script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            allocate_bindProcess();
+            // allocate_bindAllocatedogrdes_Grid();
+            allocate_bindCompleteOrder_Grid();
+
+        });
+
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../Scripts/TrackingSheet/Allocate.js"></script>
@@ -305,7 +307,7 @@
                             <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b>Allocation</b></a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false"><b>Update Status</b></a>
+                            <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false"><b>Update Loan Status</b></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="custom-tabs-one-messages-tab" data-toggle="pill" href="#custom-tabs-one-messages" role="tab" aria-controls="custom-tabs-one-messages" aria-selected="false"><b>Report</b></a>
@@ -322,7 +324,7 @@
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-4">
-                                    <button id="allocate_btnSubmit" class="bank-submit-btn" onclick="return allocate_GetOrder();">
+                                    <button id="allocate_btnSubmit" type="button" class="bank-submit-btn" onclick="return GetLoansToAllocate();">
                                         <i class="fas fa-save mr-1"></i>Get Order
                                     </button>
                                 </div>
@@ -333,22 +335,15 @@
                             <thead>
                                 <tr>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Product Type</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remote-UW</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Hold Reason</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <%--  <th class="sort border-top ps-3" style="text-wrap: nowrap;">User</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>--%>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Added Date</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody style="text-align: left;"></tbody>
                         </table>
                     </div>
 
@@ -388,7 +383,7 @@
                                 </div>
                                 <div class="col-lg-4 col-md-8 mb-3 mb-md-0">
                                     <button id="allocate_btnGetData" class="bank-submit-btn" onclick="return allocate_GetLoanReport();">
-                                         <i class="fas fa-file-alt"></i> &nbsp;&nbsp;Get Report
+                                        <i class="fas fa-file-alt"></i>&nbsp;&nbsp;Get Report
                                     </button>
                                 </div>
                             </div>

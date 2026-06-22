@@ -357,5 +357,16 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             return dt;
         }
+
+
+        public DataTable GetAllProjectDealNo_OrderNo_UW_Process(string ProcessName, string Reviewer, string Type)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllProjectDealNo_OrderNo_UW_Process]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessName", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProcessName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Reviewer", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Reviewer);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Type);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
     }
 }

@@ -191,6 +191,7 @@
     <Content Include="Admin\ChangePassword.aspx" />
     <Content Include="Admin\CreditConsolidatedReport.aspx" />
     <Content Include="Admin\CreditUtilizationReport.aspx" />
+    <Content Include="Admin\ModernReportSecuritization.css" />
     <Content Include="Admin\CreditUWAnswerSheet.aspx" />
     <Content Include="Admin\CutOffTimeExceptions.aspx" />
     <Content Include="Admin\DailyProductivity.aspx" />
@@ -3061,6 +3062,7 @@
     <Compile Include="Admin\AssignUserGroups.aspx.designer.cs">
       <DependentUpon>AssignUserGroups.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\AttendanceCorrectionWebMethods.cs" />
     <Compile Include="Admin\AttendanceCorrectionpm.aspx.cs">
       <DependentUpon>AttendanceCorrectionpm.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3912,6 +3914,7 @@
     <Compile Include="App_Code\DAL\dalReport.cs" />
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
+    <Compile Include="App_Code\Class\EmployeeInfo.cs" />
     <Compile Include="ForgotPassword.aspx.cs">
       <DependentUpon>ForgotPassword.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

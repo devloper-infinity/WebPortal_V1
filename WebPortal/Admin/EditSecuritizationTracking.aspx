@@ -550,26 +550,6 @@
                 </a>
             </div>
         </div>
-
-      <%--  <div class="edit-sec-stat-grid">
-            <div class="edit-sec-stat">
-                <span>Records Loaded</span>
-                <strong id="editSectrack_stat_records">0</strong>
-            </div>
-            <div class="edit-sec-stat">
-                <span>Open Items</span>
-                <strong id="editSectrack_stat_open">0</strong>
-            </div>
-            <div class="edit-sec-stat">
-                <span>Completed</span>
-                <strong id="editSectrack_stat_completed">0</strong>
-            </div>
-            <div class="edit-sec-stat">
-                <span>Selected Deal</span>
-                <strong id="editSectrack_stat_selected">-</strong>
-            </div>
-        </div>--%>
-
         <div class="edit-sec-panel">
             <div class="edit-sec-panel-header">
                 <div>

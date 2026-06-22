@@ -4,12 +4,12 @@
 
 function allocate_bindProcess() {
 
-    var ProjectID = 70;
+    var prjId = 17;
 
     $.ajax({
         type: "POST",
-        url: "Allocate.aspx/GetProcessByProject", // Update with your page/service path
-        data: JSON.stringify({ ProjectID: ProjectID }),
+        url: "Allocate.aspx/GetProcessByProject",
+        data: JSON.stringify({ ProjectID: prjId }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
@@ -22,7 +22,7 @@ function allocate_bindProcess() {
             var data = JSON.parse(response.d);
 
             $.each(data, function (i, item) {
-                ddl.append($("<option></option>").val(item.ProcessID).text(item.ProcessName));
+                ddl.append($("<option></option>").val(item.ProcessName).text(item.ProcessName));
             });
         },
         error: function (xhr, status, error) {
@@ -32,17 +32,24 @@ function allocate_bindProcess() {
     });
 }
 
-function allocate_bindAllocatOrder_Grid() {
+function GetLoansToAllocate() {
+
+    var processName = $('#allocate_process').val();
+    processName = 'Loan Setup';
+    if (processName == '') {
+        Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Please select an Allocate Process.', confirmButtonText: 'OK' });
+        return false;
+    }
 
     $.ajax({
         type: "POST",
-        url: "Allocate.aspx/GetProcessDetails",
-        data: JSON.stringify({ ProjectID: ProjectID }),
+        url: "Allocate.aspx/GetLoansToAllocate",
+        data: JSON.stringify({ ProcessName: processName, Type: "Allocation" }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function (response) {
+        success: function (data) {
 
-            const dataArray = JSON.parse(response.d || "[]");
+            var dataArray = data.d;
 
             // Destroy existing DataTable
             if ($.fn.DataTable.isDataTable('#table_OrderAllocate')) {
@@ -71,14 +78,12 @@ function allocate_bindAllocatOrder_Grid() {
                             return meta.row + 1;
                         }
                     },
-                    { data: "ProjectNo" },
-                    { data: "DealNo" },
+                    { data: "ProjectName" },
                     { data: "Process" },
-                    { data: "OrderNumber" },
-                    { data: "UserCode" },
-                    { data: "OrderStatus" },
+                    { data: "DealNo" },
+                    { data: "LoanNo" },
+                    { data: "CurrentStatus" },
                     { data: "Remark" },
-                    { data: "ProcessDate" }
                 ],
 
                 initComplete: function () {
@@ -355,7 +360,7 @@ function allocate_GetLoanReport() {
 function allocate_GetLoanReport_Grid(fromDate, toDate) {
 
     var UserName = '';
-  
+
     $.ajax({
         type: "POST",
         url: "Allocate.aspx/GetUserOrders",

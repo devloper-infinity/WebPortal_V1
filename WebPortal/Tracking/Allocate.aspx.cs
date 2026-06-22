@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Office.Interop.Word;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -9,7 +10,9 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code;
 using WebPortal.App_Code.Class;
+using DataTable = System.Data.DataTable;
 
 namespace WebPortal.Tracking
 {
@@ -42,14 +45,17 @@ namespace WebPortal.Tracking
 
 
         [WebMethod]
-        public static object GetLoans(int ProjectID, string DealNo)
+        public static object GetLoansToAllocate(string ProcessName, string Type)
         {
-            DataTable dt = new bllUS().GetAllOrderNoByProjectWise(ProjectID, DealNo, "", "", "Allocation2");
+            string Reviewer = EmployeeInfo.Current.Code;
 
+            //DataTable dt = new bllUS().GetAllOrderNoByProjectWise(ProjectID, DealNo, "", "", "Allocation2");
+            DataTable dt = new bllTracking().GetAllProjectDealNo_OrderNo_UW_Process(ProcessName, Reviewer, Type);
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 
             return data;
         }
+
 
         [WebMethod]
         public static object GetUserLoans(string UserName)
@@ -72,7 +78,7 @@ namespace WebPortal.Tracking
             return data;
         }
 
-            [WebMethod]
+        [WebMethod]
         public static int UpdateLoanStatus(string Project, string DealNo, string OrderNo, string Process, string ProjectID, string Status, string HoldRemark, string Remark, string ProductType, string UserName)
         {
             int ReturnValue = 0;

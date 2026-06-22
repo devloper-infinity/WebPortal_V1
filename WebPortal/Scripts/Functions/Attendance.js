@@ -10,6 +10,209 @@ function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
 
+function attendanceValue(id) {
+    var element = document.getElementById(id);
+    if (!element) return "";
+    return ((element.value !== undefined ? element.value : element.innerHTML) || "").trim();
+}
+
+function attendanceText(id) {
+    var element = document.getElementById(id);
+    if (!element) return "";
+    if (element.options && element.selectedIndex >= 0) {
+        return (element.options[element.selectedIndex].text || "").trim();
+    }
+    return attendanceValue(id);
+}
+
+function isAttendanceEmpty(value) {
+    value = (value || "").trim();
+    return value === "" || value.toLowerCase() === "select";
+}
+
+function setAttendanceValue(id, value) {
+    var element = document.getElementById(id);
+    if (!element) return;
+    if (element.value !== undefined) {
+        element.value = value;
+    }
+    else {
+        element.innerHTML = value;
+    }
+}
+
+function setAttendanceDisplay(id, display) {
+    var element = document.getElementById(id);
+    if (element) element.style.display = display;
+}
+
+function showAttendanceMessage(icon, title, text, callback) {
+    if (window.Swal && Swal.fire) {
+        Swal.fire({
+            icon: icon,
+            title: title,
+            text: text,
+            confirmButtonText: "OK"
+        }).then(function () {
+            if (typeof callback === "function") callback();
+        });
+    }
+    else {
+        if (window.console && console.error) {
+            console.error(title + ": " + text);
+        }
+        if (typeof callback === "function") callback();
+    }
+}
+
+function showAttendanceValidation(message) {
+    showAttendanceMessage("warning", "Validation", message);
+    return false;
+}
+
+function attendanceErrorText(error) {
+    if (!error) return "Unexpected error occurred. Please try again.";
+    if (typeof error.get_message === "function") return error.get_message();
+    return error.responseText || error.message || "Unexpected error occurred. Please try again.";
+}
+
+function handleAttendanceError(error) {
+    $("#waitingpanel").modal("hide");
+    showAttendanceMessage("error", "Error", attendanceErrorText(error));
+    return false;
+}
+
+function attendanceReturnMessage(result) {
+    var messages = {
+        0: "Request already exists for selected In Date!",
+        "-1": "Please select proper logout details!",
+        "-2": "Please select Out Date!",
+        "-3": "Please select Out Time!",
+        "-4": "Please select Out Time Convention!",
+        "-5": "Please enter login time in 12 hours format!",
+        "-6": "Technical Error. Please contact support department!",
+        "-7": "Please select In Date and In Time!"
+    };
+    return messages[result] || "Unable to process attendance correction request. Please try again.";
+}
+
+function handleAttendanceSubmitResult(result, successMessage, successCallback) {
+    $("#waitingpanel").modal("hide");
+    if (result > 0) {
+        showAttendanceMessage("success", "Success", successMessage, successCallback);
+        return false;
+    }
+
+    showAttendanceMessage("error", "Error", attendanceReturnMessage(result));
+    return false;
+}
+
+function parseAttendanceDateTime(dateValue, timeValue) {
+    if (isAttendanceEmpty(dateValue) || isAttendanceEmpty(timeValue)) return null;
+
+    var isoDate = /^\d{4}-\d{2}-\d{2}$/.test(dateValue);
+    var parsed = isoDate ? new Date(dateValue + "T" + timeValue) : new Date(dateValue + " " + timeValue);
+
+    return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function attendanceOutTimeIsAfterInTime(inDate, inTime, outDate, outTime) {
+    var inDateTime = parseAttendanceDateTime(inDate, inTime);
+    var outDateTime = parseAttendanceDateTime(outDate, outTime);
+
+    if (!inDateTime || !outDateTime) return true;
+    return outDateTime > inDateTime;
+}
+
+function calculateAttendanceDuration(inDate, inTime, outDate, outTime) {
+    var inDateTime = parseAttendanceDateTime(inDate, inTime);
+    var outDateTime = parseAttendanceDateTime(outDate, outTime);
+    if (!inDateTime || !outDateTime || outDateTime <= inDateTime) return "";
+
+    var totalMinutes = Math.floor((outDateTime - inDateTime) / 60000);
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    return hours + ":" + (minutes < 10 ? "0" : "") + minutes;
+}
+
+function validateAttendanceForm(prefix, requireUser) {
+    if (requireUser && isAttendanceEmpty(attendanceValue(prefix + "_user"))) {
+        return showAttendanceValidation("Please select user.");
+    }
+
+    if (isAttendanceEmpty(attendanceValue(prefix + "_reason"))) {
+        return showAttendanceValidation("Please select reason type.");
+    }
+
+    var indate = attendanceValue(prefix + "_indate");
+    var intime = attendanceValue(prefix + "_intime");
+    var outdate = attendanceValue(prefix + "_outdate");
+    var outtime = attendanceValue(prefix + "_outtime");
+    var userreason = attendanceValue(prefix + "_userreason");
+
+    if (isAttendanceEmpty(indate)) {
+        return showAttendanceValidation("Please select In Date.");
+    }
+
+    if (isAttendanceEmpty(intime)) {
+        return showAttendanceValidation("Please select In Time.");
+    }
+
+    if (!isAttendanceEmpty(outtime) && isAttendanceEmpty(outdate)) {
+        return showAttendanceValidation("Please select Out Date.");
+    }
+
+    if (!isAttendanceEmpty(outdate) && isAttendanceEmpty(outtime)) {
+        return showAttendanceValidation("Please select Out Time.");
+    }
+
+    if (!isAttendanceEmpty(outdate) && !isAttendanceEmpty(outtime) && !attendanceOutTimeIsAfterInTime(indate, intime, outdate, outtime)) {
+        return showAttendanceValidation("Out Date/Time must be greater than In Date/Time.");
+    }
+
+    if (isAttendanceEmpty(userreason)) {
+        return showAttendanceValidation("Please enter reason.");
+    }
+
+    if (userreason.length < 10) {
+        return showAttendanceValidation("Reason must be more than 10 characters.");
+    }
+
+    return true;
+}
+
+function handleAttendanceTotalHours(prefix, result) {
+    var totalHoursId = prefix + "_totaltime";
+    var weeklyLabelId = prefix === "pmatt" ? "pmweeklyofflabel" : "weeklyofflabel";
+    var weeklyContainerId = prefix === "pmatt" ? "pmweeklyofflabel" : "weeklyoffContainer";
+    var weeklyTextId = prefix === "pmatt" ? "pmweeklyofftext" : "weeklyofftext";
+    result = (result || "").toString();
+
+    setAttendanceDisplay(weeklyLabelId, "none");
+    setAttendanceDisplay(weeklyContainerId, "none");
+    setAttendanceDisplay(weeklyTextId, "none");
+
+    if (result.length < 6) {
+        setAttendanceValue(totalHoursId, result);
+        var totalHoursElement = document.getElementById(totalHoursId);
+        if (totalHoursElement) totalHoursElement.disabled = true;
+        return false;
+    }
+
+    if (result.indexOf("Weekly Off") >= 0) {
+        var totalHours = result.split("~");
+        setAttendanceValue(totalHoursId, totalHours[0]);
+        setAttendanceDisplay(weeklyLabelId, "");
+        setAttendanceDisplay(weeklyContainerId, "");
+        setAttendanceDisplay(weeklyTextId, "");
+        setAttendanceValue(weeklyTextId, totalHours[2] || "");
+        return false;
+    }
+
+    showAttendanceMessage("warning", "Validation", result.replace(/~/g, " ").trim());
+    return false;
+}
+
 function selfatt_bindReasons() {
     var select = document.getElementById("selfatt_reason");
     let options = select.getElementsByTagName('option');
@@ -165,120 +368,62 @@ function selfatt_getInTime(dates) {
 }
 
 function selfatt_GetTotalHours() {
-    var ddlInDate = document.getElementById("selfatt_indate");
-    var indate = ddlInDate.options[ddlInDate.selectedIndex].value;
-    var ddlOutDate = document.getElementById("selfatt_outdate");
-    var outdate = ddlOutDate.options[ddlOutDate.selectedIndex].value;
-    var intime = document.getElementById("selfatt_intime").value;
-    var outtime = document.getElementById("selfatt_outtime").value;
-    PageMethods.UserLoginGetTotalHours(intime, outtime, indate, outdate, totalhour_onsuccess, totalhour_onerror);
-}
 
-function totalhour_onsuccess(result) {
-    if (result.length < 6) {
-        document.getElementById("selfatt_totaltime").value = result;
-        document.getElementById("selfatt_totaltime").disabled = true;
-    }
-    else if (result.includes('Weekly Off')) {
-        var strTotalHours = result.split('~');
-        document.getElementById("selfatt_totaltime").value = strTotalHours[0];
-        document.getElementById("weeklyofflabel").style.display = '';
-        document.getElementById("weeklyofftext").style.display = '';
-        document.getElementById("weeklyofftext").innerHTML = strTotalHours[2];
-    }
-    else
-        alert(result);
-}
+    var indate = attendanceValue("selfatt_indate");
+    var outdate = attendanceValue("selfatt_outdate");
+    var intime = attendanceValue("selfatt_intime");
+    var outtime = attendanceValue("selfatt_outtime");
 
-function totalhour_onerror(error) {
-    alert(error.responseText);
+    if (isAttendanceEmpty(indate) || isAttendanceEmpty(intime) || isAttendanceEmpty(outdate) || isAttendanceEmpty(outtime)) {
+        return false;
+    }
+
+    PageMethods.UserLoginGetTotalHours(
+        intime,
+        outtime,
+        indate,
+        outdate,
+        function (result) {
+            handleAttendanceTotalHours("selfatt", result);
+        },
+        handleAttendanceError
+    );
+
+    return false;
 }
 
 function selfatt_submit() {
-    var userreason = document.getElementById("selfatt_userreason").value;
-    if (userreason == "") {
-        alert("Please enter reason");
-        return false;
-    }
-    if (userreason.length < 10) {
-        alert("Reason must be more than 10 characters.");
+    if (!validateAttendanceForm("selfatt", false)) {
         return false;
     }
 
-    var ddlindate = document.getElementById("selfatt_indate");
-    var indate = ddlindate.options[ddlindate.selectedIndex].value;
-    var intime = document.getElementById("selfatt_intime").value;
-    var ddloutdate = document.getElementById("selfatt_outdate");
-    var outdate = ddloutdate.options[ddloutdate.selectedIndex].value;
-    var outtime = document.getElementById("selfatt_outtime").value;
-    var ddlreason = document.getElementById("selfatt_reason");
-    var reasontext = ddlreason.options[ddlreason.selectedIndex].text;
-    var reasonvalue = ddlreason.options[ddlreason.selectedIndex].value;
-    var totaltime = document.getElementById("selfatt_totaltime").value;
+    var userreason = attendanceValue("selfatt_userreason");
+    var indate = attendanceValue("selfatt_indate");
+    var intime = attendanceValue("selfatt_intime");
+    var outdate = attendanceValue("selfatt_outdate");
+    var outtime = attendanceValue("selfatt_outtime");
+    var reasontext = attendanceText("selfatt_reason");
+    var reasonvalue = attendanceValue("selfatt_reason");
+    var totaltime = attendanceValue("selfatt_totaltime");
     $('#waitingpanel').modal('show');
-    PageMethods.InsertAttendance(intime, outtime, indate, outdate, totaltime, reasonvalue, reasontext, userreason, selfattsubmit_onsuccess, selfattsubmit_onerror);
-    return false;
-}
+    PageMethods.InsertAttendance(
+        intime,
+        outtime,
+        indate,
+        outdate,
+        totaltime,
+        reasonvalue,
+        reasontext,
+        userreason,
+        function (result) {
+            handleAttendanceSubmitResult(result, "Attendance correction request raised successfully!", function () {
+                location.reload();
+            });
+        },
+        handleAttendanceError
+    );
 
-function selfattsubmit_onsuccess(result) {
-    $("#waitingpanel").modal('hide');
-    if (result > 0) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Attendance correction request raised successfully!";
-        $("#selfatt_dverror").modal("show");
-    }
-    else if (result == 0) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Request already exist for selected In Date!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -1) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Please select proper logout details!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -2) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Please select Out Date!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -3) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Please select Out Time!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -4) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Please select Out Time Convention!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -5) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Please enter login time in 12 hours format!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -6) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Technical Error. Please contact support department!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -6) {
-        document.getElementById("selfatt_errmsg").innerHTML = "Please select In Time Convention!";
-        document.getElementById("selfatt_errmsg").style.color = 'red';
-        $('#selfatt_dverror').modal('show');
-        return false;
-    }
     return false;
-}
-
-function selfattsubmit_onerror(error) {
-    alert(error.responseText);
 }
 
 
@@ -360,7 +505,7 @@ function selfatt_BindGrid() {
         },
         error: function (error) {
             $('#load1').hide();
-            alert('error: ' + error.responseText);
+            showAttendanceMessage("error", "Error", attendanceErrorText(error));
         }
     });
 
@@ -370,30 +515,24 @@ function selfatt_BindGrid() {
 
 //Self Attendance - END
 
+
+
 // PM Attendance - START
 
 
 function getattendancecount(ddl) {
     var code = ddl.options[ddl.selectedIndex].value;
-    PageMethods.getAttendanceCount(code, attcount_OnSuccess, attcount_OnError);
+    PageMethods.getAttendanceCount(
+        code,
+        function (result) {
+            if (result >= 4) {
+                showAttendanceMessage("warning", "Validation", "User has already exceeded maximum number of attendance correction request limit.!");
+            }
+        },
+        handleAttendanceError
+    );
     return false;
 }
-function attcount_OnSuccess(result) {
-    if (result >= 4) {
-        document.getElementById("pmatt_errmsg").innerHTML = "User has already exceeded maximum number of attendance correction request limit.!";
-        $("#pmatt_dverror").modal("show");
-    }
-
-    return false;
-}
-
-
-function attcount_OnError(error) {
-    alert(error.get_message());
-}
-
-
-
 
 function pmatt_bindusers() {
     var select = document.getElementById("pmatt_user");
@@ -668,124 +807,65 @@ function pmatt_getInTime(dates) {
 }
 
 function pmatt_GetTotalHours() {
-    var ddluser = document.getElementById("pmatt_user");
-    var code = ddluser.options[ddluser.selectedIndex].value;
-    var ddlInDate = document.getElementById("pmatt_indate");
-    var indate = ddlInDate.options[ddlInDate.selectedIndex].value;
-    var ddlOutDate = document.getElementById("pmatt_outdate");
-    var outdate = ddlOutDate.options[ddlOutDate.selectedIndex].value;
-    var intime = document.getElementById("pmatt_intime").value;
-    var outtime = document.getElementById("pmatt_outtime").value;
-    PageMethods.UserLoginGetTotalHours_PM(code, intime, outtime, indate, outdate, pmtotalhour_onsuccess, pmtotalhour_onerror);
-}
+    var code = attendanceValue("pmatt_user");
+    var indate = attendanceValue("pmatt_indate");
+    var outdate = attendanceValue("pmatt_outdate");
+    var intime = attendanceValue("pmatt_intime");
+    var outtime = attendanceValue("pmatt_outtime");
 
-function pmtotalhour_onsuccess(result) {
-    if (result.length < 6) {
-        document.getElementById("pmatt_totaltime").value = result;
-        document.getElementById("pmatt_totaltime").disabled = true;
+    if (isAttendanceEmpty(code) || isAttendanceEmpty(indate) || isAttendanceEmpty(intime) || isAttendanceEmpty(outdate) || isAttendanceEmpty(outtime)) {
+        return false;
     }
-    else if (result.includes('Weekly Off')) {
-        var strTotalHours = result.split('~');
-        document.getElementById("pmatt_totaltime").value = strTotalHours[0];
-        document.getElementById("pmweeklyofflabel").style.display = '';
-        document.getElementById("pmweeklyofftext").style.display = '';
-        document.getElementById("pmweeklyofftext").innerHTML = strTotalHours[2];
-    }
-    else
-        alert(result);
-}
 
-function pmtotalhour_onerror(error) {
-    alert(error.responseText);
+    PageMethods.UserLoginGetTotalHours_PM(
+        code,
+        intime,
+        outtime,
+        indate,
+        outdate,
+        function (result) {
+            handleAttendanceTotalHours("pmatt", result);
+        },
+        handleAttendanceError
+    );
+
+    return false;
 }
 
 function pmatt_submit() {
-    var ddluser = document.getElementById("pmatt_user");
-    var code = ddluser.options[ddluser.selectedIndex].value;
-    var userreason = document.getElementById("pmatt_userreason").value;
-    if (userreason == "") {
-        alert("Please enter reason");
-        return false;
-    }
-    if (userreason.length < 10) {
-        alert("Reason must be more than 10 characters.");
+    if (!validateAttendanceForm("pmatt", true)) {
         return false;
     }
 
-    var ddlindate = document.getElementById("pmatt_indate");
-    var indate = ddlindate.options[ddlindate.selectedIndex].value;
-    var intime = document.getElementById("pmatt_intime").value;
-    var ddloutdate = document.getElementById("pmatt_outdate");
-    var outdate = ddloutdate.options[ddloutdate.selectedIndex].value;
-    var outtime = document.getElementById("pmatt_outtime").value;
-    var ddlreason = document.getElementById("pmatt_reason");
-    var reasontext = ddlreason.options[ddlreason.selectedIndex].text;
-    var reasonvalue = ddlreason.options[ddlreason.selectedIndex].value;
-    var totaltime = document.getElementById("pmatt_totaltime").value;
+    var code = attendanceValue("pmatt_user");
+    var userreason = attendanceValue("pmatt_userreason");
+    var indate = attendanceValue("pmatt_indate");
+    var intime = attendanceValue("pmatt_intime");
+    var outdate = attendanceValue("pmatt_outdate");
+    var outtime = attendanceValue("pmatt_outtime");
+    var reasontext = attendanceText("pmatt_reason");
+    var reasonvalue = attendanceValue("pmatt_reason");
+    var totaltime = attendanceValue("pmatt_totaltime");
     $('#waitingpanel').modal('show');
-    PageMethods.InsertAttendance_PM(code, intime, outtime, indate, outdate, totaltime, reasonvalue, reasontext, userreason, pmattsubmit_onsuccess, pmattsubmit_onerror);
-    return false;
-}
+    PageMethods.InsertAttendance_PM(
+        code,
+        intime,
+        outtime,
+        indate,
+        outdate,
+        totaltime,
+        reasonvalue,
+        reasontext,
+        userreason,
+        function (result) {
+            handleAttendanceSubmitResult(result, "Attendance correction request raised successfully!", function () {
+                location.reload();
+            });
+        },
+        handleAttendanceError
+    );
 
-function pmattsubmit_onsuccess(result) {
-    $("#waitingpanel").modal('hide');
-    if (result > 0) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Attendance correction request raised successfully!";
-        $("#pmatt_dverror").modal("show");
-    }
-    else if (result == 0) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Request already exist for selected In Date!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -1) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Please select proper logout details!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -2) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Please select Out Date!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -3) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Please select Out Time!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -4) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Please select Out Time Convention!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -5) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Please enter login time in 12 hours format!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -6) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Technical Error. Please contact support department!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -6) {
-        document.getElementById("pmatt_errmsg").innerHTML = "Please select In Time Convention!";
-        document.getElementById("pmatt_errmsg").style.color = 'red';
-        $('#pmatt_dverror').modal('show');
-        return false;
-    }
     return false;
-}
-
-function pmattsubmit_onerror(error) {
-    alert(error.responseText);
 }
 
 function pmatt_BindGrid() {
@@ -857,8 +937,8 @@ function pmatt_BindGrid() {
             });
         },
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            showAttendanceMessage("error", "Error", attendanceErrorText(error));
         }
     });
     return false;
@@ -912,7 +992,7 @@ function Edit_BindInformation() {
         success: function (res) {
             var dataArray = JSON.parse(res.d);
             $.each(dataArray, function (data, value) {
-                document.getElementById("editatt_user").innerHTML = blankForNull(value.EmpName);
+                setAttendanceValue("editatt_user", blankForNull(value.EmpName));
                 var date = new Date(value.InDate);
                 day = date.getDate();
                 if (day < 10)
@@ -922,9 +1002,9 @@ function Edit_BindInformation() {
                     month = '0' + month
                 year = date.getFullYear();
                 actualdate = year + "-" + (month) + "-" + (day);
-                document.getElementById("editatt_indate").value = blankForNull(actualdate);
-                document.getElementById("editatt_intime").value = blankForNull(value.InTime);
-                document.getElementById("editatt_reason").innerHTML = blankForNull(value.Reason);
+                setAttendanceValue("editatt_indate", blankForNull(actualdate));
+                setAttendanceValue("editatt_intime", blankForNull(value.InTime));
+                setAttendanceValue("editatt_reason", blankForNull(value.Reason));
                 attnEmpReasonType = blankForNull(value.ReasonType);
                 attnEmpUserReason = blankForNull(value.Reason);
                 if (blankForNull(value.OutDate) != "" && blankForNull(value.OutDate) != "Select") {
@@ -937,8 +1017,8 @@ function Edit_BindInformation() {
                         month = '0' + month
                     year = date.getFullYear();
                     actualdate = year + "-" + (month) + "-" + (day);
-                    document.getElementById("editatt_outdate").value = blankForNull(actualdate);
-                    document.getElementById("editatt_outtime").value = blankForNull(value.OutTime);
+                    setAttendanceValue("editatt_outdate", blankForNull(actualdate));
+                    setAttendanceValue("editatt_outtime", blankForNull(value.OutTime));
                     //Time Calculation
                     const times1 = value.InTime.split(':');
                     var hours1 = times1[0].trim();
@@ -958,7 +1038,7 @@ function Edit_BindInformation() {
 
 
 
-                    document.getElementById("editatt_totalhours").innerHTML = getTimeDifference(new Date(0, 0, 0, hours1, minutes1), new Date(0, 0, 0, hours2, minutes2));
+                    setAttendanceValue("editatt_totalhours", getTimeDifference(new Date(0, 0, 0, hours1, minutes1), new Date(0, 0, 0, hours2, minutes2)));
                 }
 
             })
@@ -988,85 +1068,96 @@ function editatt_bindbranches() {
 
 }
 
+function validateEditAttendanceForm(requestid, code, indate, intime, outdate, outtime, status, location, remark) {
+    if (isAttendanceEmpty(requestid)) {
+        return showAttendanceValidation("Invalid attendance correction request.");
+    }
+
+    if (isAttendanceEmpty(code)) {
+        return showAttendanceValidation("Unable to identify selected user.");
+    }
+
+    if (isAttendanceEmpty(indate)) {
+        return showAttendanceValidation("Please select In Date.");
+    }
+
+    if (isAttendanceEmpty(intime)) {
+        return showAttendanceValidation("Please select In Time.");
+    }
+
+    if (!isAttendanceEmpty(outtime) && isAttendanceEmpty(outdate)) {
+        return showAttendanceValidation("Please select Out Date.");
+    }
+
+    if (!isAttendanceEmpty(outdate) && isAttendanceEmpty(outtime)) {
+        return showAttendanceValidation("Please select Out Time.");
+    }
+
+    if (!isAttendanceEmpty(outdate) && !isAttendanceEmpty(outtime) && !attendanceOutTimeIsAfterInTime(indate, intime, outdate, outtime)) {
+        return showAttendanceValidation("Out Date/Time must be greater than In Date/Time.");
+    }
+
+    if (isAttendanceEmpty(status)) {
+        return showAttendanceValidation("Please select status.");
+    }
+
+    if (isAttendanceEmpty(location)) {
+        return showAttendanceValidation("Please select location.");
+    }
+
+    if (status === "Reject" && isAttendanceEmpty(remark)) {
+        return showAttendanceValidation("Please enter remark for rejection.");
+    }
+
+    return true;
+}
+
 function editatt_submit() {
     const urlParams = new URLSearchParams(window.location.search);
     const requestid = urlParams.get('AttendanceCorrectRequestID');
-    var code = document.getElementById("editatt_user").innerHTML.substring(0, 3);
-    var indate = document.getElementById("editatt_indate").value;
-    var intime = document.getElementById("editatt_intime").value;
-    var outdate = document.getElementById("editatt_outdate").value;
-    var outtime = document.getElementById("editatt_outtime").value;
-    var remark = document.getElementById("editatt_remark").value;
-    var totaltime = document.getElementById("editatt_totalhours").innerHTML;
-    var ddlstatus = document.getElementById("editatt_status");
-    var status = ddlstatus.options[ddlstatus.selectedIndex].value;
-    var ddllocation = document.getElementById("editatt_location");
-    var location = ddllocation.options[ddllocation.selectedIndex].value;
-    attnEmpUserReason = document.getElementById("editatt_reason").innerHTML
+    var user = attendanceValue("editatt_user");
+    var code = user.substring(0, 3);
+    var indate = attendanceValue("editatt_indate");
+    var intime = attendanceValue("editatt_intime");
+    var outdate = attendanceValue("editatt_outdate");
+    var outtime = attendanceValue("editatt_outtime");
+    var remark = attendanceValue("editatt_remark");
+    var status = attendanceValue("editatt_status");
+    var location = attendanceValue("editatt_location");
+
+    if (!validateEditAttendanceForm(requestid, code, indate, intime, outdate, outtime, status, location, remark)) {
+        return false;
+    }
+
+    var totaltime = attendanceValue("editatt_totalhours");
+    var calculatedTotalTime = calculateAttendanceDuration(indate, intime, outdate, outtime);
+    if (calculatedTotalTime) {
+        totaltime = calculatedTotalTime;
+        setAttendanceValue("editatt_totalhours", calculatedTotalTime);
+    }
+
+    attnEmpUserReason = attendanceValue("editatt_reason");
     $("#waitingpanel").modal('show');
-    PageMethods.UpdateAttendance_PM(requestid, code, intime, outtime, indate, outdate, totaltime, remark, status, location, attnEmpReasonType, attnEmpUserReason, editatt_OnSuccess, editatt_OnError);
-    return false;
-}
+    PageMethods.UpdateAttendance_PM(
+        requestid,
+        code,
+        intime,
+        outtime,
+        indate,
+        outdate,
+        totaltime,
+        remark,
+        status,
+        location,
+        attnEmpReasonType,
+        attnEmpUserReason,
+        function (result) {
+            handleAttendanceSubmitResult(result, "Attendance correction request updated successfully!", editatt_gotodashboard);
+        },
+        handleAttendanceError
+    );
 
-function editatt_OnSuccess(result) {
-    $("#waitingpanel").modal('hide');
-    if (result > 0) {
-        document.getElementById("editatt_errmsg").innerHTML = "Attendance correction request updated successfully!";
-        $("#editatt_dverror").modal("show");
-    }
-    else if (result == 0) {
-        document.getElementById("editatt_errmsg").innerHTML = "Request already exist for selected In Date!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -1) {
-        document.getElementById("editatt_errmsg").innerHTML = "Please select proper logout details!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -2) {
-        document.getElementById("editatt_errmsg").innerHTML = "Please select Out Date!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -3) {
-        document.getElementById("editatt_errmsg").innerHTML = "Please select Out Time!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -4) {
-        document.getElementById("editatt_errmsg").innerHTML = "Please select Out Time Convention!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -5) {
-        document.getElementById("editatt_errmsg").innerHTML = "Please enter login time in 12 hours format!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -6) {
-        document.getElementById("editatt_errmsg").innerHTML = "Technical Error. Please contact support department!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
-    else if (result == -6) {
-        document.getElementById("editatt_errmsg").innerHTML = "Please select In Time Convention!";
-        document.getElementById("editatt_errmsg").style.color = 'red';
-        $('#editatt_dverror').modal('show');
-        return false;
-    }
     return false;
-}
-
-function editatt_OnError(error) {
-    alert(error.responseText);
 }
 
 function editatt_gotodashboard() {

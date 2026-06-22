@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
+using WebPortal.App_Code.Class;
 
 namespace WebPortal
 {
@@ -17,7 +18,7 @@ namespace WebPortal
 
         protected void Session_Start(object sender, EventArgs e)
         {
-
+            
         }
 
         protected void Application_BeginRequest(object sender, EventArgs e)
@@ -28,7 +29,6 @@ namespace WebPortal
             {
                 return;
             }
-
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)

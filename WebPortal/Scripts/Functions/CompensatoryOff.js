@@ -35,53 +35,85 @@ function compoff_btnsubmit() {
 
     var ddlholidaydate = document.getElementById("compoff_holidaydate");
     var holidaydate = ddlholidaydate.options[ddlholidaydate.selectedIndex].value;
+
     var compoff_date = document.getElementById("compoff_date").value;
-    var compoff_remark = document.getElementById("compoff_remark").value;
+    var compoff_remark = document.getElementById("compoff_remark").value.trim();
 
-    if (holidaydate == "Select") {
-        alert("Please select Worked Holiday Date.");
-        document.getElementById("compoff_holidaydate").focus();
+    if (holidaydate === "Select") {
+        Swal.fire("Validation", "Please select Worked Holiday Date.", "warning").then(function () {
+            document.getElementById("compoff_holidaydate").focus();
+        });
         return false;
     }
 
-    if (compoff_date == "") {
-        alert("Please enter Comp Off Date");
-        document.getElementById("compoff_date").focus();
+    if (compoff_date === "") {
+        Swal.fire("Validation", "Please enter Comp Off Date.", "warning").then(function () {
+            document.getElementById("compoff_date").focus();
+        });
         return false;
     }
 
-    if (compoff_remark == "") {
-        alert("Please enter remark");
-        document.getElementById("compoff_remark").focus();
+    if (compoff_remark === "") {
+        Swal.fire("Validation", "Please enter remark.", "warning").then(function () {
+            document.getElementById("compoff_remark").focus();
+        });
         return false;
     }
 
-    PageMethods.InsertUserCompOff(holidaydate, compoff_date, compoff_remark, compoff_OnSuccess, compoff_OnError);
+    Swal.fire({
+        title: "Please Wait",
+        text: "Submitting compensatory off request...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.InsertUserCompOff(
+        holidaydate,
+        compoff_date,
+        compoff_remark,
+
+        function (result) {
+
+            Swal.close();
+
+            if (result > 0) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: "Compensatory off added successfully!"
+                }).then(function () {
+                    clearCompOffFields();
+                    $('#teamCompOffadd_details').modal('hide');
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Oops! Error occurred while adding compensatory off. Please contact administrator!"
+                });
+            }
+
+            return false;
+        },
+
+        function (error) {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: error.get_message
+                    ? error.get_message()
+                    : "Unexpected error occurred."
+            });
+        }
+    );
+
     return false;
-}
-
-function compoff_OnSuccess(result) {
-
-    if (result > 0) {
-        document.getElementById("compoff_errmsg").innerHTML = "Compensatory off added successfully!";
-        $('#compoff_dverror').modal('show');
-
-    }
-    else {
-        document.getElementById("compoff_errmsg").innerHTML = "Oops! Error occured while adding compensatory off. Please contact administrator!";
-        document.getElementById("compoff_errmsg").style.color = 'red';
-        $('#compoff_dverror').modal('show');
-
-    }
-
-    clearCompOffFields();
-    $('#teamCompOffadd_details').modal('hide');
-
-    return false;
-}
-
-function compoff_OnError(error) {
-    alert(error);
 }
 
 function bindWorkedHoliday_Grid() {
@@ -223,6 +255,7 @@ function teambindWorkedHoliday_Grid() {
     return false;
 }
 
+
 /*---- Approve Reject ----*/
 function Approved_WorkedHoliday(id, index) {
 
@@ -242,57 +275,89 @@ function teamCompOff_btnSubmit() {
 
     var ddlStatus = document.getElementById("teamCompOff_Status");
     global_status = ddlStatus.options[ddlStatus.selectedIndex].value;
-    var compoff_remark = document.getElementById("teamCompOff_remark").value;
 
-    var IsApproved;
+    var compoff_remark = document.getElementById("teamCompOff_remark").value.trim();
 
-    if (global_status == "Approved")
-        IsApproved = true;
-    else
-        IsApproved = false;
+    var IsApproved = global_status === "Approved";
 
-    if (global_status == "Select") {
-        alert("Please select Status.");
-        document.getElementById("compoff_holidaydate").focus();
+    if (global_status === "Select") {
+        Swal.fire("Validation", "Please select Status.", "warning").then(function () {
+            document.getElementById("teamCompOff_Status").focus();
+        });
         return false;
     }
 
-    if (compoff_remark == "") {
-        alert("Please enter remark");
-        document.getElementById("teamCompOff_remark").focus();
+    if (compoff_remark === "") {
+        Swal.fire("Validation", "Please enter remark.", "warning").then(function () {
+            document.getElementById("teamCompOff_remark").focus();
+        });
         return false;
     }
 
-    PageMethods.ApproveRejectCompOff(global_compoffID, IsApproved, compoff_remark, teamcompoff_OnSuccess, teamcompoff_OnError)
+    Swal.fire({
+        title: "Please Wait",
+        text: "Processing compensatory off request...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.ApproveRejectCompOff(
+        global_compoffID,
+        IsApproved,
+        compoff_remark,
+
+        function (result) {
+
+            Swal.close();
+
+            var msg_status = "";
+
+            if (global_status === "Approved" || global_status === "Rejected") {
+                msg_status = "Compensatory off " + global_status.toLowerCase() + " successfully.";
+            } else {
+                msg_status = "Oops! Error occurred while processing compensatory off. Please contact administrator!";
+            }
+
+            if (result > 0) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: msg_status
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Oops! Error occurred while processing compensatory off. Please contact administrator!"
+                });
+            }
+
+            clearCompOffFields();
+            msg_status = "";
+            global_status = "";
+            $('#teamCompOff_details').modal('hide');
+
+            return false;
+        },
+
+        function (error) {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: error.get_message
+                    ? error.get_message()
+                    : "Unexpected error occurred."
+            });
+        }
+    );
+
     return false;
-}
-
-function teamcompoff_OnSuccess(result) {
-
-    if (global_status == "Approved" || global_status == "Rejected")
-        msg_status = "Compensatory off " + global_status + " successfully";
-    else
-        msg_status = "Oops! Error occured while " + global_status.substring(0, 6) + "ing compensatory off. Please contact administrator!";;
-
-    if (result > 0) {
-        document.getElementById("compoff_errmsg").innerHTML = msg_status;
-        $('#compoff_dverror').modal('show');
-    }
-    else {
-        document.getElementById("compoff_errmsg").innerHTML = msg_status;
-        document.getElementById("compoff_errmsg").style.color = 'red';
-        $('#compoff_dverror').modal('show');
-    }
-
-    clearCompOffFields();
-    msg_status = "";
-    global_status = "";
-    $('#teamCompOff_details').modal('hide');
-    return false;
-}
-
-function teamcompoff_OnError(error) {
-    alert(error.get_message());
 }
 
 
@@ -354,33 +419,95 @@ function teamCompOffAdd_btnSubmit() {
     var holidaydate = ddlholidaydate.options[ddlholidaydate.selectedIndex].value;
 
     var compoff_date = document.getElementById("teamcompoffadd_date").value;
-    var compoff_remark = document.getElementById("teamCompOffadd_remark").value;
+    var compoff_remark = document.getElementById("teamCompOffadd_remark").value.trim();
 
-    if (user == "Select") {
-        alert("Please select user.");
-        document.getElementById("teamCompOffadd_user").focus();
+    if (user === "Select") {
+        Swal.fire("Validation", "Please select user.", "warning").then(function () {
+            document.getElementById("teamCompOffadd_user").focus();
+        });
         return false;
     }
 
-    if (holidaydate == "Select") {
-        alert("Please select Worked Holiday Date.");
-        document.getElementById("temcompoffadd_holidaydate").focus();
+    if (holidaydate === "Select") {
+        Swal.fire("Validation", "Please select Worked Holiday Date.", "warning").then(function () {
+            document.getElementById("temcompoffadd_holidaydate").focus();
+        });
         return false;
     }
 
-    if (compoff_date == "") {
-        alert("Please enter Comp Off Date");
-        document.getElementById("teamcompoffadd_date").focus();
+    if (compoff_date === "") {
+        Swal.fire("Validation", "Please enter Comp Off Date.", "warning").then(function () {
+            document.getElementById("teamcompoffadd_date").focus();
+        });
         return false;
     }
 
-    if (compoff_remark == "") {
-        alert("Please enter remark");
-        document.getElementById("teamCompOffadd_remark").focus();
+    if (compoff_remark === "") {
+        Swal.fire("Validation", "Please enter remark.", "warning").then(function () {
+            document.getElementById("teamCompOffadd_remark").focus();
+        });
         return false;
     }
 
-    PageMethods.InsertUserCompOff_byPM(user, holidaydate, compoff_date, compoff_remark, compoff_OnSuccess, compoff_OnError);
+    Swal.fire({
+        title: "Please Wait",
+        text: "Submitting compensatory off request...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.InsertUserCompOff_byPM(
+        user,
+        holidaydate,
+        compoff_date,
+        compoff_remark,
+
+        function (result) {
+
+            Swal.close();
+
+            if (result > 0) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: "Compensatory off request submitted successfully."
+                }).then(function () {
+                    if (typeof clearCompOffFields === "function") {
+                        clearCompOffFields();
+                    }
+
+                    $('#teamCompOffadd_details').modal('hide');
+
+                    if (typeof bindCompOffGrid === "function") {
+                        bindCompOffGrid();
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Oops! Error occurred while submitting compensatory off. Please contact administrator."
+                });
+            }
+        },
+
+        function (error) {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: error.get_message
+                    ? error.get_message()
+                    : "Unexpected error occurred."
+            });
+        }
+    );
+
     return false;
 }
 

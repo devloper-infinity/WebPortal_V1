@@ -89,7 +89,204 @@
                 transform: translateY(-2px);
                 color: #fff;
             }
+
+        .modern-report-header {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: space-between;
+            margin: 12px 15px 16px;
+            padding: 16px 18px;
+        }
+
+        .modern-report-title {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modern-report-title-icon {
+            align-items: center;
+            background: #edf4ff;
+            border-radius: 8px;
+            color: #1d4ed8;
+            display: inline-flex;
+            font-size: 18px;
+            height: 40px;
+            justify-content: center;
+            width: 40px;
+        }
+
+        .modern-report-title h1 {
+            color: #172033;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .modern-report-title span {
+            color: #667085;
+            display: block;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .modern-report-badge {
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e4e9f2;
+            border-radius: 6px;
+            color: #344054;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 8px;
+            padding: 8px 10px;
+        }
+
+        .modern-report-main {
+            padding: 0 15px 24px;
+        }
+
+        .modern-report-card {
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+            overflow: hidden;
+        }
+
+        .modern-filter-panel {
+            background: #fff;
+            padding: 16px;
+        }
+
+        .modern-filter-grid {
+            align-items: flex-end;
+            display: grid;
+            gap: 14px;
+            grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(220px, 1fr);
+        }
+
+        .modern-field label {
+            border: none !important;
+            color: #475467;
+            display: block;
+            font-size: 12px;
+            font-weight: 700 !important;
+            margin-bottom: 6px;
+        }
+
+        .modern-field .form-control {
+            border-color: #d0d7e2;
+            border-radius: 6px;
+            box-shadow: none;
+            height: 38px !important;
+        }
+
+        .modern-field .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 .15rem rgba(37, 99, 235, .12);
+        }
+
+        .modern-btn {
+            align-items: center;
+            border-radius: 6px;
+            display: inline-flex;
+            font-weight: 600;
+            gap: 8px;
+            justify-content: center;
+            min-height: 38px;
+            padding: 8px 14px;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .modern-btn-primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .modern-btn-primary:hover,
+        .modern-btn-primary:focus {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #fff;
+        }
+
+        .loading {
+            background: #fff;
+            border: 1px solid #e4e9f2;
+            border-radius: 8px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, .16);
+            display: none;
+            height: auto;
+            left: 50%;
+            margin: 0;
+            min-height: 154px;
+            opacity: .96;
+            padding: 20px;
+            position: fixed;
+            text-align: center;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            z-index: 99999;
+        }
+
+        .loading img {
+            max-width: 72px;
+        }
+
+        .loading div {
+            color: #334155;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
+        .report-waiting-text {
+            color: #fff;
+            display: inline-block;
+            font-size: 22px;
+            font-style: normal;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .report-waiting-dots {
+            animation: animate 1s linear infinite;
+            color: #fff;
+            display: inline-block;
+            font-size: 42px;
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        @media (max-width: 767px) {
+            .modern-report-header {
+                margin-left: 8px;
+                margin-right: 8px;
+            }
+
+            .modern-report-main {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .modern-filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="ModernReportSecuritization.css" />
     <script>
         $(document).ready(function () {
             creditutil_bindyear();
@@ -121,27 +318,26 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Credit Utilization Report</b></h6>
-                </div>
+    <div class="modern-report-header">
+        <div class="modern-report-title">
+            <span class="modern-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
+            <div>
+                <h1>Credit Utilization Report</h1>
+                <span>Generate monthly credit utilization output</span>
             </div>
         </div>
-        <!-- /.container-fluid -->
+        <div class="modern-report-badge">
+            <i class="fas fa-file-excel"></i>
+            <span>Excel export</span>
+        </div>
     </div>
-    <div class="col-lg-12">
-        <div class="card">
+    <div class="col-lg-12 modern-report-main">
+        <div class="card modern-report-card">
             <div class="card-body">
-                <%-- <table class="table">
-                    <tr>
-                        <td style="width: 50px;"><b>Month:</b></td>
-                        <td style="width: 150px;">--%>
-                <div class="row align-items-end g-4">
-                    <div class="col-md-4">
-                        <label class="form-label"><b>Month</b></label>
-                        <div class="input-group">
+                <div class="modern-filter-panel">
+                    <div class="modern-filter-grid">
+                        <div class="modern-field">
+                            <label for="creditutil_month">Month</label>
                             <select id="creditutil_month" name="creditutil_month" class="form-control" style="height: 40px;">
                                 <option value="">Select</option>
                                 <option value="January">January</option>
@@ -158,28 +354,18 @@
                                 <option value="December">December</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Year -->
-                    <div class="col-md-4">
-                        <label class="form-label"><b>Year </b></label>
-                        <div class="input-group">
+                        <div class="modern-field">
+                            <label for="creditutil_year">Year</label>
                             <select id="creditutil_year" name="creditutil_year" class="form-control" style="height: 40px;">
                                 <option value="">Select</option>
                             </select>
                         </div>
+                        <div>
+                            <button id="btnShow" class="btn btn-primary" onclick="return BindUtilReport();" style="display: none;">Show</button>
+                            <button id="creditutil_btnexport" class="btn modern-btn modern-btn-primary" onclick="return creditutil_Submit()"><i class="fas fa-file-excel"></i><span>Export to Excel</span></button>
+                            <asp:Button ID="btn1" runat="server" CssClass="btn btn-primary" OnClick="btn1_Click" Style="display: none;" Text="Export to excel" />
+                        </div>
                     </div>
-
-                    <!-- Get Report -->
-                    <div class="col-md-4">
-                        <button id="btnShow" class="btn btn-primary" onclick="return BindUtilReport();" style="display: none;">Show</button>
-                        &nbsp;
-                            <button id="creditutil_btnexport" class="btn btn-gradient-primary w-100" onclick="return creditutil_Submit()">Export to excel</button>
-                        <asp:Button ID="btn1" runat="server" CssClass="btn btn-primary" OnClick="btn1_Click" Style="display: none;" Text="Export to excel" />
-                    </div>
-                    <%--</td>
-                    </tr>
-                </table>--%>
                 </div>
             </div>
         </div>
@@ -188,8 +374,8 @@
         <div class="modal-dialog text-center">
             <img src="../Images/Load.gif" />
             <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;" id="spntext">System is updating details. Please wait</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
+            <span class="report-waiting-text" id="spntext">System is updating details. Please wait</span>
+            <span class="report-waiting-dots">&nbsp;. . . .</span>
         </div>
     </div>
 </asp:Content>
