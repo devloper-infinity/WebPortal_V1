@@ -15,7 +15,7 @@ function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
 
-function md_BindMasterData() {
+function core_md_BindMasterData() {
     $('#load1').show();
     md_html = '';
     $.ajax({
@@ -248,6 +248,255 @@ function md_BindMasterData() {
     //})
     return false;
 }
+
+
+function md_BindMasterData() {
+    $('#load1').show();
+
+    const tableId = '#md_table';
+
+    const baseColumns = [
+        {
+            title: 'Sr. #', data: null, render: function (data, type, row, meta) {
+                return meta.settings._iDisplayStart + meta.row + 1;
+            }
+        },
+        { title: 'EmployeeID', data: 'EmployeeID' },
+        { title: 'Code', data: 'Code' },
+        { title: 'Name', data: 'Name' },
+        { title: 'Salary', data: 'Salary' },
+        { title: 'Joining Date', data: 'JoiningDate' },
+        { title: 'Date Of Birth', data: 'DateOfBirth' },
+        { title: 'Branch', data: 'Branch' },
+        { title: 'Department', data: 'Department' },
+        { title: 'Designation', data: 'Designation' },
+        { title: 'Domain', data: 'Domain' },
+        { title: 'Subdomain', data: 'Subdomain' },
+        { title: 'Reporting Manager', data: 'ReportingManager' },
+        { title: 'Domain Head', data: 'DomainHead' },
+        { title: 'Contact #', data: 'ContactNo' },
+        { title: 'Email Address', data: 'EmailAddress' },
+        { title: 'Present Address', data: 'PresentAddress' },
+        { title: 'Permanent Address', data: 'PermanentAddress' },
+        { title: 'UAN', data: 'UAN' },
+        { title: 'ESIC #', data: 'ESICNo' },
+        { title: 'Latest Login Date', data: 'LatestLoginDate' },
+        { title: 'Current Status', data: 'CurrentStatus' },
+        { title: 'Productivity/Task', data: 'ProductivityTask' }
+    ];
+
+    const agreementColumns = [
+        group4('Agreement 2017', 'Agreement2017Version', 'Agreement2017Date', 'Agreement2017ExpiryDate', 'Agreement2017StampPaper'),
+        group4('Agreement 2018', 'Agreement2018Version', 'Agreement2018Date', 'Agreement2018ExpiryDate', 'Agreement2018StampPaper'),
+        group4('Agreement 2019', 'Agreement2019Version', 'Agreement2019Date', 'Agreement2019ExpiryDate', 'Agreement2019StampPaper'),
+        group4('Agreement 1.1', 'Agreement11Version', 'Agreement11Date', 'Agreement11ExpiryDate', 'Agreement11StampPaper'),
+        group4('Agreement 2.0', 'Agreement2Version', 'Agreement2Date', 'Agreement2ExpiryDate', 'Agreement2StampPaper'),
+
+        agreement11('Agreement 2.8.5', 'Agreement285', '285'),
+        agreement11('Agreement 2.9', 'Agreement29', '29'),
+        agreement11('Agreement 3.0', 'Agreement3', '3')
+    ].flat();
+
+    const actionAgreementColumns = [
+        actionCol('Add Agreement', 'md_AddAgreement', 'dodgerblue', 'uil-plus-circle'),
+        actionCol('Agreement History', 'md_AgreementHistory', 'orange', 'uil-history'),
+        actionCol('Add Clause', 'md_AddAgreementClause', 'green', 'uil-plus-circle')
+    ];
+
+    const addendumColumns = [
+        addendum10('Addendum 1.0', 'Addendum1', '1Add'),
+        addendum10('Addendum 2.0', 'Addendum2', '2Add'),
+        addendum10('Addendum 2.5', 'Addendum25', '25Add')
+    ].flat();
+
+    const finalColumns = [
+        actionCol('Add Addendum', 'md_AddAddendum', 'dodgerblue', 'uil-plus-circle'),
+        actionCol('Add Clause', 'md_AddAddendumClause', 'green', 'uil-plus-circle'),
+
+        { title: 'Client List Version', data: 'ClientListVersion' },
+        { title: 'Client List Status', data: 'ClientListStatus' },
+        actionCol('Add Client List', 'md_AddClientList', 'dodgerblue', 'uil-plus-circle'),
+        actionCol('Client List History', 'md_ClientListHistory', 'orange', 'uil-history'),
+
+        { title: 'Pseudoname', data: 'Pseudoname' },
+        { title: 'Agreement Status', data: 'PseudonameAgreementStatus' },
+        { title: 'Acknowledgement Date', data: 'PseudonameAcknowledgementDate' },
+        { title: 'Penalty for Breach - Pseudoname Undertaking', data: 'PenaltyforBreachPsudonameUndertaking' },
+        actionCol('Add Pseudoname Details', 'md_AddPseudoname', 'dodgerblue', 'uil-plus-circle'),
+
+        { title: 'Undertaking Version', data: 'UndertakingVersion' },
+        { title: 'Undertaking Signed Date', data: 'UndertakingSignedDate' },
+        { title: 'Undertaking Stamp Paper #', data: 'UndertakingStampPaper' },
+        { title: 'Undertaking Cost', data: 'UndertakingStampPaperCost' },
+        actionCol('Add Undertaking', 'md_AddUndertaking', 'dodgerblue', 'uil-plus-circle'),
+
+        { title: 'File #', data: 'FileTracker' },
+        actionCol('File Tracker', 'md_FileTracker', 'dodgerblue', 'uil-plus-circle'),
+
+        { title: 'Visa #', data: 'VisaNo' },
+        { title: 'Valid Till', data: 'ValidTill' },
+        actionCol('Update Visa #', 'md_USVisa', 'dodgerblue', 'uil-plus-circle'),
+
+        { title: 'Is Scanned Copy Updated?', data: 'ScannedCopy' },
+        actionCol('Update Scanned Copy', 'md_ScannedCopy', 'dodgerblue', 'uil-plus-circle')
+    ];
+
+    const allColumns = [
+        ...baseColumns,
+        ...agreementColumns,
+        ...actionAgreementColumns,
+        ...addendumColumns,
+        ...finalColumns
+    ];
+
+    buildHeader(tableId, allColumns);
+
+    $.ajax({
+        url: "MasterData.aspx/GetMasterData",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            const dataArray = JSON.parse(data.d || '[]');
+
+            if ($.fn.DataTable.isDataTable(tableId)) {
+                $(tableId).DataTable().clear().destroy();
+            }
+
+            md_table = $(tableId).DataTable({
+                data: dataArray,
+                columns: allColumns,
+                dom: 'lBftip',
+                scrollX: true,
+                scrollCollapse: true,
+                destroy: true,
+                paging: true,
+                autoWidth: false,
+                ordering: false,
+                processing: true,
+                select: {
+                    style: 'single'
+                },
+                fixedColumns: {
+                    leftColumns: 4
+                },
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        className: 'dt-nowrap',
+                        render: function (data, type, row, meta) {
+                            if (type === 'display') {
+                                return blankForNull(data);
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Master Data',
+                        autoFilter: true
+                    }
+                ],
+                initComplete: function () {
+                    $('#load1').hide();
+                    $(tableId).show();
+                }
+            });
+        },
+
+        error: function (error) {
+            $('#load1').hide();
+            alert('error; ' + error.responseText);
+        }
+    });
+
+    return false;
+}
+
+function buildHeader(tableId, columns) {
+    let headerHtml = '<tr>';
+
+    columns.forEach(function (col) {
+        headerHtml += '<th class="sort border-top ps-3" style="text-wrap:nowrap;">' + col.title + '</th>';
+    });
+
+    headerHtml += '</tr>';
+
+    $(tableId + ' thead').html(headerHtml);
+}
+
+function group4(groupName, version, date, expiry, stamp) {
+    return [
+        { title: groupName + ' Version', data: version },
+        { title: groupName + ' Agreement Date', data: date },
+        { title: groupName + ' Expiry Date', data: expiry },
+        { title: groupName + ' Stamp Paper #', data: stamp }
+    ];
+}
+
+function agreement11(groupName, prefix, suffix) {
+    return [
+        { title: groupName + ' Version', data: prefix + 'Version' },
+        { title: groupName + ' Agreement Date', data: prefix + 'Date' },
+        { title: groupName + ' Expiry Date', data: prefix + 'ExpiryDate' },
+        { title: groupName + ' Stamp Paper #', data: prefix + 'StampPaper' },
+        { title: groupName + ' Non Solicitation Clause #', data: 'NonSolicitationClauseNo' + suffix },
+        wrapCol(groupName + ' Non Solicitation Penalty', 'NonSolicitationPenalty' + suffix),
+        { title: groupName + ' 3 Months Clause #', data: 'ThreeMonthsClauseNo' + suffix },
+        wrapCol(groupName + ' 3 Months Penalty', 'ThreeMonthsPenalty' + suffix),
+        { title: groupName + ' Minimum Service Clause #', data: 'MinimumServiceClauseNo' + suffix },
+        wrapCol(groupName + ' Minimum Service Penalty', 'MinimumServicePenalty' + suffix),
+        { title: groupName + ' Minimum Service Years', data: 'MinimumServiceYears' + suffix }
+    ];
+}
+
+function addendum10(groupName, prefix, suffix) {
+    return [
+        { title: groupName + ' Version', data: prefix + 'Version' },
+        { title: groupName + ' Signed Date', data: prefix + 'SignedDate' },
+        { title: groupName + ' Stamp Paper #', data: prefix + 'StampPaper' },
+        { title: groupName + ' Non Solicitation Clause #', data: 'NonSolicitationClauseNo' + suffix },
+        wrapCol(groupName + ' Non Solicitation Penalty', 'NonSolicitationPenalty' + suffix),
+        { title: groupName + ' 3 Months Clause #', data: 'ThreeMonthsClauseNo' + suffix },
+        wrapCol(groupName + ' 3 Months Penalty', 'ThreeMonthsPenalty' + suffix),
+        { title: groupName + ' Minimum Service Clause #', data: 'MinimumServiceClauseNo' + suffix },
+        wrapCol(groupName + ' Minimum Service Penalty', 'MinimumServicePenalty' + suffix),
+        { title: groupName + ' Minimum Service Years', data: 'MinimumServiceYears' + suffix }
+    ];
+}
+
+function wrapCol(title, fieldName) {
+    return {
+        title: title,
+        data: fieldName,
+        render: function (data) {
+            return '<label style="width:500px;text-wrap:wrap;">' + blankForNull(data) + '</label>';
+        }
+    };
+}
+
+function actionCol(title, functionName, color, icon) {
+    return {
+        title: title,
+        data: null,
+        orderable: false,
+        searchable: false,
+        render: function (data, type, row, meta) {
+            return '<a class="dropdown-item" href="#!" onclick="' + functionName + '(' + row.EmployeeID + ',' + meta.row + ');">' +
+                '<span style="color:' + color + ';">' +
+                '<i class="uil fs-0 me-2 ' + icon + '" style="font-size:14px;"></i>' +
+                '</span></a>';
+        }
+    };
+}
+
+function blankForNull(value) {
+    return value === null || value === undefined ? '' : value;
+}
+
 
 function getagreementexpirydate() {
 

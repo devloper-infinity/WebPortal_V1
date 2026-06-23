@@ -919,7 +919,7 @@ function attrition_binddomains() {
     });
 }
 
-function EmployeeInformationDetails() {
+function core_EmployeeInformationDetails() {
     $('#load1').show();
 
     var table_empveri = '';
@@ -1005,6 +1005,136 @@ function EmployeeInformationDetails() {
             $(this).html('<input type="text" placeholder="Search ' + title + '" class="column_search" />');
         }
         else {
+            $(this).html('');
+        }
+        isSearch++;
+    });
+
+    $('#empveri_table thead').on('keyup', ".column_search", function () {
+        table_empveri
+            .column($(this).parent().index())
+            .search(this.value)
+            .draw();
+    });
+}
+
+function EmployeeInformationDetails() {
+    $('#load1').show();
+
+    var table_empveri = '';
+
+    $.ajax({
+        url: "EmployeeInformation.aspx/GetAllEmployeeInformation",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);
+
+            table_empveri = $('#empveri_table').DataTable({
+                dom: 'Bftip',
+                destroy: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: true,
+                paging: true,
+                autoWidth: false,
+                ordering: false,
+                processing: true,
+                filter: true,
+                serverSide: false,
+                select: {
+                    style: 'single'
+                },
+
+                data: dataArray,
+
+                fixedColumns: {
+                    leftColumns: 3   // Sr.No + first 3 columns
+                },
+
+                columns: [
+                    // {
+                    //     data: null,
+                    //     render: function (data, type, row, meta) {
+                    //         return meta.row + 1;
+                    //     }
+                    // },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.settings._iDisplayStart + meta.row + 1;
+                        }
+                    },
+                    { data: 'Code' },
+                    { data: 'Name' },
+                    { data: 'Salary' },
+                    { data: 'JoiningDate' },
+                    { data: 'DateOfBirth' },
+                    { data: 'Branch' },
+                    { data: 'Domain' },
+                    { data: 'Subdomain' },
+                    { data: 'Process' },
+                    { data: 'Department' },
+                    { data: 'Designation' },
+                    { data: 'ReportingManager' },
+                    { data: 'PresentAddress' },
+                    { data: 'PermanentAddress' },
+                    { data: 'ContactNo' },
+                    { data: 'ESICNo' },
+                    { data: 'PFNo' },
+                    { data: 'UAN' },
+                    { data: 'PersonalEmail' },
+                    { data: 'OfficialEmailID' },
+                    { data: 'CurrentStatus' },
+                    { data: 'ResignationDate' },
+                    { data: 'LastWorkingDate' },
+                    { data: 'LatestLoginDate' }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: '_all',
+                        className: 'dt-nowrap'
+                    },
+                    {
+                        targets: 0,
+                        searchable: false,
+                        orderable: false,
+                        width: '60px'
+                    }
+                ],
+
+                initComplete: function () {
+                    $('#load1').hide();
+                },
+
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Employee Verification Details',
+                        autoFilter: true
+                    }
+                ]
+            });
+        },
+
+        error: function (error) {
+            $('#load1').hide();
+            alert('error; ' + error.responseText);
+        }
+    });
+
+    var isSearch = 0;
+
+    $('#empveri_table thead tr:eq(1) th').each(function () {
+        if (isSearch === 1 || isSearch === 2) {
+            var title = $(this).text();
+            $(this).html(
+                '<input type="text" placeholder="Search ' + title + '" class="column_search" />'
+            );
+        } else {
             $(this).html('');
         }
         isSearch++;

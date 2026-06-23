@@ -64,6 +64,7 @@
             font-size: 11px !important;
         }*/
     </style>
+    <link rel="stylesheet" href="ModernReportSecuritization.css" />
     <script>
         $(document).ready(function () {
             servcons_bindyear();
@@ -305,23 +306,26 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Servicing Consolidated Report</b></h6>
-                </div>
+    <div class="credit-report-header">
+        <div class="credit-report-title">
+            <span class="credit-report-title-icon"><i class="bi bi-diagram-3-fill"></i></span>
+            <div>
+                <h1>Servicing Consolidated Report</h1>
+                <span>Monthly servicing reporting workspace</span>
             </div>
         </div>
-        <!-- /.container-fluid -->
+        <div class="credit-report-badge">
+            <i class="fas fa-layer-group"></i>
+            <span>16 report views</span>
+        </div>
     </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td style="width: 50px;"><b>Month:</b></td>
-                        <td style="width: 150px;">
+    <div class="col-lg-12 report-main">
+        <div class="card report-shell">
+            <div class="card-body report-shell-body">
+                <div class="report-filter-panel">
+                    <div class="report-filter-grid">
+                        <div class="report-filter-field">
+                            <label for="servcons_month">Month</label>
                             <select id="servcons_month" name="servcons_month" class="form-control">
                                 <option value="">Select</option>
                                 <option value="January">January</option>
@@ -337,28 +341,24 @@
                                 <option value="November">November</option>
                                 <option value="December">December</option>
                             </select>
-                        </td>
-                        <td style="width: 50px;">
-                            <b>Year:</b>
-                        </td>
-                        <td style="width: 150px;">
+                        </div>
+                        <div class="report-filter-field">
+                            <label for="servcons_year">Year</label>
                             <select id="servcons_year" name="servcons_year" class="form-control">
                                 <option value="">Select</option>
                             </select>
-                        </td>
-                        <td style="width: 100px;">
-                            <button id="btnShow" class="btn btn-primary" onclick="return BindAllGrids_Serv();">Show</button>
-                            &nbsp;
-                            <button id="servcons_btnexport" class="btn btn-primary" onclick="return servcons_Submit()">Export to excel</button>
+                        </div>
+                        <div class="report-button-group">
+                            <button id="btnShow" class="btn report-btn report-btn-primary" onclick="return BindAllGrids_Serv();"><i class="fas fa-search"></i><span>Show</span></button>
+                            <button id="servcons_btnexport" class="btn report-btn report-btn-secondary" onclick="return servcons_Submit()"><i class="fas fa-file-excel"></i><span>Export to Excel</span></button>
                             <%--onclick="return BindMagnaGrid();"--%>
                             <asp:Button ID="btn1" runat="server" Style="display: none;" OnClick="btn1_Click" />
-                        </td>
-                    </tr>
-                </table>
-                <hr />
+                        </div>
+                    </div>
+                </div>
 
-                <div class="card-header p-0 pt-1">
-                    <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+                <div class="card-header report-tabs-bar">
+                    <ul class="nav nav-tabs credit-report-tabs" id="custom-tabs-one-tab" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Project Inflow</a>
                         </li>
@@ -414,7 +414,7 @@
                     </ul>
                 </div>
 
-                <div class="card-body">
+                <div class="card-body report-content">
                     <div class="tab-content" id="custom-tabs-one-tabContent">
                         <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
                             <table class="table table-bordered" id="project_table" style="width: 100%;"></table>
@@ -526,8 +526,8 @@
         <div class="modal-dialog text-center">
             <img src="../Images/Load.gif" />
             <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;" id="spntext">System is updating details. Please wait</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
+            <span class="report-waiting-text" id="spntext">System is updating details. Please wait</span>
+            <span class="report-waiting-dots">&nbsp;. . . .</span>
         </div>
     </div>
 </asp:Content>

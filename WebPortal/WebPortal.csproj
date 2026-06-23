@@ -131,6 +131,7 @@
     <Content Include="Accounts\CreditCardMaster.aspx" />
     <Content Include="Accounts\CreditCardMonthlyTransaction.aspx" />
     <Content Include="Accounts\Dashboard.aspx" />
+    <Content Include="Accounts\AccountsModern.css" />
     <Content Include="Accounts\ESIPFDeductionReport.aspx" />
     <Content Include="Accounts\ImportCCStatement.aspx" />
     <Content Include="Accounts\IncentiveMaster.aspx" />
@@ -2764,6 +2765,7 @@
     <Content Include="Scripts\Search\VerifyBilling.js" />
     <Content Include="Scripts\Search\ViewBilling.js" />
     <Content Include="Scripts\SessionHandler.js" />
+    <Content Include="Scripts\TrackingSheet\AddFeedback.js" />
     <Content Include="Scripts\TrackingSheet\Allocate.js" />
     <Content Include="Scripts\US\CoditionAnalysis.js" />
     <Content Include="Scripts\US\ConditionClearing.js" />
@@ -2783,7 +2785,9 @@
     <Content Include="Search\ProjectTrackingReport.aspx" />
     <Content Include="Search\VerifyBilling.aspx" />
     <Content Include="Search\ViewBilling.aspx" />
+    <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
+    <Content Include="Tracking\CssMaster.css" />
     <Content Include="UploadScreenShot\16-Sep-2025\34426\sunset-tulip-field-stockcake.jpg" />
     <Content Include="UploadScreenShot\17-Dec-2025\01\Issue.png" />
     <Content Include="UploadScreenShot\17-Dec-2025\01\UCC-Bank.jpeg" />
@@ -4535,6 +4539,13 @@
     </Compile>
     <Compile Include="Search\ViewBilling.aspx.designer.cs">
       <DependentUpon>ViewBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tracking\AddFeedback.aspx.cs">
+      <DependentUpon>AddFeedback.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tracking\AddFeedback.aspx.designer.cs">
+      <DependentUpon>AddFeedback.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tracking\Allocate.aspx.cs">
       <DependentUpon>Allocate.aspx</DependentUpon>

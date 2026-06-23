@@ -141,7 +141,23 @@ body {
 .modern-filter-grid,
 .report-filter-grid {
     align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
     gap: 14px 16px;
+}
+
+.modern-field,
+.report-filter-field {
+    flex: 0 1 220px;
+    min-width: 180px;
+}
+
+.report-button-group {
+    align-items: center;
+    display: flex;
+    flex: 1 1 280px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .modern-field label,

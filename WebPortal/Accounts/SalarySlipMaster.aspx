@@ -2,69 +2,6 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
-    <%-- <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        .dataTables_scrollBody {
-            min-height: 100px !important;
-            height: auto;
-        }
-
-        .dataTables_length, .dataTables_info {
-            float: left !important;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-         border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            /*    background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;*/
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none !important;
-            background-color: #fff !important;
-        }
-
-        .form-grid select {
-            width: 250px;
-        }
-    </style>--%>
-
-
     <style>
         .dashboard-card {
             color: white;
@@ -110,6 +47,159 @@
             padding: 12px;
             font-size: 12px;
             margin: auto;
+        }
+
+        #popUpSalarySlip .modal-dialog {
+            margin: 10px auto;
+            max-width: 1120px;
+            width: calc(100vw - 24px);
+        }
+
+        #popUpSalarySlip .modal-content {
+            background: #f3f6f8;
+            border: 0;
+            border-radius: 8px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+            overflow: hidden;
+        }
+
+        #popUpSalarySlip .modal-header {
+            align-items: center;
+            background: linear-gradient(135deg, #164e63 0%, #1d4ed8 100%);
+            border-bottom: 0;
+            color: #fff;
+            padding: 12px 18px;
+        }
+
+        #popUpSalarySlip .modal-title {
+            align-items: center;
+            color: #fff;
+            display: flex;
+            font-size: 20px;
+            font-weight: 700;
+            gap: 12px;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        #popUpSalarySlip .modal-title:before {
+            background:
+                radial-gradient(circle at 25px 15px, #fff 0 3.5px, transparent 4px),
+                radial-gradient(circle at 14px 33px, #fff 0 3.5px, transparent 4px),
+                radial-gradient(circle at 25px 33px, #fff 0 3.5px, transparent 4px),
+                radial-gradient(circle at 36px 33px, #fff 0 3.5px, transparent 4px),
+                linear-gradient(#fff, #fff) 24px 18px / 2px 10px no-repeat,
+                linear-gradient(#fff, #fff) 11px 27px / 28px 2px no-repeat,
+                linear-gradient(#fff, #fff) 13px 27px / 2px 7px no-repeat,
+                linear-gradient(#fff, #fff) 24px 27px / 2px 7px no-repeat,
+                linear-gradient(#fff, #fff) 35px 27px / 2px 7px no-repeat,
+                rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 18px;
+            content: "";
+            display: inline-block;
+            flex-shrink: 0;
+            height: 44px;
+            width: 44px;
+        }
+
+        #popUpSalarySlip .salary-slip-close {
+            background: rgba(255, 255, 255, 0.96) !important;
+            border: 1px solid rgba(255, 255, 255, 0.96) !important;
+            color: #17324d !important;
+            gap: 8px;
+            min-height: 36px;
+            padding: 7px 13px;
+        }
+
+        #popUpSalarySlip .salary-slip-modal-body {
+            background: #eef3f7;
+            margin: 0 !important;
+            overflow: hidden;
+            padding: 10px 14px;
+            width: auto !important;
+        }
+
+        #popUpSalarySlip .salary-slip-preview-frame {
+            background: #fff;
+            border: 1px solid #dce5ec;
+            border-radius: 8px;
+            box-shadow: 0 14px 34px rgba(31, 51, 71, 0.12);
+            margin: 0 auto;
+            max-width: 100%;
+            overflow: hidden;
+            padding: 10px;
+            width: max-content;
+        }
+
+        #popUpSalarySlip #divsal {
+            margin: 0 auto;
+            min-width: 700px;
+            transform-origin: top center;
+            width: max-content;
+        }
+
+        #popUpSalarySlip #tblslip {
+            background: #fff;
+            border: 4px double #1f2937 !important;
+            box-shadow: none;
+            margin: 0 auto;
+        }
+
+        #popUpSalarySlip #imglogo {
+            max-height: 70px;
+            max-width: 260px;
+        }
+
+        #popUpSalarySlip .modal-footer {
+            background: #fff;
+            border-top: 1px solid #e7edf2;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 10px 16px;
+        }
+
+        #popUpSalarySlip .salary-slip-print-btn {
+            background: #0f766e !important;
+            border: 1px solid #0f766e !important;
+            color: #fff !important;
+            min-width: 110px;
+        }
+
+        #popUpSalarySlip .salary-slip-print-btn:hover,
+        #popUpSalarySlip .salary-slip-print-btn:focus {
+            background: #0b5f59 !important;
+            border-color: #0b5f59 !important;
+            color: #fff !important;
+        }
+
+        @media (max-width: 767px) {
+            #popUpSalarySlip .modal-dialog {
+                margin: 8px;
+                width: calc(100vw - 16px);
+            }
+
+            #popUpSalarySlip .modal-header {
+                align-items: flex-start;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            #popUpSalarySlip .modal-title {
+                font-size: 18px;
+            }
+
+            #popUpSalarySlip .salary-slip-print-btn {
+                width: 100%;
+            }
+
+            #popUpSalarySlip .salary-slip-modal-body {
+                padding: 8px;
+            }
+
+            #popUpSalarySlip .salary-slip-preview-frame {
+                padding: 8px;
+            }
         }
     </style>
 
@@ -226,6 +316,58 @@
 
         });
 
+        function fitSalarySlipPopup() {
+            var modal = document.getElementById('popUpSalarySlip');
+            if (!modal) return;
+
+            var body = modal.querySelector('.salary-slip-modal-body');
+            var frame = modal.querySelector('.salary-slip-preview-frame');
+            var slip = modal.querySelector('#divsal');
+            var table = modal.querySelector('#tblslip');
+            var dialog = modal.querySelector('.modal-dialog');
+            var header = modal.querySelector('.modal-header');
+            var footer = modal.querySelector('.modal-footer');
+
+            if (!body || !frame || !slip || !table || !dialog) return;
+
+            slip.style.zoom = '1';
+            slip.style.transform = 'none';
+            slip.style.height = '';
+            slip.style.width = 'max-content';
+            body.style.height = '';
+
+            var bodyStyles = window.getComputedStyle(body);
+            var frameStyles = window.getComputedStyle(frame);
+            var bodyPaddingY = parseFloat(bodyStyles.paddingTop) + parseFloat(bodyStyles.paddingBottom);
+            var bodyPaddingX = parseFloat(bodyStyles.paddingLeft) + parseFloat(bodyStyles.paddingRight);
+            var framePaddingY = parseFloat(frameStyles.paddingTop) + parseFloat(frameStyles.paddingBottom);
+            var framePaddingX = parseFloat(frameStyles.paddingLeft) + parseFloat(frameStyles.paddingRight);
+            var chromeHeight = (header ? header.offsetHeight : 0) + (footer ? footer.offsetHeight : 0);
+            var availableHeight = window.innerHeight - chromeHeight - bodyPaddingY - framePaddingY - 34;
+            var availableWidth = dialog.clientWidth - bodyPaddingX - framePaddingX - 18;
+            var naturalWidth = table.offsetWidth;
+            var naturalHeight = table.offsetHeight;
+
+            if (!naturalWidth || !naturalHeight) return;
+
+            var scale = Math.min(1, availableWidth / naturalWidth, availableHeight / naturalHeight);
+            scale = Math.max(0.55, Math.min(1, scale));
+
+            slip.style.zoom = scale.toString();
+            frame.style.width = Math.ceil(naturalWidth * scale) + 'px';
+            body.style.height = Math.ceil(naturalHeight * scale + framePaddingY) + 'px';
+        }
+
+        $(document).on('shown.bs.modal', '#popUpSalarySlip', function () {
+            setTimeout(fitSalarySlipPopup, 60);
+        });
+
+        $(window).on('resize', function () {
+            if ($('#popUpSalarySlip').hasClass('show')) {
+                fitSalarySlipPopup();
+            }
+        });
+
     </script>
 </asp:Content>
 
@@ -274,15 +416,16 @@
     </div>
 
 
-    <div class="modal fade" id="popUpSalarySlip">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
+    <div class="modal fade salary-slip-popup" id="popUpSalarySlip" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered salary-slip-dialog">
+            <div class="modal-content salary-slip-content">
+                <div class="modal-header salary-slip-modal-header">
                     <h4 class="modal-title">Salary Slip</h4>
-                    <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary salary-slip-close" data-dismiss="modal"><i class="fas fa-times"></i><span>Close</span></button>
                 </div>
 
-                <div class="modal-body" style="width: 700px; margin-left: 25px; margin-right: 25px;">
+                <div class="modal-body salary-slip-modal-body">
+                    <div class="salary-slip-preview-frame">
                     <div id="divsal">
                         <table style="border: double; font-size: 12px; padding: 15px;" id="tblslip">
                             <tr>
@@ -569,10 +712,11 @@
                             </tr>
                         </table>
                     </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-success" onclick="printSlip()">Print</button>
+                    <button type="button" class="btn btn-success salary-slip-print-btn" onclick="printSlip()"><i class="fas fa-print"></i><span>Print</span></button>
                 </div>
             </div>
         </div>
