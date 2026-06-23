@@ -94,6 +94,39 @@ namespace WebPortal.Tracking
             return data;
         }
 
+
+        [WebMethod]
+        public static int AllocateOrders_Self(string Project, string DealNo, string OrderNo, string Process)
+        {
+            int ReturnValue = 0;
+            DateTime dt = new DateTime();
+            Hashtable htParam = new Hashtable();
+
+            string Reviewer = EmployeeInfo.Current.Code;
+
+            htParam.Add("ProjectNumber", Project);
+            htParam.Add("DealNo", DealNo);
+            htParam.Add("OrderNumber", OrderNo);
+            htParam.Add("Review", Reviewer);
+            htParam.Add("ReviewEndTime", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
+            htParam.Add("Process", Process);
+            htParam.Add("ProductType", "");
+            htParam.Add("Status", "Pending");
+            htParam.Add("Type", "Allocation");
+
+            if (Project == "561" || Project == "667")
+            {
+                ReturnValue = 10;// new bllTracking().InsertModifyUWOrderOC22Servicing(htParam);
+            }
+            else
+            {
+                ReturnValue = 10;// new bllTracking().InsertModifyUWOrderOC22(htParam);
+            }
+
+            return ReturnValue;
+        }
+
+
         [WebMethod]
         public static int UpdateLoanStatus(string Project, string DealNo, string OrderNo, string Process, string ProjectID, string Status, string HoldRemark, string Remark, string ProductType, string UserName)
         {
@@ -243,7 +276,7 @@ namespace WebPortal.Tracking
             if (processId <= 0)
                 return new AllocateFeedbackSaveResult { Success = false, Message = "Process is not valid." };
 
-            int addedBy = GetCurrentEmployeeId();
+            int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString()); 
             string errorBy = (model.ErrorBy ?? string.Empty).Trim().ToUpperInvariant();
             string feedbackBy = (model.FeedbackBy ?? string.Empty).Trim().ToUpperInvariant();
 
@@ -268,12 +301,12 @@ namespace WebPortal.Tracking
             htFeedback["Field"] = Clean(model.SubCategory);
             htFeedback["FeedbackerrorPath"] = string.Empty;
 
-            int feedbackId = InsertFeedbackForNewOrderUnderwritingByTracking(htFeedback);
+            int feedbackId = new bllTracking().InsertFeedbackForNewOrderUnderwritingByTracking(htFeedback);
             if (feedbackId <= 0)
                 return new AllocateFeedbackSaveResult { Success = false, Message = "Unable to add feedback." };
 
             htFeedback["Feedback"] = feedbackId;
-            int addResult = AddFeedbackForNewOrder(htFeedback);
+            int addResult = new bllTracking().AddFeedbackForNewOrder(htFeedback);
             if (addResult <= 0)
                 return new AllocateFeedbackSaveResult { Success = false, Message = "Unable to save feedback details." };
 
@@ -471,7 +504,8 @@ namespace WebPortal.Tracking
 
         private static string GetCurrentUserPseudoName()
         {
-            string code = GetCurrentUserCode();
+            string code = EmployeeInfo.Current.Code;
+            
             if (string.IsNullOrWhiteSpace(code))
                 return string.Empty;
 
@@ -480,93 +514,6 @@ namespace WebPortal.Tracking
             string pseudoName = Convert.ToString(SQLHelper.ExecuteScalarCmd(cmd));
 
             return string.IsNullOrWhiteSpace(pseudoName) ? code : pseudoName;
-        }
-
-        private static int GetCurrentEmployeeId()
-        {
-            try
-            {
-                string code = GetCurrentUserCode();
-                if (!string.IsNullOrWhiteSpace(code))
-                {
-                    SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetEmployeeIdFromCode");
-                    SQLHelper.AddParamToSQLCmd(cmd, "@Code", SqlDbType.NVarChar, 10, ParameterDirection.Input, code);
-                    SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
-                    SQLHelper.ExecuteNonQueryCmd(cmd);
-                    int id = ToInt(Convert.ToString(cmd.Parameters["@ReturnValue"].Value));
-                    if (id > 0) return id;
-                }
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                return EmployeeInfo.Current.EmployeeID;
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        private static string GetCurrentUserCode()
-        {
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(EmployeeInfo.Current.Code))
-                    return EmployeeInfo.Current.Code;
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                return Convert.ToString(HttpContext.Current.User.Identity.Name);
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-
-        private static int InsertFeedbackForNewOrderUnderwritingByTracking(Hashtable htParam)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertFeedbackForNewOrder_KRL");
-            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OrderNo"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@OrderDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OrderDate"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["ProjectID"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["ProcessID"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorDoneBy ", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["ErrorDoneBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackGivenBy ", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["FeedbackGivenBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy ", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd(cmd);
-            return ToInt(Convert.ToString(cmd.Parameters["@ReturnValue"].Value));
-        }
-
-        private static int AddFeedbackForNewOrder(Hashtable htParam)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_AddFeedbackForNewOrder_1");
-            SQLHelper.AddParamToSQLCmd(cmd, "@Feedback", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Feedback"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorType", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["ErrorType"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Fatal", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Fatal"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorField", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["ErrorField"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Section", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Section"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Field", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Field"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Error", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Error"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Shouldbe", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Shouldbe"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackType", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["FeedbackType"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackRecivedDate", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["FeedbackRecivedDate"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Remark"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackerrorPath", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["FeedbackerrorPath"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd(cmd);
-            return ToInt(Convert.ToString(cmd.Parameters["@ReturnValue"].Value));
         }
 
         private static int UnderwritingTrackingSheetProcessStatusLog(string projectNo, string loanNo, string processName, string userCode, string processDate)

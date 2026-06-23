@@ -14,7 +14,6 @@
         }
 
         .ticket-page {
-            padding: 8px 14px 28px;
             background: #f8fafc;
             min-height: calc(100vh - 90px);
         }
@@ -23,8 +22,7 @@
             position: relative;
             overflow: hidden;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            align-items: flex-start;
             gap: 18px;
             color: #fff;
             background: linear-gradient(135deg, #2563eb 0%, #7c3aed 55%, #f97316 120%);
@@ -72,7 +70,7 @@
             justify-content: center;
             border-radius: 16px;
             color: #fff;
-            background: linear-gradient(135deg, var(--ticket-primary), #7c3aed);
+            background: linear-gradient(135deg, var(--ticket-primary), #fe7096);
             box-shadow: 0 14px 26px rgba(37, 99, 235, .25);
             font-size: 22px;
         }
@@ -183,11 +181,11 @@
     </div>
     <div class="ticket-page">
         <div class="ticket-hero">
-            <div>
-                <h4><i class="fas fa-copy"></i>&nbsp;&nbsp;Ticket Queue</h4>
+            <span class="ticket-hero-icon"><i class="fas fa-ticket-alt"></i></span> <div>
+                <h4>Ticket Queue</h4>
                 <p>Review assigned tickets, priority, TAT and elapsed time in one clean view.</p>
             </div>
-            <span class="ticket-hero-icon"><i class="fas fa-ticket-alt"></i></span>
+           
         </div>
         <div class="col-lg-12 p-0">
             <div class="card ticket-card">

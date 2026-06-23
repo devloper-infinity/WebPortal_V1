@@ -133,6 +133,240 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetCurrentProcessOfUser(int OrderId, int TaskAssignedId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetCurrentProcessOfUser");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskAssignedId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, TaskAssignedId);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetOrdersOnProcessForUser(int OrderId, int TaskAssignedId, int ProcessId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_OST_GetOrdersOnProcessForUser]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmpId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, TaskAssignedId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, ProcessId);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int ValidateCostingProcessWise(int OrderID, int Process)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_ValidateCostingOrderWise");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, OrderID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, Process);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public int UpdateTaskStatusAndDate(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_UpdateTaskStatusDate");
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskId", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["TaskId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskStatus", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["TaskStatus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskAssignedId", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["TaskAssignedId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 10000, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaxProcess", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["TaxProcess"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AuditProcess", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AuditProcess"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OfflineProcess", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["OfflineProcess"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public string GetCodeFromEmployeeId(string EmployeeId, string OrderNo, string ProjectName)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetCodeFromEmployeeId");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, EmployeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, OrderNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectName", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, ProjectName);
+            string ReturnValue = Convert.ToString(SQLHelper.ExecuteScalarCmd(cmd));
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public int InsertOrderAttachment(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertOrderAttachment");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DocId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["DocId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Path", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["Path"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PathFrom", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["PathFrom"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public int DispatchOrderTask(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_DispatchOrderTask");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskTemplateid", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["TaskTemplateid"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskAssignedId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["TaskAssignedId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 400, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Addedby", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AdddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public int FeedBackOrders(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertFeedbackOrderProcess");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", System.Data.SqlDbType.NVarChar, 400, System.Data.ParameterDirection.Input, htParam["OrderNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectName", System.Data.SqlDbType.NVarChar, 400, System.Data.ParameterDirection.Input, htParam["ProjectName"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessName", System.Data.SqlDbType.NVarChar, 400, System.Data.ParameterDirection.Input, htParam["ProcessName"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public int InsertProductionManualCosting(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertProductionManualCosting");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchEngineType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchEngineType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchEngineLink", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, htParam["SearchEngineLink"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCostNoOfSearches", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["SearchCostNoOfSearches"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCostCost", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["SearchCostCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCostTotal", System.Data.SqlDbType.Decimal, 50, System.Data.ParameterDirection.Input, htParam["SearchCostTotal"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostPattern", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchCopyCostPattern"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostDocsType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchCopyCostDocsType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostPagesDocsMain", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["SearchCopyCostPagesDocsMain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostCostMain", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["SearchCopyCostCostMain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostTotalMain", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["SearchCopyCostTotalMain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostPagesDocs", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["SearchCopyCostPagesDocs"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostCost", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["SearchCopyCostCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchCopyCostTotal", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["SearchCopyCostTotal"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentSearchCostNoOfSeraches", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["JudgmentSearchCostNoOfSeraches"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentSearchCostCost", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["JudgmentSearchCostCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentSearchCostTotal", System.Data.SqlDbType.Decimal, 50, System.Data.ParameterDirection.Input, htParam["JudgmentSearchCostTotal"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostPattern", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostPattern"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostDocsType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostDocsType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostPagesDocsMain", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostPagesDocsMain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostCostMain", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostCostMain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostTotalMain", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostTotalMain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostPagesDocs", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostPagesDocs"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostCost", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgmentCopyCostTotal", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["JudgmentCopyCostTotal"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JudgementSearchLink", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["JudgementSearchLink"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaxChargesDescription", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["TaxChargesDescription"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaxAmount", System.Data.SqlDbType.Decimal, 200, System.Data.ParameterDirection.Input, htParam["TaxAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OtherChargesDescription", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["OtherChargesDescription"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OtherChargesAmount", System.Data.SqlDbType.Decimal, 200, System.Data.ParameterDirection.Input, htParam["OtherChargesAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProductionCost", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["ProductionCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NoOfDocuments", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["NoOfDocuments"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NoOfPages", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["NoOfPages"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaxInformation", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["TaxInformation"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CalledTaxes", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["CalledTaxes"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Attachment", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Attachment"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SnippingTools", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["SnippingTools"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PagesDeliverToClient", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["PagesDeliverToClient"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TotalCost", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["TotalCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Addedby", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public DataTable GetOrderCostingForUpdate(int OrderId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetOrderCostingForBindFields");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderId);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetOrderCostingByOrder(int OrderID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetOrderCostingByOrder");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderID);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetAbstractorOrderCostingDetails(int OrderID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetAbstractorOrderCostingDetails");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderID);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int InsertAbstractorManualCosting(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertAbstractorManualCosting");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchEngineType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchEngineType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchEngineLink", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, htParam["SearchEngineLink"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AbstractorSearchCost", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["AbstractorSearchCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AbstractorCopyCostPages", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AbstractorCopyCostPages"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AbstractorCopyCostCostTotal", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["AbstractorCopyCostCostTotal"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OtherCostDescription", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["OtherCostDescription"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OtherCost", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["OtherCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AbstractorTotalCost", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htParam["AbstractorTotalCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Addedby", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
+        public DataTable GetOrderCostingForCCUpdate(int OrderId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetOrderCostingForCCFields");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderId);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int InsertCreditCardPayInfoForCosting(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertCreditCardPayInfoForCosting");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ValidFromDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["ValidFromDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ValidUpTo", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["ValidUpTo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NameOfThePlant", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["NameOfThePlant"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NameOfTheCard", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["NameOfTheCard"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CreditCardNo", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htParam["CreditCardNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchingAmount", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["SearchingAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DownloadingAmount", System.Data.SqlDbType.Decimal, 20, System.Data.ParameterDirection.Input, htParam["DownloadingAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Addedby", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
         public DataTable GetAllInfinityOrderByProjectAndUser(int UserId, int ProjectId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetInfinityOrdersByProject");

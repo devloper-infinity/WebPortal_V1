@@ -2755,10 +2755,11 @@
     <Content Include="Scripts\Reports\ServicingConsolidatedReports.js" />
     <Content Include="Scripts\Reports\ConsolidatedReports.js" />
     <Content Include="Scripts\Search\AbstractorReport.js" />
+    <Content Include="Scripts\Search\Costing.js" />
     <Content Include="Scripts\Search\OrderAllocation.js" />
     <Content Include="Scripts\Search\OrderEntry.js" />
     <Content Include="Scripts\Search\OSTReport.js" />
-    <Content Include="Scripts\Search\ProcessOrder.js" />
+    <Content Include="Scripts\Search\ProcessOrders.js" />
     <Content Include="Scripts\Search\ProjectTrackingReport.js" />
     <Content Include="Scripts\Search\VerifyBilling.js" />
     <Content Include="Scripts\Search\ViewBilling.js" />
@@ -2775,6 +2776,7 @@
     <Content Include="Scripts\US\LoanDetails.js" />
     <Content Include="Scripts\US\UserPerformanceReport.js" />
     <Content Include="Search\AbstractorReport.aspx" />
+    <Content Include="Search\Costing.aspx" />
     <Content Include="Search\DownloadFiles.aspx" />
     <Content Include="Search\OrderAllocation.aspx" />
     <Content Include="Search\OrderEntry.aspx" />
@@ -2910,8 +2912,8 @@
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
     </Compile>
-    <Content Include="App_Code\BLL\bllProjectTracking.cs" />
-    <Content Include="App_Code\DAL\dalProjectTracking.cs" />
+    <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
+    <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="CRM\Accounts.aspx.cs">
       <DependentUpon>Accounts.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4460,6 +4462,13 @@
     </Compile>
     <Compile Include="Search\AbstractorReport.aspx.designer.cs">
       <DependentUpon>AbstractorReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Search\Costing.aspx.cs">
+      <DependentUpon>Costing.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Search\Costing.aspx.designer.cs">
+      <DependentUpon>Costing.aspx</DependentUpon>
     </Compile>
     <Compile Include="Search\DownloadFiles.aspx.cs">
       <DependentUpon>DownloadFiles.aspx</DependentUpon>

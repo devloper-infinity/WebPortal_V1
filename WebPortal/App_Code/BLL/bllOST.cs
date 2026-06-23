@@ -73,6 +73,81 @@ namespace WebPortal.App_Code.BLL
             return dalOst.GetAllPendingOrders(UserId);
         }
 
+        public DataTable GetCurrentProcessOfUser(int OrderId, int TaskAssignedId)
+        {
+            return dalOst.GetCurrentProcessOfUser(OrderId, TaskAssignedId);
+        }
+
+        public DataTable GetOrdersOnProcessForUser(int OrderId, int TaskAssignedId, int ProcessId)
+        {
+            return dalOst.GetOrdersOnProcessForUser(OrderId, TaskAssignedId, ProcessId);
+        }
+
+        public int UpdateTaskStatusAndDate(Hashtable htParam)
+        {
+            return dalOst.UpdateTaskStatusAndDate(htParam);
+        }
+
+        public int ValidateCostingProcessWise(int OrderID, int Process)
+        {
+            return dalOst.ValidateCostingProcessWise(OrderID, Process);
+        }
+
+        public string GetCodeFromEmployeeId(string EmployeeId, string OrderNo, string ProjectName)
+        {
+            return dalOst.GetCodeFromEmployeeId(EmployeeId, OrderNo, ProjectName);
+        }
+
+        public int InsertOrderAttachment(Hashtable htParam)
+        {
+            return dalOst.InsertOrderAttachment(htParam);
+        }
+
+        public int DispatchOrderTask(Hashtable htParam)
+        {
+            return dalOst.DispatchOrderTask(htParam);
+        }
+
+        public int FeedBackOrders(Hashtable htParam)
+        {
+            return dalOst.FeedBackOrders(htParam);
+        }
+
+        public int InsertProductionManualCosting(Hashtable htParam)
+        {
+            return dalOst.InsertProductionManualCosting(htParam);
+        }
+
+        public DataTable GetOrderCostingForUpdate(int OrderId)
+        {
+            return dalOst.GetOrderCostingForUpdate(OrderId);
+        }
+
+        public DataTable GetOrderCostingByOrder(int OrderID)
+        {
+            return dalOst.GetOrderCostingByOrder(OrderID);
+        }
+
+        public DataTable GetAbstractorOrderCostingDetails(int OrderID)
+        {
+            return dalOst.GetAbstractorOrderCostingDetails(OrderID);
+        }
+
+        public int InsertAbstractorManualCosting(Hashtable htParam)
+        {
+            return dalOst.InsertAbstractorManualCosting(htParam);
+        }
+
+        public DataTable GetOrderCostingForCCUpdate(int OrderId)
+        {
+            return dalOst.GetOrderCostingForCCUpdate(OrderId);
+        }
+
+        public int InsertCreditCardPayInfoForCosting(Hashtable htParam)
+        {
+            return dalOst.InsertCreditCardPayInfoForCosting(htParam);
+        }
+
         public DataTable getBillingPeriodByProject(string Project)
         {
             return dalOst.getBillingPeriodByProject(Project);

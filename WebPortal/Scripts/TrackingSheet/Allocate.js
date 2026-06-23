@@ -2,6 +2,8 @@
 
 /*---------------- Tab 1 - Order Allocation ----------------*/
 
+var selectedRows = [];
+
 function allocate_bindProcess() {
 
     var prjId = 17;
@@ -32,7 +34,7 @@ function allocate_bindProcess() {
     });
 }
 
-function GetLoansToAllocate() {
+function GetLoansToAllocate_bindGrid() {
 
     var processName = $('#allocate_process').val();
     processName = 'Loan Setup';
@@ -47,6 +49,7 @@ function GetLoansToAllocate() {
         data: JSON.stringify({ ProcessName: processName, Type: "Allocation" }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+
         success: function (data) {
 
             var dataArray = data.d;
@@ -56,10 +59,9 @@ function GetLoansToAllocate() {
                 $('#table_OrderAllocate').DataTable().destroy();
             }
 
-            $('#table_OrderAllocate').DataTable({
+            var OrderAllocate_table = $('#table_OrderAllocate').DataTable({
 
                 data: dataArray,
-
                 dom: 'ftip',
                 scrollX: true,
                 paging: true,
@@ -78,6 +80,13 @@ function GetLoansToAllocate() {
                             return meta.row + 1;
                         }
                     },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return '<input type="checkbox" class="loan-checkbox">';
+                        }
+                    },
                     { data: "ProjectName" },
                     { data: "Process" },
                     { data: "DealNo" },
@@ -88,8 +97,29 @@ function GetLoansToAllocate() {
 
                 initComplete: function () {
                     $('#load1').hide();
-                }
+                },
             });
+            // Scroll to table
+            $('html, body').animate({
+                scrollTop: $('#table_OrderAllocate').offset().top - 100
+            }, 500);
+            // Allow maximum 2 selections
+            $('#table_OrderAllocate tbody')
+                .off('change', '.loan-checkbox')
+                .on('change', '.loan-checkbox', function () {
+
+                    var checkedCount = $('#table_OrderAllocate tbody .loan-checkbox:checked').length;
+
+                    if (checkedCount > 2) {
+                        $(this).prop('checked', false);
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Limit Exceeded',
+                            text: 'You can select only 2 loans at a time.'
+                        });
+                    }
+                });
         },
 
         error: function (xhr) {
@@ -103,6 +133,87 @@ function GetLoansToAllocate() {
     });
 }
 
+
+$('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
+    var rowData = $('#table_OrderAllocate').DataTable()
+        .row($(this).closest('tr'))
+        .data();
+
+    selectedRows.push(rowData);
+});
+
+function AllocateOrders() {
+
+    var table = $('#table_OrderAllocate').DataTable();
+    var selectedLoans = [];
+
+    $('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
+
+        var rowData = table.row($(this).closest('tr')).data();
+
+        if (rowData) {
+            selectedLoans.push({
+                Project: rowData.ProjectName,   // change to ProjectNumber if your data has it
+                DealNo: rowData.DealNo,
+                OrderNo: rowData.LoanNo,
+                Process: rowData.Process
+            });
+        }
+    });
+
+    if (selectedLoans.length === 0) {
+        Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Please select at least one loan.' });
+        return false;
+    }
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to allocate selected loan(s)?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Allocate'
+    }).then(function (result) {
+
+        if (result.isConfirmed) {
+
+            $('#load1').show();
+
+            var requests = selectedLoans.map(function (loan) {
+
+                return $.ajax({
+                    type: "POST",
+                    url: "Allocate.aspx/AllocateOrders_Self",
+                    data: JSON.stringify({
+                        Project: loan.Project,
+                        DealNo: loan.DealNo,
+                        OrderNo: loan.OrderNo,
+                        Process: loan.Process
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json"
+                });
+            });
+
+            $.when.apply($, requests)
+                .done(function () {
+
+                    $('#load1').hide();
+
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Selected loan(s) allocated successfully.' });
+
+                    GetLoansToAllocate_bindGrid();
+                })
+                .fail(function (xhr) {
+
+                    $('#load1').hide();
+
+                    console.error(xhr.responseText);
+
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Error while allocating loan(s).' });
+                });
+        }
+    });
+}
 
 
 /*---------------- Tab 2 - Order Status ----------------*/
@@ -345,103 +456,14 @@ function enableHoldRemark(obj) {
     }
 }
 
-
-
 $(document).on('click', '.openRemarkPopup', function () {
     var table = $('#table_OrderComplete').DataTable();
     var row = table.row($(this).closest('tr')).data() || {};
     AllocateFeedbackPopup.open(row);
 });
 
-/*---------------- Tab 3 - Order Allocation ----------------*/
 
-function allocate_GetLoanReport() {
-
-    var fromDate = $("#allocate_FromDate").val();
-    var toDate = $("#allocate_ToDate").val();
-
-    if (fromDate == "") {
-        Swal.fire('Validation', 'Please select From Date.', 'warning');
-        return false;
-    }
-
-    if (toDate == "") {
-        Swal.fire('Validation', 'Please select To Date.', 'warning');
-        return false;
-    }
-
-    // $('#load1').show();
-
-    allocate_GetLoanReport_Grid(fromDate, toDate);
-}
-
-function allocate_GetLoanReport_Grid(fromDate, toDate) {
-
-    var UserName = '';
-
-    $.ajax({
-        type: "POST",
-        url: "Allocate.aspx/GetUserOrders",
-        data: JSON.stringify({ UserName: UserName, FromDate: fromDate, ToDate: toDate }),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (data) {
-
-            var dataArray = data.d;
-
-            // Destroy existing DataTable
-            if ($.fn.DataTable.isDataTable('#table_Orderreport')) {
-                $('#table_Orderreport').DataTable().destroy();
-            }
-
-            $('#table_Orderreport').DataTable({
-
-                data: dataArray,
-                dom: 'ftip',
-                scrollX: true,
-                paging: true,
-                autoWidth: false,
-                ordering: false,
-                processing: true,
-
-                select: {
-                    style: 'single'
-                },
-
-                columns: [
-                    {
-                        data: null,
-                        render: function (data, type, row, meta) {
-                            return meta.row + 1;
-                        }
-                    },
-                    { data: "ProjectName" },
-                    { data: "DealNo" },
-                    { data: "OrderNumber" },
-                    { data: "OrderStatus" },
-                    { data: "Remark" },/* "HoldReason" */
-                    { data: "Remark" },
-                    { data: "StartDate" },
-                    { data: "ProcessDate" },
-                    { data: "TAT" }
-                ],
-
-                initComplete: function () {
-                    $('#load1').hide();
-                }
-            });
-        },
-
-        error: function (xhr) {
-
-            $('#load1').hide();
-
-            console.error(xhr.responseText);
-
-            alert("Error loading data");
-        }
-    });
-}
+/*--------- Feedbacks ----------*/
 
 var AllocateFeedbackPopup = (function () {
     var selectedContext = {};
@@ -933,6 +955,101 @@ var AllocateFeedbackPopup = (function () {
     };
 })();
 
+
 $(document).ready(function () {
     AllocateFeedbackPopup.init();
 });
+
+
+
+/*---------------- Tab 3 - Order Allocation ----------------*/
+
+function allocate_GetLoanReport() {
+
+    var fromDate = $("#allocate_FromDate").val();
+    var toDate = $("#allocate_ToDate").val();
+
+    if (fromDate == "") {
+        Swal.fire('Validation', 'Please select From Date.', 'warning');
+        return false;
+    }
+
+    if (toDate == "") {
+        Swal.fire('Validation', 'Please select To Date.', 'warning');
+        return false;
+    }
+
+    // $('#load1').show();
+
+    allocate_GetLoanReport_Grid(fromDate, toDate);
+}
+
+function allocate_GetLoanReport_Grid(fromDate, toDate) {
+
+    var UserName = '';
+
+    $.ajax({
+        type: "POST",
+        url: "Allocate.aspx/GetUserOrders",
+        data: JSON.stringify({ UserName: UserName, FromDate: fromDate, ToDate: toDate }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data) {
+
+            var dataArray = data.d;
+
+            // Destroy existing DataTable
+            if ($.fn.DataTable.isDataTable('#table_Orderreport')) {
+                $('#table_Orderreport').DataTable().destroy();
+            }
+
+            $('#table_Orderreport').DataTable({
+
+                data: dataArray,
+                dom: 'ftip',
+                scrollX: true,
+                paging: true,
+                autoWidth: false,
+                ordering: false,
+                processing: true,
+
+                select: {
+                    style: 'single'
+                },
+
+                columns: [
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: "ProjectName" },
+                    { data: "DealNo" },
+                    { data: "OrderNumber" },
+                    { data: "OrderStatus" },
+                    { data: "Remark" },/* "HoldReason" */
+                    { data: "Remark" },
+                    { data: "StartDate" },
+                    { data: "ProcessDate" },
+                    { data: "TAT" }
+                ],
+
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+        },
+
+        error: function (xhr) {
+
+            $('#load1').hide();
+
+            console.error(xhr.responseText);
+
+            alert("Error loading data");
+        }
+    });
+}
+
+
