@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="MasterData.aspx.cs" Inherits="WebPortal.Admin.MasterData" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-       <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -16,7 +16,6 @@
             left: 50%;
             margin-top: -96px;
             margin-left: -96px;
-            /*  background-color: #ccc;*/
             opacity: .85;
             border-radius: 25px;
             width: 192px;
@@ -63,13 +62,6 @@
             background-color: #fff !important;
         }
 
-
-
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
-
-
         :root {
             --md-primary: #2457e6;
             --md-primary-dark: #183fb5;
@@ -81,7 +73,6 @@
         }
 
         .master-data-page {
-           
             background: linear-gradient(180deg, #f7faff 0%, #ffffff 70%);
             min-height: calc(100vh - 120px);
         }
@@ -96,30 +87,28 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 22px 24px;
-            border-radius: 24px;
+            padding: 10px 20px;
+            border-radius: 15px;
             color: #fff;
-            background:
-                radial-gradient(circle at 12% 18%, rgba(255,255,255,.26), transparent 28%),
-                linear-gradient(135deg, #14256f 0%, #2457e6 54%, #25bfd4 100%);
+            background: radial-gradient(circle at top right, rgba(37, 191, 212, .65), transparent 34%), linear-gradient(135deg, #172554 0%, #2457e6 52%, #23bfd5 100%);
             box-shadow: 0 18px 45px rgba(36, 87, 230, .22);
         }
 
-        .modern-page-hero:after {
-            content: "";
-            position: absolute;
-            right: -80px;
-            top: -95px;
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, .14);
-        }
+            .modern-page-hero:after {
+                content: "";
+                position: absolute;
+                right: -80px;
+                top: -95px;
+                width: 250px;
+                height: 250px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, .14);
+            }
 
         .modern-page-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 22px;
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -130,12 +119,12 @@
             backdrop-filter: blur(8px);
         }
 
-        .modern-page-icon i {
-            display: block;
-            font-size: 35px;
-            line-height: 1;
-            color: #fff;
-        }
+            .modern-page-icon i {
+                display: block;
+                font-size: 35px;
+                line-height: 1;
+                color: #fff;
+            }
 
         .modern-page-copy {
             position: relative;
@@ -145,7 +134,7 @@
 
         .modern-page-title {
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: -.03em;
         }
@@ -174,9 +163,9 @@
             white-space: nowrap;
         }
 
-        .hero-chip i {
-            font-size: 15px;
-        }
+            .hero-chip i {
+                font-size: 15px;
+            }
 
         .modern-data-card {
             border: 1px solid var(--md-border);
@@ -206,16 +195,16 @@
             font-weight: 800;
         }
 
-        .toolbar-title i {
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--md-primary);
-            background: #edf4ff;
-        }
+            .toolbar-title i {
+                width: 36px;
+                height: 36px;
+                border-radius: 12px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--md-primary);
+                background: #edf4ff;
+            }
 
         .toolbar-note {
             margin: 0;
@@ -253,17 +242,17 @@
             overflow: visible !important;
         }
 
-        .dataTables_scrollHead table.dataTable thead th,
-        #tblReport thead th {
-            display: table-cell !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            background: #eaf3ff !important;
-            color: #172033 !important;
-            font-weight: 800 !important;
-            position: relative;
-            z-index: 3;
-        }
+            .dataTables_scrollHead table.dataTable thead th,
+            #tblReport thead th {
+                display: table-cell !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                background: #eaf3ff !important;
+                color: #172033 !important;
+                font-weight: 800 !important;
+                position: relative;
+                z-index: 3;
+            }
 
         table.dataTable tbody td,
         .table.dataTable tr td {
@@ -287,11 +276,11 @@
             outline: none;
         }
 
-        .dataTables_wrapper .dataTables_filter input:focus,
-        .dataTables_wrapper .dataTables_length select:focus {
-            border-color: var(--md-primary) !important;
-            box-shadow: 0 0 0 3px rgba(36,87,230,.12);
-        }
+            .dataTables_wrapper .dataTables_filter input:focus,
+            .dataTables_wrapper .dataTables_length select:focus {
+                border-color: var(--md-primary) !important;
+                box-shadow: 0 0 0 3px rgba(36,87,230,.12);
+            }
 
         .dataTables_wrapper .dataTables_paginate .paginate_button {
             border-radius: 10px !important;
@@ -299,12 +288,12 @@
             margin: 0 2px;
         }
 
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            color: #fff !important;
-            background: linear-gradient(135deg, var(--md-primary), var(--md-cyan)) !important;
-            border-color: transparent !important;
-        }
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                color: #fff !important;
+                background: linear-gradient(135deg, var(--md-primary), var(--md-cyan)) !important;
+                border-color: transparent !important;
+            }
 
         .loading {
             top: 50%;
@@ -316,12 +305,21 @@
         }
 
         @media (max-width: 768px) {
-            .modern-page-hero { align-items: flex-start; flex-direction: column; }
-            .hero-chip { margin-left: 0; }
-            .modern-page-title { font-size: 22px; }
-        }
+            .modern-page-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
 
+            .hero-chip {
+                margin-left: 0;
+            }
+
+            .modern-page-title {
+                font-size: 22px;
+            }
+        }
     </style>
+
     <script>
         $(document).ready(function () {
             //md_BindMasterData();
@@ -550,6 +548,7 @@
             console.log($.fn.dataTable.FixedColumns?.version);
         }
     </script>
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -574,7 +573,7 @@
         <div class="modern-data-card">
             <div class="modern-data-toolbar">
                 <div>
-                    <h2 class="toolbar-title"><i class="bi bi-table"></i> Master Data Report</h2>
+                    <h2 class="toolbar-title"><i class="bi bi-table"></i>Master Data Report</h2>
                     <p class="toolbar-note">Use search, sorting and horizontal scroll to review records quickly.</p>
                 </div>
             </div>

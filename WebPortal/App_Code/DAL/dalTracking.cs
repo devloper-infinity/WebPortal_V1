@@ -368,5 +368,86 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             return dt;
         }
+
+        public int InsertModifyUWOrderOC22(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_CompleteAllocateOrderToVendorInTrackingSheet_DISP_Allocation_KIP");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProjectNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["OrderNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Review"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReviewEndTime", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ReviewEndTime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Type"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProductType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBY", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["AddedBY"]);
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public int InsertModifyUWOrderOC22Servicing(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_CompleteAllocateOrderToVendorInTrackingSheet_DISP_Allocation_Servicing");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProjectNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["OrderNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Review"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReviewEndTime", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ReviewEndTime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Type"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProductType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBY", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["AddedBY"]);
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+        
+        public int InsertFeedbackForNewOrderUnderwritingByTracking(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertFeedbackForNewOrder_KRL");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OrderNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OrderDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["ProjectID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorDoneBy ", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["ErrorDoneBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackGivenBy ", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["FeedbackGivenBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy ", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public int AddFeedbackForNewOrder(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_AddFeedbackForNewOrder_1");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Feedback", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Feedback"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorType", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["ErrorType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Fatal", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Fatal"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorField", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["ErrorField"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Section", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Section"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Field", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Field"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Error", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Error"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Shouldbe", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Shouldbe"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackType", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["FeedbackType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackRecivedDate", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["FeedbackRecivedDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackerrorPath", SqlDbType.NVarChar, 10000, ParameterDirection.Input, htParam["FeedbackerrorPath"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
     }
 }

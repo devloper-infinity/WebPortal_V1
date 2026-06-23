@@ -187,6 +187,29 @@ namespace WebPortal.App_Code.BLL
         {
             return dalTracking.GetProcessDetailsForFeedbackUser(UserName, FromDate, ToDate);
         }
+
+        public int InsertModifyUWOrderOC22(Hashtable htParam)
+        {
+            return dalTracking.InsertModifyUWOrderOC22(htParam);
+        }
+
+        public int InsertModifyUWOrderOC22Servicing(Hashtable htParam)
+        {
+            return dalTracking.InsertModifyUWOrderOC22Servicing(htParam);
+        }
+
+
+        public int InsertFeedbackForNewOrderUnderwritingByTracking(Hashtable htParam)
+        {
+            return dalTracking.InsertFeedbackForNewOrderUnderwritingByTracking(htParam);
+
+        }
+
+        public int AddFeedbackForNewOrder(Hashtable htParam)
+        {
+            return dalTracking.AddFeedbackForNewOrder(htParam);
+        }
+
     }
 }
 

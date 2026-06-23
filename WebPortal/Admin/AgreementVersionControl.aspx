@@ -1,66 +1,416 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="AgreementVersionControl.aspx.cs" Inherits="WebPortal.Admin.AgreementVersionControl" %>
 
+
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
     <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
+    :root {
+        --avc-primary: #2457e6;
+        --avc-primary-dark: #173bb8;
+        --avc-cyan: #25bfd4;
+        --avc-success: #16a34a;
+        --avc-danger: #ef4444;
+        --avc-bg: #f4f7fb;
+        --avc-card: #ffffff;
+        --avc-text: #172033;
+        --avc-muted: #667085;
+        --avc-border: #d9e2ef;
+        --avc-soft: #eef4ff;
+        --avc-shadow: 0 18px 45px rgba(15, 23, 42, .09);
+        --avc-radius: 22px;
+    }
 
-        .dataTables_paginate {
-            float: left !important;
-        }
+    .loading {
+        display: none;
+        position: fixed;
+        top: 350px;
+        left: 50%;
+        margin-top: -96px;
+        margin-left: -96px;
+        opacity: .85;
+        border-radius: 25px;
+        width: 192px;
+        height: 192px;
+        z-index: 99999;
+        text-align: center;
+    }
 
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dt-buttons {
-            display: flex;
-            align-items: center;
-        }
+    .agreement-page {
+      
+        background: var(--avc-bg);
+        min-height: calc(100vh - 80px);
+    }
 
-        .dataTables_wrapper .dataTables_length {
-            float: left !important;
-        }
+    .modern-header-wrap {
+        margin-bottom: 18px;
+    }
 
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
+    .modern-page-hero {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 10px 24px;
+        border-radius: 15px;
+        color: #fff;
+        background:
+            radial-gradient(circle at top right, rgba(37, 191, 212, .65), transparent 34%),
+            linear-gradient(135deg, #172554 0%, #2457e6 52%, #23bfd5 100%);
+        box-shadow: 0 22px 45px rgba(36, 87, 230, .22);
+    }
 
-        .buttons-excel {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-        }
+    .modern-page-hero:before {
+        content: "";
+        position: absolute;
+        inset: -80px auto auto -80px;
+        width: 210px;
+        height: 210px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.14);
+    }
 
-        .table.dataTable th {
-            /*background:linear-gradient(to bottom, #0070C0, 80%, #ffffff);*/
-            background: linear-gradient(to bottom, #cbd0dd, 3%, #fff) !important;
-            color: #000;
-        }
+    .modern-page-icon {
+        position: relative;
+        z-index: 1;
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: rgba(255,255,255,.18);
+        border: 1px solid rgba(255,255,255,.28);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 14px 25px rgba(0,0,0,.16);
+        backdrop-filter: blur(8px);
+    }
 
-        .table.dataTable tr td {
-            background: none;
+    .modern-page-icon i {
+        display: block;
+        line-height: 1;
+        font-size: 36px;
+        color: #fff;
+    }
+
+    .modern-page-copy {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        min-width: 0;
+        padding:3px;
+    }
+
+    .modern-page-title {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.2;
+        font-weight: 800;
+        letter-spacing: -.4px;
+    }
+
+    .modern-page-subtitle {
+        margin: 7px 0 0;
+        color: rgba(255,255,255,.82);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .hero-actions {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .hero-chip,
+    .hero-report-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 9px 14px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+        background: rgba(255,255,255,.16);
+        border: 1px solid rgba(255,255,255,.25);
+        text-decoration: none !important;
+        white-space: nowrap;
+    }
+
+    .hero-report-link:hover {
+        color: #fff;
+        background: rgba(255,255,255,.24);
+        transform: translateY(-1px);
+    }
+
+    .modern-card {
+        border: 0;
+        border-radius: var(--avc-radius);
+        overflow: hidden;
+        background: var(--avc-card);
+        box-shadow: var(--avc-shadow);
+    }
+
+    .modern-card .card-header {
+        padding: 14px 16px 0 !important;
+        background: #fff;
+        border-bottom: 1px solid var(--avc-border);
+    }
+
+    .modern-card .card-body {
+        padding: 20px;
+    }
+
+    .nav-tabs {
+        border: 0;
+        gap: 8px;
+    }
+
+    .nav-tabs .nav-link {
+        border: 0 !important;
+        border-radius: 14px 14px 0 0;
+        padding: 12px 18px;
+        color: var(--avc-muted);
+        font-weight: 800;
+        background: #f3f6fb;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--avc-primary);
+        background: #fff;
+        box-shadow: 0 -2px 0 var(--avc-primary) inset;
+    }
+
+    .modern-section {
+        border: 1px solid var(--avc-border);
+        border-radius: 20px;
+        padding: 18px;
+        background: linear-gradient(180deg, #fff, #fbfdff);
+        margin-bottom: 18px;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 16px;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--avc-text);
+    }
+
+    .section-title i {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: linear-gradient(135deg, var(--avc-primary), var(--avc-cyan));
+    }
+
+    .modern-form-row {
+        align-items: end;
+        row-gap: 14px;
+    }
+
+    .modern-label,
+    .agreement-page label {
+        color: #344054;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+
+    .agreement-page .form-control {
+        border: 1px solid var(--avc-border);
+        border-radius: 13px;
+        min-height: 42px;
+        color: var(--avc-text);
+        box-shadow: none;
+        font-size: 13px;
+    }
+
+    .agreement-page textarea.form-control {
+        min-height: 92px;
+        resize: vertical;
+    }
+
+    .agreement-page .form-control:focus {
+        border-color: var(--avc-primary);
+        box-shadow: 0 0 0 4px rgba(36, 87, 230, .11);
+    }
+
+    .clause-row,
+    .type-row {
+        border: 1px solid var(--avc-border) !important;
+        border-radius: 18px !important;
+        background: #fff;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, .04);
+    }
+
+    .btn {
+        border-radius: 12px !important;
+        font-weight: 800 !important;
+        font-size: 13px !important;
+        padding: 9px 15px !important;
+        border: 0 !important;
+    }
+
+    .btn-info,
+    .btn-primary,
+    .gradient-btn {
+        color: #fff !important;
+        background: linear-gradient(135deg, var(--avc-primary), var(--avc-cyan)) !important;
+        box-shadow: 0 10px 20px rgba(36, 87, 230, .18);
+    }
+
+    .btn-danger {
+        color: #fff !important;
+        background: linear-gradient(135deg, #ef4444, #f97316) !important;
+        min-width: 38px;
+    }
+
+    .btn-light,
+    .btn-cancel {
+        color: #344054 !important;
+        background: #eef2f7 !important;
+    }
+
+    .table-card {
+        margin-top: 20px;
+        padding: 16px;
+        border: 1px solid var(--avc-border);
+        border-radius: 20px;
+        background: #fff;
+    }
+
+    .table-card .table {
+        width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0;
+        margin-bottom: 0 !important;
+    }
+
+    .table.dataTable thead th,
+    table.dataTable thead th {
+        font-size: 12px;
+        font-weight: 800;
+        padding: 12px 14px !important;
+        border: 0 !important;
+        white-space: nowrap;
+    }
+
+    .table.dataTable thead th:first-child {
+        border-top-left-radius: 14px;
+    }
+
+    .table.dataTable thead th:last-child {
+        border-top-right-radius: 14px;
+    }
+
+    .table.dataTable tbody td {
+        padding: 11px 14px !important;
+        border-bottom: 1px solid #edf1f7 !important;
+        color: #344054;
+        font-size: 12px;
+        background: #fff !important;
+        vertical-align: top;
+    }
+
+    .table.dataTable tbody tr:hover td {
+        background: var(--avc-soft) !important;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 12px;
+        color: var(--avc-muted);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid var(--avc-border);
+        border-radius: 10px;
+        padding: 6px 9px;
+        outline: none;
+    }
+
+    .dataTables_paginate {
+        float: left !important;
+        margin-top: 12px !important;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dt-buttons {
+        display: flex;
+        align-items: center;
+    }
+
+    .dataTables_wrapper .dataTables_length {
+        float: left !important;
+    }
+
+    div.dt-buttons {
+        position: static;
+        padding-left: 50px;
+        float: left;
+    }
+
+    .buttons-excel {
+        color: #fff;
+        box-shadow: none;
+        background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+        border: 0;
+        font-weight: bold;
+    }
+
+    .modal-content {
+        border: 0;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, .18);
+    }
+
+    .modal-header {
+        color: #fff;
+        background: linear-gradient(135deg, #172554, #2457e6);
+        border: 0;
+    }
+
+    .modal-header .close {
+        color: #fff;
+        opacity: 1;
+    }
+
+    .modal-body,
+    .modal-footer {
+        background: #fbfdff;
+    }
+
+    @media (max-width: 768px) {
+        .modern-page-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 20px;
         }
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
-    </style>
+        .hero-actions {
+            justify-content: flex-start;
+        }
+        .modern-page-title {
+            font-size: 22px;
+        }
+    }
+</style>
 
 
     <%--Clause Functions--%>
@@ -435,29 +785,32 @@
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
 
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Agreement Version Control</b></h6>
+    <div class="agreement-page">
+        <div class="modern-header-wrap">
+            <div class="modern-page-hero">
+                <div class="modern-page-icon">
+                    <i class="bi bi-file-earmark-check-fill"></i>
                 </div>
-                <div class="col-sm-6" style="text-align: right;">
-                    <a href="AgreementVersionsHistoryReport.aspx" class="m-0" style="font-size: 13px; text-decoration: underline; margin-right: 100px; font-weight: bold;">Agreement Version Report</a>
+                <div class="modern-page-copy">
+                    <h1 class="modern-page-title">Agreement Version Control</h1>
+                    <p class="modern-page-subtitle">Create, track and review agreement clauses and agreement type history.</p>
+                </div>
+                <div class="hero-actions">
+                    <span class="hero-chip"><i class="bi bi-shield-check"></i> Controlled Agreement Records</span>
+                    <a href="AgreementVersionsHistoryReport.aspx" class="hero-report-link"><i class="bi bi-box-arrow-up-right"></i> Version Report</a>
                 </div>
             </div>
         </div>
-        <!-- /.container-fluid -->
-    </div>
 
-    <div class="col-lg-12">
-        <div class="card">
+        <div class="col-lg-12 p-0">
+            <div class="card modern-card">
             <div class="card-header p-0 pt-1">
                 <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist" style="font-weight: bold;">
                     <li class="nav-item">
-                        <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Version History</a>
+                        <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><i class="bi bi-clock-history"></i> Version History</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="custom-tabs-one-excel-tab" data-toggle="pill" href="#custom-tabs-one-excel" role="tab" aria-controls="custom-tabs-one-excel" aria-selected="false">Type History</a>
+                        <a class="nav-link" id="custom-tabs-one-excel-tab" data-toggle="pill" href="#custom-tabs-one-excel" role="tab" aria-controls="custom-tabs-one-excel" aria-selected="false"><i class="bi bi-tags-fill"></i> Type History</a>
                     </li>
                 </ul>
             </div>
@@ -466,7 +819,9 @@
                     <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
                         <%--<div class="card-body"></div>--%>
 
-                        <div class="row mb-4">
+                        <div class="modern-section">
+                            <h5 class="section-title"><i class="bi bi-file-earmark-text-fill"></i> Version Details</h5>
+                            <div class="row mb-4 modern-form-row">
 
 
                             <%--  <div class="col-md-6">
@@ -491,9 +846,11 @@
                                 <input type="date" id="txtVersionDate" class="form-control" />
                             </div>
                         </div>
+                        </div>
 
                         <!-- Clause Section -->
-                        <h5><b>Clauses</b></h5>
+                        <div class="modern-section">
+                        <h5 class="section-title"><i class="bi bi-list-check"></i> Clauses</h5>
                         <div id="clauseContainer">
                             <div class="clause-row mb-3 p-3 border rounded">
                                 <div class="row">
@@ -541,7 +898,9 @@
 
                     <div class="tab-pane fade" id="custom-tabs-one-excel" role="tabpanel" aria-labelledby="custom-tabs-one-excel-tab">
 
-                        <div class="row mb-4">
+                        <div class="modern-section">
+                            <h5 class="section-title"><i class="bi bi-file-earmark-text-fill"></i> Type Version Details</h5>
+                        <div class="row mb-4 modern-form-row">
                             <div class="col-md-1">
                                 <label><b>Version :</b></label>
                             </div>
@@ -555,8 +914,10 @@
                                 <input type="date" id="txttypeVersionDate" class="form-control" />
                             </div>
                         </div>
+                        </div>
                         <!-- Type Section -->
-                        <h5><b>Types</b></h5>
+                        <div class="modern-section">
+                        <h5 class="section-title"><i class="bi bi-tags-fill"></i> Types</h5>
                         <div id="typeContainer">
                             <div class="type-row mb-3 p-3 border rounded">
                                 <div class="row">
@@ -579,10 +940,11 @@
                         </div>
                         <!-- Bottom Buttons -->
                         <div class="text-right">
-                            <button type="button" class="btn btn-info" onclick="addtype()">+ Add Type</button>
-                            <button type="button" id="btnTypeSaveAll" class="btn btn-primary">Submit</button>
+                            <button type="button" class="btn btn-info" onclick="addtype()"><i class="bi bi-plus-circle"></i> Add Type</button>
+                            <button type="button" id="btnTypeSaveAll" class="btn btn-primary"><i class="bi bi-send-check"></i> Submit</button>
                         </div>
-                        <div class="card-body">
+                        </div>
+                        <div class="table-card">
                             <table class="table" id="table_agreeType" style="width: 100%;">
                                 <thead>
                                     <tr>
@@ -603,6 +965,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <div class="modal fade" id="popUp_editagrversioncontrol">

@@ -1,6 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Tracking/Tracking.Master" AutoEventWireup="true" CodeBehind="Allocate.aspx.cs" Inherits="WebPortal.Tracking.Allocate" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
@@ -137,13 +138,13 @@
             white-space: nowrap;
         }
 
-        .alloc-open-feedback:hover,
-        .alloc-open-feedback:focus {
-            background: #dcf7f2;
-            color: #064e47;
-            outline: none;
-            text-decoration: none;
-        }
+            .alloc-open-feedback:hover,
+            .alloc-open-feedback:focus {
+                background: #dcf7f2;
+                color: #064e47;
+                outline: none;
+                text-decoration: none;
+            }
 
         .alloc-feedback-modal .modal-content {
             border: 0;
@@ -218,24 +219,24 @@
             padding: 12px 14px;
         }
 
-        .alloc-context-item span {
-            color: #64748b;
-            display: block;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
+            .alloc-context-item span {
+                color: #64748b;
+                display: block;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+            }
 
-        .alloc-context-item strong {
-            color: #102033;
-            display: block;
-            font-size: 13px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .alloc-context-item strong {
+                color: #102033;
+                display: block;
+                font-size: 13px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
         .alloc-feedback-tabs {
             background: #eaf1fb;
@@ -248,31 +249,31 @@
             padding: 8px;
         }
 
-        .alloc-feedback-tabs .nav-item {
-            width: 100%;
-        }
+            .alloc-feedback-tabs .nav-item {
+                width: 100%;
+            }
 
-        .alloc-feedback-tabs .nav-link {
-            align-items: center;
-            border: 1px solid transparent !important;
-            border-radius: 9px !important;
-            color: #17365d !important;
-            display: flex !important;
-            font-size: 12px;
-            font-weight: 800 !important;
-            gap: 8px;
-            height: 42px !important;
-            justify-content: center;
-            width: 100%;
-        }
+            .alloc-feedback-tabs .nav-link {
+                align-items: center;
+                border: 1px solid transparent !important;
+                border-radius: 9px !important;
+                color: #17365d !important;
+                display: flex !important;
+                font-size: 12px;
+                font-weight: 800 !important;
+                gap: 8px;
+                height: 42px !important;
+                justify-content: center;
+                width: 100%;
+            }
 
-        .alloc-feedback-tabs .nav-link.active {
-            background: #fff !important;
-            border-color: #d7e2f0 !important;
-            border-bottom: 3px solid #087c9a !important;
-            color: #083344 !important;
-            box-shadow: 0 8px 16px rgba(15,23,42,.10) !important;
-        }
+                .alloc-feedback-tabs .nav-link.active {
+                    background: #fff !important;
+                    border-color: #d7e2f0 !important;
+                    border-bottom: 3px solid #087c9a !important;
+                    color: #083344 !important;
+                    box-shadow: 0 8px 16px rgba(15,23,42,.10) !important;
+                }
 
         .alloc-feedback-panel {
             background: #fff;
@@ -285,27 +286,27 @@
             margin-bottom: 14px;
         }
 
-        .alloc-feedback-field label {
-            color: #334155;
-            display: block;
-            font-size: 12px;
-            font-weight: 800;
-            margin-bottom: 7px;
-        }
+            .alloc-feedback-field label {
+                color: #334155;
+                display: block;
+                font-size: 12px;
+                font-weight: 800;
+                margin-bottom: 7px;
+            }
 
-        .alloc-feedback-field .form-control {
-            background: #fff;
-            border: 1px solid #cfd9e7;
-            border-radius: 8px;
-            font-size: 13px;
-            min-height: 42px;
-        }
+            .alloc-feedback-field .form-control {
+                background: #fff;
+                border: 1px solid #cfd9e7;
+                border-radius: 8px;
+                font-size: 13px;
+                min-height: 42px;
+            }
 
-        .alloc-feedback-field textarea.form-control {
-            height: auto;
-            min-height: 74px;
-            resize: vertical;
-        }
+            .alloc-feedback-field textarea.form-control {
+                height: auto;
+                min-height: 74px;
+                resize: vertical;
+            }
 
         .alloc-feedback-actions {
             align-items: center;
@@ -341,29 +342,29 @@
             transition: border-color .18s ease, background .18s ease;
         }
 
-        .alloc-dropzone i {
-            color: #0f766e;
-            font-size: 32px;
-        }
+            .alloc-dropzone i {
+                color: #0f766e;
+                font-size: 32px;
+            }
 
-        .alloc-dropzone strong {
-            color: #102033;
-            display: block;
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
+            .alloc-dropzone strong {
+                color: #102033;
+                display: block;
+                font-size: 15px;
+                margin-bottom: 4px;
+            }
 
-        .alloc-dropzone span {
-            color: #64748b;
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-        }
+            .alloc-dropzone span {
+                color: #64748b;
+                display: block;
+                font-size: 12px;
+                font-weight: 700;
+            }
 
-        .alloc-dropzone.is-dragover {
-            background: #ecfdf5;
-            border-color: #0f766e;
-        }
+            .alloc-dropzone.is-dragover {
+                background: #ecfdf5;
+                border-color: #0f766e;
+            }
 
         .alloc-import-summary {
             display: grid;
@@ -380,19 +381,19 @@
             padding: 11px 13px;
         }
 
-        .alloc-import-pill span {
-            color: #64748b;
-            display: block;
-            font-size: 11px;
-            font-weight: 800;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
+            .alloc-import-pill span {
+                color: #64748b;
+                display: block;
+                font-size: 11px;
+                font-weight: 800;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+            }
 
-        .alloc-import-pill strong {
-            color: #0f172a;
-            font-size: 18px;
-        }
+            .alloc-import-pill strong {
+                color: #0f172a;
+                font-size: 18px;
+            }
 
         .alloc-import-results {
             display: grid;
@@ -419,18 +420,18 @@
             overflow: auto;
         }
 
-        .alloc-result-scroll table {
-            margin: 0;
-            width: 100%;
-        }
+            .alloc-result-scroll table {
+                margin: 0;
+                width: 100%;
+            }
 
-        .alloc-result-scroll th,
-        .alloc-result-scroll td {
-            border-bottom: 1px solid #edf2f8;
-            font-size: 12px;
-            padding: 8px 10px;
-            white-space: nowrap;
-        }
+            .alloc-result-scroll th,
+            .alloc-result-scroll td {
+                border-bottom: 1px solid #edf2f8;
+                font-size: 12px;
+                padding: 8px 10px;
+                white-space: nowrap;
+            }
 
         @media (max-width: 991px) {
             .alloc-context-grid,
@@ -503,7 +504,7 @@
             padding: 13px 14px !important;
             border-bottom: 1px solid #d9e2f1 !important;
             white-space: nowrap !important;
-            text-align: left;
+            text-align: left !important;
             /* vertical-align: middle !important;*/
         }
 
@@ -521,6 +522,7 @@
         .dataTables_wrapper table[id] thead,
         table.dataTable thead {
             display: table-header-group;
+            text-align: left;
         }
 
         /* Scroll fix */
@@ -613,7 +615,7 @@
         <div class="sec-stat-grid">
             <div class="sec-stat">
                 <span>Allocated</span>
-                <strong id="sectrack_stat_deals">0</strong>
+                <strong id="sectrack_stat_deals"></strong>
             </div>
             <div class="sec-stat">
                 <span>Open Order</span>
@@ -650,8 +652,13 @@
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-4">
-                                    <button id="allocate_btnSubmit" type="button" class="bank-submit-btn" onclick="return GetLoansToAllocate();">
-                                        <i class="fas fa-save mr-1"></i>Get Order
+                                    <button id="allocate_btnShow" type="button" class="btn btn-primary w-100" onclick="return GetLoansToAllocate_bindGrid();">
+                                        <i class="fas fa-search me-1"></i>&nbsp;&nbsp;Show Loans
+                                    </button>
+                                </div>
+                                <div class="col-lg-3 col-md-4">
+                                    <button id="allocate_btnSubmit" type="button" class="bank-submit-btn w-100" onclick="return AllocateOrders();">
+                                        <i class="fas fa-tasks me-1"></i>&nbsp;&nbsp;Allocate Loans
                                     </button>
                                 </div>
                             </div>
@@ -661,6 +668,7 @@
                             <thead>
                                 <tr>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Action</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
@@ -926,9 +934,11 @@
                                 <div class="alloc-feedback-actions">
                                     <button type="button" class="alloc-outline-btn" id="allocfb_btnFormat">
                                         <i class="fas fa-download mr-1"></i>Download Format
+                                   
                                     </button>
                                     <button type="button" class="bank-submit-btn" id="allocfb_btnUpload">
                                         <i class="fas fa-file-upload mr-1"></i>Upload
+                                   
                                     </button>
                                 </div>
 
@@ -937,11 +947,11 @@
                                         <span>Total Rows</span>
                                         <strong id="allocfb_importTotal">0</strong>
                                     </div>
-                                    <div class="alloc-import-pill" style="border-left-color:#0f766e;">
+                                    <div class="alloc-import-pill" style="border-left-color: #0f766e;">
                                         <span>Imported</span>
                                         <strong id="allocfb_importAdded">0</strong>
                                     </div>
-                                    <div class="alloc-import-pill" style="border-left-color:#dc2626;">
+                                    <div class="alloc-import-pill" style="border-left-color: #dc2626;">
                                         <span>Not Imported</span>
                                         <strong id="allocfb_importFailed">0</strong>
                                     </div>

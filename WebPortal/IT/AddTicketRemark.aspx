@@ -32,8 +32,8 @@
         }
 
         .remark-page {
+            width: 100%;
             background: var(--remark-bg);
-            padding: 18px 18px 30px;
             border-radius: 18px;
         }
 
@@ -462,8 +462,8 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+   
     <input id="fp_ticketRemark" style="display: none;" />
-
     <label id="lbl_downloadPath" name="lbl_downloadPath" style="display: none;"></label>
 
     <div class="loading" id="load1">
@@ -477,7 +477,7 @@
                 <h4><i class="fas fa-comment-dots"></i>&nbsp;&nbsp;Add Remark</h4>
                 <p>Review the ticket details, update status, add remarks, and track remark history.</p>
             </div>
-            <a href="TIcketQueue.aspx" class="btn btn-light text-primary"><i class="fas fa-arrow-left"></i>&nbsp;Back</a>
+            <a href="TIcketQueue.aspx" class="btn btn-secondary buttons-excel buttons-html5"><i class="fas fa-arrow-left"></i>&nbsp;Back</a>
         </div>
 
         <div class="remark-section-card">
