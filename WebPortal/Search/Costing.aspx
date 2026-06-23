@@ -470,11 +470,12 @@
     </style>
 
     <script src="../Scripts/Search/Costing.js"></script>
+    
     <script>
         $(document).ready(function () {
 
             const params = new URLSearchParams(window.location.search);
-            const orderId = params.get('InvoiceID');
+            const orderId = params.get('OrderID');
 
             console.log(orderId);
 
@@ -483,6 +484,7 @@
             }
         });
     </script>
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

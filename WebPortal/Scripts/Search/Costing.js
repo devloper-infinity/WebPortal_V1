@@ -13,13 +13,72 @@ function Costing_InitPage(orderId) {
     }
 
     costingState.initialized = true;
-    bindCostingEvents();
+    bindCostingEvents(orderId);
     initializeCostingTables();
     resetCostingPage();
     loadCostingOrders();
 }
 
+
 function bindCostingEvents(orderId) {
+
+    costingState.selectedOrderId = parseInt(orderId, 10) || 0;
+
+    if (costingState.selectedOrderId > 0) {
+        loadOrderCosting(costingState.selectedOrderId);
+    } else {
+        resetCostingPage();
+    }
+
+    $(document)
+        .off('.costing')
+        .on('change.costing', '#ddlSearchCopyPagesDocs', function () {
+            updatePageDocLabel('#ddlSearchCopyPagesDocs', '#lblSearchCopyCostPageDoc');
+        })
+        .on('change.costing', '#ddlVarySearchCopyPagesDocs', function () {
+            updatePageDocLabel('#ddlVarySearchCopyPagesDocs', '#lblVarySearchCopyCostPageDoc');
+        })
+        .on('change.costing', '#ddlJudgementCopyPagesDocs', function () {
+            updatePageDocLabel('#ddlJudgementCopyPagesDocs', '#lblJudjementCopyPageDoc');
+        })
+        .on('change.costing', '#ddlVaryJudgementCopyPagesDocs', function () {
+            updatePageDocLabel('#ddlVaryJudgementCopyPagesDocs', '#lblVaryJudjementCopyPageDoc');
+        })
+        .on('change.costing', '#ddlSearchCopyCostPattern,#ddlJudjementCopyCostPattern', function () {
+            updateCostingVarySections();
+            calculateProductionTotals();
+        })
+        .on('input.costing', '.costing-number', function () {
+            this.value = this.value.replace(/[^\d]/g, '');
+            calculateProductionTotals();
+            calculateAbstractorTotals();
+        })
+        .on('input.costing', '.costing-money-input', function () {
+            this.value = this.value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
+            calculateProductionTotals();
+            calculateAbstractorTotals();
+        })
+        .on('blur.costing', '.costing-money-input', function () {
+            if ($.trim(this.value) !== '') {
+                this.value = formatMoney(decimalValue(this.value));
+            }
+        })
+        .on('click.costing', '#btnAddProductionCosting', function () {
+            saveProductionCosting();
+        })
+        .on('click.costing', '#btnResetProductionCosting', function () {
+            clearProductionEntryFields(true);
+            calculateProductionTotals();
+        })
+        .on('click.costing', '#btnAddAbstractor', function () {
+            saveAbstractorCosting();
+        })
+        .on('click.costing', '#btnAddManualCosting', function () {
+            saveCreditCardInfo();
+        });
+}
+
+function core_bindCostingEvents(orderId) {
     $(document)
         .off('.costing')
         .on('change.costing', '#ddlOrder', function () {

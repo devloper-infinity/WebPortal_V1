@@ -184,11 +184,11 @@ function CompleteOrderProcessCosting(InvoiceId, selected) {
         showProcessOrderMessage('danger', 'Unable to find selected order details.');
         return false;
     }
-
-    InvoiceID = InvoiceId;
-    fillOrderSummary('costing', selectedProcessOrder);
-    resetCostingModal();
-    $('#OrderCosting').modal('show');
+    window.location.href = 'Costing.aspx?OrderID=' + encodeURIComponent(InvoiceId);
+    // InvoiceID = InvoiceId;
+    // fillOrderSummary('costing', selectedProcessOrder);
+    // resetCostingModal();
+    // $('#OrderCosting').modal('show');
 
 
 

@@ -202,6 +202,7 @@ function AllocateOrders() {
                     Swal.fire({ icon: 'success', title: 'Success', text: 'Selected loan(s) allocated successfully.' });
 
                     GetLoansToAllocate_bindGrid();
+                    $("#sectrack_stat_deals").text("125");
                 })
                 .fail(function (xhr) {
 

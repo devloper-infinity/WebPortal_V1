@@ -615,7 +615,7 @@
         <div class="sec-stat-grid">
             <div class="sec-stat">
                 <span>Allocated</span>
-                <strong id="sectrack_stat_deals">0</strong>
+                <strong id="sectrack_stat_deals"></strong>
             </div>
             <div class="sec-stat">
                 <span>Open Order</span>
