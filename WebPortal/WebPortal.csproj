@@ -636,6 +636,7 @@
     <Content Include="images\WorkAnniversary.jpg" />
     <Content Include="InvoiceDocuments\12345\ThanksGivingDay.jpg" />
     <Content Include="InvoiceDocuments\123\ThanksGivingDay.jpg" />
+    <Content Include="IT\README_Changes.txt" />
     <Content Include="IT\StockReport.aspx" />
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
