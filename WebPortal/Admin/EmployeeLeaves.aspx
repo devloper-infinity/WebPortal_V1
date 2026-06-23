@@ -462,7 +462,7 @@
         });
     </script>
 
-    <script src="../Scripts/Functions/EmpLeave.js"></script>
+    <script src="../Scripts/Functions/EmpLeave.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>

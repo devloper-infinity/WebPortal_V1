@@ -34,7 +34,7 @@ function allocate_bindProcess() {
     });
 }
 
-function GetLoansToAllocate_bindGrid() {
+function GetLoansToAllocate_bindGrid()  {
 
     var processName = $('#allocate_process').val();
     processName = 'Loan Setup';
@@ -102,7 +102,7 @@ function GetLoansToAllocate_bindGrid() {
             // Scroll to table
             $('html, body').animate({
                 scrollTop: $('#table_OrderAllocate').offset().top - 100
-            }, 500);
+            }, 300);
             // Allow maximum 2 selections
             $('#table_OrderAllocate tbody')
                 .off('change', '.loan-checkbox')
@@ -202,7 +202,7 @@ function AllocateOrders() {
                     Swal.fire({ icon: 'success', title: 'Success', text: 'Selected loan(s) allocated successfully.' });
 
                     GetLoansToAllocate_bindGrid();
-                    $("#sectrack_stat_deals").text("125");
+                    $("#sectrack_stat_deals").text(selectedLoans.length);
                 })
                 .fail(function (xhr) {
 
@@ -225,8 +225,6 @@ function allocate_bindCompleteOrder_Grid() {
     var UserName = 'VPC';
     var Process = "Loan Setup";
 
-
-
     $.ajax({
         type: "POST",
         url: "Allocate.aspx/GetUserLoans",
@@ -241,6 +239,10 @@ function allocate_bindCompleteOrder_Grid() {
             if ($.fn.DataTable.isDataTable('#table_OrderComplete')) {
                 $('#table_OrderComplete').DataTable().destroy();
             }
+
+            $("#sectrack_stat_deals").text("1");
+            $("#sectrack_stat_pending").text("1");
+            $("#sectrack_stat_completed").text("1");
 
             $('#table_OrderComplete').DataTable({
 
