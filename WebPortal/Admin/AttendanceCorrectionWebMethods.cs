@@ -502,7 +502,9 @@ namespace WebPortal.Admin
         {
 
             DateTime time1 = DateTime.ParseExact(inTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
-            DateTime time2 = DateTime.ParseExact(outTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+            //DateTime time2 = DateTime.ParseExact(outTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+            DateTime time2 = !String.IsNullOrEmpty(outTime) ? DateTime.ParseExact(outTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture) : DateTime.MinValue;
+
 
 
             if (request.Mode == AttendanceSaveMode.SelfInsert)
@@ -513,8 +515,8 @@ namespace WebPortal.Admin
                     Code = code,
                     InDate = inDate,
                     InTime = time1.ToString(),
-                    OutDate = outDate,
-                    OutTime = time2.ToString(),
+                    OutDate = !String.IsNullOrEmpty(outTime) ? outDate : "",
+                    OutTime = !String.IsNullOrEmpty(outTime) ? time2.ToString() : "",
                     TotalHours = totalHours,
                     Reason = userReason,
                     ReasonType = request.ReasonTypeParam
@@ -528,8 +530,8 @@ namespace WebPortal.Admin
                     Code = code,
                     InDate = inDate,
                     InTime = time1.ToString(),
-                    OutDate = outDate,
-                    OutTime = time2.ToString(),
+                    OutDate = !String.IsNullOrEmpty(outTime) ? outDate : "",
+                    OutTime = !String.IsNullOrEmpty(outTime) ? time2.ToString() : "",
                     TotalHours = totalHours,
                     Reason = userReason,
                     ReasonType = request.ReasonTypeParam,
@@ -544,8 +546,8 @@ namespace WebPortal.Admin
                     Code = code,
                     InDate = inDate,
                     InTime = time1.ToString(),
-                    OutDate = outDate,
-                    OutTime = time2.ToString(),
+                    OutDate = !String.IsNullOrEmpty(outTime) ? outDate : "",
+                    OutTime = !String.IsNullOrEmpty(outTime) ? time2.ToString() : "",
                     TotalHours = totalHours,
                     Reason = userReason,
                     Status = request.Status,
