@@ -2906,8 +2906,8 @@
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
     </Compile>
-    <Content Include="App_Code\BLL\bllProjectTracking.cs" />
-    <Content Include="App_Code\DAL\dalProjectTracking.cs" />
+    <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
+    <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="CRM\Accounts.aspx.cs">
       <DependentUpon>Accounts.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
