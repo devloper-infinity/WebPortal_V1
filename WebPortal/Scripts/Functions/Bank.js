@@ -142,39 +142,6 @@ function bank_submit() {
 }
 
 
-function core_bank_submit() {
-    var bank_profile = document.getElementById("bank_name").value;
-
-    if (bank_profile == "") {
-        alert("Please enter bank");
-        document.getElementById("bank_profile").focus();
-        return false;
-    }
-
-    PageMethods.InsertBank(bank_profile, bank_OnSuccess, bank_OnError);
-    return false;
-}
-
-function bank_OnSuccess(result) {
-    if (result > 0) {
-        document.getElementById("bank_errmsg").innerHTML = "Bank name added successfully!";
-        $('#bank_dverror').modal('show');
-        return false;
-    }
-    else {
-        document.getElementById("bank_errmsg").innerHTML = "Oops! Error occured while adding bank name. Please contact administrator!";
-        document.getElementById("bank_errmsg").style.color = 'red';
-        $('#bank_dverror').modal('show');
-        return false;
-    }
-    return false;
-}
-
-function bank_OnError(error) {
-    alert(error);
-}
-
-
 /*-------------- Change Bank Account Details  --------------*/
 
 function showSwal(type, title, text) {
@@ -483,6 +450,25 @@ function bank_BindApprovalData() {
     return false;
 }
 
+function bankapprv_Download(accNoChangeID, rowIndex) {
+
+    var rowData = bankapprv_table.row(rowIndex).data();
+
+    if (!rowData || !rowData.Attachment) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'File Not Found',
+            text: 'Attachment is not available.'
+        });
+        return;
+    }
+
+    var filePath = rowData.Attachment;
+   
+    window.location.href = 'FileDownload.aspx?ChangeID=' + accNoChangeID;
+
+}
+
 function formatJsonDate(value) {
     if (!value) return "";
 
@@ -572,7 +558,7 @@ function Download(attachmentId) {
         "json");
 }
 
-function bankapprv_Download(AccChangeID, Index) {
+function core_bankapprv_Download(AccChangeID, Index) {
 
     var row = bankapprv_table.row(Index).data();
 

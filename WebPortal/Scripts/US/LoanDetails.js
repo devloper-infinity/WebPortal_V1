@@ -730,7 +730,13 @@ function usfeedback_submit() {
 
             function (result) {
                 if (result > 0) {
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => { location.reload(); });
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => {
+                        // location.reload();
+                        if (value == "ATR Review")
+                            usfeedback_atr_bindgrid("ATR", processid);
+                        else
+                            usfeedback_atr_bindgrid("Other", processid);
+                    });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }
@@ -750,7 +756,13 @@ function usfeedback_submit() {
 
             function (result) {
                 if (result > 0) {
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => { location.reload(); });
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => {
+                        // location.reload();
+                        if (value == "ATR Review")
+                            usfeedback_atr_bindgrid("ATR", processid);
+                        else
+                            usfeedback_atr_bindgrid("Other", processid);
+                    });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }

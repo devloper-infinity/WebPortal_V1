@@ -38,7 +38,7 @@ function assignEmployee() {
 
 }
 
-function it_tq_bindgrid() {
+function it_tq_bindgrid1() {
 
     assignEmployee();
 

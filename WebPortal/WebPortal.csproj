@@ -140,6 +140,7 @@
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
+    <Content Include="Admin\FileDownload.aspx" />
     <Content Include="Admin\ProjectHealthReport.aspx" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
@@ -636,6 +637,7 @@
     <Content Include="images\WorkAnniversary.jpg" />
     <Content Include="InvoiceDocuments\12345\ThanksGivingDay.jpg" />
     <Content Include="InvoiceDocuments\123\ThanksGivingDay.jpg" />
+    <Content Include="IT\README_Changes.txt" />
     <Content Include="IT\StockReport.aspx" />
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
@@ -2914,13 +2916,19 @@
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
     </Compile>
-
     <Compile Include="Admin\DomainHealthReport.aspx.cs">
       <DependentUpon>DomainHealthReport.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\DomainHealthReport.aspx.designer.cs">
       <DependentUpon>DomainHealthReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\FileDownload.aspx.cs">
+      <DependentUpon>FileDownload.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\FileDownload.aspx.designer.cs">
+      <DependentUpon>FileDownload.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\ProjectHealthReport.aspx.cs">
       <DependentUpon>ProjectHealthReport.aspx</DependentUpon>
@@ -2929,7 +2937,6 @@
     <Compile Include="Admin\ProjectHealthReport.aspx.designer.cs">
       <DependentUpon>ProjectHealthReport.aspx</DependentUpon>
     </Compile>
-
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="CRM\Accounts.aspx.cs">
