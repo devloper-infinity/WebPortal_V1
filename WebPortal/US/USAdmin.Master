@@ -128,14 +128,14 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js" />
-                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js" />
-                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js" />
-                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js" />
-                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js" />
-                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js" />
-                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js" />
-                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js" />
+                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js?v=6" />
             </Scripts>
         </asp:ToolkitScriptManager>
         <div class="wrapper">

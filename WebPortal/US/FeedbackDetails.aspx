@@ -463,8 +463,8 @@
         $(document).ready(function () {
             GetLoggedInUserDetails();
             bindloanDetails_feedback();
+            initusfeedbackDragDrop();
         });
-
 
         function initusfeedbackDragDrop() {
             const dropZone = document.getElementById('usfeedback_dropZone');
@@ -542,14 +542,14 @@
 
     </script>
 
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <input type="text" id="usfeedback_projectid" name="usfeedback_projectid" style="display: none;" />
-    <input id="file_usfeedback" style="display: none;" />
+    <%-- <input id="file_usfeedback" style="display: none;" />--%>
+    <input type="hidden" id="file_usfeedback" name="file_usfeedback" />
 
     <div class="loading" id="load1">
         <div>
@@ -692,7 +692,7 @@
                                         <div id="usfeedback_selectedFile" class="selected-file-name"></div>
                                     </div>
                                 </div>
-                                <input type="file" id="fee_fileUploads" class="file-input d-none" accept=".xlsx" />
+                                <input type="file" id="usfeedback_fileUploads" name="usfeedback_fileUploads" class="file-input d-none" accept=".xlsx" />
                             </div>
                         </div>
                         <div class="my-row">

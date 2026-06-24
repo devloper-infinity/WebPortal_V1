@@ -26,7 +26,7 @@ namespace WebPortal.US
         protected void Page_Load(object sender, EventArgs e)
         {
 
-            FolderPath = Server.MapPath(@"~\USDocuments\");
+            FolderPath = Server.MapPath(@"~\USDocuments\Feedback\");
 
             try
             {
@@ -187,7 +187,9 @@ namespace WebPortal.US
         {
             int returnvalue = 0;
             bool isATRSupported = ATRSupported == "Yes" ? true : false;
+            
             Hashtable htParam = new Hashtable();
+
             htParam.Add("ProjectID", ProjectID);
             htParam.Add("ProcessID", ProcessID);
             htParam.Add("DealNo", DealNo);
@@ -203,6 +205,7 @@ namespace WebPortal.US
             htParam.Add("NoOfRentalProperties", NoOfRentalProperties);
             htParam.Add("Comments", Comments);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
             returnvalue = new bllUS().InsertOnShoreUSATRFeedbacks(htParam);
             return returnvalue;
         }
