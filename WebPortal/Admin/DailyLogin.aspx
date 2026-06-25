@@ -712,7 +712,6 @@
     </div>
 
     <div class="daily-login-page">
-
         <section class="ud-hero">
             <div class="ud-hero-icon"><i class="fas fa-fingerprint"></i></div>
             <div class="ud-hero-content">

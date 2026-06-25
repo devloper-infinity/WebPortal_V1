@@ -87,8 +87,8 @@ namespace WebPortal.Admin
             htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
             htAttendance.Add("ApprovedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            //string ReturnValue = "You Have Successfully Logged In";// 
             string ReturnValue =  new bllMaster().ValidateLogin(htAttendance);
+            //string ReturnValue = "You Have Successfully Logged In";// 
 
             var result = new
             {
@@ -111,8 +111,8 @@ namespace WebPortal.Admin
             htAttendance.Add("InTime", GetAttendanceTimestamp());
             htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
 
-            //string ReturnValue = new bllMaster().ValidateLogout(htAttendance);;
-            string ReturnValue = "You Have Successfully Logged Out";
+            string ReturnValue = new bllMaster().ValidateLogout(htAttendance);;
+            //string ReturnValue = "You Have Successfully Logged Out";
 
             bool success = false;
             string CurrentLogin = "";

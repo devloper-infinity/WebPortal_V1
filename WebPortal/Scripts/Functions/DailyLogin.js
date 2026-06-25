@@ -436,6 +436,8 @@ function renderDayStatus(data) {
     return '<span class="dl-badge ' + css + '">' + escapeHtml(value || "") + '</span>';
 }
 
+
+
 function syncDailyLoginClock(serverUtc) {
     if (!serverUtc) {
         return;
@@ -656,6 +658,8 @@ function normalizeDisplayValue(value) {
     return String(value).trim();
 }
 
+
+/*------------------  Dynamic Upto Time  ------------------*/
 function parseDurationHours(value) {
     const seconds = parseDurationSeconds(value);
     return seconds === null ? 0 : seconds / 3600;
