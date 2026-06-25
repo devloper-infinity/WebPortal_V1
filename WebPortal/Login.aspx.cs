@@ -87,7 +87,13 @@ namespace WebPortal
         {
 
         }
-
+        public static DataTable GetAllEmployeeDetailsByIDsForProductivity(string Ids)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllEmployeeDetailsByCodes_Productivity_1]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Ids);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
         protected void Page_Load(object sender, EventArgs e)
         {
             try
@@ -124,7 +130,7 @@ namespace WebPortal
                
                 string UptoTime = "";
                 string empID = Convert.ToString(HttpContext.Current.User.Identity.Name.ToString());
-                DataTable dtLogin = bllMaster.GetAllEmployeeDetailsByIDsForProductivity(Convert.ToString(HttpContext.Current.User.Identity.Name.ToString()));
+                DataTable dtLogin = GetAllEmployeeDetailsByIDsForProductivity(Convert.ToString(HttpContext.Current.User.Identity.Name.ToString()));
                 if (dtLogin != null)
                 {
                     if (dtLogin.Rows.Count > 0)
@@ -142,24 +148,24 @@ namespace WebPortal
 
                 /*Comment for Gregg Demo - 2026-03-20 06:56:27.393*/
 
-                //DataTable dt = bllmaster.GetAllEmployeeDetailsByIDsForProductivity(empID);
-                //DataTable dt = bllMaster.GetExistingLogin(User_Code, DateTime.Now.AddDays(-1).ToString("dd-MMM-yyyy"));
-                //if (dt != null)
-                //{
-                //    try
-                //    {
-                //        if (dt.Rows.Count > 0)
-                //        {
-                //            if (Convert.ToInt32(uptoHours) > 16)
-                //                Response.Redirect("~/Admin/DailyLogin.aspx");
-                //        }
-                //    }
-                //    catch { Response.Redirect("~/Admin/DailyLogin.aspx"); }
-                //}
-                //if (CurrentLogin == "")
-                //{
-                //    Response.Redirect("~/Admin/DailyLogin.aspx");
-                //}
+               // DataTable dt = GetAllEmployeeDetailsByIDsForProductivity(empID);
+                DataTable dt = new bllMaster().GetExistingLogin(User_Code, DateTime.Now.AddDays(-1).ToString("dd-MMM-yyyy"));
+                if (dt != null)
+                {
+                    try
+                    {
+                        if (dt.Rows.Count > 0)
+                        {
+                            if (Convert.ToInt32(uptoHours) > 16)
+                                Response.Redirect("~/Admin/DailyLogin.aspx");
+                        }
+                    }
+                    catch { Response.Redirect("~/Admin/DailyLogin.aspx"); }
+                }
+                if (CurrentLogin == "")
+                {
+                    Response.Redirect("~/Admin/DailyLogin.aspx");
+                }
                 //if (string.IsNullOrEmpty(returnUrl))
                 {
 
