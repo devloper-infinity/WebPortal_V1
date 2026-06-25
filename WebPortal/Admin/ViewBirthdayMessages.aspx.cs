@@ -43,11 +43,15 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static void SendBirthdayWish(string message, int EmployeeID)
+        public static int SendBirthdayWish(string message, int EmployeeID)
         {
+            int ReturnValue;
             string senderCode = HttpContext.Current.User.Identity.Name;
             string Code = new dalMaster().GetCodeFromEmployeeId(EmployeeID);
-            new bllMaster().InsertBirthdayMessage(message, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Code);
+
+            ReturnValue =  new bllMaster().InsertBirthdayMessage(message, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Code);
+
+            return ReturnValue;
         }
     }
 }

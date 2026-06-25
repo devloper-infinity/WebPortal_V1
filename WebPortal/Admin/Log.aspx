@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="Log.aspx.cs" Inherits="WebPortal.Admin.Log" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    
+
     <style>
         :root {
             --vl-primary: #2563eb;
@@ -16,49 +16,49 @@
             --vl-shadow: 0 18px 45px rgba(15, 23, 42, .08);
         }
 
-        body { background: var(--vl-bg); }
+        body {
+            background: var(--vl-bg);
+        }
 
         label:not(.form-check-label):not(.custom-file-label) {
             font-weight: normal !important;
             border: none !important;
         }
 
-        .vl-page { padding-bottom: 24px; }
+        .vl-page {
+            padding-bottom: 24px;
+        }
 
         .vl-loader {
             display: none;
             position: fixed;
             inset: 0;
+            top: 50%;
+            left: 50%;
+            width: 180px;
+            min-height: 150px;
             z-index: 99999;
             background: rgba(248, 250, 252, .75);
             backdrop-filter: blur(4px);
         }
 
         .vl-loader-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 190px;
+            position: fixed;
+            inset: 0;
+            width: 180px;
             min-height: 150px;
-            display: flex;
-            flex-direction: column;
+            z-index: 200000;
+            backdrop-filter: blur(4px);
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            border-radius: 22px;
-            background: #fff;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, .18);
-            color: var(--vl-text);
-            font-size: 13px;
-            font-weight: 800;
+            text-align: center;
         }
 
-        .vl-loader-box img {
-            width: 54px;
-            height: 54px;
-            object-fit: contain;
-        }
+            .vl-loader-box img {
+                width: 54px;
+                height: 54px;
+                object-fit: contain;
+            }
 
         .vl-hero {
             position: relative;
@@ -73,27 +73,27 @@
             box-shadow: var(--vl-shadow);
         }
 
-        .vl-hero:before,
-        .vl-hero:after {
-            content: "";
-            position: absolute;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, .12);
-        }
+            .vl-hero:before,
+            .vl-hero:after {
+                content: "";
+                position: absolute;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, .12);
+            }
 
-        .vl-hero:before {
-            width: 220px;
-            height: 220px;
-            right: 70px;
-            top: -120px;
-        }
+            .vl-hero:before {
+                width: 220px;
+                height: 220px;
+                right: 70px;
+                top: -120px;
+            }
 
-        .vl-hero:after {
-            width: 300px;
-            height: 300px;
-            right: -90px;
-            bottom: -170px;
-        }
+            .vl-hero:after {
+                width: 300px;
+                height: 300px;
+                right: -90px;
+                bottom: -170px;
+            }
 
         .vl-hero-left {
             position: relative;
@@ -192,18 +192,18 @@
             margin-bottom: 16px;
         }
 
-        .vl-table-title h2 {
-            margin: 0;
-            color: var(--vl-text);
-            font-size: 18px;
-            font-weight: 900;
-        }
+            .vl-table-title h2 {
+                margin: 0;
+                color: var(--vl-text);
+                font-size: 18px;
+                font-weight: 900;
+            }
 
-        .vl-table-title span {
-            color: var(--vl-muted);
-            font-size: 12px;
-            font-weight: 700;
-        }
+            .vl-table-title span {
+                color: var(--vl-muted);
+                font-size: 12px;
+                font-weight: 700;
+            }
 
         .vl-table-wrap {
             width: 100%;
@@ -220,37 +220,44 @@
             white-space: nowrap;
         }
 
-        #log_table thead th,
-        .table.dataTable#log_table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-         /*   padding: 14px 12px !important;*/
-            border: 0 !important;
-            border-bottom: 1px solid var(--vl-border) !important;
-            background: var(--vl-soft) !important;
-            color: var(--vl-text) !important;
-            font-size: 12px;
-            font-weight: 900;
-            text-align: center;
-            vertical-align: middle;
+            #log_table thead th,
+            .table.dataTable#log_table thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                /*   padding: 14px 12px !important;*/
+                border: 0 !important;
+                border-bottom: 1px solid var(--vl-border) !important;
+                background: var(--vl-soft) !important;
+                color: var(--vl-text) !important;
+                font-size: 12px;
+                font-weight: 900;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            #log_table tbody td,
+            .table.dataTable#log_table tbody td {
+                padding: 11px 10px !important;
+                border-color: var(--vl-border) !important;
+                background: #fff;
+                color: #1e293b;
+                font-size: 13px;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            #log_table tbody tr:hover td {
+                background: #f8fafc !important;
+            }
+
+        .dataTables_scroll {
+            overflow: auto;
         }
 
-        #log_table tbody td,
-        .table.dataTable#log_table tbody td {
-            padding: 11px 10px !important;
-            border-color: var(--vl-border) !important;
-            background: #fff;
-            color: #1e293b;
-            font-size: 13px;
-            text-align: center;
-            vertical-align: middle;
+        .dataTables_paginate {
+            float: left !important;
         }
-
-        #log_table tbody tr:hover td { background: #f8fafc !important; }
-
-        .dataTables_scroll { overflow: auto; }
-        .dataTables_paginate { float: left !important; }
 
         div.dt-buttons {
             position: static;
@@ -279,43 +286,150 @@
         }
 
         @media (max-width: 768px) {
-            .vl-hero { align-items: flex-start; flex-direction: column; }
-            .vl-hero-actions { width: 100%; margin-left: 0; justify-content: flex-start; }
-            .vl-table-card { padding: 16px; }
+            .vl-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .vl-hero-actions {
+                width: 100%;
+                margin-left: 0;
+                justify-content: flex-start;
+            }
+
+            .vl-table-card {
+                padding: 16px;
+            }
         }
     </style>
-    
+
     <style>
-               .row-holiday td {
-           background: #e8f4ff !important;
-           color: #1d4ed8 !important;
-       }
+        .row-holiday td {
+            background: #e8f4ff !important;
+            color: #1d4ed8 !important;
+        }
 
-       .row-leave td {
-           background: #ecfdf5 !important;
-           color: #047857 !important;
-       }
+        .row-leave td {
+            background: #ecfdf5 !important;
+            color: #047857 !important;
+        }
 
-       .row-worked td {
-           background: #fff7ed !important;
-           color: #c2410c !important;
-       }
+        .row-worked td {
+            background: #fff7ed !important;
+            color: #c2410c !important;
+        }
 
-       .row-absent td {
-           background: #fef2f2 !important;
-           color: #b91c1c !important;
-       }
+        .row-absent td {
+            /*  background: #f2c9c9 !important;*/
+            color: #8f0606 !important;
+        }
 
         .row-current td {
-    background: #d9ead3  !important;
-    color: #274e13 !important;
-}
+            background: #d9ead3 !important;
+            color: #274e13 !important;
+        }
+
+        .row-incomplete td {
+            background-color: #fef2f2 !important;
+            color: #FFDB58;
+            font-weight: 600;
+        }
     </style>
-    
+
     <script>
         $(document).ready(function () {
+
             log_BindLogDetails();
         });
+        var log_table;
+
+        function log_BindLogDetails() {
+
+            $('#load1').show();
+
+            $.ajax({
+                url: "Log.aspx/GetDailyLog",
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+
+                success: function (data) {
+                    var dataArray = JSON.parse(data.d || "[]");
+
+                    if ($.fn.DataTable.isDataTable('#log_table')) {
+                        $('#log_table').DataTable().clear().destroy();
+                    }
+
+                    log_table = $('#log_table').DataTable({
+                        data: dataArray,
+                        dom: 't',
+                        scrollX: true,
+                        paging: false,
+                        autoWidth: true,
+                        ordering: false,
+                        processing: true,
+                        destroy: true,
+                        select: {
+                            style: 'single'
+                        },
+
+                        columns: [
+                            { data: "Date", render: blankForNull },
+                            { data: "DayName", render: blankForNull },
+                            { data: "InTime", render: blankForNull },
+                            { data: "OutTime", render: blankForNull },
+                            { data: "ShiftTime", render: blankForNull },
+                            { data: "BreakOutTime", render: blankForNull },
+                            { data: "BreakInTime", render: blankForNull },
+                            { data: "TotalBreakHours", render: blankForNull },
+                            { data: "Hours", render: blankForNull },
+                            { data: "ExtraHours", render: blankForNull },
+                            { data: "NoofHours", render: blankForNull },
+                            { data: "LateMark", render: blankForNull },
+                            { data: "Partial", render: blankForNull },
+                            { data: "ShiftRemark", render: blankForNull },
+                            { data: "LeaveType", render: blankForNull },
+                            { data: "INIP", render: blankForNull },
+                            { data: "OutIP", render: blankForNull }
+                        ],
+
+                        columnDefs: [
+                            {
+                                targets: "_all",
+                                className: "text-nowrap"
+                            }
+                        ],
+
+                        rowCallback: function (row, data) {
+                            log_applyStatusClass(row, data.ShiftRemark);
+                        },
+
+                        initComplete: function () {
+                            $('#load1').hide();
+                        },
+
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                title: 'Daily Log',
+                                autoFilter: true,
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                                }
+                            }
+                        ]
+                    });
+                },
+
+                error: function (xhr) {
+                    $('#load1').hide();
+                    alert('Error: ' + xhr.responseText);
+                }
+            });
+
+            return false;
+        }
+
     </script>
 </asp:Content>
 
@@ -360,6 +474,7 @@
                     <thead>
                         <tr>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Date</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Day</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">In Time</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Out Time</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Hours</th>
@@ -384,126 +499,3 @@
     </div>
 </asp:Content>
 
-
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-     <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        .dataTables_scroll {
-            overflow: auto;
-        }
-
-        .dataTables_paginate {
-            float: left !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            background: linear-gradient(to bottom, #cbd0dd, 3%, #fff) !important;
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none;
-        }
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
-    </style>
-    <script>
-        $(document).ready(function () {
-            log_BindLogDetails();
-        });
-    </script>
-</asp:Content>
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-     <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Daily Log</b></h6>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right" style="font-size: 12px; font-weight: bold;">
-                        <li class="breadcrumb-item"><a href="DetailedAttendancePercentage.aspx" id="a1" runat="server" style="color: saddlebrown"> Detailed Attendance Percentage </a></li>
-                        <li class="breadcrumb-item"><a href="DashboardEmployee.aspx" id="aBack" runat="server" style="color: saddlebrown"><< Go back </a></li>
-
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title"></h5>
-                <table class="table" id="log_table" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Date</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">In Time</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Out Time</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Hours</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Break Out</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Break In</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Break Time</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Total Hours</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Extra Hours</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deducted Hours</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Late mark</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Partial</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Shift Remark</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Day Status</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">In IP</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Out IP</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        
-                    </tbody>
-                </table>
-
-                 </div>
-        </div>
-    </div>
-</asp:Content>--%>

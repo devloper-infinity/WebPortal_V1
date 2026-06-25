@@ -14,6 +14,7 @@
             $.each(dataArray, function (index, value) {
                 html += '<tr>';
                 html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Date) + '</td>';
+                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Day) + '</td>';
                 html += '<td style="text-wrap: nowrap;">' + blankForNull(value.InTime) + '</td>';
                 html += '<td style="text-wrap: nowrap;">' + blankForNull(value.OutTime) + '</td>';
                 html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ShiftTime) + '</td>';
@@ -62,6 +63,73 @@
     });
     return false;
 }
+
+let log_table;
+
+function dynamic_loginout_BindLogDetails() {
+    $('#load1').show();
+
+    $.ajax({
+        url: "DailyLogin.aspx/GetDailyLogs",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            const dataArray = JSON.parse(data.d || "[]");
+
+            if ($.fn.DataTable.isDataTable('#loginout_table')) {
+                log_table.clear().rows.add(dataArray).draw();
+                $('#load1').hide();
+                return;
+            }
+
+            log_table = $('#loginout_table').DataTable({
+                data: dataArray,
+                dom: 't',
+                scrollX: true,
+                paging: false,
+                autoWidth: true,
+                ordering: false,
+                processing: true,
+                select: {
+                    style: 'single'
+                },
+                columns: [
+                    { data: "Date" },
+                    { data: "Day" },
+                    { data: "InTime" },
+                    { data: "OutTime" },
+                    { data: "ShiftTime" },
+                    { data: "Hours" },
+                    { data: "BreakOutTime" },
+                    { data: "BreakInTime" },
+                    { data: "TotalBreakHours" },
+                    { data: "ExtraHours" },
+                    { data: "LateMark" },
+                    { data: "Partial" },
+                    { data: "ShiftRemark" },
+                    { data: "LeaveType" },
+                    { data: "INIP" },
+                    { data: "OutIP" }
+                ],
+                columnDefs: [{
+                    targets: '_all',
+                    className: 'text-nowrap'
+                }],
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+        },
+        error: function (xhr) {
+            $('#load1').hide();
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+
+    return false;
+}
+
 
 
 function loginout_BindWorkingDetails() {

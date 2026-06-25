@@ -1,5 +1,5 @@
 ﻿var dashboard_alert_table;
-var log_table;
+// var log_table;
 var dasboard_currentmanpower_table;
 var dasboard_currentmanpower_html;
 var details_table;
@@ -18,6 +18,8 @@ summary_onfloor = 0;
 summary_resigned = 0;
 summary_absconding = 0;
 
+console.log('JS_Dashboard');
+
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
@@ -28,7 +30,8 @@ function log_applyStatusClass(row, remark) {
         "paid leave": "row-leave",
         "holiday": "row-holiday",
         "absent": "row-absent",
-        "currentlogin": "row-current"
+        "currentlogin": "row-current",
+        "incomplete": "row-incomplete"
     };
 
     remark = (remark || "").toLowerCase().trim();
@@ -38,99 +41,13 @@ function log_applyStatusClass(row, remark) {
         .addClass(statusClassMap[remark] || "");
 }
 
-function log_BindLogDetails() {
-    $('#load1').show();
-
-    $.ajax({
-        url: "Log.aspx/GetDailyLog",
-        type: "POST",
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
-
-        success: function (data) {
-            var dataArray = JSON.parse(data.d || "[]");
-
-            if ($.fn.dataTable.isDataTable('#log_table')) {
-                $('#log_table').DataTable().clear().destroy();
-            }
-
-            log_table = $('#log_table').DataTable({
-                data: dataArray,
-                dom: 't',
-                scrollX: true,
-                paging: false,
-                autoWidth: true,
-                ordering: false,
-                processing: true,
-                destroy: true,
-                select: {
-                    style: 'single'
-                },
-
-                columns: [
-                    { data: "Date", render: blankForNull },
-                    { data: "InTime", render: blankForNull },
-                    { data: "OutTime", render: blankForNull },
-                    { data: "ShiftTime", render: blankForNull },
-                    { data: "BreakOutTime", render: blankForNull },
-                    { data: "BreakInTime", render: blankForNull },
-                    { data: "TotalBreakHours", render: blankForNull },
-                    { data: "Hours", render: blankForNull },
-                    { data: "ExtraHours", render: blankForNull },
-                    { data: "NoofHours", render: blankForNull },
-                    { data: "LateMark", render: blankForNull },
-                    { data: "Partial", render: blankForNull },
-                    { data: "ShiftRemark", render: blankForNull },
-                    { data: "LeaveType", render: blankForNull },
-                    { data: "INIP", render: blankForNull },
-                    { data: "OutIP", render: blankForNull }
-                ],
-
-                columnDefs: [
-                    {
-                        targets: "_all",
-                        className: "text-nowrap"
-                    }
-                ],
-
-                rowCallback: function (row, data) {
-                    log_applyStatusClass(row, data.ShiftRemark);
-                },
-
-                initComplete: function () {
-                    $('#load1').hide();
-                },
-
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        title: 'Daily Log',
-                        autoFilter: true,
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-                        }
-                    }
-                ]
-            });
-        },
-
-        error: function (xhr) {
-            $('#load1').hide();
-            alert('Error: ' + xhr.responseText);
-        }
-    });
-
-    return false;
-}
-
-
 function dashboard_profileinfo() {
 
     $.ajax({
         type: "POST", url: "DashboardEmployee.aspx/BindInformation", dataType: "json", contentType: "application/json",
-        success: function(res1) {
+        success: function (res1) {
             var dataArray = JSON.parse(res1.d);
-            $.each(dataArray, function(data1, value1) {
+            $.each(dataArray, function (data1, value1) {
                 document.getElementById("dasboard_popname").innerHTML = value1.FirstName + ' ' + value1.lastName;
                 document.getElementById("dasboard_popdob").innerHTML = value1.DateOfBirth;
                 document.getElementById("dasboard_poppresentaddress").innerHTML = value1.PresentAddress;
@@ -171,11 +88,11 @@ function dashboard_profileinfo() {
 function Dashboard_BindFormInformation() {
     $.ajax({
         type: "POST", url: "DashboardEmployee.aspx/BindInformation", dataType: "json", contentType: "application/json",
-        success: function(res1) {
+        success: function (res1) {
 
             var dataArray = JSON.parse(res1.d);
 
-            $.each(dataArray, function(data1, value1) {
+            $.each(dataArray, function (data1, value1) {
 
                 document.getElementById("dashboard_spnusername").innerHTML = value1.FirstName + ' ' + value1.lastName;
                 document.getElementById("dashboard_spndesignation").innerHTML = value1.DesignationName;
@@ -187,14 +104,14 @@ function Dashboard_BindFormInformation() {
                     document.getElementById("dashboard_userimg").src = "../dist/img/Male.png";
 
                     if (value1.title != "Women's Day" && value1.FestiveImgPath != null) {
-                  /*      $('#festWish_PopUp').modal('show');*/
+                        /*      $('#festWish_PopUp').modal('show');*/
                     }
                 }
                 else {
                     document.getElementById("dashboard_userimg").src = "../dist/img/Female.png";
 
                     if (value1.FestiveImgPath != null) {
-                      /*  $('#festWish_PopUp').modal('show');*/
+                        /*  $('#festWish_PopUp').modal('show');*/
                     }
                 }
             });
@@ -211,10 +128,10 @@ function Dashboard_GetDashboardAlerts() {
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
-            var dataArray = JSON.parse(data.d);        
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);
             var i = 0;
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
                 i++;
                 html += '<tr>';
                 html += '<td style="display:none;">' + blankForNull(value.AlertId) + '</td>';
@@ -230,7 +147,7 @@ function Dashboard_GetDashboardAlerts() {
                 dashboard_alert_table.destroy();
             }
             $('#dashboard_alert_table tbody').html(html);
-            
+
             dashboard_alert_table = $('#dashboard_alert_table').DataTable({
                 dom: 't',
                 scrollX: true,
@@ -245,11 +162,11 @@ function Dashboard_GetDashboardAlerts() {
                     'style': 'single'
                 },
 
-                initComplete: function() {
+                initComplete: function () {
                     $('#load1').hide();
                 },
 
-                "rowCallback": function(row, data) {
+                "rowCallback": function (row, data) {
                     var val = data[3];
                 },
 
@@ -267,7 +184,7 @@ function Dashboard_GetDashboardAlerts() {
             //    row = table.row(this).data();
             //});
         },
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -279,9 +196,9 @@ function dashboard_viewalertdetails(AlertId, Index) {
     $.ajax({
         type: "POST", url: "DashboardEmployee.aspx/BindAlertDetails", dataType: "json", contentType: "application/json",
         data: "{AlertId:" + AlertId + " }",
-        success: function(res1) {
+        success: function (res1) {
             var dataArray = JSON.parse(res1.d);
-            $.each(dataArray, function(data1, value1) {
+            $.each(dataArray, function (data1, value1) {
                 document.getElementById("dasboard_popalertsubject").innerHTML = value1.Subject;
                 document.getElementById("dasboard_popalertmessage").innerHTML = value1.Message;
 
@@ -306,11 +223,11 @@ function Dashboard_GetManpowerSumaryDetails(Type, Branch, Domain, Subdomain, Col
         data: "{Type:'" + Type + "', Branch:" + Branch + ", Domain:" + Domain + ", Subdomain:'" + Subdomain + "', Criteria:" + Column + "}",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
+        success: function (data) {
             var dataArray = JSON.parse(data.d);//          
 
             var i = 0;
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
                 i++;
                 details_html += '<tr>';
                 details_html += '<td>' + blankForNull(i) + '</td>';
@@ -347,10 +264,10 @@ function Dashboard_GetManpowerSumaryDetails(Type, Branch, Domain, Subdomain, Col
                     'style': 'single'
                 },
 
-                initComplete: function() {
+                initComplete: function () {
                     $('#load1').hide();
                 },
-                "rowCallback": function(row, data) {
+                "rowCallback": function (row, data) {
                     var val = data[3];
                 },
 
@@ -368,7 +285,7 @@ function Dashboard_GetManpowerSumaryDetails(Type, Branch, Domain, Subdomain, Col
             //    row = table.row(this).data();
             //});
         },
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -385,14 +302,14 @@ function Dashboard_GetManpowerSumary(Type) {
         data: "{Type:'" + Type + "'}",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
+        success: function (data) {
             var dataArray = JSON.parse(data.d);//            
             var i = 0;
             summary_total = 0;
             summary_onfloor = 0;
             summary_resigned = 0;
             summary_absconding = 0;
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
                 i++;
                 dasboard_currentmanpower_html += '<tr>';
                 dasboard_currentmanpower_html += '<td style="display:none;">' + blankForNull(value.DomainId) + '</td>';
@@ -432,7 +349,7 @@ function Dashboard_GetManpowerSumary(Type) {
                     'style': 'single'
                 },
 
-                initComplete: function() {
+                initComplete: function () {
                     $('#load1').hide();
                     document.getElementById("dashboard_totalemployees").innerHTML = summary_total;
                     document.getElementById("dashboard_onfloormployees").innerHTML = summary_onfloor;
@@ -446,7 +363,7 @@ function Dashboard_GetManpowerSumary(Type) {
                         document.getElementById("summary_gridheaderfilter").innerHTML = 'Users on Leave';
 
                 },
-                "rowCallback": function(row, data) {
+                "rowCallback": function (row, data) {
                     var val = data[3];
                 },
 
@@ -464,7 +381,7 @@ function Dashboard_GetManpowerSumary(Type) {
             //    row = table.row(this).data();
             //});
         },
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -477,6 +394,7 @@ function ViewBirthdayMessages(EmployeeID) {
 }
 
 function BD_BindAllBirthdays() {
+
     $('#load1').show();
     bd_html = '';
     $.ajax({
@@ -485,9 +403,10 @@ function BD_BindAllBirthdays() {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
-        success: function(data) {
+        success: function (data) {
             var dataArray = JSON.parse(data.d);//            
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
+
                 bd_html += '<tr>';
                 bd_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';
                 bd_html += '<td style="text-align:center;"><a class="dropdown-item" href="#!" id="Actions" onclick="ViewBirthdayMessages(' + value.EmployeeID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>';
@@ -521,10 +440,10 @@ function BD_BindAllBirthdays() {
                     'style': 'single'
                 },
 
-                initComplete: function() {
+                initComplete: function () {
                     $('#load1').hide();
                 },
-                "rowCallback": function(row, data) {
+                "rowCallback": function (row, data) {
                 },
             });
 
@@ -533,7 +452,7 @@ function BD_BindAllBirthdays() {
             //});
         },
 
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -541,30 +460,34 @@ function BD_BindAllBirthdays() {
     return false;
 }
 
-function BD_BindAllBirthdayMessages() {
+function core_BD_BindAllBirthdayMessages(EmpID) {
+
+    alert('message');
+
     $('#load1').show();
     bdmsg_html = '';
-    const urlParams = new URLSearchParams(window.location.search);
-    var EmpID = urlParams.get('EmployeeID');
-    if (EmpID == null) {
-        EmpID = 0;
-    }
+    // const urlParams = new URLSearchParams(window.location.search);
+    // var EmpID = urlParams.get('EmployeeID');
+    // if (EmpID == null) {
+    //     EmpID = 0;
+    // }
     $.ajax({
         url: "ViewBirthdayMessages.aspx/GetAllBirthdaysMessages",
         type: "POST",
         data: "{EmployeeID:" + EmpID + "}",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
+
+        success: function (data) {
             var dataArray = JSON.parse(data.d);// 
             if (dataArray != "") {
                 bdmsg_html = '<div class="timeline">';
-                $.each(dataArray, function(index, value) {
-
-                    var addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")+' '+new Date($1).toLocaleTimeString(\"en-US\")"));
+                $.each(dataArray, function (index, value) {
+                    alert(index);
+                    //var addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")+' '+new Date($1).toLocaleTimeString(\"en-US\")"));
                     bdmsg_html += '<div>';
                     bdmsg_html += '<i class="fas fa-user-tie"></i>';
-                    bdmsg_html += '<div class="timeline-item"><span class="time" ><i class="fas fa-clock"></i> ' + addeddate + '</span><h6 class="timeline-header" style="font-size:12px!important;">';
+                    bdmsg_html += '<div class="timeline-item"><span class="time" ><i class="fas fa-clock"></i> ' + value.AddedDate + '</span><h6 class="timeline-header" style="font-size:12px!important;">';
                     bdmsg_html += '<a href="#">' + value.FromName + '</a> sent you wishes</h6><div class="timeline-body"><h5 style="font-size:14px!important;">';
                     bdmsg_html += value.Message + '</h5></div><div class="timeline-footer"></div></div></div>';
                     //if (value.Gender == 'Female')
@@ -584,13 +507,84 @@ function BD_BindAllBirthdayMessages() {
 
             $("#load1").hide();
         },
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
     });
     return false;
 }
+
+function BD_BindAllBirthdayMessages(EmpID) {
+
+    $('#load1').show();
+    bdmsg_html = '';
+
+    $.ajax({
+        url: "ViewBirthdayMessages.aspx/GetAllBirthdaysMessages",
+        type: "POST",
+        data: JSON.stringify({ EmployeeID: EmpID }),
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+            const dataArray = JSON.parse(data.d || "[]");
+
+            let html = "";
+
+            if (dataArray.length > 0) {
+                html += '<div class="timeline birthday-message-timeline">';
+
+                $.each(dataArray, function (index, value) {
+
+                    html += `
+                        <div class="birthday-message-item">
+                            <i class="fas fa-user-tie bg-pink"></i>
+
+                            <div class="timeline-item">
+                                <span class="time">
+                                    <i class="fas fa-clock"></i> ${value.AddedDate}
+                                </span>
+
+                                <h6 class="timeline-header">
+                                    <a href="#">${blankForNull(value.FromName)}</a> sent you wishes
+                                </h6>
+
+                                <div class="timeline-body">
+                                    <h5>${blankForNull(value.Message)}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+            } else {
+                html = `
+                    <div class="birthday-empty-message">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <h5>No birthday messages yet</h5>
+                        <p>
+                            Sorry! Currently you don't have any message.
+                            You can check messages later by clicking SATR icon
+                            on the right top corner of website.
+                        </p>
+                    </div>
+                `;
+            }
+
+            $("#dvMessages").html(html);
+            $('#load1').hide();
+        },
+
+        error: function (xhr) {
+            $('#load1').hide();
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+    return false;
+}
+
 
 function getPendingTaskNotifications() {
     var dash_nothtml;
@@ -604,7 +598,7 @@ function getPendingTaskNotifications() {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
-        success: function(data) {
+        success: function (data) {
             var dataArray = JSON.parse(data.d);//   
 
             if (dataArray == "" || dataArray == null) {
@@ -615,7 +609,7 @@ function getPendingTaskNotifications() {
                 $("#dash_notifications").modal("show");
 
             }
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
                 dash_nothtml += '<tr>';
                 dash_nothtml += '<td style="text-align:left;"><a style="font-size:13px; color:black; text-decoration:underline; font-style:italic;" href="' + value.Url + '">' + blankForNull(value.Text) + '</a></td>';
                 dash_nothtml += '</tr>';
@@ -638,11 +632,11 @@ function getPendingTaskNotifications() {
                     'style': 'single'
                 },
 
-                initComplete: function() {
+                initComplete: function () {
                     $('#load1').hide();
                 },
 
-                "rowCallback": function(row, data) {
+                "rowCallback": function (row, data) {
                 },
 
             });
@@ -652,7 +646,7 @@ function getPendingTaskNotifications() {
             //});
         },
 
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -670,7 +664,7 @@ function getPendingTaskNotifications_Sidebar() {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
-        success: function(data) {
+        success: function (data) {
             var dataArray = JSON.parse(data.d);//   
             //if (dataArray == null || dataArray == "") {
             //    $("#dash_notifications").modal("hide");
@@ -679,7 +673,7 @@ function getPendingTaskNotifications_Sidebar() {
             //else {
             //    $("#dash_notifications").modal("show");
             //}
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
                 i++;
                 sidebarnot += '<div class="mb-3" style="text-align:left;"><span><a style="font-size:13px; color:white; text-decoration:underline; font-style:italic;" href="' + value.Url + '">' + blankForNull(value.Text) + '</a></span></div>';
             });
@@ -690,7 +684,7 @@ function getPendingTaskNotifications_Sidebar() {
 
         },
 
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -707,10 +701,10 @@ function GetDashboardPerformanceDetails() {
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(data) {
+        success: function (data) {
 
             var dataArray = JSON.parse(data.d);//  
-            $.each(dataArray, function(index, item) {
+            $.each(dataArray, function (index, item) {
                 html += '<tr>';
                 html += '<td style="text-wrap: nowrap;">' + item.MonthYear + '</td>';
                 html += '<td style="text-wrap: nowrap;">' + item.Code + '</td>';
@@ -753,7 +747,7 @@ function GetDashboardPerformanceDetails() {
                     'style': 'single'
                 },
 
-                initComplete: function() {
+                initComplete: function () {
                     $('#load1').hide();
                 },
             });
@@ -762,7 +756,7 @@ function GetDashboardPerformanceDetails() {
             //    row = table.row(this).data();
             //});
         },
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -779,7 +773,7 @@ function GetDashboardAttendanceDetails() {
             "type": "POST",
             "datatype": "json",
             "contentType": "application/json; charset=utf-8",
-            "dataSrc": function(json) {
+            "dataSrc": function (json) {
                 return JSON.parse(json.d);
             }
         },
@@ -795,7 +789,7 @@ function GetDashboardAttendanceDetails() {
             { "data": "SalaryPresentDays" },
             {
                 data: "AttendancePercOnTotalDays",
-                render: function(data) {
+                render: function (data) {
 
                     var val = parseFloat(data);
 
@@ -817,7 +811,8 @@ function GetDashboardAttendanceDetails() {
     return false;
 }
 
-function SendWish() {
+
+function core_SendWish() {
 
     var msg = $("#txtWish").val().trim();
     if (msg == "") {
@@ -837,14 +832,77 @@ function SendWish() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
 
-        success: function() {
+        success: function () {
 
             $("#txtWish").val("");
 
-            BD_BindAllBirthdayMessages(); // reload wishes
+            BD_BindAllBirthdayMessages(empId); // reload wishes
         }
     });
 
+}
+
+function SendWish() {
+    const $txtWish = $("#txtWish");
+    const msg = $txtWish.val().trim();
+
+    if (!msg) {
+        Swal.fire({
+            icon: "warning",
+            title: "Birthday wish required",
+            text: "Please write a birthday wish before sending."
+        });
+        return;
+    }
+
+    const empId = new URLSearchParams(window.location.search).get("EmployeeID");
+
+    if (!empId) {
+        Swal.fire({
+            icon: "error",
+            title: "Employee not found",
+            text: "Employee ID is missing."
+        });
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "ViewBirthdayMessages.aspx/SendBirthdayWish",
+        data: JSON.stringify({
+            message: msg,
+            EmployeeID: empId
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+
+        success: function (result) {
+
+            $txtWish.val("");
+
+            Swal.fire({
+                icon: "success",
+                title: "Wish Sent!",
+                text: "Your birthday wish has been sent successfully.",
+                timer: 1800,
+                showConfirmButton: false
+            });
+
+            BD_BindAllBirthdayMessages(empId);
+        },
+        error: function () {
+            Swal.fire({
+                icon: "error",
+                title: "Failed to send",
+                text: "Something went wrong. Please try again."
+            });
+        },
+        complete: function () {
+            $("button[onclick='SendWish()']")
+                .prop("disabled", false)
+                .html('<i class="fas fa-paper-plane"></i> Send');
+        }
+    });
 }
 
 function checkBirthday1() {
@@ -856,7 +914,7 @@ function checkBirthday1() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
 
-        success: function(res) {
+        success: function (res) {
 
             if (res.d.IsBirthday) {
 
@@ -879,7 +937,7 @@ function loadUserprojectnotifications() {
         url: "DashboardEmployee.aspx/GetDashboardProjectAlerts",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(res) {
+        success: function (res) {
             if (!res.d) return;
 
             alertsQueue = JSON.parse(res.d);
@@ -952,7 +1010,7 @@ function workAnniversary() {
         url: "DashboardEmployee.aspx/GetEmpWorkAnniversary",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        success: function(response) {
+        success: function (response) {
 
             var data = response.d;
 
@@ -991,7 +1049,7 @@ function workAnniversary() {
     </div>
 
  <div class="anniversary-msg">
-        ${(jubilee.length > 0) ? jubilee.message: getAnniversaryMessage(data[i].YearsCompleted)}
+        ${(jubilee.length > 0) ? jubilee.message : getAnniversaryMessage(data[i].YearsCompleted)}
 </div>
 
 </div>
@@ -1000,7 +1058,7 @@ function workAnniversary() {
 
                 $("#anniversaryContainer").html(html);
 
-                setTimeout(function() {
+                setTimeout(function () {
                     $("#anniversaryModal").modal("show");
                     startConfetti({
                         particleCount: 120,
@@ -1138,9 +1196,9 @@ function getJubileeDetails(years) {
 }
 
 function showantherPopUp() {
-   
+
     location.reload();
-} 
+}
 
 
 /*---------All Emps Work Anniversary ---------*/
