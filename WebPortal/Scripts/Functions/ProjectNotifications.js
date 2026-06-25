@@ -296,6 +296,44 @@ function upnot_dropLi(e) {
     upnot_draggedItems = [];
 }
 
+/*Select All*/
+$(document).on("keydown", function (e) {
+
+    // Ctrl+A or Cmd+A (Mac)
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+
+        // Only when the focus is inside the users list
+        if ($(document.activeElement).closest("#upnot_userslist").length ||
+            $("#upnot_userslist:hover").length) {
+
+            e.preventDefault(); // Prevent browser's Select All
+
+            $("#upnot_userslist li").addClass("selected");
+        }
+
+        if ($(document.activeElement).closest("#upnot_selectedusers").length ||
+            $("#upnot_selectedusers:hover").length) {
+
+            e.preventDefault(); // Prevent browser's Select All
+
+            $("#upnot_selectedusers li").addClass("selected");
+        }
+    }
+});
+
+// $(document).on("keydown", function (e) {
+
+//     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+
+//         const list = document.activeElement;
+
+//         if ($(list).hasClass("listbox-ul")) {
+//             e.preventDefault();
+//             $(list).find("li").addClass("selected");
+//         }
+//     }
+// });
+
 function upnot_resetform() {
     document.getElementById("upnot_subject").value = "";
     document.getElementById("upnot_alertmessage").value = "";

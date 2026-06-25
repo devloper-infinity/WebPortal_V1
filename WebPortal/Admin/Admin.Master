@@ -145,6 +145,9 @@
             return html;
         }
 
+        // const appVersion = '@DateTime.Now.Ticks';
+        // console.log('App Version:', appVersion);
+
     </script>
 </head>
 <body class="hold-transition sidebar-collapse layout-top-nav">
