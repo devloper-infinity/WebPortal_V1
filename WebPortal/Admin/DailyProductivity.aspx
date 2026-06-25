@@ -101,6 +101,11 @@
             min-height: 20px;
         }
 
+        .dp-live-seconds {
+            color: #facc15;
+            font-weight: 900;
+        }
+
         .dp-shell-card {
             background: var(--dp-card);
             border: 1px solid var(--dp-border);

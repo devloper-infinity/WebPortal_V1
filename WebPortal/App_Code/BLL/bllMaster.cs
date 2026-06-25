@@ -193,6 +193,13 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllEmployeeDetailsByIDsForProductivity(Ids);
         }
 
+
+        public DataTable GetProductivityDetailsOf_OnlineLogin(int EmployeeID)
+        {
+            return dalMaster.GetProductivityDetailsOf_OnlineLogin(EmployeeID);
+        }
+
+
         public DataTable BlockUserLogin(string Code)
         {
             return dalMaster.BlockUserLogin(Code);

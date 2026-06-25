@@ -13,6 +13,7 @@ using System.Web.Script.Serialization;
 using System.Web;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace WebPortal.Admin
 {
@@ -348,6 +349,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetProdInformation()
         {
+            string serverUtcNow = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture);
             DataTable dt1 = new bllMaster().GetAllEmployeeDetailsByIDsForProductivity(HttpContext.Current.User.Identity.Name.ToString());
             UserCode = Convert.ToString(dt1.Rows[0]["Code"]);
             UserDomain = Convert.ToInt32(dt1.Rows[0]["Domain"]);
@@ -360,6 +362,7 @@ namespace WebPortal.Admin
                 {
                     row.Add(col.ColumnName, dr[col]);
                 }
+                row.Add("_ServerUtc", serverUtcNow);
                 rows.Add(row);
             }
             JavaScriptSerializer ser = new JavaScriptSerializer();

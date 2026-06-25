@@ -11,6 +11,12 @@ var productionAuto_table;
 var html_autoProd;
 var table_prosMissing;
 var detailProd_table;
+var dailyProdClockTimer = null;
+var dailyProdServerUtcBase = null;
+var dailyProdClockSyncedAt = 0;
+var dailyProdLiveUptoActive = false;
+var dailyProdLiveUptoBaseSeconds = null;
+var dailyProdLiveUptoSyncedAt = null;
 
 const prodchkIds = [];
 var prodID = 0;
@@ -178,6 +184,172 @@ function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
 
+function syncDailyProdClock(serverUtc) {
+    if (!serverUtc) {
+        return;
+    }
+
+    var parsed = new Date(serverUtc);
+    if (isNaN(parsed.getTime())) {
+        return;
+    }
+
+    dailyProdServerUtcBase = parsed;
+    dailyProdClockSyncedAt = Date.now();
+}
+
+function getDailyProdClockNow() {
+    if (dailyProdServerUtcBase) {
+        return new Date(dailyProdServerUtcBase.getTime() + (Date.now() - dailyProdClockSyncedAt));
+    }
+
+    return new Date();
+}
+
+function ensureDailyProdClockTimer() {
+    if (dailyProdClockTimer) {
+        return;
+    }
+
+    dailyProdClockTimer = setInterval(function () {
+        updateDailyProdLiveUptoTime(getDailyProdClockNow());
+    }, 1000);
+}
+
+function startDailyProdLiveUptoTimer(uptoTime, currentLogin, currentClock) {
+    var clock = currentClock || getDailyProdClockNow();
+    var baseSeconds = parseDailyProdDurationSeconds(uptoTime);
+
+    if (baseSeconds === null) {
+        var loginClock = parseDailyProdIstLoginClock(currentLogin, clock);
+        if (loginClock) {
+            baseSeconds = Math.max(0, Math.floor((clock.getTime() - loginClock.getTime()) / 1000));
+        }
+    }
+
+    dailyProdLiveUptoActive = true;
+    dailyProdLiveUptoBaseSeconds = baseSeconds === null ? 0 : baseSeconds;
+    dailyProdLiveUptoSyncedAt = clock;
+    ensureDailyProdClockTimer();
+    updateDailyProdLiveUptoTime(clock);
+}
+
+function resetDailyProdLiveUptoTimer() {
+    dailyProdLiveUptoActive = false;
+    dailyProdLiveUptoBaseSeconds = null;
+    dailyProdLiveUptoSyncedAt = null;
+}
+
+function updateDailyProdLiveUptoTime(currentClock) {
+    if (!dailyProdLiveUptoActive || dailyProdLiveUptoBaseSeconds === null || !dailyProdLiveUptoSyncedAt) {
+        return;
+    }
+
+    var elapsedSeconds = Math.max(0, Math.floor((currentClock.getTime() - dailyProdLiveUptoSyncedAt.getTime()) / 1000));
+    var totalSeconds = dailyProdLiveUptoBaseSeconds + elapsedSeconds;
+    document.getElementById("dailyprod_tilltimedisplay").innerHTML = formatDailyProdDurationSecondsHtml(totalSeconds);
+}
+
+function parseDailyProdDurationSeconds(value) {
+    var text = blankForNull(value).toString().trim();
+    if (!text || text.toUpperCase() === "NA") {
+        return null;
+    }
+
+    var dayTimeMatch = text.match(/^(\d+)\.(\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+    if (dayTimeMatch) {
+        return (parseInt(dayTimeMatch[1], 10) * 24 * 60 * 60)
+            + (parseInt(dayTimeMatch[2], 10) * 60 * 60)
+            + (parseInt(dayTimeMatch[3], 10) * 60)
+            + parseInt(dayTimeMatch[4], 10);
+    }
+
+    var timeMatch = text.match(/^(\d{1,4})[:.](\d{1,2})(?:[:.](\d{1,2}))?$/);
+    if (timeMatch) {
+        return (parseInt(timeMatch[1], 10) * 60 * 60)
+            + (parseInt(timeMatch[2], 10) * 60)
+            + parseInt(timeMatch[3] || "0", 10);
+    }
+
+    var wordsMatch = text.match(/(\d+)\D+(\d{1,2})/);
+    if (wordsMatch) {
+        return (parseInt(wordsMatch[1], 10) * 60 * 60)
+            + (parseInt(wordsMatch[2], 10) * 60);
+    }
+
+    return null;
+}
+
+function formatDailyProdDurationSecondsHtml(totalSeconds) {
+    var safeSeconds = Math.max(0, Math.floor(totalSeconds || 0));
+    var hours = Math.floor(safeSeconds / 3600);
+    var minutes = Math.floor((safeSeconds % 3600) / 60);
+    var seconds = safeSeconds % 60;
+
+    return String(hours).padStart(2, "0") + ":"
+        + String(minutes).padStart(2, "0") + ":"
+        + '<span class="dp-live-seconds">' + String(seconds).padStart(2, "0") + '</span>';
+}
+
+function parseDailyProdIstLoginClock(currentLogin, currentClock) {
+    var text = blankForNull(currentLogin).toString().trim();
+    var match = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?/i);
+
+    if (!match) {
+        return null;
+    }
+
+    var istParts = getDailyProdIstDateParts(currentClock);
+    if (!istParts) {
+        return null;
+    }
+
+    var hours = parseInt(match[1], 10);
+    var minutes = parseInt(match[2], 10);
+    var seconds = parseInt(match[3] || "0", 10);
+    var meridiem = blankForNull(match[4]).toString().toUpperCase();
+
+    if (meridiem === "PM" && hours < 12) {
+        hours += 12;
+    }
+    else if (meridiem === "AM" && hours === 12) {
+        hours = 0;
+    }
+
+    var loginUtc = new Date(Date.UTC(istParts.year, istParts.month - 1, istParts.day, hours, minutes, seconds) - (330 * 60 * 1000));
+
+    if (loginUtc.getTime() > currentClock.getTime()) {
+        loginUtc = new Date(loginUtc.getTime() - (24 * 60 * 60 * 1000));
+    }
+
+    return loginUtc;
+}
+
+function getDailyProdIstDateParts(date) {
+    try {
+        var parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Kolkata",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).formatToParts(date);
+
+        var valueByType = {};
+        parts.forEach(function (part) {
+            valueByType[part.type] = part.value;
+        });
+
+        return {
+            year: parseInt(valueByType.year, 10),
+            month: parseInt(valueByType.month, 10),
+            day: parseInt(valueByType.day, 10)
+        };
+    }
+    catch (ex) {
+        return null;
+    }
+}
+
 function sleep(milliseconds) {
     var start = new Date().getTime();
     for (var i = 0; i < 1e7; i++) {
@@ -206,9 +378,21 @@ function BindProdInfo() {
                 UserDomain = value.Domain;
                 Applicable = value.Applicable;
 
-                document.getElementById("dailyprod_logtinimedisplay").innerHTML = value.CurrentLogin.replace('AM', ' AM').replace('PM', ' PM');
-                document.getElementById("dailyprod_tilltimedisplay").innerHTML = value.UptoTime;
+                var currentLogin = blankForNull(value.CurrentLogin).replace('AM', ' AM').replace('PM', ' PM');
+                var currentLogout = blankForNull(value.CurrentLogOut);
+                var uptoTime = blankForNull(value.UptoTime);
+
+                syncDailyProdClock(value._ServerUtc);
+                document.getElementById("dailyprod_logtinimedisplay").innerHTML = currentLogin;
+                document.getElementById("dailyprod_tilltimedisplay").innerHTML = currentLogout || uptoTime;
                 document.getElementById("prodCode").innerHTML = value.Code;
+
+                if (currentLogin && !currentLogout) {
+                    startDailyProdLiveUptoTimer(uptoTime, currentLogin, getDailyProdClockNow());
+                }
+                else {
+                    resetDailyProdLiveUptoTimer();
+                }
 
                 if (value.BreakOut != '')
                     document.getElementById("dailyprod_breakouttimedisplay").innerHTML = 'N/A';

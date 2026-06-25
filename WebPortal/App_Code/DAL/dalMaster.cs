@@ -294,6 +294,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+
+        public DataTable GetProductivityDetailsOf_OnlineLogin(int EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllEmployeeDetailsByCodes_Productivity_ICG]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, EmployeeID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable BlockUserLogin(string Code)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_BlockUserLogin");
