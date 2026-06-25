@@ -730,7 +730,15 @@ function usfeedback_submit() {
 
             function (result) {
                 if (result > 0) {
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => { location.reload(); });
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => {
+                        // location.reload();
+                        if (value == "ATR Review")
+                            usfeedback_atr_bindgrid("ATR", processid);
+                        else
+                            usfeedback_atr_bindgrid("Other", processid);
+
+                        clearusfeedbackForm();
+                    });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }
@@ -750,7 +758,15 @@ function usfeedback_submit() {
 
             function (result) {
                 if (result > 0) {
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => { location.reload(); });
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => {
+                        // location.reload();
+                        if (value == "ATR Review")
+                            usfeedback_atr_bindgrid("ATR", processid);
+                        else
+                            usfeedback_atr_bindgrid("Other", processid);
+
+                        clearusfeedbackForm();
+                    });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }
@@ -765,6 +781,44 @@ function usfeedback_submit() {
 
     }
     return false;
+}
+
+
+function clearusfeedbackForm() {
+
+    // Textboxes
+    $('#usfeedback_projectno').val('');
+    $('#usfeedback_dealno').val('');
+    $('#usfeedback_loanno').val('');
+    $('#usfeedback_reviewer').val('');
+    $('#usfeedback_reviewdate').val('');
+    $('#usfeedback_noofbwr').val('');
+    $('#usfeedback_incometype').val('');
+    $('#usfeedback_noofsebus').val('');
+    $('#usfeedback_noofrental').val('');
+
+    // Dropdowns
+    $('#usfeedback_task').prop('selectedIndex', 0);
+    $('#usfeedback_severity').prop('selectedIndex', 0);
+    $('#usfeedback_atrsupported').prop('selectedIndex', 0);
+
+    // Textareas
+    $('#usfeedback_finding').val('');
+    $('#usfeedback_reviewfindings').val('');
+    $('#usfeedback_dtiissue').val('');
+    $('#usfeedback_comments').val('');
+
+    // File Upload
+    $('#usfeedback_fileUploads').val('');
+    $('#usfeedback_selectedFile').text('');
+
+    // Hide conditional sections
+    $('#trOther').hide();
+    $('#tratr1').hide();
+    $('#tratr2').hide();
+    $('#tratr3').hide();
+    $('#tratr4').hide();
+    $('#tratr5').hide();
 }
 
 

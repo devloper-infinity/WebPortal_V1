@@ -2,6 +2,7 @@
 
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+
     <style>
         :root {
             --ca-primary: #2563eb;
@@ -24,10 +25,11 @@
             display: none;
             position: fixed;
             inset: 0;
-            width: 100%;
-            height: 100%;
+            top: 50%;
+            left: 50%;
+            width: 180px;
+            min-height: 150px;
             z-index: 200000;
-            background: rgba(15, 23, 42, .30);
             backdrop-filter: blur(4px);
             align-items: center;
             justify-content: center;
@@ -39,7 +41,6 @@
                 height: 74px;
                 padding: 12px;
                 background: var(--ca-surface);
-                border-radius: 18px;
                 box-shadow: var(--ca-shadow);
             }
 
@@ -48,8 +49,6 @@
                 margin-top: 12px;
                 padding: 8px 14px;
                 color: var(--ca-text);
-                background: var(--ca-surface);
-                border-radius: 999px;
                 box-shadow: 0 8px 25px rgba(15, 23, 42, .12);
             }
 
@@ -260,6 +259,68 @@
             align-items: center;
         }
 
+        .drop-zone {
+            /* min-height: 126px;*/
+            border: 1.5px dashed #8ab4ff;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            padding: 18px;
+            transition: all .22s ease;
+        }
+
+        .drop-zone-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+            .drop-zone-content i {
+                display: flex;
+                width: 40px;
+                height: 40px;
+                border-radius: 14px;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                color: #fff;
+                /* background: linear-gradient(135deg, #2457e6, #25bfd4);*/
+                background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+                box-shadow: 0 10px 18px rgba(36, 87, 230, .22);
+                flex-shrink: 0;
+            }
+
+        .drop-text {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .drop-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #182230;
+        }
+
+        .drop-subtitle {
+            margin-top: 2px;
+            font-size: 12px;
+            color: var(--ot-muted);
+        }
+
+        .selected-file-name {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #047857;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
         .my-btn, .btn.btn-primary, #usfeedback_btnsubmit {
             display: inline-flex;
             align-items: center;
@@ -274,8 +335,8 @@
             font-weight: 800 !important;
             letter-spacing: .01em;
             cursor: pointer;
-           /* background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%) !important;*/
-           background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            /* background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%) !important;*/
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
             box-shadow: 0 10px 20px rgba(37, 99, 235, .24) !important;
             transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
         }
@@ -397,15 +458,98 @@
             }
         }
     </style>
+
     <script>
         $(document).ready(function () {
             GetLoggedInUserDetails();
             bindloanDetails_feedback();
+            initusfeedbackDragDrop();
         });
+
+        function initusfeedbackDragDrop() {
+            const dropZone = document.getElementById('usfeedback_dropZone');
+            const fileInput = document.getElementById('usfeedback_fileUploads');
+
+            if (!dropZone || !fileInput) return;
+
+            dropZone.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            dropZone.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    fileInput.click();
+                }
+            });
+
+            ['dragenter', 'dragover'].forEach(function (eventName) {
+                dropZone.addEventListener(eventName, function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    dropZone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(function (eventName) {
+                dropZone.addEventListener(eventName, function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    dropZone.classList.remove('dragover');
+                });
+            });
+
+            dropZone.addEventListener('drop', function (event) {
+                const files = event.dataTransfer.files;
+                if (!files || files.length === 0) return;
+
+                const firstFile = files[0];
+                if (!firstFile.name.toLowerCase().endsWith('.xlsx')) {
+                    Swal.fire('Invalid file', 'Please upload only .xlsx file.', 'warning');
+                    return;
+                }
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(firstFile);
+                fileInput.files = dataTransfer.files;
+                uploadusfeedbackFile(firstFile, fileInput.name || 'usfeedback_fileUploads');
+            });
+
+            fileInput.addEventListener('change', function (event) {
+                const files = event.target.files;
+                if (!files || files.length === 0) return;
+                uploadusfeedbackFile(files[0], event.target.name || 'usfeedback_fileUploads');
+            });
+        }
+
+        function uploadusfeedbackFile(file, fieldName) {
+            document.getElementById('file_usfeedback').value = file.name;
+            document.getElementById('usfeedback_selectedFile').innerText = file.name;
+
+            const fd = new FormData();
+            fd.append(fieldName, file, file.name);
+
+            const xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    Swal.fire('Upload failed', 'Unable to upload selected file. Please try again.', 'error');
+                }
+            };
+
+            xhr.open('POST', window.location.href, true);
+            xhr.send(fd);
+        }
+
     </script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <input type="text" id="usfeedback_projectid" name="usfeedback_projectid" style="display: none;" />
+    <%-- <input id="file_usfeedback" style="display: none;" />--%>
+    <input type="hidden" id="file_usfeedback" name="file_usfeedback" />
 
     <div class="loading" id="load1">
         <div>
@@ -535,241 +679,45 @@
                     </div>
 
                     <div class="my-row">
-                        <div class="my-col-12 action-row">
-                            <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return usfeedback_submit();">Submit</button>
+                        <div class="my-col-6">
+                            <div class="form-field">
+                                <label for="usfeedback_fileUploads">Upload File <span class="req">*</span></label>
+                                <div id="usfeedback_dropZone" class="drop-zone" role="button" tabindex="0">
+                                    <div class="drop-zone-content">
+                                        <i class="bi bi-cloud-arrow-up"></i>
+                                        <div class="drop-text">
+                                            <span class="drop-title">Drag & drop Excel file here</span>
+                                            <span class="drop-subtitle">or click to browse .xlsx file</span>
+                                        </div>
+                                        <div id="usfeedback_selectedFile" class="selected-file-name"></div>
+                                    </div>
+                                </div>
+                                <input type="file" id="usfeedback_fileUploads" name="usfeedback_fileUploads" class="file-input d-none" accept=".xlsx" />
+                            </div>
+                        </div>
+                        <div class="my-row">
+                            <div class="my-col-12 action-row">
+                                <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return usfeedback_submit();">Submit</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="condition-card">
-            <div class="condition-card-header">
-                <div>
-                    <h2 class="condition-card-title">Feedback Records</h2>
-                    <p class="condition-card-hint">Review saved feedback records below.</p>
+            <div class="condition-card">
+                <div class="condition-card-header">
+                    <div>
+                        <h2 class="condition-card-title">Feedback Records</h2>
+                        <p class="condition-card-hint">Review saved feedback records below.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="condition-card-body">
-                <div class="table-responsive-modern">
-                    <table class="table table-bordered" style="width: 100%;" id="usfeedback_table"></table>
+                <div class="condition-card-body">
+                    <div class="table-responsive-modern">
+                        <table class="table table-bordered" style="width: 100%;" id="usfeedback_table"></table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 </asp:Content>
-
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-
-
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dt-buttons {
-            display: flex;
-            align-items: center;
-        }
-
-        .dataTables_wrapper .dataTables_length {
-            float: left !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-        }
-
-        .table.dataTable th {
-            /*background:linear-gradient(to bottom, #0070C0, 80%, #ffffff);*/
-            background: linear-gradient(to bottom, #cbd0dd, 3%, #fff) !important;
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none;
-        }
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
-    </style>
-    <script>
-        $(document).ready(function () {
-            GetLoggedInUserDetails();
-            bindloanDetails_feedback();
-        });
-    </script>
-</asp:Content>
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <input type="text" id="usfeedback_projectid" name="usfeedback_projectid" style="display:none;" />
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Feedback Details</b></h6>
-                </div>
-                 <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right" style="font-size: 12px; font-weight: bold;">
-                        <li class="breadcrumb-item"><a id="usfeedback_back" href="GlobalSearch.aspx" style="color: saddlebrown"><< Go back </a></li>
-
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td>
-                            <b>Client:</b>
-                        </td>
-                        <td>
-                            <input type="text" id="usfeedback_projectno" name="usfeedback_projectno" class="form-control" style="width: 300px;" />
-                        </td>
-                        <td>
-                            <b>Client Deal #:</b>
-                        </td>
-                        <td>
-                            <input type="text" id="usfeedback_dealno" name="usfeedback_dealno" class="form-control" style="width: 300px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <b>Loan #:</b>
-                        </td>
-                        <td>
-                            <input type="text" id="usfeedback_loanno" name="usfeedback_loanno" class="form-control" style="width: 300px;" />
-                        </td>
-
-                        <td>
-                            <b>Task:</b>
-                        </td>
-                        <td>
-                            <select id="usfeedback_task" name="usfeedback_task" class="form-control" style="width:300px;" onchange="return getTaskwiseDetails(this);"></select>
-                        </td>
-                    </tr>
-                    <tr id="trOther" style="display:none;">
-                        <td>
-                            <b>Severity:</b>
-                        </td>
-                        <td>
-                            <select id="usfeedback_severity" name="usfeedback_severity" class="form-control" style="width:300px;">
-                                <option value="">Select</option>
-                                <option value="Critical">Critical</option>
-                                <option value="Non-Critical">Non-Critical</option>
-                                <option value="No Error">No Error</option>
-                            </select>
-                        </td>
-                        <td>
-                            <b>Findings:</b>
-                        </td>
-                        <td>
-                            <textarea id="usfeedback_finding" name="usfeedback_finding" class="form-control" style="width:500px; height:80px;"></textarea>
-                        </td>
-                    </tr>
-                    <tr id="tratr1" style="display:none;">
-                        <td><b>Reviewer:</b></td>
-                        <td>
-                            <input type="text" id="usfeedback_reviewer" name="usfeedback_reviewer" class="form-control" style="width:300px;" />
-                        </td>
-                        <td><b>Review Date:</b></td>
-                        <td>
-                            <input type="date" id="usfeedback_reviewdate" name="usfeedback_reviewdate" class="form-control" style="width:300px;" />
-                        </td>
-                    </tr>
-                    <tr id="tratr2" style="display:none;">
-                        <td><b>ATR Supported?</b></td>
-                        <td>
-                            <select id="usfeedback_atrsupported" name="usfeedback_atrsupported" class="form-control" style="width:300px;">
-                                <option value="">Select</option>
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            </select>
-                        </td>
-                        <td>
-                            <b># of Borrowers:</b>
-                        </td>
-                        <td>
-                            <input type="number" id="usfeedback_noofbwr" name="usfeedback_noofbwr" class="form-control" style="width:300px;" />
-                        </td>
-                        
-                    </tr>
-                    <tr id="tratr3" style="display:none;">
-                        <td><b>Review Findings:</b></td>
-                        <td>
-                            <textarea id="usfeedback_reviewfindings" name="usfeedback_reviewfindings" class="form-control" style="width:300px; height:80px;"></textarea>
-                        </td>
-                        <td><b>Seller Disclosed DTI Issue:</b></td>
-                        <td>
-                            <textarea id="usfeedback_dtiissue" name="usfeedback_dtiissue" class="form-control" style="width:300px; height:80px;"></textarea>
-                        </td>                        
-                    </tr>
-                    <tr id="tratr4" style="display:none;">
-                        <td><b>Highest BWR Income Type:</b></td>
-                        <td>
-                            <input type="text" id="usfeedback_incometype" name="usfeedback_incometype" class="form-control" style="width:300px;" />
-                        </td>
-                        <td>
-                            <b># SE businesses:</b>
-                        </td>
-                        <td>
-                            <input type="number" id="usfeedback_noofsebus" name="usfeedback_noofsebus" class="form-control" style="width:300px;" />
-                        </td>
-                    </tr>
-                    <tr id="tratr5" style="display:none;">
-                        <td>
-                            <b># Rental Properties:</b>
-                        </td>
-                        <td>
-                            <input type="number" id="usfeedback_noofrental" name="usfeedback_noofrental" class="form-control" style="width:300px;" />
-                        </td>
-                        <td><b>Comments:</b></td>
-                        <td>
-                            <textarea id="usfeedback_comments" name="usfeedback_comments" class="form-control" style="width:300px; height:80px;"></textarea>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" style="text-align:center;">
-                            <button id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="btn btn-primary" onclick="return usfeedback_submit();">Submit</button>
-                        </td>
-                    </tr>
-                </table>
-                <hr />
-                <table class="table table-bordered" style="width: 100%;" id="usfeedback_table"></table>
-
-            </div>
-        </div>
-    </div>
-</asp:Content>--%>

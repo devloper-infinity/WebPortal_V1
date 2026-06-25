@@ -21,7 +21,7 @@ namespace WebPortal.Admin
 
         protected void Page_Load(object sender, EventArgs e)
         {
-           // ShowTabsByRights();
+            // ShowTabsByRights();
 
             FolderPath = Server.MapPath(@"~\BankAccDetails\");
 
@@ -112,6 +112,9 @@ namespace WebPortal.Admin
             {
                 htParam.Add("Attachment", "");
             }
+
+            FolderPath = null;
+            NewFileName = null;
 
             ReturnValue = new bllMaster().InsertBankAccountNo(htParam);
             return ReturnValue;

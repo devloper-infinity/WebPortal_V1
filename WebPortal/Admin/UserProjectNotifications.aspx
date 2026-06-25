@@ -1,6 +1,5 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="UserProjectNotifications.aspx.cs" Inherits="WebPortal.Admin.UserProjectNotifications" %>
 
-
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
         :root {
@@ -536,12 +535,14 @@
 
     </script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <input id="upnot_filep" style="display: none;" />
 
@@ -551,9 +552,7 @@
     </div>
     <div class="ud-page">
         <section class="ud-hero">
-            <%--   <div class="ud-hero-icon"><i class="bi bi-megaphone-fill"></i></div>--%>
             <div class="ud-hero-icon"><i class="bi bi-diagram-3-fill"></i></div>
-
             <div class="ud-hero-content">
                 <h1 class="ud-title">Project Notifications Master</h1>
                 <p class="ud-subtitle">Configure and manage project notification settings, recipients, and alert triggers.</p>

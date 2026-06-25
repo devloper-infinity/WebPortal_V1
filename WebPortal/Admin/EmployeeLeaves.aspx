@@ -462,7 +462,7 @@
         });
     </script>
 
-    <script src="../Scripts/Functions/EmpLeave.js"></script>
+    <script src="../Scripts/Functions/EmpLeave.js?v=6"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>
@@ -471,18 +471,6 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-
-    <%--    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Employee Leaves</b></h6>
-                </div>
-            </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>--%>
-
    <div class="dashboard-header">
     <div class="d-flex justify-content-between align-items-start mb-1">
         <div>
@@ -507,98 +495,6 @@
                     </div>
                 </div>
                 <div class="leave-panel-body">
-                <%--     <table class="table">
-                    <tr>
-                        <td><b>Code:</b></td>
-                        <td>
-                            <select id="empleave_user" name="empleave_user" class="form-control" style="width: 250px;" onchange="return getPaidEligibility(this);"></select>
-                        </td>
-                        <td><b>Inform Type:</b></td>
-                        <td>
-                            <select id="empleave_informtype" name="empleave_informtype" class="form-control" style="width: 250px;">
-                                <option value="">Select</option>
-                                <option value="Inform On CallSMS">Inform On CallSMS</option>
-                                <option value="Inform By Other Person">Inform By Other Person</option>
-                                <option value="ByEmail">By Email</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </td>
-                        <td><b>Days:</b></td>
-                        <td>
-                            <select id="empleave_days" name="empleave_days" class="form-control" style="width: 250px;" onchange="return GetLeavesToDate();">
-                                <option value="">Select</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                                <option value="9">9</option>
-                                <option value="10">10</option>
-                                <option value="11">11</option>
-                                <option value="12">12</option>
-                                <option value="13">13</option>
-                                <option value="14">14</option>
-                                <option value="15">15</option>
-                                <option value="16">16</option>
-                                <option value="17">17</option>
-                                <option value="18">18</option>
-                                <option value="19">19</option>
-                                <option value="20">20</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>From Date:</b></td>
-                        <td>
-                            <input type="date" id="empleave_fromdate" name="empleave_fromdate" class="form-control" style="width: 250px;" onchange="return GetLeavesToDate();" />
-                        </td>
-                        <td><b>To Date:</b></td>
-                        <td>
-                            <input type="date" id="empleave_todate" name="empleave_todate" class="form-control" style="width: 250px;" />
-                        </td>
-                        <td><b>Reason:</b></td>
-                        <td>
-                            <textarea id="empleave_reason" name="empleave_reason" class="form-control" style="width: 250px;"></textarea>
-                        </td>
-                    </tr>
-                    <tr id="paidunpid" style="display: none;">
-                        <td><b>Paid/ Unpaid?</b></td>
-                        <td>
-                            <select id="empleave_paidunpaid" name="empleave_paidunpaid" class="form-control" style="width: 250px;">
-                                <option value="">Select</option>
-                                <option value="Paid">Paid</option>
-                                <option value="Unpaid">Unpaid</option>
-                            </select>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    <tr id="empleave_leavedetails" style="display: none;">
-                        <td><b>Total Leaves:</b></td>
-                        <td>
-                            <span id="empleave_totalleaves" name="empleave_totalleaves" class="form-control" style="width: 250px; font-weight: bold; background-color: lightgray;"></span>
-                        </td>
-                        <td><b>Applied Leaves:</b></td>
-                        <td>
-                            <span id="empleave_appliedleaves" name="empleave_appliedleaves" class="form-control" style="width: 250px; font-weight: bold; background-color: powderblue;"></span>
-                        </td>
-                        <td><b>Pending Leaves:</b></td>
-                        <td>
-                            <span id="empleave_pendingleaves" name="empleave_pendingleaves" class="form-control" style="width: 250px; font-weight: bold; background-color: lightgreen;"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="6" style="text-align: center;">
-                            <button id="empleave_btnsubmit" name="empleave_btnsubmit" class="btn btn-primary" onclick="return empleave_submit();">Submit</button>
-                        </td>
-                    </tr>
-                </table>--%>
-
                     <div class="leave-form-grid">
                         <div class="leave-field">
                             <label for="empleave_user">Code</label>
@@ -740,9 +636,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title" id="empleave_errmsg"></h6>
-                    <%--<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>--%>
                 </div>
 
                 <div class="modal-footer align-content-center">
@@ -763,60 +656,6 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <%--  <div class="modal-body">
-
-                    <table class="table table-responsive">
-                        <tr>
-                            <td><b>Code:</b></td>
-                            <td>
-                                <input class="form-control" id="empleave_approve_code" value="Code" style="width: 300px;" />
-                            </td>
-
-                            <td><b>Leave Type:</b></td>
-                            <td>
-                                <input class="form-control" id="empleave_approve_leavetype" style="width: 300px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><b>Date Range:</b></td>
-                            <td>
-                                <input class="form-control" id="empleave_approve_daterange" style="width: 300px;" />
-                                <input class="form-control" id="empleave_approve_fordays" style="display: none;" />
-                            </td>
-
-                            <td><b>Reason:</b></td>
-                            <td>
-                                <textarea class="form-control" id="empleave_approve_reason" style="width: 300px;"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><b>Action:</b></td>
-                            <td>
-                                <select name="empleave_approve_ddaction" required id="empleave_approve_ddaction" class="form-control" onchange="changebuttontext();" style="width: 300px;">
-                                    <option value="">Select</option>
-                                    <option value="Approve">Approve</option>
-                                    <option value="Reject">Reject</option>
-                                </select>
-                            </td>
-                            <td><b>Comments:</b></td>
-                            <td>
-                                <textarea name="empleave_approve_comments" id="empleave_approve_comments" class="form-control" style="width: 300px;"></textarea>
-                            </td>
-
-                        </tr>
-                        <tr>
-                            <td id="leavestatus"><b>Status:</b></td>
-                            <td id="leavestatusrow">
-                                <select name="empleave_approve_leavestatus" id="empleave_approve_leavestatus" class="form-control" style="width: 300px;">
-                                    <option value="">Select</option>
-                                    <option value="Paid">Paid</option>
-                                    <option value="Unpaid">Unpaid</option>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
-                </div>--%>
-
                 <div class="modal-body">
                     <div class="leave-modal-grid">
                         <div class="leave-field leave-hidden">
@@ -884,59 +723,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <%--      <table class="table">
-                        <tr>
-                            <td><b>Code:</b></td>
-                            <td>
-                                <input class="form-control" id="empleave_extend_code" style="width: 300px;" />
-                            </td>
-
-                            <td><b>Leave Type:</b></td>
-                            <td>
-                                <input class="form-control" id="empleave_extend_lavetype" style="width: 300px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><b>Reason:</b></td>
-                            <td>
-                                <textarea class="form-control" id="empleave_extend_reason" style="width: 300px;"></textarea>
-                            </td>
-
-                            <td><b>Action:</b></td>
-                            <td>
-                                <select name="empleave_extend_ddaction" required id="empleave_extend_ddaction" class="form-control" onchange="changebuttontextEx();" style="width: 300px;">
-                                    <option value="">Select</option>
-                                    <option value="Extend">Extend</option>
-                                    <option value="Shorten">Shorten</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><b>Days:</b></td>
-                            <td>
-                                <label id="empleave_extend_days_hidden" style="display: none;"></label>
-                                <select name="empleave_extend_days" id="empleave_extend_days" class="form-control" onchange="GetLeavesToDateEx();" style="width: 300px;">
-                                </select>
-                            </td>
-
-                            <td><b>Date Range:</b></td>
-                            <td>
-                                <input class="form-control" id="empleave_extend_fromdate" style="display: inline; width: 150px;" />
-                                &nbsp;&nbsp;<input class="form-control" id="empleave_extend_todate" style="display: inline; width: 150px;" />
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td><b>Comments:</b></td>
-                            <td>
-                                <textarea name="empleave_extend_comments" id="empleave_extend_comments" class="form-control" style="width: 300px;"></textarea>
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </table>--%>
-
+            
                     <div class="leave-modal-grid">
                         <div class="leave-field leave-hidden">
                             <label for="empleave_extend_code">Code</label>

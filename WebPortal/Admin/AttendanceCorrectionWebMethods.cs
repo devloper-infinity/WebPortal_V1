@@ -426,7 +426,7 @@ namespace WebPortal.Admin
         private static int SaveInOnly(AttendanceSaveRequest request, string code, string inDateParam, string totalHours, string userReason, string inTime)
         {
             Hashtable attendance = BuildAttendanceHash(request, code, inTime, "", inDateParam, "Select", userReason, false);
-            int result = SaveHash(request.Mode, attendance);
+            int result =  SaveHash(request.Mode, attendance);
             if (result > 0)
             {
                 SendSaveEmail(request, code, inDateParam, inTime, "", "", totalHours, userReason);
@@ -504,7 +504,6 @@ namespace WebPortal.Admin
             DateTime time1 = DateTime.ParseExact(inTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
             //DateTime time2 = DateTime.ParseExact(outTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
             DateTime time2 = !String.IsNullOrEmpty(outTime) ? DateTime.ParseExact(outTime, "HH:mm", System.Globalization.CultureInfo.InvariantCulture) : DateTime.MinValue;
-
 
 
             if (request.Mode == AttendanceSaveMode.SelfInsert)

@@ -612,7 +612,7 @@
             </div>
         </div>
 
-        <div class="sec-stat-grid">
+        <div class="sec-stat-grid" style="display:none;">
             <div class="sec-stat">
                 <span>Allocated</span>
                 <strong id="sectrack_stat_deals"></strong>

@@ -15,8 +15,20 @@ namespace WebPortal.Admin
 {
     public partial class DownloadFiles : System.Web.UI.Page
     {
+
+        public DownloadFiles()
+        {
+            this.Load += Page_Load;
+            Console.WriteLine("Test");
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
+
+
+
+            Console.WriteLine("Test");
+
 
             if (Request.QueryString["ChangeID"] != null)
             {
@@ -28,7 +40,7 @@ namespace WebPortal.Admin
                         if (dt.Rows.Count > 0)
                         {
                             string Attachment = Convert.ToString(dt.Rows[0]["Attachment"]);
-                            //Attachment = "D:\\Nilkanth\\15-Nov-2025\\WebPortal\\WebPortal\\BankAccDetails\\28-May-2026\\UEY_280520260605SS\\5fd12627-503e-4fb7-b59a-1a0950aa73dd_2852026.pdf";
+                          //  Attachment = "D:\\Nilkanth\\15-Nov-2025\\WebPortal\\WebPortal\\BankAccDetails\\28-May-2026\\UEY_280520260605SS\\5fd12627-503e-4fb7-b59a-1a0950aa73dd_2852026.pdf";
 
                             if (Attachment != "")
                             {
@@ -44,37 +56,37 @@ namespace WebPortal.Admin
                 catch { }
             }
 
-            if (Request.QueryString["ChangeID"] != null)
-            {
-                try
-                {
-                    DataTable dt = new bllMaster().GetBankAttachmentByID(Convert.ToInt32(Request.QueryString["ChangeID"]));
+            //if (Request.QueryString["ChangeID"] != null)
+            //{
+            //    try
+            //    {
+            //        //DataTable dt = new bllMaster().GetBankAttachmentByID(Convert.ToInt32(Request.QueryString["ChangeID"]));
 
-                    if (dt != null && dt.Rows.Count > 0)
-                    {
-                        string attachment = Convert.ToString(dt.Rows[0]["Attachment"]);
+            //        //if (dt != null && dt.Rows.Count > 0)
+            //        //{
+            //        //    string attachment = Convert.ToString(dt.Rows[0]["Attachment"]);
 
-                        if (!string.IsNullOrWhiteSpace(attachment) && System.IO.File.Exists(attachment))
-                        {
-                            string fileName = System.IO.Path.GetFileName(attachment);
-                            string ext = System.IO.Path.GetExtension(attachment).ToLowerInvariant();
+            //        //    if (!string.IsNullOrWhiteSpace(attachment) && System.IO.File.Exists(attachment))
+            //        //    {
+            //        //        string fileName = System.IO.Path.GetFileName(attachment);
+            //        //        string ext = System.IO.Path.GetExtension(attachment).ToLowerInvariant();
 
-                            string contentType = GetContentType(ext);
+            //        //        string contentType = GetContentType(ext);
 
-                            Response.Clear();
-                            Response.ContentType = contentType;
-                            Response.AddHeader("Content-Disposition", "inline; filename=\"" + fileName + "\"");
-                            Response.TransmitFile(attachment);
-                            Response.Flush();
-                            HttpContext.Current.ApplicationInstance.CompleteRequest();
-                        }
-                    }
-                }
-                catch
-                {
-                    Response.StatusCode = 500;
-                }
-            }
+            //        //        Response.Clear();
+            //        //        Response.ContentType = contentType;
+            //        //        Response.AddHeader("Content-Disposition", "inline; filename=\"" + fileName + "\"");
+            //        //        Response.TransmitFile(attachment);
+            //        //        Response.Flush();
+            //        //        HttpContext.Current.ApplicationInstance.CompleteRequest();
+            //        //    }
+            //        //}
+            //    }
+            //    catch
+            //    {
+            //        Response.StatusCode = 500;
+            //    }
+            //}
 
             if (Request.QueryString["HeaderID"] != null)
             {

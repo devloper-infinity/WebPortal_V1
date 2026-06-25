@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -41,43 +42,20 @@ namespace WebPortal.Admin
             return ser.Serialize(rows);
         }
 
-        //[WebMethod]
-        //public static object GetDashboardData()
-        //{
-        //    int ERPExists = new bllMaster().CheckERPLoginExceptionExistance();
-
-        //    if (ERPExists != 0)
-        //    {
-        //        return new
-        //        {
-        //            authorized = false
-        //        };
-        //    }
-
-        //    DataTable dt = new bllMaster().GetAllWorkingDetailsByCode(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
-        //    DataTable dtLogin = new bllMaster().GetAllEmployeeDetailsByIDsForProductivity(HttpContext.Current.User.Identity.Name.ToString());
-
-        //    return new
-        //    {
-        //        authorized = true,
-        //        summary = dt,
-        //        login = dtLogin
-        //    };
-        //}
-
-
-
         [WebMethod]
         public static object GetDashboardData()
         {
+            DateTime serverUtcNow = DateTime.UtcNow;
+            DateTime serverIstNow = GetIndianStandardTime(serverUtcNow);
             int ERPExists = new bllMaster().CheckERPLoginExceptionExistance();
 
             if (ERPExists != 0)
             {
                 return new
                 {
-                    authorized = false
+                    authorized = false,
+                    serverUtc = serverUtcNow.ToString("o", CultureInfo.InvariantCulture),
+                    serverIst = serverIstNow.ToString("dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)
                 };
             }
 
@@ -91,8 +69,86 @@ namespace WebPortal.Admin
             {
                 authorized = true,
                 summary = ConvertDataTableToList(dt),
-                login = ConvertDataTableToList(dtLogin)
+                login = ConvertDataTableToList(dtLogin),
+                serverUtc = serverUtcNow.ToString("o", CultureInfo.InvariantCulture),
+                serverIst = serverIstNow.ToString("dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)
             };
+        }
+
+        [WebMethod]
+        public static string LoginUser()
+        {
+            string usercode = new dalMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            Hashtable htAttendance = new Hashtable();
+
+            htAttendance.Add("Code", usercode);
+            htAttendance.Add("InTime", GetAttendanceTimestamp());
+            htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
+            htAttendance.Add("ApprovedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            //string ReturnValue = "You Have Successfully Logged In";// 
+            string ReturnValue =  new bllMaster().ValidateLogin(htAttendance);
+
+            var result = new
+            {
+                success = ReturnValue == "You Have Successfully Logged In",
+                message = ReturnValue,
+                currentIst = GetIndianStandardTime(DateTime.UtcNow).ToString("dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)
+            };
+
+            JavaScriptSerializer js = new JavaScriptSerializer();
+            return js.Serialize(result);
+        }
+
+        [WebMethod]
+        public static string LogoutUser()
+        {
+            string usercode = new dalMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            Hashtable htAttendance = new Hashtable();
+            htAttendance.Add("Code", usercode);
+            htAttendance.Add("InTime", GetAttendanceTimestamp());
+            htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
+
+            //string ReturnValue = new bllMaster().ValidateLogout(htAttendance);;
+            string ReturnValue = "You Have Successfully Logged Out";
+
+            bool success = false;
+            string CurrentLogin = "";
+            string CurrentLogout = "";
+            string UptoTime = "";
+
+            if (ReturnValue == "You Have Successfully Logged Out")
+            {
+                new bllMaster().AdjustHolidays(htAttendance);
+
+                DataTable dtLogin = GetAllEmployeeDetailsByIDsForProductivity(HttpContext.Current.User.Identity.Name.ToString());
+
+                if (dtLogin.Rows.Count > 0)
+                {
+                    CurrentLogin = Convert.ToString(dtLogin.Rows[0]["CurrentLogin"]);
+                    CurrentLogout = Convert.ToString(dtLogin.Rows[0]["CurrentLogOut"]);
+                    UptoTime = Convert.ToString(dtLogin.Rows[0]["UptoTime"]);
+                }
+
+                success = true;
+            }
+
+            var result = new
+            {
+                success = success,
+                message = success
+                    ? "You have logged out successfully! Please check your log details to confirm."
+                    : ReturnValue,
+                currentLogin = CurrentLogin,
+                currentLogout = CurrentLogout,
+                uptoTime = UptoTime,
+                currentIst = GetIndianStandardTime(DateTime.UtcNow).ToString("dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)
+            };
+
+            JavaScriptSerializer js = new JavaScriptSerializer();
+            return js.Serialize(result);
         }
 
         public static DataTable GetAllEmployeeDetailsByIDsForProductivity(string Ids)
@@ -120,78 +176,26 @@ namespace WebPortal.Admin
             return rows;
         }
 
-        [WebMethod]
-        public static string LoginUser()
+        private static DateTime GetIndianStandardTime(DateTime utcDateTime)
         {
-            string usercode = new dalMaster()
-                .GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
-            Hashtable htAttendance = new Hashtable();
-
-            htAttendance.Add("Code", usercode);
-            htAttendance.Add("InTime", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
-            htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
-            htAttendance.Add("ApprovedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
-            string ReturnValue = new bllMaster().ValidateLogin(htAttendance);
-
-            var result = new
+            try
             {
-                success = ReturnValue == "You Have Successfully Logged In",
-                message = ReturnValue
-            };
-
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(result);
+                TimeZoneInfo indiaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utcDateTime, DateTimeKind.Utc), indiaTimeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return utcDateTime.AddHours(5).AddMinutes(30);
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return utcDateTime.AddHours(5).AddMinutes(30);
+            }
         }
 
-        [WebMethod]
-        public static string LogoutUser()
+        private static string GetAttendanceTimestamp()
         {
-            string usercode = new dalMaster()
-                .GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
-            Hashtable htAttendance = new Hashtable();
-            htAttendance.Add("Code", usercode);
-            htAttendance.Add("InTime", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
-            htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
-
-            string ReturnValue = new bllMaster().ValidateLogout(htAttendance);
-
-            bool success = false;
-            string CurrentLogin = "";
-            string CurrentLogout = "";
-            string UptoTime = "";
-
-            if (ReturnValue == "You Have Successfully Logged Out")
-            {
-                new bllMaster().AdjustHolidays(htAttendance);
-
-                DataTable dtLogin = new bllMaster().GetAllEmployeeDetailsByIDsForProductivity(HttpContext.Current.User.Identity.Name.ToString());
-
-                if (dtLogin.Rows.Count > 0)
-                {
-                    CurrentLogin = Convert.ToString(dtLogin.Rows[0]["CurrentLogin"]);
-                    CurrentLogout = Convert.ToString(dtLogin.Rows[0]["CurrentLogOut"]);
-                    UptoTime = Convert.ToString(dtLogin.Rows[0]["UptoTime"]);
-                }
-
-                success = true;
-            }
-
-            var result = new
-            {
-                success = success,
-                message = success
-                    ? "You have logged out successfully! Please check your log details to confirm."
-                    : ReturnValue,
-                currentLogin = CurrentLogin,
-                currentLogout = CurrentLogout,
-                uptoTime = UptoTime
-            };
-
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(result);
+            return GetIndianStandardTime(DateTime.UtcNow).ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
         }
     }
 }

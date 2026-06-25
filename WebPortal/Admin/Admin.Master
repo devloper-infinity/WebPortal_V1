@@ -1,4 +1,4 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="USAdmin.Master.cs" Inherits="WebPortal.USAdmin.USAdmin" %>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Admin.Master.cs" Inherits="WebPortal.Admin.Admin" %>
 
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="asp" %>
 
@@ -9,6 +9,10 @@
     <title>Infinity IPS - ERP</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+
+    <!-- added for New dashboard  -->
+    <link href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" rel="stylesheet">
+
     <!-- Font Awesome Icons -->
     <script src="../plugins/jquery/jquery.min.js"></script>
     <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
@@ -16,36 +20,55 @@
     <link rel="stylesheet" href="../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <!-- Theme style -->
-    <link rel="stylesheet" href="../dist/css/adminlte.min.css">
     <script src="../Scripts/SessionHandler.js"></script>
-
-     <asp:ContentPlaceHolder ID="head" runat="server">
+    <link rel="stylesheet" href="../dist/css/adminlte.min.css">
+    <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
     <script>
-        $(document).ready(function() {
-            var currentUser = "<%= HttpContext.Current.User.Identity.Name %>";
-            if (currentUser == 10161) {
-                document.getElementById("lireportsus").style.display = '';
-            }
-            else {
-                document.getElementById("lireportsus").style.display = 'none';
-            }
+        $(document).ready(function () {
+
         });
+
         $(document).ready(function () {
 
             $.ajax({
                 type: "POST",
-                url: "../MenuService.aspx/LoadMenu",
+                url: "DashboardEmployee.aspx/BindInformation",
                 contentType: "application/json",
                 dataType: "json",
-                success: function (res) {
-                    let menuTree = res.d;
-                    let html = "";
-                    menuTree.forEach(m => html += renderTopMenu(m));
-                    $("#dynamicMenu").html(html);
-                }
-            });
+                success: function (data) {
+                    var dataArray = JSON.parse(data.d);
+                    var i = 0;
+                    $.each(dataArray, function (index, value) {
 
+                        var Posh_Status = value.PoshStatus;
+
+                        if (Posh_Status && Posh_Status.toLowerCase() === "completed") {
+
+                            $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
+                            $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
+                            getPendingTaskNotifications_Sidebar();
+
+                            $.ajax({
+                                type: "POST",
+                                url: "../MenuService.aspx/LoadMenu",
+                                contentType: "application/json",
+                                dataType: "json",
+                                success: function (res) {
+                                    let menuTree = res.d;
+                                    let html = "";
+                                    menuTree.forEach(m => html += renderTopMenu(m));
+                                    $("#dynamicMenu").html(html);
+                                }
+                            });
+                        }
+                        else {
+                            $("#aLogo").css({ "pointer-events": "none", "opacity": "0.5" });
+                            $("#lipendingTask").css({ "pointer-events": "none", "opacity": "0.5" });
+                        }
+                    });
+                },
+            });
         });
 
         // ----------------- Top Level Menu --------------------
@@ -72,7 +95,6 @@
                 </ul>
             </li>`;
             }
-
             // --------------- MEGA MENU ----------------
             return `
         <li class="nav-item dropdown">
@@ -85,6 +107,7 @@
                 </div>
             </ul>
         </li>`;
+
         }
 
         // ------------------ Simple Dropdown Items ----------------------
@@ -116,11 +139,14 @@
                     `).join("")}
                 </div>`;
                 }
+
             });
 
             return html;
         }
 
+        // const appVersion = '@DateTime.Now.Ticks';
+        // console.log('App Version:', appVersion);
 
     </script>
 </head>
@@ -128,24 +154,84 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/AddressVerification.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EmployeeVerificationReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/FunFriday.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Followup.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/LetterHeadManagement.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/RnR.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SkipLevelMeeting.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/StampPaper.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Requisition.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Masters.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRReports.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRInduction.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/MasterData.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UnderwritingTest.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Reports.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/CCInvoice.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Canopy.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ImportCC.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Attendance.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ServicingConsolidatedReports.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/KYC.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Reports/DetailedFeedbackOutput.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Reports/IncrementProposal.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Securitization.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Reports/Performance.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/InfinityFeedback.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ITCostReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/POSHQuestionMaster.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/PseudoName.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceAcknowledgement.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/PerformanceMarketing.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/HRReportInput.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ViewEmployee.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EditInfinityFeedback.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/DailyProductivity.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EditSecruitization.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SecruitizationBilling.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/OtherBilling.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ImportSecuritizationLoans.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/AppreciationDisciplinaryAction.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HoursSpent.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Reports/CostPerLoan.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/OnlineTrackingSheet.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/CompensatoryOff.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/AgreementVersionsReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Festival.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EmployeeComments.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRInvoice.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/DailyLogin.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceHR.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ClientHolidays.js?v=6" />
                 <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=6" />
                 <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=6" />
                 <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=6" />
                 <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Dashboard.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/NewDashboard.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/QualityReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/OtherTask.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SLAReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UpdateDomain.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ProjectNotifications.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ProjectConfiguration.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/LogInDetails.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Leaves.js?v=6" />
+               <%-- <asp:ScriptReference Path="~/Scripts/Functions/Bank.js?v=6" />--%>
+
+                <asp:ScriptReference Path="~/Scripts/Functions/Bank.js?v=@DateTime.Now.Ticks" />
             </Scripts>
         </asp:ToolkitScriptManager>
-        <div class="wrapper">
 
+        <div class="wrapper">
             <!-- Navbar -->
             <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
                 <div class="container">
-                    <a href="Dashboard.aspx" class="navbar-brand">
+                    <a href="DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
                         <img src="../images/logo-login.png" style="height: 50px;" />
-                        <%--<span class="brand-text font-weight-light">INFINITY IPS</span>--%>
                     </a>
 
                     <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -153,29 +239,8 @@
                     </button>
 
                     <div class="collapse navbar-collapse order-3" id="navbarCollapse">
-                        <ul id="dynamicMenu" class="navbar-nav"></ul>
-                        <ul class="navbar-nav" style="display: none;">
-                            <li class="nav-item" style="display: none;">
-                                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a id="usquicklinks" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Quick links</a>
-                                <ul aria-labelledby="quicklinks" class="dropdown-menu border-0 shadow">
-                                    <li><a href="LoanDetails.aspx" class="dropdown-item">My Tasks</a></li>
-                                    <li><a href="LoanDetails.aspx" class="dropdown-item">Global Search</a></li>
-                                    <li class="dropdown-divider"></li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown" id="lireportsus">
-                                <a id="reportsus" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Reports</a>
-                                <ul aria-labelledby="reports" class="dropdown-menu border-0 shadow">
-                                    <li><a href="UserPerformanceReport.aspx" class="dropdown-item">User Performance Report</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-
-
                         <!-- Left navbar links -->
+                        <ul id="dynamicMenu" class="navbar-nav"></ul>
                         <ul class="navbar-nav" style="display: none;">
                             <li class="nav-item" style="display: none;">
                                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
@@ -235,6 +300,7 @@
                                                     <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Reports</b></h6>
                                                 </div>
                                                 <a href="UserPerformanceReport.aspx" class="dropdown-item">User Performance Report</a>
+                                                <a href="ProductivityUpdate.aspx" class="dropdown-item">Review Daily Production</a>
                                                 <li><a href="AttritionReport.aspx" id="attritionReport" runat="server" class="dropdown-item">Attrition Report</a></li>
 
                                                 <%-- <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">
@@ -471,18 +537,18 @@
 
                         <!-- Notifications Dropdown Menu -->
 
-                        <li class="nav-item">
+                        <li class="nav-item" id="lipendingTask">
                             <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
                                 <i class="fas fa-bell"></i>
                                 <span class="badge badge-danger navbar-badge" id="admin_pendingtask"></span>
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown" id="liLogout">
                             <a class="nav-link" data-toggle="dropdown" href="#">
                                 <i class="fas fa-cog" style="color: white;"></i>
 
                             </a>
-                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="divLogout">
                                 <span class="dropdown-header">Settings</span>
                                 <div class="dropdown-divider"></div>
                                 <a href="ChangePassword.aspx" class="dropdown-item">
@@ -490,6 +556,7 @@
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="../Logout.aspx" class="dropdown-item">
+                                    <%-- <a href="../LogoutNew.aspx" class="dropdown-item">--%>
                                     <i class="fas fa-sign-out-alt mr-2"></i>Logout
                                 </a>
                             </div>
@@ -543,6 +610,12 @@
 
 
         <script src="../plugins/datatables/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+        <!-- PivotTable.js -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.js"></script>
         <script src="../plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
         <script src="../plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
         <script src="../plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
