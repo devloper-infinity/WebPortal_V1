@@ -15,6 +15,24 @@ namespace WebPortal.Admin
     {
 
         /// <summary>
+        /// prp_labelCode control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl prp_labelCode;
+
+        /// <summary>
+        /// prp_labelEmpID control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl prp_labelEmpID;
+
+        /// <summary>
         /// aBack control.
         /// </summary>
         /// <remarks>

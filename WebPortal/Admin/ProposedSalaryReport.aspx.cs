@@ -8,6 +8,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 
 namespace WebPortal.Admin
 {
@@ -20,15 +21,21 @@ namespace WebPortal.Admin
             if (!IsPostBack)
             {
                 string Code = Convert.ToString(Request.QueryString["Code"]);
-                if (Convert.ToString(Code) == "" || Code == null)
+
+                if (Code == null)
                 {
-                    Code = new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                     aBack.Style.Add("display", "none");
+                    prp_labelCode.InnerHtml = EmployeeInfo.Current.Code;
+                    prp_labelEmpID.InnerHtml = Convert.ToString(EmployeeInfo.Current.EmployeeID);
+
+                    BindSalaryInfo(prp_labelCode.InnerHtml);
                 }
                 else
+                {
                     aBack.Style.Add("display", "");
-                BindSalaryInfo(Code);
-                aBack.HRef = "ViewLog.aspx?Code=" + Code;
+                    aBack.HRef = "ViewLog.aspx?Code=" + Code;
+                    BindSalaryInfo(Code);
+                }
             }
         }
 
@@ -60,9 +67,12 @@ namespace WebPortal.Admin
 
 
         [WebMethod]
-        public static string GetAllSalaryLogs()
+        public static string GetAllSalaryLogs(string Code)
         {
-            DataTable dt1 = new bllSalary().GetAllSalaryLogs(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            int EmployeeID = new bllMaster().GetEmployeeIdFromCode(Code);
+
+            DataTable dt1 = new bllSalary().GetAllSalaryLogs(EmployeeID);
+
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -78,6 +88,5 @@ namespace WebPortal.Admin
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
         }
-
     }
 }

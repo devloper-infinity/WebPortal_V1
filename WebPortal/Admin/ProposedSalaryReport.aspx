@@ -81,7 +81,6 @@
 
             #tblSalaryLog thead th {
                 background: #1f3c88;
-                /* color: white;*/
                 border: none;
                 font-size: 13px;
                 text-align: center;
@@ -90,7 +89,7 @@
             #tblSalaryLog tbody td {
                 font-size: 11px;
                 vertical-align: middle;
-                font-weight: normal!important;
+                font-weight: normal !important;
             }
 
         .dataTables_filter input {
@@ -106,9 +105,13 @@
         }
 
         .btn-back {
-            border-radius: 10px;
+            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
+            border-radius: 20px;
             padding: 7px 18px;
             font-weight: 600;
+            color: white;
+            opacity: revert-layer;
+            transition-behavior: revert-layer;
         }
     </style>
 
@@ -141,7 +144,6 @@
         .stat-label {
             font-size: 11px;
             font-weight: 600;
-            /* color: #6b7280;*/
             text-transform: uppercase;
             letter-spacing: 0.7px;
             margin-bottom: 7px;
@@ -229,14 +231,27 @@
     <script>
 
         $(document).ready(function () {
-            BindSalaryLogDataTable();
+
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get("Code");
+
+            if (code == null) {
+                var login_code = $("#<%= prp_labelCode.ClientID %>").text().trim();
+                BindSalaryLogDataTable(login_code);
+            }
+            else {
+                BindSalaryLogDataTable(code);
+            }
         });
 
 
-        function BindSalaryLogDataTable() {
+        function BindSalaryLogDataTable(code) {
 
+            if (!code || code.trim() === "") {
+                Swal.fire("Code Missing", "Employee code is not available.", "warning");
+                return;
+            }
 
-            // Destroy existing DataTable if already initialized
             if ($.fn.DataTable.isDataTable('#tblSalaryLog')) {
                 $('#tblSalaryLog').DataTable().clear().destroy();
             }
@@ -245,33 +260,45 @@
 
             $('#tblSalaryLog').DataTable({
                 serverSide: false,
+                processing: true,
                 searching: true,
                 autoWidth: false,
                 pageLength: 35,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-
-                order: [],   // ✅ THIS FIXES YOUR DATE ORDER ISSUE
+                order: [],
 
                 ajax: {
                     type: "POST",
                     url: "ProposedSalaryReport.aspx/GetAllSalaryLogs",
+                    data: function () {
+                        return JSON.stringify({ Code: code });
+                    },
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
 
                     dataSrc: function (response) {
-                        let data = response.d;
+                        var data = response.d;
+
+                        if (!data) {
+                            return [];
+                        }
 
                         if (typeof data === "string") {
                             data = JSON.parse(data);
                         }
 
                         return data;
+                    },
+
+                    error: function (xhr) {
+                        console.log(xhr.responseText);
+                        Swal.fire("Error", "Unable to bind salary log data.", "error");
                     }
                 },
 
                 columns: [
                     { data: "Date1", defaultContent: "" },
-                    { data: "DayName", defaultContent: "", className: "dt-left" },
+                    { data: "DayName", defaultContent: "" },
                     { data: "INTime", defaultContent: "" },
                     { data: "OutTime", defaultContent: "" },
                     { data: "TotalHours", defaultContent: "" },
@@ -281,41 +308,27 @@
                     { data: "Remark", defaultContent: "" }
                 ],
 
-                columnDefs: [
-                    {
-                        targets: "_all",
-                        className: "text-center align-middle"
-                    }
-                ],
+                columnDefs: [{
+                    targets: "_all",
+                    className: "text-center align-middle"
+                }],
 
                 rowCallback: function (row, data) {
-
-                    let remark = (data.Remark || "").toLowerCase().trim();
+                    var remark = (data.Remark || "").toLowerCase().trim();
 
                     $(row).removeClass("row-holiday row-leave row-absent row-worked");
 
-                    let icon = "";
-                    let cssClass = "";
-
                     if (remark === "worked holiday") {
-                        cssClass = "row-worked";
+                        $(row).addClass("row-worked");
                     }
                     else if (remark === "paid leave") {
-                        cssClass = "row-leave";
+                        $(row).addClass("row-leave");
                     }
                     else if (remark === "holiday") {
-                        cssClass = "row-holiday";
+                        $(row).addClass("row-holiday");
                     }
                     else if (remark === "absent") {
-                        cssClass = "row-absent";
-                    }
-
-                    if (cssClass) {
-                        $(row).addClass(cssClass);
-                    }
-
-                    if (data.Remark) {
-                        $('td:eq(8)', row).html(data.Remark);
+                        $(row).addClass("row-absent");
                     }
 
                     $(row).css("font-weight", "500");
@@ -323,125 +336,125 @@
             });
         }
 
-
     </script>
 
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
-    <%--<div class="container-fluid mt-4">    </div>--%>
+    <label id="prp_labelCode" runat="server" hidden></label>
+    <label id="prp_labelEmpID" runat="server" hidden></label>
 
-        <!-- Header -->
-        <div class="dashboard-header">
+    <!-- Header -->
+    <div class="dashboard-header">
 
-            <div class="d-flex justify-content-between align-items-start mb-1">
+        <div class="d-flex justify-content-between align-items-start mb-1">
 
-                <div>
-                    <div class="dashboard-title">
-                        <i class="fas fa-chart-line mr-2"></i>
-                        Proposed Salary Report
-                    </div>
-
-                    <div class="dashboard-subtitle">
-                        Monitor your attendance and salary logs.
-                    </div>
+            <div>
+                <div class="dashboard-title">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Proposed Salary Report
                 </div>
 
-                <div>
-                    <a href="#" id="aBack" runat="server"
-                        class="btn btn-light btn-back"
-                        onclick="window.history.go(-1); return false;">
-                        <i class="fas fa-arrow-left"></i>
-                        Back
-                    </a>
-                </div>
-
-            </div>
-
-        </div>
-        <!-- Summary Cards -->
-        <div class="row">
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Full Days</div>
-                    <div class="stat-value" id="lblFullDays" runat="server">0</div>
+                <div class="dashboard-subtitle">
+                    Monitor your attendance and salary logs.
                 </div>
             </div>
 
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Partial Days</div>
-                    <div class="stat-value" id="lblPartialDays" runat="server">0</div>
-                </div>
-            </div>
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Late Mark</div>
-                    <div class="stat-value" id="lblLatemarkCount" runat="server">0</div>
-                </div>
-            </div>
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Total Days</div>
-                    <div class="stat-value" id="lblTotalDays" runat="server">0</div>
-                </div>
-            </div>
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Total Days+Extra</div>
-                    <div class="stat-value" id="lblTotalDaysWithExtra" runat="server">0</div>
-                </div>
-            </div>
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Extra Days</div>
-                    <div class="stat-value" id="lblExtraDays" runat="server">0</div>
-                </div>
-            </div>
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Extra Salary</div>
-                    <div class="stat-value" id="lblExtraDaysSalary" runat="server">0</div>
-                </div>
-            </div>
-
-            <div class="col-lg col-md-4 col-sm-6 mb-3">
-                <div class="stat-box">
-                    <div class="stat-label">Incentive</div>
-                    <div class="stat-value" id="lblIncentive" runat="server">0</div>
-                </div>
+            <div>
+                <a href="#" id="aBack" runat="server"
+                    class="btn btn-light btn-back"
+                    onclick="window.history.go(-1); return false;">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </a>
             </div>
 
         </div>
 
-        <!-- DataTable -->
-        <div class="table-card">
-            <table id="tblSalaryLog" class="table table-hover table-bordered nowrap">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Day</th>
-                        <th>In Time</th>
-                        <th>Out Time</th>
-                        <th>Total Hours</th>
-                        <th>Extra Hours</th>
-                        <th>Late Mark</th>
-                        <th>Partial</th>
-                        <th>Remark</th>
-                    </tr>
-                </thead>
+    </div>
+    <!-- Summary Cards -->
+    <div class="row">
 
-                <tbody>
-                </tbody>
-            </table>
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Full Days</div>
+                <div class="stat-value" id="lblFullDays" runat="server">0</div>
+            </div>
         </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Partial Days</div>
+                <div class="stat-value" id="lblPartialDays" runat="server">0</div>
+            </div>
+        </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Late Mark</div>
+                <div class="stat-value" id="lblLatemarkCount" runat="server">0</div>
+            </div>
+        </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Total Days</div>
+                <div class="stat-value" id="lblTotalDays" runat="server">0</div>
+            </div>
+        </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Total Days+Extra</div>
+                <div class="stat-value" id="lblTotalDaysWithExtra" runat="server">0</div>
+            </div>
+        </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Extra Days</div>
+                <div class="stat-value" id="lblExtraDays" runat="server">0</div>
+            </div>
+        </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Extra Salary</div>
+                <div class="stat-value" id="lblExtraDaysSalary" runat="server">0</div>
+            </div>
+        </div>
+
+        <div class="col-lg col-md-4 col-sm-6 mb-3">
+            <div class="stat-box">
+                <div class="stat-label">Incentive</div>
+                <div class="stat-value" id="lblIncentive" runat="server">0</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- DataTable -->
+    <div class="table-card">
+        <table id="tblSalaryLog" class="table table-hover table-bordered nowrap">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Day</th>
+                    <th>In Time</th>
+                    <th>Out Time</th>
+                    <th>Total Hours</th>
+                    <th>Extra Hours</th>
+                    <th>Late Mark</th>
+                    <th>Partial</th>
+                    <th>Remark</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 
 </asp:Content>
 
