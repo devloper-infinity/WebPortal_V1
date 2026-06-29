@@ -307,7 +307,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static List<Employee> GetAllEmployees()
         {
-            string PMCode = new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+          string PMCode = EmployeeInfo.Current.Code;
             DataTable dtemp = new bllMaster().GetAllUserByPM(PMCode);
             List<Employee> Emp = new List<Employee>();
             Emp = ConvertDataTable<Employee>(dtemp);

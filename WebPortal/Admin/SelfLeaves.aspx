@@ -468,10 +468,26 @@
             const minDate = tomorrow.toISOString().split("T")[0];
             document.getElementById("selfleave_fromdate").setAttribute("min", minDate);
         });
+
+
+        function selfleave_load() {
+            selfleave_bindgrid();
+            $.ajax({
+                type: "POST", url: "SelfLeaves.aspx/BindInformation", dataType: "json", contentType: "application/json",
+                success: function (res1) {
+                    var dataArray = JSON.parse(res1.d);
+                    $.each(dataArray, function (data1, value1) {
+                        selfleave_empId = value1.EmployeeID;
+                        selfleave_branch = value1.WorkingBranch;
+                    });
+                }
+            });
+        }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Functions/Leaves.js?v=6"></script>
+    <script src="../Scripts/Functions/Leaves.js?v=@DateTime.Now.Ticks"></script>
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

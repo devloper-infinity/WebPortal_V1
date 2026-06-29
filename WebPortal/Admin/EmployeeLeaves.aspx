@@ -462,7 +462,7 @@
         });
     </script>
 
-    <script src="../Scripts/Functions/EmpLeave.js?v=6"></script>
+    <script src="../Scripts/Functions/EmpLeave.js?v=@DateTime.Now.Ticks"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>

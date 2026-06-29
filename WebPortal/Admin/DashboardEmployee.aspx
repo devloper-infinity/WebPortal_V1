@@ -103,7 +103,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.07);
         }
 
-        .birthday-card {
+        /*  .birthday-card {
             background: linear-gradient(135deg, #f8f9fa, #ffffff);
             border-radius: 12px;
             padding: 12px 15px;
@@ -115,7 +115,7 @@
                 transform: translateY(-2px);
                 box-shadow: 0 4px 14px rgba(0,0,0,0.15);
             }
-
+*/
         .avatar-circle {
             width: 45px;
             height: 45px;
@@ -140,7 +140,8 @@
         }
 
         .btn-wish {
-            background: linear-gradient(135deg, #28a745, #5cd65c);
+            /*background: linear-gradient(135deg, #28a745, #5cd65c);*/
+            background: #FD4179 !important; /* linear-gradient(135deg, #FD4179, #FE7AA1) !important;*/
             border: none;
             color: white;
             padding: 5px 14px;
@@ -151,7 +152,7 @@
 
             .btn-wish:hover {
                 transform: scale(1.05);
-                background: linear-gradient(135deg, #218838, #4cd137);
+                /* background: linear-gradient(135deg, #218838, #4cd137);*/
             }
 
         .cake-avatar {
@@ -1380,7 +1381,7 @@
     <script>
 
         $(document).ready(function () {
-
+            // New_workAnniversary();
             var userId = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
             window.dashboardShouldLoadProductiveInsights = userId !== "10161";
             window.dashboardProductiveInsightsRequested = false;
@@ -1406,6 +1407,134 @@
         });
 
 
+        function New_workAnniversary() {
+
+            // alert('1');
+
+            // $('#anniversaryModal').modal('show');
+
+            $.ajax({
+                type: "POST",
+                url: "DashboardEmployee.aspx/GetEmpWorkAnniversary",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function (response) {
+                    // alert('2');
+                    new_renderWorkAnniversary(response.d); // ✅ CLEAN
+                },
+
+                error: function () {
+                    console.error("Anniversary API error");
+
+                }
+            });
+        }
+
+        function new_renderWorkAnniversary(data) {
+
+            if (!data || data.length === 0) {
+                if (typeof callback === "function") {
+                    callback();
+                }
+                return false;
+            }
+
+            var firstEmp = data[0];
+            var jubilee = getJubileeDetails(25);
+
+            var headerHtml = "";
+
+            if (jubilee && jubilee.title) {
+                headerHtml =
+                    // '<b>💐 WORK ANNIVERSARY - ' +'<span style="color:' + jubilee.color + '; font-weight:bold;">' +jubilee.title + ' 💐' + '</span></b>';
+                    '<b>WORK ANNIVERSARY - ' + '<span style="color:' + jubilee.color + '; font-weight:bold;">' + jubilee.title + '</span></b>'
+            }
+            else {
+                // headerHtml = '<b>💐 WORK ANNIVERSARY 💐</b>';
+                headerHtml = '<b>WORK ANNIVERSARY</b>';
+            }
+
+            $("#workAnn_header").html(headerHtml);
+
+            var emp = firstEmp;
+            var jubileeEach = getJubileeDetails(25);
+
+            $("#name_header").html(emp.EmpName || "");
+            $("#designation_header").html(emp.Designation || "");
+            $("#years_header").html((emp.YearsCompleted || "0") + " Years of Excellence");
+
+            $("#message_header").html(
+                (jubileeEach && jubileeEach.message)
+                    ? jubileeEach.message
+                    : getAnniversaryMessage(25)
+            );
+
+            $("#dash_anniversaryModal").modal("show");
+
+            startConfetti();
+
+            $("#dash_anniversaryModal")
+                .off("hidden.bs.modal.workAnniversary")
+                .on("hidden.bs.modal.workAnniversary", function () {
+                    if (typeof callback === "function") {
+                        callback();
+                    }
+                });
+
+            return false;
+        }
+
+        function empBirthdays() {
+
+            $('#dash_birthdayModal_all').modal('show');
+
+            $.ajax({
+                type: "POST",
+                url: "DashboardEmployee.aspx/GetTodayBirthdays",
+                contentType: "application/json",
+                dataType: "json",
+
+                success: function (res) {
+
+                    let data = res.d;
+
+                    if (typeof data === "string") {
+                        try {
+                            data = JSON.parse(data);
+                        } catch (e) {
+                            console.error("Birthday JSON parse error", e);
+                            callback();
+                            return;
+                        }
+                    }
+
+                    if (!data || data.length === 0) {
+                        callback();
+                        return;
+                    }
+
+                    dash_renderBirthdayPopup(data);
+
+                    $('#dash_birthdayModal_all').modal({
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+
+                    // ✅ FIXED EVENT BINDING
+                    $('#dash_birthdayModal_all')
+                        .off('hidden.bs.modal')
+                        .on('hidden.bs.modal', function () {
+                            callback();
+                        });
+                },
+
+                error: function () {
+                    console.error("Birthday API error");
+                    callback();
+                }
+            });
+        }
     </script>
 
     <script>
@@ -1501,7 +1630,7 @@
                     <span class="info-box-icon"><i class="fas fa-birthday-cake"></i></span>
 
                     <div class="info-box-content">
-                        <a class="animation__shake" style="color: white;" href="ViewBirthdays.aspx">
+                        <a class="animation__shake" style="color: white;" href="Birthday.aspx">
                             <span class="info-box-number">Today's Birthday</span></a>
                     </div>
                     <!-- /.info-box-content -->
@@ -1547,7 +1676,7 @@
                         <h3 class="card-title dashboard-card-title">
                             <i class="fas fa-info-circle mr-1"></i>
                             Important Notifications
-                 </h3>
+                        </h3>
                         <div class="card-tools">
                             <%--<a class="nav-link active" href="Notifications.aspx">View All</a>--%>
                         </div>
@@ -1571,39 +1700,40 @@
         </div>
         <div class="row col-lg-12">
 
-    <% if (HttpContext.Current.User.Identity.Name.ToString() == "7036") { %>
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <a href="HRDashboard.aspx"
-            class="card shadow-sm border-0 text-decoration-none h-100 hr-dashboard-highlight">
-            <div class="card-body text-center">
-                <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
-                <h5 class="mb-1 text-dark">HR Dashboard</h5>
-                <span class="badge bg-primary mt-2">NEW</span>
-                <p class="text-muted small mb-0">
-                    View HR analytics & manpower insights
-                </p>
+            <% if (HttpContext.Current.User.Identity.Name.ToString() == "7036")
+                { %>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <a href="HRDashboard.aspx"
+                    class="card shadow-sm border-0 text-decoration-none h-100 hr-dashboard-highlight">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
+                        <h5 class="mb-1 text-dark">HR Dashboard</h5>
+                        <span class="badge bg-primary mt-2">NEW</span>
+                        <p class="text-muted small mb-0">
+                            View HR analytics & manpower insights
+                        </p>
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
-    <% } %>
+            <% } %>
 
-    <% if (HttpContext.Current.User.Identity.Name.ToString() == "12") { %>
-    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <a href="ProductionDashboard.aspx"
-            class="card shadow-sm border-0 text-decoration-none h-100 hr-dashboard-highlight">
-            <div class="card-body text-center">
-                <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
-                <h5 class="mb-1 text-dark">Production Dashboard</h5>
-                <span class="badge bg-primary mt-2">NEW</span>
-                <p class="text-muted small mb-0">
-                    View production details domain wise
-                </p>
+            <% if (HttpContext.Current.User.Identity.Name.ToString() == "12")
+                { %>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <a href="ProductionDashboard.aspx"
+                    class="card shadow-sm border-0 text-decoration-none h-100 hr-dashboard-highlight">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-2x text-primary mb-2"></i>
+                        <h5 class="mb-1 text-dark">Production Dashboard</h5>
+                        <span class="badge bg-primary mt-2">NEW</span>
+                        <p class="text-muted small mb-0">
+                            View production details domain wise
+                        </p>
+                    </div>
+                </a>
             </div>
-        </a>
-    </div>
-    <% } %>
-
-</div>
+            <% } %>
+        </div>
         <!-------------- Productive Employee Insights ------------->
         <div id="prod_dashboard_employee">
             <div class="row dashboard-productive-row productive-section" id="dashboard_productive_section" style="display: none;">
@@ -2178,17 +2308,34 @@
 
     <!-------------- Own Birthday ------------->
     <div class="modal fade" id="birthdayModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered birthday-dialog">
             <div class="modal-content birthday-popup">
                 <div class="modal-body text-center position-relative">
-                    <!-- Close button -->
-                    <%-- <button class="btn-close-birthday" data-bs-dismiss="modal">✖</button>--%><%-- onclick="return insertselfbirthdayreminder();"--%>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h2>🎉 Happy Birthday!</h2>
 
-                    <h4 id="lblBirthdayName"></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                    <div class="birthday-ribbon ribbon-left"></div>
+                    <div class="birthday-ribbon ribbon-right"></div>
+
+                    <div class="balloon balloon-left-one"></div>
+                    <div class="balloon balloon-left-two"></div>
+                    <div class="balloon balloon-right-one"></div>
+                    <div class="balloon balloon-right-two"></div>
+
+                    <div class="birthday-icon">
+                        <i class="fas fa-birthday-cake"></i>
+                    </div>
+
+                    <h2 class="birthday-title">Happy Birthday</h2>
+
+                    <div class="birthday-divider"></div>
+
+                    <h4 id="lblBirthdayName" style="color: #EE0D63!important;"></h4>
 
                     <p>Wishing you a wonderful year ahead!</p>
+
                 </div>
             </div>
         </div>
@@ -2197,43 +2344,73 @@
 
     <!-------------- Work Annivesary ------------->
     <div class="modal fade" id="dash_anniversaryModal">
-        <%--<div class="modal-dialog modal-dialog-centered">
-        <div class="modal-dialog modal-dialog-centered modal-l">--%>
         <div class="modal-dialog modal-dialog-centered custom-modal-width">
-            <div class="modal-content anniversary-modal">
+            <div class="modal-content workanniversary-modal">
+                <div class="anniv-card">
+                    <div class="anniv-bg-sparkles"></div>
+                    <h1 class="anniv-main-title"><span id="workAnn_header"></span></h1>
 
-                <div class="modal-header text-center" style="font-family: Britannic Bold;">
-                    <h4 class="modal-title w-100">
-                        <span id="workAnn_header"></span>
-                    </h4>
-
-                    <!-- ✅ Bootstrap 5 close button -->
-                    <%-- <button type="button" class="btn-close" data-bs-dismiss="modal"></button>--%>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-
-                </div>
-
-                <div class="modal-body">
-                    <div id="dash_anniversaryContainer" class="row text-center">
+                    <div class="anniv-inner-card">
+                        <div class="anniv-trophy">🏆</div>
+                        <h2 class="anniv-name"><span id="name_header"></span></h2>
+                        <div class="anniv-designation"><span id="designation_header"></span></div>
+                        <div class="anniv-years">⭐ <span id="years_header"></span>⭐</div>
+                        <div class="anniv-divider"></div>
+                        <p class="anniv-message"><span id="message_header"></span></p>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
 
+
+
     <!-------------- Employee's Birthday ------------->
-    <div class="modal fade" id="dash_birthdayModal_all">
+    <%-- <div class="modal fade" id="dash_birthdayModal_all">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5>🎉 Today's Birthdays</h5>
-                    <%--<button type="button" class="close"><span>&times;</span></button>--%><%-- onclick="location.reload();"--%>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-
                 </div>
                 <div class="modal-body" id="dash_birthdayList"></div>
+            </div>
+        </div>
+    </div>--%>
+    <div class="modal fade" id="dash_birthdayModal_all">
+        <div class="modal-dialog modal-dialog-centered birthday-list-dialog">
+            <div class="modal-content birthday-list-popup">
+
+                <div class="modal-header birthday-list-header">
+
+                    <div class="birthday-header-content">
+                        <div class="birthday-header-icon">
+                            🎂
+                        </div>
+
+                        <div>
+                            <h4>Today's Birthdays</h4>
+                            <small>Let's celebrate our colleagues</small>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                        class="close birthday-close"
+                        data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body birthday-list-body">
+
+                    <div class="birthday-confetti"></div>
+
+                    <div id="dash_birthdayList"></div>
+
+                </div>
+
             </div>
         </div>
     </div>
@@ -2405,7 +2582,7 @@
                                 <th></th>
                                 <th></th>
                                 <th></th>
-                                
+
                             </tr>
                         </tfoot>
                     </table>
@@ -2414,4 +2591,682 @@
             </div>
         </div>
     </div>
+
+
+    <style id="ownBirthday_style">
+        #birthdayModal .birthday-dialog {
+            max-width: 850px !important;
+            width: 92% !important;
+        }
+
+        .birthday-popup {
+            border: none;
+            border-radius: 30px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ff4f9a 0%, #ff8ab3 42%, #fff06a 100%) !important;
+            box-shadow: 0 28px 70px rgba(0,0,0,.28);
+            animation: popupZoom .45s ease;
+        }
+
+            .birthday-popup .modal-body {
+                min-height: 520px;
+                padding: 70px 70px 55px;
+                position: relative;
+                overflow: hidden;
+                background: radial-gradient(circle at 15% 20%, rgba(255,255,255,.45), transparent 18%), radial-gradient(circle at 80% 20%, rgba(255,255,255,.38), transparent 20%), linear-gradient(135deg, #ff3f91 0%, #ff8ab3 45%, #fff176 100%) !important;
+            }
+
+                /* Confetti dots */
+                .birthday-popup .modal-body::before {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    background-image: radial-gradient(#fff 2px, transparent 2px), radial-gradient(#ffd700 2px, transparent 2px), radial-gradient(#ff1493 2px, transparent 2px);
+                    background-size: 55px 55px, 80px 80px, 95px 95px;
+                    background-position: 10px 20px, 30px 60px, 70px 10px;
+                    opacity: .45;
+                    pointer-events: none;
+                }
+
+        /* Cake icon */
+        .birthday-icon {
+            position: relative;
+            z-index: 5;
+            width: 135px;
+            height: 135px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff007f, #ff4fa3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 58px;
+            border: 5px solid rgba(255,255,255,.85);
+            box-shadow: 0 18px 40px rgba(255,0,127,.45), 0 0 0 10px rgba(255,255,255,.18);
+            animation: cakeMove 2.2s infinite ease-in-out;
+        }
+
+            .birthday-icon::after {
+                content: "";
+                position: absolute;
+                width: 105px;
+                height: 18px;
+                bottom: -22px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.45);
+                filter: blur(3px);
+                animation: shadowMove 2.2s infinite ease-in-out;
+            }
+
+            /* Animated small shake on icon */
+            .birthday-icon i {
+                animation: cakeShake 1.4s infinite ease-in-out;
+            }
+
+        /* Title */
+        .birthday-title {
+            position: relative;
+            z-index: 5;
+            margin-top: 25px;
+            margin-bottom: 8px;
+            font-size: 56px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: .5px;
+            text-shadow: 0 5px 12px rgba(191, 0, 94, .55);
+            font-family: "PMingLiU-ExtB", "PMingLiU", serif;
+            font-style: italic;
+        }
+
+        #lblBirthdayName {
+            position: relative;
+            z-index: 5;
+            font-size: 42px;
+            font-weight: 800;
+            color: #b0004f;
+            margin-top: 18px;
+            text-shadow: 0 2px 4px rgba(255,255,255,.6);
+        }
+
+        .birthday-popup p {
+            position: relative;
+            z-index: 5;
+            font-size: 22px;
+            color: #3b2350;
+            margin-top: 18px;
+            font-weight: 600;
+        }
+
+        .birthday-divider {
+            position: relative;
+            z-index: 5;
+            width: 150px;
+            height: 5px;
+            border-radius: 20px;
+            margin: 16px auto;
+            background: rgba(255,255,255,.9);
+            box-shadow: 0 3px 10px rgba(255,255,255,.4);
+        }
+
+        /* Close Button */
+        .birthday-popup .close {
+            position: absolute;
+            z-index: 20;
+            top: 22px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            font-size: 40px;
+            line-height: 45px;
+            color: #e91e63;
+            box-shadow: 0 10px 25px rgba(0,0,0,.18);
+            transition: .3s;
+        }
+
+            .birthday-popup .close:hover {
+                background: #e91e63;
+                color: #fff;
+                transform: rotate(90deg);
+            }
+
+        /* Balloons */
+        .balloon {
+            position: absolute;
+            z-index: 2;
+            width: 78px;
+            height: 95px;
+            border-radius: 50% 50% 45% 45%;
+            opacity: .95;
+            animation: balloonFloat 3s infinite ease-in-out;
+        }
+
+            .balloon::after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                bottom: -80px;
+                width: 2px;
+                height: 85px;
+                background: rgba(255,255,255,.7);
+            }
+
+            .balloon::before {
+                content: "";
+                position: absolute;
+                top: 18px;
+                left: 18px;
+                width: 22px;
+                height: 32px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.45);
+            }
+
+        .balloon-left-one {
+            left: 35px;
+            top: 95px;
+            background: linear-gradient(135deg, #ff3f91, #ff9ac5);
+        }
+
+        .balloon-left-two {
+            left: 105px;
+            top: 190px;
+            width: 68px;
+            height: 84px;
+            background: linear-gradient(135deg, #ffd83d, #ff9d00);
+            animation-delay: .5s;
+        }
+
+        .balloon-right-one {
+            right: 45px;
+            top: 100px;
+            background: linear-gradient(135deg, #ff4f9a, #ffb3d2);
+            animation-delay: .4s;
+        }
+
+        .balloon-right-two {
+            right: 120px;
+            top: 190px;
+            width: 70px;
+            height: 88px;
+            background: linear-gradient(135deg, #ffe45c, #ffad00);
+            animation-delay: .8s;
+        }
+
+        /* Ribbons */
+        .birthday-ribbon {
+            position: absolute;
+            z-index: 1;
+            width: 220px;
+            height: 28px;
+            border-radius: 50%;
+            border-top: 12px solid rgba(255, 0, 127, .65);
+            transform: rotate(-18deg);
+            opacity: .9;
+        }
+
+        .ribbon-left {
+            left: -40px;
+            bottom: 55px;
+        }
+
+        .ribbon-right {
+            right: -40px;
+            bottom: 75px;
+            transform: rotate(18deg);
+            border-top-color: rgba(255, 193, 7, .8);
+        }
+
+        /* Animations */
+        @keyframes popupZoom {
+            from {
+                transform: scale(.7);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes cakeMove {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-8px) rotate(-3deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(-8px) rotate(3deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes cakeShake {
+            0%, 100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: rotate(-5deg) scale(1.05);
+            }
+
+            50% {
+                transform: rotate(5deg) scale(1.08);
+            }
+
+            75% {
+                transform: rotate(-3deg) scale(1.05);
+            }
+        }
+
+        @keyframes shadowMove {
+            0%, 100% {
+                transform: scale(1);
+                opacity: .45;
+            }
+
+            50% {
+                transform: scale(.8);
+                opacity: .25;
+            }
+        }
+
+        @keyframes balloonFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(-2deg);
+            }
+
+            50% {
+                transform: translateY(-14px) rotate(2deg);
+            }
+        }
+    </style>
+
+
+    <style id="empBirthday_style">
+        .birthday-list-dialog {
+            max-width: 600px;
+            height: auto;
+        }
+
+        .birthday-list-popup {
+            border: none;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 30px 70px rgba(255, 20, 147, .28);
+        }
+
+        .birthday-list-header {
+            border: none;
+            padding: 22px 30px;
+            background: #FD5486 !important; /*  linear-gradient(135deg,#FEC6D7 0%,#FEA0BC 35%,#FE7AA1 70%,#FD4179 100%) !important;*/
+            color: #fff !important;
+            position: relative;
+        }
+
+            .birthday-list-header::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(circle at 15% 30%, rgba(255,255,255,.35), transparent 18%), radial-gradient(circle at 85% 25%, rgba(255,255,255,.25), transparent 20%);
+            }
+
+        .birthday-header-content {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .birthday-header-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            background: linear-gradient(135deg, #ff0f7b, #ff63b5);
+            color: #fff;
+            box-shadow: 0 12px 35px rgba(255,20,147,.35);
+            animation: rotateCake 2.5s infinite ease-in-out;
+        }
+
+        .birthday-list-header h4 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .birthday-list-header small {
+            font-size: 16px;
+            opacity: .95;
+        }
+
+        .birthday-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid #ffc1dd;
+            background: #fff;
+            color: #e91e63;
+            font-size: 34px;
+            line-height: 42px;
+            box-shadow: 0 8px 20px rgba(255,20,147,.22);
+            transition: .3s;
+        }
+
+            .birthday-close:hover {
+                background: #ff2f7f;
+                color: #FD6794;
+                transform: rotate(90deg);
+                box-shadow: 0 0 20px rgba(255,20,147,.45);
+            }
+
+        .birthday-list-body {
+            position: relative;
+            background: white !important; /* linear-gradient(135deg, #fff0f8 0%, #ffe6f3 45%, #fff8fc 100%);*/
+            padding: 30px;
+            min-height: 420px;
+        }
+
+        .birthday-confetti {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: white !important;
+            background-image: radial-gradient(#ff0f7b 2px, transparent 2px), radial-gradient(#ff4da6 2px, transparent 2px), radial-gradient(#ff8fcf 2px, transparent 2px), radial-gradient(#ffc3df 2px, transparent 2px);
+            background-size: 70px 70px, 90px 90px, 110px 110px, 130px 130px;
+            opacity: .20;
+        }
+
+        .birthday-person {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 18px;
+            margin-bottom: 18px;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,105,180,.18);
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(255,20,147,.10);
+            transition: .35s;
+            background: #ff0f7b
+        }
+
+            .birthday-person:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 45px rgba(255,20,147,.28), 0 0 18px rgba(255,105,180,.22);
+            }
+
+            .birthday-person img {
+                width: 75px;
+                height: 75px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 4px solid #ff4da6;
+                box-shadow: 0 0 15px rgba(255,20,147,.35);
+            }
+
+        .birthday-person-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #d81b60;
+            text-shadow: 0 1px 3px rgba(255,255,255,.8);
+        }
+
+        .birthday-person-designation {
+            color: #7a4a61;
+            font-size: 15px;
+        }
+
+        .birthday-person button {
+            margin-left: auto;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            color: #fff;
+            background: linear-gradient(135deg, #ff0f7b, #ff5cab, #ff9ed2);
+            box-shadow: 0 10px 25px rgba(255,20,147,.28);
+            transition: .3s;
+        }
+
+            .birthday-person button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 14px 30px rgba(255,20,147,.40);
+            }
+
+        @keyframes rotateCake {
+            0%,100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-6px) rotate(-6deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(-6px) rotate(6deg);
+            }
+        }
+    </style>
+
+    <style>
+        .anniv-card {
+            position: relative;
+            width: 100%;
+            /*   width: 70%;*/
+            max-width: 1050px;
+            /*   min-height: 650px;*/
+            margin: 20px auto;
+            padding: 45px 40px;
+            overflow: hidden;
+            border-radius: 28px;
+            background: radial-gradient(circle at 50% 45%, rgba(255,255,255,.18), transparent 25%), linear-gradient(135deg, #06245c 0%, #0b55ad 45%, #79c8ff 100%);
+            box-shadow: 0 30px 80px rgba(0, 39, 98, .35);
+            border: 2px solid rgba(255,255,255,.75);
+        }
+
+            .anniv-card::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(circle at 12% 15%, rgba(255,255,255,.35), transparent 3%), radial-gradient(circle at 88% 18%, rgba(255,255,255,.3), transparent 4%), radial-gradient(circle at 22% 78%, rgba(255,255,255,.25), transparent 4%), radial-gradient(circle at 78% 82%, rgba(255,255,255,.25), transparent 4%);
+                opacity: .9;
+            }
+
+        .anniv-bg-sparkles {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(#fff 1.5px, transparent 1.5px), radial-gradient(#ffd76a 2px, transparent 2px), radial-gradient(#9ddcff 2px, transparent 2px);
+            background-size: 48px 48px, 75px 75px, 110px 110px;
+            opacity: .45;
+            animation: sparkleMove 6s linear infinite;
+        }
+
+        .anniv-main-title {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            margin: -21px 0 17px;
+            color: #fff4c8;
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-family: Century Schoolbook;
+            text-shadow: 0 5px 18px rgba(0,0,0,.45);
+        }
+
+        .anniv-inner-card {
+            position: relative;
+            z-index: 6;
+            margin: 0 auto;
+            padding: 60px 45px 45px;
+            text-align: center;
+            border-radius: 28px;
+            background: rgba(255,255,255,.96);
+            box-shadow: 0 25px 60px rgba(0, 40, 110, .32), inset 0 0 35px rgba(255,255,255,.7);
+        }
+
+        .anniv-top-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 190px;
+            height: 8px;
+            transform: translateX(-50%);
+            border-radius: 0 0 12px 12px;
+            background: linear-gradient(90deg, #83c7ff, #0f56b3);
+        }
+
+        .anniv-trophy {
+            font-size: 65px;
+            line-height: 1;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,.18));
+            animation: trophyMove 2.2s ease-in-out infinite;
+        }
+
+        .anniv-name {
+            margin: 0;
+            color: #092b69;
+            font-size: 30px;
+            font-weight: 900;
+        }
+
+        .anniv-designation {
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #2379d9;
+        }
+
+        .anniv-years {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 15px 38px;
+            border-radius: 35px;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2b82da, #003c9b);
+            box-shadow: 0 14px 30px rgba(0, 82, 180, .35);
+        }
+
+        .anniv-divider {
+            width: 190px;
+            height: 3px;
+            margin: 35px auto 22px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, transparent, #1f63b5, transparent);
+        }
+
+        .anniv-message {
+            margin-bottom: -20px;
+            color: #0b3f91;
+            font-size: 17px;
+            font-weight: 800;
+            font-style: italic;
+            line-height: 1.6;
+            font-family: Georgia, serif;
+        }
+
+        .balloons {
+            position: absolute;
+            z-index: 3;
+            width: 210px;
+            height: 440px;
+            bottom: 20px;
+            background-repeat: no-repeat;
+            background-size: contain;
+            opacity: .95;
+        }
+
+        .balloons-left {
+            left: 15px;
+            background: radial-gradient(ellipse at center, #ffffff 0%, #dcecff 45%, #86bff7 100%) 50px 30px / 70px 95px no-repeat, radial-gradient(ellipse at center, #0b65d8 0%, #0047a8 75%) 100px 75px / 75px 100px no-repeat, radial-gradient(ellipse at center, #8fd1ff 0%, #1b77d0 80%) 20px 130px / 80px 105px no-repeat, radial-gradient(ellipse at center, #ffffff 0%, #dbeafe 70%) 110px 190px / 75px 100px no-repeat;
+        }
+
+        .balloons-right {
+            right: 15px;
+            transform: scaleX(-1);
+            background: radial-gradient(ellipse at center, #ffffff 0%, #dcecff 45%, #86bff7 100%) 50px 30px / 70px 95px no-repeat, radial-gradient(ellipse at center, #0b65d8 0%, #0047a8 75%) 100px 75px / 75px 100px no-repeat, radial-gradient(ellipse at center, #8fd1ff 0%, #1b77d0 80%) 20px 130px / 80px 105px no-repeat, radial-gradient(ellipse at center, #ffffff 0%, #dbeafe 70%) 110px 190px / 75px 100px no-repeat;
+        }
+
+        @keyframes trophyMove {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-8px) rotate(-5deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(-8px) rotate(5deg);
+            }
+        }
+
+        @keyframes sparkleMove {
+            from {
+                background-position: 0 0, 0 0, 0 0;
+            }
+
+            to {
+                background-position: 80px 80px, -80px 80px, 100px -100px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .anniv-card {
+                padding: 30px 15px;
+                min-height: auto;
+            }
+
+            .anniv-main-title {
+                font-size: 28px;
+            }
+
+            .anniv-inner-card {
+                width: 92%;
+                min-width: unset;
+                padding: 45px 22px 35px;
+            }
+
+            .balloons {
+                opacity: .25;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.x.x/css/all.min.css">
 </asp:Content>

@@ -139,9 +139,11 @@
     <Content Include="Accounts\PrepareCheques.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="Admin\Birthday.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
     <Content Include="Admin\FileDownload.aspx" />
     <Content Include="Admin\ProjectHealthReport.aspx" />
+    <Content Include="Admin\ResponsibilityDelegation.aspx" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
     <Content Include="CRM\Contacts.aspx" />
@@ -2666,12 +2668,14 @@
     <Content Include="Scripts\Functions\AddAssets.js" />
     <Content Include="Scripts\Functions\AddressVerification.js" />
     <Content Include="Scripts\Functions\AgreementVersionsReport.js" />
+    <Content Include="Scripts\Functions\Birthday.js" />
     <Content Include="Scripts\Functions\ClientHolidays.js" />
     <Content Include="Scripts\Functions\CompensatoryOff.js" />
     <Content Include="Scripts\Functions\CreateprofileNew.js" />
     <Content Include="Scripts\Functions\DailyLogin.js" />
     <Content Include="Scripts\Functions\DailyProductivity.js" />
     <Content Include="Scripts\Functions\DashboardTest.js" />
+    <Content Include="Scripts\Functions\Delegation.js" />
     <Content Include="Scripts\Functions\EditSecruitization.js" />
     <Content Include="Scripts\Functions\AppreciationDisciplinaryAction.js" />
     <Content Include="Scripts\Functions\UsersAppreciationDisplinaryAction.js" />
@@ -2689,7 +2693,6 @@
     <Content Include="Scripts\Functions\EmployeeComments.js" />
     <Content Include="Scripts\Functions\LoanTrackingHistory.js" />
     <Content Include="Scripts\Functions\LogInDetails.js" />
-    <Content Include="Scripts\Functions\NewDash2.js" />
     <Content Include="Scripts\Functions\NewDashboard.js" />
     <Content Include="Scripts\Functions\OnlineTrackingSheet.js" />
     <Content Include="Scripts\Functions\OtherBilling.js" />
@@ -2770,6 +2773,9 @@
     <Content Include="Scripts\SessionHandler.js" />
     <Content Include="Scripts\TrackingSheet\AddFeedback.js" />
     <Content Include="Scripts\TrackingSheet\Allocate.js" />
+    <Content Include="Scripts\Tracking\OrderAllocation.js" />
+    <Content Include="Scripts\Tracking\UpdateDispatchDate.js" />
+    <Content Include="Scripts\Tracking\TodaySatus.js" />
     <Content Include="Scripts\US\CoditionAnalysis.js" />
     <Content Include="Scripts\US\ConditionClearing.js" />
     <Content Include="Scripts\US\ConditionClearingReport.js" />
@@ -2791,6 +2797,9 @@
     <Content Include="Search\ViewBilling.aspx" />
     <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
+    <Content Include="Tracking\OrderAllocation.aspx" />
+    <Content Include="Tracking\UpdateDispatchDate.aspx" />
+    <Content Include="Tracking\TodaySatus.aspx" />
     <Content Include="Tracking\CssMaster.css" />
     <Content Include="UploadScreenShot\16-Sep-2025\34426\sunset-tulip-field-stockcake.jpg" />
     <Content Include="UploadScreenShot\17-Dec-2025\01\Issue.png" />
@@ -2916,6 +2925,13 @@
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\Birthday.aspx.cs">
+      <DependentUpon>Birthday.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\Birthday.aspx.designer.cs">
+      <DependentUpon>Birthday.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\DomainHealthReport.aspx.cs">
       <DependentUpon>DomainHealthReport.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -2936,6 +2952,13 @@
     </Compile>
     <Compile Include="Admin\ProjectHealthReport.aspx.designer.cs">
       <DependentUpon>ProjectHealthReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ResponsibilityDelegation.aspx.cs">
+      <DependentUpon>ResponsibilityDelegation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ResponsibilityDelegation.aspx.designer.cs">
+      <DependentUpon>ResponsibilityDelegation.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
@@ -4571,6 +4594,27 @@
     </Compile>
     <Compile Include="Tracking\Allocate.aspx.designer.cs">
       <DependentUpon>Allocate.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tracking\OrderAllocation.aspx.cs">
+      <DependentUpon>OrderAllocation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tracking\OrderAllocation.aspx.designer.cs">
+      <DependentUpon>OrderAllocation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tracking\UpdateDispatchDate.aspx.cs">
+      <DependentUpon>UpdateDispatchDate.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tracking\UpdateDispatchDate.aspx.designer.cs">
+      <DependentUpon>UpdateDispatchDate.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tracking\TodaySatus.aspx.cs">
+      <DependentUpon>TodaySatus.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tracking\TodaySatus.aspx.designer.cs">
+      <DependentUpon>TodaySatus.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tracking\Tracking.Master.cs">
       <DependentUpon>Tracking.Master</DependentUpon>

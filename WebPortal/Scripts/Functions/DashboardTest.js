@@ -1,481 +1,334 @@
 ﻿
-let dashboardAlerts = [];
-let currentAlertIndex = 0;
+(function (window, $) {
+    "use strict";
 
-console.log('JS loaded');
-
-document.addEventListener("DOMContentLoaded", async () => {
-
-    const dashboard = document.getElementById("dash_board");
-    const onlyMgmt = document.getElementById("onlymgmt");
-
-    const managementUsers = [12, 7036, 8082, 8938];
-
-    /* */
-
-    try {
-        await testDashboard_BindFormInformation();
-        await testDashboard_GetDashboardAlerts();
-    } catch (e) {
-        console.error("BindForm Error:", e);
+    if (!$ || !/DashboardTest\.aspx/i.test(window.location.pathname)) {
+        return;
     }
 
-    const currentusername = parseInt(document.getElementById("hdUser").innerHTML);
+    var dashboardTestPage = "DashboardTest.aspx";
 
-    dashboard.style.display = (currentusername === 10161) ? 'none' : '';
-
-    if (managementUsers.includes(currentusername)) {
-
-        testDashboard_GetManpowerSumary('All');
-        onlyMgmt.style.display = '';
-    } else {
-        onlyMgmt.style.display = 'none';
-    }
-});
-
-async function testDashboard_BindFormInformation() {
-
-    try {
-
-        const data = await apiCall("DashboardEmployee.aspx/BindInformation");
-
-        if (!data || data.length === 0) return;
-
-        const info = data[0];
-
-        // 🔹 USER INFO
-        document.getElementById("dashboard_spnusername").textContent = info.Name || "";
-        document.getElementById("dashboard_spndesignation").textContent = info.Designation || "";
-
-        // 🔹 USER IMAGE
-        if (info.PhotoPath) {
-            document.getElementById("dashboard_userimg").src = info.PhotoPath;
+    function rewriteDashboardUrl(url) {
+        if (typeof url !== "string") {
+            return url;
         }
 
-        // 🔹 SUMMARY COUNTS (if present in your data)
-        if (document.getElementById("dashboard_totalemployees"))
-            document.getElementById("dashboard_totalemployees").textContent = info.TotalEmployees || 0;
-
-        if (document.getElementById("dashboard_onfloormployees"))
-            document.getElementById("dashboard_onfloormployees").textContent = info.OnFloor || 0;
-
-        if (document.getElementById("dashboard_resignedemployees"))
-            document.getElementById("dashboard_resignedemployees").textContent = info.Resigned || 0;
-
-        if (document.getElementById("dashboard_abscondingemployees"))
-            document.getElementById("dashboard_abscondingemployees").textContent = info.Absconding || 0;
-
-        // 🔹 SHOW DASHBOARD AFTER LOAD
-        const dashboard = document.getElementById("dash_board");
-        if (dashboard) dashboard.style.display = "flex";
-
-    } catch (e) {
-        console.error("testDashboard_BindFormInformation Error:", e);
+        return url.replace(/(^|\/)DashboardEmployee\.aspx\//i, "$1" + dashboardTestPage + "/");
     }
-}
 
-async function testDashboard_GetDashboardAlerts() {
+    $.ajaxPrefilter(function (options) {
+        if (options && options.url) {
+            options.url = rewriteDashboardUrl(options.url);
+        }
+    });
 
-    try {
-
-        dashboardAlerts = await apiCall("DashboardEmployee.aspx/GetDashboardAlerts");
-
-        console.log("Alerts Data:", dashboardAlerts);
-
-        const table = $('#dashboard_alert_table');
-
-        // 🔹 Destroy existing DataTable (VERY IMPORTANT)
-        if ($.fn.DataTable.isDataTable('#dashboard_alert_table')) {
-            table.DataTable().clear().destroy();
+    function cleanText(value) {
+        if (value === null || typeof value === "undefined" || value === "null") {
+            return "";
         }
 
-        const tbody = table.find('tbody');
-        tbody.empty();
+        return String(value);
+    }
 
-        if (!dashboardAlerts || dashboardAlerts.length === 0) {
-            tbody.append(`<tr><td colspan="5" class="text-center">No alerts found</td></tr>`);
+    function htmlEncode(value) {
+        return $("<div/>").text(cleanText(value)).html();
+    }
+
+    function jsString(value) {
+        return cleanText(value)
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g, "\\'")
+            .replace(/\r?\n/g, " ");
+    }
+
+    function safeKey(value, fallback) {
+        var key = cleanText(value || fallback || "item");
+        return key.replace(/[^A-Za-z0-9_-]/g, "_");
+    }
+
+    function notify(icon, title, text) {
+        if (window.Swal && typeof window.Swal.fire === "function") {
+            window.Swal.fire({
+                icon: icon,
+                title: title,
+                text: text || "",
+                timer: icon === "success" ? 1700 : undefined,
+                showConfirmButton: icon !== "success"
+            });
             return;
         }
 
-        dashboardAlerts.forEach((alert, index) => {
+        window.alert(text ? title + "\n" + text : title);
+    }
 
-            const row = `
-                <tr>
-                    <td style="display:none">${alert.AlertId}</td>
-                    <td style="display:none">${index + 1}</td>
-                    <td>${alert.Subject || ""}</td>
+    function celebrationBurst() {
+        if (typeof window.confetti !== "function") {
+            return;
+        }
 
-                    <td>
-                        ${alert.FileName
-                    ? `<a href="${alert.FilePath}" target="_blank">Download</a>`
-                    : ""}
-                    </td>
-
-                    <td>
-                        <a href="#!" class="view-alert" onclick="testBindAlertDetails(${alert.AlertId}, ${index})">
-                            <span style="color:dodgerblue;">
-                                <i class="uil uil-search-alt"></i>
-                            </span>
-                        </a>
-                    </td>
-
-                    <td style="display:none">${alert.FilePath || ""}</td>
-                </tr>
-            `;
-
-            tbody.append(row);
+        window.confetti({
+            particleCount: 70,
+            spread: 64,
+            origin: { y: 0.62 }
         });
+    }
 
-        // 🔥 DATATABLE INITIALIZATION (PAGING HERE)
-        table.DataTable({
-            pageLength: 4,
-            paging: true,
-            searching: false,
-            lengthChange: false,
-            ordering: true,
-            info: false, // hide "Showing X to Y"
-            autoWidth: false,
-            destroy: true,
+    var projectAlerts = [];
+    var projectAlertIndex = 0;
+    var projectAlertCallback = null;
 
-            pagingType: "simple", // 🔥 ONLY Previous & Next
+    function completeProjectAlerts() {
+        var callback = projectAlertCallback;
+        projectAlertCallback = null;
 
-            columnDefs: [
-                { targets: [0, 1, 5], visible: false }
-            ],
-            language: {
-                paginate: {
-                    previous: "⬅ Prev",
-                    next: "Next ➡"
+        $("#dash_projectNotifications")
+            .off("hidden.bs.modal.dashboardTestProject")
+            .modal("hide");
+
+        if (typeof callback === "function") {
+            callback();
+        }
+    }
+
+    function showProjectAlert() {
+        if (projectAlertIndex >= projectAlerts.length) {
+            completeProjectAlerts();
+            return;
+        }
+
+        var item = projectAlerts[projectAlertIndex] || {};
+        var $modal = $("#dash_projectNotifications");
+
+        $("#prjN_alertTitle").text(item.Subject || "Project Alert");
+        $("#prjN_alertMessage").text(item.Message || "");
+
+        if (item.Attachment && String(item.Attachment).trim() !== "") {
+            $("#prjN_attachmentDiv").show();
+            $("#prjN_downloadFile").attr("href", item.Attachment);
+        }
+        else {
+            $("#prjN_attachmentDiv").hide();
+        }
+
+        $modal
+            .off("hidden.bs.modal.dashboardTestProject")
+            .one("hidden.bs.modal.dashboardTestProject", completeProjectAlerts)
+            .modal("show");
+    }
+
+    function markProjectAlertRead(alertId) {
+        if (!alertId) {
+            return;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "DashboardEmployee.aspx/UpdateProjectReadAlertStatus",
+            data: JSON.stringify({ AlertID: alertId }),
+            contentType: "application/json; charset=utf-8"
+        });
+    }
+
+    window.dash_loadUserProjectNotifications = function (callback) {
+        projectAlertCallback = callback;
+
+        $.ajax({
+            type: "POST",
+            url: "DashboardEmployee.aspx/GetDashboardProjectAlerts",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (res) {
+                try {
+                    projectAlerts = typeof res.d === "string" ? JSON.parse(res.d || "[]") : (res.d || []);
                 }
-            }
-        });
-
-    } catch (e) {
-        console.error("testDashboard_GetDashboardAlerts Error:", e);
-    }
-}
-async function testBindAlertDetails(alertId, index = 0) {
-
-    try {
-
-        currentAlertIndex = index;
-
-        const data = await apiCall("DashboardEmployee.aspx/BindAlertDetails", { AlertId: alertId });
-
-        if (!data || data.length === 0) return;
-
-        const alert = data[0];
-
-        // 🔹 SET DATA
-        document.getElementById("dasboard_popalertsubject").textContent = alert.Subject || "";
-        document.getElementById("dasboard_popalertmessage").textContent = alert.Message || "";
-
-        // 🔹 ATTACHMENT HANDLING
-        const attachmentDiv = document.getElementById("attachmentDiv");
-        const downloadLink = document.getElementById("downloadFile");
-
-        if (alert.FilePath) {
-
-            attachmentDiv.style.display = "block";
-            downloadLink.href = alert.FilePath;
-
-        } else {
-
-            attachmentDiv.style.display = "none";
-        }
-
-        // 🔹 OPEN MODAL
-        const modal = new bootstrap.Modal(document.getElementById("alertModal"));
-        modal.show();
-
-    } catch (e) {
-        console.error("testBindAlertDetails Error:", e);
-    }
-}
-
-async function core_testDashboard_GetManpowerSumary(type = "All") {
-
-    try {
-
-        // 🔹 Update dropdown text
-        const header = document.getElementById("summary_gridheaderfilter");
-        if (header) {
-            header.textContent =
-                type === "All" ? "All Employees" :
-                    type === "Present" ? "Present Today" :
-                        type === "Leave" ? "Users on Leave" : type;
-        }
-
-        // 🔹 API CALL
-        const data = await apiCall("DashboardEmployee.aspx/CurrentManpowerSummary", { Type: type });
-
-        const tabledata = $('#dasboard_currentmanpower');
-        const tbody = document.querySelector("#dasboard_currentmanpower tbody");
-        if (!tbody) return;
-
-        tbody.innerHTML = "";
-
-        if (!data || data.length === 0) {
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td colspan="10" class="text-center">No data available</td>`;
-            tbody.appendChild(tr);
-            return;
-        }
-
-        let totalEmployees = 0;
-        let totalOnFloor = 0;
-        let totalResigned = 0;
-        let totalAbsconding = 0;
-
-        // 🔹 LOOP DATA
-        data.forEach((row, index) => {
-
-            totalEmployees += Number(row.Total || 0);
-            totalOnFloor += Number(row.OnFloor || 0);
-            totalResigned += Number(row.Resigned || 0);
-            totalAbsconding += Number(row.Absconding || 0);
-
-            const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td style="display:none">${index + 1}</td>
-                <td style="display:none"></td>
-                <td style="display:none"></td>
-                <td>${row.BranchName || ""}</td>
-                <td>${row.DomainGroupName || ""}</td>
-                <td>${row.Subdomain || ""}</td>
-                <td class="text-center">${row.Total || 0}</td>
-                <td class="text-center">${row.OnFloor || 0}</td>
-                <td class="text-center">${row.Resigned || 0}</td>
-                <td class="text-center">${row.Absconding || 0}</td>
-            `;
-
-            tbody.appendChild(tr);
-        });
-
-        tabledata.DataTable({
-            pageLength: 10,
-            paging: true,
-            searching: false,
-            lengthChange: false,
-            ordering: true,
-            info: false, // hide "Showing X to Y"
-            autoWidth: false,
-            destroy: true,
-
-            pagingType: "simple", // 🔥 ONLY Previous & Next
-
-            columnDefs: [
-                { targets: [0, 1, 2], visible: false }
-            ],
-            language: {
-                paginate: {
-                    previous: "⬅ Prev",
-                    next: "Next ➡"
+                catch (ex) {
+                    projectAlerts = [];
                 }
-            }
-        });
 
-        // 🔹 UPDATE SUMMARY FOOTER
-        setText("dashboard_totalemployees", totalEmployees);
-        setText("dashboard_onfloormployees", totalOnFloor);
-        setText("dashboard_resignedemployees", totalResigned);
-        setText("dashboard_abscondingemployees", totalAbsconding);
+                projectAlertIndex = 0;
 
-    } catch (e) {
-        console.error("testDashboard_GetManpowerSumary Error:", e);
-    }
+                if (projectAlerts.length === 0) {
+                    completeProjectAlerts();
+                    return;
+                }
 
-    return false;
-}
-
-async function testDashboard_GetManpowerSumary(type) {
-
-    try {
-
-         const data = await apiCall("DashboardEmployee.aspx/CurrentManpowerSummary", { Type: type });
-
-      /*  const data = await apiCall("/Admin/DashboardEmployee.aspx/CurrentManpowerSummary",{ Type: type });*/
-
-        console.log("Manpower Data:", data); // ✅ debug instead of alert
-
-        const tbody = document.querySelector('#dasboard_currentmanpower tbody');
-
-        if (!tbody) return;
-
-        // ❌ NO DATA CASE
-        if (!data || data.length === 0) {
-
-            tbody.innerHTML = `<tr>
-                <td colspan="10" class="text-center">No data available</td>
-            </tr>`;
-
-            return;
-        }
-
-        let html = "";
-        let i = 0;
-
-        let summary_total = 0;
-        let summary_onfloor = 0;
-        let summary_resigned = 0;
-        let summary_absconding = 0;
-
-        data.forEach((row) => {
-
-            i++;
-
-            html += `
-            <tr>
-                <td style="display:none;">${blankForNull(row.DomainId)}</td>
-                <td style="display:none;">${blankForNull(row.WorkingBranch)}</td>
-                <td style="display:none;">${i}</td>
-
-                <td>${blankForNull(row.BranchName)}</td>
-                <td>${blankForNull(row.DomainGroupName)}</td>
-                <td>${blankForNull(row.Subdomain)}</td>
-
-                <td style="text-align:center;">
-                    <a href="#!" onclick="summary_totalclick(${row.WorkingBranch},${row.DomainId},'${row.Subdomain}',1)">
-                        ${blankForNull(row.Total)}
-                    </a>
-                </td>
-
-                <td style="text-align:center;">
-                    <a href="#!" onclick="summary_totalclick(${row.WorkingBranch},${row.DomainId},'${row.Subdomain}',2)">
-                        ${blankForNull(row.OnFloor)}
-                    </a>
-                </td>
-
-                <td style="text-align:center;">
-                    <a href="#!" onclick="summary_totalclick(${row.WorkingBranch},${row.DomainId},'${row.Subdomain}',3)">
-                        ${blankForNull(row.Resigned)}
-                    </a>
-                </td>
-
-                <td style="text-align:center;">
-                    <a href="#!" onclick="summary_totalclick(${row.WorkingBranch},${row.DomainId},'${row.Subdomain}',4)">
-                        ${blankForNull(row.Absconding)}
-                    </a>
-                </td>
-            </tr>`;
-
-            summary_total += Number(row.Total || 0);
-            summary_onfloor += Number(row.OnFloor || 0);
-            summary_resigned += Number(row.Resigned || 0);
-            summary_absconding += Number(row.Absconding || 0);
-
-            document.getElementById("dashboard_graphperiod").innerHTML =
-                'Period: ' + blankForNull(row.Period);
-        });
-
-        // 🔥 DESTROY OLD TABLE
-        if ($.fn.DataTable.isDataTable('#dasboard_currentmanpower')) {
-            $('#dasboard_currentmanpower').DataTable().clear().destroy();
-        }
-
-        // 🔥 BIND DATA
-        tbody.innerHTML = html;
-
-        // 🔥 DATATABLE CONFIG (ERP CLEAN)
-        $('#dasboard_currentmanpower').DataTable({
-            paging: true,
-            pagingType: "simple",   // ✅ only Prev / Next
-            pageLength: 10,
-            searching: false,       // ❌ remove search
-            lengthChange: false,    // ❌ remove dropdown
-            ordering: false,
-            info: false,            // ❌ remove "Showing X"
-            autoWidth: true,
-            destroy: true,
-            scrollX: true
-        });
-
-        // 🔹 UPDATE SUMMARY
-        document.getElementById("dashboard_totalemployees").innerHTML = summary_total;
-        document.getElementById("dashboard_onfloormployees").innerHTML = summary_onfloor;
-        document.getElementById("dashboard_resignedemployees").innerHTML = summary_resigned;
-        document.getElementById("dashboard_abscondingemployees").innerHTML = summary_absconding;
-
-        // 🔹 HEADER TEXT
-        let headerText = "All Employees";
-        if (type === "Present") headerText = "Present Today";
-        if (type === "Leave") headerText = "Users on Leave";
-
-        document.getElementById("summary_gridheaderfilter").innerHTML = headerText;
-
-        document.getElementById('load1').style.display = 'none';
-
-    } catch (error) {
-
-        console.error("Dashboard_GetManpowerSumary Error:", error);
-        document.getElementById('load1').style.display = 'none';
-    }
-
-    return false;
-}
-function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-}
-
-function changePage(page) {
-
-    const totalPages = Math.ceil(dashboardAlerts.length / rowsPerPage);
-
-    if (page < 1 || page > totalPages) return;
-
-    currentPage = page;
-
-    renderAlertsTable();
-}
-
-function renderPagination() {
-
-    const totalPages = Math.ceil(dashboardAlerts.length / rowsPerPage);
-
-    let paginationDiv = document.getElementById("alertPagination");
-
-    if (!paginationDiv) {
-        paginationDiv = document.createElement("div");
-        paginationDiv.id = "alertPagination";
-        paginationDiv.className = "text-center mt-2";
-        document.getElementById("dashboard_alert_table").after(paginationDiv);
-    }
-
-    paginationDiv.innerHTML = `
-        <button class="btn btn-sm btn-secondary" ${currentPage === 1 ? "disabled" : ""}
-            onclick="changePage(${currentPage - 1})">Prev</button>
-
-        <span style="margin:0 10px;">Page ${currentPage} of ${totalPages}</span>
-
-        <button class="btn btn-sm btn-secondary" ${currentPage === totalPages ? "disabled" : ""}
-            onclick="changePage(${currentPage + 1})">Next</button>
-    `;
-}
-
-// ==============================
-// 🔹 COMMON API FUNCTION
-// ==============================
-async function apiCall(url, data = {}) {
-
-    try {
-
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+                showProjectAlert();
             },
-            body: JSON.stringify(data)
+            error: function () {
+                completeProjectAlerts();
+            }
+        });
+    };
+
+    window.showNextAlert = showProjectAlert;
+    window.test_showNextAlert = showProjectAlert;
+
+    window.goToNextAlert = function (e) {
+        if (e && typeof e.preventDefault === "function") {
+            e.preventDefault();
+        }
+
+        var item = projectAlerts[projectAlertIndex] || {};
+        markProjectAlertRead(item.AlertId);
+        projectAlertIndex++;
+        showProjectAlert();
+        return false;
+    };
+
+    $(function () {
+        document.body.classList.add("dashboard-test-body");
+        $(".dashboard-main-page").addClass("dashboard-test-shell");
+
+        $("#birthdayModal, #dash_birthdayModal_all, #dash_anniversaryModal")
+            .off("shown.bs.modal.dashboardTest")
+            .on("shown.bs.modal.dashboardTest", celebrationBurst);
+    });
+
+    window.dash_ownBirthday = function (callback) {
+        $.ajax({
+            type: "POST",
+            url: "DashboardEmployee.aspx/CheckBirthday",
+            data: "{}",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (res) {
+                var data = res && res.d ? res.d : {};
+
+                if (!data || data.IsBirthday !== true) {
+                    callback();
+                    return;
+                }
+
+                $("#lblBirthdayName").text(data.FirstName || data.Name || "");
+
+                $("#birthdayModal")
+                    .modal("show")
+                    .off("hidden.bs.modal.dashboardTest")
+                    .one("hidden.bs.modal.dashboardTest", function () {
+                        callback();
+                    });
+            },
+            error: function () {
+                callback();
+            }
+        });
+    };
+
+    window.dash_renderBirthdayPopup = function (data) {
+        if (!data || data.length === 0) {
+            return;
+        }
+
+        var html = "";
+
+        $.each(data, function (index, emp) {
+            var employeeId = cleanText(emp.EmployeeID || emp.Code || index);
+            var code = cleanText(emp.Code || employeeId);
+            var key = safeKey(employeeId, index);
+            var name = cleanText(emp.Name || emp.EmpName || "Team Member");
+            var metaParts = [emp.Code, emp.BranchName, emp.DepartmentName].filter(function (item) {
+                return cleanText(item) !== "";
+            });
+
+            html += "<div class=\"birthday-card dashboard-test-birthday-card d-flex flex-column mb-3\">";
+            html += "  <div class=\"d-flex align-items-center justify-content-between flex-wrap\" style=\"gap:12px;\">";
+            html += "    <div class=\"d-flex align-items-center\" style=\"min-width:0;\">";
+            html += "      <div class=\"cake-avatar dashboard-test-birthday-avatar mr-3\"><i class=\"fas fa-birthday-cake\"></i></div>";
+            html += "      <div style=\"min-width:0;\">";
+            html += "        <div class=\"emp-name\">" + htmlEncode(name) + "</div>";
+            html += "        <div class=\"emp-meta dashboard-test-birthday-meta\">" + htmlEncode(metaParts.join(" | ")) + "</div>";
+            html += "      </div>";
+            html += "    </div>";
+            html += "    <button type=\"button\" class=\"btn btn-wish dashboard-test-wish-btn\" onclick=\"return dash_toggleWishBox('" + jsString(key) + "')\">";
+            html += "      <i class=\"fas fa-pen-nib mr-1\"></i> Wish";
+            html += "    </button>";
+            html += "  </div>";
+            html += "  <div id=\"wishBox_" + htmlEncode(key) + "\" class=\"wish-box mt-3\" style=\"display:none;\">";
+            html += "    <input type=\"text\" class=\"form-control mb-2\" maxlength=\"250\" placeholder=\"Write your birthday wish\" id=\"msg_" + htmlEncode(key) + "\" />";
+            html += "    <button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"return dash_sendWish('" + jsString(code) + "', '" + jsString(key) + "', this)\">Send Wish</button>";
+            html += "  </div>";
+            html += "</div>";
         });
 
-        const result = await response.json();
+        $("#dash_birthdayList").html(html);
+    };
 
-        return JSON.parse(result.d);
+    window.dash_toggleWishBox = function (empId) {
+        $(".wish-box").not("#wishBox_" + empId).slideUp(140);
+        $("#wishBox_" + empId).slideToggle(140);
+        return false;
+    };
 
-    } catch (error) {
-        console.error("API CALL ERROR:", url, error);
-        return [];
-    }
-}
+    window.dash_sendWish = function (empId, keyOrButton, maybeButton) {
+        var key = typeof keyOrButton === "string" ? keyOrButton : safeKey(empId);
+        var button = maybeButton || keyOrButton;
+        var message = cleanText($("#msg_" + key).val()).trim();
+
+        if (!message) {
+            notify("warning", "Message required", "Please enter a birthday wish.");
+            return false;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "DashboardEmployee.aspx/SendWish",
+            data: JSON.stringify({ toUserId: empId, message: message }),
+            contentType: "application/json; charset=utf-8",
+            success: function () {
+                $(button).html("<i class=\"fas fa-check mr-1\"></i> Sent").prop("disabled", true);
+                $("#wishBox_" + key).slideUp(140);
+                notify("success", "Wish sent", "Your birthday wish has been saved.");
+            },
+            error: function () {
+                notify("error", "Unable to send", "Please try again.");
+            }
+        });
+
+        return false;
+    };
+
+    window.renderWorkAnniversary = function (data, callback) {
+        if (!data || data.length === 0) {
+            callback();
+            return;
+        }
+
+        var firstYears = parseInt(data[0].YearsCompleted, 10) || 0;
+        var firstJubilee = typeof window.getJubileeDetails === "function" ? window.getJubileeDetails(firstYears) : null;
+        var header = firstJubilee && firstJubilee.title ? "Work Anniversary - " + firstJubilee.title : "Work Anniversary";
+        var html = "";
+
+        $("#workAnn_header").html("<i class=\"fas fa-award mr-2\"></i>" + htmlEncode(header));
+
+        $.each(data, function (index, emp) {
+            var years = parseInt(emp.YearsCompleted, 10) || 0;
+            var jubilee = typeof window.getJubileeDetails === "function" ? window.getJubileeDetails(years) : null;
+            var message = jubilee && jubilee.message
+                ? jubilee.message
+                : (typeof window.getAnniversaryMessage === "function" ? window.getAnniversaryMessage(years) : "Thank you for your dedication and contribution.");
+
+            html += "<div class=\"employees-card premium-card\">";
+            html += "  <div class=\"company-logo\"><i class=\"fas fa-medal\"></i></div>";
+            html += "  <div class=\"emps-name\">" + htmlEncode(emp.EmpName) + "</div>";
+            html += "  <div class=\"emp-designation\">" + htmlEncode(emp.Designation) + "</div>";
+            html += "  <div class=\"emp-years\">" + htmlEncode(years) + " Years of Excellence</div>";
+            html += "  <div class=\"anniversary-msg\">" + htmlEncode(message) + "</div>";
+            html += "</div>";
+        });
+
+        $("#dash_anniversaryContainer").html(html);
+        $("#dash_anniversaryModal")
+            .modal("show")
+            .off("hidden.bs.modal.dashboardTest")
+            .one("hidden.bs.modal.dashboardTest", function () {
+                callback();
+            });
+
+        if (typeof window.startConfetti === "function") {
+            window.startConfetti();
+        }
+        else {
+            celebrationBurst();
+        }
+    };
+}(window, window.jQuery));

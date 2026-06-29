@@ -210,6 +210,79 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.AddFeedbackForNewOrder(htParam);
         }
 
+        public DataTable GetAllProjectByUserRights_ForAddFeedback(string EmployeeID)
+        {
+            return dalTracking.GetAllProjectByUserRights_ForAddFeedback(EmployeeID);
+        }
+
+        public DataTable getProcess(int ProjectID)
+        {
+            return dalTracking.getProcess(ProjectID);
+        }
+
+        public DataTable GetAllProjectDealNumberNew(int ProjectId)
+        {
+            return dalTracking.GetAllProjectDealNumberNew(ProjectId);
+        }
+
+        public DataTable GetAllOrderNoByProjectWise(int ProjectID, string DealNo, string ProcessName, string Review, string Type)
+        {
+            return dalTracking.GetAllOrderNoByProjectWise(ProjectID, DealNo, ProcessName, Review, Type);
+        }
+
+        public DataTable GetAllDealDispatchDate()
+        {
+            return dalTracking.GetAllDealDispatchDate();
+        }
+
+        public int InsertLoanDispatchDate(Hashtable htParam)
+        {
+            return dalTracking.InsertLoanDispatchDate(htParam);
+        }
+
+        public string getActualColumnName(string HeaderName, int ProjectID)
+        {
+            return dalTracking.getActualColumnName(HeaderName, ProjectID);
+        }
+
+        public DataTable GetIsUniqueColumnForHeader(int ProjectID)
+        {
+            return dalTracking.GetIsUniqueColumnForHeader(ProjectID);
+        }
+
+        public DataTable GetTrackingsheetLoanForDispatchDate(string ProjectID, string DealNumber)
+        {
+            return dalTracking.GetTrackingsheetLoanForDispatchDate(ProjectID, DealNumber);
+        }
+
+        public DataTable GetTrackingsheetLoanForDispatchDate_Servicing(string ProjectID, string DealNumber)
+        {
+            return dalTracking.GetTrackingsheetLoanForDispatchDate_Servicing(ProjectID, DealNumber);
+        }
+
+        public int GetEmployeePseudonameNew(string Code)
+        {
+            return dalTracking.GetEmployeePseudonameNew(Code);
+        }
+
+        public DataTable GetProcessDetailsForFeedbackUserNew(string UserName, string DealNo, string Status)
+        {
+            return dalTracking.GetProcessDetailsForFeedbackUserNew(UserName, DealNo, Status);
+        }
+
+        public DataTable GetProcessDashbordDealPending(string DealNo, string Process)
+        {
+            return dalTracking.GetProcessDashbordDealPending(DealNo, Process);
+        }
+
+        public DataTable GetProcessDetailsForFeedbackUserCompleted_New(string UserName, string DealNo, string Status)
+        {
+            return dalTracking.GetProcessDetailsForFeedbackUserCompleted_New(UserName, DealNo, Status);
+        }
+
+        public DataTable GetProcessDetailsForFeedbackUserCompleted(string UserName, string ToDate, string Code)
+        {
+            return dalTracking.GetProcessDetailsForFeedbackUserCompleted(UserName, ToDate, Code);
+        }
     }
 }
-

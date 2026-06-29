@@ -362,9 +362,11 @@
             </div>
 
             <div>
-                <a href="#" id="aBack" runat="server"
-                    class="btn btn-light btn-back"
-                    onclick="window.history.go(-1); return false;">
+                    <%--onclick="window.history.go(-1); return false;"--%>
+
+                <a id="aBack" runat="server"
+                    class="btn btn-light btn-back">
+                   
                     <i class="fas fa-arrow-left"></i>
                     Back
                 </a>

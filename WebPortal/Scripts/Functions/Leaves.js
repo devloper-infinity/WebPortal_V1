@@ -91,19 +91,6 @@ function safeText(value) {
     return $('<div>').text(value).html();
 }
 
-function selfleave_load() {
-    selfleave_bindgrid();
-    $.ajax({
-        type: "POST", url: "SelfLeaves.aspx/BindInformation", dataType: "json", contentType: "application/json",
-        success: function (res1) {
-            var dataArray = JSON.parse(res1.d);
-            $.each(dataArray, function (data1, value1) {
-                selfleave_empId = value1.EmployeeID;
-                selfleave_branch = value1.WorkingBranch;
-            });
-        }
-    });
-}
 
 function selfleave_validatedates() {
 

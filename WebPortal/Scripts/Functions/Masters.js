@@ -1861,97 +1861,14 @@ function cruw_send_Submit() {
 
 // Worked Holiday
 
-function core_wholiday_bindgrid() {
-    $('#load1').show();
-    $.ajax({
-        url: "WorkedHolidays.aspx/GetAllEmployeeWorkedHoliday",
-        type: "POST",
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
-
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $('#wholidays_table').DataTable({
-                dom: 'ftip',
-                destroy: true,
-                orderCellsTop: true,
-                fixedHeader: true,
-                scrollX: true,
-                "paging": false,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                filter: true,
-                'select': {
-                    'style': 'single'
-                },
-                "serverSide": false,
-                "data": dataArray,
-                columns: [
-                    { data: '' },
-                    { data: 'Code' },
-                    { data: 'FullName' },
-                    { data: 'Branch' },
-                    { data: 'Days' },
-                    { data: 'ReportingManager' }
-
-                ],
-                fnCreatedRow: function (nRow, aData, iDataIndex) {
-                    $(nRow).children("td").css("text-wrap", "nowrap");
-                },
-                columnDefs: [
-                    {
-                        targets: 0,
-                        "width": "45px",
-                        render: function (data, type, row, meta) {
-                            return '<a class="dropdown-item" href="#!" id="Actions" onclick="wholiday_showpopup(' + meta.row + ');"><span style="color: forestgreen;"><i class="uil fs-1 me-2 uil-search"></i></span></a>';
-                            //return '<input type="button" class="btn-primary" id=viewdetails-"' + meta.row + '" value="Details" onclick="return ViewPolicyDetails(\'' + meta.row + '\');" />&nbsp;<input type="button" class="btn-default" id=viewtasks-"' + meta.row + '" value="Tasks"  onclick="return ViewTaskDetails(\'' + meta.row + '\');"/>';
-                        }
-
-                    }
-                ],
-
-                initComplete: function () {
-                    $('#load1').hide();
-
-                },
-                buttons: [
-                    {
-                        extend: 'excelHtml5', title: 'Employees Due For Increment', autoFilter: true,
-                        exportOptions: {
-                            columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-                        }
-
-                    },
-
-
-                ],
-
-            });
-        },
-
-        error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
-        }
-    });
-
-    return false;
-}
-
 function wholiday_bindgrid() {
 
     $('#load1').show();
 
-    // Destroy only if already initialized
-    if ($.fn.DataTable.isDataTable('#wholidays_table')) {
-        $('#wholidays_table').DataTable().clear().destroy();
-    }
-
     $.ajax({
         url: "WorkedHolidays.aspx/GetAllEmployeeWorkedHoliday",
         type: "POST",
+        data: "{}",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
@@ -1960,44 +1877,60 @@ function wholiday_bindgrid() {
             let dataArray = [];
 
             try {
-                dataArray = JSON.parse(response.d) || [];
+                dataArray = response.d ? JSON.parse(response.d) : [];
             } catch (e) {
-                console.error("JSON parse error", e);
+                $('#load1').hide();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid Data",
+                    text: "Server returned invalid JSON data."
+                });
+
+                console.error(e);
+                return;
             }
+
+            if ($.fn.DataTable.isDataTable('#wholidays_table')) {
+                $('#wholidays_table').DataTable().clear().destroy();
+            }
+
+            $('#wholidays_table tbody').empty();
 
             $('#wholidays_table').DataTable({
                 dom: 'ftip',
                 data: dataArray,
                 destroy: true,
+                deferRender: true,
                 processing: true,
-                deferRender: true,   // ✅ improves speed for large data
-                scrollX: true,
-                autoWidth: false,
                 paging: true,
+                pageLength: 25,
+                lengthMenu: [[25, 50, 100], [25, 50, 100]],
+
                 ordering: false,
                 searching: true,
-                fixedHeader: true,
-
-                select: { style: 'single' },
+                autoWidth: false,
+                fixedHeader: false,
 
                 columns: [
-                    { data: null, defaultContent: '' },
-                    { data: 'Code' },
-                    { data: 'FullName' },
-                    { data: 'Branch' },
-                    { data: 'Days' },
-                    { data: 'ReportingManager' }
-                ],
-
-                columnDefs: [
                     {
-                        targets: 0,
+                        data: null,
                         width: "45px",
                         orderable: false,
+                        className: "text-center",
                         render: function (data, type, row, meta) {
-                            return `<a href="#!" title="View Worked Holiday Details" onclick="wholiday_showpopup(${meta.row})"><i class="uil uil-search" style="color: dodgerblue;" ></i></a>`;
+                            return `
+                                <a href="#!" title="View Worked Holiday Details"
+                                   onclick="wholiday_showpopup('${meta.row}')">
+                                    <i class="uil uil-search" style="color:dodgerblue;"></i>
+                                </a>`;
                         }
-                    }
+                    },
+                    { data: 'Code', defaultContent: '' },
+                    { data: 'FullName', defaultContent: '' },
+                    { data: 'Branch', defaultContent: '' },
+                    { data: 'Days', defaultContent: '' },
+                    { data: 'ReportingManager', defaultContent: '' }
                 ],
 
                 initComplete: function () {
@@ -2008,8 +1941,14 @@ function wholiday_bindgrid() {
 
         error: function (xhr) {
             $('#load1').hide();
-            console.error("Error:", xhr.responseText);
-            alert("Something went wrong while loading data.");
+
+            Swal.fire({
+                icon: "error",
+                title: "Loading Failed",
+                text: "Something went wrong while loading worked holiday data."
+            });
+
+            console.error(xhr.responseText);
         }
     });
 
@@ -2067,9 +2006,7 @@ function wholiday_showpopup(index) {
                         "width": "45px",
                         render: function (data, type, row, meta) {
                             return '<input type="checkbox" id="' + meta.row + '" name="' + meta.row + '" onclick="GetCheckedDates(this);" class="nodata" value="No Volume" /> ';
-                            //return '<input type="button" class="btn-primary" id=viewdetails-"' + meta.row + '" value="Details" onclick="return ViewPolicyDetails(\'' + meta.row + '\');" />&nbsp;<input type="button" class="btn-default" id=viewtasks-"' + meta.row + '" value="Tasks"  onclick="return ViewTaskDetails(\'' + meta.row + '\');"/>';
                         }
-
                     }
                 ],
 
@@ -2093,14 +2030,16 @@ function wholiday_showpopup(index) {
 const w_chkIds = [];
 
 function GetCheckedDates(ID) {
+
     if (ID.checked) {
         if (!w_chkIds.includes(ID.id)) {
             w_chkIds.push(ID.id);
         }
     }
     else {
-        if (w_chkIds.includes(ID.id)) {
-            w_chkIds.splice(w_chkIds.indexOf(ID.id), 1);
+        const index = w_chkIds.indexOf(ID.id);
+        if (index > -1) {
+            w_chkIds.splice(index, 1);
         }
     }
 
@@ -2109,39 +2048,75 @@ function GetCheckedDates(ID) {
 
 function wholiday_pupup_submit() {
 
-    var name = document.getElementById("wholiday_popup_name").innerHTML;
-    var code = name.substring(0, 3);
-    var remark = document.getElementById("wholiday_popup_remark").value;
-    if (remark == "") {
-        alert("Please enter remark.");
+    const name = $("#wholiday_popup_name").text().trim();
+    const code = name.substring(0, 3);
+    const remark = $("#wholiday_popup_remark").val().trim();
+
+    if (remark === "") {
+        Swal.fire({
+            icon: "warning",
+            title: "Remark Required",
+            text: "Please enter remark."
+        });
         return false;
     }
-    var dates = "";
-    if (w_chkIds.length > 0) {
-        for (let i = 0; i < w_chkIds.length; i++) {
-            var rows = $('#wholiday_logdetails').DataTable().row(w_chkIds[i]).data();
-            if (i == 0) {
-                dates = rows.date;
-            }
-            else {
-                dates = dates + "," + rows.date;
-            }
-        }
-        PageMethods.ApproveWorkedHolidays(code, dates, remark, wholiday_popup_OnSuccess, wholiday_popup_OnError);
+
+    if (w_chkIds.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Selection",
+            text: "Please select at least one worked holiday."
+        });
+        return false;
     }
-    return false;
+
+    let dates = [];
+
+    for (let i = 0; i < w_chkIds.length; i++) {
+        const row = $('#wholiday_logdetails').DataTable().row(w_chkIds[i]).data();
+        if (row) {
+            dates.push(row.date);
+        }
+    }
+
+    // $('#load1').show();
+
+    PageMethods.ApproveWorkedHolidays(
+        code,
+        dates.join(","),
+        remark,
+
+        function (result) {
+
+            $('#load1').hide();
+
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Worked holiday approved successfully.",
+                confirmButtonText: "OK"
+            }).then(() => {
+
+                $("#wholiday_detailspop").modal("hide");
+                wholiday_bindgrid();
+            });
+
+        },
+
+        function (error) {
+
+            $('#load1').hide();
+
+            Swal.fire({
+                icon: "error",
+                title: "Approval Failed",
+                text: error.get_message(),
+                confirmButtonText: "OK"
+            });
+
+        });
 }
 
-function wholiday_popup_OnSuccess(result) {
-    $('#load1').hide();
-    alert("Worked holiday approved successfully.");
-    location.reload();
-    return false;
-}
-
-function wholiday_popup_OnError(error) {
-    alert(error.get_message());
-}
 
 
 

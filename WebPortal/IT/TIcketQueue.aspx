@@ -262,7 +262,7 @@
                 var assignedName = item.AssignedToUserName ? ' to ' + it_tq_text(item.AssignedToUserName) : '';
                 return '<button type="button" class="btn btn-sm btn-secondary" disabled title="Ticket is already assigned' + assignedName + '">Locked</button>';
             }
-            return '<a class="btn btn-sm btn-primary" href="AddTicketRemark.aspx?TicketID=' + it_tq_text(ticketId) + '">Update</a>';
+            return '<a class="btn btn-sm btn-primary" href="AddTicketRemark.aspx?TicketId=' + it_tq_text(ticketId) + '">Update</a>';
         }
 
         function it_tq_selfAssignHtml(item) {

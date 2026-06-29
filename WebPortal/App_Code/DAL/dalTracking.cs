@@ -449,5 +449,148 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.ExecuteNonQueryCmd(cmd);
             return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
+
+
+        public DataTable GetAllProjectByUserRights_ForAddFeedback(string EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[WBT_usp_GetAllProjectByUserRightsFor_OnlineTracking_ForAddFeedback]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, EmployeeID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable getProcess(int ProjectID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetProcessBYProject");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetAllProjectDealNumberNew(int ProjectId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllProjectDealNo_UW_new]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Projectid", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, ProjectId);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+        public DataTable GetAllOrderNoByProjectWise(int ProjectID, string DealNo, string ProcessName, string Review, string Type)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllProjectDealNo_OrderNo_UW");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, ProjectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessName", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, ProcessName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, Review);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, Type);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+        public DataTable GetAllDealDispatchDate()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_BindDealDispatchDate]");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int InsertLoanDispatchDate(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateDealDispatchDatedate");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["ProjectNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DueDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["DueDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DispatchDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["DispatchDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CreditQC", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["CreditQC"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@complianceQC", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["complianceQC"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public string getActualColumnName(string HeaderName, int ProjectID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetColumnName");
+            SQLHelper.AddParamToSQLCmd(cmd, "@HeaderName", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, HeaderName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            string Columnname = Convert.ToString(SQLHelper.ExecuteScalarCmd(cmd));
+            return Columnname;
+        }
+
+        public DataTable GetIsUniqueColumnForHeader(int ProjectID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetIsUniqueColumnForHeader");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetTrackingsheetLoanForDispatchDate(string ProjectID, string DealNumber)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetTrackingsheetByProject_ForBillingData_DealWise_Dispatch");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNumber", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, DealNumber);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetTrackingsheetLoanForDispatchDate_Servicing(string ProjectID, string DealNumber)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetTrackingsheetByProject_ForBillingData_DealWise_Dispatch_Servicing");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNumber", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, DealNumber);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int GetEmployeePseudonameNew(string Code)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetPsedonameforattendance_Validate");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Code);
+            int ReturnValue = Convert.ToInt32(SQLHelper.ExecuteScalarCmd(cmd));
+            return ReturnValue;
+        }
+
+        public DataTable GetProcessDetailsForFeedbackUserNew(string UserName, string DealNo, string Status)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User_Type");
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Statuts", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Status);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+        public DataTable GetProcessDashbordDealPending(string DealNo, string Process)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_DashbordDealStatus");
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Process);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+        public DataTable GetProcessDetailsForFeedbackUserCompleted_New(string UserName, string DealNo, string Status)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User_Completed_New");
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Statuts", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Status);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+        public DataTable GetProcessDetailsForFeedbackUserCompleted(string UserName, string ToDate, string Code)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User_Completed");
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Todate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Code);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
     }
 }

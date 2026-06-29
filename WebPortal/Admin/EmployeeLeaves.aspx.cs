@@ -16,6 +16,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 using DataTable = System.Data.DataTable;
 using MailMessage = System.Net.Mail.MailMessage;
 
@@ -32,7 +33,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string BindUsers()
         {
-            string NewCode = new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            string NewCode = EmployeeInfo.Current.Code; // new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             DataTable dt1 = new bllMaster().GetAllUserByPM(NewCode);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -53,7 +54,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetUserInformation(string Code)
         {
-            int EmployeeID = new bllMaster().GetEmployeeIdFromCode(Code);
+            int EmployeeID = EmployeeInfo.Current.EmployeeID; //new bllMaster().GetEmployeeIdFromCode(Code);
             DataTable dt1 = new bllLogin().GetUserInformation(EmployeeID);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;

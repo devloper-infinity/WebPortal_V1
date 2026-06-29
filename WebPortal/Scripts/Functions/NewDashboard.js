@@ -820,7 +820,7 @@ function dash_ownBirthday(callback) {
                 }
 
                 $("#lblBirthdayName").text(data.FirstName);/*Name*/
-
+                
                 let modalEl = document.getElementById('birthdayModal');
 
                 //let modal = bootstrap.Modal.getInstance(modalEl)
@@ -874,7 +874,7 @@ function dash_workAnniversary(callback) {
     });
 }
 
-function renderWorkAnniversary(data, callback) {
+function core_renderWorkAnniversary(data, callback) {
 
     // ✅ Safety check
     if (!data || data.length === 0) {
@@ -896,6 +896,9 @@ function renderWorkAnniversary(data, callback) {
         : `<b>💐 WORK ANNIVERSARY 💐</b>`;
 
     $("#workAnn_header").html(headerHtml);
+  
+
+    message_header
 
     // ✅ Cards rendering
     data.forEach(emp => {
@@ -957,6 +960,61 @@ function renderWorkAnniversary(data, callback) {
         $('#dash_anniversaryModal').off('hidden.bs.modal', handler);
         callback();
     });
+}
+
+function renderWorkAnniversary(data, callback) {
+
+    if (!data || data.length === 0) {
+        if (typeof callback === "function") {
+            callback();
+        }
+        return false;
+    }
+
+    var firstEmp = data[0];
+    var jubilee = getJubileeDetails(firstEmp.YearsCompleted);
+
+    var headerHtml = "";
+
+    if (jubilee && jubilee.title) {
+        headerHtml =
+            '<b>💐 WORK ANNIVERSARY - ' +
+            '<span style="color:' + jubilee.color + '; font-weight:bold;">' +
+            jubilee.title + ' 💐' +
+            '</span></b>';
+    }
+    else {
+        headerHtml = '<b>💐 WORK ANNIVERSARY 💐</b>';
+    }
+
+    $("#workAnn_header").html(headerHtml);
+
+    var emp = firstEmp;
+    var jubileeEach = getJubileeDetails(emp.YearsCompleted);
+
+    $("#name_header").html(emp.EmpName || "");
+    $("#designation_header").html(emp.Designation || "");
+    $("#years_header").html((emp.YearsCompleted || "0") + " Years of Excellence");
+
+    $("#message_header").html(
+        (jubileeEach && jubileeEach.message)
+            ? jubileeEach.message
+            : getAnniversaryMessage(emp.YearsCompleted)
+    );
+
+    $("#dash_anniversaryModal").modal("show");
+
+    startConfetti();
+
+    $("#dash_anniversaryModal")
+        .off("hidden.bs.modal.workAnniversary")
+        .on("hidden.bs.modal.workAnniversary", function () {
+            if (typeof callback === "function") {
+                callback();
+            }
+        });
+
+    return false;
 }
 
 function startConfetti() {
@@ -1156,20 +1214,23 @@ function dash_renderBirthdayPopup(data) {
                         <div class="emp-meta">${emp.Code} | ${emp.BranchName} | ${emp.DepartmentName}</div>
                     </div>
                 </div>
-                <button class="btn btn-wish" onclick="return dash_toggleWishBox(${emp.EmployeeID})">🎉 Wish</button>
+                  <button class="btn btn-wish" onclick="return dash_toggleWishBox(${emp.EmployeeID})">🎉 Wish</button>
             </div>
 
             <div id="wishBox_${emp.EmployeeID}" class="wish-box mt-2" style="display:none;">
                 <input type="text" class="form-control mb-2" placeholder="Write your birthday wish..." id="msg_${emp.Code}" />
-                <button class="btn btn-sm btn-success" onclick="return dash_sendWish('${emp.Code}', this)">Send</button>
+                <button class="btn btn-sm btn-success"  onclick="return dash_sendWish('${emp.Code}', this)">Send</button>
             </div>
         </div>`;
     });
-
+   
     $('#dash_birthdayList').html(html);
 }
 
 function dash_toggleWishBox(empId) {
+
+    window.location.href = "Birthday.aspx?EmployeeID=" + empId;
+
     $('.wish-box').hide(); // close others
     $('#wishBox_' + empId).toggle();
     return false;
@@ -1549,7 +1610,7 @@ function dash_PendingTaskNotifications(callback) {
 
 
 //---- By NGK
-/*------------------------ Production Details Popo-Up  ------------------------*/
+/*------------------------ Production Details Pop-Up  ------------------------*/
 
 function dashboardDataTableDom(isCompact) {
     if (isCompact) {

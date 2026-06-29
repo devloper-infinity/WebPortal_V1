@@ -29,7 +29,6 @@ namespace WebPortal.IT
             return ser.Serialize(rows);
         }
 
-
         private static List<Dictionary<string, object>> BuildTicketRows(DataTable dt, int LoginEmp, bool onlyMyQueue)
         {
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
@@ -104,9 +103,6 @@ namespace WebPortal.IT
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
         }
-
-
-
 
         [WebMethod]
         public static int AssignTicketToSelf(int TicketID)

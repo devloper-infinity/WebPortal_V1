@@ -30,10 +30,9 @@ namespace WebPortal.App_Code.Class
             if (dtEmp != null && dtEmp.Rows.Count > 0)
             {
                 EmployeeID = Convert.ToInt64(dtEmp.Rows[0]["EmployeeID"]);
-                EMPID = Convert.ToInt32(dtEmp.Rows[0]["EMPID"]);
                 Code = dtEmp.Rows[0]["Code"].ToString();
-                Name = dtEmp.Rows[0]["Name"].ToString();
-                FullName = dtEmp.Rows[0]["FullName"].ToString();
+                Name = dtEmp.Rows[0]["FirstName"].ToString();
+                FullName = dtEmp.Rows[0]["EmpFullName"].ToString();
                 JoiningDate = dtEmp.Rows[0]["JoiningDate"].ToString();
                 // assign other fields as required
             }

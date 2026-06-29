@@ -594,7 +594,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/TrackingSheet/Allocate.js"></script>
+    <script src="../Scripts/Tracking/Allocate.js"></script>
 
 </asp:Content>
 

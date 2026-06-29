@@ -65,7 +65,7 @@ namespace WebPortal.Admin
             string[] Date = Dates.Split(',');
             foreach (string wdate in Date)
             {
-                returnvalue =  new bllMaster().ApprovedEmpWorkHoliday(Code, Remark, wdate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                returnvalue = 10;// new bllMaster().ApprovedEmpWorkHoliday(Code, Remark, wdate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             }
             return returnvalue;
         }
