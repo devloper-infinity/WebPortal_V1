@@ -58,6 +58,38 @@ namespace WebPortal.US
         }
 
         [WebMethod]
+        public static string SaveInfinityOnshoreRemark(int FeedbackID, string Remark)
+        {
+            try
+            {
+                if (FeedbackID <= 0)
+                {
+                    return "Error: Feedback row is not valid.";
+                }
+
+                Remark = (Remark ?? string.Empty).Trim();
+                if (Remark == string.Empty)
+                {
+                    return "Error: Please enter remark.";
+                }
+
+                int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+                int result = new bllUS().SaveInfinityOnshoreRemark(FeedbackID, Remark, addedBy);
+
+                if (result > 0)
+                {
+                    return "Remark saved successfully.";
+                }
+
+                return "Error: Remark not saved.";
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+        }
+
+        [WebMethod]
         public static string GetUserInfo()
         {
             DataTable dt1 = new bllLogin().GetUserInformation(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
@@ -76,7 +108,5 @@ namespace WebPortal.US
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
         }
-
-
     }
 }

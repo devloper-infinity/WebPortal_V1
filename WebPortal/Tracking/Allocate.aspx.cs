@@ -64,6 +64,7 @@ namespace WebPortal.Tracking
             return ser.Serialize(rows);
         }
 
+        
         [WebMethod]
         public static string GetProcessByProject(int ProjectID)
         {
@@ -84,6 +85,7 @@ namespace WebPortal.Tracking
             return ser.Serialize(rows);
         }
 
+
         [WebMethod]
         public static object GetLoansToAllocate(string ProcessName, string Type)
         {
@@ -96,6 +98,7 @@ namespace WebPortal.Tracking
             return data;
         }
 
+
         [WebMethod]
         public static object GetUserLoans(string UserName)
         {
@@ -105,6 +108,7 @@ namespace WebPortal.Tracking
 
             return data;
         }
+
 
         [WebMethod]
         public static object GetUserOrders(string UserName, string FromDate, string ToDate)

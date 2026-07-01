@@ -54,7 +54,7 @@
 
         .condition-page {
             width: 100%;
-            padding: 0 15px 24px;
+         /*   padding: 0 15px 24px;*/
             background: var(--ca-bg);
             min-height: calc(100vh - 80px);
         }
@@ -681,7 +681,7 @@
                     </div>
 
                     <div class="my-row">
-                        <div class="my-col-6">
+                        <div class="my-col-6" style="display:none;">
                             <div class="form-field">
                                 <label for="usfeedback_fileUploads">Upload File <span class="req">*</span></label>
                                 <div id="usfeedback_dropZone" class="drop-zone" role="button" tabindex="0">

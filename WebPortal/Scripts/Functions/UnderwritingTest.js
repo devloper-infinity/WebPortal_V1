@@ -350,9 +350,9 @@ function cruw_ans_BindGrid() {
                     }
 
                 });
-                creditresult = parseFloat(((parseFloat(creditmark) / parseFloat(15)) * 100))
-                complianceresult = parseFloat(((parseFloat(compliancemark) / parseFloat(10)) * 100))
-                collateralresult = parseFloat(((parseFloat(collateralmark) / parseFloat(5)) * 100))
+                creditresult = parseFloat(((parseFloat(creditmark) / parseFloat(20)) * 100))
+                complianceresult = parseFloat(((parseFloat(compliancemark) / parseFloat(16)) * 100))
+                collateralresult = parseFloat(((parseFloat(collateralmark) / parseFloat(9)) * 100))
 
                 document.getElementById("cruw_ans_credit").innerHTML = blankForNull(creditmark) + ' (' + Math.round(blankForNull(creditresult)) + '%)';
                 document.getElementById("cruw_ans_compliance").innerHTML = blankForNull(compliancemark) + ' (' + Math.round(blankForNull(complianceresult)) + '%)';

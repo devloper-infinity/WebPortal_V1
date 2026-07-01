@@ -1,6 +1,7 @@
-﻿using System;
-using System.Data;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Web;
 using WebPortal.App_Code.BLL;
@@ -79,6 +80,7 @@ namespace WebPortal.App_Code.Class
         public string IncYear { get; set; }
         public string IsPolicy { get; set; }
         public string JobType { get; set; }
+        public string PseudoName { get; set; }
 
         public static EmployeeInfo Current
         {
@@ -178,7 +180,8 @@ namespace WebPortal.App_Code.Class
                     IncMonth = GetValue(row, "IncMonth"),
                     IncYear = GetValue(row, "IncYear"),
                     IsPolicy = GetValue(row, "IsPolicy"),
-                    JobType = GetValue(row, "JobType")
+                    JobType = GetValue(row, "JobType"),
+                    PseudoName = GetValue(row, "PsuedoName")
                 };
             }
         }

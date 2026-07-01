@@ -1,5 +1,100 @@
 ﻿var InfinityFeedbackOnshore_html;
 var InfinityFeedbackOnshore_table;
+var InfinityFeedbackOnshore_selectedRow = null;
+
+
+function encodeInfinityOnshoreHtml(value) {
+    return $('<div/>').text(blankForNull(value)).html();
+}
+
+function renderInfinityOnshoreActionLink(row) {
+    var feedbackId = parseInt(row.FeedbackID || row.FeedbackId || row.ID || 0, 10) || 0;
+
+    if (!feedbackId) {
+        return '';
+    }
+
+    return '<a href="#" class="feedback-action-link" title="Add remark" onclick="return showInfinityOnshoreRemarkPopup(' + feedbackId + ');"><i class="fas fa-comment-dots"></i></a>';
+}
+function showInfinityOnshoreRemarkPopup(feedbackId) {
+    var table = $('#table_InfinityFeedbackOnShore').DataTable();
+    var matchedRow = null;
+
+    table.rows().every(function () {
+        var row = this.data();
+        var rowFeedbackId = parseInt(row.FeedbackID || row.FeedbackId || row.ID || 0, 10) || 0;
+        if (rowFeedbackId === parseInt(feedbackId, 10)) {
+            matchedRow = row;
+            return false;
+        }
+    });
+
+    if (!matchedRow) {
+        alert('Feedback details are not available for this row.');
+        return false;
+    }
+
+    InfinityFeedbackOnshore_selectedRow = matchedRow;
+    $('#hdnInfinityOnshoreFeedbackId').val(feedbackId);
+    $('#spnInfinityOnshoreLoanNumber').text(blankForNull(matchedRow.LoanNumber) || '-');
+    $('#spnInfinityOnshoreClient').text(blankForNull(matchedRow.Client) || '-');
+    $('#spnInfinityOnshoreRCA').text(blankForNull(matchedRow.RCA) || '-');
+    $('#spnInfinityOnshoreComments').text(blankForNull(matchedRow.Comments) || '-');
+    $('#txtInfinityOnshoreRemark').val(blankForNull(matchedRow.OnshoreRemark || matchedRow.Remark || ''));
+    $('#popUp_InfinityOnshoreRemark').modal('show');
+
+    return false;
+}
+
+function saveInfinityOnshoreRemark() {
+    var feedbackId = parseInt($('#hdnInfinityOnshoreFeedbackId').val(), 10) || 0;
+    var remark = $.trim($('#txtInfinityOnshoreRemark').val());
+
+    if (!feedbackId) {
+        alert('Please select feedback row.');
+        return false;
+    }
+
+    if (remark === '') {
+        alert('Please enter remark.');
+        $('#txtInfinityOnshoreRemark').focus();
+        return false;
+    }
+
+    $('#btnSaveInfinityOnshoreRemark').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Saving...');
+
+    $.ajax({
+        url: 'InfinityFeedbackOnshore.aspx/SaveInfinityOnshoreRemark',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ FeedbackID: feedbackId, Remark: remark }),
+        success: function (response) {
+            var message = response.d || '';
+
+            if (message.indexOf('Error') === 0) {
+                alert(message);
+                return;
+            }
+
+            if (InfinityFeedbackOnshore_selectedRow) {
+                InfinityFeedbackOnshore_selectedRow.OnshoreRemark = remark;
+                InfinityFeedbackOnshore_selectedRow.Remark = remark;
+            }
+
+            $('#popUp_InfinityOnshoreRemark').modal('hide');
+            alert(message || 'Remark saved successfully.');
+        },
+        error: function (error) {
+            alert('Error: ' + error.responseText);
+        },
+        complete: function () {
+            $('#btnSaveInfinityOnshoreRemark').prop('disabled', false).html('<i class="fas fa-save mr-1"></i>Save Remark');
+        }
+    });
+
+    return false;
+}
 
 function core_btnEditFeedbackShowReportOnShore() {
 
@@ -43,6 +138,7 @@ function core_BindInfinityFeedbackGridOnshore(FromDate, ToDate) {
                 InfinityFeedbackOnshore_html += '<tr>';
                 //InfinityFeedbackOnshore_html += '<td style="text-align:center;"><a class="dropdown-item" target="_blank" href="EditInfinityFeedback.aspx?FID=' + value.FeedbackID + '&s=' + subdomain.substring(0, 1) + '" title="Edit Feedback"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-pen" style="font-size:16px;"></i></span></a></td>';
                 //InfinityFeedbackOnshore_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.FeedbackID) + '</td>';
+                InfinityFeedbackOnshore_html += '<td style="text-align:center; text-wrap: nowrap;">' + renderInfinityOnshoreActionLink(value) + '</td>';
                 InfinityFeedbackOnshore_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LoanNumber) + '</td>';
                 InfinityFeedbackOnshore_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Client) + '</td>';
                 InfinityFeedbackOnshore_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.UWName) + '</td>';
@@ -101,7 +197,6 @@ function core_BindInfinityFeedbackGridOnshore(FromDate, ToDate) {
     return false;
 }
 
-
 function showdata1() {
 
     var fromDate = $('#infFeedback_FromDateOnShore').val();
@@ -116,8 +211,6 @@ function showdata1() {
         alert("Please enter To Date.");
         return;
     }
-
-
 
     bind_onshoredata(fromDate, toDate);
     return false;
@@ -161,7 +254,28 @@ function bind_onshoredata(date1, date2) {
                             return meta.row + 1;
                         }
                     },
-                    { data: 'LoanNumber', title: 'Loan Number' },
+                    {
+                        data: null,
+                        title: 'Action',
+                        className: 'text-center',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            if (type !== 'display') {
+                                return '';
+                            }
+                            return renderInfinityOnshoreActionLink(row);
+                        }
+                    },
+                    {
+                        data: 'LoanNumber',
+                        title: 'Loan Number',
+                        render: function (data, type) {
+                            if (type !== 'display') {
+                                return blankForNull(data);
+                            }
+                            return encodeInfinityOnshoreHtml(data);
+                        }
+                    },
                     { data: 'Client', title: 'Client' },
                     { data: 'UWName', title: 'UW Name' },
                     { data: 'QCName', title: 'QC Name' },
@@ -178,7 +292,9 @@ function bind_onshoredata(date1, date2) {
                     { data: 'RCA', title: 'RCA' },
                     { data: 'Comments', title: 'Comments' },
                     { data: 'Source', title: 'Source' },
-                    { data: 'FeedbackReceivedDate', title: 'Feedback Received Date' }
+                    { data: 'FeedbackReceivedDate', title: 'Feedback Received Date' },
+                    { data: 'RebuttalRemark', title: 'RebuttalRemark' },
+                    { data: 'RebuttalAddedDate', title: 'Rebuttal AddedDate' }
                 ],
 
                 buttons: [
