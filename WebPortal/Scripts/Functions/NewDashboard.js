@@ -1228,7 +1228,7 @@ function dash_renderBirthdayPopup(data) {
 }
 
 function dash_toggleWishBox(empId) {
-    alert(empId);
+  
     window.location.href = "Birthday.aspx?EmployeeID=" + empId;
 
     // $('.wish-box').hide(); // close others

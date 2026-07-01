@@ -101,9 +101,12 @@ namespace WebPortal.Tracking
 
                     if (string.IsNullOrWhiteSpace(error))
                     {
-                        int pseudoValue = new bllTracking().GetEmployeePseudonameNew(Clean(row["Pseudo Name"]));
-                        if (pseudoValue <= 0)
-                            error = "PseudoNym not configured in ERP, or does not match with ERP database.";
+                        if (EmployeeInfo.Current.PseudoName != Clean(row["Pseudo Name"]))
+                            error = "Pseudo Name not configured in ERP, or does not match with ERP database.";
+
+                        //int pseudoValue = new bllTracking().GetEmployeePseudonameNew(Clean(row["Pseudo Name"]));
+                        //if (pseudoValue <= 0)
+                        //    error = "Pseudo Name not configured in ERP, or does not match with ERP database.";
                     }
 
                     if (!string.IsNullOrWhiteSpace(error))

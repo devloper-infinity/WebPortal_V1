@@ -154,9 +154,6 @@
     <Content Include="CRM\Deals.aspx" />
     <Content Include="CRM\Leads.aspx" />
     <Content Include="CRM\Reports.aspx" />
-    <Content Include="DatabaseScripts\CRM_MenuMasterSeed.sql" />
-    <Content Include="DatabaseScripts\CRM_Module.sql" />
-    <Content Include="DatabaseScripts\USLoanProductionTrack.sql" />
     <Content Include="Admin\AbscondingAndLeaveReport.aspx" />
     <Content Include="Admin\AbscondingEmployeeFollowup.aspx" />
     <Content Include="Admin\AddApplicantRemark.aspx" />
@@ -5089,6 +5086,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DatabaseScripts\" />
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />

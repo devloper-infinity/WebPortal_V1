@@ -94,15 +94,15 @@
         }
 
         .condition-title-icon {
-            width: 46px;
-            height: 46px;
+            width: 56px;
+            height: 56px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border-radius: 16px;
             background: rgba(255, 255, 255, .18);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .20);
-            font-size: 20px;
+            font-size: 30px;
         }
 
         .condition-title {
@@ -357,6 +357,122 @@
         .swal2-container {
             z-index: 200000 !important;
         }
+        .feedback-action-link {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ca-primary);
+            border: 1px solid rgba(37, 99, 235, .18);
+            border-radius: 999px;
+            background: var(--ca-primary-soft);
+            text-decoration: none;
+        }
+
+            .feedback-action-link:hover, .feedback-action-link:focus {
+                color: #fff;
+                background: var(--ca-primary);
+                text-decoration: none;
+            }
+        .feedback-loan-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--ca-primary);
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+            .feedback-loan-link:hover, .feedback-loan-link:focus {
+                color: var(--ca-primary-dark);
+                text-decoration: underline;
+            }
+
+        .feedback-remark-modal .modal-content {
+            border: 0;
+            border-radius: var(--ca-radius-lg);
+            box-shadow: var(--ca-shadow);
+            overflow: hidden;
+        }
+
+        .feedback-remark-modal .modal-header {
+            align-items: center;
+            color: #fff;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border-bottom: 0;
+            padding: 18px 20px;
+        }
+
+        .feedback-remark-modal .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .feedback-remark-modal .close {
+            color: #fff;
+            opacity: .9;
+            text-shadow: none;
+        }
+
+        .feedback-remark-context {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .feedback-remark-context-item {
+            padding: 10px 12px;
+            border: 1px solid var(--ca-border);
+            border-radius: var(--ca-radius-md);
+            background: #f8fafc;
+        }
+
+        .feedback-remark-context-item span {
+            display: block;
+            color: var(--ca-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .feedback-remark-context-item strong {
+            display: block;
+            margin-top: 3px;
+            color: var(--ca-text);
+            font-size: 13px;
+            word-break: break-word;
+        }
+
+        .feedback-remark-context-item.wide {
+            grid-column: 1 / -1;
+        }
+
+        .feedback-remark-context-item .feedback-detail-text {
+            max-height: 92px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        #txtInfinityOnshoreRemark {
+            min-height: 130px;
+        }
+
+        .feedback-remark-modal .modal-footer {
+            border-top: 1px solid var(--ca-border);
+            background: #f8fafc;
+        }
+
+        @media (max-width: 576px) {
+            .feedback-remark-context {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .custom-dropdown {
             position: relative;
@@ -442,7 +558,7 @@
 
         $(document).ready(function () {
 
-            // bind_onshoredata("01-Apr-2026", "01-Apr-2026");
+             bind_onshoredata("01-Apr-2026", "01-Jul-2026");
 
         });
     </script>
@@ -510,6 +626,47 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade feedback-remark-modal" id="popUp_InfinityOnshoreRemark" tabindex="-1" role="dialog" aria-labelledby="infinityOnshoreRemarkTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="infinityOnshoreRemarkTitle"><i class="fas fa-comment-medical"></i>Add Remark</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="hdnInfinityOnshoreFeedbackId" />
+                    <div class="feedback-remark-context">
+                        <div class="feedback-remark-context-item">
+                            <span>Loan Number</span>
+                            <strong id="spnInfinityOnshoreLoanNumber">-</strong>
+                        </div>
+                        <div class="feedback-remark-context-item">
+                            <span>Client</span>
+                            <strong id="spnInfinityOnshoreClient">-</strong>
+                        </div>
+                        <div class="feedback-remark-context-item wide">
+                            <span>RCA</span>
+                            <strong id="spnInfinityOnshoreRCA" class="feedback-detail-text">-</strong>
+                        </div>
+                        <div class="feedback-remark-context-item wide">
+                            <span>Comments</span>
+                            <strong id="spnInfinityOnshoreComments" class="feedback-detail-text">-</strong>
+                        </div>
+                    </div>
+                    <label for="txtInfinityOnshoreRemark">Remark <span class="req">*</span></label>
+                    <textarea id="txtInfinityOnshoreRemark" class="my-textarea" maxlength="4000" placeholder="Enter remark"></textarea>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveInfinityOnshoreRemark" onclick="return saveInfinityOnshoreRemark();">
+                        <i class="fas fa-save mr-1"></i>Save Remark
+                    </button>
                 </div>
             </div>
         </div>

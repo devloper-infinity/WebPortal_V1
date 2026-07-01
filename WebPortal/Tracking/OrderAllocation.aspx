@@ -6,13 +6,13 @@
     <script src="../Scripts/Tracking/OrderAllocation.js?v=1.0"></script>
     <style>
         .content .container { max-width: 1500px; }
-        .tracking-page { color: #1f2937; padding: 18px 0 30px; }
+        .tracking-page { color: #1f2937;  }
         .tracking-hero {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 18px;
-            padding: 20px 22px;
+           /* padding: 20px 22px;*/
             border: 1px solid #dbe7f4;
             border-left: 5px solid #2563eb;
             border-radius: 8px;

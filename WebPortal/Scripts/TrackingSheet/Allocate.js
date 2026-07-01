@@ -230,7 +230,7 @@ function AllocateOrders() {
                 Project: rowData.ProjectName,   // change to ProjectNumber if your data has it
                 DealNo: rowData.DealNo,
                 OrderNo: rowData.LoanNo,
-                Process: rowData.Process
+                Process: "Loan Setup"/*  rowData.Process */
             });
         }
     });

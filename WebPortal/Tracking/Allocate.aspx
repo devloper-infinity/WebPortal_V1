@@ -6,41 +6,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <style>
-        /*   .sec-hero {
-            align-items: center;
-            background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%);
-            border-radius: 8px;
-            box-shadow: 0 14px 28px rgba(28, 58, 85, 0.16);
-            color: #fff;
-            display: flex;
-            gap: 20px;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            padding: 22px 24px;
-        }
-
-        .sec-kicker {
-            color: rgba(255,255,255,0.82);
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .sec-title {
-            font-size: 24px;
-            font-weight: 700;
-            line-height: 1.2;
-            margin: 0;
-        }
-
-        .sec-subtitle {
-            color: rgba(255,255,255,0.88);
-            font-size: 13px;
-            margin: 8px 0 0;
-            max-width: 760px;
-        }*/
-
         .sec-hero {
             position: relative;
             overflow: hidden;
