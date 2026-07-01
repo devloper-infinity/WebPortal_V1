@@ -233,6 +233,131 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
+        public int SaveUSLoanProductionTrack(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
+DECLARE @StartValue DATETIME;
+
+IF ISDATE(@StartDatetime) = 1
+BEGIN
+    SET @StartValue = CONVERT(DATETIME, @StartDatetime);
+END
+ELSE
+BEGIN
+    SET @StartValue = NULL;
+END
+
+DECLARE @EndValue DATETIME;
+
+IF ISDATE(@EndDatetime) = 1
+BEGIN
+    SET @EndValue = CONVERT(DATETIME, @EndDatetime);
+END
+ELSE
+BEGIN
+    SET @EndValue = NULL;
+END
+
+DECLARE @TrackID BIGINT;
+
+IF UPPER(@Action) = 'START'
+BEGIN
+    SELECT TOP 1 @TrackID = ProductionTrackID
+    FROM dbo.USLoanProductionTrack
+    WHERE ProcessID = @ProcessID
+        AND EmployeeID = @EmployeeID
+        AND EndDatetime IS NULL
+    ORDER BY ProductionTrackID DESC;
+
+    IF @TrackID IS NULL
+    BEGIN
+        INSERT INTO dbo.USLoanProductionTrack
+        (
+            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review,
+            StartDatetime, EndDatetime, EmployeeID, AddedBy, AddedDate, [Status]
+        )
+        VALUES
+        (
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review,
+            @StartValue, NULL, @EmployeeID, @AddedBy, GETDATE(), 'Started'
+        );
+    END
+    ELSE
+    BEGIN
+        UPDATE dbo.USLoanProductionTrack
+        SET ProjectNumber = @ProjectNumber,
+            DealNo = @DealNo,
+            LoanNo = @LoanNo,
+            OrderDate = @OrderDate,
+            [Process] = @Process,
+            Review = @Review,
+            StartDatetime = @StartValue,
+            [Status] = 'Started',
+            ModifiedBy = @AddedBy,
+            ModifiedDate = GETDATE()
+        WHERE ProductionTrackID = @TrackID;
+    END
+END
+ELSE
+BEGIN
+    SELECT TOP 1 @TrackID = ProductionTrackID
+    FROM dbo.USLoanProductionTrack
+    WHERE ProcessID = @ProcessID
+        AND EmployeeID = @EmployeeID
+        AND EndDatetime IS NULL
+    ORDER BY StartDatetime DESC, ProductionTrackID DESC;
+
+    IF @TrackID IS NULL
+    BEGIN
+        INSERT INTO dbo.USLoanProductionTrack
+        (
+            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review,
+            StartDatetime, EndDatetime, EmployeeID, AddedBy, AddedDate, [Status]
+        )
+        VALUES
+        (
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review,
+            @StartValue, @EndValue, @EmployeeID, @AddedBy, GETDATE(), 'Completed'
+        );
+    END
+    ELSE
+    BEGIN
+        UPDATE dbo.USLoanProductionTrack
+        SET ProjectNumber = @ProjectNumber,
+            DealNo = @DealNo,
+            LoanNo = @LoanNo,
+            OrderDate = @OrderDate,
+            [Process] = @Process,
+            Review = @Review,
+            EndDatetime = @EndValue,
+            [Status] = 'Completed',
+            ModifiedBy = @AddedBy,
+            ModifiedDate = GETDATE()
+        WHERE ProductionTrackID = @TrackID;
+    END
+END
+
+SELECT 1;");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@Action", System.Data.SqlDbType.NVarChar, 20, System.Data.ParameterDirection.Input, htParam["Action"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ProjectNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["OrderDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 250, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 250, System.Data.ParameterDirection.Input, htParam["Review"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@StartDatetime", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["StartDatetime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EndDatetime", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["EndDatetime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["EmployeeID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+
+            object result = SQLHelper.ExecuteScalarCmd(cmd);
+            cmd.Dispose();
+
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
         public int InsertOnShoreUSFeedbacks(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertOnShoreUSFeedbaks");

@@ -25,10 +25,9 @@ function BindUSLoanDetails_Grid() {
             $.each(dataArray, function (index, value) {
 
                 USLoanDetails_html += '<tr>';
-                USLoanDetails_html += '<td style="text-align:center; display:none;"><a title="Complete Loan" class="dropdown-item" href="#!" id="Actions" onclick="complete_Loan(' + value.ProcessID + ',' + index + ');"><span style="color: green;"><i class="uil uil-stop-circle" style="font-size:16px;"></i></span></a></td>';
-                USLoanDetails_html += '<td style="text-wrap: nowrap;"><input type="datetime-local" id="us_add_date_start_' + blankForNull(value.ProcessID) + '" class="start-dt form-control" style="width:190px;" /> </td>';
-                // USLoanDetails_html += '<td style="text-wrap: nowrap;"><input type="datetime-local" id="us_add_date_end_' + blankForNull(value.ProcessID) + '" class="end-dt form-control" style="width:190px;" /> </td>';
-                USLoanDetails_html += '<td style="text-wrap: nowrap;">' + '<input type="datetime-local" ' + 'id="us_add_date_end_' + blankForNull(value.ProcessID) + '" ' + 'class="end-dt form-control" ' + 'style="width:190px;" disabled/>' + '</td>';
+                USLoanDetails_html += '<td style="text-align:center; display:none;"></td>';
+                USLoanDetails_html += '<td style="text-wrap: nowrap; text-align:center;"><button type="button" class="my-btn success btn-start-loan" id="us_start_loan_' + blankForNull(value.ProcessID) + '" onclick="return start_Loan(this,\'' + blankForNull(value.ProcessID) + '\');">Start</button></td>';
+                USLoanDetails_html += '<td style="text-wrap: nowrap; display:none;"></td>';
                 USLoanDetails_html += '<td style="text-wrap: nowrap; display:none;" class="processid">' + blankForNull(value.ProcessID1) + '</td>';
                 USLoanDetails_html += '<td style="text-wrap: nowrap;" class="client">' + blankForNull(value.ProjectNo) + '</td>';
                 USLoanDetails_html += '<td style="text-wrap: nowrap;" class="deal">' + blankForNull(value.DealNo) + '</td>';
@@ -74,80 +73,57 @@ function BindUSLoanDetails_Grid() {
     return false;
 }
 
-$(document).on('change input', '#table_USLoanDetails .start-dt', function () {
-    var $row = $(this).closest('tr');
-    var $endDate = $row.find('.end-dt');
+function start_Loan(button, ProcessID) {
+    var $button = $(button);
+    var $row = $button.closest('tr');
 
-    if ($(this).val() !== '') {
-        $endDate.prop('disabled', false);
-        $endDate.attr('min', $(this).val());
-    } else {
-        $endDate.val('');
-        $endDate.prop('disabled', true);
-        $endDate.removeAttr('min');
-    }
-});
-
-$(document).on('change', '.end-dt', function () {
-
-    var processId = $(this).attr('id').replace('us_add_date_end_', '');
-    var index = USLoanDetails_table.row($(this).closest('tr')).index();
-
-    complete_Loan(processId, index);
-});
-
-function complete_Loan(ProcessID, index) {
-
-    var rowNode = USLoanDetails_table.row(index).node();
-    var $row = $(rowNode);
-
-    var startTime = $row.find('.start-dt').val();
-    var endTime = $row.find('.end-dt').val();
-
-    if (!startTime) {
-        Swal.fire('Warning', 'Please select Start Date/Time.', 'warning');
+    if (!ProcessID) {
+        Swal.fire('Warning', 'Loan details are not available for this row.', 'warning');
         return false;
     }
 
-    if (!endTime) {
-        Swal.fire('Warning', 'Please select End Date/Time.', 'warning');
+    if ($button.data('saving')) {
         return false;
     }
 
     ProcessFeedbackID = ProcessID;
+    $button.data('saving', true).prop('disabled', true);
 
-    PageMethods.InsertModifyUWOrderOC22Servicing(
-        $row.find('.client').text().trim(),   // ProjectNumber
-        $row.find('.deal').text().trim(),     // DealNo
-        $row.find('.loan').text().trim(),     // OrderNumber
-        $row.find('.process').text().trim(),  // Process
-        $row.find('.uwname').text().trim(),   // Review
-        startTime,                            // StartTime
-        endTime,                              // EndTime
+    Swal.fire({
+        title: 'Starting loan...',
+        text: 'Please wait while the start time is saved.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.StartLoan(
+        parseInt(ProcessID, 10) || 0,
+        $row.find('.client').text().trim(),
+        $row.find('.deal').text().trim(),
+        $row.find('.loan').text().trim(),
+        $row.find('.recdate').text().trim(),
+        $row.find('.process').text().trim(),
+        $row.find('.uwname').text().trim(),
 
         function (result) {
-
             if (result > 0) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Loan completed successfully. You will now be redirected to the Feedback page.',
-                    icon: 'success',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    confirmButtonText: 'Continue'
-                }).then(() => {
-                    window.location.href = "AddFeedback.aspx?ProcessID=" + ProcessFeedbackID;
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Oops! Error occurred while completing the loan.'
-                });
+                window.location.href = "AddFeedback.aspx?ProcessID=" + ProcessFeedbackID;
+                return false;
             }
+
+            $button.data('saving', false).prop('disabled', false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Oops! Error occurred while starting the loan.'
+            });
         },
 
         function (error) {
+            $button.data('saving', false).prop('disabled', false);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -159,6 +135,13 @@ function complete_Loan(ProcessID, index) {
     return false;
 }
 
+function complete_Loan(ProcessID, index) {
+    var rowNode = USLoanDetails_table.row(index).node();
+    var button = $(rowNode).find('.btn-start-loan').get(0);
+
+    return start_Loan(button, ProcessID);
+}
+
 
 /*--------------- Add Feedback Functions--------------- */
 
@@ -168,6 +151,8 @@ var usfeedback_table;
 var ProcessFeedbackID = 0;
 
 function BindInfinityFeedback_US(ProcessID) {
+
+    ProcessFeedbackID = parseInt(ProcessID, 10) || 0;
 
     $.ajax({
         url: "AddFeedback.aspx/GetLoanDetails_RemoteUW_ByID",
@@ -294,6 +279,84 @@ function OnClickAddFeedback() {
             });
         }
     );
+
+    return false;
+}
+
+function OnClickCompleteLoan() {
+
+    if (!ProcessFeedbackID) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation',
+            text: 'Loan details are not available.'
+        });
+        return false;
+    }
+
+    Swal.fire({
+        title: 'Complete Loan?',
+        text: 'End Date/Time will be saved as current datetime.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Complete Loan',
+        cancelButtonText: 'Cancel',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        reverseButtons: true
+    }).then(function (result) {
+        if (!result.isConfirmed) {
+            return false;
+        }
+
+        Swal.fire({
+            title: 'Completing loan...',
+            text: 'Please wait while the end time is saved.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: function () {
+                Swal.showLoading();
+            }
+        });
+
+        PageMethods.CompleteLoan(
+            ProcessFeedbackID,
+
+            function (result) {
+                if (result > 0) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Completed',
+                        text: 'Loan completed successfully.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        confirmButtonText: 'OK'
+                    }).then(function () {
+                        window.location.href = 'LoanDetails.aspx';
+                    });
+                    return false;
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Oops! Error occurred while completing the loan. Please contact administrator.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+            },
+
+            function (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.get_message ? error.get_message() : error.responseText,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+            }
+        );
+    });
 
     return false;
 }
@@ -787,9 +850,9 @@ function usfeedback_submit() {
 function clearusfeedbackForm() {
 
     // Textboxes
-    $('#usfeedback_projectno').val('');
-    $('#usfeedback_dealno').val('');
-    $('#usfeedback_loanno').val('');
+    // $('#usfeedback_projectno').val('');
+    // $('#usfeedback_dealno').val('');
+    // $('#usfeedback_loanno').val('');
     $('#usfeedback_reviewer').val('');
     $('#usfeedback_reviewdate').val('');
     $('#usfeedback_noofbwr').val('');

@@ -115,5 +115,122 @@ namespace WebPortal.US
 
             return ReturnValue;
         }
+
+        [WebMethod]
+        public static int CompleteLoan(int ProcessID)
+        {
+            DataTable dt = new bllUS().GetLoanDetails_RemoteUW_ByID(ProcessID);
+
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                return 0;
+            }
+
+            DataRow row = dt.Rows[0];
+            DateTime endDateTime = DateTime.Now;
+
+            string ProjectNumber = GetRowValue(row, "ProjectNo", "ProjectNumber", "Client");
+            string DealNo = GetRowValue(row, "DealNo");
+            string LoanNo = GetRowValue(row, "LoanNo", "OrderNumber");
+            string Process = GetRowValue(row, "Process");
+            string Review = GetRowValue(row, "RemoteUW", "Review", "UWName");
+            string StartDatetime = NormalizeDateTime(GetRowValue(row, "ReviewStartTime", "StartTime", "StartDateTime", "StartDate", "HStartDate"));
+            string OrderDate = GetRowValue(row, "OrderDate");
+
+            int ReturnValue = SaveLoanTiming(
+                ProjectNumber,
+                DealNo,
+                LoanNo,
+                Process,
+                Review,
+                StartDatetime,
+                endDateTime.ToString("MM/dd/yyyy HH:mm:ss")
+            );
+
+            if (ReturnValue > 0)
+            {
+                SaveLoanProductionTrack(
+                    "Complete",
+                    ProcessID,
+                    ProjectNumber,
+                    DealNo,
+                    LoanNo,
+                    OrderDate,
+                    Process,
+                    Review,
+                    StartDatetime,
+                    endDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                );
+            }
+
+            return ReturnValue;
+        }
+
+        private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime)
+        {
+            int ReturnValue = 0;
+
+            Hashtable htParam = new Hashtable();
+            htParam.Add("ProjectNumber", ProjectNumber);
+            htParam.Add("DealNo", DealNo);
+            htParam.Add("OrderNumber", OrderNumber);
+            htParam.Add("Process", Process);
+            htParam.Add("Review", Review);
+            htParam.Add("ReviewStartTime", StartTime);
+            htParam.Add("ReviewEndTime", EndTime);
+            htParam.Add("Type", "Default");
+            htParam.Add("ProductType", "Complete");
+            htParam.Add("Status", "Completed");
+            htParam.Add("Remark", "online");
+            htParam.Add("AddedBY", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            ReturnValue = new bllUS().InsertModifyUWOrderOC22Servicing(htParam);
+
+            return ReturnValue;
+        }
+
+        private static void SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
+        {
+            try
+            {
+                int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+                Hashtable htParam = new Hashtable();
+                htParam.Add("Action", Action);
+                htParam.Add("ProcessID", ProcessID);
+                htParam.Add("ProjectNumber", ProjectNumber);
+                htParam.Add("DealNo", DealNo);
+                htParam.Add("LoanNo", LoanNo);
+                htParam.Add("OrderDate", OrderDate);
+                htParam.Add("Process", Process);
+                htParam.Add("Review", Review);
+                htParam.Add("StartDatetime", StartDatetime);
+                htParam.Add("EndDatetime", EndDatetime);
+                htParam.Add("EmployeeID", currentEmployeeId);
+                htParam.Add("AddedBy", currentEmployeeId);
+
+                new bllUS().SaveUSLoanProductionTrack(htParam);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string GetRowValue(DataRow row, params string[] columnNames)
+        {
+            foreach (string columnName in columnNames)
+            {
+                if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+                {
+                    return Convert.ToString(row[columnName]);
+                }
+            }
+
+            return "";
+        }
+
+        private static string NormalizeDateTime(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "" : value.Replace("T", " ");
+        }
     }
 }

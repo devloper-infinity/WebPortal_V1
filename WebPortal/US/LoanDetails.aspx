@@ -530,7 +530,7 @@
                 <div class="condition-card-header">
                     <div>
                         <h2 class="condition-card-title">Analysis Queue</h2>
-                        <p class="condition-card-hint">Use the table actions to open and complete analysis.</p>
+                        <p class="condition-card-hint">Use the table action to start loan feedback.</p>
                     </div>
                 </div>
                 <div class="condition-card-body">
@@ -538,8 +538,8 @@
                         <thead>
                             <tr>
                                 <th class="loan-hidden" style="display: none;">Actions</th>
-                                <th style="width: 190px; text-align: center;">Start Date/Time</th>
-                                <th style="width: 190px; text-align: center;">End Date/Time</th>
+                                <th style="width: 130px; text-align: center;">Action</th>
+                                <th class="loan-hidden" style="display: none;">End Date/Time</th>
                                 <th class="loan-hidden" style="display: none;">ProcessID</th>
                                 <th>Client</th>
                                 <th>Deal #</th>
