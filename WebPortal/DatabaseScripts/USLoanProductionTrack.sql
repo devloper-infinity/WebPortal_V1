@@ -29,3 +29,18 @@ BEGIN
         ON dbo.USLoanProductionTrack (EmployeeID, AddedDate);
 END
 GO
+
+IF OBJECT_ID('dbo.USLoanProductionTrack', 'U') IS NOT NULL
+    AND NOT EXISTS
+    (
+        SELECT 1
+        FROM sys.indexes
+        WHERE name = 'IX_USLoanProductionTrack_Loan_Employee'
+            AND object_id = OBJECT_ID('dbo.USLoanProductionTrack')
+    )
+BEGIN
+    CREATE INDEX IX_USLoanProductionTrack_Loan_Employee
+        ON dbo.USLoanProductionTrack (EmployeeID, DealNo, LoanNo, EndDatetime)
+        INCLUDE (ProcessID, StartDatetime);
+END
+GO

@@ -1,19 +1,228 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="dashboard.aspx.cs" Inherits="WebPortal.US.Dashboard" %>
-
-<%--<%@ Page Title="" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="DashboardEmployee.aspx.cs" Inherits="WebPortal.Admin.DashboardEmployee" %>--%>
+<%@ Page Title="US Dashboard" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="Dashboard.aspx.cs" Inherits="WebPortal.US.Dashboard" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-        #dashboard_alert_table_wrapper .dataTables_scroll {
-            height: 225px !important;
+        .dash-page {
+            color: #172033;
+            padding-bottom: 24px;
         }
 
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
+        .dash-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 22px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            color: #fff;
+            background: linear-gradient(135deg, #0f766e 0%, #2563eb 55%, #334155 100%);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, .16);
         }
-    </style>
-    <style>
+
+        .dash-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .dash-title-icon {
+            width: 46px;
+            height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .16);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+            flex: 0 0 auto;
+            font-size: 20px;
+        }
+
+        .dash-title {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.15;
+            font-weight: 800;
+        }
+
+        .dash-subtitle {
+            margin: 5px 0 0;
+            color: rgba(255, 255, 255, .86);
+            font-size: 13px;
+        }
+
+        .dash-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .dash-chip,
+        .dash-refresh {
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .dash-chip {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, .14);
+            border: 1px solid rgba(255, 255, 255, .18);
+        }
+
+        .dash-refresh {
+            border: 0;
+            color: #0f172a;
+            background: #fff;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .15);
+        }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .dash-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-height: 116px;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #172033;
+            text-decoration: none;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .07);
+        }
+
+        .dash-card:hover {
+            color: #172033;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, .11);
+        }
+
+        .dash-card-icon {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            flex: 0 0 auto;
+            color: #fff;
+            background: #2563eb;
+        }
+
+        .dash-card.teal .dash-card-icon {
+            background: #0f766e;
+        }
+
+        .dash-card.slate .dash-card-icon {
+            background: #475569;
+        }
+
+        .dash-card-label {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .dash-card-value {
+            margin: 5px 0 3px;
+            font-size: 26px;
+            line-height: 1.05;
+            font-weight: 850;
+            color: #0f172a;
+        }
+
+        .dash-card-note {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .dash-panel {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .07);
+            overflow: hidden;
+        }
+
+        .dash-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .dash-panel-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 850;
+            color: #0f172a;
+        }
+
+        .dash-panel-link {
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .dash-table {
+            margin-bottom: 0 !important;
+            font-size: 12px;
+        }
+
+        .dash-table th {
+            white-space: nowrap;
+            color: #334155;
+            background: #f8fafc;
+        }
+
+        .dash-table td {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .dash-empty {
+            padding: 18px;
+            color: #64748b;
+            font-size: 13px;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .dash-continue {
+            border: 0;
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: #fff;
+            background: #2563eb;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
         .loading {
             display: none;
             position: fixed;
@@ -21,7 +230,6 @@
             left: 50%;
             margin-top: -96px;
             margin-left: -96px;
-            /*  background-color: #ccc;*/
             opacity: .85;
             border-radius: 25px;
             width: 192px;
@@ -29,651 +237,201 @@
             z-index: 99999;
         }
 
-        .dataTables_length, .dataTables_info {
-            float: left !important;
-        }
+        @media (max-width: 900px) {
+            .dash-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
 
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
+            .dash-actions {
+                justify-content: flex-start;
+            }
 
-        div.dt-buttons {
-            position: static;
-            float: left;
+            .dash-grid {
+                grid-template-columns: 1fr;
+            }
         }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none !important;
-            background-color: #fff !important;
-        }
-
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
     </style>
+
     <script>
+        var dashboardQueueRows = [];
+
         $(document).ready(function () {
-            Dashboard_BindFormInformation();
-            Dashboard_GetDashboardAlerts();
-            var currentUserName = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
+            $("#dash-refresh").on("click", function () {
+                return dashboard_loadQueue();
+            });
 
-            if (currentUserName == 12 || currentUserName == 7036 || currentUserName == 8082 || currentUserName == 8938) {
-                document.getElementById("onlymgmt").style.display = '';
-                Dashboard_GetManpowerSumary('All');
-            }
-            else {
-                document.getElementById("onlymgmt").style.display = 'none';
-            }
-            getPendingTaskNotifications();
+            $("#dash-queue-body").on("click", ".dash-continue", function () {
+                var index = parseInt($(this).data("index"), 10);
+                return dashboard_continue(index);
+            });
 
+            dashboard_loadQueue();
         });
+
+        function dashboard_loadQueue() {
+            $("#load1").show();
+            PageMethods.GetMyQueueDashboard(
+                function (data) {
+                    $("#load1").hide();
+                    dashboardQueueRows = data.Rows || [];
+                    dashboard_render(data || {});
+                },
+                function (error) {
+                    $("#load1").hide();
+                    $("#dash-queue-body").html("<tr><td colspan=\"7\"><div class=\"dash-empty\">" + safeHtml(error.get_message ? error.get_message() : error.responseText) + "</div></td></tr>");
+                }
+            );
+
+            return false;
+        }
+
+        function dashboard_render(data) {
+            $("#dash-generated").text(data.GeneratedOn || "");
+            $("#dash-open-count").text(data.QueueCount || 0);
+            $("#dash-card-count").text(data.QueueCount || 0);
+            $("#dash-card-oldest").text(data.OldestElapsed || "0 min");
+            $("#dash-card-latest").text(data.LatestStarted || "-");
+
+            if (!dashboardQueueRows.length) {
+                $("#dash-queue-body").html("<tr><td colspan=\"7\"><div class=\"dash-empty\">No in-process loans found.</div></td></tr>");
+                return;
+            }
+
+            var html = dashboardQueueRows.slice(0, 8).map(function (row, index) {
+                return "" +
+                    "<tr>" +
+                    "  <td><button type=\"button\" class=\"dash-continue\" data-index=\"" + index + "\"><i class=\"fas fa-play\"></i> Continue</button></td>" +
+                    "  <td title=\"" + safeAttr(row.Client) + "\">" + safeHtml(row.Client) + "</td>" +
+                    "  <td title=\"" + safeAttr(row.DealNo) + "\">" + safeHtml(row.DealNo) + "</td>" +
+                    "  <td title=\"" + safeAttr(row.LoanNo) + "\">" + safeHtml(row.LoanNo) + "</td>" +
+                    "  <td title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
+                    "  <td title=\"" + safeAttr(row.StartDatetime) + "\">" + safeHtml(row.StartDatetime) + "</td>" +
+                    "  <td>" + safeHtml(formatElapsed(row.ElapsedMinutes)) + "</td>" +
+                    "</tr>";
+            }).join("");
+
+            $("#dash-queue-body").html(html);
+        }
+
+        function dashboard_continue(index) {
+            var row = dashboardQueueRows[index];
+            if (!row) {
+                return false;
+            }
+
+            var payload = {
+                ln: row.LoanNo || "",
+                dn: row.DealNo || "",
+                tp: row.ProcessID || "",
+                src: "Dashboard",
+                client: row.Client || "",
+                od: row.OrderDate || "",
+                process: row.Process || "",
+                review: row.Review || "",
+                sd: row.StartDatetime || "",
+                started: true
+            };
+
+            var encoded = btoa(JSON.stringify(payload));
+            window.location.href = "FeedbackDetails.aspx?data=" + encodeURIComponent(encoded);
+            return false;
+        }
+
+        function formatElapsed(value) {
+            var minutes = parseInt(value || 0, 10);
+            if (minutes < 60) {
+                return minutes + " min";
+            }
+
+            var hours = Math.floor(minutes / 60);
+            var remaining = minutes % 60;
+            return hours + " hr " + remaining + " min";
+        }
+
+        function safeHtml(value) {
+            return $("<div/>").text(value === null || value === undefined ? "" : value).html();
+        }
+
+        function safeAttr(value) {
+            return safeHtml(value).replace(/"/g, "&quot;");
+        }
     </script>
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <div class="loading" id="load1">
+        <img src="../images/Load_1.gif" />
+        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
+    </div>
 
-    <div style="display: none;">
-
-        <div class="row" style="padding-top: 10px;">
-            <div class="col-md-4">
-                <!-- Widget: user widget style 1 -->
-                <div class="card card-widget widget-user shadow" style="height: 270px;">
-                    <!-- Add the bg color to the header using any of the bg-* classes -->
-                    <div class="widget-user-header bg-gradient-success">
-                        <h3 class="widget-user-username" id="dashboard_spnusername" onclick="return dashboard_profileinfo();" style="font-style: italic; font-weight: bold; cursor: pointer; text-decoration: underline;"></h3>
-                        <h6 class="widget-user-desc" id="dashboard_spndesignation"></h6>
-                    </div>
-                    <div class="widget-user-image">
-                        <img class="img-circle elevation-2" id="dashboard_userimg" alt="User Avatar" />
-                    </div>
-                    <div class="card-footer">
-                        <div class="row">
-                            <div class="col-sm-4 border-right">
-                                <div class="description-block">
-                                    <h5 class="description-header">100</h5>
-                                    <span class="description-text"><a href="#url" style="text-decoration: underline;">Productivity</a></span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-4 border-right">
-                                <div class="description-block">
-                                    <h5 class="description-header">100</h5>
-                                    <span class="description-text"><a href="#url" style="text-decoration: underline;">Quality</a></span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-4">
-                                <div class="description-block">
-                                    <h5 class="description-header">100</h5>
-                                    <span class="description-text"><a href="Log.aspx" style="text-decoration: underline;">Attendance</a></span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                        </div>
-                        <!-- /.row -->
-                    </div>
-                </div>
-                <!-- /.widget-user -->
-            </div>
-            <div class="col-md-2">
-                <!-- Info Boxes Style 2 -->
-                <div class="info-box mb-3 bg-gradient-info">
-                    <span class="info-box-icon"><i class="far fa-chart-bar"></i></span>
-
-                    <div class="info-box-content">
-                        <a class="animation__shake" style="color: white;" href="DailyProductivity.aspx">
-                            <span class="info-box-number">Daily Productivity</span></a>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-                <!-- /.info-box -->
-                <div class="info-box mb-3 bg-gradient-success">
-                    <span class="info-box-icon"><i class="fa fa-circle-notch"></i></span>
-
-                    <div class="info-box-content">
-                        <a class="animation__shake" style="color: white;" href="ProposedSalaryReport.aspx">
-                            <span class="info-box-number">Proposed Salary Report</span></a>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-                <div class="info-box mb-3 bg-gradient-blue">
-                    <span class="info-box-icon"><i class="fas fa-birthday-cake"></i></span>
-
-                    <div class="info-box-content">
-                        <a class="animation__shake" style="color: white;" href="ViewBirthdays.aspx">
-                            <span class="info-box-number">Today's Birthday</span></a>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-
-            </div>
-            <div class="col-md-2">
-                <!-- /.info-box -->
-                <div class="info-box mb-3 bg-danger">
-                    <span class="info-box-icon"><i class="fas fa-luggage-cart"></i></span>
-
-                    <div class="info-box-content">
-                        <a class="animation__shake" style="color: white;" href="SelfLeaves.aspx">
-                            <span class="info-box-number">My Leaves</span></a>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-                <!-- /.info-box -->
-                <div class="info-box mb-3 bg-warning">
-                    <span class="info-box-icon"><i class="fas fa-check"></i></span>
-
-                    <div class="info-box-content">
-                        <a class="animation__shake" style="color: black;" href="AttendanceCorrectionSelf.aspx">
-                            <span class="info-box-number">Attendance Corrections</span></a>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-                <div class="info-box mb-3 bg-gradient-teal">
-                    <span class="info-box-icon"><i class="fas fa-list-ol"></i></span>
-
-                    <div class="info-box-content">
-                        <a class="animation__shake" style="color: white;" href="#" data-target="#ClientHolidays" data-toggle="modal">
-                            <span class="info-box-number" data-target="ClientHolidays" data-toggle="modal">Client Holidays List</span></a>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-
-
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header ui-sortable-handle" style="padding: 5px 1.25rem!important;">
-                        <h3 class="card-title">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Important Notifications
-                    </h3>
-                        <div class="card-tools">
-                            <a class="nav-link active" href="Notiications.aspx">View All</a>
-                        </div>
-                    </div>
-                    <table class="table" id="dashboard_alert_table" style="padding-top: 0px; font-size: 11px; width: 100%;">
-                        <thead>
-                            <tr>
-                                <th class="sort border-top ps-3" style="display: none;">Alert Id</th>
-                                <th class="sort border-top ps-3" style="display: none;">Sr. #</th>
-                                <th class="sort border-top ps-3">Subject</th>
-                                <th class="sort border-top ps-3">Attachment</th>
-                                <th class="sort border-top ps-3">View</th>
-                                <th class="sort border-top ps-3" style="display: none;">Attachment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+    <div class="dash-page">
+        <section class="dash-hero">
+            <div class="dash-title-wrap">
+                <span class="dash-title-icon"><i class="fas fa-chart-line"></i></span>
+                <div>
+                    <h1 class="dash-title">US Dashboard</h1>
+                    <p class="dash-subtitle">Focused view of started loans and active feedback work.</p>
                 </div>
             </div>
+            <div class="dash-actions">
+                <span class="dash-chip"><i class="fas fa-spinner"></i><span id="dash-open-count">0</span><span>In Process</span></span>
+                <span class="dash-chip"><i class="far fa-clock"></i><span id="dash-generated"></span></span>
+                <button type="button" id="dash-refresh" class="dash-refresh">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="dash-grid">
+            <a class="dash-card teal" href="MyQueue.aspx">
+                <span class="dash-card-icon"><i class="fas fa-stream"></i></span>
+                <span>
+                    <p class="dash-card-label">My Queue</p>
+                    <p class="dash-card-value" id="dash-card-count">0</p>
+                    <p class="dash-card-note">Started loans waiting for completion</p>
+                </span>
+            </a>
+            <a class="dash-card" href="LoanDetails.aspx">
+                <span class="dash-card-icon"><i class="fas fa-clipboard-list"></i></span>
+                <span>
+                    <p class="dash-card-label">My Task</p>
+                    <p class="dash-card-value" id="dash-card-oldest">0 min</p>
+                    <p class="dash-card-note">Oldest in-process elapsed time</p>
+                </span>
+            </a>
+            <a class="dash-card slate" href="GlobalSearch.aspx">
+                <span class="dash-card-icon"><i class="fas fa-search"></i></span>
+                <span>
+                    <p class="dash-card-label">Global Search</p>
+                    <p class="dash-card-value" id="dash-card-latest">-</p>
+                    <p class="dash-card-note">Latest started loan timestamp</p>
+                </span>
+            </a>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card" id="onlymgmt">
-                    <div class="card-header">
-                        <h5 class="card-title">Branch > Domain > Subdomain wise Manpower Summary</h5>
-
-                        <div class="card-tools">
-                            <strong id="dashboard_graphperiod">Period: </strong>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown">
-                                    <i class="fas fa-wrench"></i>&nbsp;&nbsp;<span style="font-size: 12px;" id="summary_gridheaderfilter">All Employees</span>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-right" role="menu">
-                                    <a href="#" class="dropdown-item" onclick="return Dashboard_GetManpowerSumary('All');">All Employees</a>
-                                    <a href="#" class="dropdown-item" onclick="return Dashboard_GetManpowerSumary('Present');">Present Today</a>
-                                    <a href="#" class="dropdown-item" onclick="return Dashboard_GetManpowerSumary('Leave');">Users on Leave</a>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <div class="row">
-
-                            <div class="col-md-12">
-                                <table class="table" id="dasboard_currentmanpower" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="sort border-top ps-3" style="display: none;">Sr. #</th>
-                                            <th class="sort border-top ps-3" style="display: none;">Sr. #</th>
-                                            <th class="sort border-top ps-3" style="display: none;">Sr. #</th>
-                                            <th class="sort border-top ps-3">Branch</th>
-                                            <th class="sort border-top ps-3">Domain</th>
-                                            <th class="sort border-top ps-3">Subdomain</th>
-                                            <th class="sort border-top ps-3" style="text-align: center;">Total</th>
-                                            <th class="sort border-top ps-3" style="text-align: center;">On Floor</th>
-                                            <th class="sort border-top ps-3" style="text-align: center;">Resigned</th>
-                                            <th class="sort border-top ps-3" style="text-align: center;">Absconding</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <!-- /.col -->
-                        </div>
-                        <!-- /.row -->
-                    </div>
-                    <!-- ./card-body -->
-                    <div class="card-footer">
-                        <div class="row">
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block border-right">
-                                    <h5 class="description-header" id="dashboard_totalemployees"></h5>
-                                    <span class="description-text">TOTAL EMPLOYEES</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block border-right">
-                                    <h5 class="description-header" id="dashboard_onfloormployees"></h5>
-                                    <span class="description-text">TOTAL ON FLOOR</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block border-right">
-                                    <h5 class="description-header" id="dashboard_resignedemployees"></h5>
-                                    <span class="description-text">TOTAL RESIGNED</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block">
-                                    <h5 class="description-header" id="dashboard_abscondingemployees"></h5>
-                                    <span class="description-text">TOTAL ABSCONDING</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                        </div>
-                        <!-- /.row -->
-                    </div>
-                    <!-- /.card-footer -->
-                </div>
-                <!-- /.card -->
+        <section class="dash-panel">
+            <div class="dash-panel-header">
+                <h2 class="dash-panel-title">In-Process Loans</h2>
+                <a class="dash-panel-link" href="MyQueue.aspx">View My Queue</a>
             </div>
-            <!-- /.col -->
-        </div>
-
-        <div class="modal fade" id="dashboard_profileinfopopup">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Profile Information</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body card-primary card-outline">
-                        <div class="card card-tabs">
-                            <div class="card-header p-0 pt-1">
-                                <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Personal Information</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">Official Information</a>
-                                    </li>
-
-                                </ul>
-                            </div>
-                            <div class="card-body">
-                                <div class="tab-content" id="custom-tabs-one-tabContent">
-                                    <input id="filep" style="display: none;" />
-                                    <asp:HiddenField ID="filepath" runat="server" />
-                                    <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                                        <div class="col-sm-12">
-                                            <table class="table">
-                                                <tr>
-                                                    <td><b>Name:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popname" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Date of Birth:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popdob" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Present Address:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_poppresentaddress" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Permanent Address:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_poppermanentaddress" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Contact #:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popcontact" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>PAN:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_poppan" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Qualification:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popqualification" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Blood Group:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popbloodgroup" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Email Address:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popemail" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td></td>
-                                                    <td></td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
-                                        <div class="col-sm-12">
-                                            <table class="table">
-                                                <tr>
-                                                    <td><b>Employee ID:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popemployeeid" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Code:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popcode" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Joining Date:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popjoiningdate" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Working Branch:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popbranch" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Department:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popdepartment" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Designation:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popdesignation" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Shift:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popshift" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Working Hours:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popworkinghours" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Cut off Time:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popcutofftime" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Weekly Holiday:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popweeklyholiday" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Official Email:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popofficialemail" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Bank Name:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popbankname" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>Account #:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popaccountno" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>IFSC Code:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popifsccode" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>EISC #:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popesicno" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>PF #:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_poppfno" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td><b>UAN:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popuan" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                    <td><b>Reporting Manager:</b></td>
-                                                    <td>
-                                                        <label id="dasboard_popreportingmanager" class="form-control" style="width: 350px;"></label>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-
-
-
-                                </div>
-                            </div>
-                            <div class="modal-footer justify-content-between">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                        <!-- /.modal-content -->
-                    </div>
-                    <!-- /.modal-dialog -->
-                </div>
+            <div class="table-responsive">
+                <table class="table table-hover dash-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Action</th>
+                            <th>Client</th>
+                            <th>Deal #</th>
+                            <th>Loan #</th>
+                            <th>Process</th>
+                            <th>Start DateTime</th>
+                            <th>Elapsed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dash-queue-body"></tbody>
+                </table>
             </div>
-        </div>
-
-        <div class="modal fade" id="dashboard_alertdetails">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Important Notification</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body card-primary card-outline">
-                        <div class="card card-tabs">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><b>Subject:</b></td>
-                                    <td>
-                                        <label id="dasboard_popalertsubject" class="form-control" style="border: none;"></label>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><b>Message:</b></td>
-                                    <td>
-                                        <label id="dasboard_popalertmessage" class="form-control" style="border: none; min-height: 100px; height: auto;"></label>
-                                    </td>
-                                </tr>
-
-                            </table>
-
-                        </div>
-                        <div class="modal-footer justify-content-between">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                    <!-- /.modal-dialog -->
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="dashboard_summarydetails">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="details_popupheader">Employee Details</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body card-primary card-outline">
-                        <div class="card card-tabs" style="min-height: 400px; height: auto;">
-                            <table class="table" id="details_table" style="width: 100%; font-size: 10px!important;">
-                                <thead>
-                                    <tr>
-                                        <th class="sort border-top ps-3">Sr. #</th>
-                                        <th class="sort border-top ps-3">Code</th>
-                                        <th class="sort border-top ps-3">Employee Name</th>
-                                        <th class="sort border-top ps-3">Joining Date</th>
-                                        <th class="sort border-top ps-3">Branch</th>
-                                        <th class="sort border-top ps-3">Domain</th>
-                                        <th class="sort border-top ps-3">Subdomain</th>
-                                        <th class="sort border-top ps-3">Departmnet</th>
-                                        <th class="sort border-top ps-3">Designation</th>
-                                        <th class="sort border-top ps-3">Reporting Manager</th>
-                                        <th class="sort border-top ps-3">Domain Head</th>
-                                        <th class="sort border-top ps-3">Resignation Type</th>
-                                        <th class="sort border-top ps-3">Resignation Date</th>
-                                        <th class="sort border-top ps-3">Last Working Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-
-                        </div>
-                        <div class="modal-footer justify-content-between">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                    <!-- /.modal-dialog -->
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="dash_notifications" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog modal-xl" role="document">
-                <div class="modal-content">
-                    <div class="modal-header bg-danger">
-                        <h5 class="modal-title" id="staticBackdropLabel"><i class="fas fa-bell"></i>&nbsp;&nbsp;Pending Task List</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" style="min-height: 400px; height: auto;">
-                        <table id="dash_tblnotifications" class="table" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="ClientHolidays" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="ClientHolidaysLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="ClientHolidaysLabel">Client Holidays</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <table id="ClientHolidayList" runat="server" class="table table-bordered">
-                            <tr>
-                                <th style="border-bottom: solid 1px gray;">Holiday Name</th>
-                                <th style="border-bottom: solid 1px gray;">Day</th>
-                                <th style="border-bottom: solid 1px gray;">Date</th>
-                            </tr>
-
-                            <tr>
-                                <td>New Year's Day</td>
-                                <td>Monday</td>
-                                <td>01-January</td>
-                            </tr>
-                            <tr>
-                                <td>Memorial Day</td>
-                                <td>Monday</td>
-                                <td>27-May</td>
-                            </tr>
-                            <tr>
-                                <td>Independence Day</td>
-                                <td>Thursday</td>
-                                <td>04-July</td>
-                            </tr>
-                            <tr>
-                                <td>Labor Day</td>
-                                <td>Monday</td>
-                                <td>02-September</td>
-                            </tr>
-                            <tr>
-                                <td>Thanks Giving Day</td>
-                                <td>Thursday</td>
-                                <td>28-November</td>
-                            </tr>
-                            <tr>
-                                <td>Christmas Day</td>
-                                <td>Wednesday</td>
-                                <td>25-December</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        </section>
     </div>
 </asp:Content>

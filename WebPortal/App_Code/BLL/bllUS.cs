@@ -32,6 +32,12 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.GetLoanDetails_RemoteUW_REQC(EmpID);
         }
+
+        public DataTable GetUSLoanProductionMyQueue(int EmployeeID)
+        {
+            return dalUS.GetUSLoanProductionMyQueue(EmployeeID);
+        }
+
         public DataTable GetDatewiseOnShoreProduction(string Date)
         {
             return dalUS.GetDatewiseOnShoreProduction(Date);

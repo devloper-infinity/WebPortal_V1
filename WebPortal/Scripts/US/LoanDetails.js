@@ -45,6 +45,14 @@ function us_getFeedbackReturnUrl(defaultUrl) {
         return "GlobalSearch.aspx";
     }
 
+    if (payload && payload.src == "MyQueue") {
+        return "MyQueue.aspx";
+    }
+
+    if (payload && payload.src == "Dashboard") {
+        return "Dashboard.aspx";
+    }
+
     return defaultUrl;
 }
 
@@ -556,10 +564,13 @@ function us_getloansforglobalsearch() {
 
 function us_getGlobalSearchLoanData(rowData) {
     return {
-        projectNumber: us_getValueByKeys(rowData, ["Client"]),
-        dealNo: us_getValueByKeys(rowData, ["Deal #"]),
-        loanNo: us_getValueByKeys(rowData, ["Loan #"]),
-        orderDate: us_getValueByKeys(rowData, ["Order Date"])
+        processID: us_getValueByKeys(rowData, ["ProcessID", "ProcessID1", "Process ID", "Process Id"]),
+        projectNumber: us_getValueByKeys(rowData, ["Client", "ProjectNumber", "ProjectNo", "Project No", "Project #"]),
+        dealNo: us_getValueByKeys(rowData, ["Deal #", "DealNo", "Deal No"]),
+        loanNo: us_getValueByKeys(rowData, ["Loan #", "LoanNo", "Loan No", "OrderNumber", "Order Number"]),
+        orderDate: us_getValueByKeys(rowData, ["Order Date", "OrderDate", "Received Date", "RecDate"]),
+        process: us_getValueByKeys(rowData, ["Process", "ProcessName", "Process Name"]),
+        review: us_getValueByKeys(rowData, ["RemoteUW", "Reviewer", "Review", "UW Name"])
     };
 }
 
@@ -577,11 +588,68 @@ function us_startGlobalSearchLoan(button, rowData) {
     }
 
     $button.data('saving', true).prop('disabled', true);
-    GetFeedbackPage(loanData.loanNo, loanData.dealNo, "", "GlobalSearch", loanData.projectNumber, loanData.orderDate);
+
+    loanData.startDatetime = usfeedback_getNowDateTime();
+
+    Swal.fire({
+        title: 'Starting loan...',
+        text: 'Please wait while the start time is saved.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.StartLoan(
+        parseInt(loanData.processID, 10) || 0,
+        loanData.projectNumber || "",
+        loanData.dealNo || "",
+        loanData.loanNo || "",
+        loanData.orderDate || "",
+        loanData.process || "",
+        loanData.review || "",
+        loanData.startDatetime,
+
+        function (result) {
+            if (result > 0) {
+                GetFeedbackPage(
+                    loanData.loanNo,
+                    loanData.dealNo,
+                    loanData.processID,
+                    "GlobalSearch",
+                    loanData.projectNumber,
+                    loanData.orderDate,
+                    loanData.process,
+                    loanData.review,
+                    loanData.startDatetime,
+                    true
+                );
+                return false;
+            }
+
+            $button.data('saving', false).prop('disabled', false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Oops! Error occurred while starting the loan. Please contact administrator.'
+            });
+        },
+
+        function (error) {
+            $button.data('saving', false).prop('disabled', false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.get_message ? error.get_message() : error.responseText
+            });
+        }
+    );
+
     return false;
 }
 
-function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate) {
+function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate, process, review, startDatetime, started) {
     const payload = {
         ln: loanno,
         dn: dealno
@@ -603,6 +671,22 @@ function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate) {
         payload.od = orderDate;
     }
 
+    if (process) {
+        payload.process = process;
+    }
+
+    if (review) {
+        payload.review = review;
+    }
+
+    if (startDatetime) {
+        payload.sd = startDatetime;
+    }
+
+    if (started) {
+        payload.started = true;
+    }
+
     const encoded = btoa(JSON.stringify(payload));
     location.href = "FeedbackDetails.aspx?data=" + encodeURIComponent(encoded);
 }
@@ -622,10 +706,14 @@ function GetLoggedInUserDetails() {
 }
 
 function bindloanDetails_feedback() {
-    const params = new URLSearchParams(window.location.search);
-    const encoded = params.get('data');
-    if (!encoded) return;
-    const decoded = JSON.parse(atob(encoded));
+    const decoded = us_getFeedbackPayload();
+    if (!decoded) return;
+
+    usfeedbackLoanStarted = decoded.started === true || decoded.started === "true";
+    usfeedbackStartDatetime = decoded.sd || decoded.startDatetime || "";
+    if (document.getElementById("usfeedback_back")) {
+        document.getElementById("usfeedback_back").href = us_getFeedbackReturnUrl("LoanDetails.aspx");
+    }
 
     $.ajax({
         url: "FeedbackDetails.aspx/GetLoanDetailsbyLoanNo",
@@ -700,7 +788,7 @@ function usfeedback_bindProcessTask(Projectid) {
                 // Call only once
                 getTaskwiseDetails(document.getElementById("usfeedback_task"));
 
-                document.getElementById("usfeedback_back").href = decoded.src == "GlobalSearch" ? "GlobalSearch.aspx" : "LoanDetails.aspx";
+                document.getElementById("usfeedback_back").href = us_getFeedbackReturnUrl("LoanDetails.aspx");
             }
         }
     });
@@ -852,9 +940,9 @@ function usfeedback_getLoanProcessData(processid, processName) {
         dealNo: document.getElementById("usfeedback_dealno").value || payload.dn || "",
         loanNo: document.getElementById("usfeedback_loanno").value || payload.ln || "",
         orderDate: payload.od || "",
-        process: processName || "",
-        review: document.getElementById("usfeedback_reviewer").value || "",
-        startDatetime: usfeedbackStartDatetime || usfeedback_getNowDateTime()
+        process: processName || payload.process || "",
+        review: document.getElementById("usfeedback_reviewer").value || payload.review || "",
+        startDatetime: usfeedbackStartDatetime || payload.sd || payload.startDatetime || usfeedback_getNowDateTime()
     };
 }
 
@@ -1131,7 +1219,7 @@ function clearusfeedbackForm() {
     $('#usfeedback_noofrental').val('');
 
     // Dropdowns
-    $('#usfeedback_task').prop('selectedIndex', 0);
+    //$('#usfeedback_task').prop('selectedIndex', 0);
     $('#usfeedback_severity').prop('selectedIndex', 0);
     $('#usfeedback_atrsupported').prop('selectedIndex', 0);
 
@@ -1146,7 +1234,7 @@ function clearusfeedbackForm() {
     $('#usfeedback_selectedFile').text('');
 
     // Hide conditional sections
-    $('#trOther').hide();
+    //$('#trOther').hide();
     $('#tratr1').hide();
     $('#tratr2').hide();
     $('#tratr3').hide();

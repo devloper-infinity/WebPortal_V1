@@ -2823,6 +2823,7 @@
     <Content Include="US\FeedbackDetails.aspx" />
     <Content Include="US\GlobalSearch.aspx" />
     <Content Include="US\LoanDetails.aspx" />
+    <Content Include="US\MyQueue.aspx" />
     <Content Include="US\ProductionReport.aspx" />
     <Content Include="US\ProductionSummary.aspx" />
     <Content Include="US\UserPerformanceReport.aspx" />
@@ -4729,6 +4730,13 @@
     </Compile>
     <Compile Include="US\LoanDetails.aspx.designer.cs">
       <DependentUpon>LoanDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\MyQueue.aspx.cs">
+      <DependentUpon>MyQueue.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\MyQueue.aspx.designer.cs">
+      <DependentUpon>MyQueue.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\ProductionReport.aspx.cs">
       <DependentUpon>ProductionReport.aspx</DependentUpon>

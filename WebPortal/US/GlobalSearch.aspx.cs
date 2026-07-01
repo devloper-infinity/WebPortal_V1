@@ -46,43 +46,52 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review)
+        public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, string StartDatetime)
         {
-            if (ProcessID <= 0)
+            if (string.IsNullOrWhiteSpace(DealNo) || string.IsNullOrWhiteSpace(OrderNumber))
             {
                 return 0;
             }
 
-            DateTime startDateTime = DateTime.Now;
-            int ReturnValue = SaveLoanTiming(
-                ProjectNumber,
-                DealNo,
-                OrderNumber,
-                Process,
-                Review,
-                startDateTime.ToString("MM/dd/yyyy HH:mm:ss"),
-                "",
-                "Start",
-                "Pending"
-            );
-
-            if (ReturnValue > 0)
+            string startDateTime = NormalizeDateTime(StartDatetime);
+            if (string.IsNullOrWhiteSpace(startDateTime))
             {
-                SaveLoanProductionTrack(
-                    "Start",
-                    ProcessID,
+                startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+            }
+
+            int ReturnValue = 0;
+            try
+            {
+                ReturnValue = SaveLoanTiming(
                     ProjectNumber,
                     DealNo,
                     OrderNumber,
-                    OrderDate,
                     Process,
                     Review,
-                    startDateTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                    ""
+                    startDateTime,
+                    "",
+                    "Start",
+                    "Pending"
                 );
             }
+            catch
+            {
+            }
 
-            return ReturnValue;
+            int trackReturnValue = SaveLoanProductionTrack(
+                "Start",
+                ProcessID,
+                ProjectNumber,
+                DealNo,
+                OrderNumber,
+                OrderDate,
+                Process,
+                Review,
+                startDateTime,
+                ""
+            );
+
+            return trackReturnValue > 0 ? trackReturnValue : ReturnValue;
         }
 
         private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)
@@ -104,7 +113,7 @@ namespace WebPortal.US
             return new bllUS().InsertModifyUWOrderOC22Servicing(htParam);
         }
 
-        private static void SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
+        private static int SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
         {
             try
             {
@@ -123,11 +132,17 @@ namespace WebPortal.US
                 htParam.Add("EmployeeID", currentEmployeeId);
                 htParam.Add("AddedBy", currentEmployeeId);
 
-                new bllUS().SaveUSLoanProductionTrack(htParam);
+                return new bllUS().SaveUSLoanProductionTrack(htParam);
             }
             catch
             {
+                return 0;
             }
+        }
+
+        private static string NormalizeDateTime(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "" : value.Replace("T", " ");
         }
     }
 }

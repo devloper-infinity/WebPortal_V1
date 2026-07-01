@@ -36,6 +36,34 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetUSLoanProductionMyQueue(int EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
+SELECT
+    ProductionTrackID,
+    ISNULL(ProcessID, 0) AS ProcessID,
+    ISNULL(ProjectNumber, '') AS Client,
+    DealNo,
+    LoanNo,
+    ISNULL(OrderDate, '') AS OrderDate,
+    ISNULL([Process], '') AS Process,
+    ISNULL(Review, '') AS Review,
+    CONVERT(VARCHAR(19), StartDatetime, 120) AS StartDatetime,
+    CASE
+        WHEN StartDatetime IS NULL THEN 0
+        ELSE DATEDIFF(MINUTE, StartDatetime, GETDATE())
+    END AS ElapsedMinutes,
+    ISNULL([Status], 'Started') AS Status
+FROM dbo.USLoanProductionTrack
+WHERE EmployeeID = @EmployeeID
+    AND EndDatetime IS NULL
+ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, EmployeeID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetLoanDetails_RemoteUW_ByID(int ProcessID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLoanDetails_RemoteUW_ByID_ForNewERP");
@@ -264,10 +292,15 @@ IF UPPER(@Action) = 'START'
 BEGIN
     SELECT TOP 1 @TrackID = ProductionTrackID
     FROM dbo.USLoanProductionTrack
-    WHERE ProcessID = @ProcessID
-        AND EmployeeID = @EmployeeID
+    WHERE EmployeeID = @EmployeeID
         AND EndDatetime IS NULL
-    ORDER BY ProductionTrackID DESC;
+        AND (
+            (@ProcessID > 0 AND ProcessID = @ProcessID)
+            OR (DealNo = @DealNo AND LoanNo = @LoanNo)
+        )
+    ORDER BY
+        CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
+        ProductionTrackID DESC;
 
     IF @TrackID IS NULL
     BEGIN
@@ -285,13 +318,14 @@ BEGIN
     ELSE
     BEGIN
         UPDATE dbo.USLoanProductionTrack
-        SET ProjectNumber = @ProjectNumber,
+        SET ProcessID = CASE WHEN @ProcessID > 0 THEN @ProcessID ELSE ProcessID END,
+            ProjectNumber = @ProjectNumber,
             DealNo = @DealNo,
             LoanNo = @LoanNo,
             OrderDate = @OrderDate,
             [Process] = @Process,
             Review = @Review,
-            StartDatetime = @StartValue,
+            StartDatetime = COALESCE(StartDatetime, @StartValue),
             [Status] = 'Started',
             ModifiedBy = @AddedBy,
             ModifiedDate = GETDATE()
@@ -302,10 +336,16 @@ ELSE
 BEGIN
     SELECT TOP 1 @TrackID = ProductionTrackID
     FROM dbo.USLoanProductionTrack
-    WHERE ProcessID = @ProcessID
-        AND EmployeeID = @EmployeeID
+    WHERE EmployeeID = @EmployeeID
         AND EndDatetime IS NULL
-    ORDER BY StartDatetime DESC, ProductionTrackID DESC;
+        AND (
+            (@ProcessID > 0 AND ProcessID = @ProcessID)
+            OR (DealNo = @DealNo AND LoanNo = @LoanNo)
+        )
+    ORDER BY
+        CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
+        StartDatetime DESC,
+        ProductionTrackID DESC;
 
     IF @TrackID IS NULL
     BEGIN
@@ -323,12 +363,14 @@ BEGIN
     ELSE
     BEGIN
         UPDATE dbo.USLoanProductionTrack
-        SET ProjectNumber = @ProjectNumber,
+        SET ProcessID = CASE WHEN @ProcessID > 0 THEN @ProcessID ELSE ProcessID END,
+            ProjectNumber = @ProjectNumber,
             DealNo = @DealNo,
             LoanNo = @LoanNo,
             OrderDate = @OrderDate,
             [Process] = @Process,
             Review = @Review,
+            StartDatetime = COALESCE(StartDatetime, @StartValue),
             EndDatetime = @EndValue,
             [Status] = 'Completed',
             ModifiedBy = @AddedBy,

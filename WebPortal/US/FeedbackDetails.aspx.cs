@@ -224,35 +224,39 @@ namespace WebPortal.US
                 startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
             }
 
-            int ReturnValue = SaveLoanTiming(
-                ProjectNumber,
-                DealNo,
-                OrderNumber,
-                Process,
-                Review,
-                startDateTime,
-                "",
-                "Start",
-                "Pending"
-            );
-
-            if (ReturnValue > 0)
+            int ReturnValue = 0;
+            try
             {
-                SaveLoanProductionTrack(
-                    "Start",
-                    ProcessID,
+                ReturnValue = SaveLoanTiming(
                     ProjectNumber,
                     DealNo,
                     OrderNumber,
-                    OrderDate,
                     Process,
                     Review,
                     startDateTime,
-                    ""
+                    "",
+                    "Start",
+                    "Pending"
                 );
             }
+            catch
+            {
+            }
 
-            return ReturnValue;
+            int trackReturnValue = SaveLoanProductionTrack(
+                "Start",
+                ProcessID,
+                ProjectNumber,
+                DealNo,
+                OrderNumber,
+                OrderDate,
+                Process,
+                Review,
+                startDateTime,
+                ""
+            );
+
+            return trackReturnValue > 0 ? trackReturnValue : ReturnValue;
         }
 
         [WebMethod]
@@ -269,36 +273,41 @@ namespace WebPortal.US
                 startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
             }
 
-            DateTime endDateTime = DateTime.Now;
-            int ReturnValue = SaveLoanTiming(
-                ProjectNumber,
-                DealNo,
-                OrderNumber,
-                Process,
-                Review,
-                startDateTime,
-                endDateTime.ToString("MM/dd/yyyy HH:mm:ss"),
-                "Complete",
-                "Completed"
-            );
+            string endDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
 
-            if (ReturnValue > 0)
+            int ReturnValue = 0;
+            try
             {
-                SaveLoanProductionTrack(
-                    "Complete",
-                    ProcessID,
+                ReturnValue = SaveLoanTiming(
                     ProjectNumber,
                     DealNo,
                     OrderNumber,
-                    OrderDate,
                     Process,
                     Review,
                     startDateTime,
-                    endDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    endDateTime,
+                    "Complete",
+                    "Completed"
                 );
             }
+            catch
+            {
+            }
 
-            return ReturnValue;
+            int trackReturnValue = SaveLoanProductionTrack(
+                "Complete",
+                ProcessID,
+                ProjectNumber,
+                DealNo,
+                OrderNumber,
+                OrderDate,
+                Process,
+                Review,
+                startDateTime,
+                endDateTime
+            );
+
+            return trackReturnValue > 0 ? trackReturnValue : ReturnValue;
         }
 
         private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)
@@ -320,7 +329,7 @@ namespace WebPortal.US
             return new bllUS().InsertModifyUWOrderOC22Servicing(htParam);
         }
 
-        private static void SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
+        private static int SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
         {
             try
             {
@@ -339,10 +348,11 @@ namespace WebPortal.US
                 htParam.Add("EmployeeID", currentEmployeeId);
                 htParam.Add("AddedBy", currentEmployeeId);
 
-                new bllUS().SaveUSLoanProductionTrack(htParam);
+                return new bllUS().SaveUSLoanProductionTrack(htParam);
             }
             catch
             {
+                return 0;
             }
         }
 
