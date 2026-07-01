@@ -326,7 +326,7 @@ namespace WebPortal.US
             htParam.Add("Remark", "online");
             htParam.Add("AddedBY", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            return new bllUS().InsertModifyUWOrderOC22Servicing(htParam);
+            return new bllUS().InsertModifyUWOrderOC22Servicing_EndTime(htParam);
         }
 
         private static int SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
@@ -345,6 +345,7 @@ namespace WebPortal.US
                 htParam.Add("Review", Review);
                 htParam.Add("StartDatetime", StartDatetime);
                 htParam.Add("EndDatetime", EndDatetime);
+                htParam.Add("SourcePage", "GlobalSearch");
                 htParam.Add("EmployeeID", currentEmployeeId);
                 htParam.Add("AddedBy", currentEmployeeId);
 

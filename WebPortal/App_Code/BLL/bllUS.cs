@@ -136,6 +136,11 @@ namespace WebPortal.App_Code.BLL
             return dalUS.InsertModifyUWOrderOC22Servicing(htParam);
         }
 
+        public int InsertModifyUWOrderOC22Servicing_EndTime(Hashtable htParam)
+        {
+            return dalUS.InsertModifyUWOrderOC22Servicing_EndTime(htParam);
+        }
+
         public int SaveUSLoanProductionTrack(Hashtable htParam)
         {
             return dalUS.SaveUSLoanProductionTrack(htParam);

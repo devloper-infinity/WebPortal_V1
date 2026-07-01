@@ -48,6 +48,7 @@ SELECT
     ISNULL(OrderDate, '') AS OrderDate,
     ISNULL([Process], '') AS Process,
     ISNULL(Review, '') AS Review,
+    ISNULL(SourcePage, CASE WHEN ISNULL(ProcessID, 0) = 0 THEN 'GlobalSearch' ELSE 'MyTask' END) AS SourcePage,
     CONVERT(VARCHAR(19), StartDatetime, 120) AS StartDatetime,
     CASE
         WHEN StartDatetime IS NULL THEN 0
@@ -261,6 +262,28 @@ ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
             return ReturnValue;
         }
 
+        public int InsertModifyUWOrderOC22Servicing_EndTime(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_CompleteAllocateOrderToVendorInTrackingSheet_DISP_Allocation_Servicing_RW_NewERP_EndTime");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProjectNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["OrderNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Review"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReviewStartTime", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ReviewStartTime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReviewEndTime", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ReviewEndTime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Type"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProductType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBY", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["AddedBY"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd_Underwriting(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
         public int SaveUSLoanProductionTrack(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
@@ -306,12 +329,12 @@ BEGIN
     BEGIN
         INSERT INTO dbo.USLoanProductionTrack
         (
-            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review,
+            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review, SourcePage,
             StartDatetime, EndDatetime, EmployeeID, AddedBy, AddedDate, [Status]
         )
         VALUES
         (
-            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review,
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review, @SourcePage,
             @StartValue, NULL, @EmployeeID, @AddedBy, GETDATE(), 'Started'
         );
     END
@@ -325,6 +348,7 @@ BEGIN
             OrderDate = @OrderDate,
             [Process] = @Process,
             Review = @Review,
+            SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
             StartDatetime = COALESCE(StartDatetime, @StartValue),
             [Status] = 'Started',
             ModifiedBy = @AddedBy,
@@ -351,12 +375,12 @@ BEGIN
     BEGIN
         INSERT INTO dbo.USLoanProductionTrack
         (
-            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review,
+            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review, SourcePage,
             StartDatetime, EndDatetime, EmployeeID, AddedBy, AddedDate, [Status]
         )
         VALUES
         (
-            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review,
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review, @SourcePage,
             @StartValue, @EndValue, @EmployeeID, @AddedBy, GETDATE(), 'Completed'
         );
     END
@@ -370,6 +394,7 @@ BEGIN
             OrderDate = @OrderDate,
             [Process] = @Process,
             Review = @Review,
+            SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
             StartDatetime = COALESCE(StartDatetime, @StartValue),
             EndDatetime = @EndValue,
             [Status] = 'Completed',
@@ -389,6 +414,8 @@ SELECT 1;");
             SQLHelper.AddParamToSQLCmd(cmd, "@OrderDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["OrderDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 250, System.Data.ParameterDirection.Input, htParam["Process"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 250, System.Data.ParameterDirection.Input, htParam["Review"]);
+            object sourcePage = htParam.ContainsKey("SourcePage") ? htParam["SourcePage"] : "";
+            SQLHelper.AddParamToSQLCmd(cmd, "@SourcePage", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, sourcePage);
             SQLHelper.AddParamToSQLCmd(cmd, "@StartDatetime", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["StartDatetime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EndDatetime", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["EndDatetime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["EmployeeID"]);

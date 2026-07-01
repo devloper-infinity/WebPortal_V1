@@ -230,7 +230,7 @@
                     "  <td title=\"" + safeAttr(row.DealNo) + "\">" + safeHtml(row.DealNo) + "</td>" +
                     "  <td title=\"" + safeAttr(row.LoanNo) + "\">" + safeHtml(row.LoanNo) + "</td>" +
                     "  <td title=\"" + safeAttr(row.OrderDate) + "\">" + safeHtml(row.OrderDate) + "</td>" +
-                    "  <td title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
+                    "  <td style=\"display: none;\" title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
                     "  <td title=\"" + safeAttr(row.Review) + "\">" + safeHtml(row.Review) + "</td>" +
                     "  <td title=\"" + safeAttr(row.StartDatetime) + "\">" + safeHtml(row.StartDatetime) + "</td>" +
                     "  <td>" + safeHtml(formatElapsed(row.ElapsedMinutes)) + "</td>" +
@@ -260,6 +260,17 @@
         function myqueue_continue(index) {
             var row = myQueueRows[index];
             if (!row) {
+                return false;
+            }
+
+            var sourcePage = (row.SourcePage || "").toLowerCase();
+            if (sourcePage != "globalsearch") {
+                if (!row.ProcessID || parseInt(row.ProcessID, 10) <= 0) {
+                    alert("Process details are not available for this loan.");
+                    return false;
+                }
+
+                window.location.href = "AddFeedback.aspx?ProcessID=" + encodeURIComponent(row.ProcessID);
                 return false;
             }
 
@@ -340,7 +351,7 @@
                             <th>Deal #</th>
                             <th>Loan #</th>
                             <th>Order Date</th>
-                            <th>Process</th>
+                            <th style="display:none;">Process</th>
                             <th>Reviewer</th>
                             <th>Start DateTime</th>
                             <th>Elapsed</th>

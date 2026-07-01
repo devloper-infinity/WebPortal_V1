@@ -305,7 +305,7 @@
                     "  <td title=\"" + safeAttr(row.Client) + "\">" + safeHtml(row.Client) + "</td>" +
                     "  <td title=\"" + safeAttr(row.DealNo) + "\">" + safeHtml(row.DealNo) + "</td>" +
                     "  <td title=\"" + safeAttr(row.LoanNo) + "\">" + safeHtml(row.LoanNo) + "</td>" +
-                    "  <td title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
+                    "  <td style=\"display: none;\" title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
                     "  <td title=\"" + safeAttr(row.StartDatetime) + "\">" + safeHtml(row.StartDatetime) + "</td>" +
                     "  <td>" + safeHtml(formatElapsed(row.ElapsedMinutes)) + "</td>" +
                     "</tr>";
@@ -317,6 +317,17 @@
         function dashboard_continue(index) {
             var row = dashboardQueueRows[index];
             if (!row) {
+                return false;
+            }
+
+            var sourcePage = (row.SourcePage || "").toLowerCase();
+            if (sourcePage != "globalsearch") {
+                if (!row.ProcessID || parseInt(row.ProcessID, 10) <= 0) {
+                    alert("Process details are not available for this loan.");
+                    return false;
+                }
+
+                window.location.href = "AddFeedback.aspx?ProcessID=" + encodeURIComponent(row.ProcessID);
                 return false;
             }
 
@@ -424,7 +435,7 @@
                             <th>Client</th>
                             <th>Deal #</th>
                             <th>Loan #</th>
-                            <th>Process</th>
+                            <th style="display:none;">Process</th>
                             <th>Start DateTime</th>
                             <th>Elapsed</th>
                         </tr>

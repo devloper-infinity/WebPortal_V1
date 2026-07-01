@@ -129,6 +129,7 @@ namespace WebPortal.US
                 htParam.Add("Review", Review);
                 htParam.Add("StartDatetime", StartDatetime);
                 htParam.Add("EndDatetime", EndDatetime);
+                htParam.Add("SourcePage", "GlobalSearch");
                 htParam.Add("EmployeeID", currentEmployeeId);
                 htParam.Add("AddedBy", currentEmployeeId);
 

@@ -10,6 +10,7 @@ BEGIN
         OrderDate NVARCHAR(100) NULL,
         [Process] NVARCHAR(250) NULL,
         Review NVARCHAR(250) NULL,
+        SourcePage NVARCHAR(50) NULL,
         StartDatetime DATETIME NULL,
         EndDatetime DATETIME NULL,
         EmployeeID INT NOT NULL,
@@ -27,6 +28,25 @@ BEGIN
 
     CREATE INDEX IX_USLoanProductionTrack_Employee_AddedDate
         ON dbo.USLoanProductionTrack (EmployeeID, AddedDate);
+END
+GO
+
+IF OBJECT_ID('dbo.USLoanProductionTrack', 'U') IS NOT NULL
+    AND COL_LENGTH('dbo.USLoanProductionTrack', 'SourcePage') IS NULL
+BEGIN
+    ALTER TABLE dbo.USLoanProductionTrack
+        ADD SourcePage NVARCHAR(50) NULL;
+END
+GO
+
+IF OBJECT_ID('dbo.USLoanProductionTrack', 'U') IS NOT NULL
+BEGIN
+    UPDATE dbo.USLoanProductionTrack
+    SET SourcePage = CASE
+            WHEN ISNULL(ProcessID, 0) = 0 THEN 'GlobalSearch'
+            ELSE 'MyTask'
+        END
+    WHERE SourcePage IS NULL;
 END
 GO
 
