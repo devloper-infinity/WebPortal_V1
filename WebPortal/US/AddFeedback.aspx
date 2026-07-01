@@ -231,12 +231,15 @@
         .feedback-actions {
             display: flex;
             justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
             margin-top: 18px;
             padding-top: 16px;
             border-top: 1px solid var(--ca-border);
         }
 
         #btnAddFeedback,
+        #btnCompleteLoan,
         .btn.btn-primary {
             min-width: 110px;
             padding: 10px 18px;
@@ -250,6 +253,7 @@
         }
 
             #btnAddFeedback:hover,
+            #btnCompleteLoan:hover,
             .btn.btn-primary:hover {
                 transform: translateY(-1px);
                 box-shadow: 0 14px 28px rgba(37, 99, 235, .30);
@@ -353,7 +357,8 @@
                 justify-content: stretch;
             }
 
-            #btnAddFeedback {
+            #btnAddFeedback,
+            #btnCompleteLoan {
                 width: 100%;
             }
         }
@@ -370,6 +375,7 @@
     });
 
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -451,7 +457,10 @@
 
                 <div class="feedback-actions">
                     <button class="btn btn-primary" type="button" id="btnAddFeedback" onclick="return OnClickAddFeedback();">
-                        <i class="fas fa-plus"></i>&nbsp; Add
+                        <i class="fas fa-plus"></i>&nbsp; Add Feedback
+                    </button>
+                    <button class="btn btn-primary" type="button" id="btnCompleteLoan" onclick="return OnClickCompleteLoan();">
+                        <i class="fas fa-check"></i>&nbsp; Complete Loan
                     </button>
                 </div>
             </div>

@@ -130,6 +130,11 @@ namespace WebPortal.App_Code.BLL
             return dalUS.InsertModifyUWOrderOC22Servicing(htParam);
         }
 
+        public int SaveUSLoanProductionTrack(Hashtable htParam)
+        {
+            return dalUS.SaveUSLoanProductionTrack(htParam);
+        }
+
         public int InsertOnShoreUSFeedbacks(Hashtable htParam)
         {
             return dalUS.InsertOnShoreUSFeedbacks(htParam);
