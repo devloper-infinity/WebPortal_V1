@@ -53,11 +53,8 @@ namespace WebPortal.US
                 return 0;
             }
 
-            string startDateTime = NormalizeDateTime(StartDatetime);
-            if (string.IsNullOrWhiteSpace(startDateTime))
-            {
-                startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
-            }
+            DateTime startDateTime = DateTime.Now;
+
 
             int ReturnValue = 0;
             try
@@ -68,7 +65,7 @@ namespace WebPortal.US
                     OrderNumber,
                     Process,
                     Review,
-                    startDateTime,
+                   startDateTime.ToString("MM/dd/yyyy HH:mm:ss"),
                     "",
                     "Start",
                     "Pending"
@@ -87,7 +84,7 @@ namespace WebPortal.US
                 OrderDate,
                 Process,
                 Review,
-                startDateTime,
+                startDateTime.ToString("yyyy-MM-dd HH:mm:ss"),
                 ""
             );
 
