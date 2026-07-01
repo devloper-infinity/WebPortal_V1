@@ -209,5 +209,146 @@ namespace WebPortal.US
             returnvalue = new bllUS().InsertOnShoreUSATRFeedbacks(htParam);
             return returnvalue;
         }
+
+        [WebMethod]
+        public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, string StartDatetime)
+        {
+            if (ProcessID <= 0)
+            {
+                return 0;
+            }
+
+            string startDateTime = NormalizeDateTime(StartDatetime);
+            if (string.IsNullOrWhiteSpace(startDateTime))
+            {
+                startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+            }
+
+            int ReturnValue = SaveLoanTiming(
+                ProjectNumber,
+                DealNo,
+                OrderNumber,
+                Process,
+                Review,
+                startDateTime,
+                "",
+                "Start",
+                "Pending"
+            );
+
+            if (ReturnValue > 0)
+            {
+                SaveLoanProductionTrack(
+                    "Start",
+                    ProcessID,
+                    ProjectNumber,
+                    DealNo,
+                    OrderNumber,
+                    OrderDate,
+                    Process,
+                    Review,
+                    startDateTime,
+                    ""
+                );
+            }
+
+            return ReturnValue;
+        }
+
+        [WebMethod]
+        public static int CompleteLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, string StartDatetime)
+        {
+            if (ProcessID <= 0)
+            {
+                return 0;
+            }
+
+            string startDateTime = NormalizeDateTime(StartDatetime);
+            if (string.IsNullOrWhiteSpace(startDateTime))
+            {
+                startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+            }
+
+            DateTime endDateTime = DateTime.Now;
+            int ReturnValue = SaveLoanTiming(
+                ProjectNumber,
+                DealNo,
+                OrderNumber,
+                Process,
+                Review,
+                startDateTime,
+                endDateTime.ToString("MM/dd/yyyy HH:mm:ss"),
+                "Complete",
+                "Completed"
+            );
+
+            if (ReturnValue > 0)
+            {
+                SaveLoanProductionTrack(
+                    "Complete",
+                    ProcessID,
+                    ProjectNumber,
+                    DealNo,
+                    OrderNumber,
+                    OrderDate,
+                    Process,
+                    Review,
+                    startDateTime,
+                    endDateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                );
+            }
+
+            return ReturnValue;
+        }
+
+        private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)
+        {
+            Hashtable htParam = new Hashtable();
+            htParam.Add("ProjectNumber", ProjectNumber);
+            htParam.Add("DealNo", DealNo);
+            htParam.Add("OrderNumber", OrderNumber);
+            htParam.Add("Process", Process);
+            htParam.Add("Review", Review);
+            htParam.Add("ReviewStartTime", StartTime);
+            htParam.Add("ReviewEndTime", EndTime);
+            htParam.Add("Type", "Default");
+            htParam.Add("ProductType", ProductType);
+            htParam.Add("Status", Status);
+            htParam.Add("Remark", "online");
+            htParam.Add("AddedBY", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            return new bllUS().InsertModifyUWOrderOC22Servicing(htParam);
+        }
+
+        private static void SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
+        {
+            try
+            {
+                int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+                Hashtable htParam = new Hashtable();
+                htParam.Add("Action", Action);
+                htParam.Add("ProcessID", ProcessID);
+                htParam.Add("ProjectNumber", ProjectNumber);
+                htParam.Add("DealNo", DealNo);
+                htParam.Add("LoanNo", LoanNo);
+                htParam.Add("OrderDate", OrderDate);
+                htParam.Add("Process", Process);
+                htParam.Add("Review", Review);
+                htParam.Add("StartDatetime", StartDatetime);
+                htParam.Add("EndDatetime", EndDatetime);
+                htParam.Add("EmployeeID", currentEmployeeId);
+                htParam.Add("AddedBy", currentEmployeeId);
+
+                new bllUS().SaveUSLoanProductionTrack(htParam);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string NormalizeDateTime(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "" : value.Replace("T", " ");
+        }
     }
 }

@@ -257,6 +257,8 @@
             display: flex;
             justify-content: flex-end;
             align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .drop-zone {
@@ -321,7 +323,7 @@
             word-break: break-word;
         }
 
-        .my-btn, .btn.btn-primary, #usfeedback_btnsubmit {
+        .my-btn, .btn.btn-primary, #usfeedback_btnsubmit, #usfeedback_btncomplete {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -341,7 +343,7 @@
             transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
         }
 
-            .my-btn:hover, .btn.btn-primary:hover, #usfeedback_btnsubmit:hover {
+            .my-btn:hover, .btn.btn-primary:hover, #usfeedback_btnsubmit:hover, #usfeedback_btncomplete:hover {
                 transform: translateY(-1px);
                 opacity: 1;
             }
@@ -697,7 +699,12 @@
                         </div>
                         <div class="my-row">
                             <div class="my-col-12 action-row">
-                                <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return usfeedback_submit();">Submit</button>
+                                <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return usfeedback_submit();">
+                                    <i class="fas fa-plus"></i>&nbsp; Add
+                                </button>
+                                <button type="button" id="usfeedback_btncomplete" name="usfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return usfeedback_completeLoan();">
+                                    <i class="fas fa-check"></i>&nbsp; Complete Loan
+                                </button>
                             </div>
                         </div>
                     </div>
