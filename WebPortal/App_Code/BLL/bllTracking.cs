@@ -188,6 +188,16 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.GetProcessDetailsForFeedbackUser(UserName, FromDate, ToDate);
         }
 
+        public DataTable GetAllProjectFeedbackinERP(int ProjectId, string OrderNo, string Process, string FeedbackBy)
+        {
+            return dalTracking.GetAllProjectFeedbackinERP(ProjectId, OrderNo, Process, FeedbackBy);
+        }
+
+        public DataTable GetAllProjectFeedbackinERP_Servicing(int ProjectId, string OrderNo, string Process, string FeedbackBy)
+        {
+            return dalTracking.GetAllProjectFeedbackinERP_Servicing(ProjectId, OrderNo, Process, FeedbackBy);
+        }
+
         public int InsertModifyUWOrderOC22(Hashtable htParam)
         {
             return dalTracking.InsertModifyUWOrderOC22(htParam);
@@ -210,10 +220,6 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.AddFeedbackForNewOrder(htParam);
         }
 
-        public DataTable GetAllProjectByUserRights_ForAddFeedback(string EmployeeID)
-        {
-            return dalTracking.GetAllProjectByUserRights_ForAddFeedback(EmployeeID);
-        }
 
         public DataTable getProcess(int ProjectID)
         {

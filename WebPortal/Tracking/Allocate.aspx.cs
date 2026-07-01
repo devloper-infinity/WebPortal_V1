@@ -15,6 +15,7 @@ using System.Web.UI;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
+using static WebPortal.Admin.ResponsibilityDelegation;
 using DataTable = System.Data.DataTable;
 
 namespace WebPortal.Tracking
@@ -40,6 +41,27 @@ namespace WebPortal.Tracking
         protected void Page_Load(object sender, EventArgs e)
         {
 
+        }
+
+
+        [WebMethod]
+        public static string GetAllProjectByUser()
+        {
+            DataTable dt1 = new bllUS().GetAllProjectByUserRights(HttpContext.Current.User.Identity.Name.ToString());
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
         }
 
         [WebMethod]
@@ -120,7 +142,7 @@ namespace WebPortal.Tracking
             }
             else
             {
-                ReturnValue =  new bllTracking().InsertModifyUWOrderOC22(htParam);
+                ReturnValue = new bllTracking().InsertModifyUWOrderOC22(htParam);
             }
 
             return ReturnValue;
@@ -133,6 +155,9 @@ namespace WebPortal.Tracking
             int ReturnValue = 0;
             Hashtable htParamValidate = new Hashtable();
 
+            if (!string.IsNullOrWhiteSpace(Remark) && !HasFeedbackForLoan(ProjectID, OrderNo, Process, UserName))
+                return -2;
+
             htParamValidate.Add("ProjectNumber", Project);
             htParamValidate.Add("DealNo", DealNo);
             htParamValidate.Add("OrderNumber", OrderNo);
@@ -142,6 +167,12 @@ namespace WebPortal.Tracking
 
             ReturnValue = 10;// new bllTracking().ValidateUserProcessTAT(htParamValidate);
             return ReturnValue;
+        }
+
+        [WebMethod]
+        public static bool HasTrackingFeedback(string ProjectID, string OrderNo, string Process, string UserName)
+        {
+            return HasFeedbackForLoan(ProjectID, OrderNo, Process, UserName);
         }
 
         [WebMethod(EnableSession = true)]
@@ -276,7 +307,7 @@ namespace WebPortal.Tracking
             if (processId <= 0)
                 return new AllocateFeedbackSaveResult { Success = false, Message = "Process is not valid." };
 
-            int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString()); 
+            int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
             string errorBy = (model.ErrorBy ?? string.Empty).Trim().ToUpperInvariant();
             string feedbackBy = (model.FeedbackBy ?? string.Empty).Trim().ToUpperInvariant();
 
@@ -505,7 +536,7 @@ namespace WebPortal.Tracking
         private static string GetCurrentUserPseudoName()
         {
             string code = EmployeeInfo.Current.Code;
-            
+
             if (string.IsNullOrWhiteSpace(code))
                 return string.Empty;
 
@@ -527,6 +558,28 @@ namespace WebPortal.Tracking
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
             return ToInt(Convert.ToString(cmd.Parameters["@ReturnValue"].Value));
+        }
+
+        private static bool HasFeedbackForLoan(string projectId, string orderNo, string process, string userName)
+        {
+            string cleanedProjectId = Clean(projectId);
+            int parsedProjectId = ToInt(cleanedProjectId);
+            string cleanedOrderNo = Clean(orderNo);
+            string cleanedProcess = Clean(process);
+            string feedbackBy = Clean(userName);
+
+            if (parsedProjectId <= 0 || string.IsNullOrWhiteSpace(cleanedOrderNo) || string.IsNullOrWhiteSpace(cleanedProcess))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(feedbackBy))
+                feedbackBy = EmployeeInfo.Current.Code;
+
+            bllTracking tracking = new bllTracking();
+            DataTable dt = cleanedProjectId == "70" || cleanedProjectId == "217"
+                ? tracking.GetAllProjectFeedbackinERP_Servicing(parsedProjectId, cleanedOrderNo, cleanedProcess, feedbackBy)
+                : tracking.GetAllProjectFeedbackinERP(parsedProjectId, cleanedOrderNo, cleanedProcess, feedbackBy);
+
+            return dt != null && dt.Rows.Count > 0;
         }
 
         private static string GetServerTime()

@@ -90,10 +90,17 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.GetLoanDetailsbyLoanNo(DealNo, LoanNo);
         }
+
         public DataTable GetATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID)
         {
             return dalUS.GetATRDetailsbyLoanNo(DealNo, LoanNo, Type, ProcessID);
         }
+
+        public DataTable GetAllProjectByUserRights(string EmployeeID)
+        {
+            return dalUS.GetAllProjectByUserRights(EmployeeID);
+        }
+
         public DataTable GetUSProcessList(int ProjectID)
         {
             return dalUS.GetUSProcessList(ProjectID);

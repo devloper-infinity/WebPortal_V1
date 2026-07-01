@@ -604,7 +604,7 @@
 
                     <div class="form-group">
                         <label><span class="required">★</span> Working Hours</label>
-                        <select id="workinghours" name="workinghours" class="form-control">
+                        <select id="workinghours" name="workinghours" class="form-control" onchange="onworkinghoursclick();">
                             <option value="">Select</option>
                             <option value="2">08</option>
                             <option value="3">10</option>

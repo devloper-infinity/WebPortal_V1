@@ -343,6 +343,14 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetAllProjectByUserRights(string EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[WBT_usp_GetAllProjectByUserRightsFor_OnlineTracking]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, EmployeeID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
         public DataTable ViewAllConditionClearing()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ViewAllConditionClearing]");

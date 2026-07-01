@@ -118,6 +118,115 @@
             .tracking-btn { justify-content: center; flex: 1 1 auto; }
             .tracking-stats { grid-template-columns: 1fr; }
         }
+        /* Tracking module header refresh */
+        .tracking-hero {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 94px;
+            height: 94px;
+            margin: 0 0 18px 0 !important;
+            padding: 22px 28px !important;
+            border: 0 !important;
+            border-radius: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 18px !important;
+            background: linear-gradient(101deg, #2854df 0%, #285fe2 45%, #2ec1cf 100%) !important;
+            box-shadow: none !important;
+            color: #ffffff !important;
+        }
+         {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            right: 70px;
+            top: -94px;
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.13);
+            pointer-events: none;
+        }
+         {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            right: -22px;
+            top: -54px;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.12);
+            pointer-events: none;
+        }
+        .tracking-hero > * {
+            position: relative;
+            z-index: 1;
+        }
+        .tracking-hero-badge {
+            order: -1;
+            width: 50px !important;
+            height: 50px !important;
+            min-width: 50px !important;
+            padding: 0 !important;
+            border: 1px solid rgba(255,255,255,.28) !important;
+            border-radius: 16px !important;
+            background: rgba(255,255,255,.14) !important;
+            color: #ffffff !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.06) !important;
+        }
+        .tracking-hero-badge i {
+            color: #ffffff !important;
+            font-size: 21px !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+        }
+        .tracking-hero-badge span {
+            display: none !important;
+        }
+        .tracking-title {
+            color: #ffffff !important;
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0 !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+            text-transform: none !important;
+            text-shadow: 0 1px 1px rgba(3, 48, 120, .35);
+        }
+        .tracking-subtitle {
+            color: rgba(255,255,255,.94) !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0 !important;
+            line-height: 1.45 !important;
+            margin: 8px 0 0 !important;
+            max-width: 760px !important;
+            text-transform: none !important;
+            text-shadow: 0 1px 1px rgba(3, 48, 120, .28);
+        }
+
+        @media (max-width: 768px) {
+            .tracking-hero {
+                height: auto;
+                min-height: 94px;
+                padding: 18px 18px !important;
+                border-radius: 18px !important;
+            }
+            .tracking-hero-badge {
+                width: 46px !important;
+                height: 46px !important;
+                min-width: 46px !important;
+            }
+            .tracking-title { font-size: 16px !important; }
+            .tracking-subtitle { font-size: 10px !important; }
+        }
+        /* End tracking module header refresh */
     </style>
 </asp:Content>
 

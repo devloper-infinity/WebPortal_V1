@@ -87,6 +87,7 @@ namespace WebPortal
         {
 
         }
+
         public static DataTable GetAllEmployeeDetailsByIDsForProductivity(string Ids)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllEmployeeDetailsByCodes_Productivity_1]");
@@ -94,6 +95,7 @@ namespace WebPortal
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+        
         protected void Page_Load(object sender, EventArgs e)
         {
             try
@@ -167,7 +169,7 @@ namespace WebPortal
                     Response.Redirect("~/Admin/DailyLogin.aspx");
                 }
                 //if (string.IsNullOrEmpty(returnUrl))
-                {
+                //{
 
                     string restFlag = Convert.ToString(Session["resetFlg"]);
 
@@ -256,7 +258,7 @@ namespace WebPortal
                             Response.Redirect("~/Logout.aspx");
                         }
                     }
-                }
+                //}
                 //Response.Redirect(returnUrl);
             }
 

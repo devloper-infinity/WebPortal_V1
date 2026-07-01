@@ -2816,6 +2816,7 @@
     <Content Include="US\ConditionClearingReport.aspx" />
     <Content Include="US\CreditConsolidatedReport.aspx" />
     <Content Include="US\Dashboard.aspx" />
+    <Content Include="US\USDashboard.aspx" />
     <Content Include="US\InfinityFeedbackOnshore.aspx" />
     <Content Include="US\ReQcUtility.aspx" />
     <Content Include="US\FeedbackDetails.aspx" />
@@ -4685,6 +4686,13 @@
     </Compile>
     <Compile Include="US\Dashboard.aspx.designer.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\USDashboard.aspx.cs">
+      <DependentUpon>USDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\USDashboard.aspx.designer.cs">
+      <DependentUpon>USDashboard.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\InfinityFeedbackOnshore.aspx.cs">
       <DependentUpon>InfinityFeedbackOnshore.aspx</DependentUpon>

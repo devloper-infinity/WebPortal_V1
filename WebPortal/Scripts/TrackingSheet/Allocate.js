@@ -4,6 +4,78 @@
 
 var selectedRows = [];
 
+function getOrderRowValue(row, keys) {
+    row = row || {};
+
+    for (var i = 0; i < keys.length; i++) {
+        var value = row[keys[i]];
+
+        if (value !== undefined && value !== null && $.trim(String(value)) !== '') {
+            return $.trim(String(value)); table_Orderreport
+        }
+    }
+
+    return '';
+}
+
+function adjustAllocateDataTables() {
+    window.setTimeout(function () {
+        $.each(['#table_OrderAllocate', '#table_OrderComplete', '#table_Orderreport'], function (_, selector) {
+            if ($.fn.DataTable.isDataTable(selector)) {
+                $(selector).DataTable().columns.adjust();
+            }
+        });
+    }, 0);
+}
+
+$(document).on('shown.bs.tab', 'a[data-toggle="pill"], a[data-toggle="tab"]', adjustAllocateDataTables);
+
+$(window).on('resize', adjustAllocateDataTables);
+
+function allocate_bindProject_ICG() {
+
+    $.ajax({
+        type: "POST",
+        url: "Allocate.aspx/GetAllProjectByUser",
+        data: "{}",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+
+        success: function (response) {
+
+            var ddl = $("#allocate_project");
+
+            ddl.empty().append($("<option></option>").val("0").text("Select Project"));
+
+            var data = response.d;
+
+            if (typeof data === "string") {
+                data = JSON.parse(data || "[]");
+            }
+
+            $.each(data, function (i, item) {
+                ddl.append(
+                    $("<option></option>")
+                        .val(item.ProjectID)
+                        .text(item.ProjectName)
+                );
+            });
+        },
+
+        error: function (xhr) {
+            console.log(xhr.responseText);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to load project list."
+            });
+        }
+    });
+
+    return false;
+}
+
 function allocate_bindProcess() {
 
     var prjId = 17;
@@ -34,7 +106,7 @@ function allocate_bindProcess() {
     });
 }
 
-function GetLoansToAllocate_bindGrid()  {
+function GetLoansToAllocate_bindGrid() {
 
     var processName = $('#allocate_process').val();
     processName = 'Loan Setup';
@@ -64,6 +136,7 @@ function GetLoansToAllocate_bindGrid()  {
                 data: dataArray,
                 dom: 'ftip',
                 scrollX: true,
+                scrollCollapse: true,
                 paging: true,
                 autoWidth: false,
                 ordering: false,
@@ -97,7 +170,9 @@ function GetLoansToAllocate_bindGrid()  {
 
                 initComplete: function () {
                     $('#load1').hide();
+                    adjustAllocateDataTables();
                 },
+                drawCallback: adjustAllocateDataTables
             });
             // Scroll to table
             $('html, body').animate({
@@ -132,7 +207,6 @@ function GetLoansToAllocate_bindGrid()  {
         }
     });
 }
-
 
 $('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
     var rowData = $('#table_OrderAllocate').DataTable()
@@ -249,6 +323,7 @@ function allocate_bindCompleteOrder_Grid() {
                 data: dataArray,
                 dom: 'ftip',
                 scrollX: true,
+                scrollCollapse: true,
                 paging: true,
                 autoWidth: false,
                 ordering: false,
@@ -333,7 +408,9 @@ function allocate_bindCompleteOrder_Grid() {
 
                 initComplete: function () {
                     $('#load1').hide();
-                }
+                    adjustAllocateDataTables();
+                },
+                drawCallback: adjustAllocateDataTables
             });
         },
 
@@ -377,21 +454,81 @@ function updateOrderStatus(btn) {
         return;
     }
 
+    var request = {
+        Project: getOrderRowValue(row, ['ProjectName', 'ProjectNo', 'ProjectNumber', 'Project']),
+        DealNo: getOrderRowValue(row, ['DealNo', 'DealNumber', 'Deal', 'UniqueCol1']),
+        OrderNo: getOrderRowValue(row, ['OrderNo', 'OrderNumber', 'LoanNo', 'LoanNumber', 'Loan1No', 'Loan1', 'Loan1 #', 'Loan #', 'UniqueCol2']),
+        Process: getOrderRowValue(row, ['DomainName', 'Process', 'ProcessName']) || $('#allocate_process').val() || 'Loan Setup',
+        ProjectID: getOrderRowValue(row, ['ProjectID', 'ProjectId']) || '17',
+        Status: status,
+        HoldRemark: holdReason || "",
+        Remark: remark || "",
+        ProductType: getOrderRowValue(row, ['ProductType']),
+        UserName: "VPC"
+    };
+
+    if ($.trim(remark || '') !== '') {
+        validateFeedbackBeforeStatusUpdate(btn, request);
+        return;
+    }
+
+    saveOrderStatus(btn, request);
+}
+
+function validateFeedbackBeforeStatusUpdate(btn, request) {
+    $.ajax({
+        type: "POST",
+        url: "Allocate.aspx/HasTrackingFeedback",
+        data: JSON.stringify({
+            ProjectID: request.ProjectID || "",
+            OrderNo: request.OrderNo || "",
+            Process: request.Process || "",
+            UserName: request.UserName || ""
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        beforeSend: function () {
+            Swal.fire({
+                title: 'Checking feedback...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                didOpen: function () {
+                    Swal.showLoading();
+                }
+            });
+        },
+        success: function (response) {
+            Swal.close();
+
+            if (response.d === true) {
+                saveOrderStatus(btn, request);
+                return;
+            }
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Validation',
+                text: 'Please add Feedback before updating Remark.'
+            });
+        },
+        error: function (xhr) {
+            Swal.close();
+            console.log(xhr.responseText);
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Unable to validate feedback before update.'
+            });
+        }
+    });
+}
+
+function saveOrderStatus(btn, request) {
     $.ajax({
         type: "POST",
         url: "Allocate.aspx/UpdateLoanStatus",
-        data: JSON.stringify({
-            Project: row.ProjectName || "",
-            DealNo: row.DealNo || "",
-            OrderNo: row.OrderNo || "",
-            Process: row.DomainName || "",
-            ProjectID: row.ProjectID || "",
-            Status: status,
-            HoldRemark: holdReason || "",
-            Remark: remark || "",
-            ProductType: row.ProductType || "",
-            UserName: "VPC"
-        }),
+        data: JSON.stringify(request),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
 
@@ -408,6 +545,15 @@ function updateOrderStatus(btn) {
 
         success: function (response) {
             Swal.close();
+
+            if (response.d === -2) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validation',
+                    text: 'Please add Feedback before updating Remark.'
+                });
+                return;
+            }
 
             if (response.d > 0) {
                 Swal.fire({
@@ -958,7 +1104,6 @@ var AllocateFeedbackPopup = (function () {
     };
 })();
 
-
 $(document).ready(function () {
     AllocateFeedbackPopup.init();
 });
@@ -1007,39 +1152,42 @@ function allocate_GetLoanReport_Grid(fromDate, toDate) {
             }
 
             $('#table_Orderreport').DataTable({
-
+                destroy: true,
                 data: dataArray,
+
                 dom: 'ftip',
-                scrollX: true,
                 paging: true,
-                autoWidth: false,
                 ordering: false,
+                searching: true,
                 processing: true,
 
-                select: {
-                    style: 'single'
-                },
+                autoWidth: false,
+                // scrollX: true,
+                // scrollCollapse: true,
+                // fixedHeader: true,
 
                 columns: [
                     {
                         data: null,
+                        width: "60px",
                         render: function (data, type, row, meta) {
                             return meta.row + 1;
                         }
                     },
-                    { data: "ProjectName" },
-                    { data: "DealNo" },
-                    { data: "OrderNumber" },
-                    { data: "OrderStatus" },
-                    { data: "Remark" },/* "HoldReason" */
-                    { data: "Remark" },
-                    { data: "StartDate" },
-                    { data: "ProcessDate" },
-                    { data: "TAT" }
+                    { data: "ProjectName", width: "120px" },
+                    { data: "DealNo", width: "120px" },
+                    { data: "OrderNumber", width: "120px" },
+                    { data: "OrderStatus", width: "170px" },
+                    { data: "Remark", width: "220px" },
+                    { data: "Remark", width: "150px" },
+                    { data: "StartDate", width: "150px" },
+                    { data: "ProcessDate", width: "150px" },
+                    { data: "TAT", width: "120px" }
                 ],
 
                 initComplete: function () {
                     $('#load1').hide();
+                    this.api().columns.adjust();
                 }
             });
         },

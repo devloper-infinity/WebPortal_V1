@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <style>
-        .sec-hero {
+        /*   .sec-hero {
             align-items: center;
             background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%);
             border-radius: 8px;
@@ -39,6 +39,98 @@
             font-size: 13px;
             margin: 8px 0 0;
             max-width: 760px;
+        }*/
+
+        .sec-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 17px 35px;
+            margin-bottom: 25px;
+            border-radius: 18px;
+            color: #fff;
+            background: linear-gradient(115deg,#0a5fd7 0%,#1976f3 35%,#1da8ea 70%,#22d3ee 100%);
+            box-shadow: 0 12px 28px rgba(21, 98, 228, .25);
+        }
+
+            /* Top Wave */
+            .sec-hero::before {
+                content: "";
+                position: absolute;
+                top: -90px;
+                left: -5%;
+                width: 110%;
+                height: 180px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.08);
+                transform: rotate(-3deg);
+            }
+
+            /* Bottom Waves */
+            .sec-hero::after {
+                content: "";
+                position: absolute;
+                left: -10%;
+                bottom: -70px;
+                width: 130%;
+                height: 180px;
+                background: repeating-radial-gradient( ellipse at center, rgba(255,255,255,.18) 0px, rgba(255,255,255,.18) 2px, transparent 3px, transparent 10px );
+                opacity: .35;
+                transform: rotate(-6deg);
+            }
+
+            .sec-hero > * {
+                position: relative;
+                z-index: 2;
+            }
+
+        .sec-hero-icon {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            border-radius: 20%;
+            border: 2px solid rgba(255,255,255,.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.10);
+            backdrop-filter: blur(4px);
+        }
+
+            .sec-hero-icon i {
+                font-size: 34px;
+                color: #fff;
+            }
+
+        .sec-kicker {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: .9;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .sec-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: -10px;
+        }
+
+            .sec-title i {
+                margin-right: 10px;
+            }
+
+        .sec-subtitle {
+            margin: 10px 0 0;
+            font-size: 14px;
+            color: rgba(255,255,255,.92);
+            line-height: 1.6;
+            max-width: 900px;
         }
 
         .sec-stat-grid {
@@ -443,6 +535,138 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* Tracking module header refresh */
+        /*.sec-hero {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 94px;
+            height: 94px;
+            margin: 0 0 18px 0 !important;
+            padding: 22px 28px !important;
+            border: 0 !important;
+            border-radius: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 18px !important;
+            background: linear-gradient(101deg, #2854df 0%, #285fe2 45%, #2ec1cf 100%) !important;
+            box-shadow: none !important;
+            color: #ffffff !important;
+        }
+
+        {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            right: 70px;
+            top: -94px;
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.13);
+            pointer-events: none;
+        }
+
+        {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            right: -22px;
+            top: -54px;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.12);
+            pointer-events: none;
+        }
+
+        .sec-hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sec-hero-icon {
+            order: -1;
+            width: 50px !important;
+            height: 50px !important;
+            min-width: 50px !important;
+            padding: 0 !important;
+            border: 1px solid rgba(255,255,255,.28) !important;
+            border-radius: 16px !important;
+            background: rgba(255,255,255,.14) !important;
+            color: #ffffff !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.06) !important;
+        }
+
+            .sec-hero-icon i {
+                color: #ffffff !important;
+                font-size: 21px !important;
+                line-height: 1 !important;
+                margin: 0 !important;
+            }
+
+            .sec-hero-icon span {
+                display: none !important;
+            }
+
+        .sec-title {
+            color: #ffffff !important;
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0 !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+            text-transform: none !important;
+            text-shadow: 0 1px 1px rgba(3, 48, 120, .35);
+        }
+
+        .sec-subtitle {
+            color: rgba(255,255,255,.94) !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0 !important;
+            line-height: 1.45 !important;
+            margin: 8px 0 0 !important;
+            max-width: 760px !important;
+            text-transform: none !important;
+            text-shadow: 0 1px 1px rgba(3, 48, 120, .28);
+        }
+
+        .sec-kicker {
+            display: none !important;
+        }
+
+        .sec-title i {
+            display: none !important;
+        }*/
+
+        @media (max-width: 768px) {
+            .sec-hero {
+                height: auto;
+                min-height: 94px;
+                padding: 18px 18px !important;
+                border-radius: 18px !important;
+            }
+
+            .sec-hero-icon {
+                width: 46px !important;
+                height: 46px !important;
+                min-width: 46px !important;
+            }
+
+            .sec-title {
+                font-size: 16px !important;
+            }
+
+            .sec-subtitle {
+                font-size: 10px !important;
+            }
+        }
+        /* End tracking module header refresh */
     </style>
 
     <style>
@@ -489,10 +713,19 @@
             width: 100%;
         }
 
-        /* Hide duplicate header created inside scroll body */
+        /* Keep DataTables' sizing header available, but visually hidden */
         .dataTables_scrollBody thead {
-            display: none !important;
+            visibility: collapse !important;
         }
+
+            .dataTables_scrollBody thead th,
+            .dataTables_scrollBody thead td {
+                border: 0 !important;
+                height: 0 !important;
+                line-height: 0 !important;
+                padding-bottom: 0 !important;
+                padding-top: 0 !important;
+            }
 
         /* Main visible DataTable header */
         .dataTables_scrollHead thead th,
@@ -529,6 +762,18 @@
         .dataTables_scroll,
         .dataTables_scrollHead,
         .dataTables_scrollBody {
+            width: 100% !important;
+        }
+
+        .dataTables_scrollHead {
+            overflow: hidden !important;
+        }
+
+        .dataTables_scrollHeadInner,
+        .dataTables_scrollHeadInner table,
+        .dataTables_scrollBody table {
+            box-sizing: border-box !important;
+            margin: 0 !important;
             width: 100% !important;
         }
 
@@ -585,11 +830,58 @@
 
         $(document).ready(function () {
 
+            alert('1');
+
+            allocate_bindProject();
             allocate_bindProcess();
             // allocate_bindAllocatedogrdes_Grid();
             allocate_bindCompleteOrder_Grid();
 
         });
+
+        function allocate_bindProject() {
+
+            $.ajax({
+                type: "POST",
+                url: "Allocate.aspx/GetAllProjectByUser",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function (response) {
+
+                    var ddl = $("#allocate_project");
+
+                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
+
+                    var data = response.d;
+
+                    if (typeof data === "string") {
+                        data = JSON.parse(data || "[]");
+                    }
+
+                    $.each(data, function (i, item) {
+                        ddl.append(
+                            $("<option></option>")
+                                .val(item.ProjectID)
+                                .text(item.ProjectName)
+                        );
+                    });
+                },
+
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Unable to load project list."
+                    });
+                }
+            });
+
+            return false;
+        }
 
     </script>
 
@@ -604,15 +896,28 @@
     <input id="glasscomp_filep" style="display: none;" />
 
     <div class="sec-page">
-        <div class="sec-hero">
+        <%--  <div class="sec-hero">
+            <span class="sec-hero-icon"><i class="fas fa-tasks"></i></span>
             <div>
                 <div class="sec-kicker">Tracking Sheet</div>
                 <h1 class="sec-title"><i class="fas fa-tasks mr-2"></i>Order Allocation & Tracking</h1>
                 <p class="sec-subtitle">Allocate loan orders, monitor workflow progress, and track processing status from assignment to completion.</p>
             </div>
+        </div>--%>
+
+        <div class="sec-hero">
+            <span class="sec-hero-icon">
+                <i class="fas fa-tasks"></i>
+            </span>
+            <div>
+                <h1 class="sec-title">Order Allocation & Tracking</h1>
+                <p class="sec-subtitle">
+                    Allocate loan orders, monitor workflow progress, and track processing status from assignment to completion.
+                </p>
+            </div>
         </div>
 
-        <div class="sec-stat-grid" style="display:none;">
+        <div class="sec-stat-grid" style="display: none;">
             <div class="sec-stat">
                 <span>Allocated</span>
                 <strong id="sectrack_stat_deals"></strong>
@@ -646,7 +951,12 @@
                     <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
                         <div class="bank-form-panel mb-4">
                             <div class="row align-items-end">
-                                <div class="col-lg-6 col-md-8 mb-3 mb-md-0">
+                                <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
+                                    <label for="bank_name" class="bank-form-label">Project</label>
+                                    <select id="allocate_project" name="allocate_project" class="form-control">
+                                    </select>
+                                </div>
+                                <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
                                     <label for="bank_name" class="bank-form-label">Process</label>
                                     <select id="allocate_process" name="allocate_process" class="form-control">
                                     </select>
@@ -716,26 +1026,26 @@
                                     <input type="date" id="allocate_ToDate" name="allocate_ToDate" class="form-control" />
                                 </div>
                                 <div class="col-lg-4 col-md-8 mb-3 mb-md-0">
-                                    <button id="allocate_btnGetData" class="bank-submit-btn" onclick="return allocate_GetLoanReport();">
-                                        <i class="fas fa-file-alt"></i>&nbsp;&nbsp;Get Report
+                                    <button type="button" id="allocate_btnGetData" class="bank-submit-btn" onclick="return allocate_GetLoanReport();">
+                                        <i class="fas fa-search"></i>&nbsp;&nbsp;Get Report
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <div style="overflow: auto;">
+                        <div>
                             <table class="table dataTable no-footer" id="table_Orderreport" style="width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>Sr. #</th>
-                                        <th>Project</th>
-                                        <th>Deal #</th>
-                                        <th>Loan #</th>
-                                        <th>Status</th>
-                                        <th>Hold Reason</th>
-                                        <th>Remark</th>
-                                        <th>Start Date</th>
-                                        <th>Complition Date</th>
-                                        <th>TAT</th>
+                                        <th style="width: 60px">Sr. #</th>
+                                        <th style="width: 100px">Project</th>
+                                        <th style="width: 100px">Deal #</th>
+                                        <th style="width: 100px">Loan #</th>
+                                        <th style="width: 170px">Status</th>
+                                        <th style="width: 220px">Hold Reason</th>
+                                        <th style="width: 140px">Remark</th>
+                                        <th style="width: 250px">Start Date</th>
+                                        <th style="width: 150px">Complition Date</th>
+                                        <th style="width: 150px">TAT</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -912,9 +1222,11 @@
                                 <div class="alloc-feedback-actions">
                                     <button type="button" class="alloc-outline-btn" id="allocfb_btnClear">
                                         <i class="fas fa-eraser mr-1"></i>Clear
+                                   
                                     </button>
                                     <button type="button" class="bank-submit-btn" id="allocfb_btnSave">
                                         <i class="fas fa-save mr-1"></i>Add
+                                   
                                     </button>
                                 </div>
                             </div>
@@ -1088,8 +1400,7 @@
             font-size: 12px;
             opacity: 0.9;
             /*text-transform: uppercase;*/
-        }
-    </style>
+        }    </style>
 
     <style>
         :root {
@@ -1574,8 +1885,7 @@
             .card-tabs > .card-body {
                 padding: 14px !important;
             }
-        }
-    </style>
+        }    </style>
 
     <style>
         .bank-shell-card {
@@ -1629,8 +1939,7 @@
             padding: 24px;
             box-shadow: 0 8px 18px rgba(13, 110, 253, 0.22);
             background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%) !important;
-        }
-    </style>
+        }    </style>
 
     <script>
 

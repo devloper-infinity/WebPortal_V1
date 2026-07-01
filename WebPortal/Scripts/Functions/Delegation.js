@@ -2,6 +2,7 @@
 
 console.log('delegates');
 
+
 function pm_parseResponse(res, fallback) {
     var data = res && res.d !== undefined ? res.d : res;
 
@@ -129,14 +130,13 @@ function pm_bindDelegationGrid() {
 
 function pm_saveDelegation() {
 
-    alert('message');
-
     // var delegationId = parseInt($("#hdnDelegationID").val() || "0");
     var pmEmployeeId = parseInt($("#ddlPMEmployee").val() || "0");
     var actingEmployeeId = parseInt($("#ddlActingEmployee").val() || "0");
     var fromDate = $("#txtFromDate").val();
     var toDate = $("#txtToDate").val();
     var remark = $("#txtRemark").val().trim();
+
 
     if (pmEmployeeId <= 0) {
         Swal.fire("Validation", "Please select PM Name.", "warning");
@@ -168,11 +168,22 @@ function pm_saveDelegation() {
         return;
     }
 
+    // beforeSend: function () {
+    //     Swal.fire({
+    //         title: "Please wait",
+    //         text: "Saving delegation...",
+    //         allowOutsideClick: false,
+    //         didOpen: function () {
+    //             Swal.showLoading();
+    //         }
+    //     });
+    // },
+
     $.ajax({
         type: "POST",
-        url: "PMDelegationMaster.aspx/SaveDelegation",
+        url: "ResponsibilityDelegation.aspx/SaveDelegation",
         data: JSON.stringify({
-            DelegationID: delegationId,
+            // DelegationID: delegationId,
             PMEmployeeID: pmEmployeeId,
             ActingEmployeeID: actingEmployeeId,
             FromDate: fromDate,
@@ -181,19 +192,10 @@ function pm_saveDelegation() {
         }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        beforeSend: function () {
-            Swal.fire({
-                title: "Please wait",
-                text: "Saving delegation...",
-                allowOutsideClick: false,
-                didOpen: function () {
-                    Swal.showLoading();
-                }
-            });
-        },
+
         success: function (res) {
             var data = pm_parseResponse(res, { Success: false, Message: "Something went wrong." });
-            Swal.close();
+            // Swal.close();
 
             if (data.Success) {
                 Swal.fire("Success", data.Message, "success");

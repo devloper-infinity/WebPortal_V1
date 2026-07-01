@@ -358,6 +358,26 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetAllProjectFeedbackinERP(int ProjectId, string OrderNo, string Process, string FeedbackBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_CheckFeedbackInERPByProjectId_New");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Projectid", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, ProjectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, OrderNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Process);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackBy", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, FeedbackBy);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetAllProjectFeedbackinERP_Servicing(int ProjectId, string OrderNo, string Process, string FeedbackBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_CheckFeedbackInERPByProjectId_servicing");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Projectid", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, ProjectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, OrderNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Process);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackBy", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, FeedbackBy);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
 
         public DataTable GetAllProjectDealNo_OrderNo_UW_Process(string ProcessName, string Reviewer, string Type)
         {
@@ -449,15 +469,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.ExecuteNonQueryCmd(cmd);
             return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
-
-
-        public DataTable GetAllProjectByUserRights_ForAddFeedback(string EmployeeID)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[WBT_usp_GetAllProjectByUserRightsFor_OnlineTracking_ForAddFeedback]");
-            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, EmployeeID);
-            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
-        }
+     
 
         public DataTable getProcess(int ProjectID)
         {

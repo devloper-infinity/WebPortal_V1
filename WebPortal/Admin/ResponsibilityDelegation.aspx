@@ -168,14 +168,16 @@
         $(document).ready(function () {
 
             pm_bindEmployees();
-            pm_bindDelegationGrid();
+            // pm_bindDelegationGrid();
         });
 
     </script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-    <script src="../Scripts/Functions/Delegation.js?v=@DateTime.Now.Ticks"></script>
+    <%--<script src="../Scripts/Functions/Delegation.js?v=@DateTime.Now.Ticks"></script>--%>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../Scripts/Functions/Delegation.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/Functions/Delegation.js")).Ticks %>"></script>
 
 </asp:Content>
 

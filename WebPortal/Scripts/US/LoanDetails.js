@@ -787,9 +787,9 @@ function usfeedback_submit() {
 function clearusfeedbackForm() {
 
     // Textboxes
-    $('#usfeedback_projectno').val('');
-    $('#usfeedback_dealno').val('');
-    $('#usfeedback_loanno').val('');
+    // $('#usfeedback_projectno').val('');
+    // $('#usfeedback_dealno').val('');
+    // $('#usfeedback_loanno').val('');
     $('#usfeedback_reviewer').val('');
     $('#usfeedback_reviewdate').val('');
     $('#usfeedback_noofbwr').val('');
