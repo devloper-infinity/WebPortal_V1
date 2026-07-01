@@ -279,7 +279,7 @@
                 },
                 function (error) {
                     $("#load1").hide();
-                    $("#dash-queue-body").html("<tr><td colspan=\"7\"><div class=\"dash-empty\">" + safeHtml(error.get_message ? error.get_message() : error.responseText) + "</div></td></tr>");
+                    $("#dash-queue-body").html("<tr><td colspan=\"6\"><div class=\"dash-empty\">" + safeHtml(error.get_message ? error.get_message() : error.responseText) + "</div></td></tr>");
                 }
             );
 
@@ -294,7 +294,7 @@
             $("#dash-card-latest").text(data.LatestStarted || "-");
 
             if (!dashboardQueueRows.length) {
-                $("#dash-queue-body").html("<tr><td colspan=\"7\"><div class=\"dash-empty\">No in-process loans found.</div></td></tr>");
+                $("#dash-queue-body").html("<tr><td colspan=\"6\"><div class=\"dash-empty\">No in-process loans found.</div></td></tr>");
                 return;
             }
 
@@ -305,7 +305,6 @@
                     "  <td title=\"" + safeAttr(row.Client) + "\">" + safeHtml(row.Client) + "</td>" +
                     "  <td title=\"" + safeAttr(row.DealNo) + "\">" + safeHtml(row.DealNo) + "</td>" +
                     "  <td title=\"" + safeAttr(row.LoanNo) + "\">" + safeHtml(row.LoanNo) + "</td>" +
-                    "  <td title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
                     "  <td title=\"" + safeAttr(row.StartDatetime) + "\">" + safeHtml(row.StartDatetime) + "</td>" +
                     "  <td>" + safeHtml(formatElapsed(row.ElapsedMinutes)) + "</td>" +
                     "</tr>";
@@ -339,7 +338,7 @@
         }
 
         function formatElapsed(value) {
-            var minutes = parseInt(value || 0, 10);
+            var minutes = Math.max(0, parseInt(value || 0, 10) || 0);
             if (minutes < 60) {
                 return minutes + " min";
             }
@@ -424,7 +423,6 @@
                             <th>Client</th>
                             <th>Deal #</th>
                             <th>Loan #</th>
-                            <th>Process</th>
                             <th>Start DateTime</th>
                             <th>Elapsed</th>
                         </tr>

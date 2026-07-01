@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -230,6 +230,8 @@ namespace WebPortal.US
 
         private static string FormatElapsed(int minutes)
         {
+            minutes = Math.Max(0, minutes);
+
             if (minutes < 60)
             {
                 return minutes.ToString(System.Globalization.CultureInfo.InvariantCulture) + " min";

@@ -230,7 +230,6 @@
                     "  <td title=\"" + safeAttr(row.DealNo) + "\">" + safeHtml(row.DealNo) + "</td>" +
                     "  <td title=\"" + safeAttr(row.LoanNo) + "\">" + safeHtml(row.LoanNo) + "</td>" +
                     "  <td title=\"" + safeAttr(row.OrderDate) + "\">" + safeHtml(row.OrderDate) + "</td>" +
-                    "  <td title=\"" + safeAttr(row.Process) + "\">" + safeHtml(row.Process) + "</td>" +
                     "  <td title=\"" + safeAttr(row.Review) + "\">" + safeHtml(row.Review) + "</td>" +
                     "  <td title=\"" + safeAttr(row.StartDatetime) + "\">" + safeHtml(row.StartDatetime) + "</td>" +
                     "  <td>" + safeHtml(formatElapsed(row.ElapsedMinutes)) + "</td>" +
@@ -248,7 +247,7 @@
                     destroy: true,
                     scrollX: true,
                     ordering: true,
-                    order: [[7, "desc"]],
+                    order: [[6, "desc"]],
                     pageLength: 25,
                     buttons: [
                         { extend: "excelHtml5", title: "My Queue", autoFilter: true }
@@ -282,7 +281,7 @@
         }
 
         function formatElapsed(value) {
-            var minutes = parseInt(value || 0, 10);
+            var minutes = Math.max(0, parseInt(value || 0, 10) || 0);
             if (minutes < 60) {
                 return minutes + " min";
             }
@@ -340,7 +339,6 @@
                             <th>Deal #</th>
                             <th>Loan #</th>
                             <th>Order Date</th>
-                            <th>Process</th>
                             <th>Reviewer</th>
                             <th>Start DateTime</th>
                             <th>Elapsed</th>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -51,6 +51,7 @@ SELECT
     CONVERT(VARCHAR(19), StartDatetime, 120) AS StartDatetime,
     CASE
         WHEN StartDatetime IS NULL THEN 0
+        WHEN DATEDIFF(MINUTE, StartDatetime, GETDATE()) < 0 THEN 0
         ELSE DATEDIFF(MINUTE, StartDatetime, GETDATE())
     END AS ElapsedMinutes,
     ISNULL([Status], 'Started') AS Status
