@@ -26,10 +26,10 @@
             color: var(--dp-text);
             margin-bottom: 6px;
         }
-
+/*
         .dp-page {
             padding: 18px 18px 28px;
-        }
+        }*/
 
         .dp-hero {
             background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 48%, #06b6d4 100%);

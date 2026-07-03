@@ -512,6 +512,8 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
+
+
     <div class="condition-hero">
         <div class="condition-title-wrap">
             <span class="condition-title-icon"><i class="fas fa-copy"></i></span>

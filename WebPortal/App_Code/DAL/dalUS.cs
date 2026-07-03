@@ -177,7 +177,6 @@ ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
             return dt;
         }
 
-
         public DataTable GetATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUSATRFeedbacks");

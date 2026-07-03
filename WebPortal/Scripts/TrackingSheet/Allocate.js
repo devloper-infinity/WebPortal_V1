@@ -11,7 +11,7 @@ function getOrderRowValue(row, keys) {
         var value = row[keys[i]];
 
         if (value !== undefined && value !== null && $.trim(String(value)) !== '') {
-            return $.trim(String(value)); table_Orderreport
+            return $.trim(String(value));
         }
     }
 
@@ -321,17 +321,16 @@ function allocate_bindCompleteOrder_Grid() {
             $('#table_OrderComplete').DataTable({
 
                 data: dataArray,
-                dom: 'ftip',
-                scrollX: true,
-                scrollCollapse: true,
-                paging: true,
-                autoWidth: false,
-                ordering: false,
-                processing: true,
+                // dom: 'ftip',
+                // scrollCollapse: true,
+                 paging: false,
+                // autoWidth: false,
+                // ordering: false,
+                // processing: true,
 
-                select: {
-                    style: 'single'
-                },
+                // select: {
+                //     style: 'single'
+                // },
 
                 columns: [
                     {
@@ -347,7 +346,7 @@ function allocate_bindCompleteOrder_Grid() {
                         data: null,
                         render: function (data, type, row) {
                             return `
-        <select class="form-control Status" style="min-width:150px;" onchange="enableHoldRemark(this)">
+        <select class="form-control Status" onchange="enableHoldRemark(this)">
             <option value="">Select</option>
             <option value="Completed" ${data === "Completed" ? "selected" : ""}>Completed</option>
             <option value="Hold" ${data === "Hold" ? "selected" : ""}>Hold</option>
@@ -361,7 +360,7 @@ function allocate_bindCompleteOrder_Grid() {
                             var disabled = row.Status === "Hold" ? "" : "disabled";
 
                             return `
-        <select class="form-control HoldReason" ${disabled} style="min-width:270px;">
+        <select class="form-control HoldReason" ${disabled}>
             <option value="">Select</option>
             <option value="PDF Issue" ${data === "PDF Issue" ? "selected" : ""}>PDF Issue</option>
             <option value="Audit Worksheet Not available in Box" ${data === "Audit Worksheet Not available in Box" ? "selected" : ""}>Audit Worksheet Not available in Box</option>
@@ -385,7 +384,7 @@ function allocate_bindCompleteOrder_Grid() {
                     {
                         data: "Remark",
                         render: function (data, type, row) {
-                            return `<textarea class="form-control Remark" style="min-width:400px;">${data || ""}</textarea>`;
+                            return `<textarea class="form-control Remark">${data || ""}</textarea>`;
                         }
                     },
                     { data: "ProjectName" },
@@ -1202,5 +1201,6 @@ function allocate_GetLoanReport_Grid(fromDate, toDate) {
         }
     });
 }
+
 
 

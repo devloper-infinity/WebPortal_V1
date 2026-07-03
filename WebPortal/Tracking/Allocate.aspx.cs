@@ -146,7 +146,7 @@ namespace WebPortal.Tracking
             }
             else
             {
-                ReturnValue = new bllTracking().InsertModifyUWOrderOC22(htParam);
+                ReturnValue = new bllTracking().InsertModifyUWOrderOC22(htParam); /* created proc AllocateOrder_Self*/
             }
 
             return ReturnValue;

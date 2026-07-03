@@ -21,7 +21,7 @@
         .resignation-page {
             color: var(--resg-ink);
             font-size: 13px;
-           /* padding: 16px 0 26px;*/
+            /* padding: 16px 0 26px;*/
         }
 
         .resignation-shell {
@@ -39,8 +39,7 @@
             padding: 16px 18px;
             border: 1px solid var(--resg-border);
             border-radius: 15px;
-           /* background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 56%, #0891b2 100%);*/
-           background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
+            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
             color: #fff;
             box-shadow: 0 14px 32px rgba(15, 23, 42, .12);
         }
@@ -570,12 +569,12 @@
                     <li class="nav-item">
                         <a class="nav-link active" id="nav_changeAcc" data-toggle="pill" href="#tab-changeAcc" role="tab" aria-controls="tab-changeAcc" aria-selected="true">
                             <i class="fas fa-university"></i>&nbsp;&nbsp;Change Bank Account
-                      </a>
+                        </a>
                     </li>
                     <li class="nav-item" id="nav_ApproveAcc" runat="server" onclick="return bank_BindApprovalData();">
                         <a class="nav-link" id="tab-approveAcc-link" data-toggle="pill" href="#tab-approveAcc" role="tab" aria-controls="tab-approveAcc" aria-selected="false" data-resg-load="approveAcc">
                             <i class="fas fa-check-circle"></i>&nbsp;&nbsp;Approve Bank Account 
-                      </a>
+                        </a>
                     </li>
                 </ul>
                 <div class="tab-content">

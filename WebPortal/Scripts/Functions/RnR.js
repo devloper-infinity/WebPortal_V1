@@ -1,201 +1,265 @@
-﻿var rnr_table;
-var html;
+var rnr_table;
 var rnr_snap_table;
-var rnr_snap_html;
 
-function blankForNull(s) {
-    return s == "null" || s == null ? "" : s;
+function blankForNull(value) {
+    return value === 'null' || value === null || value === undefined ? '' : value;
+}
+
+function rnrEscapeHtml(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    return String(value).replace(/[&<>"']/g, function (character) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[character];
+    });
+}
+
+function rnrJsString(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    return String(value)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '')
+        .replace(/\n/g, ' ');
+}
+
+function rnrShowMessage(message, isError) {
+    $('#rnr_errmsg')
+        .text(message)
+        .css('color', isError ? '#b42318' : '#172033');
+
+    $('#rnr_dverror').modal('show');
 }
 
 function rnr_BindYear() {
-
     var start = new Date().getFullYear();
-
-    var select = document.getElementById("rnr_year");
-    let options = select.getElementsByTagName('option');
+    var select = document.getElementById('rnr_year');
+    var options = select.getElementsByTagName('option');
 
     for (var i = options.length; i--;) {
         select.removeChild(options[i]);
     }
 
-    var selectSnap = document.getElementById("rnrSnap_year");
-    let optionsSnap = selectSnap.getElementsByTagName('option');
+    var selectSnap = document.getElementById('rnrSnap_year');
+    var optionsSnap = selectSnap.getElementsByTagName('option');
 
-    for (var i = optionsSnap.length; i--;) {
-        selectSnap.removeChild(optionsSnap[i]);
+    for (var j = optionsSnap.length; j--;) {
+        selectSnap.removeChild(optionsSnap[j]);
     }
 
-    $("#rnr_year").append($("<option></option>").val("Select").html("Select"));
-    $("#rnrSnap_year").append($("<option></option>").val("Select").html("Select"));
+    $('#rnr_year').append($('<option></option>').val('').html('Select'));
+    $('#rnrSnap_year').append($('<option></option>').val('').html('Select'));
 
-    for (var i = start; i > start - 5; i--) {
-        $("#rnr_year").append($("<option></option>").val(i).html(i));
-        $("#rnrSnap_year").append($("<option></option>").val(i).html(i));
+    for (var year = start; year > start - 5; year--) {
+        $('#rnr_year').append($('<option></option>').val(year).html(year));
+        $('#rnrSnap_year').append($('<option></option>').val(year).html(year));
     }
 }
 
 function rnr_bindusers() {
-    var select = document.getElementById("rnr_employee");
-    let options = select.getElementsByTagName('option');
+    var select = document.getElementById('rnr_employee');
+    var options = select.getElementsByTagName('option');
 
     for (var i = options.length; i--;) {
         select.removeChild(options[i]);
     }
-    $("#rnr_employee").append($("<option></option>").val("").html("Select"));
+
+    $('#rnr_employee').append($('<option></option>').val('').html('Select'));
 
     $.ajax({
-        type: "POST", url: "RewardAndRecognition.aspx/GetAllEmployees", dataType: "json", contentType: "application/json",
+        type: 'POST',
+        url: 'RewardAndRecognition.aspx/GetAllEmployees',
+        dataType: 'json',
+        contentType: 'application/json',
         success: function (res1) {
-            var dataArray = JSON.parse(res1.d);
+            var dataArray = JSON.parse(res1.d || '[]');
             $.each(dataArray, function (data1, value1) {
-                $("#rnr_employee").append($("<option></option>").val(value1.EmployeeID).html(value1.Code1));
+                $('#rnr_employee').append($('<option></option>').val(value1.EmployeeID).html(rnrEscapeHtml(value1.Code1)));
             });
         }
     });
 }
 
 function rnr_bindbranches() {
-    var select = document.getElementById("rnrSnap_location");
-    let options = select.getElementsByTagName('option');
+    var select = document.getElementById('rnrSnap_location');
+    var options = select.getElementsByTagName('option');
 
     for (var i = options.length; i--;) {
         select.removeChild(options[i]);
     }
-    $("#rnrSnap_location").append($("<option></option>").val("Select").html("Select"));
+
+    $('#rnrSnap_location').append($('<option></option>').val('').html('Select'));
+
     $.ajax({
-        type: "POST", url: "CreateProfile.aspx/GetBranches", dataType: "json", contentType: "application/json",
+        type: 'POST',
+        url: 'CreateProfile.aspx/GetBranches',
+        dataType: 'json',
+        contentType: 'application/json',
         success: function (res) {
             $.each(res.d, function (data, value) {
-                $("#rnrSnap_location").append($("<option></option>").val(value.BranchID).html(value.BranchName));
-            })
+                $('#rnrSnap_location').append($('<option></option>').val(value.BranchID).html(rnrEscapeHtml(value.BranchName)));
+            });
         }
     });
 }
 
 function rnr_bidgrid() {
     $('#load1').show();
-    html = '';
+
     $.ajax({
-        url: "RewardAndRecognition.aspx/GetGridData",
-        type: "POST",
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
+        url: 'RewardAndRecognition.aspx/GetGridData',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            var date;
+            var dataArray = JSON.parse(data.d || '[]');
+            var html = '';
+
             $.each(dataArray, function (index, value) {
-
                 html += '<tr>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Quarter) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.DateofBirth) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Branch) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Domain) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Subdomain) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Department) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Designation) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ReportingManager) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.CurrentStatus) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LatestLoginDate) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.DailyTaskProductivity) + '</td>';
-                html += '<td style="text-wrap: nowrap;">' + blankForNull(value.FinalStatus) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Quarter) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Code) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Name) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.JoiningDate) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.DateofBirth) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Branch) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Domain) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Subdomain) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Department) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Designation) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.ReportingManager) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.CurrentStatus) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.LatestLoginDate) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.DailyTaskProductivity) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.FinalStatus) + '</td>';
                 html += '</tr>';
-
-
             });
 
             if ($.fn.dataTable.isDataTable('#rnr_table')) {
                 rnr_table.destroy();
             }
+
             $('#rnr_table tbody').html(html);
-            //else
+
             rnr_table = $('#rnr_table').DataTable({
                 dom: 'lBftip',
                 scrollX: true,
                 destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
+                paging: true,
+                autoWidth: true,
+                ordering: false,
                 processing: true,
-                'select': {
-                    'style': 'single'
+                select: {
+                    style: 'single'
                 },
-
-                initComplete: function () {
-                    $('#load1').hide();
+                language: {
+                    emptyTable: 'No recognition records found'
                 },
-                "rowCallback": function (row, data) {
-                    var val = data[3];
-                },
-
                 buttons: [
                     {
-                        extend: 'excelHtml5', title: 'Reward and Recognition', autoFilter: true,
+                        extend: 'excelHtml5',
+                        title: 'Reward and Recognition',
+                        autoFilter: true,
                         exportOptions: {
                             columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
                         }
-                    },
+                    }
                 ],
+                initComplete: function () {
+                    $('#load1').hide();
+                }
             });
-
-            //$('#fnalize tbody').on('click', 'tr', function () {
-            //    row = table.row(this).data();
-            //});
         },
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            rnrShowMessage(error && error.responseText ? error.responseText : 'Recognition records could not be loaded.', true);
         }
     });
+
     return false;
 }
 
 function rnr_Submit() {
+    var rnr_year = $('#rnr_year').val();
+    var rnr_quarter = $('#rnr_quarter').val();
+    var rnr_employee = $('#rnr_employee').val();
 
-    var ddlyear = document.getElementById("rnr_year");
-    var rnr_year = ddlyear.options[ddlyear.selectedIndex].value;
-    var ddlquarter = document.getElementById("rnr_quarter");
-    var rnr_quarter = ddlquarter.options[ddlquarter.selectedIndex].value;
-    var ddlemp = document.getElementById("rnr_employee");
-    var rnr_employee = ddlemp.options[ddlemp.selectedIndex].value;
+    if (!rnr_year) {
+        rnrShowMessage('Please select year.', true);
+        $('#rnr_year').focus();
+        return false;
+    }
+
+    if (!rnr_quarter) {
+        rnrShowMessage('Please select quarter.', true);
+        $('#rnr_quarter').focus();
+        return false;
+    }
+
+    if (!rnr_employee) {
+        rnrShowMessage('Please select employee.', true);
+        $('#rnr_employee').focus();
+        return false;
+    }
 
     PageMethods.InsertRewardDetails(rnr_year, rnr_quarter, 'Completed', rnr_employee, rnr_OnSuccess, rnr_OnError);
     return false;
 }
 
 function rnr_OnSuccess(result) {
-
     if (result > 0) {
-        document.getElementById("rnr_errmsg").innerHTML = "Data saved successfully!";
-        $('#rnr_dverror').modal('show');
+        rnrShowMessage('Data saved successfully!', false);
     }
     else {
-        document.getElementById("rnr_errmsg").innerHTML = "Error occured while saving data. Please contact administrator!";
-        document.getElementById("rnr_errmsg").style.color = 'red';
-        $('#rnr_dverror').modal('show');
-        return false;
+        rnrShowMessage('Error occurred while saving data. Please contact administrator!', true);
     }
-    rnr_Message();
+
     return false;
 }
 
 function rnr_OnError(error) {
-    alert(error);
+    var message = error && error.get_message ? error.get_message() : error;
+    rnrShowMessage(message, true);
 }
 
 function rnrSnap_Submit() {
+    var rnrS_year = $('#rnrSnap_year').val();
+    var rnrS_quarter = $('#rnrSnap_quarter').val();
+    var rnr_Location = $('#rnrSnap_location').val();
+    var locationName = $('#rnrSnap_location option:selected').text();
 
-    var ddlSyear = document.getElementById("rnrSnap_year");
-    var rnrS_year = ddlSyear.options[ddlSyear.selectedIndex].value;
-    var ddlSquarter = document.getElementById("rnrSnap_quarter");
-    var rnrS_quarter = ddlSquarter.options[ddlSquarter.selectedIndex].value;
-    var ddl_Location = document.getElementById("rnrSnap_location");
-    var rnr_Location = ddl_Location.options[ddl_Location.selectedIndex].value;
+    if (!rnrS_year) {
+        rnrShowMessage('Please select year.', true);
+        $('#rnrSnap_year').focus();
+        return false;
+    }
 
-    var locationName = ddl_Location.options[ddl_Location.selectedIndex].text;
+    if (!rnrS_quarter) {
+        rnrShowMessage('Please select quarter.', true);
+        $('#rnrSnap_quarter').focus();
+        return false;
+    }
+
+    if (!rnr_Location) {
+        rnrShowMessage('Please select location.', true);
+        $('#rnrSnap_location').focus();
+        return false;
+    }
+
+    if (!$('#RewardRecg_file').val()) {
+        rnrShowMessage('Please select snaps to upload.', true);
+        return false;
+    }
 
     PageMethods.InsertRnRSnaps(rnrS_year, rnrS_quarter, rnr_Location, locationName, rnrSnap_OnSuccess, rnrSnap_OnError);
     return false;
@@ -203,21 +267,18 @@ function rnrSnap_Submit() {
 
 function rnrSnap_OnSuccess(result) {
     if (result > 0) {
-        document.getElementById("rnr_errmsg").innerHTML = "Snaps uploaded successfully!";
-        $('#rnr_dverror').modal('show');
+        rnrShowMessage('Snaps uploaded successfully!', false);
     }
     else {
-        document.getElementById("rnr_errmsg").innerHTML = "Error occured while uploading snaps. Please contact administrator!";
-        document.getElementById("rnr_errmsg").style.color = 'red';
-        $('#rnr_dverror').modal('show');
-        return false;
+        rnrShowMessage('Error occurred while uploading snaps. Please contact administrator!', true);
     }
-   // rnr_Message();
+
     return false;
 }
 
 function rnrSnap_OnError(error) {
-    alert(error);
+    var message = error && error.get_message ? error.get_message() : error;
+    rnrShowMessage(message, true);
 }
 
 function rnr_Message() {
@@ -225,151 +286,152 @@ function rnr_Message() {
 }
 
 function rnr_snap_binddata() {
-
     $('#load1').show();
-    rnr_snap_html = '';
+
     $.ajax({
-        url: "RewardAndRecognition.aspx/GetAllRnRSnaps",
-        type: "POST",
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
+        url: 'RewardAndRecognition.aspx/GetAllRnRSnaps',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
+            var dataArray = JSON.parse(data.d || '[]');
+            var html = '';
+
             $.each(dataArray, function (index, value) {
+                var imageCount = parseInt(blankForNull(value.ImgCount), 10) || 0;
+                var imagePath = rnrJsString(value.Path1);
 
-                rnr_snap_html += '<tr>';
-                if (value.ImgCount > 0)
-                    rnr_snap_html += '<td style="text-wrap: nowrap; text-align:center;"><a class="dropdown-item" href=#! onclick="display_rnr_snap(\'' + blankForNull(value.Path1) + '\')"><span style="color: dodgerblue; font-size:large;"><i class="uil-images"></i></span></a></td>';
-                else
-                    rnr_snap_html += '<td style="text-wrap: nowrap; text-align:center;"><a class="dropdown-item isDisabled" href=#!><span style="color: dodgerblue; font-size:large;"><i class="uil-images"></i></span></a></td>';
+                html += '<tr>';
+                if (imageCount > 0) {
+                    html += "<td class=\"text-center\"><button type=\"button\" class=\"rnr-image-action\" title=\"View Images\" onclick=\"return display_rnr_snap('" + imagePath + "');\"><i class=\"uil uil-images\" aria-hidden=\"true\"></i></button></td>";
+                }
+                else {
+                    html += '<td class="text-center"><span class="rnr-image-action-disabled" title="No Images"><i class="uil uil-images" aria-hidden="true"></i></span></td>';
+                }
 
-                rnr_snap_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LocationName) + '</td>';
-                rnr_snap_html += '<td>' + blankForNull(value.Year) + '</td>';
-                rnr_snap_html += '<td>' + blankForNull(value.Quarter) + '</td>';
-                rnr_snap_html += '<td>' + blankForNull(value.UploadedBy) + '</td>';
-                rnr_snap_html += '<td>' + blankForNull(value.UploadedDate) + '</td>';
-                rnr_snap_html += '</tr>';
+                html += '<td>' + rnrEscapeHtml(value.LocationName) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Year) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.Quarter) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.UploadedBy) + '</td>';
+                html += '<td>' + rnrEscapeHtml(value.UploadedDate) + '</td>';
+                html += '</tr>';
             });
 
             if ($.fn.dataTable.isDataTable('#table_rnr_snap')) {
                 rnr_snap_table.destroy();
             }
-            $('#table_rnr_snap tbody').html(rnr_snap_html);
-            //else
+
+            $('#table_rnr_snap tbody').html(html);
+
             rnr_snap_table = $('#table_rnr_snap').DataTable({
                 dom: 'lBftip',
                 scrollX: true,
                 destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
+                paging: true,
+                autoWidth: true,
+                ordering: false,
                 processing: true,
-                'select': {
-                    'style': 'single'
+                select: {
+                    style: 'single'
                 },
-                initComplete: function () {
-                    $('#load1').hide();
-                },
-                "rowCallback": function (row, data) {
-
-                    var val = data[3];
+                language: {
+                    emptyTable: 'No snap records found'
                 },
                 buttons: [
                     {
-                        extend: 'excelHtml5', title: 'Reward And Recognition Report', autoFilter: true,
+                        extend: 'excelHtml5',
+                        title: 'Reward And Recognition Report',
+                        autoFilter: true,
                         exportOptions: {
-                            columns: [0, 1, 2, 3]
+                            columns: [1, 2, 3, 4, 5]
                         }
-                    },
+                    }
                 ],
+                initComplete: function () {
+                    $('#load1').hide();
+                }
             });
-
-            //$('#fnalize tbody').on('click', 'tr', function () {
-            //    row = table.row(this).data();
-            //});
         },
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            rnrShowMessage(error && error.responseText ? error.responseText : 'Snap records could not be loaded.', true);
         }
     });
+
     return false;
 }
 
 function display_rnr_snap(imgpath) {
+    var parts = (imgpath || '').split(',').filter(function (item) {
+        return $.trim(item) !== '';
+    });
 
-    $("#rnr_snap_display").modal('show')
+    var title = 'Recognition Snaps';
+    var images = parts;
 
-    const images = imgpath.split(",");
+    if (parts.length > 1 && parts[0].indexOf('\\') === -1 && parts[0].indexOf('/') === -1) {
+        title = parts[0];
+        images = parts.slice(1);
+    }
 
-    var dvmain = document.getElementById("dvslidermain");
-    dvmain.innerHTML = "";
-    var dvinner = document.createElement("div");
-    dvinner.id = "carouselExampleIndicators";
-    dvinner.setAttribute("data-ride", "carousel");
-    dvinner.classList.add("carousel");
-    dvinner.classList.add("slide");
+    $('#displayrnr_snap_Header').text(title);
+
+    var dvmain = document.getElementById('dvslidermain');
+    dvmain.innerHTML = '';
+
+    if (images.length === 0) {
+        dvmain.innerHTML = '<div class="text-center text-muted py-4">No images available.</div>';
+        $('#rnr_snap_display').modal('show');
+        $('#load1').hide();
+        return false;
+    }
+
+    var carousel = document.createElement('div');
+    carousel.id = 'carouselRnrImages';
+    carousel.setAttribute('data-ride', 'carousel');
+    carousel.className = 'carousel slide';
+
+    var inner = document.createElement('div');
+    inner.className = 'carousel-inner';
+    inner.setAttribute('role', 'listbox');
+
+    for (var index = 0; index < images.length; index++) {
+        var slide = document.createElement('div');
+        slide.className = 'carousel-item' + (index === 0 ? ' active' : '');
+
+        var img = document.createElement('img');
+        img.className = 'rnr-carousel-image';
+        img.setAttribute('src', $.trim(images[index]).replace(/\\/g, '/'));
+        img.setAttribute('alt', title);
+
+        slide.appendChild(img);
+        inner.appendChild(slide);
+    }
+
+    carousel.appendChild(inner);
 
     if (images.length > 1) {
+        var prev = document.createElement('a');
+        prev.className = 'carousel-control-prev';
+        prev.setAttribute('href', '#carouselRnrImages');
+        prev.setAttribute('role', 'button');
+        prev.setAttribute('data-slide', 'prev');
+        prev.innerHTML = '<span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="sr-only">Previous</span>';
 
-        var a = document.createElement("a");
-        a.classList.add("carousel-control-prev");
-        a.setAttribute("href", "#carouselExampleIndicators");
-        a.setAttribute("role", "button");
-        a.setAttribute("data-slide", "prev");
-        var span = document.createElement("span");
-        span.classList.add("carousel-control-prev-icon");
-        a.appendChild(span);
-        dvinner.appendChild(a);
-        a = document.createElement("a");
-        a.classList.add("carousel-control-next");
-        a.setAttribute("href", "#carouselExampleIndicators");
-        a.setAttribute("role", "button");
-        a.setAttribute("data-slide", "next");
-        span = document.createElement("span");
-        span.classList.add("carousel-control-next-icon");
-        a.appendChild(span);
-        dvinner.appendChild(a);
+        var next = document.createElement('a');
+        next.className = 'carousel-control-next';
+        next.setAttribute('href', '#carouselRnrImages');
+        next.setAttribute('role', 'button');
+        next.setAttribute('data-slide', 'next');
+        next.innerHTML = '<span class="carousel-control-next-icon" aria-hidden="true"></span><span class="sr-only">Next</span>';
+
+        carousel.appendChild(prev);
+        carousel.appendChild(next);
     }
 
-    var dvinner2 = document.createElement("div");
-    dvinner2.classList.add("carousel-inner");
-    dvinner2.setAttribute("role", "listbox");
-
-    for (let index = 0; index < images.length; index++) {
-        if (images[index] != "") {
-
-            if (index == 0) {
-                document.getElementById("displayrnr_snap_Header").innerHTML = images[index];
-            }
-
-            if (index > 0) {
-
-                //  alert(images[index]);
-
-                var dvslide = document.createElement("div");
-                dvslide.classList.add("carousel-item");
-                if (index == 1)
-                    dvslide.classList.add("active");
-                var dvouter12 = document.createElement("div");
-                dvouter12.classList.add("col-lg-12");
-                dvouter12.style.textAlign = "center";
-
-                var img = document.createElement("IMG");
-                img.setAttribute("src", images[index].replace("\\", "//"));
-                img.setAttribute("width", "650");
-                img.setAttribute("height", "500");
-                dvouter12.appendChild(img);
-
-                dvslide.appendChild(dvouter12);
-                dvinner2.appendChild(dvslide);
-                dvinner.appendChild(dvinner2);
-                dvmain.appendChild(dvinner);
-            }
-        }
-    }
-
+    dvmain.appendChild(carousel);
+    $('#rnr_snap_display').modal('show');
     $('#load1').hide();
+
     return false;
 }

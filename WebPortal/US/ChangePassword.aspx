@@ -1,9 +1,13 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ChangePassword.aspx.cs" Inherits="WebPortal.Admin.ChangePassword" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="ChangePassword.aspx.cs" Inherits="WebPortal.US.ChangePassword" %>
+
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        .cp-page {
+        }
+
         .cp-hero {
             position: relative;
             overflow: hidden;
@@ -14,9 +18,8 @@
             margin-bottom: 22px;
             border-radius: 18px;
             color: #fff;
-           /* background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);*/
-            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 65%, #22c1dc 100%);
-            box-shadow: 0 14px 20px rgba(21, 98, 150, .24);
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            box-shadow: 0 14px 32px rgba(21, 98, 228, .24);
         }
 
             .cp-hero:before {
@@ -220,7 +223,8 @@
 
         .cp-btn-primary {
             color: #fff;
-            background: linear-gradient(120deg, #1d4ed8, #2563eb 65%, #22c1dc);
+            /* background: linear-gradient(120deg, #1d4ed8, #2563eb 65%, #22c1dc);*/
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
             box-shadow: 0 8px 18px rgba(37, 99, 235, .25);
         }
 

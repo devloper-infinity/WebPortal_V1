@@ -1,125 +1,195 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="FestivalWishesMaster.aspx.cs" Inherits="WebPortal.Admin.FestivalWishesMaster" %>
 
-
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <link rel="stylesheet" href="../plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css" />
+
     <style>
         :root {
-            --fw-primary: #4f46e5;
-            --fw-primary-dark: #3730a3;
-            --fw-accent: #06b6d4;
-            --fw-bg: #f6f8ff;
-            --fw-surface: rgba(255, 255, 255, 0.92);
-            --fw-text: #111827;
-            --fw-muted: #6b7280;
-            --fw-border: #e5e7eb;
-            --fw-shadow: 0 18px 45px rgba(17, 24, 39, 0.10);
-        }
-
-        body {
-            background: radial-gradient(circle at top left, rgba(79, 70, 229, 0.12), transparent 34rem), radial-gradient(circle at top right, rgba(6, 182, 212, 0.16), transparent 28rem), var(--fw-bg);
-            color: var(--fw-text);
-        }
-
-        label:not(.form-check-label):not(.custom-file-label),
-        label {
-            font-size: 13px;
-            font-weight: 700 !important;
-            color: #374151;
-            margin-bottom: 7px;
-            border: none !important;
+            --fw-ink: #1f2937;
+            --fw-muted: #64748b;
+            --fw-line: #e5e7eb;
+            --fw-saffron: #f59e0b;
+            --fw-rose: #e11d48;
+            --fw-emerald: #047857;
+            --fw-shadow: 0 16px 38px rgba(31, 41, 55, 0.12);
         }
 
         .festival-page {
-            padding: 8px 4px 28px;
+            position: relative;
+            isolation: isolate;
+            min-height: calc(100vh - 150px);
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.10) 1px, transparent 1px), linear-gradient(180deg, rgba(225, 29, 72, 0.08) 1px, transparent 1px), linear-gradient(180deg, #fff7ed 0%, #ffffff 45%, #ecfdf5 100%);
+            background-size: 34px 34px, 34px 34px, auto;
+            color: var(--fw-ink);
         }
 
-        .dashboard-header {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.96), rgba(6, 182, 212, 0.9)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.18' stroke-width='2'%3E%3Cpath d='M0 80h160M80 0v160M24 24l112 112M136 24L24 136'/%3E%3C/g%3E%3C/svg%3E");
-            border-radius: 24px;
-            padding: 26px 30px;
-            color: #fff;
+            .festival-page::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                z-index: -1;
+                opacity: .55;
+                pointer-events: none;
+                background-image: linear-gradient(135deg, transparent 0 44%, rgba(245, 158, 11, .22) 44% 50%, transparent 50% 100%), linear-gradient(45deg, transparent 0 46%, rgba(4, 120, 87, .14) 46% 52%, transparent 52% 100%);
+                background-size: 72px 72px, 96px 96px;
+            }
+
+        .festival-shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        .festival-page label:not(.form-check-label):not(.custom-file-label) {
+            display: block;
+            margin-bottom: 7px;
+            border: 0 !important;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 700 !important;
+        }
+
+        .sec-hero {
             position: relative;
             overflow: hidden;
-            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 22px 26px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, .45);
+            border-radius: 8px;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(124, 58, 237, .98) 0%, rgba(236, 72, 153, .95) 48%, rgba(245, 158, 11, .95) 100%);
             box-shadow: var(--fw-shadow);
         }
 
-            .dashboard-header::before,
-            .dashboard-header::after {
+            .sec-hero::before {
                 content: '';
                 position: absolute;
-                border-radius: 50%;
-                background: rgba(255,255,255,0.14);
+                inset: 0;
+                opacity: .22;
+                background: linear-gradient(135deg, rgba(255, 255, 255, .70) 0 8px, transparent 8px 34px), linear-gradient(45deg, rgba(255, 255, 255, .36) 0 7px, transparent 7px 30px);
+                background-size: 46px 46px, 58px 58px;
                 pointer-events: none;
             }
+        .sec-hero-icon,
+        .section-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+        }
 
-            .dashboard-header::before {
-                width: 160px;
-                height: 160px;
-                right: 110px;
-                bottom: -90px;
+        .sec-hero-icon {
+            position: relative;
+            z-index: 1;
+            width: 56px;
+            height: 56px;
+            border: 2px solid rgba(255, 255, 255, .78);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .14);
+            transform-origin: center bottom;
+            will-change: transform;
+            animation: bdPartyBounce 1.6s cubic-bezier(.34, 1.56, .64, 1) infinite !important;
+        }
+
+            .sec-hero-icon i {
+                font-size: 30px;
+                color: #fff;
             }
 
-            .dashboard-header::after {
-                width: 240px;
-                height: 240px;
-                right: -80px;
-                top: -95px;
+        @keyframes bdPartyBounce {
+            0%, 100% {
+                transform: translateY(0) scale(1) rotate(0deg);
             }
 
-        .dashboard-title {
-            font-size: 26px;
-            line-height: 1.2;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            margin-bottom: 7px;
+            22% {
+                transform: translateY(-10px) scale(1.08) rotate(-5deg);
+            }
+
+            42% {
+                transform: translateY(0) scale(.98) rotate(4deg);
+            }
+
+            62% {
+                transform: translateY(-5px) scale(1.04) rotate(-2deg);
+            }
+
+            78% {
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+        }
+
+        .sec-hero-copy {
             position: relative;
             z-index: 1;
         }
 
-            .dashboard-title i {
-                width: 42px;
-                height: 42px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                margin-right: 10px;
-                border-radius: 14px;
-                background: rgba(255,255,255,0.18);
-                backdrop-filter: blur(8px);
-            }
+        .sec-kicker {
+            margin: 0 0 4px;
+            color: rgba(255, 255, 255, .84);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0;
+        }
 
-        .dashboard-subtitle {
+        .sec-title {
+            margin: 0;
+            color: #fff;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .sec-subtitle {
+            max-width: 760px;
+            margin: 7px 0 0;
+            color: rgba(255, 255, 255, .92);
             font-size: 14px;
-            opacity: 0.92;
-            max-width: 720px;
-            position: relative;
-            z-index: 1;
+            line-height: 1.55;
         }
 
         .festival-card {
-            border: 1px solid rgba(229, 231, 235, 0.85);
-            border-radius: 24px;
-            background: var(--fw-surface);
-            box-shadow: var(--fw-shadow);
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            margin-bottom: 24px;
+            margin-bottom: 22px;
+            border: 1px solid rgba(226, 232, 240, .95);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .96);
+            box-shadow: var(--fw-shadow);
         }
 
         .section-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            gap: 16px;
-            padding: 22px 24px 0;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--fw-line);
+            background: linear-gradient(90deg, rgba(255, 247, 237, .92), rgba(236, 253, 245, .74));
+        }
+
+        .section-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            color: #fff;
+            background:linear-gradient(135deg, rgba(124, 58, 237, .98) 0%, rgba(236, 72, 153, .95) 48%, rgba(245, 158, 11, .95) 100%);
+            box-shadow: 0 8px 18px rgba(225, 29, 72, .20);
         }
 
         .section-title {
+            margin: 0;
+            color: var(--fw-ink);
             font-size: 18px;
             font-weight: 800;
-            margin: 0;
-            color: var(--fw-text);
+            letter-spacing: 0;
         }
 
         .section-subtitle {
@@ -128,80 +198,111 @@
             font-size: 13px;
         }
 
-        .card-body {
+        .festival-card .card-body {
+            padding: 20px;
             background: transparent;
-            padding: 22px 24px 24px;
             border-radius: 0;
         }
 
-        .form-control,
-        select.form-control,
-        input.form-control,
-        .dropdown-toggle.form-control {
-            min-height: 44px;
-            border-radius: 13px;
-            border: 1px solid var(--fw-border);
-            background-color: #fff;
-            color: var(--fw-text);
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+        .festival-divider {
+            margin: 0;
+            border-top: 1px solid var(--fw-line);
         }
 
-            .form-control:focus,
-            .dropdown-toggle.form-control:focus {
-                border-color: rgba(79, 70, 229, 0.65);
-                box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
-                outline: none;
+        .festival-page .form-control,
+        .festival-page select.form-control,
+        .festival-page input.form-control,
+        .festival-page .dropdown-toggle.form-control {
+            min-height: 42px;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            background-color: #fff;
+            color: var(--fw-ink);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+            transition: border-color .18s ease, box-shadow .18s ease;
+        }
+
+            .festival-page .form-control:focus,
+            .festival-page .dropdown-toggle.form-control:focus {
+                border-color: var(--fw-saffron);
+                box-shadow: 0 0 0 3px rgba(245, 158, 11, .18);
+                outline: 0;
             }
 
-        .dropdown-toggle.form-control {
-            text-align: left;
+        .festival-page .dropdown-toggle.form-control {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .multi-dropdown-menu {
+            width: 100%;
+            min-width: 100%;
             max-height: 260px;
             overflow-y: auto;
-            width: 100%;
             padding: 10px;
-            border: 1px solid var(--fw-border);
-            border-radius: 14px;
-            box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            box-shadow: 0 18px 34px rgba(15, 23, 42, .16);
         }
 
             .multi-dropdown-menu label {
-                display: flex;
+                display: flex !important;
                 align-items: center;
                 gap: 9px;
-                margin-bottom: 7px;
+                margin-bottom: 8px !important;
+                color: #334155 !important;
                 cursor: pointer;
-                color: #374151;
+                font-size: 13px !important;
                 font-weight: 600 !important;
             }
+
+                .multi-dropdown-menu label:last-child {
+                    margin-bottom: 0 !important;
+                }
 
             .multi-dropdown-menu input[type="checkbox"] {
                 width: 16px;
                 height: 16px;
-                accent-color: var(--fw-primary);
+                accent-color: var(--fw-rose);
             }
 
-        .btn-primary {
-            min-height: 42px;
-            padding: 9px 26px;
-            border-radius: 999px;
-            border: 0;
-            font-weight: 800;
-            letter-spacing: .01em;
-            background: linear-gradient(135deg, var(--fw-primary), var(--fw-accent));
-            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.24);
-            transition: transform .2s ease, box-shadow .2s ease;
+        .actions-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 14px;
+            border-top: 1px dashed #d9e1ec;
         }
 
-            .btn-primary:hover {
+        .festival-submit-btn {
+            min-height: 40px;
+            border: 0;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 9px 18px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(124, 58, 237, .98) 0%, rgba(236, 72, 153, .95) 48%, rgba(245, 158, 11, .95) 100%);
+            box-shadow: 0 12px 22px rgba(190, 18, 60, .20);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+            .festival-submit-btn:hover,
+            .festival-submit-btn:focus {
+                color: #fff;
                 transform: translateY(-1px);
-                box-shadow: 0 16px 28px rgba(79, 70, 229, 0.30);
+                box-shadow: 0 16px 26px rgba(190, 18, 60, .25);
+                outline: 0;
             }
 
         .table-responsive-modern {
@@ -212,198 +313,209 @@
             width: 100% !important;
             border-collapse: separate !important;
             border-spacing: 0;
-            border: 1px solid var(--fw-border);
-            border-radius: 18px;
+            border: 1px solid var(--fw-line);
+            border-radius: 8px;
             overflow: hidden;
             background: #fff;
         }
 
-            .table.dataTable th,
-            #table_festival thead th {
-                background: #f8fafc !important;
-                color: #334155;
+            #table_festival thead th,
+            .table.dataTable th {
+                background: #fff7ed !important;
+                color: #7c2d12;
+                border-bottom: 1px solid #fed7aa !important;
                 font-size: 12px;
+                font-weight: 800;
                 text-transform: uppercase;
-                letter-spacing: .04em;
-                border-bottom: 1px solid var(--fw-border) !important;
+                letter-spacing: 0;
                 white-space: nowrap;
             }
 
-            .table.dataTable tr td,
-            #table_festival tbody td {
-                background: #fff;
-                color: #334155;
+            #table_festival tbody td,
+            .table.dataTable tr td {
                 vertical-align: middle;
                 border-color: #eef2f7;
+                background: #fff;
+                color: #334155;
+                font-size: 13px;
             }
 
             #table_festival tbody tr:hover td {
-                background: #f8fbff;
+                background: #fffbeb;
             }
+
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            padding: 5px 8px;
+        }
 
         .dataTables_paginate {
             float: left !important;
         }
 
-        div.dt-buttons {
-            position: static;
-            padding-left: 16px;
-            float: left;
-        }
-
-        .buttons-excel,
-        .buttons-html5 {
-            color: #fff !important;
-            box-shadow: none;
-            background: linear-gradient(135deg, #10b981, #06b6d4) !important;
-            border: 0 !important;
-            border-radius: 999px !important;
-            font-weight: 800;
-            margin: 0 8px;
-            padding: 7px 15px !important;
-        }
-
         .festivalImg {
-            transition: transform .25s ease, box-shadow .25s ease;
-            border-radius: 12px;
+            width: 62px;
+            height: 62px;
+            border: 2px solid #fff7ed;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, .12);
+            transition: transform .18s ease, box-shadow .18s ease;
         }
 
             .festivalImg:hover {
-                transform: scale(1.06);
-                box-shadow: 0 12px 24px rgba(0,0,0,0.20);
+                transform: scale(1.05);
+                box-shadow: 0 12px 22px rgba(15, 23, 42, .18);
+            }
+
+        .festival-delete-action {
+            width: 34px;
+            height: 34px;
+            border: 1px solid #fecdd3;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #be123c;
+            background: #fff1f2;
+            cursor: pointer;
+            transition: transform .18s ease, background .18s ease, color .18s ease;
+        }
+
+            .festival-delete-action:hover,
+            .festival-delete-action:focus {
+                color: #fff;
+                background: #be123c;
+                transform: translateY(-1px);
+                outline: 0;
             }
 
         .modal-content {
-            border: 0;
-            border-radius: 22px;
-            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.30);
             overflow: hidden;
+            border: 0;
+            border-radius: 8px;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .30);
         }
 
         .modal-header {
-            border-bottom: 1px solid var(--fw-border);
-            background: #f8fafc;
+            border-bottom: 1px solid var(--fw-line);
+            background: linear-gradient(90deg, #fff7ed, #ecfdf5);
         }
 
         .modal-title {
+            color: var(--fw-ink);
             font-weight: 800;
-            color: var(--fw-text);
         }
 
-        .modal-body {
-            color: #374151;
+        .festival-preview-image {
+            width: 100%;
+            max-height: 520px;
+            border-radius: 8px;
+            object-fit: contain;
         }
 
         .loading {
             display: none;
             position: fixed;
             inset: 0;
-            margin: auto;
+            z-index: 99999;
             width: 210px;
             height: 150px;
-            z-index: 99999;
-            text-align: center;
-            background: rgba(255,255,255,.92);
-            border: 1px solid var(--fw-border);
-            border-radius: 24px;
-            box-shadow: var(--fw-shadow);
+            margin: auto;
             padding: 22px;
+            border: 1px solid var(--fw-line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .94);
+            box-shadow: var(--fw-shadow);
+            text-align: center;
         }
 
-        textarea {
-            resize: none;
-        }
-
-        .dropzone {
-            min-height: 44px;
-        }
-
-        @media (max-width: 767px) {
-            .dashboard-header {
-                padding: 22px;
-                border-radius: 20px;
+            .loading img {
+                max-width: 64px;
+                margin-bottom: 12px;
             }
 
-            .dashboard-title {
+            .loading .loading-text {
+                color: #334155;
+                font-size: 12px;
+                font-weight: 800;
+            }
+
+        @media (max-width: 767px) {
+            .festival-page {
+                padding: 12px 0 28px;
+            }
+
+            .sec-hero {
+                align-items: flex-start;
+                padding: 18px;
+            }
+
+            .sec-title {
                 font-size: 22px;
             }
 
-            .card-body, .section-header {
-                padding-left: 18px;
-                padding-right: 18px;
+            .festival-card .card-body,
+            .section-header {
+                padding-left: 16px;
+                padding-right: 16px;
             }
-        }
 
-        .actions-row {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--resg-border);
-            color: darkgray;
-        }
+            .actions-row {
+                justify-content: stretch;
+            }
 
-        .btn-resg {
-            min-height: 36px;
-            border: 0;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 14px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .btn-resg-primary {
-            color: #fff;
-            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
-        }
-
-        .btn-resg-green {
-            color: #fff;
-            background: var(--resg-green);
-        }
-
-        .btn-resg-red {
-            color: #fff;
-            background: var(--resg-red);
+            .festival-submit-btn {
+                width: 100%;
+            }
         }
     </style>
 
+    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <script>
-        var fd = new FormData();
+        var festivalWishUploadData = new FormData();
 
-        window.onload = function () {
-            var attachment = document.getElementById('festWish_attachment');
-            if (attachment) {
-                attachment.addEventListener('change', getFileName);
+        function showFestivalUploadError(message) {
+            if (window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Upload Error', text: message });
+                return;
             }
-        };
 
-        function getFileName(event) {
+            alert(message);
+        }
+
+        function uploadFestivalWishFile(event) {
             var file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                return;
+            }
 
-            document.getElementById("festWish_file").value = file.name;
+            document.getElementById('festWish_file').value = file.name;
 
-            fd = new FormData();
-            fd.append("file", file);
+            festivalWishUploadData = new FormData();
+            festivalWishUploadData.append('file', file);
 
-            const xhr = new XMLHttpRequest();
+            var xhr = new XMLHttpRequest();
             xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log("File uploaded successfully");
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    showFestivalUploadError('Image could not be uploaded. Please try again.');
                 }
             };
+            xhr.onerror = function () {
+                showFestivalUploadError('Image could not be uploaded. Please try again.');
+            };
 
-            xhr.open("POST", window.location.href, true);
-            xhr.send(fd);
+            xhr.open('POST', window.location.href, true);
+            xhr.send(festivalWishUploadData);
         }
 
+        window.getFileName = uploadFestivalWishFile;
+
         $(document).ready(function () {
+            $('#festWish_attachment').on('change', uploadFestivalWishFile);
             festival_bindGrid();
             festWish_bindEmployee();
             festWish_bindlocation();
@@ -411,695 +523,200 @@
             festWish_bindDesignation();
         });
     </script>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <input id="festWish_file" style="display: none;" />
+    <input id="festWish_file" type="hidden" />
 
     <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
+        <img src="../images/Load_1.gif" alt="Loading" />
+        <div class="loading-text">One moment, please...</div>
     </div>
+
     <div class="festival-page">
-        <div class="dashboard-header">
-            <div class="d-flex justify-content-between align-items-start mb-1">
-                <div>
-                    <div class="dashboard-title">
-                        <i class="fas fa-gifts mr-2"></i>
-                        Festival Wishes  
-               
-                    </div>
-                    <div class="dashboard-subtitle">
-                        Create, schedule, and manage festival wishes to engage and celebrate with your workforce.
-               
-                    </div>
+        <div class="festival-shell">
+            <div class="sec-hero">
+                <span class="sec-hero-icon" aria-hidden="true">
+                    <i class="fas fa-gifts"></i>
+                </span>
+                <div class="sec-hero-copy">
+                    <%--   <p class="sec-kicker">Admin celebration center</p>--%>
+                    <h1 class="sec-title">Festival Wishes</h1>
+                    <p class="sec-subtitle">Create festive greetings, choose the right audience, and keep every celebration image ready for its display date.</p>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-12 px-0">
-            <div class="festival-card">
-                <div class="section-header">
-                    <div>
-                        <h3 class="section-title">Create festival wish</h3>
-                        <p class="section-subtitle">Choose audience filters, set a display date, and upload the celebration image.</p>
-                    </div>
-                </div>
-                <div class="card-body">
 
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label>Title :</label>
-                            <select id="festWish_title" name="festWish_title" class="form-control">
-                                <option value="">Select</option>
-                                <option value="Christmas">Christmas</option>
-                                <option value="Diwali">Diwali</option>
-                                <option value="Dusshera">Dusshera</option>
-                                <option value="Eid">Eid</option>
-                                <option value="Fun Activity">Fun Activity</option>
-                                <option value="Ganesh Chaturthy">Ganesh Chaturthy</option>
-                                <option value="Gudi Padwa">Gudi Padwa</option>
-                                <option value="Holi">Holi</option>
-                                <option value="Independence Day">Independence Day</option>
-                                <option value="IPL">IPL</option>
-                                <option value="Thanks Giving">Thanks Giving</option>
-                                <option value="Women's Day">Women's Day</option>
-                            </select>
-                        </div>
-
-                        <!-- Date -->
-                        <div class="col-md-3">
-                            <label>Date :</label>
-                            <input type="date" id="festWish_date" class="form-control" onkeydown="return false">
-                        </div>
-
-                        <!-- Location -->
-                        <div class="col-md-3">
-                            <label>Location :</label>
-                            <div class="dropdown">
-                                <button id="locationDropdownBtn"
-                                    class="form-control dropdown-toggle text-left"
-                                    type="button"
-                                    data-bs-toggle="dropdown">
-                                    Select Location
-                           
-                                </button>
-
-                                <div class="dropdown-menu multi-dropdown-menu">
-                                    <label>
-                                        <input type="checkbox" id="select_all_location">
-                                        <b>Select All</b>
-                                    </label>
-
-                                    <div id="locationList"></div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Department -->
-                        <div class="col-md-3">
-                            <label>Department :</label>
-                            <div class="dropdown">
-                                <button id="departmentDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-bs-toggle="dropdown">Select Department</button>
-                                <div class="dropdown-menu multi-dropdown-menu">
-                                    <label>
-                                        <input type="checkbox" id="select_all_department">
-                                        <b>Select All</b>
-                                    </label>
-                                    <div id="departmentList"></div>
-                                </div>
+            <div class="col-lg-12 px-0">
+                <div class="festival-card">
+                    <div class="section-header">
+                        <div class="section-title-wrap">
+                            <span class="section-icon" aria-hidden="true"><i class="fas fa-calendar-day"></i></span>
+                            <div>
+                                <h3 class="section-title">Create Festival Wish</h3>
+                                <p class="section-subtitle">Set the occasion, audience filters, display date, and celebration image.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <label>Designation :</label>
-                            <div class="dropdown">
-                                <button id="designationDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-bs-toggle="dropdown">Select Designation</button>
-                                <div class="dropdown-menu multi-dropdown-menu">
-                                    <label>
-                                        <input type="checkbox" id="select_all_designation"><b>Select All</b></label>
-                                    <div id="designationList"></div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="festWish_title">Title :</label>
+                                <select id="festWish_title" name="festWish_title" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="Christmas">Christmas</option>
+                                    <option value="Diwali">Diwali</option>
+                                    <option value="Dusshera">Dusshera</option>
+                                    <option value="Eid">Eid</option>
+                                    <option value="Fun Activity">Fun Activity</option>
+                                    <option value="Ganesh Chaturthy">Ganesh Chaturthy</option>
+                                    <option value="Gudi Padwa">Gudi Padwa</option>
+                                    <option value="Holi">Holi</option>
+                                    <option value="Independence Day">Independence Day</option>
+                                    <option value="IPL">IPL</option>
+                                    <option value="Thanks Giving">Thanks Giving</option>
+                                    <option value="Women's Day">Women's Day</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="festWish_date">Date :</label>
+                                <input type="date" id="festWish_date" class="form-control" onkeydown="return false" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="locationDropdownBtn">Location :</label>
+                                <div class="dropdown">
+                                    <button id="locationDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Location</button>
+                                    <div class="dropdown-menu multi-dropdown-menu">
+                                        <label>
+                                            <input type="checkbox" id="select_all_location" />
+                                            <b>Select All</b>
+                                        </label>
+                                        <div id="locationList"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="departmentDropdownBtn">Department :</label>
+                                <div class="dropdown">
+                                    <button id="departmentDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Department</button>
+                                    <div class="dropdown-menu multi-dropdown-menu">
+                                        <label>
+                                            <input type="checkbox" id="select_all_department" />
+                                            <b>Select All</b>
+                                        </label>
+                                        <div id="departmentList"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- User -->
-                        <div class="col-md-3">
-                            <label>User :</label>
-                            <div class="dropdown">
-                                <button id="userDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-bs-toggle="dropdown">Select Employee</button>
-                                <div class="dropdown-menu multi-dropdown-menu">
-                                    <label>
-                                        <input type="checkbox" id="select_all_user"><b>Select All</b></label>
-                                    <div id="userList"></div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="designationDropdownBtn">Designation :</label>
+                                <div class="dropdown">
+                                    <button id="designationDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Designation</button>
+                                    <div class="dropdown-menu multi-dropdown-menu">
+                                        <label>
+                                            <input type="checkbox" id="select_all_designation" />
+                                            <b>Select All</b>
+                                        </label>
+                                        <div id="designationList"></div>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="userDropdownBtn">User :</label>
+                                <div class="dropdown">
+                                    <button id="userDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Employee</button>
+                                    <div class="dropdown-menu multi-dropdown-menu">
+                                        <label>
+                                            <input type="checkbox" id="select_all_user" />
+                                            <b>Select All</b>
+                                        </label>
+                                        <div id="userList"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="festWish_gender">Gender :</label>
+                                <select id="festWish_gender" name="festWish_gender" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="All">All</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Male">Male</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label for="festWish_attachment">Image :</label>
+                                <input type="file" id="festWish_attachment" class="form-control" />
                             </div>
                         </div>
 
-                        <div class="col-md-3">
-                            <label>Gender :</label>
-                            <select id="festWish_gender" name="festWish_gender" class="form-control">
-                                <option value="">Select</option>
-                                <option value="All">All</option>
-                                <option value="Female">Female</option>
-                                <option value="Male">Male</option>
-                            </select>
-                        </div>
-
-                        <!-- Image -->
-                        <div class="col-md-3">
-                            <label>Image :</label>
-                            <input type="file" id="festWish_attachment" class="form-control">
-                        </div>
-                    </div>
-                    <div class="field col-12 actions-row">
-                        <button type="button" class="btn-resg btn-resg-primary" id="festWish_btnsubmit" onclick="return festWish_SubmitData();"><i class="fas fa-paper-plane"></i>Submit</button>
-                    </div>
-                </div>
-                <hr />
-                <div class="section-header">
-                    <div>
-                        <h3 class="section-title">Festival wishes list</h3>
-                        <p class="section-subtitle">Review uploaded wishes and manage existing records.</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive-modern">
-                        <table id="table_festival" class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Action</th>
-                                    <th>Sr. #</th>
-                                    <th>Title</th>
-                                    <th>Image</th>
-                                    <th>Display Date</th>
-                                    <th>Uploaded By</th>
-                                    <th>Uploaded Date</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Image Preview Modal -->
-    <div class="modal fade" id="imagePreviewModal">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                    <%-- <h5 class="modal-title">Image Preview</h5>--%>
-                    <h5 class="modal-title" id="festivalTitle"></h5>
-                    <%-- <button class="btn-close" data-bs-dismiss="modal"></button>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>--%>
-                    <button type="button" class="close" data-bs-dismiss="modal" style="border: none; background: none; font-size: 24px;">
-                        &times;
-                   
-                    </button>
-                </div>
-
-                <div class="modal-body text-center">
-                    <img id="previewImage" style="width: 100%; max-height: 450px;">
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="festWish_deletePopUp">
-        <div class="modal-dialog modal-l">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Delete Record</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" style="border: none; background: none;">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p><b>Are you sure you want to delete this record?</b></p>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <%--<button type="button" class="btn btn-default" data-dismiss="modal">No</button>--%>
-                    <button type="button" class="close" data-bs-dismiss="modal" style="border: none; background: none;">No</button>
-                    <button class="btn btn-primary" type="button" id="festWish_btnYes" onclick="return festWish_btndelete();">Yes</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
-    </div>
-</asp:Content>
-
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <style>
-        body {
-            background: #f4f7fb;
-        }
-
-        .dashboard-header {
-            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
-            border-radius: 15px;
-            padding: 12px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-
-            .dashboard-header::after {
-                content: '';
-                position: absolute;
-                right: -70px;
-                top: -50px;
-                width: 220px;
-                height: 220px;
-                background: rgba(255,255,255,0.12);
-                border-radius: 50%;
-            }
-
-        .dashboard-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .dashboard-subtitle {
-            font-size: 12px;
-            opacity: 0.9;
-            /*text-transform: uppercase;*/
-        }
-    </style>
-
-
-    <style>
-        #loader {
-            border: 16px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 16px solid #3498db;
-            width: 120px;
-            height: 120px;
-            -webkit-animation: spin 2s linear infinite;
-            animation: spin 2s linear infinite;
-            margin-left: 250px;
-            margin-top: 250px;
-        }
-
-
-        @-webkit-keyframes spin {
-            0% {
-                -webkit-transform: rotate(0deg);
-            }
-
-            100% {
-                -webkit-transform: rotate(360deg);
-            }
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        .dataTables_paginate {
-            float: left !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-           border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none;
-        }
-
-        .modal-header .btn-close {
-            transform: scale(1.3);
-
-            .btn-close {
-                font-size: 20px;
-                opacity: 1;
-            }
-        }
-
-        .multi-dropdown-menu {
-            max-height: 220px;
-            overflow-y: auto;
-            width: 100%;
-            padding: 10px;
-        }
-
-            .multi-dropdown-menu label {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 6px;
-                cursor: pointer;
-            }
-
-            .multi-dropdown-menu input[type="checkbox"] {
-                transform: scale(1.1);
-            }
-    </style>
-
-    <script>
-        var fd = new FormData();
-
-        window.onload = function () {
-            document.getElementById('festWish_attachment').addEventListener('change', getFileName);
-        };
-
-        function getFileName(event) {
-
-            var file = event.target.files[0]; // get single file
-
-            if (!file) return;
-
-            document.getElementById("festWish_file").value = file.name;
-
-            fd = new FormData(); // reset formdata
-            fd.append("file", file);
-
-            const xhr = new XMLHttpRequest();
-
-            xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log("File uploaded successfully");
-                }
-            };
-
-            var url = window.location.href;
-
-            xhr.open("POST", url, true);
-            xhr.send(fd);
-        }
-
-
-        $(document).ready(function () {
-
-            festival_bindGrid();
-
-            festWish_bindEmployee();
-            festWish_bindlocation();
-            festWish_bindDepartment();
-            festWish_bindDesignation();
-        });
-
-    </script>
-
-    <style>
-        .card-body {
-            background: #ffff;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        label {
-            font-size: 14px;
-            margin-bottom: 4px;
-            color: #6c757d;
-        }
-
-        textarea {
-            resize: none;
-        }
-
-        .form-label {
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .btn-primary {
-            padding: 6px 20px;
-            font-weight: 600;
-        }
-
-        .dropzone {
-            min-height: 40px;
-        }
-
-        .festivalImg {
-            transition: 0.3s;
-        }
-
-            .festivalImg:hover {
-                transform: scale(1.1);
-                box-shadow: 0px 3px 10px rgba(0,0,0,0.3);
-            }
-    </style>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
-</asp:Content>
-
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <input id="festWish_file" style="display: none;" />
-
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-    <div class="dashboard-header">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-            <div>
-                <div class="dashboard-title">
-                   <i class="fas fa-gifts mr-2"></i>
-                    Festival Wishesh  
-            
-                </div>
-
-                <div class="dashboard-subtitle">
-                        Create, schedule, and manage festival wishes to engage and celebrate with your workforce.
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label>Title :</label>
-                        <select id="festWish_title" name="festWish_title" class="form-control">
-                            <option value="">Select</option>
-                            <option value="Christmas">Christmas</option>
-                            <option value="Diwali">Diwali</option>
-                            <option value="Dusshera">Dusshera</option>
-                            <option value="Fun Activity">Fun Activity</option>
-                            <option value="Ganesh Chaturthy">Ganesh Chaturthy</option>
-                            <option value="Gudi Padwa">Gudi Padwa</option>
-                            <option value="Holi">Holi</option>
-                            <option value="Independence Day">Independence Day</option>
-                            <option value="IPL">IPL</option>
-                            <option value="Thanks Giving">Thanks Giving</option>
-                            <option value="Women's Day">Women's Day</option>
-                        </select>
-                    </div>
-
-                    <!-- Date -->
-                    <div class="col-md-3">
-                        <label>Date :</label>
-                        <input type="date" id="festWish_date" class="form-control" onkeydown="return false">
-                    </div>
-
-                    <!-- Location -->
-                    <div class="col-md-3">
-                        <label>Location :</label>
-                        <div class="dropdown">
-                            <button id="locationDropdownBtn"
-                                class="form-control dropdown-toggle text-left"
-                                type="button"
-                                data-toggle="dropdown">
-                                Select Location
+                        <div class="actions-row">
+                            <button type="button" class="festival-submit-btn" id="festWish_btnsubmit" onclick="return festWish_SubmitData();">
+                                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                                <span>Submit</span>
                             </button>
-
-                            <div class="dropdown-menu multi-dropdown-menu">
-                                <label>
-                                    <input type="checkbox" id="select_all_location">
-                                    <b>Select All</b>
-                                </label>
-
-                                <div id="locationList"></div>
-
-                            </div>
-
                         </div>
-
                     </div>
 
-                    <!-- Department -->
-                    <div class="col-md-3">
-                        <label>Department :</label>
-                        <div class="dropdown">
-                            <button id="departmentDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown">Select Department</button>
-                            <div class="dropdown-menu multi-dropdown-menu">
-                                <label>
-                                    <input type="checkbox" id="select_all_department">
-                                    <b>Select All</b>
-                                </label>
-                                <div id="departmentList"></div>
+                    <hr class="festival-divider" />
+
+                    <div class="section-header">
+                        <div class="section-title-wrap">
+                            <span class="section-icon" aria-hidden="true"><i class="fas fa-images"></i></span>
+                            <div>
+                                <h3 class="section-title">Festival Wishes List</h3>
+                                <p class="section-subtitle">Review uploaded wishes and remove records that are no longer needed.</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="table-responsive-modern">
+                            <table id="table_festival" class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Action</th>
+                                        <th>Sr. #</th>
+                                        <th>Title</th>
+                                        <th>Image</th>
+                                        <th>Display Date</th>
+                                        <th>Uploaded By</th>
+                                        <th>Uploaded Date</th>
+                                    </tr>
+                                </thead>
+                            </table>
                         </div>
                     </div>
                 </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label>Designation :</label>
-                        <div class="dropdown">
-                            <button id="designationDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown">Select Designation</button>
-                            <div class="dropdown-menu multi-dropdown-menu">
-                                <label>
-                                    <input type="checkbox" id="select_all_designation"><b>Select All</b></label>
-                                <div id="designationList"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- User -->
-                    <div class="col-md-3">
-                        <label>User :</label>
-                        <div class="dropdown">
-                            <button id="userDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown">Select Employee</button>
-                            <div class="dropdown-menu multi-dropdown-menu">
-                                <label>
-                                    <input type="checkbox" id="select_all_user"><b>Select All</b></label>
-                                <div id="userList"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label>Gender :</label>
-                        <select id="festWish_gender" name="festWish_gender" class="form-control">
-                            <option value="">Select</option>
-                            <option value="All">All</option>
-                            <option value="Female">Female</option>
-                            <option value="Male">Male</option>
-                        </select>
-                    </div>
-
-                    <!-- Image -->
-                    <div class="col-md-3">
-                        <label>Image :</label>
-                        <input type="file" id="festWish_attachment" class="form-control">
-                    </div>
-                </div>
-
-                <div class="text-center mt-4">
-                    <button type="button" id="festWish_btnsubmit" class="btn btn-primary" onclick="return festWish_SubmitData();">Submit</button>
-                </div>
-            </div>
-
-            <div class="card-body">
-                <table id="table_festival" class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Action</th>
-                            <th>Sr. #</th>
-                            <th>Title</th>
-                            <th>Image</th>
-                            <th>Display Date</th>
-                            <th>Uploaded By</th>
-                            <th>Uploaded Date</th>
-                        </tr>
-                    </thead>
-                </table>
             </div>
         </div>
     </div>
 
-
-    <!-- Image Preview Modal -->
-    <div class="modal fade" id="imagePreviewModal">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-
-                <div class="modal-header">
-                
-                    <h5 class="modal-title" id="festivalTitle"></h5>
-                  
-                    <button type="button" class="close" data-bs-dismiss="modal" style="border: none; background: none; font-size: 24px;">
-                        &times;
-                    </button>
-                </div>
-
-                <div class="modal-body text-center">
-                    <img id="previewImage" style="width: 100%; max-height: 450px;">
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="festWish_deletePopUp">
-        <div class="modal-dialog modal-l">
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Delete Record</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" style="border: none; background: none;">
+                    <h5 class="modal-title" id="festivalTitle">Festival Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <p><b>Are you sure you want to delete this record?</b></p>
-                </div>
-                <div class="modal-footer justify-content-between">
-                  
-                    <button type="button" class="close" data-bs-dismiss="modal" style="border: none; background: none;">No</button>
-                    <button class="btn btn-primary" type="button" id="festWish_btnYes" onclick="return festWish_btndelete();">Yes</button>
+                <div class="modal-body text-center">
+                    <img id="previewImage" class="festival-preview-image" alt="Festival preview" />
                 </div>
             </div>
-            <!-- /.modal-content -->
         </div>
-        <!-- /.modal-dialog -->
     </div>
-</asp:Content>--%>
+</asp:Content>
+
+
+
+

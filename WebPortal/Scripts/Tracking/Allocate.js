@@ -1,4 +1,4 @@
-﻿
+
 
 /*---------------- Tab 1 - Order Allocation ----------------*/
 
@@ -248,15 +248,12 @@ function allocate_bindCompleteOrder_Grid() {
 
                 data: dataArray,
                 dom: 'ftip',
-                scrollX: true,
                 paging: true,
                 autoWidth: false,
                 ordering: false,
                 processing: true,
-
-                select: {
-                    style: 'single'
-                },
+                scrollX: false,
+                scrollCollapse: false,
 
                 columns: [
                     {
@@ -272,7 +269,7 @@ function allocate_bindCompleteOrder_Grid() {
                         data: null,
                         render: function (data, type, row) {
                             return `
-        <select class="form-control Status" style="min-width:150px;" onchange="enableHoldRemark(this)">
+        <select class="form-control Status" onchange="enableHoldRemark(this)">
             <option value="">Select</option>
             <option value="Completed" ${data === "Completed" ? "selected" : ""}>Completed</option>
             <option value="Hold" ${data === "Hold" ? "selected" : ""}>Hold</option>
@@ -286,15 +283,15 @@ function allocate_bindCompleteOrder_Grid() {
                             var disabled = row.Status === "Hold" ? "" : "disabled";
 
                             return `
-        <select class="form-control HoldReason" ${disabled} style="min-width:270px;">
+        <select class="form-control HoldReason" ${disabled}>
             <option value="">Select</option>
             <option value="PDF Issue" ${data === "PDF Issue" ? "selected" : ""}>PDF Issue</option>
             <option value="Audit Worksheet Not available in Box" ${data === "Audit Worksheet Not available in Box" ? "selected" : ""}>Audit Worksheet Not available in Box</option>
             <option value="Partially Review in Scienna" ${data === "Partially Review in Scienna" ? "selected" : ""}>Partially Review in Scienna</option>
             <option value="Wrongly pulled in ERP" ${data === "Wrongly pulled in ERP" ? "selected" : ""}>Wrongly pulled in ERP</option>
-            <option value="Miscellaneous – Any other issue with comments"
-                ${data === "Miscellaneous – Any other issue with comments" ? "selected" : ""}>
-                Miscellaneous – Any other issue with comments
+            <option value="Miscellaneous - Any other issue with comments"
+                ${data === "Miscellaneous - Any other issue with comments" ? "selected" : ""}>
+                Miscellaneous - Any other issue with comments
             </option>
         </select>`;
                         }
@@ -310,7 +307,7 @@ function allocate_bindCompleteOrder_Grid() {
                     {
                         data: "Remark",
                         render: function (data, type, row) {
-                            return `<textarea class="form-control Remark" style="min-width:400px;">${data || ""}</textarea>`;
+                            return `<textarea class="form-control Remark">${data || ""}</textarea>`;
                         }
                     },
                     { data: "ProjectName" },
@@ -331,8 +328,22 @@ function allocate_bindCompleteOrder_Grid() {
                     }
                 ],
 
+                columnDefs: [
+                    { targets: 0, width: '4%' },
+                    { targets: 1, width: '7%' },
+                    { targets: 2, width: '7%' },
+                    { targets: 3, width: '7%' },
+                    { targets: 4, width: '11%' },
+                    { targets: 5, width: '16%' },
+                    { targets: 6, width: '11%' },
+                    { targets: 7, width: '15%' },
+                    { targets: 8, width: '8%' },
+                    { targets: 9, width: '8%' },
+                    { targets: 10, width: '6%' }
+                ],
                 initComplete: function () {
                     $('#load1').hide();
+                    this.api().columns.adjust();
                 }
             });
         },
@@ -1037,7 +1048,6 @@ function allocate_GetLoanReport_Grid(fromDate, toDate) {
                     { data: "ProcessDate" },
                     { data: "TAT" }
                 ],
-
                 initComplete: function () {
                     $('#load1').hide();
                 }

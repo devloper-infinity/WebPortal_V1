@@ -3,7 +3,6 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
-
     <!-- ProductionSummary redesigned using FeedbackDetails style reference -->
     <style>
         .production-redesign {
