@@ -189,7 +189,7 @@
        <asp:ScriptReference Path="~/Scripts/HRReportInput.js?v=7.1" />
        <asp:ScriptReference Path="~/Scripts/Functions/ViewEmployee.js?v=7.1" />
        <asp:ScriptReference Path="~/Scripts/Functions/EditInfinityFeedback.js?v=7.1" />
-       <asp:ScriptReference Path="~/Scripts/Functions/DailyProductivity.js?v=7.1" />
+       <asp:ScriptReference Path="~/Scripts/Functions/DailyProductivity.js?v=7.2" />
        <asp:ScriptReference Path="~/Scripts/Functions/EditSecruitization.js?v=7.1" />
        <asp:ScriptReference Path="~/Scripts/Functions/SecruitizationBilling.js?v=7.1" />
        <asp:ScriptReference Path="~/Scripts/Functions/OtherBilling.js?v=7.1" />
