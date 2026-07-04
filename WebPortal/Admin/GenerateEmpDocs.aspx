@@ -458,7 +458,7 @@
                     </p>
                 </div>
                 <div style="text-align: right!important; width: 100px;">
-                    <a href="javascript:history.back();" class="empdoc-header-back"><< Back </a>
+                 <%--  <a href="#" class="empdoc-header-back" onclick="window.history.go(-1); return false;">&lt;&lt; Back</a>--%>
                 </div>
             </div>
 
