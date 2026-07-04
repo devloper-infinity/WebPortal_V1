@@ -227,6 +227,7 @@ function renderChildMenu(item) {
 
 <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/js/adminlte.min.js"></script>
+<script src="../Scripts/AI.js?v=1"></script>
 
 </form>
 </body>

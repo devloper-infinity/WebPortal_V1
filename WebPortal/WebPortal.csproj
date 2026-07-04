@@ -139,11 +139,14 @@
     <Content Include="Accounts\PrepareCheques.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
     <Content Include="Admin\FileDownload.aspx" />
     <Content Include="Admin\ProjectHealthReport.aspx" />
     <Content Include="Admin\ResponsibilityDelegation.aspx" />
+    <Content Include="Admin\AICopilot.aspx" />
+    <Content Include="Admin\UserDomainAccess.aspx" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
     <Content Include="CRM\Contacts.aspx" />
@@ -2662,6 +2665,7 @@
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\Accounts\Advance.js" />
     <Content Include="Scripts\Accounts\SalarySlip.js" />
+    <Content Include="Scripts\AI.js" />
     <Content Include="Scripts\CRM\CRM.js" />
     <Content Include="Scripts\Functions\AddAssets.js" />
     <Content Include="Scripts\Functions\AddressVerification.js" />
@@ -2960,6 +2964,21 @@
     <Compile Include="Admin\ResponsibilityDelegation.aspx.designer.cs">
       <DependentUpon>ResponsibilityDelegation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\UserDomainAccess.aspx.cs">
+      <DependentUpon>UserDomainAccess.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\UserDomainAccess.aspx.designer.cs">
+      <DependentUpon>UserDomainAccess.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\AICopilot.aspx.cs">
+      <DependentUpon>AICopilot.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\AICopilot.aspx.designer.cs">
+      <DependentUpon>AICopilot.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="App_Code\AIService.cs" />
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="CRM\Accounts.aspx.cs">
