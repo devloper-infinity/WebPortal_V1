@@ -432,7 +432,7 @@
             return false;
         }
 
-       
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
@@ -446,25 +446,7 @@
 
     <div class="col-lg-12">
         <div class="empdoc-shell">
-            <%--<div class="empdoc-header">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                    <div>
-                        <div class="dashboard-title">
-                            <h4><i class="fas fa-file-signature"></i>&nbsp;&nbsp;Employee Document Generator</h4>
-                        </div>
-                        <div class="dashboard-subtitle">
-                            View employee details and generate official documents instantly.
-                        </div>
-                    </div>
-                    <div>
-                        <a href="#" id="aBack" runat="server" class="btn btn-light btn-back" onclick="window.history.go(-1); return false;">
-                            <i class="fas fa-arrow-left"></i>
-                            Back
-                        </a>
-                    </div>
-                </div>
-            </div>--%>
-
+          
             <div class="empdoc-header">
                 <span class="empdoc-header-icon">
                     <i class="fas fa-file-signature"></i>
@@ -476,7 +458,7 @@
                     </p>
                 </div>
                 <div style="text-align: right!important; width: 100px;">
-                      <a href="javascript:history.back();" class="empdoc-header-back"> << Back </a>
+                    <a href="javascript:history.back();" class="empdoc-header-back"><< Back </a>
                 </div>
             </div>
 
