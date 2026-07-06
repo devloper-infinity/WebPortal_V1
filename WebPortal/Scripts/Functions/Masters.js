@@ -611,11 +611,11 @@ function setappr_getEmpInfo(ddlemp) {
         success: function (res) {
             var dataArray = JSON.parse(res.d);
             $.each(dataArray, function (data, value) {
-                document.getElementById("setappr_empname").innerHTML = blankForNull(value.FullName);
-                document.getElementById("setappr_joiningdate").innerHTML = blankForNull(value.JoiningDate);
-                document.getElementById("setappr_department").innerHTML = blankForNull(value.DepartmentName);
-                document.getElementById("setappr_designation").innerHTML = blankForNull(value.DesignationName);
-                document.getElementById("setappr_repotingmanager").innerHTML = blankForNull(value.ReportingManager);
+                // document.getElementById("setappr_empname").value = blankForNull(value.FullName);
+                document.getElementById("setappr_joiningdate").value = blankForNull(value.JoiningDate);
+                document.getElementById("setappr_department").value = blankForNull(value.DepartmentName);
+                document.getElementById("setappr_designation").value = blankForNull(value.DesignationName);
+                document.getElementById("setappr_repotingmanager").value = blankForNull(value.ReportingManager);
             })
         }
 
@@ -1063,7 +1063,7 @@ function setappr_bindgrid_core() {
     return false;
 }
 
-function setappr_slideHtml(value) {
+function Core_setappr_slideHtml(value) {
     var addedDate = setappr_formatDate(value.AddedDate);
 
     return '' +
@@ -1081,7 +1081,7 @@ function setappr_slideHtml(value) {
         '</div>';
 }
 
-function setappr_binddetailsbyType(empid, type) {
+function Core_setappr_binddetailsbyType(empid, type) {
     var carouselId = "setapprActionCarousel";
     var headerText = setappr_subject(type, "Details");
     var modifyHref = "UsersAppreciationDisplinaryAction.aspx?EmployeeID=" + blankForNull(empid) + setappr_detailHash(type);
@@ -1137,6 +1137,225 @@ function setappr_binddetailsbyType(empid, type) {
         }
     });
     return false;
+}
+
+function setappr_binddetailsbyType(empid, type) {
+
+    var carouselId = "setapprActionCarousel";
+    var headerText = setappr_subject(type, "Details");
+    var modifyHref = "UsersAppreciationDisplinaryAction.aspx?EmployeeID="
+        + blankForNull(empid)
+        + setappr_detailHash(type);
+
+    $('#load1').show();
+
+    $("#dvslidermain").html("");
+    setappr_updateDetailsHeader(null, 0, 0, type);
+    $("#setappr_openmodify").attr("href", modifyHref).show();
+
+    $.ajax({
+        url: "SetAppreciationDisciplinaryAction.aspx/GetAllAppreciationWarningsByType",
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify({
+            EmployeeID: empid,
+            Type: type
+        }),
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+
+            var dataArray = JSON.parse(data.d || "[]");
+            var indicators = "";
+            var slides = "";
+
+            $('#load1').hide();
+
+            if (!dataArray.length) {
+                setappr_updateDetailsHeader(null, 0, 0, type);
+                $("#dvslidermain").html(`
+                    <div class="setappr-empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h5>No records found</h5>
+                        <p>No action details are available for selected employee.</p>
+                    </div>
+                `);
+
+                $("#setappr_viewdetails").modal("show");
+                return false;
+            }
+
+            $.each(dataArray, function (index, value) {
+
+                indicators += `
+                    <li data-target="#${carouselId}"
+                        data-slide-to="${index}"
+                        class="${index === 0 ? "active" : ""}">
+                    </li>
+                `;
+
+                slides += `
+                    <div class="carousel-item ${index === 0 ? "active" : ""}">
+                        ${setappr_slideHtml(value, index + 1, dataArray.length, type)}
+                    </div>
+                `;
+            });
+
+            var html = `
+                <div class="setappr-slider-shell">
+                    <div id="${carouselId}"
+                         class="carousel slide setappr-carousel"
+                         data-ride="carousel"
+                         data-interval="false">
+
+                        ${dataArray.length > 1
+                    ? `<ol class="carousel-indicators setappr-indicators">${indicators}</ol>`
+                    : ""}
+
+                        <div class="carousel-inner" role="listbox">
+                            ${slides}
+                        </div>
+
+                        ${dataArray.length > 1
+                    ? `
+                                <a class="carousel-control-prev setappr-carousel-control"
+                                   href="#${carouselId}"
+                                   role="button"
+                                   data-slide="prev">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+
+                                <a class="carousel-control-next setappr-carousel-control"
+                                   href="#${carouselId}"
+                                   role="button"
+                                   data-slide="next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                              `
+                    : ""}
+                    </div>
+                </div>
+            `;
+
+            $("#dvslidermain").html(html);
+            setappr_updateDetailsHeader(dataArray[0], 1, dataArray.length, type);
+
+            var detailCarousel = $("#" + carouselId);
+            detailCarousel.carousel({
+                interval: false,
+                ride: false,
+                wrap: true
+            });
+            detailCarousel.on("slid.bs.carousel", function (event) {
+                var slideIndex = $(event.relatedTarget).index();
+                setappr_updateDetailsHeader(dataArray[slideIndex], slideIndex + 1, dataArray.length, type);
+            });
+
+            $("#setappr_viewdetails").modal("show");
+        },
+
+        error: function () {
+            $('#load1').hide();
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to load selected details."
+            });
+        }
+    });
+
+    return false;
+}
+
+function setappr_actionTone(type) {
+    var text = blankForNull(type).toLowerCase();
+
+    if (text.indexOf("disciplinary") >= 0 || text.indexOf("warning") >= 0) {
+        return "disciplinary";
+    }
+
+    if (text.indexOf("performance") >= 0 || text.indexOf("pip") >= 0) {
+        return "pip";
+    }
+
+    return "appreciation";
+}
+
+function setappr_actionIcon(tone) {
+    if (tone === "disciplinary") {
+        return "fas fa-exclamation-triangle";
+    }
+
+    if (tone === "pip") {
+        return "fas fa-clipboard-check";
+    }
+
+    return "fas fa-award";
+}
+
+function setappr_actionDetails(value, currentIndex, totalCount, detailType) {
+    value = value || {};
+
+    var actionType = blankForNull(value.Type || value.ActionType || detailType || "Action Details");
+    var tone = setappr_actionTone(actionType);
+
+    return {
+        actionType: actionType,
+        actionTitle: blankForNull(value.Subject || value.Title || "Employee action information"),
+        actionDate: setappr_formatDate(value.AddedDate || value.ActionDate || value.Date),
+        employeeName: blankForNull(value.EmployeeName || value.Name),
+        remark: blankForNull(value.Remark || value.Description || value.Reason),
+        sequence: totalCount > 0 ? currentIndex + "/" + totalCount : "",
+        tone: tone
+    };
+}
+
+function setappr_updateDetailsHeader(value, currentIndex, totalCount, detailType) {
+    var details = setappr_actionDetails(value, currentIndex, totalCount, detailType);
+    var employeeName = details.employeeName || "Employee Details";
+    var actionDate = blankForNull(details.actionDate);
+
+    $("#setappr_detailsheader").html(`
+        <div class="setappr-header-summary setappr-slide-${details.tone}">
+            <div class="setappr-slide-rail">
+                ${details.sequence ? `<span class="setappr-slide-sequence">${details.sequence}</span>` : ""}
+            <div class="setappr-header-main">
+                
+                <strong>${employeeName}</strong>
+                ${actionDate ? `<em><i class="fas fa-calendar-alt"></i>${actionDate}</em>` : ""}
+            </div>
+        </div> </div>
+    `);
+}
+
+function setappr_slideHtml(value, currentIndex, totalCount, detailType) {
+    var details = setappr_actionDetails(value, currentIndex, totalCount, detailType);
+
+    return `
+        <div class="setappr-slide-card setappr-slide-${details.tone}">
+
+            <div class="setappr-slide-hero">
+                <div class="setappr-slide-icon">
+                    <i class="${setappr_actionIcon(details.tone)}"></i>
+                </div>
+
+                <div class="setappr-slide-heading">
+                    <span>Action Summary</span>
+                    <h5>${details.actionTitle}</h5>
+                </div>
+            </div>
+
+            <div class="setappr-slide-body">
+
+                <div class="setappr-remark-box">
+                    <label><i class="fas fa-comment-dots"></i> Remark</label>
+                    <div class="setappr-remark-text">${details.remark}</div>
+                </div>
+
+            </div>
+        </div>
+    `;
 }
 
 

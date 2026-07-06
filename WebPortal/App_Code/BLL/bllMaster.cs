@@ -2453,6 +2453,16 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.InsertEmpHoliday(EmployeeID, Date, DepartmentName, ShiftTime, Remark, AddedBy);
         }
 
+        public DataTable GetHolidayList()
+        {
+            return dalMaster.GetHolidayList();
+        }
+
+        public DataTable GetBranchAndDateWiseAttendance(string Month, string Year)
+        {
+            return dalMaster.GetBranchAndDateWiseAttendance(Month, Year);
+        }
+
         #endregion
 
         #region FTE

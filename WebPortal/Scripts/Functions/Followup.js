@@ -102,7 +102,7 @@ function followup_Submit() {
             //else
             followup_table = $('#followup_table').DataTable({
                 dom: 'lBftip',
-                scrollX: true,
+              
                 destroy: true,
                 "paging": true,
                 "autoWidth": true,

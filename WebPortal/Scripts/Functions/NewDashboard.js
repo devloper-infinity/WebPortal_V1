@@ -1214,7 +1214,7 @@ function dash_renderBirthdayPopup(data) {
                         <div class="emp-meta">${emp.Code} | ${emp.BranchName} | ${emp.DepartmentName}</div>
                     </div>
                 </div>
-                  <button class="btn btn-wish" onclick="return dash_toggleWishBox(${emp.EmployeeID})">🎉 Wish</button>
+                  <button class="btn btn-wish" type="button" onclick="return dash_toggleWishBox(${emp.EmployeeID})">🎉 Wish</button>
             </div>
 
             <div id="wishBox_${emp.EmployeeID}" class="wish-box mt-2" style="display:none;">

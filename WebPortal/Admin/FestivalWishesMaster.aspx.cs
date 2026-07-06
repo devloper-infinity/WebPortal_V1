@@ -1,80 +1,72 @@
-﻿using AjaxControlToolkit.HTMLEditor.Popups;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-using DocumentFormat.OpenXml.Wordprocessing;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.Services;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Admin
 {
     public partial class FestivalWishesMaster : System.Web.UI.Page
     {
-        static string NewFileName = "";
-        static string GUIDFile = "";
-        static string FolderPath = "";
-        static StringBuilder filelist = new StringBuilder();
+        private static string NewFileName = string.Empty;
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            filelist = new StringBuilder();
-            FolderPath = Server.MapPath(@"~\FestivalWishesImages");
+            string folderPath = Server.MapPath(@"~\FestivalWishesImages");
+
+            if (Request.Files.Count == 0)
+            {
+                return;
+            }
+
             try
             {
+                Directory.CreateDirectory(folderPath);
+
                 for (int i = 0; i < HttpContext.Current.Request.Files.Count; i++)
                 {
-                    HttpContext postedContext = HttpContext.Current;
-                    HttpPostedFile file = postedContext.Request.Files[i];
+                    HttpPostedFile file = HttpContext.Current.Request.Files[i];
 
-                    string name = file.FileName;
-                    byte[] binaryWriteArray = new byte[file.InputStream.Length];
-                    file.InputStream.Read(binaryWriteArray, 0,
-                    (int)file.InputStream.Length);
+                    if (file == null || file.ContentLength == 0)
+                    {
+                        continue;
+                    }
 
-                    FileInfo file_Info = new FileInfo(file.FileName);
-                    string ext = file_Info.Extension;
+                    string fileName = Path.GetFileName(file.FileName);
+                    if (string.IsNullOrWhiteSpace(fileName))
+                    {
+                        continue;
+                    }
 
-                    string file_Name = name;// Guid.NewGuid().ToString() + "_" + DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year + ext;
-                    GUIDFile = file_Name;
-                    NewFileName = FolderPath + "\\" + file_Name;
-                    if (filelist.ToString() == "")
-                        filelist.Append(NewFileName);
-                    else
-                        filelist.Append("," + NewFileName);
-                    FileStream objfilestream = new FileStream(NewFileName, FileMode.Create, FileAccess.ReadWrite);
-                    objfilestream.Write(binaryWriteArray, 0,
-                    binaryWriteArray.Length);
-                    objfilestream.Close();
+                    NewFileName = Path.Combine(folderPath, fileName);
+                    file.SaveAs(NewFileName);
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         [WebMethod]
         public static string GetFestivalMaster()
         {
             DataTable dt1 = new bllMaster().GetFestivalMaster();
-
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            Dictionary<string, object> row;
+
             foreach (DataRow dr in dt1.Rows)
             {
-                row = new Dictionary<string, object>();
+                Dictionary<string, object> row = new Dictionary<string, object>();
                 foreach (DataColumn col in dt1.Columns)
                 {
                     row.Add(col.ColumnName, dr[col]);
                 }
                 rows.Add(row);
             }
+
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
@@ -96,16 +88,14 @@ namespace WebPortal.Admin
                 htParam.Add("EndDate", "");
                 htParam.Add("IsPopup", true);
                 htParam.Add("IsActive", true);
-
                 htParam.Add("Branch", Location);
                 htParam.Add("Department", Department);
                 htParam.Add("Designation", Designation);
                 htParam.Add("Users", User);
                 htParam.Add("Gender", Gender);
-
                 htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-                int ReturnValue =  new bllMaster().InsertFestiveData(htParam);
+                int ReturnValue = new bllMaster().InsertFestiveData(htParam);
 
                 if (ReturnValue > 0)
                 {
@@ -147,6 +137,6 @@ namespace WebPortal.Admin
             }
             return msg;
         }
-
     }
 }
+

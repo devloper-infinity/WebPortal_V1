@@ -1,5 +1,35 @@
 ﻿
 
+/*------- Holidays --------*/
+
+function cl_bindHoliday() {
+
+    $.ajax({
+        type: "POST",
+        url: "ClientHolidayMaster.aspx/GetHolidayList",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+
+            var ddl = $("#choliday_desc");
+            ddl.empty();
+
+            ddl.append($("<option></option>").val("Select").text("Select Holidays"));
+
+            var data = JSON.parse(response.d);
+
+            $.each(data, function (i, item) {
+                ddl.append($("<option></option>").val(item.HolidayName).text(item.HolidayName));
+            });
+        },
+        error: function (xhr, status, error) {
+            console.log(error);
+            alert("Unable to load holiday list.");
+        }
+    });
+}
+
+
 /*------- Location --------*/
 
 function choliday_bindlocation() {
@@ -272,7 +302,7 @@ function choliday_InsertHoliday() {
     const requestData = {
         EmpIDs: choliday_getSelectedEmployees() || [],
         Date: $("#choliday_date").val(),
-        Remark: $.trim($("#choliday_desc").val())
+        Remark: $.trim($$("#choliday_desc").val())
     };
 
     if (requestData.EmpIDs.length === 0) {
@@ -407,6 +437,14 @@ function choliday_getSelectedEmployees() {
 
 function choliday_getuserslist() {
 
+    var holiday = $("#choliday_desc").val();
+
+    if (holiday === "Select") {
+
+        Swal.fire({ icon: 'warning', title: 'Validation', text: 'Please select Holiday For.' });
+        return false;
+    }
+
     const filters = {
         domainIds: getSelectedValues("choliday_domain_checkbox"),
         locationIds: getSelectedValues("choliday_location_checkbox"),
@@ -505,7 +543,7 @@ function choliday_clearFields() {
 
     // Clear inputs
     $("#choliday_date").val('');
-    $("#choliday_desc").val('');
+    $("#choliday_desc")[0].selectedIndex = 0;
 
     // Reset dropdown button text
     $("#choliday_domain_drpbtn").html("Select Domain");

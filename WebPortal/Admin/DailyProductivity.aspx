@@ -26,84 +26,166 @@
             color: var(--dp-text);
             margin-bottom: 6px;
         }
-
+/*
         .dp-page {
             padding: 18px 18px 28px;
-        }
+        }*/
 
         .dp-hero {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 48%, #06b6d4 100%);
-            border-radius: 24px;
-            color: #fff;
-            padding: 24px;
-            margin-bottom: 18px;
-            box-shadow: var(--dp-shadow);
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 22px 28px;
+            border-radius: 22px;
+            color: #fff;
+            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 62%, #0f766e 100%);
+            box-shadow: var(--dp-shadow);
+            margin-bottom: 20px;
         }
 
+        .dp-hero:before,
         .dp-hero:after {
             content: "";
             position: absolute;
-            right: -70px;
-            top: -80px;
-            width: 240px;
-            height: 240px;
             border-radius: 999px;
             background: rgba(255,255,255,.16);
         }
 
-        .dp-title {
+        .dp-hero:before {
+            width: 220px;
+            height: 220px;
+            right: 70px;
+            top: -120px;
+        }
+
+        .dp-hero:after {
+            width: 300px;
+            height: 300px;
+            right: -90px;
+            bottom: -170px;
+        }
+
+        .dp-hero-icon {
+            position: relative;
+            z-index: 1;
+            width: 50px;
+            height: 50px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .22);
             font-size: 24px;
+        }
+
+        .dp-hero-content {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .dp-title {
+            margin: 0;
+            font-size: 19px;
             font-weight: 800;
             letter-spacing: -.02em;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .dp-subtitle {
-            margin-top: 6px;
+            margin: 8px 0 0;
             opacity: .86;
-            font-size: 13px;
+            font-size: 12px;
         }
 
-        .dp-status-grid {
+        .dp-session-panel {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 14px;
+            align-items: stretch;
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border: 1px solid rgba(37, 99, 235, .12);
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f8fbff, #eef6ff);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, .07);
+        }
+
+        .dp-session-left {
             display: grid;
             grid-template-columns: repeat(5, minmax(145px, 1fr));
             gap: 10px;
-            margin-top: 18px;
+        }
+
+        .dp-time-block {
+            min-height: 74px;
+            padding: 10px 12px;
+            border: 1px solid #dfe7f2;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .9);
             position: relative;
-            z-index: 2;
         }
 
-        .dp-status-card {
-            background: rgba(255,255,255,.14);
-            border: 1px solid rgba(255,255,255,.18);
-            border-radius: 16px;
-            padding: 12px 14px;
-            backdrop-filter: blur(6px);
+        .dp-time-block.is-current {
+            border-color: rgba(15, 118, 110, .22);
+            background: #f0fdfa;
         }
 
-        .dp-status-label {
-            display: block;
+        .dp-time-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 5px;
+            color: var(--dp-muted);
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: .08em;
-            opacity: .78;
-            margin-bottom: 4px;
+            letter-spacing: .04em;
+            font-weight: 900;
         }
 
-        .dp-status-value {
-            font-size: 15px;
-            font-weight: 800;
+        .dp-time-value {
+            display: block;
+            color: var(--dp-text);
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1.1;
             min-height: 20px;
         }
 
+        .dp-time-caption {
+            display: block;
+            min-height: 15px;
+            margin-top: 5px;
+            color: var(--dp-muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
         .dp-live-seconds {
-            color: #facc15;
+            color: var(--dp-primary);
             font-weight: 900;
+        }
+
+        .dp-timezone-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            position: relative;
+            z-index: 1;
+            min-width: 184px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, .28);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .14);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
         }
 
         .dp-shell-card {
@@ -329,14 +411,17 @@
         .modal-title { font-weight: 900; color: var(--dp-text); }
 
         @media (max-width: 1200px) {
-            .dp-status-grid { grid-template-columns: repeat(2, minmax(145px, 1fr)); }
+            .dp-session-left { grid-template-columns: repeat(2, minmax(145px, 1fr)); }
             .dp-form-grid, .dp-form-grid.two { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
             .dp-form-grid .span-3 { grid-column: span 2; }
         }
 
         @media (max-width: 768px) {
             .dp-page { padding: 12px; }
-            .dp-status-grid, .dp-form-grid, .dp-form-grid.two { grid-template-columns: 1fr; }
+            .dp-hero { align-items: flex-start; flex-direction: column; padding: 18px; }
+            .dp-timezone-pill { width: 100%; }
+            .dp-session-left, .dp-form-grid, .dp-form-grid.two { grid-template-columns: 1fr; }
+            .dp-session-panel { padding: 10px; }
             .dp-form-grid .span-2, .dp-form-grid .span-3 { grid-column: span 1; }
             .dp-card-header { flex-direction: column; align-items: flex-start; }
             .dp-tabs { width: 100%; }
@@ -409,20 +494,51 @@
 
     <div class="dp-page">
         <div class="dp-hero">
-            <div class="row align-items-center">
-                <div class="col-lg-7">
-                    <h1 class="dp-title"><i class="fas fa-chart-line"></i> Daily Productivity</h1>
-                    <div class="dp-subtitle">Add manual productivity, review auto-tracked production, and monitor daily time status.</div>
-                </div>
+            <div class="dp-hero-icon"><i class="fas fa-chart-line"></i></div>
+            <div class="dp-hero-content">
+                <h1 class="dp-title">Daily Productivity</h1>
+                <p class="dp-subtitle">Add manual productivity, review auto-tracked production, and monitor daily time status.</p>
             </div>
-            <div class="dp-status-grid">
-                <div class="dp-status-card"><span class="dp-status-label">Current Login</span><span class="dp-status-value" id="dailyprod_logtinimedisplay"></span></div>
-                <div class="dp-status-card"><span class="dp-status-label">Upto Time</span><span class="dp-status-value" id="dailyprod_tilltimedisplay"></span></div>
-                <div class="dp-status-card"><span class="dp-status-label">Break Out</span><span class="dp-status-value" id="dailyprod_breakouttimedisplay"></span></div>
-                <div class="dp-status-card"><span class="dp-status-label">Break In</span><span class="dp-status-value" id="dailyprod_breakintimedisplay"></span></div>
-                <div class="dp-status-card"><span class="dp-status-label">Total Break</span><span class="dp-status-value" id="dailyprod_breaktimedisplay"></span></div>
+            <div class="dp-timezone-pill">
+                <i class="fas fa-clock"></i>
+                <span>IST Time Zone</span>
             </div>
         </div>
+
+        <section class="dp-session-panel">
+            <div class="dp-session-left">
+                <div class="dp-time-block">
+                    <span class="dp-time-label"><i class="fas fa-sign-in-alt"></i>Current Login</span>
+                    <span class="dp-time-value" id="dailyprod_logtinimedisplay"></span>
+                    <span class="dp-time-caption">Recorded in IST</span>
+                </div>
+
+                <div class="dp-time-block is-current">
+                    <span class="dp-time-label"><i class="fas fa-hourglass-half"></i>Upto Time</span>
+                    <span class="dp-time-value" id="dailyprod_tilltimedisplay"></span>
+                    <span class="dp-time-caption">Live session duration</span>
+                </div>
+
+                <div class="dp-time-block">
+                    <span class="dp-time-label"><i class="fas fa-mug-hot"></i>Break Out</span>
+                    <span class="dp-time-value" id="dailyprod_breakouttimedisplay"></span>
+                    <span class="dp-time-caption">Latest break start</span>
+                </div>
+
+                <div class="dp-time-block">
+                    <span class="dp-time-label"><i class="fas fa-door-open"></i>Break In</span>
+                    <span class="dp-time-value" id="dailyprod_breakintimedisplay"></span>
+                    <span class="dp-time-caption">Latest break end</span>
+                </div>
+
+                <div class="dp-time-block">
+                    <span class="dp-time-label"><i class="fas fa-stopwatch"></i>Total Break</span>
+                    <span class="dp-time-value" id="dailyprod_breaktimedisplay"></span>
+                    <span class="dp-time-caption">Break duration</span>
+                </div>
+            </div>
+
+        </section>
 
         <div class="dp-shell-card">
             <div class="dp-card-header">

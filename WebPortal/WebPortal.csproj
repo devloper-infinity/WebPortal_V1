@@ -141,6 +141,7 @@
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
+    <Content Include="Admin\BranchAndDateWiseAttendanceReport.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
     <Content Include="Admin\FileDownload.aspx" />
     <Content Include="Admin\ProjectHealthReport.aspx" />
@@ -150,13 +151,16 @@
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
     <Content Include="CRM\Contacts.aspx" />
+    <Content Include="CRM\AutomationRunner.aspx" />
     <Content Include="CRM\CRM.css" />
+    <Content Include="CRM\CRM_FrappeLike_Automation_Setup.sql" />
     <Content Include="CRM\CRM.Master" />
     <Content Include="CRM\CRMService.aspx" />
     <Content Include="CRM\Dashboard.aspx" />
     <Content Include="CRM\Deals.aspx" />
     <Content Include="CRM\Leads.aspx" />
     <Content Include="CRM\Reports.aspx" />
+    <Content Include="CRM\Settings.aspx" />
     <Content Include="Admin\AbscondingAndLeaveReport.aspx" />
     <Content Include="Admin\AbscondingEmployeeFollowup.aspx" />
     <Content Include="Admin\AddApplicantRemark.aspx" />
@@ -174,6 +178,7 @@
     <Content Include="Admin\AttendanceCorrectionSelf.aspx" />
     <Content Include="Admin\ChildPages.aspx" />
     <Content Include="Admin\ClientHolidayMaster.aspx" />
+    <Content Include="Admin\ClientHolidayReport.aspx" />
     <Content Include="Admin\CompensatoryOff.aspx" />
     <Content Include="Admin\ConditionAnalysis.aspx" />
     <Content Include="Admin\ConditionClearing.aspx" />
@@ -611,6 +616,7 @@
     <Content Include="ckeditor\skins\moono\images\mini.png" />
     <Content Include="ckeditor\styles.js" />
     <Content Include="dist\css\alt\adminlte.min.css" />
+    <Content Include="dist\js\sweetalert.js" />
     <Content Include="dist\multi\chosen-sprite%402x.png" />
     <Content Include="dist\multi\chosen-sprite.png" />
     <Content Include="dist\multi\chosen.css" />
@@ -2813,6 +2819,7 @@
     <Content Include="User\Dashboard.aspx" />
     <Content Include="User\EmployeeKYC.aspx" />
     <Content Include="US\AddFeedback.aspx" />
+    <Content Include="US\ChangePassword.aspx" />
     <Content Include="US\ConditionAnalysis.aspx" />
     <Content Include="US\ConditionClearing.aspx" />
     <Content Include="US\ConditionClearingReport.aspx" />
@@ -2943,6 +2950,13 @@
     <Compile Include="Admin\DomainHealthReport.aspx.designer.cs">
       <DependentUpon>DomainHealthReport.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\BranchAndDateWiseAttendanceReport.aspx.cs">
+      <DependentUpon>BranchAndDateWiseAttendanceReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\BranchAndDateWiseAttendanceReport.aspx.designer.cs">
+      <DependentUpon>BranchAndDateWiseAttendanceReport.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\FileDownload.aspx.cs">
       <DependentUpon>FileDownload.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3002,6 +3016,13 @@
     <Compile Include="CRM\Contacts.aspx.designer.cs">
       <DependentUpon>Contacts.aspx</DependentUpon>
     </Compile>
+    <Compile Include="CRM\AutomationRunner.aspx.cs">
+      <DependentUpon>AutomationRunner.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\AutomationRunner.aspx.designer.cs">
+      <DependentUpon>AutomationRunner.aspx</DependentUpon>
+    </Compile>
     <Compile Include="CRM\CRM.Master.cs">
       <DependentUpon>CRM.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3043,6 +3064,13 @@
     </Compile>
     <Compile Include="CRM\Reports.aspx.designer.cs">
       <DependentUpon>Reports.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Settings.aspx.cs">
+      <DependentUpon>Settings.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Settings.aspx.designer.cs">
+      <DependentUpon>Settings.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\AbscondingAndLeaveReport.aspx.cs">
       <DependentUpon>AbscondingAndLeaveReport.aspx</DependentUpon>
@@ -3170,6 +3198,13 @@
     </Compile>
     <Compile Include="Admin\ClientHolidayMaster.aspx.designer.cs">
       <DependentUpon>ClientHolidayMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ClientHolidayReport.aspx.cs">
+      <DependentUpon>ClientHolidayReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ClientHolidayReport.aspx.designer.cs">
+      <DependentUpon>ClientHolidayReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\CompensatoryOff.aspx.cs">
       <DependentUpon>CompensatoryOff.aspx</DependentUpon>
@@ -4669,6 +4704,13 @@
     </Compile>
     <Compile Include="US\AddFeedback.aspx.designer.cs">
       <DependentUpon>AddFeedback.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\ChangePassword.aspx.cs">
+      <DependentUpon>ChangePassword.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\ChangePassword.aspx.designer.cs">
+      <DependentUpon>ChangePassword.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\ConditionAnalysis.aspx.cs">
       <DependentUpon>ConditionAnalysis.aspx</DependentUpon>

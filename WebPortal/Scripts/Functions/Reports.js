@@ -368,7 +368,7 @@ function AttritionDetails(month, year, domain) {
             attritiontable = $('#attritiontable').DataTable({
                 dom: 'lftip',
                 destroy: true,
-                scrollX: true,
+                // scrollX: true,
                 "paging": true,
                 "autoWidth": false,
                 select: true,
@@ -734,169 +734,212 @@ function ableave_Submit() {
     return false;
 }
 
+var abscondleavelist;
+var totalleavelist;
+
 function BindAbscondingGrid() {
 
-    var month = document.getElementById("ableave_month").value;
-    var year = document.getElementById("ableave_year").value;
-    if (month == "") {
-        alert("Please select month");
+    var month = $("#ableave_month").val();
+    var year = $("#ableave_year").val();
+
+    if (!month) {
+        Swal.fire("Validation", "Please select month.", "warning");
         return false;
     }
-    if (year == "") {
-        alert("Please select year");
+
+    if (!year) {
+        Swal.fire("Validation", "Please select year.", "warning");
         return false;
     }
+
     $('#load1').show();
-    ableave_html = '';
+
     $.ajax({
         url: "AbscondingAndLeaveReport.aspx/GetTotalAbsconingEmployees",
         type: "POST",
-        data: "{Month:'" + month + "', Year:'" + year + "'}",
+        data: JSON.stringify({
+            Month: month,
+            Year: year
+        }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
-                ableave_html += '<tr>';
-                ableave_html += '<td>' + blankForNull(value.Code) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Branch) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Domain) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Subdomain) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ReportingManager) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.DomainHead) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Tenure) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.CurrentStatus) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ResignationDate) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LastWorkingDate) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Remark) + '</td>';
-                ableave_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.AbscondedDate) + '</td>';
-                ableave_html += '<td style="display:none;">' + blankForNull(value.LatestLoginDate) + '</td>';
-                ableave_html += '</tr>';
-            });
 
-            if ($.fn.dataTable.isDataTable('#abscondleavelist')) {
-                abscondleavelist.destroy();
+        success: function (res) {
+
+            var dataArray = JSON.parse(res.d || "[]");
+
+            if ($.fn.DataTable.isDataTable('#abscondleavelist')) {
+                abscondleavelist.clear().rows.add(dataArray).draw();
+                $('#load1').hide();
+                return;
             }
-            $('#abscondleavelist tbody').html(ableave_html);
-            //else
+
             abscondleavelist = $('#abscondleavelist').DataTable({
+                data: dataArray,
                 dom: 'lftip',
-                scrollX: true,
-                destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
+                paging: true,
+                autoWidth: true,
+                ordering: false,
                 processing: true,
-                'select': {
-                    'style': 'single'
+                destroy: true,
+                select: {
+                    style: 'single'
                 },
+                columns: [
+                    { title: "Code", data: "Code", render: blankForNull },
+                    { title: "Name", data: "Name", render: blankForNull },
+                    { title: "Joining Date", data: "JoiningDate", render: blankForNull },
+                    { title: "Branch", data: "Branch", render: blankForNull },
+                    { title: "Domain", data: "Domain", render: blankForNull },
+                    { title: "Sub Domain", data: "Subdomain", render: blankForNull },
+                    { title: "Reporting Manager", data: "ReportingManager", render: blankForNull },
+                    { title: "Domain Head", data: "DomainHead", render: blankForNull },
+                    { title: "Tenure", data: "Tenure", render: blankForNull },
+                    { title: "Current Status", data: "CurrentStatus", render: blankForNull },
+                    { title: "Resignation Date", data: "ResignationDate", render: blankForNull },
+                    { title: "Last Working Date", data: "LastWorkingDate", render: blankForNull },
+                    { title: "Remark", data: "Remark", render: blankForNull },
+                    { title: "Absconded Date", data: "AbscondedDate", render: blankForNull },
+                    {
+                        title: "Latest Login Date",
+                        data: "LatestLoginDate",
+                        render: blankForNull,
+                        visible: false
+                    }
+                ],
+                columnDefs: [{
+                    targets: "_all",
+                    className: "text-nowrap"
+                }],
                 initComplete: function () {
                     $('#load1').hide();
-                },
-                "rowCallback": function (row, data) {
-                    var val = data[3];
-                },
+                }
             });
         },
-        error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+
+        error: function (xhr) {
+            $('#load1').hide();
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: xhr.responseText || "Unable to load absconding report."
+            });
         }
     });
+
     return false;
+}
+
+function blankForNull(data) {
+    return data === null || data === undefined ? "" : data;
 }
 
 function BindTotalLeaveGrid() {
 
-    var month = document.getElementById("ableave_month").value;
-    var year = document.getElementById("ableave_year").value;
-    if (month == "") {
-        alert("Please select month");
+    var month = $("#ableave_month").val();
+    var year = $("#ableave_year").val();
+
+    if (!month) {
+        Swal.fire("Validation", "Please select month.", "warning");
         return false;
     }
-    if (year == "") {
-        alert("Please select year");
+
+    if (!year) {
+        Swal.fire("Validation", "Please select year.", "warning");
         return false;
     }
-    $('#load1').show();
-    leaveab_html = '';
+
+    $("#load1").show();
+
     $.ajax({
         url: "AbscondingAndLeaveReport.aspx/GetTotalLeaves",
         type: "POST",
-        data: "{Month:'" + month + "', Year:'" + year + "'}",
+        data: JSON.stringify({
+            Month: month,
+            Year: year
+        }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
-                var addeddate = '';
-                var approveddate = '';
-                if (value.AddedDate != null && value.AddedDate != '') {
-                    addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
-                }
-                else
-                    addeddate = '';
-                if (value.ApprovedDate != null && value.ApprovedDate != '') {
-                    approveddate = eval(value.ApprovedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
-                }
-                else
-                    approveddate = '';
-                leaveab_html += '<tr>';
-                leaveab_html += '<td>' + blankForNull(value.Code) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.JoiningDate) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Branch) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Domain) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Subdomain) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ReportingManager) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.DomainHead) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ForDays) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LeaveFrom) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LeaveTo) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ReasonForLeave) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.AddedBy) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(addeddate) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LeaveStatus) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ApprovedBy) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ApprovalRemark) + '</td>';
-                leaveab_html += '<td style="text-wrap: nowrap;">' + blankForNull(approveddate) + '</td>';
-                leaveab_html += '</tr>';
-            });
 
-            if ($.fn.dataTable.isDataTable('#totalleavelist')) {
-                totalleavelist.destroy();
+        success: function (res) {
+
+            var dataArray = JSON.parse(res.d || "[]");
+
+            if ($.fn.DataTable.isDataTable("#totalleavelist")) {
+                totalleavelist.clear().rows.add(dataArray).draw();
+                $("#load1").hide();
+                return false;
             }
-            $('#totalleavelist tbody').html(leaveab_html);
-            //else
-            totalleavelist = $('#totalleavelist').DataTable({
-                dom: 'lftip',
-                destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
+
+            totalleavelist = $("#totalleavelist").DataTable({
+                data: dataArray,
+                dom: "lftip",
+                paging: true,
+                autoWidth: false,
+                ordering: false,
                 processing: true,
-                'select': {
-                    'style': 'single'
+                destroy: true,
+                select: {
+                    style: "single"
                 },
+
+                columns: [
+                    { title: "Code", data: "Code", render: blankForNull },
+                    { title: "Name", data: "Name", render: blankForNull },
+                    { title: "Joining Date", data: "JoiningDate", render: blankForNull },
+                    { title: "Branch", data: "Branch", render: blankForNull },
+                    { title: "Domain", data: "Domain", render: blankForNull },
+                    { title: "Sub Domain", data: "Subdomain", render: blankForNull },
+                    { title: "Reporting Manager", data: "ReportingManager", render: blankForNull },
+                    { title: "Domain Head", data: "DomainHead", render: blankForNull },
+                    { title: "For Days", data: "ForDays", render: blankForNull },
+                    { title: "Leave From", data: "LeaveFrom", render: blankForNull },
+                    { title: "Leave To", data: "LeaveTo", render: blankForNull },
+                    { title: "Reason For Leave", data: "ReasonForLeave", render: blankForNull },
+                    { title: "Added By", data: "AddedBy", render: blankForNull },
+                    { title: "Added Date", data: "AddedDate", render: formatDotNetDate },
+                    { title: "Leave Status", data: "LeaveStatus", render: blankForNull },
+                    { title: "Approved By", data: "ApprovedBy", render: blankForNull },
+                    { title: "Approval Remark", data: "ApprovalRemark", render: blankForNull },
+                    { title: "Approved Date", data: "ApprovedDate", render: formatDotNetDate }
+                ],
+
+                columnDefs: [{
+                    targets: "_all",
+                    className: "text-nowrap"
+                }],
+
                 initComplete: function () {
-                    $('#load1').hide();
-                },
-                "rowCallback": function (row, data) {
-                    var val = data[3];
-                    jQuery('.dataTable').wrap('<div class="dataTables_scroll" />');
-                },
+                    $("#load1").hide();
+                }
             });
         },
-        error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+
+        error: function (xhr) {
+            $("#load1").hide();
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: xhr.responseText || "Unable to load leave report."
+            });
         }
     });
+
     return false;
+}
+
+function formatDotNetDate(data) {
+    if (!data) return "";
+
+    var timestamp = parseInt(data.toString().replace(/[^0-9]/g, ""), 10);
+
+    if (isNaN(timestamp)) {
+        return data;
+    }
+
+    return new Date(timestamp).toLocaleDateString("en-US");
 }
 
 function attrition_binddomains() {
@@ -916,105 +959,6 @@ function attrition_binddomains() {
                 $("#attrition_domain").append($("<option></option>").val(value.DomainID).html(value.DomainName));
             })
         }
-    });
-}
-
-function core_EmployeeInformationDetails() {
-    $('#load1').show();
-
-    var table_empveri = '';
-    $.ajax({
-        url: "EmployeeInformation.aspx/GetAllEmployeeInformation",
-        type: "POST",
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
-
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-
-            table_empveri = $('#empveri_table').DataTable({
-                dom: 'Bftip',
-                destroy: true,
-                orderCellsTop: true,
-                fixedHeader: true,
-                scrollX: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                filter: true,
-                'select': {
-                    'style': 'single'
-                },
-                "serverSide": false,
-                "data": dataArray,
-                columns: [
-                    { data: 'Code' },
-                    { data: 'Name' },
-                    { data: 'Salary' },
-                    { data: 'JoiningDate' },
-                    { data: 'DateOfBirth' },
-                    { data: 'Branch' },
-                    { data: 'Domain' },
-                    { data: 'Subdomain' },
-                    { data: 'Process' },
-                    { data: 'Department' },
-                    { data: 'Designation' },
-                    { data: 'ReportingManager' },
-                    { data: 'PresentAddress' },
-                    { data: 'PermanentAddress' },
-                    { data: 'ContactNo' },
-                    { data: 'ESICNo' },
-                    { data: 'PFNo' },
-                    { data: 'UAN' },
-                    { data: 'PersonalEmail' },
-                    { data: 'OfficialEmailID' },
-                    { data: 'CurrentStatus' },
-                    { data: 'ResignationDate' },
-                    { data: 'LastWorkingDate' },
-                    { data: 'LatestLoginDate' }
-                ],
-                fnCreatedRow: function (nRow, aData, iDataIndex) {
-                    $(nRow).children("td").css("text-wrap", "nowrap");
-                },
-
-                initComplete: function () {
-                    $('#load1').hide();
-                },
-                buttons: [
-                    {
-                        extend: 'excelHtml5', title: 'Employee Verification Details', autoFilter: true,
-                    },
-                ],
-            });
-
-        },
-
-        error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
-        }
-    });
-
-    var isSearch = 0;
-    $('#empveri_table thead tr:eq(1) th').each(function () {
-
-        if (isSearch < 2) {
-            var title = $(this).text();
-            $(this).html('<input type="text" placeholder="Search ' + title + '" class="column_search" />');
-        }
-        else {
-            $(this).html('');
-        }
-        isSearch++;
-    });
-
-    $('#empveri_table thead').on('keyup', ".column_search", function () {
-        table_empveri
-            .column($(this).parent().index())
-            .search(this.value)
-            .draw();
     });
 }
 

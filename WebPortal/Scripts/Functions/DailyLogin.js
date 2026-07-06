@@ -21,6 +21,7 @@ function DailyLogin_Init() {
         }
     });
 
+    syncDailyLoginClock(window.dailyLoginInitialServerUtc, window.dailyLoginInitialClientSyncedAt);
     loginout_BindWorkingDetails();
     updateTime();
 
@@ -438,7 +439,7 @@ function renderDayStatus(data) {
 
 
 
-function syncDailyLoginClock(serverUtc) {
+function syncDailyLoginClock(serverUtc, syncedAt) {
     if (!serverUtc) {
         return;
     }
@@ -449,7 +450,7 @@ function syncDailyLoginClock(serverUtc) {
     }
 
     dailyLoginServerUtcBase = parsed;
-    dailyLoginClockSyncedAt = Date.now();
+    dailyLoginClockSyncedAt = typeof syncedAt === "number" && syncedAt > 0 ? syncedAt : Date.now();
     updateTime();
 }
 

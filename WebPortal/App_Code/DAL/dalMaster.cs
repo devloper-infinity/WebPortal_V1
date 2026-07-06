@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Office.Word;
+using DocumentFormat.OpenXml.VariantTypes;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 //using System.Activities.Statements;
@@ -9,9 +10,10 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.DynamicData;
-using WebPortal.App_Code.Class;
 using WebPortal.Admin;
+using WebPortal.App_Code.Class;
 using static WebPortal.Admin.ChildPages;
+using static WebPortal.Admin.ResponsibilityDelegation;
 
 
 namespace WebPortal.App_Code.DAL
@@ -5567,6 +5569,14 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+
+        public DataTable GetHolidayList()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetHolidays");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetUserPerformanceAttendanceDetails_HR_Servicing(string FromDate, string ToDate, int EmployeeID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOverAllUserAttendanceDetails_Servicing");
@@ -5577,7 +5587,14 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-
+        public DataTable GetBranchAndDateWiseAttendance(string Month, string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetDateWiseAttendance_ICG");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Sal(cmd);
+            return dt;
+        }
 
         #endregion
 

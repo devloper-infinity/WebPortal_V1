@@ -1326,14 +1326,14 @@ function us_getproductionSummary(month, year) {
                 "data": dataArray,
                 columns: columns,
                 columnDefs: [
-                    { targets: [15, 17, 18], visible: false }
+                    { targets: [1,2,15, 17, 18], visible: false }
                 ],
                 fnCreatedRow: function (nRow, aData, iDataIndex) {
                     $(nRow).children("td").css("text-wrap", "nowrap");
                     if (startIdx === undefined) {
                         maindate = getColumnIndex(columns, 'Date');
-                        startIdx = getColumnIndex(columns, 'StartTime');
-                        endIdx = getColumnIndex(columns, 'EndTime');
+                        // startIdx = getColumnIndex(columns, 'StartTime');
+                        // endIdx = getColumnIndex(columns, 'EndTime');
                         totalTimeIdx = getColumnIndex(columns, 'TotalTime');
                         TargetIdx = getColumnIndex(columns, 'Target');
                         LoanIdx = getColumnIndex(columns, '# Loans Reviewed');
@@ -1351,18 +1351,18 @@ function us_getproductionSummary(month, year) {
                     //}
 
                     // START TIME
-                    if (!aData.StartTime) {
-                        $('td', nRow).eq(startIdx).html(
-                            `<input type="time" class="start-time form-control" />`
-                        );
-                    }
+                    // if (!aData.StartTime) {
+                    //     $('td', nRow).eq(startIdx).html(
+                    //         `<input type="time" class="start-time form-control" />`
+                    //     );
+                    // }
 
-                    // END TIME
-                    if (!aData.EndTime) {
-                        $('td', nRow).eq(endIdx).html(
-                            `<input type="time" class="end-time form-control" />`
-                        );
-                    }
+                    // // END TIME
+                    // if (!aData.EndTime) {
+                    //     $('td', nRow).eq(endIdx).html(
+                    //         `<input type="time" class="end-time form-control" />`
+                    //     );
+                    // }
 
                     // Comments
                     if (!aData.StartTime) {

@@ -480,7 +480,7 @@
             .setappr-slide-subject h5 {
                 margin: 0;
                 color: #193b72;
-                font-size: 18px;
+                font-size: 15px;
                 font-weight: 800;
                 line-height: 1.4;
             }
@@ -694,6 +694,71 @@
             }
         }
     </style>
+    <style>
+        .setappr-profile-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid #e4ecf7;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+        }
+
+        .setappr-form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .setappr-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+            color: #334155;
+            margin-bottom: 7px;
+        }
+
+            .setappr-field label i {
+                color: #2563eb;
+                margin-right: 6px;
+            }
+
+        .setappr-field .form-control {
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid #dbe7f3;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, .04);
+        }
+
+            .setappr-field .form-control:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+            }
+
+        .setappr-readonly {
+            background: linear-gradient(135deg, #f8fafc, #eef6ff) !important;
+            cursor: default;
+        }
+
+        .setappr-employee-field select {
+            background: #fff;
+        }
+
+        @media (max-width: 992px) {
+            .setappr-form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .setappr-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
     <script>
         $(document).ready(function () {
             try {
@@ -744,7 +809,7 @@
                 </div>
                 <div class="setappr-panel-body">
                     <label id="setappr_apprid" style="display: none;"></label>
-                    <div class="setappr-form-grid">
+                    <%--     <div class="setappr-form-grid">
                         <div class="setappr-field">
                             <label for="setappr_employee">Employee</label>
                             <select id="setappr_employee" name="setappr_employee" class="form-control" onchange="setappr_getEmpInfo(this);"></select>
@@ -768,6 +833,89 @@
                         <div class="setappr-field">
                             <label>Reporting Manager</label>
                             <label id="setappr_repotingmanager" class="setappr-readonly"></label>
+                        </div>
+                    </div>--%>
+                    <%--    <div class="setappr-form-grid">
+
+                        <div class="setappr-field">
+                            <label for="setappr_employee">Employee</label>
+                            <select id="setappr_employee"
+                                name="setappr_employee"
+                                class="form-control"
+                                onchange="setappr_getEmpInfo(this);">
+                            </select>
+                        </div>
+                        <div class="setappr-field">
+                            <label for="setappr_joiningdate">Joining Date</label>
+                            <input type="text"
+                                id="setappr_joiningdate"
+                                class="form-control setappr-readonly"
+                                readonly />
+                        </div>
+
+                        <div class="setappr-field">
+                            <label for="setappr_department">Department</label>
+                            <input type="text"
+                                id="setappr_department"
+                                class="form-control setappr-readonly"
+                                readonly />
+                        </div>
+
+                        <div class="setappr-field">
+                            <label for="setappr_designation">Designation</label>
+                            <input type="text"
+                                id="setappr_designation"
+                                class="form-control setappr-readonly"
+                                readonly />
+                        </div>
+
+                        <div class="setappr-field">
+                            <label for="setappr_repotingmanager">Reporting Manager</label>
+                            <input type="text"
+                                id="setappr_repotingmanager"
+                                class="form-control setappr-readonly"
+                                readonly />
+                        </div>
+
+                    </div>--%>
+
+                    <div class="setappr-profile-card">
+                        <div class="setappr-form-grid">
+
+                            <div class="setappr-field setappr-employee-field">
+                                <label><i class="fas fa-user-check"></i>Employee</label>
+                                <select id="setappr_employee"
+                                    name="setappr_employee"
+                                    class="form-control"
+                                    onchange="setappr_getEmpInfo(this);">
+                                </select>
+                            </div>
+
+                            <%--  <div class="setappr-field">
+                                <label><i class="fas fa-id-card"></i>Name</label>
+                                <input type="text" id="setappr_empname" class="form-control setappr-readonly" readonly />
+                            </div>--%>
+
+                            <div class="setappr-field">
+                                <label><i class="fas fa-calendar-check"></i>Joining Date</label>
+                                <input type="text" id="setappr_joiningdate" class="form-control setappr-readonly" readonly />
+                            </div>
+
+                            <div class="setappr-field">
+                                <label><i class="fas fa-building"></i>Department</label>
+                                <input type="text" id="setappr_department" class="form-control setappr-readonly" readonly />
+                            </div>
+
+                            <div class="setappr-field">
+                                <label><i class="fas fa-briefcase"></i>Designation</label>
+                                <input type="text" id="setappr_designation" class="form-control setappr-readonly" readonly />
+                            </div>
+
+                            <div class="setappr-field">
+                                <label><i class="fas fa-user-tie"></i>Reporting Manager</label>
+                                <input type="text" id="setappr_repotingmanager" class="form-control setappr-readonly" readonly />
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -901,16 +1049,20 @@
                     <div class="setappr-preview-document">
                         <div class="setappr-preview-meta">
                             <div>
-                                <div style="display: none;"><b>Code:</b>
+                                <div style="display: none;">
+                                    <b>Code:</b>
                                     <label id="setappr_popcode"></label>
                                 </div>
-                                <div><b>Name:</b>
+                                <div>
+                                    <b>Name:</b>
                                     <label id="setappr_popname"></label>
                                 </div>
-                                <div><b>Joining Date:</b>
+                                <div>
+                                    <b>Joining Date:</b>
                                     <label id="setappr_popdoj"></label>
                                 </div>
-                                <div style="display: none;"><b>Location:</b>
+                                <div style="display: none;">
+                                    <b>Location:</b>
                                     <label id="setappr_poplocation"></label>
                                 </div>
                             </div>
@@ -962,7 +1114,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="setappr_detailsheader"><i class="fas fa-copy"></i>Action Details</h4>
+                    <div class="modal-title setappr-detail-header" id="setappr_detailsheader"><i class="fas fa-copy"></i>Action Details</div>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -978,5 +1130,743 @@
         </div>
     </div>
 
+    <style>
+        .modal-header {
+            /*background: linear-gradient(120deg, #2563eb 0%, #1d9de6 65%, #22c1dc 100%) !important;*/
+            width: 100%;
+        }
+
+        .setappr-slider-shell {
+            /* background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);*/
+            border: 1px solid #e3edf8;
+            border-radius: 20px;
+            padding: 15px;
+        }
+
+        .setappr-slider-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;carousel-control-prev
+            margin-bottom: 18px;
+        }
+
+        .setappr-slider-kicker {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #2563eb;
+        }
+
+        .setappr-slider-top h5 {
+            margin: 4px 0 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .setappr-slider-count {
+            padding: 7px 16px;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 800;
+            background: linear-gradient(120deg, #2563eb, #22c1dc);
+        }
+
+        .setappr-carousel {
+            padding: 0 52px 45px;
+        }
+
+        .setappr-slide-card {
+            overflow: hidden;
+            border-radius: 22px;
+            background: #fff;
+            border: 1px solid #e4ecf7;
+            box-shadow: 0 15px 35px rgba(15, 23, 42, .10);
+        }
+
+        .setappr-slide-hero {
+            position: relative;
+            text-align: center;
+            padding: 34px 22px 28px;
+            color: #fff;
+            /*    background: linear-gradient(120deg, #2563eb 0%, #1d9de6 65%, #22c1dc 100%);*/
+        }
+
+            .setappr-slide-hero::before {
+                content: "";
+                position: absolute;
+                top: -70px;
+                left: -70px;
+                width: 190px;
+                height: 190px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.12);
+            }
+
+        .setappr-slide-badge {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            padding: 6px 13px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            background: rgba(255,255,255,.20);
+        }
+
+        .setappr-slide-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.14);
+        }
+
+            .setappr-slide-icon i {
+                font-size: 31px;
+                color: #fff;
+            }
+
+        .setappr-slide-hero h4 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 24px;
+        }
+
+        .setappr-slide-hero p {
+            margin: 8px 0 0;
+            opacity: .92;
+            font-size: 14px;
+        }
+
+        .setappr-slide-body {
+            padding: 22px;
+        }
+
+        .setappr-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .setappr-info-box {
+            background: #f8fafc;
+            border: 1px solid #e5edf6;
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+            .setappr-info-box label,
+            .setappr-remark-box label {
+                display: block;
+                font-size: 12px;
+                font-weight: 800;
+                color: #64748b;
+                margin-bottom: 6px;
+            }
+
+                .setappr-info-box label i,
+                .setappr-remark-box label i {
+                    color: #2563eb;
+                    margin-right: 6px;
+                }
+
+            .setappr-info-box span {
+                font-size: 14px;
+                font-weight: 700;
+                color: #1e293b;
+            }
+
+        .setappr-remark-box {
+            margin-top: 15px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 14px;
+            padding: 15px;
+        }
+
+            .setappr-remark-box p {
+                margin: 0;
+                font-size: 14px;
+                font-weight: 600;
+                color: #7c2d12;
+                line-height: 1.6;
+            }
+
+        .setappr-carousel-control {
+            width: 35px;
+            height: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            opacity: 1;
+            /*  background: linear-gradient(120deg, #2563eb, #22c1dc);*/
+            box-shadow: 0 8px 18px rgba(37,99,235,.25);
+        }
+
+            .setappr-carousel-control i {
+                color: #fff;
+                font-size: 16px;
+            }
+
+        .carousel-control-prev.setappr-carousel-control {
+            left: 0;
+        }
+
+        .carousel-control-next.setappr-carousel-control {
+            right: 0;
+        }
+
+        .setappr-indicators {
+            bottom: 0;
+        }
+
+            .setappr-indicators li {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #94a3b8;
+            }
+
+                .setappr-indicators li.active {
+                    width: 26px;
+                    border-radius: 20px;
+                    background: #2563eb;
+                }
+
+        .setappr-empty-state {
+            text-align: center;
+            padding: 45px 20px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            color: #64748b;
+        }
+
+            .setappr-empty-state i {
+                font-size: 42px;
+                color: #94a3b8;
+                margin-bottom: 12px;
+            }
+
+            .setappr-empty-state h5 {
+                margin: 0;
+                font-weight: 800;
+                color: #334155;
+            }
+
+            .setappr-empty-state p {
+                margin: 8px 0 0;
+                font-size: 13px;
+            }
+
+        @media (max-width: 768px) {
+            .setappr-carousel {
+                padding: 0 0 45px;
+            }
+
+            .setappr-carousel-control {
+                display: none;
+            }
+
+            .setappr-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .setappr-slider-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        #setappr_viewdetails .modal-dialog {
+            max-width: min(1040px, calc(100vw - 34px));
+        }
+
+        #setappr_viewdetails .modal-body {
+            padding: 18px;
+            background: #edf3f9;
+        }
+
+        #setappr_viewdetails .modal-header {
+            align-items: center;
+            min-height: 82px;
+            padding: 12px 18px;
+            border-bottom: 1px solid #dbe7f3;
+            color: #fff;
+            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%) !important;
+            box-shadow: var(--chr-shadow);
+        }
+
+        #setappr_viewdetails .close {
+            min-width: 34px;
+            background: #edf3f9;
+            color: #193b72;
+        }
+
+        #setappr_viewdetails .setappr-detail-header {
+            flex: 1;
+            min-width: 0;
+        }
+
+            #setappr_viewdetails .setappr-detail-header i {
+                display: inline-flex;
+                width: auto;
+                height: auto;
+                min-width: 0;
+                border-radius: 0;
+                background: transparent;
+            }
+
+        .setappr-header-summary {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            /* min-width: 0;*/
+            width: 100%;
+        }
+
+        .setappr-header-main {
+            width: 100%;
+            color: #fff !important;
+        }
+
+            .setappr-header-main span {
+                display: block;
+                margin-bottom: 3px;
+                color: #fff !important;
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: 0;
+                text-transform: uppercase;
+            }
+
+            .setappr-header-main strong {
+                display: block;
+                max-width: 100%;
+                color: #fff !important;
+                font-size: 17px;
+                line-height: 1.25;
+                font-weight: 900;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .setappr-header-main em {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-top: 4px;
+                color: white;
+                font-size: 12px;
+                font-style: normal;
+                font-weight: 800;
+            }
+
+                .setappr-header-main em i {
+                    color: #fff !important;
+                }
+
+        .setappr-slider-shell {
+            padding: 16px;
+            border: 1px solid #dbe7f3;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, .10);
+        }
+
+        .setappr-slider-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            border: 1px solid #e1eaf5;
+            border-radius: 8px;
+            background: #f8fbff;
+        }
+
+        .setappr-slider-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #193b72;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+            .setappr-slider-kicker i {
+                color: #0f766e;
+            }
+
+        .setappr-slider-count {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 6px 12px;
+            border: 1px solid #bfd5f4;
+            border-radius: 8px;
+            background: #eaf3ff;
+            color: #193b72;
+            font-size: 12px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .setappr-carousel {
+            padding: 0 48px 38px;
+        }
+
+            .setappr-carousel .carousel-inner {
+                border-radius: 8px;
+            }
+
+        .setappr-slide-card {
+            display: block;
+            max-width: none;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #dce8f4;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, .10);
+        }
+
+        .setappr-detail-header .setappr-slide-rail {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            color: #fff;
+            /*  background: #193b72;*/
+        }
+
+        .setappr-slide-appreciation .setappr-slide-rail {
+            /* background: linear-gradient(150deg, #0f766e 0%, #14532d 100%);*/
+        }
+
+        .setappr-slide-disciplinary .setappr-slide-rail {
+            /* background: linear-gradient(150deg, #193b72 0%, #b45309 100%);*/
+        }
+
+        .setappr-slide-pip .setappr-slide-rail {
+            /*background: linear-gradient(150deg, #1d4ed8 0%, #0f766e 100%);*/
+        }
+
+        .setappr-slide-sequence {
+            flex: 0 0 auto;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,.34);
+            border-radius: 7px;
+            background: rgba(255,255,255,.14);
+            font-size: 25px;
+            font-weight: 900;
+            margin-right:20px;
+        }
+
+        .setappr-slide-type {
+            min-width: 0;
+            margin-top: 0;
+            font-size: 12px;
+            line-height: 1.25;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .setappr-slide-line {
+            flex: 0 0 auto;
+            width: 3px;
+            height: 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.72);
+        }
+
+        .setappr-slide-hero {
+            position: static;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-height: auto;
+            padding: 22px 24px 18px;
+            border-bottom: 1px solid #e6eef7;
+            color: #102033;
+            text-align: left;
+            color: #fff;
+        }
+
+            .setappr-slide-hero::before {
+                display: none;
+            }
+
+        .setappr-slide-icon {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            margin: 0;
+            border: 1px solid #bfd5f4;
+            border-radius: 8px;
+            background: #eaf3ff;
+        }
+
+            .setappr-slide-icon i {
+                color: #193b72;
+                font-size: 22px;
+            }
+
+        .setappr-slide-heading {
+            min-width: 0;
+        }
+
+            .setappr-slide-heading span {
+                display: block;
+                margin-bottom: 4px;
+                color: #64748b;
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: 0;
+                text-transform: uppercase;
+            }
+
+        .setappr-slide-hero h5 {
+            margin: 0;
+            color: black!important;
+            font-size: 20px;
+            line-height: 1.28;
+            font-weight: 900;
+            word-break: break-word;
+        }
+
+        .setappr-slide-hero p {
+            margin: 0;
+        }
+
+        .setappr-slide-body {
+            padding: 0 24px 24px;
+        }
+
+        .setappr-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .setappr-info-box {
+            min-width: 0;
+            padding: 13px 14px;
+            border: 1px solid #dbe7f3;
+            border-radius: 8px;
+            background: #f8fbff;
+        }
+
+            .setappr-info-box label,
+            .setappr-remark-box label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                margin: 0 0 7px;
+                color: #64748b;
+                font-size: 11px;
+                font-weight: 900;
+                letter-spacing: 0;
+                text-transform: uppercase;
+            }
+
+                .setappr-info-box label i,
+                .setappr-remark-box label i {
+                    margin: 0;
+                    color: #0f766e;
+                }
+
+            .setappr-info-box span {
+                display: block;
+                color: #172033;
+                font-size: 13px;
+                line-height: 1.45;
+                font-weight: 800;
+                word-break: break-word;
+            }
+
+        .setappr-remark-box {
+            margin-top: 0;
+            padding: 15px;
+            border: 1px solid #f2c894;
+            border-radius: 8px;
+            background: #fff8ef;
+        }
+
+        .setappr-remark-text {
+            max-height: min(36vh, 330px);
+            overflow: auto;
+            color: #6d320d;
+            font-size: 13px;
+            line-height: 1.65;
+            font-weight: 650;
+            word-break: break-word;
+        }
+
+            .setappr-remark-text p,
+            .setappr-remark-text ul,
+            .setappr-remark-text ol {
+                margin-top: 0;
+                margin-bottom: 8px;
+            }
+
+            .setappr-remark-text :last-child {
+                margin-bottom: 0;
+            }
+
+        .setappr-carousel-control {
+            width: 38px;
+            height: 38px;
+            top: 50%;
+            border: 0;
+            border-radius: 8px;
+            background: #193b72;
+            opacity: 1;
+            transform: translateY(-50%);
+            box-shadow: 0 10px 22px rgba(25, 59, 114, .22);
+        }
+
+            .setappr-carousel-control:hover,
+            .setappr-carousel-control:focus {
+                background: #0f766e;
+            }
+
+            .setappr-carousel-control i {
+                color: #fff;
+                font-size: 14px;
+            }
+
+        .carousel-control-prev.setappr-carousel-control {
+            left: 0;
+        }
+
+        .carousel-control-next.setappr-carousel-control {
+            right: 0;
+        }
+
+        .setappr-indicators {
+            bottom: 0;
+            margin-bottom: 0;
+        }
+
+            .setappr-indicators li {
+                width: 8px;
+                height: 8px;
+                border-radius: 999px;
+                background: #94a3b8;
+                opacity: .8;
+            }
+
+                .setappr-indicators li.active {
+                    width: 24px;
+                    background: #193b72;
+                }
+
+        @media (max-width: 768px) {
+            #setappr_viewdetails .modal-dialog {
+                max-width: calc(100vw - 14px);
+                margin: 7px auto;
+            }
+
+            #setappr_viewdetails .modal-body {
+                padding: 10px;
+            }
+
+            #setappr_viewdetails .modal-header {
+                align-items: flex-start;
+                padding: 10px 12px;
+            }
+
+            .setappr-header-summary {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .setappr-detail-header .setappr-slide-rail {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .setappr-header-main strong {
+                font-size: 20px;
+                overflow: visible;
+                text-overflow: clip;
+                white-space: normal;
+                color: #fff !important;
+            }
+
+            .setappr-slider-shell {
+                padding: 10px;
+            }
+
+            .setappr-slider-top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .setappr-carousel {
+                padding: 0 0 36px;
+            }
+
+            .setappr-slide-card {
+                min-height: 0;
+            }
+
+            .setappr-slide-type {
+                max-width: none;
+                font-size: 12px;
+                text-align: left;
+                white-space: normal;
+            }
+
+            .setappr-slide-line {
+                display: none;
+            }
+
+            .setappr-slide-hero,
+            .setappr-slide-body {
+                padding: 16px;
+            }
+
+            .setappr-slide-hero {
+                align-items: flex-start;
+            }
+
+                .setappr-slide-hero h4 {
+                    font-size: 17px;
+                }
+
+            .setappr-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .setappr-carousel-control {
+                display: none;
+            }
+
+            .setappr-remark-text {
+                max-height: none;
+            }
+        }
+    </style>
 
 </asp:Content>

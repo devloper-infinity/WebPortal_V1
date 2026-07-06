@@ -13,6 +13,7 @@
             <div class="crm-hero-actions">
                 <a href="Leads.aspx" class="btn btn-light"><i class="fas fa-plus-circle"></i> New lead</a>
                 <a href="Deals.aspx" class="btn btn-outline-light"><i class="fas fa-stream"></i> Pipeline</a>
+                <a href="Settings.aspx" class="btn btn-outline-light"><i class="fas fa-bolt"></i> Automation</a>
             </div>
         </div>
 
@@ -21,6 +22,29 @@
             <div class="crm-kpi"><span>Won this month</span><strong data-kpi="WonDeals">0</strong><small>Closed business</small></div>
             <div class="crm-kpi"><span>Pipeline value</span><strong data-kpi="PipelineValue">0</strong><small>Weighted open value</small></div>
             <div class="crm-kpi"><span>Due activities</span><strong data-kpi="DueActivities">0</strong><small>Calls, meetings, tasks</small></div>
+        </div>
+
+        <div class="crm-automation-strip" id="crmAutomationStats">
+            <div class="crm-automation-card">
+                <span>Email automation</span>
+                <strong data-auto-kpi="QueuedEmails">0 queued</strong>
+                <small data-auto-kpi="EmailStatus">Waiting for setup</small>
+            </div>
+            <div class="crm-automation-card">
+                <span>Notifications</span>
+                <strong data-auto-kpi="UnreadNotifications">0 unread</strong>
+                <small>Assignments, mentions, SLA alerts</small>
+            </div>
+            <div class="crm-automation-card">
+                <span>Assignment rules</span>
+                <strong data-auto-kpi="ActiveAssignmentRules">0 active</strong>
+                <small>Lead and deal routing</small>
+            </div>
+            <div class="crm-automation-card">
+                <span>SLA policies</span>
+                <strong data-auto-kpi="ActiveSlaPolicies">0 active</strong>
+                <small>Response benchmarks</small>
+            </div>
         </div>
 
         <div class="crm-dashboard-grid">
@@ -79,6 +103,17 @@
                         <tbody></tbody>
                     </table>
                 </div>
+            </section>
+
+            <section class="crm-panel">
+                <div class="crm-panel-head">
+                    <div>
+                        <h2>Email queue</h2>
+                        <p>Latest automated messages.</p>
+                    </div>
+                    <a href="Settings.aspx" class="crm-link">Settings</a>
+                </div>
+                <div class="crm-mini-list" id="crmEmailQueueList"></div>
             </section>
         </div>
     </div>

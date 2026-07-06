@@ -26,7 +26,6 @@
         }
 
         .birthday-page {
-         /*   padding: 14px 0 28px;*/
             background:
                 linear-gradient(90deg, rgba(236, 72, 153, .07) 1px, transparent 1px),
                 linear-gradient(180deg, rgba(245, 158, 11, .08) 1px, transparent 1px);
@@ -72,8 +71,7 @@
             border: 1px solid rgba(236, 72, 153, .25);
             border-radius: 8px;
             color: #fff;
-            background:
-                linear-gradient(135deg, rgba(124, 58, 237, .98) 0%, rgba(236, 72, 153, .95) 48%, rgba(245, 158, 11, .95) 100%);
+            background:linear-gradient(135deg, rgba(124, 58, 237, .98) 0%, rgba(236, 72, 153, .95) 48%, rgba(245, 158, 11, .95) 100%);
             box-shadow: 0 22px 48px rgba(236, 72, 153, .22);
         }
 

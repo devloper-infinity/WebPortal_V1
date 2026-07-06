@@ -19,10 +19,10 @@
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
     <script src="../Scripts/SessionHandler.js"></script>
 
-     <asp:ContentPlaceHolder ID="head" runat="server">
+    <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var currentUser = "<%= HttpContext.Current.User.Identity.Name %>";
             if (currentUser == 10161) {
                 document.getElementById("lireportsus").style.display = '';
@@ -123,20 +123,44 @@
 
 
     </script>
+
+ <%--   <scriptreference src="../Scripts/US/LoanDetails.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/LoanDetails.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/UserPerformanceReport.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/UserPerformanceReport.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/ConsolidatedReports.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/ConsolidatedReports.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/ReQcUtility.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/ReQcUtility.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/ConditionClearing.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/ConditionClearing.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/CoditionAnalysis.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/CoditionAnalysis.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/InfinityFeedbackOnshore.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/InfinityFeedbackOnshore.js")).Ticks %>"></scriptreference>
+    <scriptreference src="../Scripts/US/ConditionClearingReport.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/ConditionClearingReport.js")).Ticks %>"></scriptreference>--%>
+
+<%--    <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=8" />
+<asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js?v=6" />
+<asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js?v=6" />
+<asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js?v=6" />
+<asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=6" />
+<asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=6" />
+<asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=9" />
+<asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js?v=6" />--%>
+
 </head>
 <body class="hold-transition sidebar-collapse layout-top-nav">
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=8" />
-                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=6" />
-                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=9" />
-                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js?v=6" />
+                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js?v=@DateTime.Now.Ticks" />
+
+                <%--<asp:ScriptReference Path="../Scripts/Functions/Delegation.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/Functions/Delegation.js")).Ticks %>" />--%>
+                <%--<asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/LoanDetails.js")).Ticks %>" />--%>
+                <%--<asp:ScriptReference src="../Scripts/US/LoanDetails.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/LoanDetails.js")).Ticks %>" />--%>
             </Scripts>
+
         </asp:ToolkitScriptManager>
         <div class="wrapper">
 

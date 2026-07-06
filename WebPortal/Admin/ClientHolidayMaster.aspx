@@ -2,7 +2,6 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-    
         .form-control,
         select.form-control,
         input.form-control,
@@ -83,10 +82,30 @@
             background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
         }
     </style>
+
     <style>
         body {
             background: #f4f7fb;
         }
+
+        .sec-hero-icon {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            border-radius: 20%;
+            border: 2px solid rgba(255,255,255,.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.10);
+            backdrop-filter: blur(4px);
+        }
+
+            .sec-hero-icon i {
+                font-size: 34px;
+                color: #fff;
+            }
+
 
         .dashboard-header {
             background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
@@ -119,12 +138,72 @@
         .dashboard-subtitle {
             font-size: 12px;
             opacity: 0.9;
-            /*text-transform: uppercase;*/
         }
-
-        choliday_btngetUsers
     </style>
 
+    <style>
+        .sec-hero {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 17px 35px;
+            margin-bottom: 25px;
+            border-radius: 18px;
+            color: #fff;
+            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
+            box-shadow: 0 12px 28px rgba(21, 98, 228, .25);
+        }
+
+        .sec-hero-icon {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            border-radius: 20%;
+            border: 2px solid rgba(255,255,255,.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.10);
+            backdrop-filter: blur(4px);
+        }
+
+            .sec-hero-icon i {
+                font-size: 34px;
+                color: #fff;
+                padding: 10px;
+            }
+
+        .sec-kicker {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: .9;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .sec-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: -10px;
+        }
+
+            .sec-title i {
+                margin-right: 10px;
+            }
+
+        .sec-subtitle {
+            margin: 10px 0 0;
+            font-size: 14px;
+            color: rgba(255,255,255,.92);
+            line-height: 1.6;
+            max-width: 900px;
+        }
+    </style>
 
     <style>
         .smart-btn {
@@ -175,6 +254,7 @@
 
     <script>
         $(document).ready(function () {
+            cl_bindHoliday();
             choliday_binddomain();
             choliday_bindlocation();
             choliday_bindDepartment();
@@ -195,20 +275,18 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-
-    <div class="dashboard-header">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-            <div>
-                <div class="dashboard-title">
-                    <i class="fas fa-calendar-alt mr-2"></i>
-                    Client Holiday Master
-                </div>
-                <div class="dashboard-subtitle">
-                    Configure and maintain client holiday calendars to ensure accurate attendance and payroll processing.
-                </div>
-            </div>
+    <div class="sec-hero">
+        <span class="sec-hero-icon">
+            <i class="fas fa-calendar-alt mr-2"></i>
+        </span>
+        <div>
+            <h1 class="sec-title">Client Holiday Master</h1>
+            <p class="sec-subtitle">
+                Configure and maintain client holiday calendars to ensure accurate attendance and payroll processing.
+            </p>
         </div>
     </div>
+
 
     <div class="col-lg-12" style="background-color: white;">
         <div class="card">
@@ -216,12 +294,12 @@
                 <div class="container">
                     <div class="row mb-3">
                         <div class="col-md-3">
-                            <label><b>Date </b></label>
-                            <input type="date" id="choliday_date" class="form-control" onkeydown="return false">
+                            <label><b>Holiday For </b></label>
+                            <select id="choliday_desc" class="form-control"></select>
                         </div>
                         <div class="col-md-3">
-                            <label><b>Holiday For </b></label>
-                            <input type="text" id="choliday_desc" class="form-control">
+                            <label><b>Date </b></label>
+                            <input type="date" id="choliday_date" class="form-control" onkeydown="return false">
                         </div>
                         <div class="col-md-3">
                             <label><b>Domain </b></label>

@@ -45,6 +45,22 @@ namespace WebPortal.CRM
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static string GetAutomationCenter()
+        {
+            DataSet ds = new bllCRM().GetAutomationCenter(CurrentEmployeeID());
+            return Serialize(DataSetToObject(ds, "EmailSettings", "NotificationSettings", "EmailTemplates", "AssignmentRules", "SlaPolicies", "Notifications", "EmailOutbox", "AutomationStats"));
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static string GetNotifications()
+        {
+            DataSet ds = new bllCRM().GetNotifications(CurrentEmployeeID());
+            return Serialize(DataSetToObject(ds, "Notifications"));
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static string GetRecords(string entity, string searchText, string filterValue, int ownerId)
         {
             DataTable dt = new bllCRM().GetRecords(entity, searchText, filterValue, ownerId, CurrentEmployeeID());
@@ -64,8 +80,24 @@ namespace WebPortal.CRM
         public static string SaveRecord(string entity, string payloadJson)
         {
             Hashtable values = JsonToHashtable(payloadJson);
-            values["AddedBy"] = CurrentEmployeeID();
+            int employeeId = CurrentEmployeeID();
+            values["AddedBy"] = employeeId;
             int result = new bllCRM().SaveRecord(entity, values);
+            if (result >= 0)
+            {
+                int recordId = RecordIdForEntity(entity, values);
+                TryQueueAutomationEvent(entity, recordId > 0 ? recordId : result, "Saved", employeeId);
+            }
+            return Serialize(Result(result));
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static string SaveAutomationItem(string entity, string payloadJson)
+        {
+            Hashtable values = JsonToHashtable(payloadJson);
+            values["AddedBy"] = CurrentEmployeeID();
+            int result = new bllCRM().SaveAutomationItem(entity, values);
             return Serialize(Result(result));
         }
 
@@ -79,9 +111,14 @@ namespace WebPortal.CRM
             values["RelatedRecordID"] = relatedRecordId;
             values["NoteTitle"] = noteTitle;
             values["NoteText"] = noteText;
-            values["AddedBy"] = CurrentEmployeeID();
+            int employeeId = CurrentEmployeeID();
+            values["AddedBy"] = employeeId;
 
             int result = new bllCRM().SaveRecord("Note", values);
+            if (result >= 0)
+            {
+                TryQueueAutomationEvent(relatedEntity, relatedRecordId, "Comment Added", employeeId);
+            }
             return Serialize(Result(result));
         }
 
@@ -95,9 +132,31 @@ namespace WebPortal.CRM
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static string DeleteAutomationItem(string entity, int recordId)
+        {
+            int result = new bllCRM().DeleteAutomationItem(entity, recordId, CurrentEmployeeID());
+            return Serialize(Result(result));
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static string ConvertLead(int leadId, string dealName, string amount, string closeDate)
         {
-            int result = new bllCRM().ConvertLead(leadId, dealName, amount, closeDate, CurrentEmployeeID());
+            int employeeId = CurrentEmployeeID();
+            int result = new bllCRM().ConvertLead(leadId, dealName, amount, closeDate, employeeId);
+            if (result >= 0)
+            {
+                TryQueueAutomationEvent("Lead", leadId, "Converted", employeeId);
+                TryQueueAutomationEvent("Deal", result, "Saved", employeeId);
+            }
+            return Serialize(Result(result));
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static string MarkNotificationsRead()
+        {
+            int result = new bllCRM().MarkNotificationsRead(CurrentEmployeeID());
             return Serialize(Result(result));
         }
 
@@ -133,11 +192,53 @@ namespace WebPortal.CRM
             return values;
         }
 
+        private static int RecordIdForEntity(string entity, Hashtable values)
+        {
+            string key = "RecordID";
+            switch ((entity ?? string.Empty).Trim().ToLower())
+            {
+                case "lead":
+                    key = "LeadID";
+                    break;
+                case "account":
+                    key = "AccountID";
+                    break;
+                case "contact":
+                    key = "ContactID";
+                    break;
+                case "deal":
+                    key = "DealID";
+                    break;
+                case "activity":
+                    key = "ActivityID";
+                    break;
+            }
+
+            return values != null && values.ContainsKey(key) ? ToInt(values[key]) : 0;
+        }
+
+        private static int ToInt(object value)
+        {
+            int result;
+            return value != null && int.TryParse(value.ToString(), out result) ? result : 0;
+        }
+
+        private static void TryQueueAutomationEvent(string entity, int recordId, string eventName, int employeeId)
+        {
+            try
+            {
+                new bllCRM().QueueAutomationEvent(entity, recordId, eventName, employeeId);
+            }
+            catch
+            {
+            }
+        }
+
         private static Dictionary<string, object> Result(int result)
         {
             Dictionary<string, object> values = new Dictionary<string, object>();
             values["Result"] = result;
-            values["Success"] = result > 0;
+            values["Success"] = result >= 0;
             return values;
         }
 

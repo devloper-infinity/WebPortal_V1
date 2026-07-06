@@ -3,6 +3,7 @@
 
     var state = {
         lookups: {},
+        automation: {},
         tables: {},
         currentEntity: "",
         currentRecords: []
@@ -143,6 +144,13 @@
 
         $(document).on("click", "#crmSaveRecord", saveRecord);
         $(document).on("click", "#crmRefreshReports", loadReports);
+        $(document).on("click", "#crmRefreshAutomation", loadAutomationCenter);
+        $(document).on("click", "#crmRunAutomationNow", runAutomationNow);
+        $(document).on("click", ".crm-tab-btn", switchSettingsTab);
+        $(document).on("click", ".crm-save-settings,.crm-save-automation", saveAutomationItem);
+        $(document).on("click", ".crm-edit-automation", editAutomationItem);
+        $(document).on("click", ".crm-delete-automation", deleteAutomationItem);
+        $(document).on("click", "#crmMarkAllRead,#crmMarkNotificationsRead", markNotificationsRead);
 
         var searchTimer = null;
         $(document).on("keyup", ".crm-search-input", function () {
@@ -159,6 +167,8 @@
             loadDashboard();
         } else if (page === "reports") {
             loadReports();
+        } else if (page === "settings") {
+            loadAutomationCenter();
         } else {
             initListPage();
         }
@@ -173,7 +183,7 @@
     function loadLookups() {
         return callService("GetLookups", {}).done(function (data) {
             state.lookups = data || {};
-            renderReminderPanel([]);
+            loadNotificationPanel();
         });
     }
 
@@ -189,6 +199,7 @@
             renderMiniList("#crmFreshLeads", data.FreshLeads || [], "LeadName", "CompanyName", "StatusName");
             renderRecent(data.Recent || []);
             renderReminderPanel(data.Reminders || []);
+            loadAutomationSnapshot();
         });
     }
 
@@ -197,6 +208,179 @@
             renderMetricStack("#crmForecastReport", data.Forecast || [], "StageName", "WeightedValue", "DealCount");
             renderMetricStack("#crmLeadFunnelReport", data.LeadFunnel || [], "StatusName", "LeadCount", "ConversionHint");
             renderOwnerActivity(data.OwnerActivity || []);
+        });
+    }
+
+    function loadAutomationCenter() {
+        callService("GetAutomationCenter", {}).done(function (data) {
+            state.automation = data || {};
+            renderAutomationCenter(state.automation);
+            renderAutomationSnapshot(state.automation);
+            renderReminderPanel(state.automation.Notifications || []);
+        });
+    }
+
+    function loadAutomationSnapshot() {
+        if ($("#crmAutomationStats").length === 0 && $("#crmReminderPanel").length === 0) {
+            return;
+        }
+
+        callService("GetAutomationCenter", {}, true).done(function (data) {
+            state.automation = data || {};
+            renderAutomationSnapshot(state.automation);
+            renderReminderPanel(state.automation.Notifications || []);
+        });
+    }
+
+    function loadNotificationPanel() {
+        if ($("#crmReminderPanel").length === 0) {
+            return;
+        }
+
+        callService("GetNotifications", {}, true).done(function (data) {
+            renderReminderPanel(data.Notifications || []);
+        });
+    }
+
+    function switchSettingsTab() {
+        var tab = $(this).data("crm-tab");
+        $(".crm-tab-btn").removeClass("active");
+        $(this).addClass("active");
+        $(".crm-settings-panel").removeClass("active");
+        $('[data-crm-panel="' + tab + '"]').addClass("active");
+    }
+
+    function renderAutomationCenter(data) {
+        fillForm("#crmEmailSettingsForm", (data.EmailSettings || [])[0] || {});
+        fillForm("#crmNotificationSettingsForm", (data.NotificationSettings || [])[0] || {});
+        renderTemplateTable(data.EmailTemplates || []);
+        renderAssignmentTable(data.AssignmentRules || []);
+        renderSlaTable(data.SlaPolicies || []);
+        renderNotificationList(data.Notifications || []);
+        renderOutboxTable(data.EmailOutbox || []);
+
+        if ((data.EmailTemplates || []).length === 0) {
+            fillForm("#crmEmailTemplateForm", {
+                TemplateID: 0,
+                TemplateName: "Lead follow-up",
+                TriggerEvent: "Lead Saved",
+                Subject: "Thanks for your interest, {{LeadName}}",
+                BodyHtml: "Hi {{LeadName}},<br><br>Thank you for connecting with us. Our team will follow up shortly.",
+                IsEnabled: 1
+            });
+        } else {
+            fillForm("#crmEmailTemplateForm", { TemplateID: 0, IsEnabled: 1 });
+        }
+
+        if ((data.AssignmentRules || []).length === 0) {
+            fillForm("#crmAssignmentRuleForm", {
+                RuleID: 0,
+                RuleName: "Hot leads rotation",
+                ApplyOn: "Lead",
+                ConditionField: "Rating",
+                ConditionOperator: "equals",
+                ConditionValue: "Hot",
+                RoutingMethod: "Auto-rotate",
+                ActiveDays: "Mon,Tue,Wed,Thu,Fri",
+                Priority: 1,
+                IsEnabled: 1
+            });
+        } else {
+            fillForm("#crmAssignmentRuleForm", { RuleID: 0, ApplyOn: "Lead", RoutingMethod: "Auto-rotate", Priority: 1, IsEnabled: 1 });
+        }
+
+        if ((data.SlaPolicies || []).length === 0) {
+            fillForm("#crmSlaPolicyForm", {
+                SLAPolicyID: 0,
+                PolicyName: "Default lead response",
+                ApplyOn: "Lead",
+                FirstResponseMinutes: 60,
+                FollowUpMinutes: 1440,
+                WorkingHourStart: "09:30",
+                WorkingHourEnd: "18:30",
+                IsDefault: 1,
+                IsEnabled: 1
+            });
+        } else {
+            fillForm("#crmSlaPolicyForm", { SLAPolicyID: 0, ApplyOn: "Lead", FirstResponseMinutes: 60, FollowUpMinutes: 1440, WorkingHourStart: "09:30", WorkingHourEnd: "18:30", IsDefault: 0, IsEnabled: 1 });
+        }
+    }
+
+    function renderAutomationSnapshot(data) {
+        var stats = (data.AutomationStats || [])[0] || {};
+        setAutoKpi("QueuedEmails", (stats.QueuedEmails || 0) + " queued");
+        setAutoKpi("EmailStatus", stats.EmailStatus || "Ready");
+        setAutoKpi("UnreadNotifications", (stats.UnreadNotifications || 0) + " unread");
+        setAutoKpi("ActiveAssignmentRules", (stats.ActiveAssignmentRules || 0) + " active");
+        setAutoKpi("ActiveSlaPolicies", (stats.ActiveSlaPolicies || 0) + " active");
+        renderMiniList("#crmEmailQueueList", (data.EmailOutbox || []).slice(0, 5), "Subject", "ToEmail", "Status");
+    }
+
+    function saveAutomationItem() {
+        var entity = $(this).data("settings-type");
+        var selector = formSelectorForAutomation(entity);
+        var payload = readForm(selector);
+
+        callService("SaveAutomationItem", { entity: entity, payloadJson: JSON.stringify(payload) }).done(function (result) {
+            if (result.Success) {
+                loadAutomationCenter();
+            } else {
+                alert("Unable to save automation settings. Result: " + result.Result);
+            }
+        });
+    }
+
+    function editAutomationItem() {
+        var entity = $(this).data("entity");
+        var index = parseInt($(this).data("index"), 10);
+        var rows = automationRows(entity);
+        var row = rows[index] || {};
+        fillForm(formSelectorForAutomation(entity), row);
+        $(".crm-tab-btn[data-crm-tab='" + tabForAutomation(entity) + "']").trigger("click");
+    }
+
+    function deleteAutomationItem() {
+        var entity = $(this).data("entity");
+        var id = parseInt($(this).data("id"), 10);
+        if (!confirm("Delete this automation item?")) {
+            return;
+        }
+
+        callService("DeleteAutomationItem", { entity: entity, recordId: id }).done(function (result) {
+            if (result.Success) {
+                loadAutomationCenter();
+            } else {
+                alert("Unable to delete automation item. Result: " + result.Result);
+            }
+        });
+    }
+
+    function markNotificationsRead() {
+        callService("MarkNotificationsRead", {}).done(function () {
+            if ($(".crm-page").data("crm-page") === "settings") {
+                loadAutomationCenter();
+            } else {
+                loadNotificationPanel();
+            }
+        });
+    }
+
+    function runAutomationNow() {
+        var button = $("#crmRunAutomationNow");
+        button.prop("disabled", true).addClass("disabled");
+        $.ajax({
+            type: "GET",
+            url: "AutomationRunner.aspx?batch=25",
+            dataType: "json"
+        }).done(function (result) {
+            var generated = result.Generated && result.Generated.length ? result.Generated[0] : {};
+            loadAutomationCenter();
+            alert("Automation completed. Emails sent: " + (result.EmailSent || 0) + ", failed: " + (result.EmailFailed || 0) + ", queued: " + (generated.QueuedEmails || 0) + ".");
+        }).fail(function (xhr) {
+            var message = xhr && xhr.responseText ? xhr.responseText : "Unable to run CRM automation.";
+            alert(message);
+        }).always(function () {
+            button.prop("disabled", false).removeClass("disabled");
         });
     }
 
@@ -502,6 +686,131 @@
         $("#crmOwnerActivityReport tbody").html(html || '<tr><td colspan="5" class="crm-empty">No data</td></tr>');
     }
 
+    function renderTemplateTable(rows) {
+        var html = "";
+        $.each(rows, function (index, row) {
+            var enabled = isOn(row.IsEnabled);
+            html += "<tr><td>" + e(row.TemplateName) + "</td><td>" + e(row.TriggerEvent) + "</td><td>" + e(row.Subject) + "</td><td>" + badge(enabled ? "Enabled" : "Disabled", enabled ? "green" : "red") + "</td><td>" + automationActions("EmailTemplate", row.TemplateID, index) + "</td></tr>";
+        });
+        $("#crmTemplateTable tbody").html(html || '<tr><td colspan="5" class="crm-empty">No templates</td></tr>');
+    }
+
+    function renderAssignmentTable(rows) {
+        var html = "";
+        $.each(rows, function (index, row) {
+            var condition = [row.ConditionField, row.ConditionOperator, row.ConditionValue].join(" ");
+            var enabled = isOn(row.IsEnabled);
+            html += "<tr><td>" + titleCell(row.RuleName, row.Description) + "</td><td>" + e(row.ApplyOn) + "</td><td>" + e(condition) + "</td><td>" + e(row.RoutingMethod) + "</td><td>" + badge(enabled ? "Enabled" : "Disabled", enabled ? "green" : "red") + "</td><td>" + automationActions("AssignmentRule", row.RuleID, index) + "</td></tr>";
+        });
+        $("#crmAssignmentTable tbody").html(html || '<tr><td colspan="6" class="crm-empty">No assignment rules</td></tr>');
+    }
+
+    function renderSlaTable(rows) {
+        var html = "";
+        $.each(rows, function (index, row) {
+            var enabled = isOn(row.IsEnabled);
+            html += "<tr><td>" + titleCell(row.PolicyName, row.ConditionsText) + "</td><td>" + e(row.ApplyOn) + "</td><td>" + e(row.FirstResponseMinutes) + " min</td><td>" + e(row.FollowUpMinutes) + " min</td><td>" + badge(enabled ? "Enabled" : "Disabled", enabled ? "green" : "red") + "</td><td>" + automationActions("SlaPolicy", row.SLAPolicyID, index) + "</td></tr>";
+        });
+        $("#crmSlaTable tbody").html(html || '<tr><td colspan="6" class="crm-empty">No SLA policies</td></tr>');
+    }
+
+    function renderNotificationList(rows) {
+        var html = "";
+        $.each(rows, function (_, row) {
+            var read = isOn(row.IsRead);
+            html += '<div class="crm-mini-item"><div><strong>' + e(row.Title || row.Subject) + '</strong><span>' + e(row.Message || row.DueText || formatDate(row.CreatedOn)) + '</span></div>' + badge(read ? "Read" : "Unread", read ? "green" : "amber") + '</div>';
+        });
+        $("#crmNotificationList").html(html || '<div class="crm-empty">No notifications</div>');
+    }
+
+    function renderOutboxTable(rows) {
+        var html = "";
+        $.each(rows, function (_, row) {
+            html += '<tr><td>' + e(row.ToEmail) + '</td><td>' + e(row.Subject) + '</td><td>' + e(row.RelatedEntity) + " #" + e(row.RelatedRecordID) + '</td><td>' + badge(row.Status) + '</td><td>' + e(formatDate(row.CreatedOn)) + '</td></tr>';
+        });
+        $("#crmOutboxTable tbody").html(html || '<tr><td colspan="5" class="crm-empty">No email queue records</td></tr>');
+    }
+
+    function automationActions(entity, id, index) {
+        return '<span class="crm-row-actions">' +
+            '<button type="button" class="crm-icon-btn crm-edit-automation" title="Edit" data-entity="' + entity + '" data-index="' + index + '"><i class="fas fa-pen"></i></button>' +
+            '<button type="button" class="crm-icon-btn crm-delete-automation" title="Delete" data-entity="' + entity + '" data-id="' + e(id) + '"><i class="fas fa-trash"></i></button>' +
+            '</span>';
+    }
+
+    function fillForm(selector, values) {
+        var form = $(selector);
+        if (form.length === 0) {
+            return;
+        }
+
+        form.find("[name]").each(function () {
+            var input = $(this);
+            var name = input.attr("name");
+            var value = values && values[name] != null ? values[name] : "";
+            if (input.is("select") && (value === true || value === false)) {
+                value = value ? "1" : "0";
+            }
+            if (input.attr("type") === "time" && value) {
+                value = String(value).substring(0, 5);
+            }
+            input.val(value);
+        });
+    }
+
+    function readForm(selector) {
+        var values = {};
+        $(selector).find("[name]").each(function () {
+            values[$(this).attr("name")] = $(this).val() || "";
+        });
+        return values;
+    }
+
+    function formSelectorForAutomation(entity) {
+        if (entity === "EmailSettings") {
+            return "#crmEmailSettingsForm";
+        }
+        if (entity === "NotificationSettings") {
+            return "#crmNotificationSettingsForm";
+        }
+        if (entity === "EmailTemplate") {
+            return "#crmEmailTemplateForm";
+        }
+        if (entity === "AssignmentRule") {
+            return "#crmAssignmentRuleForm";
+        }
+        return "#crmSlaPolicyForm";
+    }
+
+    function tabForAutomation(entity) {
+        if (entity === "EmailTemplate") {
+            return "templates";
+        }
+        if (entity === "AssignmentRule") {
+            return "assignment";
+        }
+        if (entity === "SlaPolicy") {
+            return "sla";
+        }
+        if (entity === "NotificationSettings") {
+            return "notifications";
+        }
+        return "email";
+    }
+
+    function automationRows(entity) {
+        if (entity === "EmailTemplate") {
+            return state.automation.EmailTemplates || [];
+        }
+        if (entity === "AssignmentRule") {
+            return state.automation.AssignmentRules || [];
+        }
+        if (entity === "SlaPolicy") {
+            return state.automation.SlaPolicies || [];
+        }
+        return [];
+    }
+
     function renderMiniList(selector, rows, titleField, subField, badgeField) {
         var html = "";
         $.each(rows, function (_, row) {
@@ -521,7 +830,12 @@
     function renderReminderPanel(rows) {
         var html = "";
         $.each(rows || [], function (_, row) {
-            html += '<div class="crm-mini-item"><div><strong>' + e(row.Subject) + '</strong><span>' + e(row.DueText || formatDate(row.DueDate)) + '</span></div>' + badge(row.StatusName, row.StatusColor) + '</div>';
+            var title = row.Title || row.Subject || row.NotificationType || "CRM notification";
+            var detail = row.Message || row.DueText || formatDate(row.DueDate) || formatDate(row.CreatedOn);
+            var read = isOn(row.IsRead);
+            var status = row.StatusName || (read ? "Read" : "Unread");
+            var color = row.StatusColor || (read ? "green" : "amber");
+            html += '<div class="crm-mini-item"><div><strong>' + e(title) + '</strong><span>' + e(detail) + '</span></div>' + badge(status, color) + '</div>';
         });
         $("#crmReminderPanel").html(html || '<div class="crm-empty">No reminders</div>');
         $("#crm_pendingtask").text(rows && rows.length ? rows.length : "");
@@ -542,7 +856,7 @@
         );
     }
 
-    function callService(method, data) {
+    function callService(method, data, silent) {
         return $.ajax({
             type: "POST",
             url: serviceUrl + method,
@@ -556,13 +870,19 @@
             return typeof res.d === "string" ? JSON.parse(res.d) : res.d;
         }, function (xhr) {
             var message = xhr && xhr.responseText ? xhr.responseText : "CRM service request failed.";
-            alert(message);
+            if (!silent) {
+                alert(message);
+            }
             return $.Deferred().reject(xhr);
         });
     }
 
     function setKpi(name, value) {
         $('[data-kpi="' + name + '"]').text(value);
+    }
+
+    function setAutoKpi(name, value) {
+        $('[data-auto-kpi="' + name + '"]').text(value);
     }
 
     function titleCell(title, subtitle) {
@@ -597,6 +917,10 @@
     function numberValue(value) {
         var number = parseFloat(value || 0);
         return isNaN(number) ? 0 : number;
+    }
+
+    function isOn(value) {
+        return value === true || value === 1 || value === "1" || String(value).toLowerCase() === "true" || String(value).toLowerCase() === "yes";
     }
 
     function formatDate(value) {

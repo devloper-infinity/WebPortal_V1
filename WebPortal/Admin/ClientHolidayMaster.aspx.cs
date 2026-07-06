@@ -1,17 +1,18 @@
-﻿using System;
+﻿using Spire.Xls;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
+using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using WebPortal.App_Code.Class;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
-using Spire.Xls;
 
 namespace WebPortal.Admin
 {
@@ -72,6 +73,26 @@ namespace WebPortal.Admin
 
 
         [WebMethod]
+        public static string GetHolidayList()
+        {
+            DataTable dt1 = new bllMaster().GetHolidayList();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+        [WebMethod]
         public static string SaveHolidayData(List<int> EmpIDs, string Date, string Remark)
         {
             try
@@ -81,7 +102,7 @@ namespace WebPortal.Admin
 
                 foreach (int empId in EmpIDs)
                 {
-                    ReturnValue =  new bllMaster().InsertEmpHoliday(empId, Date, "", "", Remark, int.Parse(HttpContext.Current.User.Identity.Name));
+                    ReturnValue = new bllMaster().InsertEmpHoliday(empId, Date, "", "", Remark, int.Parse(HttpContext.Current.User.Identity.Name));
                 }
 
                 if (ReturnValue > 0)

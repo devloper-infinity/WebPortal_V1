@@ -20,22 +20,93 @@
         }
 
         .empdoc-header {
-            background: linear-gradient(135deg, #1d4ed8, #2563eb, #38bdf8);
+            /*   background: linear-gradient(135deg, #1d4ed8, #2563eb, #38bdf8);
             color: #fff;
-            padding: 14px 22px 30px;
+            padding: 14px 22px 30px;*/
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 20px 25px;
+            margin-bottom: 22px;
+            border-radius: 18px;
+            color: #fff;
+            background: linear-gradient(115deg, #0a5fd7 0%, #1976f3 38%, #1da8ea 72%, #22d3ee 100%);
+            box-shadow: 0 12px 28px rgba(21, 98, 228, .25);
         }
 
-            .empdoc-header h4 {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 700;
+            .empdoc-header::before {
+                content: "";
+                position: absolute;
+                top: -80px;
+                left: -5%;
+                width: 115%;
+                height: 170px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.10);
+                transform: rotate(-4deg);
             }
 
-            .empdoc-header p {
-                margin: 3px 0 0;
-                font-size: 12px;
-                opacity: .9;
+            .empdoc-header::after {
+                content: "";
+                position: absolute;
+                right: -85px;
+                bottom: -90px;
+                width: 290px;
+                height: 290px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.12);
             }
+
+        .empdoc-hero > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .empdoc-header-icon {
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
+            border-radius: 20%;
+            border: 2px solid rgba(255,255,255,.78);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.12);
+            box-shadow: inset 0 0 0 8px rgba(255,255,255,.05);
+        }
+
+            .empdoc-header-icon i {
+                font-size: 27px;
+                color: #fff;
+            }
+
+        .empdoc-header-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .empdoc-header-subtitle {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: rgba(255,255,255,.93);
+            line-height: 1.55;
+            /*  max-width: 1050px;*/
+        }
+
+        .empdoc-header-back {
+            border-radius: 10px;
+            background: linear-gradient(115deg, #0a5fd7 0%, #1976f3 38%, #1da8ea 72%, #22d3ee 100%);
+            box-shadow: 0 12px 28px rgba(21, 98, 228, .25);
+            text-align: right !important;
+            margin-right: 10% !important;
+            color: #fff !important;
+            font-size: 15px;
+            padding: 10px;
+        }
 
         .employee-card {
             margin: 10px 18px 14px;
@@ -143,14 +214,14 @@
             .info-box small {
                 display: block;
                 color: #64748b;
-                font-size: 10px;
+                font-size: 13px;
                 font-weight: 600;
             }
 
             .info-box strong {
                 display: block;
                 color: #0f172a;
-                font-size: 12px;
+                font-size: 15px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -361,6 +432,7 @@
             return false;
         }
 
+       
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
@@ -374,24 +446,24 @@
 
     <div class="col-lg-12">
         <div class="empdoc-shell">
+        
+
             <div class="empdoc-header">
-                <div class="d-flex justify-content-between align-items-start mb-1">
-                    <div>
-                        <div class="dashboard-title">
-                            <h4><i class="fas fa-file-signature"></i>&nbsp;&nbsp;Employee Document Generator</h4>
-                        </div>
-                        <div class="dashboard-subtitle">
-                            View employee details and generate official documents instantly.
-                        </div>
-                    </div>
-                    <div>
-                        <a href="#" id="aBack" runat="server" class="btn btn-light btn-back" onclick="window.history.go(-1); return false;">
-                            <i class="fas fa-arrow-left"></i>
-                            Back
-                        </a>
-                    </div>
+                <span class="empdoc-header-icon">
+                    <i class="fas fa-file-signature"></i>
+                </span>
+                <div style="width: 90%;">
+                    <h1 class="empdoc-header-title">Employee Document Generator</h1>
+                    <p class="empdoc-header-subtitle">
+                        View employee details and generate official documents instantly.
+                    </p>
+                </div>
+                <div style="text-align: right!important; width: 100px;">
+                    <a href="#" class="empdoc-header-back" onclick="window.history.go(-1); return false;">&lt;&lt; Back</a>
                 </div>
             </div>
+
+
 
             <div class="employee-card">
                 <div class="employee-left">

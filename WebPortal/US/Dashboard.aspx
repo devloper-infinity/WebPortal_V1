@@ -381,7 +381,7 @@
             <div class="dash-title-wrap">
                 <span class="dash-title-icon"><i class="fas fa-chart-line"></i></span>
                 <div>
-                    <h1 class="dash-title">US Dashboard</h1>
+                    <h1 class="dash-title">Dashboard</h1>
                     <p class="dash-subtitle">Focused view of started loans and active feedback work.</p>
                 </div>
             </div>

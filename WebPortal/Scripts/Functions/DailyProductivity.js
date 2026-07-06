@@ -247,7 +247,43 @@ function updateDailyProdLiveUptoTime(currentClock) {
 
     var elapsedSeconds = Math.max(0, Math.floor((currentClock.getTime() - dailyProdLiveUptoSyncedAt.getTime()) / 1000));
     var totalSeconds = dailyProdLiveUptoBaseSeconds + elapsedSeconds;
-    document.getElementById("dailyprod_tilltimedisplay").innerHTML = formatDailyProdDurationSecondsHtml(totalSeconds);
+    dailyProdSetHtml("dailyprod_tilltimedisplay", formatDailyProdDurationSecondsHtml(totalSeconds));
+}
+
+function dailyProdSetHtml(id, value) {
+    var element = document.getElementById(id);
+    if (element) {
+        element.innerHTML = value;
+    }
+}
+
+function dailyProdStatusValue(value) {
+    var text = blankForNull(value).toString().trim();
+    return text === "" ? "N/A" : text;
+}
+
+function dailyProdNormalizeDisplayValue(value) {
+    return blankForNull(value).toString().trim();
+}
+
+function dailyProdNormalizeClockText(value) {
+    return dailyProdNormalizeDisplayValue(value)
+        .replace(/\s+/g, " ")
+        .replace(/(\d)(AM|PM)$/i, "$1 $2");
+}
+
+function dailyProdLooksLikeLogoutClock(value) {
+    var text = dailyProdNormalizeClockText(value);
+    return /\b(AM|PM)\b/i.test(text);
+}
+
+function dailyProdDurationDisplay(value) {
+    var seconds = parseDailyProdDurationSeconds(value);
+    if (seconds === null) {
+        return dailyProdStatusValue(value);
+    }
+
+    return formatDailyProdDurationSecondsHtml(seconds);
 }
 
 function parseDailyProdDurationSeconds(value) {
@@ -378,34 +414,28 @@ function BindProdInfo() {
                 UserDomain = value.Domain;
                 Applicable = value.Applicable;
 
-                var currentLogin = blankForNull(value.CurrentLogin).replace('AM', ' AM').replace('PM', ' PM');
-                var currentLogout = blankForNull(value.CurrentLogOut);
-                var uptoTime = blankForNull(value.UptoTime);
+                var currentLogin = dailyProdNormalizeClockText(value.CurrentLogin);
+                var currentLogout = dailyProdNormalizeClockText(value.CurrentLogOut);
+                var uptoTime = dailyProdNormalizeDisplayValue(value.UptoTime);
+                var hasLogin = currentLogin !== "";
+                var hasLogout = dailyProdLooksLikeLogoutClock(currentLogout);
+                var displayUptoTime = uptoTime || currentLogout;
 
                 syncDailyProdClock(value._ServerUtc);
-                document.getElementById("dailyprod_logtinimedisplay").innerHTML = currentLogin;
-                document.getElementById("dailyprod_tilltimedisplay").innerHTML = currentLogout || uptoTime;
-                document.getElementById("prodCode").innerHTML = value.Code;
+                dailyProdSetHtml("dailyprod_logtinimedisplay", dailyProdStatusValue(currentLogin));
+                dailyProdSetHtml("dailyprod_tilltimedisplay", hasLogout ? dailyProdStatusValue(currentLogout) : dailyProdDurationDisplay(displayUptoTime));
+                dailyProdSetHtml("prodCode", value.Code);
 
-                if (currentLogin && !currentLogout) {
-                    startDailyProdLiveUptoTimer(uptoTime, currentLogin, getDailyProdClockNow());
+                if (hasLogin && !hasLogout) {
+                    startDailyProdLiveUptoTimer(displayUptoTime, currentLogin, getDailyProdClockNow());
                 }
                 else {
                     resetDailyProdLiveUptoTimer();
                 }
 
-                if (value.BreakOut != '')
-                    document.getElementById("dailyprod_breakouttimedisplay").innerHTML = 'N/A';
-                else
-                    document.getElementById("dailyprod_breakouttimedisplay").innerHTML = value.BreakOut;
-                if (value.BreakIn != '')
-                    document.getElementById("dailyprod_breakintimedisplay").innerHTML = 'N/A';
-                else
-                    document.getElementById("dailyprod_breakintimedisplay").innerHTML = value.BreakIn;
-                if (value.TotalTime != '')
-                    document.getElementById("dailyprod_breaktimedisplay").innerHTML = 'N/A';
-                else
-                    document.getElementById("dailyprod_breaktimedisplay").innerHTML = value.TotalTime;
+                dailyProdSetHtml("dailyprod_breakouttimedisplay", dailyProdStatusValue(value.BreakOut));
+                dailyProdSetHtml("dailyprod_breakintimedisplay", dailyProdStatusValue(value.BreakIn));
+                dailyProdSetHtml("dailyprod_breaktimedisplay", dailyProdStatusValue(value.TotalTime));
             });
         },
 
