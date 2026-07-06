@@ -432,7 +432,7 @@
             return false;
         }
 
-       
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
@@ -446,8 +446,7 @@
 
     <div class="col-lg-12">
         <div class="empdoc-shell">
-        
-
+          
             <div class="empdoc-header">
                 <span class="empdoc-header-icon">
                     <i class="fas fa-file-signature"></i>
@@ -459,7 +458,7 @@
                     </p>
                 </div>
                 <div style="text-align: right!important; width: 100px;">
-                    <a href="#" class="empdoc-header-back" onclick="window.history.go(-1); return false;">&lt;&lt; Back</a>
+                 <%--  <a href="#" class="empdoc-header-back" onclick="window.history.go(-1); return false;">&lt;&lt; Back</a>--%>
                 </div>
             </div>
 

@@ -899,12 +899,12 @@ function Core_dropoutemployee_bindgrid() {
 
 var dropoutemployee_table;
 
-function dropoutemployee_bindgrid() {
+function dropoutemployee_bindgrid(currEmp) {
 
     $('#load1').show();
 
-    var currEmp = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
     var allowedUsers = ["8082", "7036"];
+
     var showAction = allowedUsers.indexOf(currEmp) > -1;
 
     $.ajax({

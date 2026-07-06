@@ -8,6 +8,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 
 namespace WebPortal.Admin
 {
@@ -15,7 +16,7 @@ namespace WebPortal.Admin
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            hdnEmpID.Value   = Convert.ToString(EmployeeInfo.Current.EmployeeID);
         }
 
         [WebMethod]

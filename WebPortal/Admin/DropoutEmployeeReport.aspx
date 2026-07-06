@@ -299,8 +299,8 @@
 
     <script>
         $(document).ready(function () {
-
-            dropoutemployee_bindgrid();
+            var currEmp = $("#<%= hdnEmpID.ClientID %>").val();
+            dropoutemployee_bindgrid(currEmp);
         });
     </script>
 </asp:Content>
@@ -341,7 +341,7 @@
                 </span>
             </div>
 
-            <div  style="overflow: auto;">
+            <div style="overflow: auto; padding: 20px 20px;">
                 <table class="table table-bordered table-hover nowrap" id="dropoutemployee_table" style="width: 100%;">
                     <thead></thead>
                     <tbody></tbody>
@@ -350,5 +350,5 @@
         </div>
 
     </div>
-
+    <asp:HiddenField ID="hdnEmpID" runat="server" />
 </asp:Content>
