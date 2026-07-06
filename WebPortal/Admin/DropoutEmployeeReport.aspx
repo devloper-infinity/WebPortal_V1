@@ -299,9 +299,137 @@
 
     <script>
         $(document).ready(function () {
-            var currEmp = $("#<%= hdnEmpID.ClientID %>").val();
+          <%--  var currEmp = $("#<%= hdnEmpID.ClientID %>").val();--%>
+
+            var loginID = '<%= HttpContext.Current.User.Identity.Name %>';
             dropoutemployee_bindgrid(currEmp);
         });
+
+        var dropoutemployee_table;
+
+        function dropoutemployee_bindgrid(currEmp) {
+
+            $('#load1').show();
+
+            var allowedUsers = ["8082", "7036", "235"];
+
+            var showAction = allowedUsers.indexOf(currEmp) > -1;
+
+            $.ajax({
+                url: "DropoutEmployeeReport.aspx/BindGrid",
+                type: "POST",
+                dataType: "json",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+
+                success: function (data) {
+
+                    var dataArray = JSON.parse(data.d || "[]");
+
+                    if ($.fn.DataTable.isDataTable('#dropoutemployee_table')) {
+                        dropoutemployee_table.clear().destroy();
+                        $('#dropoutemployee_table').empty();
+                    }
+
+                    var tableColumns = [];
+
+                    if (showAction) {
+                        tableColumns.push({
+                            data: null,
+                            title: "Action",
+                            className: "text-center text-nowrap",
+                            orderable: false,
+                            render: function (data, type, row) {
+                                return `
+                            <a href="GenerateEmpDocs.aspx?Exists=${encodeURIComponent(blankForNull(row.Code))}"
+                               title="Generate Document"
+                               data-toggle="tooltip"
+                               data-placement="top"
+                               style="color:#0d6efd;font-weight:600;text-decoration:none;">
+                                <i class="fas fa-file-alt"></i>
+                            </a>`;
+                            }
+                        });
+                    }
+
+                    tableColumns.push(
+                        {
+                            data: null,
+                            title: "Sr. #",
+                            className: "text-center text-nowrap",
+                            render: function (data, type, row, meta) {
+                                return meta.row + 1;
+                            }
+                        },
+                        { data: "Code", title: "Code", className: "text-nowrap", render: blankRender },
+                        { data: "FullName", title: "Name", className: "text-nowrap", render: blankRender },
+                        { data: "JoiningDate", title: "Joining Date", className: "text-nowrap", render: blankRender },
+                        { data: "DateOfBirth", title: "Date Of Birth", className: "text-nowrap", render: blankRender },
+                        { data: "BranchName", title: "Branch", className: "text-nowrap", render: blankRender },
+                        { data: "DepartmentName", title: "Department", className: "text-nowrap", render: blankRender },
+                        { data: "DesignationName", title: "Designation", className: "text-nowrap", render: blankRender },
+                        { data: "ResignedType", title: "Resigned Type", className: "text-nowrap", render: blankRender },
+                        { data: "ResignedDate", title: "Resigned Date", className: "text-nowrap", render: blankRender },
+                        { data: "LastWorkingDate", title: "Last Working Date", className: "text-nowrap", render: blankRender },
+                        { data: "PMRemark", title: "PM Remark", className: "text-nowrap", render: blankRender },
+                        { data: "UHRemark", title: "UH Remark", className: "text-nowrap", render: blankRender },
+                        { data: "HRRemark", title: "HR Remark", className: "text-nowrap", render: blankRender },
+                        { data: "ExitFormalities", title: "Exit Formalities", className: "text-nowrap", render: blankRender }
+                    );
+
+                    dropoutemployee_table = $('#dropoutemployee_table').DataTable({
+                        data: dataArray,
+                        dom: 'lBftip',
+                        paging: true,
+                        autoWidth: false,
+                        ordering: false,
+                        processing: true,
+                        destroy: true,
+                        select: {
+                            style: 'single'
+                        },
+
+                        columns: tableColumns,
+
+                        buttons: [
+                            {
+                                extend: 'excelHtml5',
+                                title: 'Dropout Employee Report',
+                                autoFilter: true,
+                                exportOptions: {
+                                    columns: ':visible'
+                                }
+                            }
+                        ],
+
+                        drawCallback: function () {
+                            $('[data-toggle="tooltip"]').tooltip();
+                        },
+
+                        initComplete: function () {
+                            $('[data-toggle="tooltip"]').tooltip();
+                            $('#load1').hide();
+                        }
+                    });
+                },
+
+                error: function (xhr) {
+                    $('#load1').hide();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseText || 'Something went wrong while loading dropout employee report.'
+                    });
+                }
+            });
+
+            return false;
+        }
+
+        function blankRender(data) {
+            return blankForNull(data);
+        }
     </script>
 </asp:Content>
 

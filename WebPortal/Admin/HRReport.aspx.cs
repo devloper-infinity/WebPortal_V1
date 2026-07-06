@@ -148,7 +148,7 @@ namespace WebPortal.Admin
                 }
 
                 // 5️⃣ Send Password by Email
-                SendEmail(filePassword);
+                //   SendEmail(filePassword);
 
                 // 6️⃣ Send File to Browser
                 Response.Clear();
@@ -459,7 +459,7 @@ namespace WebPortal.Admin
             sheet = book.Worksheets.Add("Recruitment Summary");
 
             DataSet dsRec = new bllMaster().GetRequisition(Month, Year);
-            if (dsRec != null)
+            if (dsRec != null && dsRec.Tables.Count >= 2)
             {
                 DataTable dtDetails = dsRec.Tables[0];
                 DataTable dtDomain = dsRec.Tables[1];
@@ -1526,16 +1526,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        foreach (string snapshot in Snaps)
-                        {
-                            if (snapshot != "")
-                            {
-                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                                picture.Height = 350;
-                                picture.Width = 350;
-                                ColCountPic = ColCountPic + 6;
-                            }
-                        }
+                        //foreach (string snapshot in Snaps)
+                        //{
+                        //    if (snapshot != "")
+                        //    {
+                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                        //        picture.Height = 350;
+                        //        picture.Width = 350;
+                        //        ColCountPic = ColCountPic + 6;
+                        //    }
+                        //}
 
                         rowCount = rowCount + 24;
                     }
@@ -1987,16 +1987,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        foreach (string snapshot in Snaps)
-                        {
-                            if (snapshot != "")
-                            {
-                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                                picture.Height = 350;
-                                picture.Width = 350;
-                                ColCountPic = ColCountPic + 6;
-                            }
-                        }
+                        //foreach (string snapshot in Snaps)
+                        //{
+                        //    if (snapshot != "")
+                        //    {
+                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                        //        picture.Height = 350;
+                        //        picture.Width = 350;
+                        //        ColCountPic = ColCountPic + 6;
+                        //    }
+                        //}
 
                         rowCount = rowCount + 24;
                     }
