@@ -6,15 +6,15 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
         :root {
-            --vsc-primary: #1d4ed8;
-            --vsc-primary-2: #2563eb;
-            --vsc-cyan: #22c1dc;
-            --vsc-dark: #0f172a;
-            --vsc-muted: #64748b;
-            --vsc-border: #e2e8f0;
-            --vsc-soft: #f8fafc;
-            --vsc-success: #16a34a;
-            --vsc-danger: #dc2626;
+            --secl-primary: #1d4ed8;
+            --secl-primary-2: #2563eb;
+            --secl-cyan: #22c1dc;
+            --secl-dark: #0f172a;
+            --secl-muted: #64748b;
+            --secl-border: #e2e8f0;
+            --secl-soft: #f8fafc;
+            --secl-success: #16a34a;
+            --secl-danger: #dc2626;
         }
 
         .loading {
@@ -31,7 +31,7 @@
             background: rgba(255,255,255,.96);
             box-shadow: 0 20px 60px rgba(15,23,42,.18);
             text-align: center;
-            color: var(--vsc-dark);
+            color: var(--secl-dark);
         }
 
         .loading img {
@@ -40,7 +40,7 @@
             object-fit: contain;
             margin-bottom: 12px;
         }
-        .vsc-hero {
+        .secl-hero {
             position: relative;
             overflow: hidden;
             border-radius: 24px;
@@ -51,8 +51,8 @@
             box-shadow: 0 18px 40px rgba(37,99,235,.22);
         }
 
-        .vsc-hero:before,
-        .vsc-hero:after {
+        .secl-hero:before,
+        .secl-hero:after {
             content: "";
             position: absolute;
             border-radius: 999px;
@@ -60,21 +60,21 @@
             pointer-events: none;
         }
 
-        .vsc-hero:before {
+        .secl-hero:before {
             width: 180px;
             height: 180px;
             right: -55px;
             top: -70px;
         }
 
-        .vsc-hero:after {
+        .secl-hero:after {
             width: 120px;
             height: 120px;
             right: 90px;
             bottom: -65px;
         }
 
-        .vsc-hero-content {
+        .secl-hero-content {
             position: relative;
             z-index: 1;
             display: flex;
@@ -84,13 +84,13 @@
             flex-wrap: wrap;
         }
 
-        .vsc-title-wrap {
+        .secl-title-wrap {
             display: flex;
             align-items: center;
             gap: 16px;
         }
 
-        .vsc-hero-icon {
+        .secl-hero-icon {
             width: 62px;
             height: 62px;
             min-width: 62px;
@@ -104,7 +104,7 @@
             font-size: 28px;
         }
 
-        .vsc-hero h4 {
+        .secl-hero h4 {
             margin: 0;
             font-size: 24px;
             line-height: 1.2;
@@ -112,13 +112,13 @@
             letter-spacing: .2px;
         }
 
-        .vsc-hero p {
+        .secl-hero p {
             margin: 6px 0 0;
             color: rgba(255,255,255,.86);
             font-size: 13px;
         }
 
-        .vsc-chip {
+        .secl-chip {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -131,33 +131,33 @@
             white-space: nowrap;
         }
 
-        .vsc-panel {
-            border: 1px solid var(--vsc-border);
+        .secl-panel {
+            border: 1px solid var(--secl-border);
             border-radius: 22px;
             background: #fff;
             box-shadow: 0 14px 35px rgba(15,23,42,.08);
             overflow: hidden;
         }
 
-        .vsc-panel-head {
+        .secl-panel-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
             padding: 18px 22px;
             background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-            border-bottom: 1px solid var(--vsc-border);
+            border-bottom: 1px solid var(--secl-border);
             flex-wrap: wrap;
         }
 
-        .vsc-panel-title {
+        .secl-panel-title {
             display: flex;
             align-items: center;
             gap: 12px;
-            color: var(--vsc-dark);
+            color: var(--secl-dark);
         }
 
-        .vsc-panel-title i {
+        .secl-panel-title i {
             width: 40px;
             height: 40px;
             border-radius: 14px;
@@ -165,24 +165,24 @@
             align-items: center;
             justify-content: center;
             background: #eff6ff;
-            color: var(--vsc-primary-2);
+            color: var(--secl-primary-2);
             font-size: 18px;
         }
 
-        .vsc-panel-title h5 {
+        .secl-panel-title h5 {
             margin: 0;
             font-size: 16px;
             font-weight: 800;
         }
 
-        .vsc-panel-title span {
+        .secl-panel-title span {
             display: block;
             margin-top: 2px;
-            color: var(--vsc-muted);
+            color: var(--secl-muted);
             font-size: 12px;
         }
 
-        .vsc-table-wrap {
+        .secl-table-wrap {
             padding: 18px;
         }
 
@@ -221,13 +221,13 @@
             background: #eff6ff !important;
         }
 
-        .vsc-action-trigger {
+        .secl-action-trigger {
             width: 34px;
             height: 34px;
             border: 0;
             border-radius: 12px;
             background: #eff6ff;
-            color: var(--vsc-primary-2);
+            color: var(--secl-primary-2);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -235,15 +235,15 @@
             cursor: pointer;
         }
 
-        .vsc-action-trigger:hover {
+        .secl-action-trigger:hover {
             color: #fff;
-            background: linear-gradient(135deg, var(--vsc-primary-2), var(--vsc-cyan));
+            background: linear-gradient(135deg, var(--secl-primary-2), var(--secl-cyan));
             box-shadow: 0 10px 20px rgba(37,99,235,.22);
             transform: translateY(-1px);
         }
 
         .dropdown-menu {
-            border: 1px solid var(--vsc-border);
+            border: 1px solid var(--secl-border);
             border-radius: 14px;
             box-shadow: 0 18px 40px rgba(15,23,42,.14);
             padding: 8px;
@@ -259,7 +259,7 @@
 
         .dropdown-item:hover {
             background: #eff6ff;
-            color: var(--vsc-primary-2);
+            color: var(--secl-primary-2);
         }
 
         .isDisabled {
@@ -273,7 +273,7 @@
         .dataTables_wrapper .dataTables_info,
         .dataTables_wrapper .dataTables_paginate {
             font-size: 12px;
-            color: var(--vsc-muted);
+            color: var(--secl-muted);
         }
 
         .dataTables_wrapper .dataTables_length {
@@ -288,14 +288,14 @@
 
         .dataTables_wrapper .dataTables_filter input,
         .dataTables_wrapper .dataTables_length select {
-            border: 1px solid var(--vsc-border);
+            border: 1px solid var(--secl-border);
             border-radius: 10px;
             padding: 6px 10px;
             outline: none;
         }
 
         .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: var(--vsc-primary-2);
+            border-color: var(--secl-primary-2);
             box-shadow: 0 0 0 3px rgba(37,99,235,.12);
         }
 
@@ -308,7 +308,7 @@
 
         .dataTables_wrapper .dataTables_paginate .paginate_button.current,
         .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background: linear-gradient(135deg, var(--vsc-primary-2), var(--vsc-cyan)) !important;
+            background: linear-gradient(135deg, var(--secl-primary-2), var(--secl-cyan)) !important;
             color: #fff !important;
             border: none !important;
         }
@@ -368,13 +368,13 @@
         }
 
         @media (max-width: 767px) {
-            .vsc-page { padding: 10px; }
-            .vsc-hero { padding: 20px; border-radius: 18px; }
-            .vsc-hero h4 { font-size: 19px; }
-            .vsc-hero-icon { width: 52px; height: 52px; min-width: 52px; }
-            .vsc-chip { width: 100%; justify-content: center; }
-            .vsc-panel-head { padding: 16px; }
-            .vsc-table-wrap { padding: 12px; }
+            .secl-page { padding: 10px; }
+            .secl-hero { padding: 20px; border-radius: 18px; }
+            .secl-hero h4 { font-size: 19px; }
+            .secl-hero-icon { width: 52px; height: 52px; min-width: 52px; }
+            .secl-chip { width: 100%; justify-content: center; }
+            .secl-panel-head { padding: 16px; }
+            .secl-table-wrap { padding: 12px; }
             .dataTables_wrapper .dataTables_filter,
             .dataTables_wrapper .dataTables_length { float: none !important; text-align: left !important; }
         }
@@ -404,7 +404,7 @@
                         html += '<tr>';
 
                         html += '<td class="text-center"><div class="btn-group">';
-                        html += '<button type="button" class="vsc-action-trigger" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-cog"></i></button>';
+                        html += '<button type="button" class="secl-action-trigger" data-toggle="dropdown" aria-expanded="false"><i class="fas fa-cog"></i></button>';
                         html += '<span class="sr-only"></span><div class="dropdown-menu" role="menu">';
                         html += '<a class="dropdown-item" href="#!" id="Actions" onclick="AddSalaryJustification(' + value.AppID + ',' + index + ');"><span style="color: forestgreen;"><i class="fas fa-pen"></i></span>&nbsp;&nbsp;Add Salary Justification</a>';
                         html += '<a class="dropdown-item" href="#!" id="ActionsEx" onclick="ViewApplication(' + value.AppID + ',' + index + ');"><span style="color: dodgerblue;"><i class="fas fa-file-alt"></i></span>&nbsp;&nbsp;View Application</a>';
@@ -567,11 +567,11 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="vsc-page">
-        <div class="vsc-hero">
-            <div class="vsc-hero-content">
-                <div class="vsc-title-wrap">
-                    <div class="vsc-hero-icon">
+    <div class="secl-page">
+        <div class="secl-hero">
+            <div class="secl-hero-content">
+                <div class="secl-title-wrap">
+                    <div class="secl-hero-icon">
                         <i class="fas fa-user-check"></i>
                     </div>
                     <div>
@@ -579,16 +579,16 @@
                         <p>Review selected candidates, add salary justification, view applications and create employee profiles.</p>
                     </div>
                 </div>
-                <div class="vsc-chip">
+                <div class="secl-chip">
                     <i class="fas fa-users"></i>
                     Recruitment Selection
                 </div>
             </div>
         </div>
 
-        <div class="vsc-panel">
-            <div class="vsc-panel-head">
-                <div class="vsc-panel-title">
+        <div class="secl-panel">
+            <div class="secl-panel-head">
+                <div class="secl-panel-title">
                     <i class="fas fa-list-check"></i>
                     <div>
                         <h5>Selected Candidate List</h5>
@@ -596,7 +596,7 @@
                     </div>
                 </div>
             </div>
-            <div class="vsc-table-wrap">
+            <div class="secl-table-wrap">
                 <table class="table table-hover table-bordered" id="applicant">
                     <thead>
                         <tr>

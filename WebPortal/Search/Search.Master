@@ -124,15 +124,15 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/VerifyBilling.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/ProcessOrder.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/OrderAllocation.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/OSTReport.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/ViewBilling.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/ProjectTrackingReport.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/OrderEntry.js" />
-                <asp:ScriptReference Path="~/Scripts/Search/AbstractorReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/VerifyBilling.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/ProcessOrder.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/OrderAllocation.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/OSTReport.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/ViewBilling.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/ProjectTrackingReport.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/OrderEntry.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Search/AbstractorReport.js?v=@DateTime.Now.Ticks" />
             </Scripts>
         </asp:ToolkitScriptManager>
         <div class="wrapper">

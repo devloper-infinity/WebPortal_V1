@@ -299,9 +299,9 @@
 
     <script>
         $(document).ready(function () {
-          <%--  var currEmp = $("#<%= hdnEmpID.ClientID %>").val();--%>
+         var currEmp = $("#<%= hdnEmpID.ClientID %>").val();
 
-            var loginID = '<%= HttpContext.Current.User.Identity.Name %>';
+          <%--  var loginID = '<%= HttpContext.Current.User.Identity.Name %>';--%>
             dropoutemployee_bindgrid(currEmp);
         });
 

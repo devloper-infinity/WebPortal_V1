@@ -149,33 +149,32 @@
 <body class="hold-transition sidebar-collapse layout-top-nav">
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
-            <Scripts>
-                <asp:ScriptReference Path="~/Scripts/Functions/AddressVerification.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/EmployeeVerificationReport.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/FunFriday.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Followup.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/LetterHeadManagement.js" />
-                <%-- <asp:ScriptReference Path="~/Scripts/Functions/Leaves.js" />--%>
-                <asp:ScriptReference Path="~/Scripts/Functions/RnR.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/SkipLevelMeeting.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/StampPaper.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Requisition.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Bank.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Masters.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/HRReports.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/HRInduction.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/MasterData.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/UnderwritingTest.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Reports.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/CCInvoice.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Canopy.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/ImportCC.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/Attendance.js" />
-                <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js" />
-                <asp:ScriptReference Path="~/Scripts/Reports/ServicingConsolidatedReports.js" />
-                <asp:ScriptReference Path="~/Scripts/Functions/KYC.js" />
-                <asp:ScriptReference Path="~/Scripts/Reports/DetailedFeedbackOutput.js" />
-                <asp:ScriptReference Path="~/Scripts/Reports/IncrementProposal.js" />
+           <%-- <Scripts>
+                <asp:ScriptReference Path="~/Scripts/Functions/AddressVerification.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EmployeeVerificationReport.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/FunFriday.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Followup.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/LetterHeadManagement.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/RnR.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SkipLevelMeeting.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/StampPaper.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Requisition.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Bank.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Masters.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRReports.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRInduction.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/MasterData.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UnderwritingTest.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Reports.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/CCInvoice.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Canopy.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ImportCC.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Attendance.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ServicingConsolidatedReports.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Functions/KYC.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Reports/DetailedFeedbackOutput.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/Reports/IncrementProposal.js?v=@DateTime.Now.Ticks" />
                 <asp:ScriptReference Path="~/Scripts/Functions/Securitization.js" />
                 <asp:ScriptReference Path="~/Scripts/Reports/Performance.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/InfinityFeedback.js" />
@@ -187,7 +186,6 @@
                 <asp:ScriptReference Path="~/Scripts/HRReportInput.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/ViewEmployee.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/EditInfinityFeedback.js" />
-                <%-- <asp:ScriptReference Path="~/Scripts/Functions/CreateProfile.js"/>--%>
                 <asp:ScriptReference Path="~/Scripts/Functions/DailyProductivity.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/EditSecruitization.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/SecruitizationBilling.js" />
@@ -219,7 +217,7 @@
                 <asp:ScriptReference Path="~/Scripts/Functions/ProjectConfiguration.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/LogInDetails.js" />
                 <asp:ScriptReference Path="~/Scripts/Functions/Leaves.js" />
-            </Scripts>
+            </Scripts>--%>
         </asp:ToolkitScriptManager>
 
         <div class="wrapper">
@@ -227,7 +225,7 @@
             <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
                 <div class="container">
                     <a href="Admin/DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
-                         <img src="../images/logo-login.png" style="height: 50px;" />
+                        <img src="../images/logo-login.png" style="height: 50px;" />
                     </a>
 
                     <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">

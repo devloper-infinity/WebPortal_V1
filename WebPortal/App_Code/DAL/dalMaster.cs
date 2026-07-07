@@ -2587,7 +2587,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataSet GetSkiplevelDetails(string Month, string Year)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta_ICG]");
             SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
             SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
             DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
