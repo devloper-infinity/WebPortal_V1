@@ -33,7 +33,7 @@
 
             $.ajax({
                 type: "POST",
-                url: "DashboardEmployee.aspx/BindInformation",
+                url: "../Admin/DashboardEmployee.aspx/BindInformation",
                 contentType: "application/json",
                 dataType: "json",
                 success: function (data) {
@@ -47,7 +47,7 @@
 
                             $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
                             $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
-                            getPendingTaskNotifications_Sidebar();
+                          
 
                             $.ajax({
                                 type: "POST",
@@ -154,7 +154,7 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-      
+                
             </Scripts>
         </asp:ToolkitScriptManager>
 
@@ -162,7 +162,7 @@
             <!-- Navbar -->
             <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
                 <div class="container">
-                    <a href="DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
+                    <a href="../Admin/DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
                         <img src="../images/logo-login.png" style="height: 50px;" />
                     </a>
 
@@ -566,7 +566,6 @@
 
         <!-- AdminLTE for demo purposes -->
         <%--<script src="../Scripts/AI.js?v=1"></script>--%>
-
     </form>
 </body>
 </html>

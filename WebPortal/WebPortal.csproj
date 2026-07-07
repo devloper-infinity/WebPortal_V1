@@ -625,6 +625,11 @@
     <Content Include="dist\multi\chosen.min.css" />
     <Content Include="dist\multi\chosen.proto.js" />
     <Content Include="dist\multi\chosen.proto.min.js" />
+    <Content Include="Feedback\AddFeedbackForSearchProject.aspx" />
+    <Content Include="Feedback\ImportFeedback.aspx" />
+    <Content Include="Feedback\SectionAndFieldMaster.aspx" />
+    <Content Include="Feedback\ViewAllFeedbackByPMWise.aspx" />
+    <Content Include="Feedback\ViewAllFeedbackByUserWise.aspx" />
     <Content Include="FestivalWishesImages\GudhiPadwa1.jpg" />
     <Content Include="FestivalWishesImages\Holi.jpg" />
     <Content Include="FestivalWishesImages\WomenDay.jpg" />
@@ -2993,7 +2998,9 @@
       <DependentUpon>AICopilot.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Code\AIService.cs" />
+    <Compile Include="App_Code\BLL\bllFeedback.cs" />
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
+    <Compile Include="App_Code\DAL\dalFeedback.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="CRM\Accounts.aspx.cs">
       <DependentUpon>Accounts.aspx</DependentUpon>
@@ -4023,12 +4030,47 @@
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
     <Compile Include="App_Code\Class\EmployeeInfo.cs" />
+    <Compile Include="Feedback\AddFeedbackForSearchProject.aspx.cs">
+      <DependentUpon>AddFeedbackForSearchProject.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\AddFeedbackForSearchProject.aspx.designer.cs">
+      <DependentUpon>AddFeedbackForSearchProject.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Feedback\Feedback.Master.cs">
       <DependentUpon>Feedback.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Feedback\Feedback.Master.designer.cs">
       <DependentUpon>Feedback.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\ImportFeedback.aspx.cs">
+      <DependentUpon>ImportFeedback.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\ImportFeedback.aspx.designer.cs">
+      <DependentUpon>ImportFeedback.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\SectionAndFieldMaster.aspx.cs">
+      <DependentUpon>SectionAndFieldMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\SectionAndFieldMaster.aspx.designer.cs">
+      <DependentUpon>SectionAndFieldMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByPMWise.aspx.cs">
+      <DependentUpon>ViewAllFeedbackByPMWise.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByPMWise.aspx.designer.cs">
+      <DependentUpon>ViewAllFeedbackByPMWise.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByUserWise.aspx.cs">
+      <DependentUpon>ViewAllFeedbackByUserWise.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByUserWise.aspx.designer.cs">
+      <DependentUpon>ViewAllFeedbackByUserWise.aspx</DependentUpon>
     </Compile>
     <Compile Include="ForgotPassword.aspx.cs">
       <DependentUpon>ForgotPassword.aspx</DependentUpon>

@@ -2,33 +2,197 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-        .fb-page { color: #172737; font-size: 13px; padding: 18px 0 28px; }
-        .fb-hero { align-items: center; background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%); border-radius: 8px; color: #fff; display: flex; justify-content: space-between; margin-bottom: 16px; padding: 20px 22px; }
-        .fb-title { font-size: 22px; font-weight: 800; margin: 0; }
-        .fb-subtitle { color: rgba(255,255,255,.9); font-size: 12px; margin: 6px 0 0; }
-        .fb-panel { background: #fff; border: 1px solid #dce5ec; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
-        .fb-panel-header { align-items: center; border-bottom: 1px solid #e7edf2; display: flex; justify-content: space-between; padding: 14px 16px; }
-        .fb-panel-title { font-size: 15px; font-weight: 800; margin: 0; }
-        .fb-panel-body { padding: 16px; }
-        .fb-grid-form { display: grid; gap: 12px 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .fb-field label { color: #46596b; display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; }
-        .fb-field .form-control { border-color: #cfdbe5; border-radius: 6px; font-size: 13px; min-height: 36px; width: 100%; }
-        textarea.form-control { min-height: 74px; resize: vertical; }
-        .fb-span-2 { grid-column: span 2; }
-        .fb-span-3 { grid-column: span 3; }
-        .fb-actions { align-items: center; border-top: 1px solid #e7edf2; display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 16px; padding-top: 14px; }
-        .fb-btn { border: 1px solid transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 800; min-height: 36px; padding: 7px 13px; }
-        .fb-btn-primary { background: #0f766e; border-color: #0f766e; color: #fff; }
-        .fb-btn-light { background: #eef3f7; border-color: #d6e1ea; color: #17324d; }
-        .fb-message { display: none; font-weight: 700; margin-bottom: 12px; padding: 10px 12px; }
-        .fb-message.success { background: #e8f7ef; border: 1px solid #b7e2c8; color: #136c34; }
-        .fb-message.error { background: #fff1f0; border: 1px solid #ffc9c4; color: #b42318; }
-        .fb-progress { color: #5d6f80; font-weight: 800; }
-        .fb-table-wrap { overflow-x: auto; padding: 0 16px 16px; }
-        .table.dataTable thead th, .fb-mini-table th { background: #edf3f6 !important; color: #263747; font-size: 12px; text-align: center; white-space: nowrap; }
-        .table.dataTable tbody td, .fb-mini-table td { font-size: 12px; vertical-align: middle; }
-        @media (max-width: 980px) { .fb-grid-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fb-span-3 { grid-column: span 2; } }
-        @media (max-width: 640px) { .fb-hero, .fb-panel-header { align-items: flex-start; flex-direction: column; gap: 10px; } .fb-grid-form, .fb-span-2, .fb-span-3 { display: block; grid-column: auto; } .fb-field { margin-bottom: 12px; } }
+        .fb-page {
+            color: #172737;
+            font-size: 13px;
+            padding: 18px 0 28px;
+        }
+
+        .fb-hero {
+            align-items: center;
+            background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%);
+            border-radius: 8px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding: 20px 22px;
+        }
+
+        .fb-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .fb-subtitle {
+            color: rgba(255,255,255,.9);
+            font-size: 12px;
+            margin: 6px 0 0;
+        }
+
+        .fb-panel {
+            background: #fff;
+            border: 1px solid #dce5ec;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .fb-panel-header {
+            align-items: center;
+            border-bottom: 1px solid #e7edf2;
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 16px;
+        }
+
+        .fb-panel-title {
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .fb-panel-body {
+            padding: 16px;
+        }
+
+        .fb-grid-form {
+            display: grid;
+            gap: 12px 14px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .fb-field label {
+            color: #46596b;
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .fb-field .form-control {
+            border-color: #cfdbe5;
+            border-radius: 6px;
+            font-size: 13px;
+            min-height: 36px;
+            width: 100%;
+        }
+
+        textarea.form-control {
+            min-height: 74px;
+            resize: vertical;
+        }
+
+        .fb-span-2 {
+            grid-column: span 2;
+        }
+
+        .fb-span-3 {
+            grid-column: span 3;
+        }
+
+        .fb-actions {
+            align-items: center;
+            border-top: 1px solid #e7edf2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 16px;
+            padding-top: 14px;
+        }
+
+        .fb-btn {
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 800;
+            min-height: 36px;
+            padding: 7px 13px;
+        }
+
+        .fb-btn-primary {
+            background: #0f766e;
+            border-color: #0f766e;
+            color: #fff;
+        }
+
+        .fb-btn-light {
+            background: #eef3f7;
+            border-color: #d6e1ea;
+            color: #17324d;
+        }
+
+        .fb-message {
+            display: none;
+            font-weight: 700;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+        }
+
+            .fb-message.success {
+                background: #e8f7ef;
+                border: 1px solid #b7e2c8;
+                color: #136c34;
+            }
+
+            .fb-message.error {
+                background: #fff1f0;
+                border: 1px solid #ffc9c4;
+                color: #b42318;
+            }
+
+        .fb-progress {
+            color: #5d6f80;
+            font-weight: 800;
+        }
+
+        .fb-table-wrap {
+            overflow-x: auto;
+            padding: 0 16px 16px;
+        }
+
+        .table.dataTable thead th, .fb-mini-table th {
+            background: #edf3f6 !important;
+            color: #263747;
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .table.dataTable tbody td, .fb-mini-table td {
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 980px) {
+            .fb-grid-form {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .fb-span-3 {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .fb-hero, .fb-panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .fb-grid-form, .fb-span-2, .fb-span-3 {
+                display: block;
+                grid-column: auto;
+            }
+
+            .fb-field {
+                margin-bottom: 12px;
+            }
+        }
     </style>
     <script type="text/javascript">
         var afContext = { Mode: 'New', Index: 0, Total: 0, BackUrl: 'ViewAllFeedbackByUserWise.aspx' };
@@ -426,7 +590,9 @@
                 </div>
 
                 <div id="afEDBPanel" class="fb-panel" style="display: none; margin-top: 16px;">
-                    <div class="fb-panel-header"><h2 class="fb-panel-title">Acceptance Status</h2></div>
+                    <div class="fb-panel-header">
+                        <h2 class="fb-panel-title">Acceptance Status</h2>
+                    </div>
                     <div class="fb-panel-body">
                         <div class="fb-grid-form">
                             <div class="fb-field">
@@ -446,7 +612,9 @@
                 </div>
 
                 <div id="afPMPanel" class="fb-panel" style="display: none; margin-top: 16px;">
-                    <div class="fb-panel-header"><h2 class="fb-panel-title">PM Status</h2></div>
+                    <div class="fb-panel-header">
+                        <h2 class="fb-panel-title">PM Status</h2>
+                    </div>
                     <div class="fb-panel-body">
                         <div class="fb-grid-form">
                             <div class="fb-field">

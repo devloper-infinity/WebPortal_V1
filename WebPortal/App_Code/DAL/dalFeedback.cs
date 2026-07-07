@@ -164,7 +164,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable ViewAllFeedbackByPMWise(string fromDate, string toDate, string employeeId)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewAllFeedbackByPMwise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllInternal_Feedback");
             AddText(cmd, "@From", fromDate, 100);
             AddText(cmd, "@To", toDate, 100);
             AddText(cmd, "@EmployeeID", employeeId, 100);
@@ -173,7 +173,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable ViewAllFeedbackByUserWise(string employeeId, string role, string fromDate, string toDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewAllFeedbackByUserwise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllFeedbackBySercherWise");
             AddText(cmd, "@EmployeeID", employeeId, 100);
             AddText(cmd, "@Role", role, 100);
             AddText(cmd, "@From", fromDate, 100);
