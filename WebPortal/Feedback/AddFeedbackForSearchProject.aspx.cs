@@ -19,6 +19,8 @@ namespace WebPortal.Feedback
         public static AddFeedbackContext GetPageContext()
         {
             HttpRequest request = HttpContext.Current.Request;
+            var referrer = HttpContext.Current.Request.UrlReferrer;
+            var query = HttpUtility.ParseQueryString(referrer.Query);
             bllFeedback bll = new bllFeedback();
             AddFeedbackContext context = new AddFeedbackContext();
             context.Mode = "New";
@@ -31,73 +33,80 @@ namespace WebPortal.Feedback
             context.BackUrl = "ViewAllFeedbackByUserWise.aspx";
             context.ButtonText = "ADD";
 
-            if (!string.IsNullOrWhiteSpace(request.QueryString["PMWise"]))
+            if (request.UrlReferrer.OriginalString.Contains("PMWise"))
             {
                 context.Mode = "PMWise";
+                string pmWise = query["PMWise"];
                 context.ShowPM = true;
                 context.IsReadOnly = true;
                 context.BackUrl = "ViewAllFeedbackByPMWise.aspx";
                 context.ButtonText = "Submit";
-                context.Record = FirstRow(bll.ViewAllFeedbackByRecordWise(request.QueryString["PMWise"]));
+                context.Record = FirstRow(bll.ViewAllFeedbackByRecordWise(pmWise));
                 context.Total = context.Record == null ? 0 : 1;
                 return context;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.QueryString["Edit"]))
+            if (request.UrlReferrer.OriginalString.Contains("Edit"))
             {
                 context.Mode = "Edit";
+                string Edit = query["Edit"];
                 context.ShowPM = true;
                 context.IsReadOnly = true;
                 context.BackUrl = "ViewAllFeedbackByPMWise.aspx";
                 context.ButtonText = "Update";
-                context.Record = FirstRow(bll.ViewAllFeedbackByRecordWise(request.QueryString["Edit"]));
+                context.Record = FirstRow(bll.ViewAllFeedbackByRecordWise(Edit));
                 context.Total = context.Record == null ? 0 : 1;
                 return context;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.QueryString["OrderNo"]))
+            if (request.UrlReferrer.OriginalString.Contains("OrderNo"))
             {
-                DataTable rows = bll.ViewFeedbackByOrderWise(request.QueryString["OrderNo"]);
+                string OrderNo = query["OrderNo"];
+                DataTable rows = bll.ViewFeedbackByOrderWise(OrderNo);
                 context.Mode = "Order";
                 context.ShowEDB = true;
                 context.IsReadOnly = true;
-                context.OrderNo = request.QueryString["OrderNo"];
+                context.OrderNo = OrderNo;
                 context.ButtonText = rows != null && rows.Rows.Count > 1 ? "Next" : "Submit";
                 context.Total = rows == null ? 0 : rows.Rows.Count;
                 context.Record = FirstRow(rows);
                 return context;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.QueryString["User"]))
+            if (request.UrlReferrer.OriginalString.Contains("User"))
             {
-                DataTable rows = bll.ViewFeedbackByUserWise(request.QueryString["User"], request.QueryString["Fatal"]);
+                string User = query["User"];
+                string Fatal = query["Fatal"];
+                DataTable rows = bll.ViewFeedbackByUserWise(User, Fatal);
                 context.Mode = "User";
                 context.ShowEDB = true;
                 context.IsReadOnly = true;
-                context.SourceEmployeeID = request.QueryString["User"];
-                context.Fatal = request.QueryString["Fatal"];
+                context.SourceEmployeeID = User;
+                context.Fatal = Fatal;
                 context.ButtonText = rows != null && rows.Rows.Count > 1 ? "Next" : "Submit";
                 context.Total = rows == null ? 0 : rows.Rows.Count;
                 context.Record = FirstRow(rows);
                 return context;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.QueryString["EmployeeID"]))
+            if (request.UrlReferrer.OriginalString.Contains("EmployeeID"))
             {
-                DataTable rows = bll.ViewFeedbackByPMWise(request.QueryString["EmployeeID"], request.QueryString["Fatal"]);
+                string EmployeeID = query["EmployeeID"];
+                string Fatal = query["Fatal"];
+                DataTable rows = bll.ViewFeedbackByPMWise(EmployeeID, Fatal);
                 context.Mode = "Employee";
                 context.ShowPM = true;
                 context.IsReadOnly = true;
                 context.BackUrl = "ViewAllFeedbackByPMWise.aspx";
-                context.SourceEmployeeID = request.QueryString["EmployeeID"];
-                context.Fatal = request.QueryString["Fatal"];
+                context.SourceEmployeeID = EmployeeID;
+                context.Fatal = Fatal;
                 context.ButtonText = rows != null && rows.Rows.Count > 1 ? "Next" : "Submit";
                 context.Total = rows == null ? 0 : rows.Rows.Count;
                 context.Record = FirstRow(rows);
                 return context;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.QueryString["ProcessFeedbak"]))
+            if (request.UrlReferrer.OriginalString.Contains("ProcessFeedbak"))
             {
                 context.Mode = "Process";
                 context.Record = BuildProcessRecord(request, bll);
