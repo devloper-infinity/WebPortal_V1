@@ -2,6 +2,7 @@
 using Spire.Xls;
 using System;
 using System.Collections.Generic;
+using System.Configuration.Provider;
 using System.Data;
 using System.Data.OleDb;
 using System.Data.SqlClient;
@@ -74,47 +75,48 @@ namespace WebPortal.Admin
 
                 if (Dt != null)
                 {
-                    string con = "";
-                    SqlConnection sqlConnection = new SqlConnection();
-                    SqlBulkCopy objbulk = new SqlBulkCopy(SQLHelper.ConnectionString);
+                    string con = SQLHelper.ConnectionString_Underwriting;
+                    SqlConnection sqlConnection = new SqlConnection(con);
 
-                    //assigning Destination table name
-                    objbulk.DestinationTableName = "dbo.WBT_TrackingSheet_OtherTask";
-                    string destTableQuery = "Select top 1 * from dbo.WBT_TrackingSheet_OtherTask";
-                    SqlCommand cmd = new SqlCommand(destTableQuery);
-                    sqlConnection.Open();
-                    cmd.Connection = sqlConnection;
-
-                    // i use sql helper for executing query you can use corde sw
-                    DataTable dtDest = SQLHelper.ExecuteDataSetCmd_Underwriting(cmd).Tables[0];
-
-                    Dt.Columns.Add("AddedBy", typeof(int));
-                    Dt.Columns.Add("AddedDate", typeof(DateTime));
-                    Dt.Columns.Add("Process", typeof(string));
-                    Dt.Columns.Add("ProjectNo", typeof(string));
-
-                    Dt.AsEnumerable().ToList().ForEach(row => row["Process"] = Process);
-                    Dt.AsEnumerable().ToList().ForEach(row => row["ProjectNo"] = Project);
-                    Dt.AsEnumerable().ToList().ForEach(row => row["AddedDate"] = DateTime.Now);
-                    Dt.AsEnumerable().ToList().ForEach(row => row["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
-                    for (int i = 0; i < dtDest.Columns.Count; i++)
+                    using (SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection))
                     {
-                        string destinationColumnName = dtDest.Columns[i].Caption.ToString();
-                        if (Dt.Columns.Contains(destinationColumnName))
+                        //assigning Destination table name
+                        objbulk.DestinationTableName = "dbo.WBT_TrackingSheet_OtherTask";
+                        string destTableQuery = "Select top 1 * from dbo.WBT_TrackingSheet_OtherTask";
+                        SqlCommand cmd = new SqlCommand(destTableQuery);
+                        sqlConnection.Open();
+                        cmd.Connection = sqlConnection;
+
+                        // i use sql helper for executing query you can use corde sw
+                        DataTable dtDest = SQLHelper.ExecuteDataSetCmd_Underwriting(cmd).Tables[0];
+
+                        Dt.Columns.Add("AddedBy", typeof(int));
+                        Dt.Columns.Add("AddedDate", typeof(DateTime));
+                        Dt.Columns.Add("Process", typeof(string));
+                        Dt.Columns.Add("ProjectNo", typeof(string));
+
+                        Dt.AsEnumerable().ToList().ForEach(row => row["Process"] = Process);
+                        Dt.AsEnumerable().ToList().ForEach(row => row["ProjectNo"] = Project);
+                        Dt.AsEnumerable().ToList().ForEach(row => row["AddedDate"] = DateTime.Now);
+                        Dt.AsEnumerable().ToList().ForEach(row => row["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+                        for (int i = 0; i < dtDest.Columns.Count; i++)
                         {
-                            //Once column matched get its index
-                            int sourceColumnIndex = Dt.Columns.IndexOf(destinationColumnName);
-                            string sourceColumnName = Dt.Columns[sourceColumnIndex].ToString();
+                            string destinationColumnName = dtDest.Columns[i].Caption.ToString();
+                            if (Dt.Columns.Contains(destinationColumnName))
+                            {
+                                //Once column matched get its index
+                                int sourceColumnIndex = Dt.Columns.IndexOf(destinationColumnName);
+                                string sourceColumnName = Dt.Columns[sourceColumnIndex].ToString();
 
-                            // give column name of source table rather then destination table // so that it would avoid case sensitivity
-                            SqlBulkCopyColumnMapping sqlBulkCopyColumnMapping = new SqlBulkCopyColumnMapping(sourceColumnName, destinationColumnName);
-                            objbulk.ColumnMappings.Add(sourceColumnName, destinationColumnName);
+                                // give column name of source table rather then destination table // so that it would avoid case sensitivity
+                                SqlBulkCopyColumnMapping sqlBulkCopyColumnMapping = new SqlBulkCopyColumnMapping(sourceColumnName, destinationColumnName);
+                                objbulk.ColumnMappings.Add(sourceColumnName, destinationColumnName);
+                            }
                         }
+                        objbulk.WriteToServer(Dt);
+                        sqlConnection.Close();
                     }
-                    objbulk.WriteToServer(Dt);
-                    sqlConnection.Close();
-
                     ReturnValue = dtImport.Rows.Count;
                     dtImport = null;
                 }

@@ -22,7 +22,6 @@
         }
 
         .hr-page {
-            padding: 14px 14px 28px;
             background: var(--hr-bg);
             min-height: calc(100vh - 120px);
         }
@@ -172,7 +171,8 @@
         .hr-actions {
             display: flex;
             justify-content: flex-end;
-            align-items: end;
+            width: 100%;
+             align-items: start;
         }
 
         .hr-export-btn {
@@ -215,11 +215,17 @@
             }
 
         .hr-wait-modal .modal-dialog {
-            min-height: 100vh;
+            min-height: calc(100vh - 48px);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
+            max-width: min(980px, calc(100vw - 28px));
+            margin: 24px auto;
+        }
+
+        .hr-wait-modal {
+            overflow-y: auto !important;
+            padding-right: 0 !important;
         }
 
         .hr-wait-box {
@@ -327,10 +333,10 @@
             .hr-form-grid {
                 grid-template-columns: 1fr;
             }
-
+/*
             .hr-actions {
                 justify-content: stretch;
-            }
+            }*/
 
             .hr-export-btn {
                 width: 100%;
@@ -338,178 +344,225 @@
         }
     </style>
 
-<script>
-    $(document).ready(function () {
-        hr_BindYear();
-        hr_buildSheetList();
-        hr_resetProgress();
-    });
+    <script>
+        $(document).ready(function () {
+            hr_BindYear();
+            hr_buildSheetList();
+            hr_resetProgress();
+        });
 
-    const hrSheets = [
-        { name: "Recruitment Summary", method: "RecruitmentSummary", useMonthYear: true },
-        { name: "Hiring", method: "Hiring" },
-        { name: "Manpower", method: "Manpower" },
-        { name: "Skip Level Summary", method: "SkipLevel" },
-        { name: "Skip Level Details", method: "SkipLevelDetails" },
-        { name: "Background Verification", method: "BackgroundVerification" },
-        { name: "Absconding", method: "Absconding" },
-        { name: "Resigned", method: "Resigned" },
-        { name: "Fun Friday Details", method: "FunFriday" },
-        { name: "Fun Friday Snaps", method: "FunFridaySnaps" },
-        { name: "Naukri", method: "Naukri" },
-        { name: "LinkedIn", method: "LinkedIn" },
-        { name: "Glassdoor Infinity", method: "GlassdoorInfinity" },
-        { name: "Glassdoor Competitors", method: "GlassdoorCompetitors" },
-        { name: "Reward and Recognition Details", method: "RnR" },
-        { name: "Reward and Recognition Snaps", method: "RnRSnaps" },
-        { name: "Stamp Paper Purchase", method: "StamppaperPurchase" },
-        { name: "Master Data", method: "MasterData" },
-        { name: "HR Induction Report", method: "HRInductionReport" },
-        { name: "New Joinee Followup", method: "NewJoineeFollowUp" },
-        { name: "Address Verification", method: "AddressVerification" },
-        { name: "Exit Employees", method: "ExitEmployees" },
-        { name: "Ticket Report", method: "TicketReport" },
-        { name: "Dashboard Summary", method: "EditDashboard", text: "Editing Dashboard Summary..." },
-        { name: "Attrition Report", method: "AttritionReport" }
-    ];
+        const hrSheets = [
+            { name: "Recruitment Summary", method: "RecruitmentSummary", useMonthYear: true },
+            { name: "Hiring", method: "Hiring" },
+            { name: "Manpower", method: "Manpower" },
+            { name: "Skip Level Summary", method: "SkipLevel" },
+            { name: "Skip Level Details", method: "SkipLevelDetails" },
+            { name: "Background Verification", method: "BackgroundVerification" },
+            { name: "Absconding", method: "Absconding" },
+            { name: "Resigned", method: "Resigned" },
+            { name: "Fun Friday Details", method: "FunFriday" },
+            { name: "Fun Friday Snaps", method: "FunFridaySnaps" },
+            { name: "Naukri", method: "Naukri" },
+            { name: "LinkedIn", method: "LinkedIn" },
+            { name: "Glassdoor Infinity", method: "GlassdoorInfinity" },
+            { name: "Glassdoor Competitors", method: "GlassdoorCompetitors" },
+            { name: "Reward and Recognition Details", method: "RnR" },
+            { name: "Reward and Recognition Snaps", method: "RnRSnaps" },
+            { name: "Stamp Paper Purchase", method: "StamppaperPurchase" },
+            { name: "Master Data", method: "MasterData" },
+            { name: "HR Induction Report", method: "HRInductionReport" },
+            { name: "New Joinee Followup", method: "NewJoineeFollowUp" },
+            { name: "Address Verification", method: "AddressVerification" },
+            { name: "Exit Employees", method: "ExitEmployees" },
+            { name: "Ticket Report", method: "TicketReport" },
+            { name: "Dashboard Summary", method: "EditDashboard", text: "Editing Dashboard Summary..." },
+            { name: "Attrition Report", method: "AttritionReport" }
+        ];
 
-    function RecruitmentSummary() {
-        var month = $("#hr_month").val();
-        var year = $("#hr_year").val();
+        function RecruitmentSummary() {
+            var month = $("#hr_month").val();
+            var year = $("#hr_year").val();
 
-        if (!month || month === "0") {
-            Swal.fire("Month Required", "Please select month.", "warning");
-            return false;
-        }
-
-        if (!year || year === "0") {
-            Swal.fire("Year Required", "Please select year.", "warning");
-            return false;
-        }
-
-        $('#waitingpanel').modal('show');
-
-        hr_buildSheetList();
-        hr_resetProgress();
-
-        hr_runSheet(0, month, year);
-
-        return false;
-    }
-
-    function hr_runSheet(index, month, year) {
-        if (index >= hrSheets.length) {
-            hr_setProgress(100, "All sheets generated successfully.");
-            $("#hr_sheetList .hr-sheet-item").addClass("done").removeClass("active");
-            $('#waitingpanel').modal('hide');
-
-            __doPostBack("<%= btn1.UniqueID %>", '');
-            return false;
-        }
-
-        var sheet = hrSheets[index];
-        var runningText = sheet.text || ("Preparing sheet : " + sheet.name + " ...");
-
-        hr_markSheetActive(index);
-        hr_setProgress(Math.round((index / hrSheets.length) * 100), runningText);
-
-        var success = function () {
-            hr_markSheetDone(index);
-
-            var completedPercent = Math.round(((index + 1) / hrSheets.length) * 100);
-            hr_setProgress(completedPercent, "Completed : " + sheet.name);
-
-            setTimeout(function () {
-                hr_runSheet(index + 1, month, year);
-            }, 250);
-        };
-
-        var error = function (err) {
-            $('#waitingpanel').modal('hide');
-
-            var msg = "Something went wrong.";
-            if (err && typeof err.get_message === "function") {
-                msg = err.get_message();
+            if (!month || month === "0") {
+                Swal.fire("Month Required", "Please select month.", "warning");
+                return false;
             }
 
-            Swal.fire({
-                icon: "error",
-                title: "Sheet Generation Failed",
-                html: "<b>" + sheet.name + "</b><br/>" + msg
-            });
-        };
+            if (!year || year === "0") {
+                Swal.fire("Year Required", "Please select year.", "warning");
+                return false;
+            }
 
-        if (!PageMethods[sheet.method]) {
-            $('#waitingpanel').modal('hide');
-            Swal.fire("Method Missing", sheet.method + " method not found in PageMethods.", "error");
+            hr_buildSheetList();
+            hr_resetProgress();
+            hr_showWaitingPanel();
+
+            hr_runSheet(0, month, year);
+
             return false;
         }
 
-        if (sheet.useMonthYear === true) {
-            PageMethods[sheet.method](month, year, success, error);
-        } else {
-            PageMethods[sheet.method](success, error);
+        function hr_runSheet(index, month, year) {
+            if (index >= hrSheets.length) {
+                hr_setProgress(100, "Finalizing workbook for download...");
+                $("#hr_sheetList .hr-sheet-item").removeClass("active");
+
+                PageMethods.FinalizeHRReportDownload(function (downloadUrl) {
+                    hr_setProgress(100, "Download is starting...");
+                    hr_hideWaitingPanel();
+                    hr_startDownload(downloadUrl);
+                }, function (err) {
+                    hr_hideWaitingPanel();
+
+                    var msg = "Workbook was created but download could not be started.";
+                    if (err && typeof err.get_message === "function") {
+                        msg = err.get_message();
+                    }
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Download Failed",
+                        html: msg
+                    });
+                });
+
+                return false;
+            }
+
+            var sheet = hrSheets[index];
+            var runningText = sheet.text || ("Creating sheet " + (index + 1) + " of " + hrSheets.length + " : " + sheet.name + " ...");
+
+            hr_markSheetActive(index);
+            hr_setProgress(Math.round((index / hrSheets.length) * 100), runningText);
+
+            var success = function (result) {
+                var isEmpty = parseInt(result, 10) === 0;
+                hr_markSheetDone(index, isEmpty);
+
+                var completedPercent = Math.round(((index + 1) / hrSheets.length) * 100);
+                hr_setProgress(completedPercent, (isEmpty ? "Created empty sheet : " : "Created sheet : ") + sheet.name);
+
+                setTimeout(function () {
+                    hr_runSheet(index + 1, month, year);
+                }, 250);
+            };
+
+            var error = function (err) {
+                hr_hideWaitingPanel();
+
+                var msg = "Something went wrong.";
+                if (err && typeof err.get_message === "function") {
+                    msg = err.get_message();
+                }
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Sheet Generation Failed",
+                    html: "<b>" + sheet.name + "</b><br/>" + msg
+                });
+            };
+
+            if (!PageMethods[sheet.method]) {
+                hr_hideWaitingPanel();
+                Swal.fire("Method Missing", sheet.method + " method not found in PageMethods.", "error");
+                return false;
+            }
+
+            if (sheet.useMonthYear === true) {
+                PageMethods[sheet.method](month, year, success, error);
+            } else {
+                PageMethods[sheet.method](success, error);
+            }
+
+            return false;
         }
 
-        return false;
-    }
+        function hr_showWaitingPanel() {
+            var panel = $("#waitingpanel");
+            panel.modal({
+                backdrop: "static",
+                keyboard: false,
+                show: true
+            });
+        }
 
-    function hr_buildSheetList() {
-        var html = "";
+        function hr_hideWaitingPanel() {
+            $("#waitingpanel").modal("hide");
+        }
 
-        $.each(hrSheets, function (i, sheet) {
-            html += `
+        function hr_startDownload(downloadUrl) {
+            if (!downloadUrl) {
+                Swal.fire("Download Failed", "Download path was not returned.", "error");
+                return false;
+            }
+
+            window.location.href = downloadUrl;
+            return false;
+        }
+
+        function hr_buildSheetList() {
+            var html = "";
+
+            $.each(hrSheets, function (i, sheet) {
+                html += `
             <div class="hr-sheet-item" id="hr_sheet_${i}">
                 <span class="hr-sheet-icon">
                     <i class="fas fa-clock"></i>
                 </span>
-                <span>${sheet.name}</span>
+                <span class="hr-sheet-copy">
+                    <span class="hr-sheet-name">${sheet.name}</span>
+                    <small class="hr-sheet-state">Pending</small>
+                </span>
             </div>`;
-        });
+            });
 
-        $("#hr_sheetList").html(html);
-    }
+            $("#hr_sheetList").html(html);
+        }
 
-    function hr_markSheetActive(index) {
-        $(".hr-sheet-item").removeClass("active");
+        function hr_markSheetActive(index) {
+            $(".hr-sheet-item").removeClass("active");
 
-        var item = $("#hr_sheet_" + index);
-        item.addClass("active");
+            var item = $("#hr_sheet_" + index);
+            item.addClass("active");
 
-        item.find(".hr-sheet-icon").html('<i class="fas fa-spinner fa-spin"></i>');
+            item.find(".hr-sheet-icon").html('<i class="fas fa-spinner fa-spin"></i>');
+            item.find(".hr-sheet-state").text("Creating");
 
-        var container = $("#hr_sheetList");
-        container.animate({
-            scrollTop: item.position().top + container.scrollTop() - 80
-        }, 300);
-    }
+            var container = $("#hr_sheetList");
+            container.animate({
+                scrollTop: item.position().top + container.scrollTop() - 70
+            }, 300);
+        }
 
-    function hr_markSheetDone(index) {
-        var item = $("#hr_sheet_" + index);
+        function hr_markSheetDone(index, isEmpty) {
+            var item = $("#hr_sheet_" + index);
 
-        item.removeClass("active").addClass("done");
-        item.find(".hr-sheet-icon").html('<i class="fas fa-check"></i>');
-    }
+            item.removeClass("active done empty").addClass(isEmpty ? "empty" : "done");
+            item.find(".hr-sheet-icon").html(isEmpty ? '<i class="fas fa-minus"></i>' : '<i class="fas fa-check"></i>');
+            item.find(".hr-sheet-state").text(isEmpty ? "No records" : "Created");
+        }
 
-    function hr_setProgress(percent, text) {
-        percent = Math.min(100, Math.max(0, percent));
+        function hr_setProgress(percent, text) {
+            percent = Math.min(100, Math.max(0, percent));
 
-        $("#spntext").html(text);
-        $("#hr_progressText").text(percent + "%");
-        $("#hr_progressbar").css("width", percent + "%");
-    }
+            $("#spntext").html(text);
+            $("#hr_progressText").text(percent + "%");
+            $("#hr_progressbar").css("width", percent + "%");
+        }
 
-    function hr_resetProgress() {
-        $("#hr_progressbar").css("width", "0%");
-        $("#hr_progressText").text("0%");
-        $("#spntext").html("Waiting to start...");
+        function hr_resetProgress() {
+            $("#hr_progressbar").css("width", "0%");
+            $("#hr_progressText").text("0%");
+            $("#spntext").html("Waiting to start...");
 
-        $(".hr-sheet-item")
-            .removeClass("active done")
-            .find(".hr-sheet-icon")
-            .html('<i class="fas fa-clock"></i>');
-    }
-</script>
+            $(".hr-sheet-item")
+                .removeClass("active done empty")
+                .find(".hr-sheet-icon")
+                .html('<i class="fas fa-clock"></i>');
+
+            $(".hr-sheet-state").text("Pending");
+        }
+    </script>
 
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -574,7 +627,7 @@
                         </select>
                     </div>
 
-                    <div class="hr-actions">
+                    <div class="hr-actions" style="text-align:right; width:100%;">
                         <button id="hr_btnShow" type="button" class="hr-export-btn" onclick="return RecruitmentSummary();">
                             <i class="fas fa-file-export"></i>&nbsp; Export to Excel
                        
@@ -587,33 +640,34 @@
         </div>
     </div>
 
-    <div class="modal fade hr-wait-modal" id="waitingpanel" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal fade hr-wait-modal" id="waitingpanel" tabindex="-1" data-backdrop="static" data-keyboard="false" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="hr-wait-box">
+            <%--  <div class="hr-wait-box">
                 <img src="../Images/Load.gif" />
                 <span class="hr-wait-title" id="spntext">System is generating excel. Please wait</span>
                 <span class="hr-wait-dots">. . . .</span>
+            </div>--%>
+            <div class="hr-progress-card">
+
+                <div class="hr-progress-header">
+                    <div>
+                        <h5>Generating HR Report</h5>
+                        <p id="spntext">Waiting to start...</p>
+                    </div>
+                    <div class="hr-progress-percent" id="hr_progressText">0%</div>
+                </div>
+
+                <div class="hr-main-progress">
+                    <div id="hr_progressbar"></div>
+                </div>
+
+                <div id="hr_sheetList" class="hr-sheet-list"></div>
+
             </div>
         </div>
     </div>
-    <div class="hr-progress-card">
 
-        <div class="hr-progress-header">
-            <div>
-                <h5>Generating HR Report</h5>
-                <p id="spntext">Waiting to start...</p>
-            </div>
-            <div class="hr-progress-percent" id="hr_progressText">0%</div>
-        </div>
 
-        <div class="hr-main-progress">
-            <div id="hr_progressbar"></div>
-        </div>
-
-        <div id="hr_sheetList" class="hr-sheet-list"></div>
-
-    </div>
-    
     <style>
         .hr-progress-card {
             width: 100%;
@@ -621,6 +675,9 @@
             border-radius: 18px;
             background: #ffffff;
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 56px);
         }
 
         .hr-progress-header {
@@ -699,7 +756,9 @@
             gap: 10px;
             max-height: 360px;
             overflow-y: auto;
+            overscroll-behavior: contain;
             padding-right: 4px;
+            min-height: 0;
         }
 
         .hr-sheet-item {
@@ -714,6 +773,25 @@
             font-size: 13px;
             font-weight: 600;
             transition: all 0.3s ease;
+        }
+
+        .hr-sheet-copy {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .hr-sheet-name {
+            overflow-wrap: anywhere;
+        }
+
+        .hr-sheet-state {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
 
         .hr-sheet-icon {
@@ -742,6 +820,10 @@
                 animation: hrPulse 1s infinite;
             }
 
+            .hr-sheet-item.active .hr-sheet-state {
+                color: #2563eb;
+            }
+
         .hr-sheet-item.done {
             background: #ecfdf5;
             border-color: #22c55e;
@@ -751,6 +833,25 @@
             .hr-sheet-item.done .hr-sheet-icon {
                 background: #22c55e;
                 color: #fff;
+            }
+
+            .hr-sheet-item.done .hr-sheet-state {
+                color: #15803d;
+            }
+
+        .hr-sheet-item.empty {
+            background: #fff7ed;
+            border-color: #f59e0b;
+            color: #9a3412;
+        }
+
+            .hr-sheet-item.empty .hr-sheet-icon {
+                background: #f59e0b;
+                color: #fff;
+            }
+
+            .hr-sheet-item.empty .hr-sheet-state {
+                color: #b45309;
             }
 
         @keyframes hrPulse {

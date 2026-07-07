@@ -43,7 +43,6 @@
         .order-entry-page {
             background: var(--order-bg);
             min-height: calc(100vh - 72px);
-            padding: 18px;
         }
 
         .order-page-header {
@@ -327,8 +326,8 @@
         }
 
             #table_orderentry thead th {
-                  background: #edf3f6 !important;
-  border-color: #d7e2ea !important;
+                background: #edf3f6 !important;
+                border-color: #d7e2ea !important;
                 color: #263747;
                 font-size: 12px;
                 /*text-align: center;*/
@@ -344,8 +343,8 @@
             }
 
             #table_orderentry tbody tr:hover td {
-              /*  background: #f8fbfb;*/
-               background: #f7fbfa;
+                /*  background: #f8fbfb;*/
+                background: #f7fbfa;
             }
 
         table.dataTable tbody tr.selected-row > td {
@@ -498,6 +497,187 @@
                 width: 100%;
             }
         }
+    </style>
+
+    <style>
+        .upload-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        }
+
+        .upload-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .upload-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#2563eb,#22c1dc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 28px;
+            margin-right: 18px;
+        }
+
+        .upload-header h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .upload-header small {
+            color: #6c757d;
+        }
+
+        .upload-area {
+            display: block;
+            cursor: pointer;
+            border: 3px dashed #c7d2fe;
+            border-radius: 20px;
+            padding: 50px 20px;
+            text-align: center;
+            transition: .35s;
+            background: #f8fbff;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .upload-area:hover {
+                border-color: #2563eb;
+                transform: translateY(-3px);
+                box-shadow: 0 15px 30px rgba(37,99,235,.15);
+            }
+
+            .upload-area.dragover {
+                background: #eff6ff;
+                border-color: #2563eb;
+                transform: scale(1.02);
+            }
+
+        .upload-circle {
+            width: 70px;
+            height: 70px;
+            margin: auto;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#2563eb,#22c1dc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 40px;
+            animation: float 2s infinite ease-in-out;
+        }
+
+        @keyframes float {
+
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .upload-content h5 {
+            margin-top: 20px;
+            font-weight: 700;
+        }
+
+        .upload-content p {
+            color: #777;
+            margin-bottom: 15px;
+        }
+
+        .upload-tag {
+            display: inline-block;
+            padding: 8px 18px;
+            background: #e0f2fe;
+            border-radius: 30px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .selected-file {
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            animation: fadeIn .4s;
+        }
+
+            .selected-file i {
+                font-size: 24px;
+                margin-right: 12px;
+            }
+
+        .remove-file {
+            border: none;
+            background: none;
+            font-size: 18px;
+            color: red;
+        }
+
+        @keyframes fadeIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .import-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn-order-primary {
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: .3s;
+        }
+
+            .btn-order-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(37,99,235,.25);
+                color: #fff;
+            }
+
+        .btn-order-secondary {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+            .btn-order-secondary:hover {
+                background: #f5f5f5;
+            }
     </style>
 
     <script>
@@ -741,7 +921,7 @@
                 </div>
 
                 <div class="tab-pane fade" id="custom-tabs-one-excel" role="tabpanel" aria-labelledby="custom-tabs-one-excel-tab">
-                    <div class="import-panel">
+                    <%--  <div class="import-panel">
                         <div class="form-group order-field">
                             <label for="importorder_attachment">Excel</label>
                             <input type="file" id="importorder_attachment" name="importorder_attachment" class="form-control" accept=".xlsx" />
@@ -754,6 +934,70 @@
                                 <i class="fas fa-download"></i><span>Format</span>
                             </a>
                         </div>
+                    </div>--%>
+                    <div class="upload-card">
+
+                        <div class="upload-header">
+                            <%-- <div class="upload-icon">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <div>
+                                <h4>Import Other Task Report</h4>
+                                <small>Select or drag an Excel file (.xlsx)</small>
+                            </div>--%>
+                        </div>
+
+                        <label class="upload-area" id="uploadArea">
+                            <input type="file" id="importorder_attachment" name="importorder_attachment" accept=".xlsx" hidden />
+
+                            <div class="upload-content">
+                                <div class="upload-circle"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <h6>Drag & Drop your Excel file here</h6>
+                                <p>or click to browse</p>
+                                <span class="upload-tag"><i class="fas fa-file-excel"></i>Only .xlsx files</span>
+                            </div>
+                        </label>
+                        <div id="selectedFile" class="selected-file" style="display: none;">
+                            <i class="fas fa-file-excel text-success"></i>
+                            <div class="file-details">
+                                <span id="fileName"></span>
+                                <small id="fileSize" class="text-muted d-block"></small>
+                            </div>
+
+                            <button type="button" class="remove-file" onclick="clearUpload()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div class="progress mt-3" id="uploadProgress" style="display: none; height: 8px; border-radius: 20px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                style="width: 0%">
+                            </div>
+                        </div>
+
+                        <div class="import-actions mt-4">
+
+                            <button type="button"
+                                class="btn btn-order-primary"
+                                onclick="return importorder_submit();">
+
+                                <i class="fas fa-upload"></i>
+
+                                Import Excel
+
+                            </button>
+
+                            <a href="OSTExcel.xlsx"
+                                class="btn btn-order-secondary">
+
+                                <i class="fas fa-download"></i>
+
+                                Download Format
+
+                            </a>
+
+                        </div>
+
                     </div>
                 </div>
 

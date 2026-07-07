@@ -1,12 +1,15 @@
 var table_ProjectTracking_Report_html = "";
 var prjTrack_OrderID = 0;
+var prjTrack_StatusOrderID = 0;
 var Search_ProjectTracking;
 var table_track_attachment;
+var ProjectTracking_ChangeStatusInfo = null;
 
 function ProjectTracking_InitPage() {
     ProjectTracking_BindProject();
     ProjectTracking_BindReportTable([], "Project Tracking Report");
     ProjectTracking_BindAttachmentTable([], 0);
+    ProjectTracking_BindChangeStatusEvents();
 }
 
 function blankForNull(s) {
@@ -311,6 +314,9 @@ function ProjectTracking_ActionRenderer(data, type, row, meta) {
         '<button type="button" class="dropdown-item tracking-edit-order" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '">' +
         '<i class="fas fa-edit text-success mr-2"></i>Edit Order' +
         '</button>' +
+        '<button type="button" class="dropdown-item tracking-change-status" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '">' +
+        '<i class="fas fa-exchange-alt text-info mr-2"></i>Change Order Status' +
+        '</button>' +
         '<button type="button" class="dropdown-item tracking-show-attachment" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '">' +
         '<i class="fas fa-paperclip text-warning mr-2"></i>Show Attachment' +
         '</button>' +
@@ -448,10 +454,227 @@ function ProjectTracking_BindReportTable(rows, title) {
         .on("click.projectTracking", ".tracking-edit-order", function () {
             prjTrack_EditOrder($(this).data("order-id"), $(this).data("row-index"));
         })
+        .off("click.projectTrackingStatus", ".tracking-change-status")
+        .on("click.projectTrackingStatus", ".tracking-change-status", function () {
+            prjTrack_ChangeOrderStatus($(this).data("order-id"), $(this).data("row-index"));
+        })
         .off("click.projectTrackingAttachment", ".tracking-show-attachment")
         .on("click.projectTrackingAttachment", ".tracking-show-attachment", function () {
             prjTrack_showAttachment($(this).data("order-id"));
         });
+}
+
+function ProjectTracking_BindChangeStatusEvents() {
+    $(document)
+        .off("change.projectTrackingStatusSelect", "#ChangeStatus_OrderStatus")
+        .on("change.projectTrackingStatusSelect", "#ChangeStatus_OrderStatus", function () {
+            ProjectTracking_ToggleChangeStatusFields();
+        })
+        .off("change.projectTrackingCancelDecision", "input[name='ChangeStatus_CancelDecision']")
+        .on("change.projectTrackingCancelDecision", "input[name='ChangeStatus_CancelDecision']", function () {
+            ProjectTracking_ToggleCancelReasonType();
+        });
+}
+
+function ProjectTracking_FindReportRow(orderid, selected) {
+    var rowData = null;
+
+    if (Search_ProjectTracking && selected !== undefined && selected !== null && selected !== "") {
+        rowData = Search_ProjectTracking.row(selected).data();
+    }
+
+    if (!rowData && Search_ProjectTracking) {
+        Search_ProjectTracking.rows().every(function () {
+            var row = this.data();
+            if (String(row._OrderId) === String(orderid)) {
+                rowData = row;
+            }
+        });
+    }
+
+    return rowData;
+}
+
+function prjTrack_ChangeOrderStatus(orderid, selected) {
+    var rowData = ProjectTracking_FindReportRow(orderid, selected);
+    var project = rowData ? blankForNull(rowData.ProjectNumber) : "";
+    var orderNo = rowData ? blankForNull(rowData.OrderNo) : "";
+
+    prjTrack_StatusOrderID = parseInt(orderid, 10) || 0;
+    ProjectTracking_ResetChangeStatusModal();
+
+    $("#searchChangeStatus_lbl").text("Change Order Status" + (project || orderNo ? " : " + project + " ~ " + orderNo : ""));
+    $("#PrjTracking_ChangeOrderStatus").modal("show");
+    ProjectTracking_LoadChangeStatusInfo(prjTrack_StatusOrderID);
+    return false;
+}
+
+function ProjectTracking_ResetChangeStatusModal() {
+    ProjectTracking_ChangeStatusInfo = null;
+    $("#ChangeStatus_ProjectNumber,#ChangeStatus_OrderNumber,#ChangeStatus_CurrentStatus").text("-");
+    $("#ChangeStatus_OrderStatus").empty().append($("<option></option>").val("").text("Select"));
+    $("#ChangeStatus_ReallocateTo").empty().append($("<option></option>").val("").text("Select"));
+    $("#ChangeStatus_ReallocateRemark,#ChangeStatus_CancelReason,#ChangeStatus_Remark").val("");
+    $("#ChangeStatus_CancelType").val("Cancelled by Client");
+    $("input[name='ChangeStatus_CancelDecision'][value='Approve']").prop("checked", true);
+    $("#ChangeStatus_ReallocateSection,#ChangeStatus_CancelSection,#ChangeStatus_CommonSection").hide();
+    $("#btnChangeOrderStatus").prop("disabled", true);
+    ProjectTracking_SetChangeStatusButtonLabel("");
+    ProjectTracking_SetButtonBusy("#btnChangeOrderStatus", false);
+}
+
+function ProjectTracking_LoadChangeStatusInfo(orderid) {
+    if (!orderid) {
+        return;
+    }
+
+    ProjectTracking_ShowLoader(true);
+
+    ProjectTracking_PostJson("ProjectTrackingReport.aspx/GetChangeOrderStatusInfo", {
+        OrderID: parseInt(orderid, 10) || 0
+    }).done(function (info) {
+        ProjectTracking_BindChangeStatusInfo(info || {});
+    }).fail(function (error) {
+        ProjectTracking_AjaxError(error, "Unable to load change order status details.");
+    }).always(function () {
+        ProjectTracking_ShowLoader(false);
+    });
+}
+
+function ProjectTracking_BindChangeStatusInfo(info) {
+    ProjectTracking_ChangeStatusInfo = info || {};
+
+    if (info.Message && info.Success === false) {
+        alert(info.Message);
+    }
+
+    $("#ChangeStatus_ProjectNumber").text(blankForNull(info.ProjectNumber) || "-");
+    $("#ChangeStatus_OrderNumber").text(blankForNull(info.OrderNumber) || "-");
+    $("#ChangeStatus_CurrentStatus").text(blankForNull(info.ProcessStatus) || "-");
+
+    ProjectTracking_BindStatusOptions(info.Statuses || []);
+    ProjectTracking_BindReallocateUsers(info.Users || []);
+    $("#btnChangeOrderStatus").prop("disabled", !(info.Statuses && info.Statuses.length));
+    ProjectTracking_ToggleChangeStatusFields();
+}
+
+function ProjectTracking_BindStatusOptions(statuses) {
+    var $ddl = $("#ChangeStatus_OrderStatus");
+    $ddl.empty().append($("<option></option>").val("").text("Select"));
+
+    $.each(statuses || [], function (_, item) {
+        var value = blankForNull(item.Value || item.value);
+        var text = blankForNull(item.Text || item.text || value);
+        $ddl.append($("<option></option>").val(value).text(text));
+    });
+}
+
+function ProjectTracking_BindReallocateUsers(users) {
+    var $ddl = $("#ChangeStatus_ReallocateTo");
+    $ddl.empty().append($("<option></option>").val("").text("Select"));
+
+    $.each(users || [], function (_, item) {
+        var value = blankForNull(item.EmployeeID || item.EmployeeId || item.Value);
+        var text = blankForNull(item.DisplayName || item.Text || item.Code || value);
+        $ddl.append($("<option></option>").val(value).text(text));
+    });
+}
+
+function ProjectTracking_ToggleChangeStatusFields() {
+    var action = $("#ChangeStatus_OrderStatus").val();
+    $("#ChangeStatus_ReallocateSection,#ChangeStatus_CancelSection,#ChangeStatus_CommonSection").hide();
+    ProjectTracking_SetChangeStatusButtonLabel(action);
+
+    if (action === "Re-Allocate Order") {
+        $("#ChangeStatus_ReallocateSection").show();
+    } else if (action === "Cancel Order") {
+        $("#ChangeStatus_CancelSection").show();
+        ProjectTracking_ToggleCancelReasonType();
+    } else if (action) {
+        $("#ChangeStatus_RemarkLabel").text(action === "Re-Open Hold Order" ? "Remark" : "Remark");
+        $("#ChangeStatus_CommonSection").show();
+    }
+}
+
+function ProjectTracking_SetChangeStatusButtonLabel(action) {
+    var $button = $("#btnChangeOrderStatus");
+    var label = blankForNull(action) || "Submit";
+
+    if (!$button.length) {
+        return;
+    }
+
+    $button.removeData("original-html");
+    $button.html('<i class="fas fa-save"></i><span>' + ProjectTracking_EscapeHtml(label) + '</span>');
+}
+
+function ProjectTracking_ToggleCancelReasonType() {
+    var decision = $("input[name='ChangeStatus_CancelDecision']:checked").val();
+    $("#ChangeStatus_CancelTypeWrap").toggle(decision !== "Reject");
+}
+
+function ProjectTracking_RequireChangeStatus(value, message, selector) {
+    var normalized = $.trim(String(blankForNull(value)));
+
+    if (normalized === "" || normalized === "0") {
+        alert(message);
+        if (selector) {
+            $(selector).focus();
+        }
+        return false;
+    }
+
+    return true;
+}
+
+function prjTrack_SubmitChangeStatus() {
+    var action = $("#ChangeStatus_OrderStatus").val();
+    var remark = $.trim($("#ChangeStatus_Remark").val());
+    var reallocateTo = parseInt($("#ChangeStatus_ReallocateTo").val(), 10) || 0;
+    var reallocateRemark = $.trim($("#ChangeStatus_ReallocateRemark").val());
+    var cancelReason = $.trim($("#ChangeStatus_CancelReason").val());
+    var cancelDecision = $("input[name='ChangeStatus_CancelDecision']:checked").val() || "Approve";
+
+    if (!ProjectTracking_RequireChangeStatus(prjTrack_StatusOrderID, "Order is not selected.")) return false;
+    if (!ProjectTracking_RequireChangeStatus(action, "Please select change order status.", "#ChangeStatus_OrderStatus")) return false;
+
+    if (action === "Re-Allocate Order") {
+        if (!ProjectTracking_RequireChangeStatus(reallocateTo, "Please select user.", "#ChangeStatus_ReallocateTo")) return false;
+        if (!ProjectTracking_RequireChangeStatus(reallocateRemark, "Please enter remark.", "#ChangeStatus_ReallocateRemark")) return false;
+        remark = reallocateRemark;
+    } else if (action === "Cancel Order") {
+        if (!ProjectTracking_RequireChangeStatus(cancelReason, "Please enter reason.", "#ChangeStatus_CancelReason")) return false;
+        remark = cancelReason;
+    } else if (!ProjectTracking_RequireChangeStatus(remark, "Please enter remark.", "#ChangeStatus_Remark")) {
+        return false;
+    }
+
+    ProjectTracking_SetButtonBusy("#btnChangeOrderStatus", true, "Saving");
+
+    ProjectTracking_PostJson("ProjectTrackingReport.aspx/ChangeOrderStatus", {
+        OrderID: prjTrack_StatusOrderID,
+        StatusAction: action,
+        ReallocateTo: reallocateTo,
+        Remark: remark,
+        CancelDecision: cancelDecision,
+        CancelType: $("#ChangeStatus_CancelType").val()
+    }).done(function (response) {
+        response = response || {};
+
+        if (response.Success) {
+            alert(response.Message || "Order status changed successfully.");
+            $("#PrjTracking_ChangeOrderStatus").modal("hide");
+            ProjectTrackingg_btnShowDetails();
+        } else {
+            alert(response.Message || "Order status was not changed.");
+        }
+    }).fail(function (error) {
+        ProjectTracking_AjaxError(error, "Unable to change order status.");
+    }).always(function () {
+        ProjectTracking_SetButtonBusy("#btnChangeOrderStatus", false);
+    });
+
+    return false;
 }
 
 function prjTrack_showAttachment(orderid) {
