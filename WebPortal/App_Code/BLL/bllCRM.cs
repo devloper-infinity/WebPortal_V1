@@ -23,6 +23,16 @@ namespace WebPortal.App_Code.BLL
             return dalCRM.GetLookups(employeeId);
         }
 
+        public DataSet GetAutomationCenter(int employeeId)
+        {
+            return dalCRM.GetAutomationCenter(employeeId);
+        }
+
+        public DataSet GetNotifications(int employeeId)
+        {
+            return dalCRM.GetNotifications(employeeId);
+        }
+
         public DataTable GetRecords(string entity, string searchText, string filterValue, int ownerId, int employeeId)
         {
             return dalCRM.GetRecords(entity, searchText, filterValue, ownerId, employeeId);
@@ -52,6 +62,55 @@ namespace WebPortal.App_Code.BLL
                 default:
                     return -2;
             }
+        }
+
+        public int SaveAutomationItem(string entity, Hashtable values)
+        {
+            switch ((entity ?? string.Empty).Trim().ToLower())
+            {
+                case "emailsettings":
+                    return dalCRM.SaveEmailSettings(values);
+                case "notificationsettings":
+                    return dalCRM.SaveNotificationSettings(values);
+                case "emailtemplate":
+                    return dalCRM.SaveEmailTemplate(values);
+                case "assignmentrule":
+                    return dalCRM.SaveAssignmentRule(values);
+                case "slapolicy":
+                    return dalCRM.SaveSlaPolicy(values);
+                default:
+                    return -2;
+            }
+        }
+
+        public int DeleteAutomationItem(string entity, int recordId, int deletedBy)
+        {
+            return dalCRM.DeleteAutomationItem(entity, recordId, deletedBy);
+        }
+
+        public int QueueAutomationEvent(string entity, int recordId, string eventName, int employeeId)
+        {
+            return dalCRM.QueueAutomationEvent(entity, recordId, eventName, employeeId);
+        }
+
+        public int MarkNotificationsRead(int employeeId)
+        {
+            return dalCRM.MarkNotificationsRead(employeeId);
+        }
+
+        public DataSet RunAutomationDueJobs(int employeeId)
+        {
+            return dalCRM.RunAutomationDueJobs(employeeId);
+        }
+
+        public DataSet GetAutomationDispatchBatch(int batchSize)
+        {
+            return dalCRM.GetAutomationDispatchBatch(batchSize);
+        }
+
+        public int UpdateEmailOutboxStatus(int emailOutboxId, string status, string errorMessage)
+        {
+            return dalCRM.UpdateEmailOutboxStatus(emailOutboxId, status, errorMessage);
         }
 
         public int DeleteRecord(string entity, int recordId, int deletedBy)

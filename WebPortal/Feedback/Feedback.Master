@@ -1,4 +1,4 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="FTE.master.cs" Inherits="WebPortal.FTE.FTE" %>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Feedback.master.cs" Inherits="WebPortal.Feedback.Feedback" %>
 
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="asp" %>
 
@@ -24,170 +24,50 @@
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
-    <style>
-        .professional-navbar {
-            position: relative;
-            z-index: 1040;
-            background: #203e8c;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, .14);
-        }
-
-        .professional-navbar .container {
-            max-width: 100%;
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-
-        #dynamicMenu {
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-
-        #dynamicMenu .nav-link {
-            border-radius: 10px;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            padding: 12px 14px;
-        }
-
-        #dynamicMenu .nav-link:hover,
-        #dynamicMenu .nav-item.show > .nav-link {
-            background: rgba(255, 255, 255, .13);
-            color: #fff;
-        }
-
-        #dynamicMenu .dropdown-menu {
-            z-index: 2200;
-        }
-
-        #dynamicMenu .fte-menu-panel {
-            width: auto;
-            min-width: 250px;
-            max-width: min(700px, calc(100vw - 24px));
-           /* max-height: calc(100vh - 112px);*/
-            overflow-x: hidden;
-            overflow-y: auto;
-            padding: 12px;
-            border: 1px solid #dbe5f3 !important;
-            border-radius: 0 0 14px 14px;
-            box-shadow: 0 18px 40px rgba(15, 23, 42, .18) !important;
-        }
-
-        #dynamicMenu .fte-simple-menu {
-            width: max-content;
-            max-width: min(360px, calc(100vw - 24px));
-        }
-
-        #dynamicMenu .fte-mega-menu {
-            width: min(650px, calc(100vw - 24px));
-        }
-
-        #dynamicMenu .dropdown-menu-right {
-            right: 0;
-            left: auto;
-        }
-
-        .fte-menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 12px;
-        }
-
-        .fte-menu-section {
-            min-width: 0;
-        }
-
-        .fte-menu-title {
-            margin: 0 0 8px;
-            padding: 8px 10px;
-            border-left: 4px solid #25b4ff;
-            border-radius: 8px;
-            background: #eef6ff;
-            color: #143b78;
-            font-size: 14px;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-
-        #dynamicMenu .dropdown-item {
-            border-radius: 7px;
-            color: #0f1f3d;
-            font-size: 12px;
-            font-weight: 600;
-            line-height: 1.25;
-            margin-bottom: 2px;
-            padding: .25rem 1rem;
-            white-space: nowrap;
-        }
-
-        #dynamicMenu .dropdown-item:hover {
-            background: #eaf3ff;
-            color: #153d87;
-        }
-
-        @media (max-width: 767.98px) {
-            .professional-navbar .container {
-                padding-left: 12px;
-                padding-right: 12px;
-            }
-
-            #navbarCollapse {
-                max-height: calc(100vh - 76px);
-                overflow-y: auto;
-            }
-
-            #dynamicMenu {
-                display: block;
-                width: 100%;
-            }
-
-            #dynamicMenu .nav-link {
-                border-radius: 8px;
-                padding: 10px 12px;
-            }
-
-            #dynamicMenu .dropdown-menu,
-            #dynamicMenu .fte-menu-panel,
-            #dynamicMenu .fte-simple-menu,
-            #dynamicMenu .fte-mega-menu {
-                position: static;
-                float: none;
-                width: 100%;
-                max-width: 100%;
-                max-height: auto;
-                margin: 4px 0 10px;
-                box-shadow: none !important;
-            }
-
-            .fte-menu-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
     <script>
+        $(document).ready(function () {
+
+        });
 
         $(document).ready(function () {
+
             $.ajax({
                 type: "POST",
-                url: "../MenuService.aspx/LoadMenu",
+                url: "../Admin/DashboardEmployee.aspx/BindInformation",
                 contentType: "application/json",
                 dataType: "json",
-                success: function (res) {
-                    let menuTree = res.d;
-                    let html = "";
-                    menuTree.forEach(m => html += renderTopMenu(m));
-                    $("#dynamicMenu").html(html);
-                    fitOpenDynamicMenus();
-                }
-            });
+                success: function (data) {
+                    var dataArray = JSON.parse(data.d);
+                    var i = 0;
+                    $.each(dataArray, function (index, value) {
 
-            $(document).on("shown.bs.dropdown", "#dynamicMenu .dropdown", function () {
-                fitDynamicMenu($(this).children(".dropdown-menu"));
-            });
+                        var Posh_Status = value.PoshStatus;
 
-            $(window).on("resize", function () {
-                fitOpenDynamicMenus();
+                        if (Posh_Status && Posh_Status.toLowerCase() === "completed") {
+
+                            $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
+                            $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
+                          
+
+                            $.ajax({
+                                type: "POST",
+                                url: "../MenuService.aspx/LoadMenu",
+                                contentType: "application/json",
+                                dataType: "json",
+                                success: function (res) {
+                                    let menuTree = res.d;
+                                    let html = "";
+                                    menuTree.forEach(m => html += renderTopMenu(m));
+                                    $("#dynamicMenu").html(html);
+                                }
+                            });
+                        }
+                        else {
+                            $("#aLogo").css({ "pointer-events": "none", "opacity": "0.5" });
+                            $("#lipendingTask").css({ "pointer-events": "none", "opacity": "0.5" });
+                        }
+                    });
+                },
             });
         });
 
@@ -203,28 +83,29 @@
             }
 
             // Mega-menu detection: if children have SectionName
-            let isMega = menu.Children.some(x => x.SectionName || (x.Children && x.Children.length > 0));
+            let isMega = menu.Children.some(x => x.SectionName);
 
             if (!isMega) {
                 // Simple dropdown
                 return `
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">${menu.MenuName}</a>
-                <div class="dropdown-menu fte-menu-panel fte-simple-menu border-0 shadow">
+                <ul class="dropdown-menu border-0 shadow">
                     ${menu.Children.map(renderSimpleItem).join("")}
-                </div>
+                </ul>
             </li>`;
             }
-
             // --------------- MEGA MENU ----------------
             return `
         <li class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">${menu.MenuName}</a>
-            <div class="dropdown-menu fte-menu-panel fte-mega-menu border-0 shadow">
-                <div class="fte-menu-grid">
-                    ${renderMegaSections(menu.Children)}
+            <ul class="dropdown-menu border-0 shadow" style="width:700px; left:50%;">
+                <div class="col-sm-12">
+                    <div class="row">
+                        ${renderMegaSections(menu.Children)}
+                    </div>
                 </div>
-            </div>
+            </ul>
         </li>`;
 
         }
@@ -232,84 +113,40 @@
         // ------------------ Simple Dropdown Items ----------------------
         function renderSimpleItem(item) {
             if (item.Children.length === 0) {
-                return `<a class="dropdown-item" href="${item.Url || '#'}">${item.MenuName}</a>`;
+                return `<li><a class="dropdown-item" href="${item.Url || '#'}">${item.MenuName}</a></li>`;
             }
-
-            return renderMegaSection(item);
+            return ""; // no nesting for simple menus
         }
 
         // ------------------ Mega Menu Sections & Items -----------------
         function renderMegaSections(children) {
+
             let html = "";
-            let looseItems = [];
 
             children.forEach(section => {
-                if (section.Children && section.Children.length > 0) {
-                    html += renderMegaSection(section);
-                }
-                else {
-                    looseItems.push(section);
-                }
-            });
 
-            if (looseItems.length > 0) {
-                let title = looseItems.some(x => /report/i.test(x.MenuName || "")) ? "Reports" : "More";
-                html += renderMegaSection({
-                    MenuName: title,
-                    Children: looseItems
-                });
-            }
+                // ✅ If this is a SECTION (has children)
+                if (section.Children && section.Children.length > 0) {
+
+                    html += `
+                <div class="col-sm-4">
+                    <div class="callout callout-info" style="margin-bottom:10px; padding:0 5px;">
+                        <h6 class="m-0"><b>${section.MenuName}</b></h6>
+                    </div>
+
+                    ${section.Children.map(item => `
+                        <a href="${item.Url || '#'}" class="dropdown-item">${item.MenuName}</a>
+                    `).join("")}
+                </div>`;
+                }
+
+            });
 
             return html;
         }
 
-        function renderMegaSection(section) {
-            return `
-                <div class="fte-menu-section">
-                    <div class="fte-menu-title">${section.MenuName}</div>
-                    ${(section.Children || []).map(renderMegaItem).join("")}
-                </div>`;
-        }
-
-        function renderMegaItem(item) {
-            return `<a href="${item.Url || '#'}" class="dropdown-item">${item.MenuName}</a>`;
-        }
-
-        function fitOpenDynamicMenus() {
-            $("#dynamicMenu .dropdown-menu.show").each(function () {
-                fitDynamicMenu($(this));
-            });
-        }
-
-        function fitDynamicMenu($menu) {
-            if (!$menu || !$menu.length || window.innerWidth < 768) {
-                return;
-            }
-
-            $menu.removeClass("dropdown-menu-right");
-            $menu.css({ left: "", right: "" });
-
-            window.setTimeout(function () {
-                let menu = $menu[0];
-                let rect = menu.getBoundingClientRect();
-                let parentRect = $menu.closest(".dropdown")[0].getBoundingClientRect();
-                let padding = 12;
-
-                if (rect.right > window.innerWidth - padding) {
-                    $menu.addClass("dropdown-menu-right");
-                    $menu.css({ left: "", right: "0" });
-                    rect = menu.getBoundingClientRect();
-                }
-
-                if (rect.left < padding) {
-                    $menu.removeClass("dropdown-menu-right");
-                    $menu.css({
-                        left: (padding - parentRect.left) + "px",
-                        right: "auto"
-                    });
-                }
-            }, 0);
-        }
+        // const appVersion = '@DateTime.Now.Ticks';
+        // console.log('App Version:', appVersion);
 
     </script>
 </head>
@@ -317,9 +154,7 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/FTE/FTEMaster.js" />
-                <asp:ScriptReference Path="~/Scripts/FTE/FTEEntry.js" />
-                <asp:ScriptReference Path="~/Scripts/FTE/FTEBilling.js" />
+                
             </Scripts>
         </asp:ToolkitScriptManager>
 
@@ -726,11 +561,14 @@
         <script src="../plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
         <!-- AdminLTE App -->
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+
         <script src="../dist/js/adminlte.min.js"></script>
-       <%-- <script src="../Scripts/AI.js?v=1"></script>--%>
+
         <!-- AdminLTE for demo purposes -->
-
-
+        <%--<script src="../Scripts/AI.js?v=1"></script>--%>
     </form>
 </body>
 </html>
+
+
+

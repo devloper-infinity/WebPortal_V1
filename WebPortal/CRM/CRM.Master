@@ -73,9 +73,6 @@
 <body class="hold-transition sidebar-collapse layout-top-nav crm-body">
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
-            <Scripts>
-                <asp:ScriptReference Path="~/Scripts/CRM/CRM.js" />
-            </Scripts>
         </asp:ToolkitScriptManager>
 
         <div class="wrapper">
@@ -99,6 +96,7 @@
                             <li class="nav-item"><a href="Deals.aspx" class="nav-link">Deals</a></li>
                             <li class="nav-item"><a href="Activities.aspx" class="nav-link">Activities</a></li>
                             <li class="nav-item"><a href="Reports.aspx" class="nav-link">Reports</a></li>
+                            <li class="nav-item"><a href="Settings.aspx" class="nav-link">Settings</a></li>
                         </ul>
                     </div>
 
@@ -118,6 +116,9 @@
                                 <div class="dropdown-divider"></div>
                                 <a href="../Admin/ChangePassword.aspx" class="dropdown-item">
                                     <i class="fas fa-envelope mr-2"></i>Change Password
+                                </a>
+                                <a href="Settings.aspx" class="dropdown-item">
+                                    <i class="fas fa-sliders-h mr-2"></i>CRM Settings
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="../Logout.aspx" class="dropdown-item">
@@ -139,7 +140,10 @@
             </div>
 
             <aside class="control-sidebar control-sidebar-dark crm-side-panel">
-                <h5><i class="fas fa-bell"></i>&nbsp;&nbsp;CRM Reminders</h5>
+                <div class="crm-side-panel-head">
+                    <h5><i class="fas fa-bell"></i>&nbsp;&nbsp;CRM Notifications</h5>
+                    <button type="button" class="btn btn-sm btn-outline-light" id="crmMarkNotificationsRead">Mark read</button>
+                </div>
                 <div id="crmReminderPanel"></div>
             </aside>
         </div>
@@ -158,6 +162,8 @@
         <script src="../plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../dist/js/adminlte.min.js"></script>
+        <script src="../Scripts/CRM/CRM.js?v=20260704-2"></script>
+        <%--<script src="../Scripts/AI.js?v=1"></script>--%>
     </form>
 </body>
 </html>

@@ -609,6 +609,9 @@
     </style>
 
     <script>
+        window.dailyLoginInitialServerUtc = "<%= System.DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture) %>";
+        window.dailyLoginInitialClientSyncedAt = Date.now();
+
         $(document).ready(function () {
             if (typeof DailyLogin_Init === "function") {
                 DailyLogin_Init();

@@ -139,22 +139,28 @@
     <Content Include="Accounts\PrepareCheques.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
     <Content Include="Admin\BranchAndDateWiseAttendanceReport.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
     <Content Include="Admin\FileDownload.aspx" />
     <Content Include="Admin\ProjectHealthReport.aspx" />
     <Content Include="Admin\ResponsibilityDelegation.aspx" />
+    <Content Include="Admin\AICopilot.aspx" />
+    <Content Include="Admin\UserDomainAccess.aspx" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
     <Content Include="CRM\Contacts.aspx" />
+    <Content Include="CRM\AutomationRunner.aspx" />
     <Content Include="CRM\CRM.css" />
+    <Content Include="CRM\CRM_FrappeLike_Automation_Setup.sql" />
     <Content Include="CRM\CRM.Master" />
     <Content Include="CRM\CRMService.aspx" />
     <Content Include="CRM\Dashboard.aspx" />
     <Content Include="CRM\Deals.aspx" />
     <Content Include="CRM\Leads.aspx" />
     <Content Include="CRM\Reports.aspx" />
+    <Content Include="CRM\Settings.aspx" />
     <Content Include="Admin\AbscondingAndLeaveReport.aspx" />
     <Content Include="Admin\AbscondingEmployeeFollowup.aspx" />
     <Content Include="Admin\AddApplicantRemark.aspx" />
@@ -619,6 +625,11 @@
     <Content Include="dist\multi\chosen.min.css" />
     <Content Include="dist\multi\chosen.proto.js" />
     <Content Include="dist\multi\chosen.proto.min.js" />
+    <Content Include="Feedback\AddFeedbackForSearchProject.aspx" />
+    <Content Include="Feedback\ImportFeedback.aspx" />
+    <Content Include="Feedback\SectionAndFieldMaster.aspx" />
+    <Content Include="Feedback\ViewAllFeedbackByPMWise.aspx" />
+    <Content Include="Feedback\ViewAllFeedbackByUserWise.aspx" />
     <Content Include="FestivalWishesImages\GudhiPadwa1.jpg" />
     <Content Include="FestivalWishesImages\Holi.jpg" />
     <Content Include="FestivalWishesImages\WomenDay.jpg" />
@@ -2665,6 +2676,7 @@
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\Accounts\Advance.js" />
     <Content Include="Scripts\Accounts\SalarySlip.js" />
+    <Content Include="Scripts\AI.js" />
     <Content Include="Scripts\CRM\CRM.js" />
     <Content Include="Scripts\Functions\AddAssets.js" />
     <Content Include="Scripts\Functions\AddressVerification.js" />
@@ -2971,7 +2983,24 @@
     <Compile Include="Admin\ResponsibilityDelegation.aspx.designer.cs">
       <DependentUpon>ResponsibilityDelegation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\UserDomainAccess.aspx.cs">
+      <DependentUpon>UserDomainAccess.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\UserDomainAccess.aspx.designer.cs">
+      <DependentUpon>UserDomainAccess.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\AICopilot.aspx.cs">
+      <DependentUpon>AICopilot.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\AICopilot.aspx.designer.cs">
+      <DependentUpon>AICopilot.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="App_Code\AIService.cs" />
+    <Compile Include="App_Code\BLL\bllFeedback.cs" />
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
+    <Compile Include="App_Code\DAL\dalFeedback.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="CRM\Accounts.aspx.cs">
       <DependentUpon>Accounts.aspx</DependentUpon>
@@ -2993,6 +3022,13 @@
     </Compile>
     <Compile Include="CRM\Contacts.aspx.designer.cs">
       <DependentUpon>Contacts.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\AutomationRunner.aspx.cs">
+      <DependentUpon>AutomationRunner.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\AutomationRunner.aspx.designer.cs">
+      <DependentUpon>AutomationRunner.aspx</DependentUpon>
     </Compile>
     <Compile Include="CRM\CRM.Master.cs">
       <DependentUpon>CRM.Master</DependentUpon>
@@ -3035,6 +3071,13 @@
     </Compile>
     <Compile Include="CRM\Reports.aspx.designer.cs">
       <DependentUpon>Reports.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CRM\Settings.aspx.cs">
+      <DependentUpon>Settings.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CRM\Settings.aspx.designer.cs">
+      <DependentUpon>Settings.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\AbscondingAndLeaveReport.aspx.cs">
       <DependentUpon>AbscondingAndLeaveReport.aspx</DependentUpon>
@@ -3987,6 +4030,48 @@
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
     <Compile Include="App_Code\Class\EmployeeInfo.cs" />
+    <Compile Include="Feedback\AddFeedbackForSearchProject.aspx.cs">
+      <DependentUpon>AddFeedbackForSearchProject.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\AddFeedbackForSearchProject.aspx.designer.cs">
+      <DependentUpon>AddFeedbackForSearchProject.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\Feedback.Master.cs">
+      <DependentUpon>Feedback.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\Feedback.Master.designer.cs">
+      <DependentUpon>Feedback.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\ImportFeedback.aspx.cs">
+      <DependentUpon>ImportFeedback.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\ImportFeedback.aspx.designer.cs">
+      <DependentUpon>ImportFeedback.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\SectionAndFieldMaster.aspx.cs">
+      <DependentUpon>SectionAndFieldMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\SectionAndFieldMaster.aspx.designer.cs">
+      <DependentUpon>SectionAndFieldMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByPMWise.aspx.cs">
+      <DependentUpon>ViewAllFeedbackByPMWise.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByPMWise.aspx.designer.cs">
+      <DependentUpon>ViewAllFeedbackByPMWise.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByUserWise.aspx.cs">
+      <DependentUpon>ViewAllFeedbackByUserWise.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\ViewAllFeedbackByUserWise.aspx.designer.cs">
+      <DependentUpon>ViewAllFeedbackByUserWise.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ForgotPassword.aspx.cs">
       <DependentUpon>ForgotPassword.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4937,6 +5022,7 @@
     <Content Include="OSTAttachment\30-Aug-2016\1053\Property Details.pdf" />
     <Content Include="OSTAttachment\30-Aug-2016\264896\25-22747-TX tax.pdf" />
     <Content Include="Formats\LoanList.xlsx" />
+    <Content Include="Feedback\Feedback.Master" />
     <None Include="packages.config" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.css.map" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.min.css.map" />
