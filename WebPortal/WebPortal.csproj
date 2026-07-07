@@ -4023,6 +4023,13 @@
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
     <Compile Include="App_Code\Class\EmployeeInfo.cs" />
+    <Compile Include="Feedback\Feedback.Master.cs">
+      <DependentUpon>Feedback.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Feedback\Feedback.Master.designer.cs">
+      <DependentUpon>Feedback.Master</DependentUpon>
+    </Compile>
     <Compile Include="ForgotPassword.aspx.cs">
       <DependentUpon>ForgotPassword.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4973,6 +4980,7 @@
     <Content Include="OSTAttachment\30-Aug-2016\1053\Property Details.pdf" />
     <Content Include="OSTAttachment\30-Aug-2016\264896\25-22747-TX tax.pdf" />
     <Content Include="Formats\LoanList.xlsx" />
+    <Content Include="Feedback\Feedback.Master" />
     <None Include="packages.config" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.css.map" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.min.css.map" />
