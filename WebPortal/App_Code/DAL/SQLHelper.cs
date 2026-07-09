@@ -735,7 +735,6 @@ namespace WebPortal.App_Code.DAL
             return dbldt;
         }
 
-
         public static SqlConnection GetTransConnection()
         {
             return new SqlConnection(ConnectionString);

@@ -8,102 +8,45 @@ function bindProjects() {
     fetch("ConditionClearing.aspx/GetProjects", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
-        }
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        body: "{}"
     })
-        .then(response => response.json())
-        .then(result => {
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (result) {
 
-            var data = result.d;
-            projects = data;  // save to global projects array
-            // renderOptions(projects); 
+            var data = result.d || [];
 
-            var ddl = document.getElementById("concl_project");
+            // If WebMethod returns JSON string
+            if (typeof data === "string") {
+                data = JSON.parse(data);
+            }
 
-            ddl.innerHTML = "<option value=''>Select Project</option>";
+            projects = data;
+
+            var ddl = document.getElementById("conclUS_project");
+
+            var html = "<option value=''>Select Project</option>";
 
             for (var i = 0; i < data.length; i++) {
-
-                var option = document.createElement("option");
-                option.value = data[i].ProjectID;     // Column name from DataTable
-                option.text = data[i].ProjectName;    // Column name from DataTable
-                ddl.appendChild(option);
-
+                html += "<option value='" + data[i].ProjectID + "'>" +
+                    data[i].ProjectName +
+                    "</option>";
             }
+
+            ddl.innerHTML = html;
+
+            // If using Select2
+            if ($("#conclUS_project").hasClass("select2-hidden-accessible")) {
+                $("#conclUS_project").trigger("change.select2");
+            }
+        })
+        .catch(function (error) {
+            console.error("Project binding error:", error);
         });
-    //  renderOptions(projects);
 }
-
-//function renderOptions(list) {
-//    optionsContainer.innerHTML = '';
-//    list.forEach(proj => {
-//        const optionDiv = document.createElement('div');
-//        optionDiv.textContent = proj.ProjectName;
-//        optionDiv.dataset.value = proj.ProjectID;
-//        optionDiv.addEventListener('click', () => {
-//            selected.textContent = proj.ProjectName;
-//            selected.dataset.value = proj.ProjectID;
-//            closeDropdown();
-//        });
-//        optionsContainer.appendChild(optionDiv);
-//    });
-//}
-
-//// Open dropdown
-//function openDropdown() {
-//    menu.classList.remove('hidden');
-//    searchBox.value = '';
-//    renderOptions(projects);
-//    searchBox.focus();
-//}
-
-//// Close dropdown
-//function closeDropdown() {
-//    menu.classList.add('hidden');
-//}
-
-//// Toggle dropdown on selected click
-//selected.addEventListener('click', () => {
-//    if (menu.classList.contains('hidden')) {
-//        openDropdown();
-//    } else {
-//        closeDropdown();
-//    }
-//});
-
-//// Filter options on typing
-//searchBox.addEventListener('input', () => {
-//    const filter = searchBox.value.toLowerCase();
-//    const filtered = projects.filter(p => p.ProjectName.toLowerCase().includes(filter));
-//    renderOptions(filtered);
-//});
-
-//// Close dropdown if clicked outside
-//document.addEventListener('click', e => {
-//    if (!dropdown.contains(e.target)) {
-//        closeDropdown();
-//    }
-//});
-
-//// Initialize on page load
-//document.addEventListener('DOMContentLoaded', loadProjects);
-
-//// Function to get selected project info
-//function getSelectedProject() {
-//    return {
-//        projectId: selected.dataset.value || '',
-//        projectName: selected.textContent || ''
-//    };
-//}
-
-//// Function to select project programmatically
-//function selectProjectById(id) {
-//    const proj = projects.find(p => p.ProjectID === id);
-//    if (proj) {
-//        selected.textContent = proj.ProjectName;
-//        selected.dataset.value = proj.ProjectID;
-//    }
-//}
 
 function bindDeals(id) {
 
@@ -117,7 +60,7 @@ function bindDeals(id) {
         .then(res => res.json())
         .then(result => {
             var data = result.d;
-            var ddl = document.getElementById("concl_dealNo");
+            var ddl = document.getElementById("conclUS_dealNo");
             ddl.innerHTML = "<option value=''>Select Deal</option>";
 
             for (var i = 0; i < data.length; i++) {
@@ -141,7 +84,7 @@ function bindLoans(id) {
         .then(res => res.json())
         .then(result => {
             var data = result.d;
-            var ddl = document.getElementById("concl_loanNo");
+            var ddl = document.getElementById("conclUS_loanNo");
             ddl.innerHTML = "<option value=''>Select Deal</option>";
 
             for (var i = 0; i < data.length; i++) {
@@ -150,6 +93,76 @@ function bindLoans(id) {
                 option.text = data[i].OrderNo;    // Column name from DataTable
                 ddl.appendChild(option);
             }
+        });
+}
+
+function GetDealFromLoan(id) {
+
+    var loanNo = $(id).val();
+
+    if (!loanNo) {
+        $("#conclUS_dealNo").val("");
+        return;
+    }
+
+    // Show loading message
+    Swal.fire({
+        title: "Please wait...",
+        text: "Fetching deal number...",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    fetch("ConditionClearing.aspx/GetDealFromLoan", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({ LoanNo: loanNo })
+    })
+        .then(response => response.json())
+        .then(result => {
+
+            var data = result.d;
+
+            if (typeof data === "string") {
+                data = JSON.parse(data);
+            }
+
+            if (data && data.length > 0) {
+                $("#conclUS_dealNo").val(data[0].DealNo);
+                Swal.close();
+            } else {
+
+                Swal.close();   // Close loading popup first
+
+                alert("No deal number is available for Loan No. " + loanNo + ".");
+                // Swal.fire({
+                //     icon: "warning",
+                //     title: "Loan Not Found",
+                //     text: "Deal number is not available for the selected loan number.",
+                //     confirmButtonText: "OK"
+                // });
+                $("#conclUS_dealNo").val("");
+            }
+
+            Swal.close(); // Close loading popup
+        })
+        .catch(error => {
+
+            console.error(error);
+            $("#conclUS_dealNo").val("");
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to fetch deal number."
+            });
         });
 }
 
@@ -218,16 +231,16 @@ function condclearing_bindGrid() {
     });
 }
 
-function concl_SaveData() {
+function conclUS_SaveData() {
 
-    var project = $("#concl_project").val();
-    var deal = $("#concl_dealNo").val();
-    var loan = $("#concl_loanNo").val();
-    var receivedDate = $("#concl_receiveddate").val();
-    var grade = $("#concl_expgrade").val();
-    var process = $("#concl_process").val();
-    var infCondition = $("#concl_infcondition").val();
-    var rebuttal = $("#concl_rebuttal").val();
+    var project = $("#conclUS_project").val();
+    var deal = $("#conclUS_dealNo").val();
+    var loan = $("#conclUS_loanNo").val();
+    var receivedDate = $("#conclUS_receiveddate").val();
+    var grade = $("#conclUS_expgrade").val();
+    var process = $("#conclUS_process").val();
+    var infCondition = $("#conclUS_infcondition").val();
+    var rebuttal = $("#conclUS_rebuttal").val();
 
     // Validation
     if (project == "") {
@@ -297,7 +310,7 @@ function concl_SaveData() {
 
                 Swal.fire({ icon: 'success', title: 'Success', text: response });
 
-                concl_ClearForm();
+                conclUS_ClearForm();
                 condclearing_bindGrid();
             }
         },
@@ -311,16 +324,16 @@ function concl_SaveData() {
     return false;
 }
 
-function core_concl_SaveData() {
+function core_conclUS_SaveData() {
 
-    var project = $("#concl_project").val();
-    var deal = $("#concl_dealNo").val();
-    var loan = $("#concl_loanNo").val();
-    var receivedDate = $("#concl_receiveddate").val();
-    var grade = $("#concl_expgrade").val();
-    var process = $("#concl_process").val();
-    var infCondition = $("#concl_infcondition").val();
-    var rebuttal = $("#concl_rebuttal").val();
+    var project = $("#conclUS_project").val();
+    var deal = $("#conclUS_dealNo").val();
+    var loan = $("#conclUS_loanNo").val();
+    var receivedDate = $("#conclUS_receiveddate").val();
+    var grade = $("#conclUS_expgrade").val();
+    var process = $("#conclUS_process").val();
+    var infCondition = $("#conclUS_infcondition").val();
+    var rebuttal = $("#conclUS_rebuttal").val();
 
     // Validation
     if (project == "") {
@@ -380,7 +393,7 @@ function core_concl_SaveData() {
                     icon: 'success',
                     title: response
                 });
-                concl_ClearForm();
+                conclUS_ClearForm();
                 condclearing_bindGrid();
             }
         },
@@ -398,16 +411,18 @@ function core_concl_SaveData() {
     return false;
 }
 
-function concl_ClearForm() {
+function conclUS_ClearForm() {
 
-    $("#concl_project").prop("selectedIndex", 0);
-    $("#concl_dealNo").html("<option value=''>Select Deal</option>");
-    $("#concl_loanNo").html("<option value=''>Select Loan</option>");
-    $("#concl_receiveddate").val("");
-    $("#concl_expgrade").prop("selectedIndex", 0);
-    $("#concl_process").prop("selectedIndex", 0);
-    $("#concl_infcondition").val("");
-    $("#concl_rebuttal").val("");
+    $("#conclUS_project").prop("selectedIndex", 0);
+    // $("#conclUS_dealNo").html("<option value=''>Select Deal</option>");
+    // $("#conclUS_loanNo").html("<option value=''>Select Loan</option>");
+    $("#conclUS_dealNo").val("");
+    $("#conclUS_loanNo").val("");
+    $("#conclUS_receiveddate").val("");
+    $("#conclUS_expgrade").prop("selectedIndex", 0);
+    $("#conclUS_process").prop("selectedIndex", 0);
+    $("#conclUS_infcondition").val("");
+    $("#conclUS_rebuttal").val("");
 }
 
 function showSuccess(message) {

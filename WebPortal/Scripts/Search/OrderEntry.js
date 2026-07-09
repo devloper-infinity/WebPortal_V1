@@ -761,6 +761,77 @@ function orderentry_DeleteOnError(error) {
     return false;
 }
 
+$("#importorder_attachment").on("change", function () {
+
+    if (this.files.length === 0)
+        return;
+
+    var file = this.files[0];
+
+    $("#selectedFile").show();
+
+    $("#fileName").text(file.name);
+
+    $("#fileSize").text(formatFileSize(file.size));
+
+});
+
+function clearUpload() {
+
+    $("#importorder_attachment").val("");
+
+    $("#selectedFile").hide();
+
+    $("#fileName").text("");
+
+    $("#fileSize").text("");
+
+}
+
+function formatFileSize(bytes) {
+
+    if (bytes < 1024)
+        return bytes + " Bytes";
+
+    if (bytes < 1024 * 1024)
+        return (bytes / 1024).toFixed(2) + " KB";
+
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+
+}
+
+$("#orderentry_receiveddate").on("paste", function (e) {
+
+    e.preventDefault();
+
+    var pastedText = (e.originalEvent || e).clipboardData.getData("text").trim();
+
+    // Expected format: M/D/YYYY HH:MM AM/PM
+    var match = pastedText.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+
+    if (!match) {
+        alert("Invalid date format.");
+        return;
+    }
+
+    var month = match[1].padStart(2, '0');
+    var day = match[2].padStart(2, '0');
+    var year = match[3];
+    var hour = parseInt(match[4], 10);
+    var minute = match[5];
+    var ampm = match[6].toUpperCase();
+
+    if (ampm === "PM" && hour < 12)
+        hour += 12;
+
+    if (ampm === "AM" && hour === 12)
+        hour = 0;
+
+    hour = hour.toString().padStart(2, '0');
+
+    $(this).val(year + "-" + month + "-" + day + "T" + hour + ":" + minute);
+});
+
 /************** Import Excel **************/
 
 function importorder_submit() {
@@ -939,3 +1010,6 @@ function orderentry_reset_662() {
     $(".order-entry-page .is-invalid").removeClass("is-invalid");
     return false;
 }
+
+
+

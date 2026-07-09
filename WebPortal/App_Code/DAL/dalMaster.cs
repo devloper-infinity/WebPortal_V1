@@ -2449,7 +2449,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetMastDataFrHRReport()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetERPMasterData_1]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetERPMasterData_1_ICG]");/*usp_GetERPMasterData_1*/
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
@@ -2587,7 +2587,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataSet GetSkiplevelDetails(string Month, string Year)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta_ICG]");
             SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
             SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
             DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
@@ -5943,6 +5943,30 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+
+        public DataTable CheckOtherTaskExistsOrNot(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_CheckOtherTaskExistsOrNot");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Project"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AssignedDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["AssignedDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+
+        public DataTable DeleteExistingOthertaskRecords(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteExistingOthertaskRecords");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Project"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AssignedDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["AssignedDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             return dt;
         }
     }

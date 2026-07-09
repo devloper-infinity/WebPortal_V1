@@ -341,5 +341,35 @@ namespace WebPortal.App_Code.BLL
             return dalOst.GetAllAbsRegistration();
         }
 
+        public int InsertReAllocation(Hashtable htParam)
+        {
+            return dalOst.InsertReAllocation(htParam);
+        }
+
+        public int UpdateTaskRemark(int TaskId, string Remark)
+        {
+            return dalOst.UpdateTaskRemark(TaskId, Remark);
+        }
+
+        public int CancelOrder(Hashtable htParam)
+        {
+            return dalOst.CancelOrder(htParam);
+        }
+
+        public int ResetOrder(Hashtable htParam)
+        {
+            return dalOst.ResetOrder(htParam);
+        }
+
+        public int ReOpenHoldOrder(Hashtable htParam)
+        {
+            return dalOst.ReOpenHoldOrder(htParam);
+        }
+
+        public int HoldOrder(Hashtable htParam)
+        {
+            return dalOst.HoldOrder(htParam);
+        }
+
     }
 }

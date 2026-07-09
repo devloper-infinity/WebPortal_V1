@@ -76,9 +76,13 @@ function allocate_bindProject_ICG() {
     return false;
 }
 
-function allocate_bindProcess() {
+function allocate_bindProcess(id) {
 
-    var prjId = 17;
+    // var prjId = 17;
+
+    var prjId = id.val();
+
+    alert(prjId);
 
     $.ajax({
         type: "POST",

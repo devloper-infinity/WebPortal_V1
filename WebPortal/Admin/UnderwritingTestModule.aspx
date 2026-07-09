@@ -111,7 +111,7 @@
         .uw-title {
             margin: 0;
             color: #fff;
-            font-size: 31px;
+            font-size: 25px;
             line-height: 1.15;
             font-weight: 800;
         }

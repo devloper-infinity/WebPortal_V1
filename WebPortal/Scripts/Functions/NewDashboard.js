@@ -258,8 +258,6 @@ function runPopupSequence() {
 
 function openPopup(id, callback) {
 
-    console.log(id);
-
     // 🎯 Intro Popup  -- 1
     if (id === "welcomeIntro") {
         handleIntroPopup(callback);
@@ -274,14 +272,14 @@ function openPopup(id, callback) {
 
     // 🎂 Work Anniversary Popup (API based) --  3
     if (id === "dash_anniversaryModal") {
-        console.log("🔥 Work Anniversary Triggered");
+        // console.log("🔥 Work Anniversary Triggered");
         dash_workAnniversary(callback);
         return;
     }
 
     // 🎂 Employee's Birthday Popup (API based)  --  4
     if (id === "dash_birthdayModal_all") {
-        console.log("🔥 Employee's Birthday Popup");
+        // console.log("🔥 Employee's Birthday Popup");
         dash_empBirthdays(callback);
         return;
     }
@@ -300,7 +298,7 @@ function openPopup(id, callback) {
 
     //  Password Expirary --  7
     if (id === "dash_expiryModal") {
-        console.log('passsword');
+        // console.log('passsword');
         dash_passwordExpirary(callback);
         return;
     }
@@ -315,7 +313,7 @@ function openPopup(id, callback) {
     let el = document.getElementById(id);
 
     if (!el) {
-        console.warn("Popup not found:", id);
+        // console.warn("Popup not found:", id);
         callback();
         return;
     }
@@ -344,7 +342,7 @@ function openPopup(id, callback) {
 
 function showPopupsSequentially(popups, index) {
 
-    console.log(index);
+    // console.log(index);
 
     if (index >= popups.length) return;
 
@@ -354,7 +352,7 @@ function showPopupsSequentially(popups, index) {
 
         openPopup(popup.id, function () {
 
-            console.log("Completed:", popup.id);
+            // console.log("Completed:", popup.id);
 
             showPopupsSequentially(popups, index + 1);
         });
@@ -842,7 +840,7 @@ function dash_ownBirthday(callback) {
                     });
 
             } catch (e) {
-                console.error("Birthday Error:", e);
+                // console.error("Birthday Error:", e);
                 callback(); // ✅ NEVER block flow
             }
         },
@@ -868,7 +866,7 @@ function dash_workAnniversary(callback) {
         },
 
         error: function () {
-            console.error("Anniversary API error");
+            // console.error("Anniversary API error");
             callback();
         }
     });
@@ -1160,7 +1158,7 @@ function dash_empBirthdays(callback) {
                 try {
                     data = JSON.parse(data);
                 } catch (e) {
-                    console.error("Birthday JSON parse error", e);
+                    // console.error("Birthday JSON parse error", e);
                     callback();
                     return;
                 }
@@ -1187,7 +1185,7 @@ function dash_empBirthdays(callback) {
         },
 
         error: function () {
-            console.error("Birthday API error");
+            // console.error("Birthday API error");
             callback();
         }
     });
@@ -1294,7 +1292,7 @@ function dash_bindFestivalWish(callback) {
                 try {
                     dataArray = JSON.parse(dataArray);
                 } catch (e) {
-                    console.error("Festival JSON error", e);
+                    // console.error("Festival JSON error", e);
                     callback();
                     return;
                 }
@@ -1343,7 +1341,7 @@ function dash_bindFestivalWish(callback) {
         },
 
         error: function () {
-            console.error("Festival API error");
+            // console.error("Festival API error");
             callback();
         }
     });
@@ -1462,7 +1460,7 @@ function goToNextAlert(e) {
 
     // ✅ EXTRA SAFETY
     if (!alert) {
-        console.warn("Alert is undefined at index:", currentIndex);
+        // console.warn("Alert is undefined at index:", currentIndex);
 
         $("#dash_projectNotifications")
             .off('hidden.bs.modal')
@@ -1504,11 +1502,11 @@ function markAsRead(alertId) {
         contentType: "application/json; charset=utf-8",
 
         success: function () {
-            console.log("Alert marked as read:", alertId);
+            // console.log("Alert marked as read:", alertId);
         },
 
         error: function (err) {
-            console.error("Error marking alert as read:", err);
+            // console.error("Error marking alert as read:", err);
         }
     });
 }
@@ -1517,7 +1515,7 @@ function markAsRead(alertId) {
 /* Password Expiry Notification */
 function dash_passwordExpirary(callback) {
 
-    console.log("IsPasswordChange: shubhangi");
+    // console.log("IsPasswordChange: shubhangi");
 
     if (IsPasswordChange !== 1) {
         callback();

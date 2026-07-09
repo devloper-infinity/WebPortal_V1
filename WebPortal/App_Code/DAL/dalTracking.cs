@@ -389,6 +389,14 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable getProcess(int ProjectID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetProcessBYProject");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
         public int InsertModifyUWOrderOC22(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_CompleteAllocateOrderToVendorInTrackingSheet_DISP_Allocation_KIP");
@@ -471,13 +479,6 @@ namespace WebPortal.App_Code.DAL
         }
      
 
-        public DataTable getProcess(int ProjectID)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetProcessBYProject");
-            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
-            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
-        }
 
         public DataTable GetAllProjectDealNumberNew(int ProjectId)
         {

@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Packaging;
@@ -148,7 +148,7 @@ namespace WebPortal.Admin
                 }
 
                 // 5️⃣ Send Password by Email
-                SendEmail(filePassword);
+                //   SendEmail(filePassword);
 
                 // 6️⃣ Send File to Browser
                 Response.Clear();
@@ -168,13 +168,8 @@ namespace WebPortal.Admin
             }
         }
 
-        protected void btn1_Click(object sender, EventArgs e)
+        private static void RemoveDefaultExcelSheets(string filePath)
         {
-            string FilePassword = Membership.GeneratePassword(8, 1);
-
-            string filePath = FileName;
-            string outputPath = FileName;
-
             string[] sheetsToDelete = { "Sheet1", "Sheet2", "Sheet3", "Evaluation Warning" };
 
             using (SpreadsheetDocument document = SpreadsheetDocument.Open(filePath, true))
@@ -198,6 +193,40 @@ namespace WebPortal.Admin
 
                 workbookPart.Workbook.Save();
             }
+        }
+
+        private static string GetReportDownloadUrl(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            string appPath = HttpContext.Current.Request.ApplicationPath;
+            if (string.IsNullOrEmpty(appPath) || appPath == "/")
+                appPath = string.Empty;
+
+            return appPath.TrimEnd('/') + "/ReportDocument/" + Uri.EscapeDataString(fileName) + "?v=" + DateTime.Now.Ticks;
+        }
+
+        [WebMethod]
+        public static string FinalizeHRReportDownload()
+        {
+            string downloadFile = FileName;
+
+            if (string.IsNullOrWhiteSpace(downloadFile) || !File.Exists(downloadFile))
+            {
+                throw new Exception("File generated but not found for download: " + Convert.ToString(downloadFile));
+            }
+
+            RemoveDefaultExcelSheets(downloadFile);
+            return GetReportDownloadUrl(downloadFile);
+        }
+
+        protected void btn1_Click(object sender, EventArgs e)
+        {
+            string FilePassword = Membership.GeneratePassword(8, 1);
+
+            string filePath = FileName;
+            string outputPath = FileName;
+
+            RemoveDefaultExcelSheets(filePath);
 
             // Download Excel
             //Response.Clear();
@@ -213,13 +242,38 @@ namespace WebPortal.Admin
 
             System.Threading.Thread.Sleep(1000);
 
+            //Response.Clear();
+            //Response.Buffer = true;
+            //Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            //Response.AddHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(FileName));
+            //Response.BinaryWrite(File.ReadAllBytes(FileName));
+            //Response.Flush();
+            //Response.End();
+
+            string downloadFile = FileName;
+
+            if (!File.Exists(downloadFile))
+            {
+                throw new Exception("File generated but not found for download: " + downloadFile);
+            }
+
             Response.Clear();
+            Response.ClearHeaders();
+            Response.ClearContent();
             Response.Buffer = true;
+
             Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            Response.AddHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(FileName));
-            Response.BinaryWrite(File.ReadAllBytes(FileName));
+            Response.AddHeader(
+                "Content-Disposition",
+                "attachment; filename=\"" + Path.GetFileName(downloadFile) + "\""
+            );
+            Response.AddHeader("Content-Length", new FileInfo(downloadFile).Length.ToString());
+
+            Response.TransmitFile(downloadFile);
             Response.Flush();
-            Response.End();
+
+            HttpContext.Current.ApplicationInstance.CompleteRequest();
+
         }
 
         protected void btn1_Click_Original(object sender, EventArgs e)
@@ -428,6 +482,158 @@ namespace WebPortal.Admin
             range.Style.Borders[BordersLineType.DiagonalDown].LineStyle = LineStyleType.None;
         }
 
+        private static bool WorksheetHasContent(Spire.Xls.Worksheet targetSheet)
+        {
+            if (targetSheet == null)
+                return false;
+
+            try
+            {
+                if (targetSheet.LastRow > 1 || targetSheet.LastColumn > 1)
+                    return true;
+
+                return !string.IsNullOrWhiteSpace(Convert.ToString(targetSheet.Range[1, 1].Value));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void EnsureNoRecordsSheet(Spire.Xls.Worksheet targetSheet)
+        {
+            if (targetSheet == null || WorksheetHasContent(targetSheet))
+                return;
+
+            targetSheet.Range["A1"].Value = "No records found";
+            targetSheet.Range["A2"].Value = "The selected month/year does not have records for this sheet.";
+            HeaderFormat(targetSheet.Range["A1"]);
+            AllBorder(targetSheet.Range["A1:A2"]);
+            ContentCenter(targetSheet.Range["A1:A2"]);
+            //targetSheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
+            //targetSheet.AllocatedRange.Style.Font.Size = 10;
+            targetSheet.AllocatedRange.AutoFitColumns();
+            targetSheet.AllocatedRange.AutoFitRows();
+        }
+
+        private static int FinishCurrentSheet(int returnValue)
+        {
+            bool hasContent = WorksheetHasContent(sheet);
+            EnsureNoRecordsSheet(sheet);
+            return hasContent ? returnValue : 0;
+        }
+
+        private static Spire.Xls.Worksheet GetReportWorksheet(string sheetName)
+        {
+            try
+            {
+                return book.Worksheets[sheetName];
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static int GetReportRowCount(string sheetName, int firstDataRow, int lastRowAdjustment)
+        {
+            Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
+            if (reportSheet == null)
+                return 0;
+
+            int lastDataRow = reportSheet.LastRow + lastRowAdjustment;
+            if (firstDataRow <= 0 || lastDataRow < firstDataRow)
+                return 0;
+
+            return (lastDataRow - firstDataRow) + 1;
+        }
+
+        private static int FindReportTextRow(string sheetName, string text)
+        {
+            Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
+            if (reportSheet == null)
+                return 0;
+
+            CellRange[] matches = reportSheet.FindAllString(text, false, false);
+            if (matches == null || matches.Length == 0)
+                return 0;
+
+            return matches[matches.Length - 1].LastRow;
+        }
+
+        private static string GetReportRangeAddress(string sheetName, string columnName, int firstDataRow, int lastRowAdjustment)
+        {
+            Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
+            if (reportSheet == null)
+                return string.Empty;
+
+            int lastDataRow = reportSheet.LastRow + lastRowAdjustment;
+            if (firstDataRow <= 0 || lastDataRow < firstDataRow)
+                return string.Empty;
+
+            return "'" + sheetName.Replace("'", "''") + "'!" + columnName + firstDataRow + ":" + columnName + lastDataRow;
+        }
+
+        private static string SumFormula(string sheetName, string columnName, int firstDataRow, int lastRowAdjustment)
+        {
+            string range = GetReportRangeAddress(sheetName, columnName, firstDataRow, lastRowAdjustment);
+            return string.IsNullOrEmpty(range) ? string.Empty : "=SUM(" + range + ")";
+        }
+
+        private static string CountIfFormula(string sheetName, string columnName, int firstDataRow, int lastRowAdjustment, string criteria)
+        {
+            string range = GetReportRangeAddress(sheetName, columnName, firstDataRow, lastRowAdjustment);
+            return string.IsNullOrEmpty(range) ? string.Empty : "=COUNTIF(" + range + ",\"" + criteria.Replace("\"", "\"\"") + "\")";
+        }
+
+        private static string SubtotalFormula(string sheetName, string columnName, int firstDataRow, int lastRowAdjustment)
+        {
+            string range = GetReportRangeAddress(sheetName, columnName, firstDataRow, lastRowAdjustment);
+            return string.IsNullOrEmpty(range) ? string.Empty : "=SUBTOTAL(109," + range + ")";
+        }
+
+        private static void SetDashboardCell(CellRange cell, object value)
+        {
+            string text = Convert.ToString(value);
+            if (!string.IsNullOrEmpty(text) && text.StartsWith("="))
+                cell.Formula = text;
+            else
+                cell.Value = text;
+        }
+
+        private static void AddDashboardLine(Spire.Xls.Worksheet dashboardSheet, int row, int srNo, string particulars, string linkText, string sheetName)
+        {
+            dashboardSheet.Range["A" + row].Value = srNo.ToString();
+            dashboardSheet.Range["B" + row].Value = particulars;
+
+            CellRange linkRange = dashboardSheet.Range["C" + row];
+            Spire.Xls.HyperLink link = dashboardSheet.HyperLinks.Add(linkRange);
+            link.Type = HyperLinkType.Workbook;
+            link.TextToDisplay = linkText;
+            link.Address = "'" + sheetName.Replace("'", "''") + "'!A1";
+
+            dashboardSheet.Range["D" + row].Value = "Completed";
+            dashboardSheet.Range["J" + row].Value = "";
+        }
+
+        private static void SetDashboardMetrics(Spire.Xls.Worksheet dashboardSheet, int row, object target, object completed, object pending, object fixedCost)
+        {
+            SetDashboardCell(dashboardSheet.Range["E" + row], target);
+            SetDashboardCell(dashboardSheet.Range["F" + row], completed);
+            SetDashboardCell(dashboardSheet.Range["G" + row], pending);
+            dashboardSheet.Range["H" + row].Formula = "=IFERROR(ROUND(F" + row + "/E" + row + "*100,0),0)";
+            SetDashboardCell(dashboardSheet.Range["I" + row], fixedCost);
+        }
+
+        private static void ClearDashboardMetrics(Spire.Xls.Worksheet dashboardSheet, int row)
+        {
+            dashboardSheet.Range["E" + row].Value = "";
+            dashboardSheet.Range["F" + row].Value = "";
+            dashboardSheet.Range["G" + row].Value = "";
+            dashboardSheet.Range["H" + row].Value = "";
+            dashboardSheet.Range["I" + row].Value = "";
+        }
+
         public void FormatExcel2(string FileName)
         {
             // mp1.Show();
@@ -440,9 +646,10 @@ namespace WebPortal.Admin
         {
             int returnvalue = 1;
             int RecSumCount = 0;
-            FileName = HttpContext.Current.Server.MapPath(@"~\ReportDocument\HR_Report_" + Convert.ToString(Month) + "-" + Convert.ToString(Year) + DateTime.Now.ToString("hhmmss") + ".xlsx");
             Month = MonthName;
             Year = YearNo;
+            FileName = HttpContext.Current.Server.MapPath(@"~\ReportDocument\HR_Report_" + Convert.ToString(Month) + "-" + Convert.ToString(Year) + DateTime.Now.ToString("hhmmss") + ".xlsx");
+            book = new Spire.Xls.Workbook();
 
             //book.LoadFromFile(FileName);
             book.DefaultFontSize = 10;
@@ -459,7 +666,7 @@ namespace WebPortal.Admin
             sheet = book.Worksheets.Add("Recruitment Summary");
 
             DataSet dsRec = new bllMaster().GetRequisition(Month, Year);
-            if (dsRec != null)
+            if (dsRec != null && dsRec.Tables.Count >= 2)
             {
                 DataTable dtDetails = dsRec.Tables[0];
                 DataTable dtDomain = dsRec.Tables[1];
@@ -573,7 +780,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitRows();
             #endregion
 
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -683,7 +890,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -795,7 +1002,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -867,7 +1074,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1124,7 +1331,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1199,7 +1406,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1295,7 +1502,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1403,7 +1610,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitRows();
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1461,7 +1668,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1526,16 +1733,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        foreach (string snapshot in Snaps)
-                        {
-                            if (snapshot != "")
-                            {
-                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                                picture.Height = 350;
-                                picture.Width = 350;
-                                ColCountPic = ColCountPic + 6;
-                            }
-                        }
+                        //foreach (string snapshot in Snaps)
+                        //{
+                        //    if (snapshot != "")
+                        //    {
+                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                        //        picture.Height = 350;
+                        //        picture.Width = 350;
+                        //        ColCountPic = ColCountPic + 6;
+                        //    }
+                        //}
 
                         rowCount = rowCount + 24;
                     }
@@ -1544,7 +1751,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
             sheet.AllocatedRange.Style.Font.Size = 10;
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1595,7 +1802,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitRows();
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1652,7 +1859,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitRows();
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1759,7 +1966,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return retunvalue;
+            return FinishCurrentSheet(retunvalue);
         }
 
         [WebMethod]
@@ -1845,7 +2052,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1937,7 +2144,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -1987,16 +2194,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        foreach (string snapshot in Snaps)
-                        {
-                            if (snapshot != "")
-                            {
-                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                                picture.Height = 350;
-                                picture.Width = 350;
-                                ColCountPic = ColCountPic + 6;
-                            }
-                        }
+                        //foreach (string snapshot in Snaps)
+                        //{
+                        //    if (snapshot != "")
+                        //    {
+                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                        //        picture.Height = 350;
+                        //        picture.Width = 350;
+                        //        ColCountPic = ColCountPic + 6;
+                        //    }
+                        //}
 
                         rowCount = rowCount + 24;
                     }
@@ -2008,7 +2215,7 @@ namespace WebPortal.Admin
             //sheet.AllocatedRange.AutoFitRows();
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -2134,7 +2341,7 @@ namespace WebPortal.Admin
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -2461,6 +2668,7 @@ namespace WebPortal.Admin
                     sheet.AllocatedRange.AutoFitRows();
                 }
             }
+            FinishCurrentSheet(returnvalue);
             #endregion
 
             #region Non DD Master
@@ -2759,7 +2967,7 @@ namespace WebPortal.Admin
 
             #endregion
 
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -2818,7 +3026,7 @@ namespace WebPortal.Admin
                 }
             }
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -2883,7 +3091,7 @@ namespace WebPortal.Admin
                 }
             }
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -2932,7 +3140,7 @@ namespace WebPortal.Admin
             }
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -2998,7 +3206,7 @@ namespace WebPortal.Admin
             }
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
         [WebMethod]
@@ -3052,7 +3260,7 @@ namespace WebPortal.Admin
                 }
             }
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
 
@@ -3060,7 +3268,6 @@ namespace WebPortal.Admin
         public static int EditDashboard()
         {
             int returnvalue = 1;
-            int RecSumCount = 0;
             #region Edit in Dashboard
 
             sheet = book.Worksheets["Dashboard"];
@@ -3121,13 +3328,12 @@ namespace WebPortal.Admin
             sheet.Range["D11"].Value = "Completed";
             //Details
             Spire.Xls.Worksheet recsheet = book.Worksheets["Recruitment Summary"];
-            CellRange recRange = recsheet.Range["A15:A" + (recsheet.LastRow - 1)];
-            int rectarget = recRange.CellsCount;
-            sheet.Range["E11"].Value = "" + RecSumCount;
-            sheet.Range["F11"].Value = "" + RecSumCount;
+            int rectarget = GetReportRowCount("Recruitment Summary", 15, -1);
+            sheet.Range["E11"].Value = "" + rectarget;
+            sheet.Range["F11"].Value = "" + rectarget;
             sheet.Range["G11"].Value = "0";
-            sheet.Range["H11"].Formula = "=ROUND(F11/E11*100,0)";
-            sheet.Range["I11"].Value = "=SUM('Recruitment Summary'!N15:N" + (recsheet.LastRow - 1) + ")";
+            sheet.Range["H11"].Formula = "=IFERROR(ROUND(F11/E11*100,0),0)";
+            SetDashboardCell(sheet.Range["I11"], SumFormula("Recruitment Summary", "N", 15, -1));
             sheet.Range["J11"].Value = "";
 
             //Content - 2nd Line
@@ -3141,13 +3347,12 @@ namespace WebPortal.Admin
             sheet.Range["D12"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Hiring"];
-            recRange = recsheet.Range["A17:A" + (recsheet.LastRow - 1)];
-            rectarget = recRange.CellsCount;
+            rectarget = GetReportRowCount("Hiring", 17, -1);
             sheet.Range["E12"].Value = "" + rectarget;
             sheet.Range["F12"].Value = "" + rectarget;
             sheet.Range["G12"].Value = "0";
-            sheet.Range["H12"].Formula = "=ROUND(F12/E12*100,0)";
-            sheet.Range["I12"].Value = "=SUM('Hiring'!F17:F" + (recsheet.LastRow - 1) + ")";
+            sheet.Range["H12"].Formula = "=IFERROR(ROUND(F12/E12*100,0),0)";
+            SetDashboardCell(sheet.Range["I12"], SumFormula("Hiring", "F", 17, -1));
             sheet.Range["J12"].Value = "";
 
             //Content - 3rd Line
@@ -3161,13 +3366,12 @@ namespace WebPortal.Admin
             sheet.Range["D13"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Manpower"];
-            recRange = recsheet.Range["A17:A" + (recsheet.LastRow - 1)];
-            rectarget = recRange.CellsCount;
+            rectarget = GetReportRowCount("Manpower", 17, -1);
             sheet.Range["E13"].Value = "" + rectarget;
             sheet.Range["F13"].Value = "" + rectarget;
             sheet.Range["G13"].Value = "0";
-            sheet.Range["H13"].Formula = "=ROUND(F13/E13*100,0)";
-            sheet.Range["I13"].Value = "=SUM('Manpower'!F17:F" + (recsheet.LastRow - 1) + ")";
+            sheet.Range["H13"].Formula = "=IFERROR(ROUND(F13/E13*100,0),0)";
+            SetDashboardCell(sheet.Range["I13"], SumFormula("Manpower", "F", 17, -1));
             sheet.Range["J13"].Value = "";
 
             //Content - 4th Line
@@ -3182,12 +3386,10 @@ namespace WebPortal.Admin
             //Details
             recsheet = book.Worksheets["Skip Level"];
             string rec1target = "";
-            string reccompleted = "";
-            string recpending = "";
-            sheet.Range["E14"].Formula = "=SUBTOTAL(109,'Skip Level'!G2:G" + (recsheet.LastRow - 1) + ")";
-            sheet.Range["F14"].Formula = "=SUBTOTAL(109,'Skip Level'!H2:H" + (recsheet.LastRow - 1) + ")";
-            sheet.Range["G14"].Formula = "=SUBTOTAL(109,'Skip Level'!I2:I" + (recsheet.LastRow - 1) + ")";
-            sheet.Range["H14"].Formula = "=ROUND(F14/E14*100,0)";
+            SetDashboardCell(sheet.Range["E14"], SubtotalFormula("Skip Level", "G", 2, -1));
+            SetDashboardCell(sheet.Range["F14"], SubtotalFormula("Skip Level", "H", 2, -1));
+            SetDashboardCell(sheet.Range["G14"], SubtotalFormula("Skip Level", "I", 2, -1));
+            sheet.Range["H14"].Formula = "=IFERROR(ROUND(F14/E14*100,0),0)";
             sheet.Range["I14"].Value = "";
             sheet.Range["J14"].Value = "";
 
@@ -3219,21 +3421,14 @@ namespace WebPortal.Admin
             sheet.Range["D16"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Background Verification"];
-            rec1target = recsheet.Range["A16:A" + (recsheet.LastRow - 2)].CellsCount.ToString();
+            rec1target = GetReportRowCount("Background Verification", 16, -1).ToString();
             sheet.Range["E16"].Value = "" + rec1target;
 
-            try
-            {
-                sheet.Range["F16"].Value = "=COUNTIF('Background Verification'!L16:L" + (recsheet.LastRow - 1) + ",\"Verified\")+COUNTIF('Background Verification'!L16:L" + (recsheet.LastRow - 1) + ",\"N/A\")";
-            }
-            catch { sheet.Range["F16"].Value = ""; }
-            try
-            {
-                sheet.Range["G16"].Value = "=COUNTIF('Background Verification'!L16:L" + (recsheet.LastRow - 1) + ",\"Pending\")";
-            }
-            catch { sheet.Range["G16"].Value = ""; }
+            string bgvStatusRange = GetReportRangeAddress("Background Verification", "L", 16, -1);
+            SetDashboardCell(sheet.Range["F16"], string.IsNullOrEmpty(bgvStatusRange) ? "0" : "=COUNTIF(" + bgvStatusRange + ",\"Verified\")+COUNTIF(" + bgvStatusRange + ",\"N/A\")");
+            SetDashboardCell(sheet.Range["G16"], CountIfFormula("Background Verification", "L", 16, -1, "Pending"));
 
-            sheet.Range["H16"].Formula = "=ROUND(F16/E16*100,0)";
+            sheet.Range["H16"].Formula = "=IFERROR(ROUND(F16/E16*100,0),0)";
             sheet.Range["I16"].Value = "";
             sheet.Range["J16"].Value = "";
 
@@ -3249,18 +3444,14 @@ namespace WebPortal.Admin
             sheet.Range["D17"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Absconding"];
-            CellRange[] coderange = recsheet.FindAllString("Code", false, false);
-            int firstrow = 0;
-            foreach (CellRange ranges in coderange)
-            {
-                firstrow = ranges.LastRow;
-            }
-            rec1target = recsheet.Range["A" + (firstrow) + ":A" + (recsheet.LastRow - 2)].CellsCount.ToString();
+            int firstrow = FindReportTextRow("Absconding", "Code");
+            firstrow = firstrow > 0 ? firstrow + 1 : 0;
+            rec1target = GetReportRowCount("Absconding", firstrow, -1).ToString();
             sheet.Range["E17"].Value = "" + rec1target;
             sheet.Range["F17"].Value = "" + rec1target;
             sheet.Range["G17"].Value = "0";
-            sheet.Range["H17"].Formula = "=ROUND(F17/E17*100,0)";
-            sheet.Range["I17"].Value = "=SUM('Absconding'!G" + (firstrow) + ":G" + (recsheet.LastRow - 1) + ")";
+            sheet.Range["H17"].Formula = "=IFERROR(ROUND(F17/E17*100,0),0)";
+            SetDashboardCell(sheet.Range["I17"], SumFormula("Absconding", "G", firstrow, -1));
             sheet.Range["J17"].Value = "";
 
             //Content - 8th Line
@@ -3274,12 +3465,12 @@ namespace WebPortal.Admin
             sheet.Range["D18"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Resigned"];
-            rec1target = recsheet.Range["A16:A" + (recsheet.LastRow - 2)].CellsCount.ToString();
+            rec1target = GetReportRowCount("Resigned", 17, -1).ToString();
             sheet.Range["E18"].Value = "" + rec1target;
             sheet.Range["F18"].Value = "" + rec1target;
             sheet.Range["G18"].Value = "0";
-            sheet.Range["H18"].Formula = "=ROUND(F17/E17*100,0)";
-            sheet.Range["I18"].Value = "=SUM('Resigned'!G17:G" + (recsheet.LastRow - 1) + ")";
+            sheet.Range["H18"].Formula = "=IFERROR(ROUND(F18/E18*100,0),0)";
+            SetDashboardCell(sheet.Range["I18"], SumFormula("Resigned", "G", 17, -1));
             sheet.Range["J18"].Value = "";
 
             //Content - 9th Line
@@ -3326,11 +3517,11 @@ namespace WebPortal.Admin
             sheet.Range["D21"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Naukri"];
-            rec1target = recsheet.Range["A17:A" + (recsheet.LastRow - 1)].CellsCount.ToString();
+            rec1target = GetReportRowCount("Naukri", 17, -1).ToString();
             sheet.Range["E21"].Value = "" + rec1target;
             sheet.Range["F21"].Value = "" + rec1target;
             sheet.Range["G21"].Value = "0";
-            sheet.Range["H21"].Formula = "=ROUND(F21/E21*100,0)";
+            sheet.Range["H21"].Formula = "=IFERROR(ROUND(F21/E21*100,0),0)";
             sheet.Range["I21"].Value = "";
             sheet.Range["J21"].Value = "";
 
@@ -3347,11 +3538,11 @@ namespace WebPortal.Admin
             try
             {
                 recsheet = book.Worksheets["LinkedIn"];
-                rec1target = recsheet.Range["A17:A" + (recsheet.LastRow - 1)].CellsCount.ToString();
+                rec1target = GetReportRowCount("LinkedIn", 17, -1).ToString();
                 sheet.Range["E22"].Value = "" + rec1target;
                 sheet.Range["F22"].Value = "" + rec1target;
                 sheet.Range["G22"].Value = "0";
-                sheet.Range["H22"].Formula = "=ROUND(F22/E22*100,0)";
+                sheet.Range["H22"].Formula = "=IFERROR(ROUND(F22/E22*100,0),0)";
                 sheet.Range["I22"].Value = "";
                 sheet.Range["J22"].Value = "";
             }
@@ -3411,11 +3602,11 @@ namespace WebPortal.Admin
             sheet.Range["D25"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["R&R"];
-            rec1target = recsheet.Range["A27:A" + (recsheet.LastRow)].CellsCount.ToString();
+            rec1target = GetReportRowCount("R&R", 27, 0).ToString();
             sheet.Range["E25"].Value = "" + rec1target;
             sheet.Range["F25"].Value = "" + rec1target;
             sheet.Range["G25"].Value = "0";
-            sheet.Range["H25"].Formula = "=ROUND(F25/E25*100,0)";
+            sheet.Range["H25"].Formula = "=IFERROR(ROUND(F25/E25*100,0),0)";
             sheet.Range["I25"].Value = "";
             sheet.Range["J25"].Value = "";
 
@@ -3448,13 +3639,12 @@ namespace WebPortal.Admin
             sheet.Range["D27"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Stamp Paper Purchase"];
-            recRange = recsheet.Range["A17:A" + (recsheet.LastRow - 1)];
-            rectarget = recRange.CellsCount;
+            rectarget = GetReportRowCount("Stamp Paper Purchase", 17, -1);
             sheet.Range["E27"].Value = "" + rectarget;
             sheet.Range["F27"].Value = "" + rectarget;
             sheet.Range["G27"].Value = "0";
-            sheet.Range["H27"].Formula = "=ROUND(F27/E27*100,0)";
-            sheet.Range["I27"].Value = "=SUM('Stamp Paper Purchase'!J17:J" + (recsheet.LastRow - 1) + ")";
+            sheet.Range["H27"].Formula = "=IFERROR(ROUND(F27/E27*100,0),0)";
+            SetDashboardCell(sheet.Range["I27"], SumFormula("Stamp Paper Purchase", "J", 17, -1));
             sheet.Range["J27"].Value = "";
 
             //Content - 18th Line
@@ -3503,21 +3693,14 @@ namespace WebPortal.Admin
             sheet.Range["D30"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["HR Induction Report"];
-            rec1target = recsheet.Range["A17:A" + (recsheet.LastRow - 1)].CellsCount.ToString();
+            rec1target = GetReportRowCount("HR Induction Report", 17, -1).ToString();
             sheet.Range["E30"].Value = "" + rec1target;
 
-            try
-            {
-                sheet.Range["F30"].Value = "=COUNTIF('HR Induction Report'!O17:O" + (recsheet.LastRow - 1) + ",\"Pass\")+COUNTIF('HR Induction Report'!O16:O" + (recsheet.LastRow - 1) + ",\"Fail\")";
-            }
-            catch { sheet.Range["F30"].Value = ""; }
-            try
-            {
-                sheet.Range["G30"].Value = "=COUNTIF('HR Induction Report'!O17:O" + (recsheet.LastRow - 1) + ",\"Pending\")";
-            }
-            catch { sheet.Range["G30"].Value = ""; }
+            string hrInductionResultRange = GetReportRangeAddress("HR Induction Report", "O", 17, -1);
+            SetDashboardCell(sheet.Range["F30"], string.IsNullOrEmpty(hrInductionResultRange) ? "0" : "=COUNTIF(" + hrInductionResultRange + ",\"Pass\")+COUNTIF(" + hrInductionResultRange + ",\"Fail\")");
+            SetDashboardCell(sheet.Range["G30"], CountIfFormula("HR Induction Report", "O", 17, -1, "Pending"));
 
-            sheet.Range["H30"].Formula = "=ROUND(F30/E30*100,0)";
+            sheet.Range["H30"].Formula = "=IFERROR(ROUND(F30/E30*100,0),0)";
             sheet.Range["I30"].Value = "";
             sheet.Range["J30"].Value = "";
 
@@ -3532,20 +3715,11 @@ namespace WebPortal.Admin
             sheet.Range["D31"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["New Joinee Followup"];
-            recRange = recsheet.Range["A16:A" + (recsheet.LastRow - 1)];
-            rectarget = recRange.CellsCount;
+            rectarget = GetReportRowCount("New Joinee Followup", 16, -1);
             sheet.Range["E31"].Value = "" + rectarget;
-            try
-            {
-                sheet.Range["F31"].Value = "=COUNTIF('New Joinee Followup'!I16:I" + (recsheet.LastRow - 1) + ",\"<>\")";
-            }
-            catch { sheet.Range["F31"].Value = ""; }
-            try
-            {
-                sheet.Range["G31"].Value = "=COUNTIF('New Joinee Followup'!I16:I" + (recsheet.LastRow - 1) + ",\"\")";
-            }
-            catch { sheet.Range["G31"].Value = ""; }
-            sheet.Range["H31"].Formula = "=ROUND(F31/E31*100,0)";
+            SetDashboardCell(sheet.Range["F31"], CountIfFormula("New Joinee Followup", "I", 16, -1, "<>"));
+            SetDashboardCell(sheet.Range["G31"], CountIfFormula("New Joinee Followup", "I", 16, -1, ""));
+            sheet.Range["H31"].Formula = "=IFERROR(ROUND(F31/E31*100,0),0)";
             sheet.Range["I31"].Value = "";
             sheet.Range["J31"].Value = "";
 
@@ -3560,20 +3734,11 @@ namespace WebPortal.Admin
             sheet.Range["D32"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Address Verification"];
-            recRange = recsheet.Range["A16:A" + (recsheet.LastRow - 1)];
-            rectarget = recRange.CellsCount;
+            rectarget = GetReportRowCount("Address Verification", 16, -1);
             sheet.Range["E32"].Value = "" + rectarget;
-            try
-            {
-                sheet.Range["F32"].Value = "=COUNTIF('Address Verification'!H16:H" + (recsheet.LastRow - 1) + ",\"<>\")";
-            }
-            catch { sheet.Range["F32"].Value = ""; }
-            try
-            {
-                sheet.Range["G32"].Value = "=COUNTIF('Address Verification'!H16:H" + (recsheet.LastRow - 1) + ",\"\")";
-            }
-            catch { sheet.Range["G32"].Value = ""; }
-            sheet.Range["H32"].Formula = "=ROUND(F32/E32*100,0)";
+            SetDashboardCell(sheet.Range["F32"], CountIfFormula("Address Verification", "H", 16, -1, "<>"));
+            SetDashboardCell(sheet.Range["G32"], CountIfFormula("Address Verification", "H", 16, -1, ""));
+            sheet.Range["H32"].Formula = "=IFERROR(ROUND(F32/E32*100,0),0)";
             sheet.Range["I32"].Value = "";
             sheet.Range["J32"].Value = "";
 
@@ -3605,20 +3770,11 @@ namespace WebPortal.Admin
             sheet.Range["D34"].Value = "Completed";
             //Details
             recsheet = book.Worksheets["Ticket Report"];
-            recRange = recsheet.Range["A16:A" + (recsheet.LastRow)];
-            rectarget = recRange.CellsCount;
+            rectarget = GetReportRowCount("Ticket Report", 16, 0);
             sheet.Range["E34"].Value = "" + rectarget;
-            try
-            {
-                sheet.Range["F34"].Value = "=COUNTIF('Ticket Report'!E16:E" + (recsheet.LastRow) + ",\"Closed\")";
-            }
-            catch { sheet.Range["F34"].Value = ""; }
-            try
-            {
-                sheet.Range["G34"].Value = "=COUNTIF('Ticket Report'!E16:E" + (recsheet.LastRow) + ",\"Open\")";
-            }
-            catch { sheet.Range["G34"].Value = ""; }
-            sheet.Range["H34"].Formula = "=ROUND(F34/E34*100,0)";
+            SetDashboardCell(sheet.Range["F34"], CountIfFormula("Ticket Report", "E", 16, 0, "Closed"));
+            SetDashboardCell(sheet.Range["G34"], CountIfFormula("Ticket Report", "E", 16, 0, "Open"));
+            sheet.Range["H34"].Formula = "=IFERROR(ROUND(F34/E34*100,0),0)";
             sheet.Range["I34"].Value = "";
             sheet.Range["J34"].Value = "";
             DashboardContent(sheet.Range["A11:J34"]);
@@ -3630,7 +3786,7 @@ namespace WebPortal.Admin
 
 
             #endregion
-            return returnvalue;
+            return FinishCurrentSheet(returnvalue);
         }
 
 
@@ -3735,6 +3891,7 @@ namespace WebPortal.Admin
                 }
             }
 
+            ReturnValue = FinishCurrentSheet(1);
             if (File.Exists(FileName))
             {
                 try

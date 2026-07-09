@@ -2661,5 +2661,16 @@ namespace WebPortal.App_Code.BLL
         {
             return new dalMaster().GetLoanTrackingHistory(ht);
         }
+
+
+        public DataTable CheckOtherTaskExistsOrNot(Hashtable htParam)
+        {
+            return dalMaster.CheckOtherTaskExistsOrNot(htParam);
+        }
+
+        public DataTable DeleteExistingOthertaskRecords(Hashtable htParam)
+        {
+            return dalMaster.DeleteExistingOthertaskRecords(htParam);
+        }
     }
 }

@@ -45,7 +45,7 @@
 
         .tracking-page {
             min-height: calc(100vh - 72px);
-            padding: 18px;
+           
             background: var(--track-bg);
         }
 
@@ -472,6 +472,75 @@
             grid-column: span 2;
         }
 
+        .tracking-status-modal .modal-dialog {
+            max-width: min(620px, calc(100vw - 32px));
+        }
+
+        .tracking-status-modal .modal-body {
+            padding: 12px;
+        }
+
+        .tracking-status-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+            padding: 12px;
+            border: 1px solid var(--track-soft);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .tracking-status-summary span {
+            display: block;
+            color: var(--track-muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .tracking-status-summary strong {
+            display: block;
+            margin-top: 2px;
+            color: var(--track-text);
+            font-size: 13px;
+        }
+
+        .tracking-status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 14px 16px;
+        }
+
+        .tracking-status-field-wide {
+            grid-column: span 2;
+        }
+
+        .tracking-status-panel {
+            display: none;
+            grid-column: 1 / -1;
+            padding: 12px;
+            border: 1px solid var(--track-soft);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .tracking-status-radio {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            min-height: 38px;
+        }
+
+        .tracking-status-radio label {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .tracking-status-radio input {
+            margin-right: 5px;
+        }
+
         .tracking-download-link {
             display: inline-flex;
             align-items: center;
@@ -491,11 +560,14 @@
 
         @media (max-width: 991px) {
             .tracking-filter-grid,
-            .tracking-edit-grid {
+            .tracking-edit-grid,
+            .tracking-status-summary,
+            .tracking-status-grid {
                 grid-template-columns: repeat(2, minmax(180px, 1fr));
             }
 
-            .tracking-edit-field-wide {
+            .tracking-edit-field-wide,
+            .tracking-status-field-wide {
                 grid-column: span 2;
             }
         }
@@ -515,11 +587,14 @@
             }
 
             .tracking-filter-grid,
-            .tracking-edit-grid {
+            .tracking-edit-grid,
+            .tracking-status-summary,
+            .tracking-status-grid {
                 grid-template-columns: 1fr;
             }
 
-            .tracking-edit-field-wide {
+            .tracking-edit-field-wide,
+            .tracking-status-field-wide {
                 grid-column: span 1;
             }
 
@@ -535,6 +610,17 @@
 
     <script>
         $(document).ready(function () {
+
+            var today = new Date();
+
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+
+            $("#ProjectTracking_FromDate").val(yyyy + "-" + mm + "-" + dd);
+            $("#ProjectTracking_ToDate").val(yyyy + "-" + mm + "-" + dd);
+
+
             if (typeof ProjectTracking_InitPage === "function") {
                 ProjectTracking_InitPage();
             }
@@ -809,6 +895,98 @@
                         </button>
                         <button class="btn btn-tracking-success" type="button" id="btnStep5" onclick="return prjTrack_UpdateOrder();">
                             <i class="fas fa-save"></i><span>Update</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade tracking-modal tracking-status-modal" id="PrjTracking_ChangeOrderStatus" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span id="searchChangeStatus_lbl">Change Order Status</span>
+                        </h1>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="tracking-status-summary">
+                            <div>
+                                <span>Project Number</span>
+                                <strong id="ChangeStatus_ProjectNumber">-</strong>
+                            </div>
+                            <div>
+                                <span>Order Number</span>
+                                <strong id="ChangeStatus_OrderNumber">-</strong>
+                            </div>
+                            <div>
+                                <span>Current Status</span>
+                                <strong id="ChangeStatus_CurrentStatus">-</strong>
+                            </div>
+                        </div>
+
+                        <div class="tracking-status-grid">
+                            <div class="form-group tracking-edit-field tracking-status-field-wide">
+                                <label for="ChangeStatus_OrderStatus">Select</label>
+                                <select id="ChangeStatus_OrderStatus" name="ChangeStatus_OrderStatus" class="form-control"></select>
+                            </div>
+
+                            <div id="ChangeStatus_ReallocateSection" class="tracking-status-panel">
+                                <div class="tracking-status-grid">
+                                    <div class="form-group tracking-edit-field">
+                                        <label for="ChangeStatus_ReallocateTo">Reallocate To</label>
+                                        <select id="ChangeStatus_ReallocateTo" name="ChangeStatus_ReallocateTo" class="form-control"></select>
+                                    </div>
+                                    <div class="form-group tracking-edit-field tracking-status-field-wide">
+                                        <label for="ChangeStatus_ReallocateRemark">Remark</label>
+                                        <textarea id="ChangeStatus_ReallocateRemark" name="ChangeStatus_ReallocateRemark" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="ChangeStatus_CancelSection" class="tracking-status-panel">
+                                <div class="tracking-status-grid">
+                                    <div class="form-group tracking-edit-field">
+                                        <label>Decision</label>
+                                        <div class="tracking-status-radio">
+                                            <label><input type="radio" name="ChangeStatus_CancelDecision" value="Approve" checked="checked" />Approve</label>
+                                            <label><input type="radio" name="ChangeStatus_CancelDecision" value="Reject" />Reject</label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group tracking-edit-field" id="ChangeStatus_CancelTypeWrap">
+                                        <label for="ChangeStatus_CancelType">Reason Type</label>
+                                        <select id="ChangeStatus_CancelType" name="ChangeStatus_CancelType" class="form-control">
+                                            <option value="Cancelled by Client">Cancelled by Client</option>
+                                            <option value="Cancelled by Infinity">Cancelled by Infinity</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group tracking-edit-field tracking-status-field-wide">
+                                        <label for="ChangeStatus_CancelReason">Reason</label>
+                                        <textarea id="ChangeStatus_CancelReason" name="ChangeStatus_CancelReason" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="ChangeStatus_CommonSection" class="tracking-status-panel">
+                                <div class="form-group tracking-edit-field mb-0">
+                                    <label for="ChangeStatus_Remark" id="ChangeStatus_RemarkLabel">Remark</label>
+                                    <textarea id="ChangeStatus_Remark" name="ChangeStatus_Remark" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-tracking-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i><span>Close</span>
+                        </button>
+                        <button class="btn btn-tracking-success" type="button" id="btnChangeOrderStatus" onclick="return prjTrack_SubmitChangeStatus();">
+                            <i class="fas fa-save"></i><span>Submit</span>
                         </button>
                     </div>
                 </div>

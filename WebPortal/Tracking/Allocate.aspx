@@ -500,115 +500,7 @@
                 grid-template-columns: 1fr;
             }
         }
-        /* Tracking module header refresh */
-        /*.sec-hero {
-            position: relative;
-            isolation: isolate;
-            overflow: hidden;
-            min-height: 94px;
-            height: 94px;
-            margin: 0 0 18px 0 !important;
-            padding: 22px 28px !important;
-            border: 0 !important;
-            border-radius: 20px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            gap: 18px !important;
-            background: linear-gradient(101deg, #2854df 0%, #285fe2 45%, #2ec1cf 100%) !important;
-            box-shadow: none !important;
-            color: #ffffff !important;
-        }
-
-        {
-            content: "";
-            position: absolute;
-            z-index: 0;
-            right: 70px;
-            top: -94px;
-            width: 210px;
-            height: 210px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.13);
-            pointer-events: none;
-        }
-
-        {
-            content: "";
-            position: absolute;
-            z-index: 0;
-            right: -22px;
-            top: -54px;
-            width: 230px;
-            height: 230px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.12);
-            pointer-events: none;
-        }
-
-        .sec-hero > * {
-            position: relative;
-            z-index: 1;
-        }
-
-        .sec-hero-icon {
-            order: -1;
-            width: 50px !important;
-            height: 50px !important;
-            min-width: 50px !important;
-            padding: 0 !important;
-            border: 1px solid rgba(255,255,255,.28) !important;
-            border-radius: 16px !important;
-            background: rgba(255,255,255,.14) !important;
-            color: #ffffff !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,.06) !important;
-        }
-
-            .sec-hero-icon i {
-                color: #ffffff !important;
-                font-size: 21px !important;
-                line-height: 1 !important;
-                margin: 0 !important;
-            }
-
-            .sec-hero-icon span {
-                display: none !important;
-            }
-
-        .sec-title {
-            color: #ffffff !important;
-            font-size: 18px !important;
-            font-weight: 800 !important;
-            letter-spacing: 0 !important;
-            line-height: 1.2 !important;
-            margin: 0 !important;
-            text-transform: none !important;
-            text-shadow: 0 1px 1px rgba(3, 48, 120, .35);
-        }
-
-        .sec-subtitle {
-            color: rgba(255,255,255,.94) !important;
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            letter-spacing: 0 !important;
-            line-height: 1.45 !important;
-            margin: 8px 0 0 !important;
-            max-width: 760px !important;
-            text-transform: none !important;
-            text-shadow: 0 1px 1px rgba(3, 48, 120, .28);
-        }
-
-        .sec-kicker {
-            display: none !important;
-        }
-
-        .sec-title i {
-            display: none !important;
-        }*/
-
+ 
         @media (max-width: 768px) {
             .sec-hero {
                 height: auto;
@@ -791,64 +683,6 @@
         });
     </script>
 
-    <script>
-
-        $(document).ready(function () {
-
-            allocate_bindProject();
-            allocate_bindProcess();
-            // allocate_bindAllocatedogrdes_Grid();
-            allocate_bindCompleteOrder_Grid();
-
-        });
-
-        function allocate_bindProject() {
-
-            $.ajax({
-                type: "POST",
-                url: "Allocate.aspx/GetAllProjectByUser",
-                data: "{}",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-
-                success: function (response) {
-
-                    var ddl = $("#allocate_project");
-
-                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
-
-                    var data = response.d;
-
-                    if (typeof data === "string") {
-                        data = JSON.parse(data || "[]");
-                    }
-
-                    $.each(data, function (i, item) {
-                        ddl.append(
-                            $("<option></option>")
-                                .val(item.ProjectID)
-                                .text(item.ProjectName)
-                        );
-                    });
-                },
-
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Unable to load project list."
-                    });
-                }
-            });
-
-            return false;
-        }
-
-    </script>
-
-
     <style>
         /* allocate-rnr-datatable: RnR table treatment for Update Status */
         .allocate-status-grid {
@@ -969,8 +803,68 @@
             white-space: nowrap !important;
         }
     </style>
+
+    
+    <script>
+
+        $(document).ready(function () {
+
+            allocate_bindProject();
+            // allocate_bindProcess();
+            // allocate_bindAllocatedogrdes_Grid();
+            allocate_bindCompleteOrder_Grid();
+
+        });
+
+        function allocate_bindProject() {
+
+            $.ajax({
+                type: "POST",
+                url: "Allocate.aspx/GetAllProjectByUser",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function (response) {
+
+                    var ddl = $("#allocate_project");
+
+                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
+
+                    var data = response.d;
+
+                    if (typeof data === "string") {
+                        data = JSON.parse(data || "[]");
+                    }
+
+                    $.each(data, function (i, item) {
+                        ddl.append(
+                            $("<option></option>")
+                                .val(item.ProjectID)
+                                .text(item.ProjectName)
+                        );
+                    });
+                },
+
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Unable to load project list."
+                    });
+                }
+            });
+
+            return false;
+        }
+
+    </script>
+
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Tracking/Allocate.js?v=2"></script>
+    <script src="../Scripts/Tracking/Allocate.js?v=@DateTime.Now.Ticks"></script>
 
 </asp:Content>
 
@@ -1028,7 +922,7 @@
                             <div class="row align-items-end">
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
                                     <label for="bank_name" class="bank-form-label">Project</label>
-                                    <select id="allocate_project" name="allocate_project" class="form-control">
+                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(id);">
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">

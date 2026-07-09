@@ -68,7 +68,7 @@ namespace WebPortal.Tracking
         [WebMethod]
         public static string GetProcessByProject(int ProjectID)
         {
-            DataTable dt1 = new bllMaster().getProcess(ProjectID);
+            DataTable dt1 = new bllTracking().getProcess(ProjectID);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -152,6 +152,15 @@ namespace WebPortal.Tracking
             return ReturnValue;
         }
 
+
+
+        //public DataTable GetProcessDetails(string UserName)
+        //{
+        //    SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser"); //usp_getuniquecolumn
+        //    SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
+        //    DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+        //    return dt;
+        //}
 
         [WebMethod]
         public static int UpdateLoanStatus(string Project, string DealNo, string OrderNo, string Process, string ProjectID, string Status, string HoldRemark, string Remark, string ProductType, string UserName)
