@@ -215,9 +215,9 @@ namespace WebPortal.App_Code.BLL
             return dalUS.GetAllFeedbackByDateRange_NewFormat_Onshore(FromDate, ToDate);
         }
 
-        public int SaveInfinityOnshoreRemark(int FeedbackID, string Remark, int AddedBy)
+        public int SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, int AddedBy)
         {
-            return dalUS.SaveInfinityOnshoreRemark(FeedbackID, Remark, AddedBy);
+            return dalUS.SaveInfinityOnshoreRemark(FeedbackID, Client, Remark, AddedBy);
         }
 
         public DataTable GetAllConditionClearing(string FromDate, string ToDate)

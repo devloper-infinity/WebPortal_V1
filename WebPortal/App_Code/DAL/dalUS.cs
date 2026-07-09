@@ -625,10 +625,11 @@ SELECT 1;");
             return dt;
         }
 
-        public int SaveInfinityOnshoreRemark(int FeedbackID, string Remark, int AddedBy)
+        public int SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, int AddedBy)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SaveInfinityFeedbackOnshoreRemark");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SaveInfinityFeedbackOnshoreRemark_1");
             SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, FeedbackID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Client);
             SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Remark);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, AddedBy);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
