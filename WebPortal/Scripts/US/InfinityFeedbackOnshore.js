@@ -49,6 +49,7 @@ function showInfinityOnshoreRemarkPopup(feedbackId) {
 
 function saveInfinityOnshoreRemark() {
     var feedbackId = parseInt($('#hdnInfinityOnshoreFeedbackId').val(), 10) || 0;
+    var client = $('#spnInfinityOnshoreClient').text();
     var remark = $.trim($('#txtInfinityOnshoreRemark').val());
 
     if (!feedbackId) {
@@ -69,7 +70,7 @@ function saveInfinityOnshoreRemark() {
         type: 'POST',
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify({ FeedbackID: feedbackId, Remark: remark }),
+        data: JSON.stringify({ FeedbackID: feedbackId, Client: client, Remark: remark }),
         success: function (response) {
             var message = response.d || '';
 
@@ -85,6 +86,7 @@ function saveInfinityOnshoreRemark() {
 
             $('#popUp_InfinityOnshoreRemark').modal('hide');
             alert(message || 'Remark saved successfully.');
+            showdata1();
         },
         error: function (error) {
             alert('Error: ' + error.responseText);
@@ -287,7 +289,7 @@ function bind_onshoredata(date1, date2) {
                     { data: 'ErrorField', title: 'Error Field' },
                     { data: 'Screen', title: 'Screen' },
                     { data: 'ErrorType', title: 'Error Type' },
-                    { data: 'Finding', title: 'Finding' },
+                    { data: 'Finding', title: 'Finding', className:'text-nowrap' },
                     { data: 'FeedbackType', title: 'Feedback Type' },
                     { data: 'Severity', title: 'Severity' },
                     { data: 'RCA', title: 'RCA' },

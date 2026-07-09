@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
-    <link rel="stylesheet" href="CRM.css">
+    <link rel="stylesheet" href="CRM.css?v=20260709-1">
     <script src="../Scripts/SessionHandler.js"></script>
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
@@ -162,7 +162,7 @@
         <script src="../plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../dist/js/adminlte.min.js"></script>
-        <script src="../Scripts/CRM/CRM.js?v=20260704-2"></script>
+        <script src="../Scripts/CRM/CRM.js?v=20260709-1"></script>
         <%--<script src="../Scripts/AI.js?v=1"></script>--%>
     </form>
 </body>

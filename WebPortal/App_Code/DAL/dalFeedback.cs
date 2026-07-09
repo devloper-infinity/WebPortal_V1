@@ -76,7 +76,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable CheckProjectIsApplicableForSectionField(int projectId)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_CheckProjectIsApplicableForSectionField");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_Feedback_CheckProjectIsApplicableForSectionField");
             AddInt(cmd, "@ProjectID", projectId);
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
@@ -192,7 +192,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable ViewFeedbackByPMWise(string employeeId, string fatal)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewFeedbackByPMWise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetFeedbackByPMWise_KRL");
             AddText(cmd, "@EmployeeID", employeeId, 100);
             AddText(cmd, "@Fatal", fatal, 100);
             return SQLHelper.ExecuteDataTableCmd(cmd);
@@ -200,7 +200,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable ViewFeedbackByUserWise(string employeeId, string fatal)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewFeedbackByUserWise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetFeedbackByUserWise_KRL");
             AddText(cmd, "@EmployeeID", employeeId, 100);
             AddText(cmd, "@Fatal", fatal, 100);
             return SQLHelper.ExecuteDataTableCmd(cmd);
@@ -208,21 +208,21 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable ViewFeedbackByOrderWise(string orderNo)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewFeedbackByOrderWise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetFeedbackOrderWise");
             AddText(cmd, "@OrderNo", orderNo, 200);
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
         public DataTable ViewAllFeedbackByRecordWise(string feedDetailsId)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewAllFeedbackByRecordwise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetFeedbackByFeedbackID");
             AddText(cmd, "@FeedDetailsId", feedDetailsId, 100);
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
         public DataTable ViewNewOrderFeedbackByOrderWise(string employeeId)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ViewNewOrderFeedbackByOrderwise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetNewOrderofFeedback");
             AddText(cmd, "@EmployeeID", employeeId, 100);
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
@@ -270,7 +270,7 @@ namespace WebPortal.App_Code.DAL
 
         public int AddEDBStatusByOrderWise(Hashtable values)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_AddEDBStatusbyOrderWise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_internal_UpdateEDBStatusbyOrederwise");
             AddFromTable(cmd, "@FeedDetailsId", SqlDbType.BigInt, values, "FeedDetailsId", 10);
             AddFromTable(cmd, "@EDBStatus", SqlDbType.NVarChar, values, "EDBStatus", 100);
             AddFromTable(cmd, "@EDBExplanation", SqlDbType.NVarChar, values, "EDBExplanation", 4000);

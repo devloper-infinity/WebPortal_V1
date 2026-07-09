@@ -10,6 +10,24 @@
     };
 
     var serviceUrl = "CRMService.aspx/";
+    var loadingState = {
+        pending: 0,
+        toastTimer: null
+    };
+
+    $(document).ajaxSend(function (_event, _xhr, settings) {
+        if (settings && settings.crmSilent) {
+            return;
+        }
+        showLoadingPopup("Loading...");
+    });
+
+    $(document).ajaxComplete(function (_event, _xhr, settings) {
+        if (settings && settings.crmSilent) {
+            return;
+        }
+        hideLoadingPopup();
+    });
 
     var entityConfig = {
         Lead: {
@@ -317,16 +335,21 @@
     }
 
     function saveAutomationItem() {
+        var button = $(this);
         var entity = $(this).data("settings-type");
         var selector = formSelectorForAutomation(entity);
         var payload = readForm(selector);
 
+        button.prop("disabled", true).addClass("disabled");
         callService("SaveAutomationItem", { entity: entity, payloadJson: JSON.stringify(payload) }).done(function (result) {
             if (result.Success) {
+                showCrmToast(successMessageForAutomation(entity));
                 loadAutomationCenter();
             } else {
                 alert("Unable to save automation settings. Result: " + result.Result);
             }
+        }).always(function () {
+            button.prop("disabled", false).removeClass("disabled");
         });
     }
 
@@ -348,6 +371,7 @@
 
         callService("DeleteAutomationItem", { entity: entity, recordId: id }).done(function (result) {
             if (result.Success) {
+                showCrmToast("Deleted successfully.");
                 loadAutomationCenter();
             } else {
                 alert("Unable to delete automation item. Result: " + result.Result);
@@ -368,18 +392,22 @@
     function runAutomationNow() {
         var button = $("#crmRunAutomationNow");
         button.prop("disabled", true).addClass("disabled");
+        showLoadingPopup("Running automation...");
         $.ajax({
             type: "GET",
             url: "AutomationRunner.aspx?batch=25",
-            dataType: "json"
+            dataType: "json",
+            global: false
         }).done(function (result) {
             var generated = result.Generated && result.Generated.length ? result.Generated[0] : {};
             loadAutomationCenter();
+            showCrmToast("Automation completed.");
             alert("Automation completed. Emails sent: " + (result.EmailSent || 0) + ", failed: " + (result.EmailFailed || 0) + ", queued: " + (generated.QueuedEmails || 0) + ".");
         }).fail(function (xhr) {
             var message = xhr && xhr.responseText ? xhr.responseText : "Unable to run CRM automation.";
             alert(message);
         }).always(function () {
+            hideLoadingPopup();
             button.prop("disabled", false).removeClass("disabled");
         });
     }
@@ -591,6 +619,7 @@
         callService("SaveRecord", { entity: entity, payloadJson: JSON.stringify(values) }).done(function (result) {
             if (result.Success) {
                 $("#crmEditorModal").modal("hide");
+                showCrmToast(config.title + " saved successfully.");
                 loadLookups().always(loadCurrentRecords);
                 if ($(".crm-page").data("crm-page") === "dashboard") {
                     loadDashboard();
@@ -608,6 +637,7 @@
 
         callService("DeleteRecord", { entity: entity, recordId: parseInt(id, 10) }).done(function (result) {
             if (result.Success) {
+                showCrmToast(entity + " deleted successfully.");
                 loadLookups().always(loadCurrentRecords);
             } else {
                 alert("Unable to delete this record. Result: " + result.Result);
@@ -625,6 +655,7 @@
         var closeDate = prompt("Expected close date (yyyy-mm-dd)", "") || "";
         callService("ConvertLead", { leadId: parseInt(id, 10), dealName: dealName, amount: amount, closeDate: closeDate }).done(function (result) {
             if (result.Success) {
+                showCrmToast("Lead converted successfully.");
                 loadLookups().always(loadCurrentRecords);
             } else {
                 alert("Unable to convert this lead. Result: " + result.Result);
@@ -857,13 +888,26 @@
     }
 
     function callService(method, data, silent) {
-        return $.ajax({
+        if (!silent) {
+            showLoadingPopup(loadingMessageFor(method));
+        }
+
+        var request = $.ajax({
             type: "POST",
             url: serviceUrl + method,
             data: JSON.stringify(data || {}),
             contentType: "application/json; charset=utf-8",
-            dataType: "json"
-        }).then(function (res) {
+            dataType: "json",
+            global: false
+        });
+
+        request.always(function () {
+            if (!silent) {
+                hideLoadingPopup();
+            }
+        });
+
+        return request.then(function (res) {
             if (!res || res.d == null || res.d === "") {
                 return {};
             }
@@ -875,6 +919,83 @@
             }
             return $.Deferred().reject(xhr);
         });
+    }
+
+    function ensureLoadingPopup() {
+        if ($("#crmLoadingPopup").length > 0) {
+            return;
+        }
+
+        $("body").append(
+            '<div class="crm-loading-overlay" id="crmLoadingPopup" role="status" aria-live="polite" aria-hidden="true">' +
+            '<div class="crm-loading-popup">' +
+            '<span class="crm-loading-spinner"></span>' +
+            '<strong id="crmLoadingText">Loading...</strong>' +
+            '</div>' +
+            '</div>'
+        );
+    }
+
+    function showLoadingPopup(message) {
+        ensureLoadingPopup();
+        loadingState.pending += 1;
+        $("#crmLoadingText").text(message || "Loading...");
+        $("#crmLoadingPopup").addClass("active").attr("aria-hidden", "false");
+    }
+
+    function hideLoadingPopup() {
+        loadingState.pending = Math.max(loadingState.pending - 1, 0);
+        if (loadingState.pending > 0) {
+            return;
+        }
+        $("#crmLoadingPopup").removeClass("active").attr("aria-hidden", "true");
+    }
+
+    function showCrmToast(message) {
+        if ($("#crmToast").length === 0) {
+            $("body").append('<div class="crm-toast" id="crmToast" role="status" aria-live="polite"></div>');
+        }
+
+        clearTimeout(loadingState.toastTimer);
+        $("#crmToast").text(message || "Saved successfully.").addClass("active");
+        loadingState.toastTimer = setTimeout(function () {
+            $("#crmToast").removeClass("active");
+        }, 2600);
+    }
+
+    function loadingMessageFor(method) {
+        if (/Save/i.test(method)) {
+            return "Saving...";
+        }
+        if (/Delete/i.test(method)) {
+            return "Deleting...";
+        }
+        if (/Convert/i.test(method)) {
+            return "Converting...";
+        }
+        if (/Mark/i.test(method)) {
+            return "Updating...";
+        }
+        return "Loading...";
+    }
+
+    function successMessageForAutomation(entity) {
+        if (entity === "EmailSettings") {
+            return "Email settings saved successfully.";
+        }
+        if (entity === "NotificationSettings") {
+            return "Notification settings saved successfully.";
+        }
+        if (entity === "EmailTemplate") {
+            return "Email template saved successfully.";
+        }
+        if (entity === "AssignmentRule") {
+            return "Assignment rule saved successfully.";
+        }
+        if (entity === "SlaPolicy") {
+            return "SLA policy saved successfully.";
+        }
+        return "Settings saved successfully.";
     }
 
     function setKpi(name, value) {

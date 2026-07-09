@@ -1423,14 +1423,69 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @TriggerEvent NVARCHAR(80) = LTRIM(RTRIM(ISNULL(@Entity, '') + ' ' + ISNULL(@EventName, '')));
+    DECLARE @EntityName NVARCHAR(30) = LTRIM(RTRIM(ISNULL(@Entity, '')));
+    DECLARE @TriggerEvent NVARCHAR(80) = LTRIM(RTRIM(@EntityName + ' ' + ISNULL(@EventName, '')));
     DECLARE @Title NVARCHAR(250) = @TriggerEvent;
-    DECLARE @Message NVARCHAR(1000) = 'CRM automation created this alert for ' + ISNULL(@Entity, 'record') + ' #' + CAST(ISNULL(@RecordID, 0) AS NVARCHAR(20)) + '.';
+    DECLARE @RecordName NVARCHAR(250) = '';
+    DECLARE @RecordRef NVARCHAR(300) = '';
+    DECLARE @LeadName NVARCHAR(250) = '';
+    DECLARE @ActivitySubject NVARCHAR(250) = '';
+    DECLARE @Message NVARCHAR(1000);
     DECLARE @TemplateID INT = NULL;
     DECLARE @Subject NVARCHAR(250) = NULL;
     DECLARE @BodyHtml NVARCHAR(MAX) = NULL;
+    DECLARE @RenderedSubject NVARCHAR(250) = NULL;
+    DECLARE @RenderedBodyHtml NVARCHAR(MAX) = NULL;
     DECLARE @ToEmail NVARCHAR(500) = NULL;
     DECLARE @Status NVARCHAR(40) = 'Draft';
+
+    IF LOWER(@EntityName) = 'lead'
+    BEGIN
+        SELECT TOP 1
+            @LeadName = LTRIM(RTRIM(ISNULL(FirstName, '') + ' ' + ISNULL(LastName, ''))),
+            @RecordName = LTRIM(RTRIM(ISNULL(FirstName, '') + ' ' + ISNULL(LastName, '')))
+        FROM dbo.CRM_CoreLead
+        WHERE LeadID = @RecordID;
+    END
+    ELSE IF LOWER(@EntityName) = 'deal'
+    BEGIN
+        SELECT TOP 1 @RecordName = DealName
+        FROM dbo.CRM_CoreDeal
+        WHERE DealID = @RecordID;
+    END
+    ELSE IF LOWER(@EntityName) = 'account'
+    BEGIN
+        SELECT TOP 1 @RecordName = AccountName
+        FROM dbo.CRM_CoreAccount
+        WHERE AccountID = @RecordID;
+    END
+    ELSE IF LOWER(@EntityName) = 'contact'
+    BEGIN
+        SELECT TOP 1 @RecordName = LTRIM(RTRIM(ISNULL(FirstName, '') + ' ' + ISNULL(LastName, '')))
+        FROM dbo.CRM_CoreContact
+        WHERE ContactID = @RecordID;
+    END
+    ELSE IF LOWER(@EntityName) = 'activity'
+    BEGIN
+        SELECT TOP 1
+            @ActivitySubject = Subject,
+            @RecordName = Subject
+        FROM dbo.CRM_CoreActivity
+        WHERE ActivityID = @RecordID;
+    END
+
+    SET @RecordName = LTRIM(RTRIM(ISNULL(@RecordName, '')));
+    SET @LeadName = LTRIM(RTRIM(ISNULL(NULLIF(@LeadName, ''), @RecordName)));
+    SET @ActivitySubject = LTRIM(RTRIM(ISNULL(NULLIF(@ActivitySubject, ''), @RecordName)));
+
+    IF @EntityName <> '' AND @RecordName <> ''
+        SET @RecordRef = @EntityName + ' - ' + @RecordName;
+    ELSE IF @RecordName <> ''
+        SET @RecordRef = @RecordName;
+    ELSE
+        SET @RecordRef = ISNULL(NULLIF(@EntityName, ''), 'CRM') + ' #' + CAST(ISNULL(@RecordID, 0) AS NVARCHAR(20));
+
+    SET @Message = 'CRM automation created this alert for ' + @RecordRef + '.';
 
     IF EXISTS (SELECT 1 FROM dbo.CRM_NotificationPreference WHERE UserEmployeeID IN (0, @EmployeeID) AND InAppEnabled = 1)
     BEGIN
@@ -1440,7 +1495,7 @@ BEGIN
         )
         VALUES
         (
-            @EmployeeID, @TriggerEvent, @Title, @Message, @Entity, @RecordID, @EmployeeID
+            @EmployeeID, @TriggerEvent, @Title, @Message, @EntityName, @RecordID, @EmployeeID
         );
     END
 
@@ -1461,14 +1516,33 @@ BEGIN
 
     IF @TemplateID IS NOT NULL
     BEGIN
+        SET @RenderedSubject = ISNULL(@Subject, '');
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{Entity}}', ISNULL(NULLIF(@EntityName, ''), 'CRM'));
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{RecordID}}', CAST(ISNULL(@RecordID, 0) AS NVARCHAR(20)));
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{RecordRef}}', @RecordRef);
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{RecordName}}', @RecordName);
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{LeadName}}', @LeadName);
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{Subject}}', @ActivitySubject);
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{Title}}', @Title);
+        SET @RenderedSubject = REPLACE(@RenderedSubject, '{{Message}}', @Message);
+
+        SET @RenderedBodyHtml = ISNULL(@BodyHtml, '');
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{Entity}}', ISNULL(NULLIF(@EntityName, ''), 'CRM'));
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{RecordID}}', CAST(ISNULL(@RecordID, 0) AS NVARCHAR(20)));
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{RecordRef}}', @RecordRef);
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{RecordName}}', @RecordName);
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{LeadName}}', @LeadName);
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{Subject}}', @ActivitySubject);
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{Title}}', @Title);
+        SET @RenderedBodyHtml = REPLACE(@RenderedBodyHtml, '{{Message}}', @Message);
+
         INSERT INTO dbo.CRM_EmailOutbox
         (
             TemplateID, RelatedEntity, RelatedRecordID, ToEmail, Subject, BodyHtml, Status, CreatedBy
         )
         VALUES
         (
-            @TemplateID, @Entity, @RecordID, @ToEmail, @Subject,
-            REPLACE(REPLACE(ISNULL(@BodyHtml, ''), '{{Entity}}', ISNULL(@Entity, 'CRM')), '{{RecordID}}', CAST(ISNULL(@RecordID, 0) AS NVARCHAR(20))),
+            @TemplateID, @EntityName, @RecordID, @ToEmail, @RenderedSubject, @RenderedBodyHtml,
             @Status, @EmployeeID
         );
     END
@@ -1630,8 +1704,8 @@ BEGIN
             'Activity',
             a.ActivityID,
             @DefaultToEmail,
-            REPLACE(REPLACE(t.Subject, '{{Subject}}', a.Subject), '{{RecordID}}', CAST(a.ActivityID AS NVARCHAR(20))),
-            REPLACE(REPLACE(REPLACE(ISNULL(t.BodyHtml, ''), '{{Subject}}', a.Subject), '{{Entity}}', 'Activity'), '{{RecordID}}', CAST(a.ActivityID AS NVARCHAR(20))),
+            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.Subject, '{{Subject}}', a.Subject), '{{Title}}', 'Activity due: ' + a.Subject), '{{Entity}}', 'Activity'), '{{RecordID}}', CAST(a.ActivityID AS NVARCHAR(20))), '{{RecordRef}}', 'Activity - ' + a.Subject),
+            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(t.BodyHtml, ''), '{{Subject}}', a.Subject), '{{Title}}', 'Activity due: ' + a.Subject), '{{Message}}', 'Activity is due on ' + COALESCE(CONVERT(NVARCHAR(11), a.DueDate, 106), 'today') + '.'), '{{Entity}}', 'Activity'), '{{RecordID}}', CAST(a.ActivityID AS NVARCHAR(20))), '{{RecordRef}}', 'Activity - ' + a.Subject),
             @EmailStatus,
             @EmployeeID
         FROM dbo.CRM_CoreActivity a
@@ -1735,8 +1809,14 @@ BEGIN
             n.RelatedEntity,
             n.RelatedRecordID,
             @DefaultToEmail,
-            REPLACE(REPLACE(t.Subject, '{{Entity}}', n.RelatedEntity), '{{RecordID}}', CAST(n.RelatedRecordID AS NVARCHAR(20))),
-            REPLACE(REPLACE(ISNULL(t.BodyHtml, ''), '{{Entity}}', n.RelatedEntity), '{{RecordID}}', CAST(n.RelatedRecordID AS NVARCHAR(20))),
+            CASE
+                WHEN ISNULL(t.Subject, '') IN ('', 'CRM SLA attention required') THEN n.Title
+                ELSE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(t.Subject, '{{Title}}', n.Title), '{{Message}}', n.Message), '{{Entity}}', n.RelatedEntity), '{{RecordID}}', CAST(n.RelatedRecordID AS NVARCHAR(20))), '{{RecordRef}}', n.RelatedEntity + ' #' + CAST(n.RelatedRecordID AS NVARCHAR(20)))
+            END,
+            CASE
+                WHEN ISNULL(t.BodyHtml, '') IN ('', 'A CRM item has crossed the response target. Please review {{Entity}} #{{RecordID}}.') THEN n.Message
+                ELSE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(ISNULL(t.BodyHtml, ''), '{{Title}}', n.Title), '{{Message}}', n.Message), '{{Entity}}', n.RelatedEntity), '{{RecordID}}', CAST(n.RelatedRecordID AS NVARCHAR(20))), '{{RecordRef}}', n.RelatedEntity + ' #' + CAST(n.RelatedRecordID AS NVARCHAR(20)))
+            END,
             @EmailStatus,
             @EmployeeID
         FROM dbo.CRM_Notification n
@@ -1895,17 +1975,43 @@ IF NOT EXISTS (SELECT 1 FROM dbo.CRM_EmailTemplate WHERE TemplateName = 'Lead we
 BEGIN
     INSERT INTO dbo.CRM_EmailTemplate (TemplateName, TriggerEvent, Subject, BodyHtml, IsEnabled, CreatedBy)
     VALUES
-    ('Lead welcome demo', 'Lead Saved', 'Thanks for your interest in Infinity', 'Hi {{LeadName}},<br><br>Thank you for contacting us. We will connect shortly.<br><br>CRM Ref: {{RecordID}}', 1, 0),
-    ('Deal update demo', 'Deal Saved', 'Opportunity update from Infinity CRM', 'Hello,<br><br>Your opportunity has been updated in CRM. Ref: {{RecordID}}', 1, 0),
-    ('SLA reminder demo', 'SLA Breach', 'CRM SLA attention required', 'A CRM item has crossed the response target. Please review {{Entity}} #{{RecordID}}.', 1, 0);
+    ('Lead welcome demo', 'Lead Saved', 'Thanks for your interest in Infinity', 'Hi {{LeadName}},<br><br>Thank you for contacting us. We will connect shortly.<br><br>CRM Ref: {{RecordRef}}', 1, 0),
+    ('Deal update demo', 'Deal Saved', 'Opportunity update from Infinity CRM', 'Hello,<br><br>Your opportunity has been updated in CRM. Ref: {{RecordRef}}', 1, 0),
+    ('SLA reminder demo', 'SLA Breach', '{{Title}}', '{{Message}}', 1, 0);
 END
+GO
+
+UPDATE dbo.CRM_EmailTemplate
+SET BodyHtml = REPLACE(BodyHtml, 'CRM Ref: {{RecordID}}', 'CRM Ref: {{RecordRef}}')
+WHERE TemplateName = 'Lead welcome demo'
+  AND BodyHtml LIKE '%CRM Ref: {{RecordID}}%';
+GO
+
+UPDATE dbo.CRM_EmailTemplate
+SET BodyHtml = REPLACE(BodyHtml, 'Ref: {{RecordID}}', 'Ref: {{RecordRef}}')
+WHERE TemplateName = 'Deal update demo'
+  AND BodyHtml LIKE '%Ref: {{RecordID}}%';
+GO
+
+UPDATE dbo.CRM_EmailTemplate
+SET Subject = '{{Title}}',
+    BodyHtml = '{{Message}}'
+WHERE TemplateName = 'SLA reminder demo'
+  AND Subject = 'CRM SLA attention required'
+  AND BodyHtml = 'A CRM item has crossed the response target. Please review {{Entity}} #{{RecordID}}.';
 GO
 
 IF NOT EXISTS (SELECT 1 FROM dbo.CRM_EmailTemplate WHERE TemplateName = 'Activity due demo')
 BEGIN
     INSERT INTO dbo.CRM_EmailTemplate (TemplateName, TriggerEvent, Subject, BodyHtml, IsEnabled, CreatedBy)
-    VALUES ('Activity due demo', 'Activity Due', 'CRM activity due: {{Subject}}', 'Activity {{Subject}} is due for {{Entity}} #{{RecordID}}. Please review it in CRM.', 1, 0);
+    VALUES ('Activity due demo', 'Activity Due', 'CRM activity due: {{Subject}}', 'Activity {{Subject}} is due for {{RecordRef}}. Please review it in CRM.', 1, 0);
 END
+GO
+
+UPDATE dbo.CRM_EmailTemplate
+SET BodyHtml = REPLACE(BodyHtml, '{{Entity}} #{{RecordID}}', '{{RecordRef}}')
+WHERE TemplateName = 'Activity due demo'
+  AND BodyHtml LIKE '%{{Entity}} #{{RecordID}}%';
 GO
 
 IF NOT EXISTS (SELECT 1 FROM dbo.CRM_EmailTemplate WHERE TemplateName = 'Daily digest demo')

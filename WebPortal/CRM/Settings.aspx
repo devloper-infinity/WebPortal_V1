@@ -36,8 +36,8 @@
             <div class="crm-editor-grid" id="crmEmailSettingsForm">
                 <input type="hidden" name="EmailAccountID" value="0" />
                 <div class="crm-field wide"><label>Account name</label><input type="text" class="form-control" name="AccountName" /></div>
-                <div class="crm-field"><label>Auto send</label><select class="form-control" name="AutoSendEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
-                <div class="crm-field"><label>Enabled</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+                <div class="crm-field"><label>Send queued emails</label><select class="form-control" name="AutoSendEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+                <div class="crm-field"><label>Account active</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
                 <div class="crm-field wide"><label>From email</label><input type="email" class="form-control" name="FromEmail" /></div>
                 <div class="crm-field"><label>From name</label><input type="text" class="form-control" name="FromName" /></div>
                 <div class="crm-field"><label>Reply-to email</label><input type="email" class="form-control" name="ReplyToEmail" /></div>
@@ -82,7 +82,7 @@
                 <input type="hidden" name="TemplateID" value="0" />
                 <div class="crm-field"><label>Template name</label><input type="text" class="form-control" name="TemplateName" /></div>
                 <div class="crm-field"><label>Trigger</label><select class="form-control" name="TriggerEvent"><option>Lead Saved</option><option>Deal Saved</option><option>Activity Due</option><option>SLA Breach</option><option>Daily Digest</option></select></div>
-                <div class="crm-field"><label>Enabled</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+                <div class="crm-field"><label>Template active</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
                 <div class="crm-field full"><label>Subject</label><input type="text" class="form-control" name="Subject" /></div>
                 <div class="crm-field full"><label>Body</label><textarea class="form-control" name="BodyHtml"></textarea></div>
             </div>
@@ -113,7 +113,7 @@
                 <div class="crm-field wide"><label>User employee IDs</label><input type="text" class="form-control" name="UserEmployeeIDs" /></div>
                 <div class="crm-field"><label>Active days</label><input type="text" class="form-control" name="ActiveDays" /></div>
                 <div class="crm-field"><label>Priority</label><input type="number" class="form-control" name="Priority" /></div>
-                <div class="crm-field"><label>Enabled</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+                <div class="crm-field"><label>Rule active</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
                 <div class="crm-field full"><label>Description</label><textarea class="form-control" name="Description"></textarea></div>
             </div>
             <div class="crm-table-wrap mt-3">
@@ -141,7 +141,7 @@
                 <div class="crm-field"><label>Working start</label><input type="time" class="form-control" name="WorkingHourStart" /></div>
                 <div class="crm-field"><label>Working end</label><input type="time" class="form-control" name="WorkingHourEnd" /></div>
                 <div class="crm-field"><label>Default</label><select class="form-control" name="IsDefault"><option value="0">No</option><option value="1">Yes</option></select></div>
-                <div class="crm-field"><label>Enabled</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
+                <div class="crm-field"><label>Policy active</label><select class="form-control" name="IsEnabled"><option value="1">Enabled</option><option value="0">Disabled</option></select></div>
                 <div class="crm-field full"><label>Conditions</label><textarea class="form-control" name="ConditionsText"></textarea></div>
             </div>
             <div class="crm-table-wrap mt-3">
