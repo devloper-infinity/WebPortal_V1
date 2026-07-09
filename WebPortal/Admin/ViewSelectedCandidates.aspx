@@ -91,9 +91,9 @@
         }
 
         .secl-hero-icon {
-            width: 62px;
-            height: 62px;
-            min-width: 62px;
+            width: 54px;
+            height: 54px;
+            min-width: 54px;
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -106,7 +106,7 @@
 
         .secl-hero h4 {
             margin: 0;
-            font-size: 24px;
+            font-size: 21px;
             line-height: 1.2;
             font-weight: 800;
             letter-spacing: .2px;

@@ -317,6 +317,8 @@ function saveCreditCardInfo() {
 
 function fillOrderDropDown(orders) {
     var html = '<option value="">Select</option>';
+
+
     $.each(orders, function (_, order) {
         html += '<option value="' + htmlEncode(order.Value) + '">' + htmlEncode(order.Text) + '</option>';
     });

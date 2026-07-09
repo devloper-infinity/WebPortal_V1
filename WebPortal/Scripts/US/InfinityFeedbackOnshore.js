@@ -16,6 +16,7 @@ function renderInfinityOnshoreActionLink(row) {
 
     return '<a href="#" class="feedback-action-link" title="Add remark" onclick="return showInfinityOnshoreRemarkPopup(' + feedbackId + ');"><i class="fas fa-comment-dots"></i></a>';
 }
+
 function showInfinityOnshoreRemarkPopup(feedbackId) {
     var table = $('#table_InfinityFeedbackOnShore').DataTable();
     var matchedRow = null;

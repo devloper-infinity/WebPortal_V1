@@ -43,6 +43,18 @@ namespace WebPortal.US
             return data;
         }
 
+
+        [WebMethod]
+        public static object GetDealFromLoan(string LoanNo)
+        {
+            DataTable dt = new bllUS().GetDealFromLoan(LoanNo);
+
+            var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
+
+            return data;
+        }
+
+
         [WebMethod]
         public static object GetLoans(int ProjectID, string DealNo)
         {

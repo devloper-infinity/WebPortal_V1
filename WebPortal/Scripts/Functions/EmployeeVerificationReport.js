@@ -121,7 +121,7 @@ function ExEmpVer_ViewDetails(VerificationID, Index) {
 
 function ExEmployerVerification_ResendEmail(VerificationID, Index) {
     var row = ExEmployee_table.row(Index).data();
-    document.getElementById("ExEmployer_empnameresend").innerHTML = row[4];
+    document.getElementById("ExEmployer_empnameresend").value = row[4];
     document.getElementById("ExEmployer_receiverresend").innerHTML = row[15];
     ExEmployee_VerIDs = row[0];
     $('#resendemail').modal('show');
@@ -136,7 +136,7 @@ function BindFormInformation() {
         success: function (res1) {
             var dataArray = JSON.parse(res1.d);
             $.each(dataArray, function (data1, value1) {
-                document.getElementById("ExEmpForm_name").innerHTML = value1.Code + ' : ' + value1.FullName;
+                document.getElementById("ExEmpForm_name").value = value1.Code + ' : ' + value1.FullName;
                 document.getElementById("ExEmpForm_name").disabled = true;
             });
         }
@@ -331,7 +331,7 @@ function docs_download(path, index) {
 function ExEmpForm_SubmitData() {
     const urlParams = new URLSearchParams(window.location.search);
     const EmployeeID = urlParams.get('Emp');
-    var ExEmpForm_name = document.getElementById("ExEmpForm_name").innerHTML;
+    var ExEmpForm_name = document.getElementById("ExEmpForm_name").value;
     var ExEmpForm_organizationname = document.getElementById("ExEmpForm_organizationname").value;
     var ExEmpForm_candidatename = document.getElementById("ExEmpForm_candidatename").value;
     var ExEmpForm_employeeid = document.getElementById("ExEmpForm_employeeid").value;

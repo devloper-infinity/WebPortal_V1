@@ -76,7 +76,7 @@ function otherTask_bindProcess(el) {
 
 
 /* ================= UPLOAD ================= */
-function otherTask_uploadData() {
+function Core_otherTask_uploadData() {
 
     projectId = $('#otherTask_project').val();      // ID
     projectName = $('#otherTask_project option:selected').text(); // Text
@@ -130,6 +130,138 @@ function otherTask_uploadData() {
         },
 
         function (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.get_message()
+            });
+        }
+    );
+
+    return false;
+}
+
+function otherTask_uploadData() {
+
+    var projectId = $('#otherTask_project').val();
+    var projectName = $('#otherTask_project option:selected').text();
+
+    var processId = $('#otherTask_process').val();
+    var processName = $('#otherTask_process option:selected').text();
+
+    var fileInput = document.getElementById("otherTask_fileUploads");
+
+    if (!projectId) {
+        Swal.fire("Warning", "Please select project.", "warning");
+        return false;
+    }
+
+    if (!processId || processId === "0") {
+        Swal.fire("Warning", "Please select process.", "warning");
+        return false;
+    }
+
+    if (!fileInput || fileInput.files.length === 0) {
+        Swal.fire("Warning", "Please select file.", "warning");
+        return false;
+    }
+
+    $('#load1').show();
+
+    PageMethods.GetExcelDataToBindGrid(
+        function (response) {
+
+            $('#load1').hide();
+
+            var data = response || [];
+
+            if (data.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Warning',
+                    text: 'No records found in uploaded excel.'
+                });
+                return;
+            }
+
+            PageMethods.CheckOtherTaskExistsOrNot(
+                projectName,
+                processName,
+
+                function (existsResponse) {
+
+                    if (existsResponse === "Process") {
+                        processExcelData(data);
+                        Swal.fire("Success", "Data imported successfully.", "success");
+                        return;
+                    }
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Records Already Exist',
+                        text: 'Records already exist in the system. Do you want to delete and upload new records?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, Delete',
+                        cancelButtonText: 'Cancel'
+                    }).then(function (result) {
+
+                        if (!result.isConfirmed) {
+                            return;
+                        }
+
+                        $('#load1').show();
+
+                        PageMethods.DeleteExistingOthertaskRecords(
+                            projectName,
+                            processName,
+
+                            function (deleteResponse) {
+
+                                $('#load1').hide();
+
+                                if (deleteResponse > 0) {
+                                    processExcelData(data);
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Success',
+                                        text: 'Existing records deleted and new records uploaded successfully.'
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'Existing records could not be deleted.'
+                                    });
+                                }
+                            },
+
+                            function (error) {
+                                $('#load1').hide();
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: error.get_message()
+                                });
+                            }
+                        );
+                    });
+                },
+
+                function (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.get_message()
+                    });
+                }
+            );
+        },
+
+        function (error) {
+            $('#load1').hide();
+
             Swal.fire({
                 icon: 'error',
                 title: 'Error',

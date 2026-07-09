@@ -2784,8 +2784,8 @@
     <Content Include="Scripts\Search\VerifyBilling.js" />
     <Content Include="Scripts\Search\ViewBilling.js" />
     <Content Include="Scripts\SessionHandler.js" />
-    <Content Include="Scripts\TrackingSheet\AddFeedback.js" />
-    <Content Include="Scripts\TrackingSheet\Allocate.js" />
+    <Content Include="Scripts\Tracking\AddFeedback.js" />
+    <Content Include="Scripts\Tracking\Allocate.js" />
     <Content Include="Scripts\Tracking\OrderAllocation.js" />
     <Content Include="Scripts\Tracking\UpdateDispatchDate.js" />
     <Content Include="Scripts\Tracking\TodaySatus.js" />
@@ -5201,6 +5201,7 @@
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />
+    <Folder Include="Scripts\TrackingSheet\" />
     <Folder Include="SearchDocuments\" />
     <Folder Include="TempFiles\" />
   </ItemGroup>

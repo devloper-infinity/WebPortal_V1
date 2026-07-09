@@ -683,64 +683,6 @@
         });
     </script>
 
-    <script>
-
-        $(document).ready(function () {
-
-            allocate_bindProject();
-            allocate_bindProcess();
-            // allocate_bindAllocatedogrdes_Grid();
-            allocate_bindCompleteOrder_Grid();
-
-        });
-
-        function allocate_bindProject() {
-
-            $.ajax({
-                type: "POST",
-                url: "Allocate.aspx/GetAllProjectByUser",
-                data: "{}",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-
-                success: function (response) {
-
-                    var ddl = $("#allocate_project");
-
-                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
-
-                    var data = response.d;
-
-                    if (typeof data === "string") {
-                        data = JSON.parse(data || "[]");
-                    }
-
-                    $.each(data, function (i, item) {
-                        ddl.append(
-                            $("<option></option>")
-                                .val(item.ProjectID)
-                                .text(item.ProjectName)
-                        );
-                    });
-                },
-
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Unable to load project list."
-                    });
-                }
-            });
-
-            return false;
-        }
-
-    </script>
-
-
     <style>
         /* allocate-rnr-datatable: RnR table treatment for Update Status */
         .allocate-status-grid {
@@ -861,6 +803,66 @@
             white-space: nowrap !important;
         }
     </style>
+
+    
+    <script>
+
+        $(document).ready(function () {
+
+            allocate_bindProject();
+            // allocate_bindProcess();
+            // allocate_bindAllocatedogrdes_Grid();
+            allocate_bindCompleteOrder_Grid();
+
+        });
+
+        function allocate_bindProject() {
+
+            $.ajax({
+                type: "POST",
+                url: "Allocate.aspx/GetAllProjectByUser",
+                data: "{}",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function (response) {
+
+                    var ddl = $("#allocate_project");
+
+                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
+
+                    var data = response.d;
+
+                    if (typeof data === "string") {
+                        data = JSON.parse(data || "[]");
+                    }
+
+                    $.each(data, function (i, item) {
+                        ddl.append(
+                            $("<option></option>")
+                                .val(item.ProjectID)
+                                .text(item.ProjectName)
+                        );
+                    });
+                },
+
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Unable to load project list."
+                    });
+                }
+            });
+
+            return false;
+        }
+
+    </script>
+
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../Scripts/Tracking/Allocate.js?v=@DateTime.Now.Ticks"></script>
 
@@ -920,7 +922,7 @@
                             <div class="row align-items-end">
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
                                     <label for="bank_name" class="bank-form-label">Project</label>
-                                    <select id="allocate_project" name="allocate_project" class="form-control">
+                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(id);">
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">

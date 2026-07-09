@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using Spire.Xls;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration.Provider;
 using System.Data;
@@ -23,6 +24,8 @@ namespace WebPortal.Admin
     public partial class OtherTask : System.Web.UI.Page
     {
         static DataTable dtImport = new DataTable();
+        static string Project_Name;
+        static string Assigned_Date;
 
         static string NewFileName = "";
         static string FileName = "";
@@ -167,6 +170,8 @@ namespace WebPortal.Admin
 
             dtImport = dt1;
 
+            Assigned_Date = Convert.ToString(dt1.Rows[0]["AssignedDate"]);
+
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             if (dt1 != null)
@@ -191,6 +196,36 @@ namespace WebPortal.Admin
         {
             dtImport = null;
             NewFileName = null;
+            return 1;
+        }
+
+        [WebMethod]
+        public static string CheckOtherTaskExistsOrNot(string Project, string Process)
+        {
+            Hashtable htParam = new Hashtable();
+            htParam["Project"] = Project;
+            htParam["Process"] = Process;
+            htParam["AssignedDate"] = Assigned_Date;
+            htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+
+            DataTable dt = new bllMaster().CheckOtherTaskExistsOrNot(htParam);
+            if (dt.Rows.Count > 0)
+                return "Exists";
+            else
+                return "Process";
+        }
+
+        [WebMethod]
+        public static int DeleteExistingOthertaskRecords(string Project, string Process)
+        {
+            Hashtable htParam = new Hashtable();
+            htParam["Project"] = Project;
+            htParam["Process"] = Process;
+            htParam["AssignedDate"] = Assigned_Date;
+            htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+
+            DataTable dt = new bllMaster().DeleteExistingOthertaskRecords(htParam);
+
             return 1;
         }
     }

@@ -441,6 +441,32 @@
         }
     </style>
 
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 40px;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            padding: 5px 10px;
+        }
+
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 30px;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 38px;
+            }
+
+        .select2-dropdown {
+            border-radius: 8px;
+            border: 1px solid #dbe3ef;
+        }
+
+        .select2-search__field {
+            border-radius: 6px !important;
+        }
+    </style>
+
     <script>
 
         $(document).ready(function () {
@@ -451,6 +477,8 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 </asp:Content>
 
@@ -487,29 +515,29 @@
                     <div class="my-row">
                         <div class="my-col-4">
                             <label><b>Project # <span class="req">*</span></b></label>
-                            <select class="my-select" id="concl_project" onchange="bindDeals(this);"></select>
-                        </div>
-
-                        <div class="my-col-4">
-                            <label><b>Deal # <span class="req">*</span></b></label>
-                            <select class="my-select" id="concl_dealNo" onchange="bindLoans(this);"></select>
+                            <select class="my-select" id="conclUS_project"></select>
                         </div>
 
                         <div class="my-col-4">
                             <label><b>Loan # <span class="req">*</span></b></label>
-                            <select class="my-select" id="concl_loanNo"></select>
+                            <input class="my-input" id="conclUS_loanNo" type="text" onchange="GetDealFromLoan(this);" />
+                        </div>
+
+                        <div class="my-col-4">
+                            <label><b>Deal # <span class="req">*</span></b></label>
+                            <input class="my-input" id="conclUS_dealNo" type="text" readonly/>
                         </div>
                     </div>
 
                     <div class="my-row">
                         <div class="my-col-4">
                             <label><b>Received Date <span class="req">*</span></b></label>
-                            <input type="date" class="my-input" id="concl_receiveddate">
+                            <input type="date" class="my-input" id="conclUS_receiveddate">
                         </div>
 
                         <div class="my-col-4">
                             <label><b>Initial Exception Grade <span class="req">*</span></b></label>
-                            <select class="my-select" id="concl_expgrade">
+                            <select class="my-select" id="conclUS_expgrade">
                                 <option value="">Select Grade</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -520,7 +548,7 @@
 
                         <div class="my-col-4">
                             <label><b>Process <span class="req">*</span></b></label>
-                            <select class="my-select" id="concl_process">
+                            <select class="my-select" id="conclUS_process">
                                 <option value="">Select Process</option>
                                 <option value="Loan Setup">Loan Setup</option>
                                 <option value="Credit">Credit</option>
@@ -532,20 +560,20 @@
                     <div class="my-row">
                         <div class="my-col-12">
                             <label><b>Infinity Condition <span class="req">*</span></b></label>
-                            <textarea class="my-input" id="concl_infcondition"></textarea>
+                            <textarea class="my-input" id="conclUS_infcondition"></textarea>
                         </div>
                     </div>
 
                     <div class="my-row">
                         <div class="my-col-12">
                             <label><b>Clients Rebuttal <span class="req">*</span></b></label>
-                            <textarea class="my-input" id="concl_rebuttal"></textarea>
+                            <textarea class="my-input" id="conclUS_rebuttal"></textarea>
                         </div>
                     </div>
 
                     <div class="my-row">
                         <div class="my-col-12 action-row">
-                            <button type="button" class="my-btn primary" onclick="return concl_SaveData();">Add Condition</button>
+                            <button type="button" class="my-btn primary" onclick="return conclUS_SaveData();">Add Condition</button>
                         </div>
                     </div>
                 </div>

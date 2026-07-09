@@ -195,6 +195,12 @@ namespace WebPortal.App_Code.BLL
             return dalUS.GetAllProjectDealNumberNew(ProjectId);
         }
 
+
+        public DataTable GetDealFromLoan(string LoanNo)
+        {
+            return dalUS.GetDealFromLoan(LoanNo);
+        }
+
         public DataTable GetAllOrderNoByProjectWise(int ProjectID, string DealNo, string ProcessName, string Review, string Type)
         {
             return dalUS.GetAllOrderNoByProjectWise(ProjectID, DealNo, ProcessName, Review, Type);

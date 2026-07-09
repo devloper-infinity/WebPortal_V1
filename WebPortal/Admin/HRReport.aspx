@@ -586,7 +586,6 @@
                 <div class="hr-chip">
                     <i class="fas fa-calendar-alt"></i>
                     Monthly Export
-               
                 </div>
             </div>
         </div>

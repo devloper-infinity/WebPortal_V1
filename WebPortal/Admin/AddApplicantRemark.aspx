@@ -57,9 +57,7 @@
         .table.dataTable tr td {
             background: none;
         }
-        /*.form-control {
-            font-size: 11px !important;
-        }*/
+      
     </style>
     <script>
         function sleep(milliseconds) {
@@ -472,7 +470,7 @@
         }
 
         .ar-page {
-            padding: 16px 18px 28px;
+           
             background: linear-gradient(180deg,#f6faff 0%,#eef5fb 100%);
             border-radius: 18px;
         }
@@ -791,8 +789,7 @@
                     <p>Update candidate status, salary details, joining information and remark history.</p>
                 </div>
             </div>
-            <a href="#!" id="aBack" runat="server" class="ar-back" onclick="window.history.go(-1); return false;">
-                <i class="fas fa-arrow-left"></i>Go Back
+            <a href="#!" id="aBack" runat="server" class="ar-back" onclick="window.history.go(-1); return false;">Go Back
             </a>
         </div>
 
@@ -802,6 +799,11 @@
             </div>
             <div class="ar-card-body">
                 <div class="ar-grid">
+                    <div class="ar-col-12 ar-field">
+                        <label>Requisition</label><select id="requisition" name="requisition" class="form-control"><option value="">Select</option>
+                        </select>
+                    </div>
+
                     <div class="ar-col-4 ar-field">
                         <label>Name</label><input id="name" name="name" type="text" class="form-control ar-readonly" />
                     </div>
@@ -825,10 +827,6 @@
                             <option>Rejected</option>
                             <option>Shortlisted for Future Reference</option>
                             <option>Selected</option>
-                        </select>
-                    </div>
-                    <div class="ar-col-12 ar-field">
-                        <label>Requisition</label><select id="requisition" name="requisition" class="form-control"><option value="">Select</option>
                         </select>
                     </div>
 
@@ -908,7 +906,7 @@
                     </div>
 
                     <div class="ar-col-12 ar-actions">
-                        <button class="btn ar-btn-primary" type="button" id="btnapprove" onclick="AddRemarkDB();"><i class="fas fa-plus-circle"></i>Add Remark</button>
+                        <button class="btn ar-btn-primary" type="button" id="btnapprove" onclick="AddRemarkDB();"><i class="fas fa-plus-circle"></i>&nbsp;&nbsp;Add Remark</button>
                     </div>
                 </div>
 
@@ -921,163 +919,163 @@
                     </div>
                 </div>
                 <script type="text/javascript">
-                        function AddRemarkDB() {
-                            $('#waitingpanel').modal('show');
-                            var name = document.getElementById("name").innerHTML;
-                            var position = document.getElementById("position").innerHTML;
-                            var ddldomain = document.getElementById("domain");
-                            var domain = ddldomain.options[ddldomain.selectedIndex].value;
-                            var ddlreq = document.getElementById("requisition");
-                            var reqvalue = ddlreq.options[ddlreq.selectedIndex].value;
-                            var reqtext = ddlreq.options[ddlreq.selectedIndex].text;
-                            var process = document.getElementById("process").value;
-                            var ddlstatus = document.getElementById("status");
-                            var status = ddlstatus.options[ddlstatus.selectedIndex].text;
-                            var ddlmethod = document.getElementById("method");
-                            var method = ddlmethod.options[ddlmethod.selectedIndex].text;
-                            var ddllocation = document.getElementById("location");
-                            var location = ddllocation.options[ddllocation.selectedIndex].text;
-                            var intdate = document.getElementById("intdate").value;
-                            var inttime = document.getElementById("inttime").value;
-                            var newtime = intdate + ' ' + inttime;
-                            var dates = new Date(newtime);
-                            var hours = dates.getHours();
-                            var minutes = dates.getMinutes();
-                            var ampm = hours >= 12 ? 'PM' : 'AM';
-                            hours = hours % 12;
-                            hours = hours ? hours : 12; // the hour '0' should be '12'
-                            hours = hours < 10 ? '0' + hours : hours;
-                            minutes = minutes < 10 ? '0' + minutes : minutes;
-                            var strTime = hours + ':' + minutes + ' ' + ampm;
+                    function AddRemarkDB() {
+                        $('#waitingpanel').modal('show');
+                        var name = document.getElementById("name").innerHTML;
+                        var position = document.getElementById("position").innerHTML;
+                        var ddldomain = document.getElementById("domain");
+                        var domain = ddldomain.options[ddldomain.selectedIndex].value;
+                        var ddlreq = document.getElementById("requisition");
+                        var reqvalue = ddlreq.options[ddlreq.selectedIndex].value;
+                        var reqtext = ddlreq.options[ddlreq.selectedIndex].text;
+                        var process = document.getElementById("process").value;
+                        var ddlstatus = document.getElementById("status");
+                        var status = ddlstatus.options[ddlstatus.selectedIndex].text;
+                        var ddlmethod = document.getElementById("method");
+                        var method = ddlmethod.options[ddlmethod.selectedIndex].text;
+                        var ddllocation = document.getElementById("location");
+                        var location = ddllocation.options[ddllocation.selectedIndex].text;
+                        var intdate = document.getElementById("intdate").value;
+                        var inttime = document.getElementById("inttime").value;
+                        var newtime = intdate + ' ' + inttime;
+                        var dates = new Date(newtime);
+                        var hours = dates.getHours();
+                        var minutes = dates.getMinutes();
+                        var ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12; // the hour '0' should be '12'
+                        hours = hours < 10 ? '0' + hours : hours;
+                        minutes = minutes < 10 ? '0' + minutes : minutes;
+                        var strTime = hours + ':' + minutes + ' ' + ampm;
 
-                            var ddlinterviewer = document.getElementById("interviewer");
-                            var interviewer = ddlinterviewer.options[ddlinterviewer.selectedIndex].value;
-                            var currentsalary = document.getElementById("currentsalary").value;
-                            var expectedsalary = document.getElementById("expectedsalary").value;
-                            var remark = document.getElementById("remark").value;
-                            var finalsalary = document.getElementById("finalsalary").value;
-                            var expjoiningdate = document.getElementById("expjoiningdate").value;
+                        var ddlinterviewer = document.getElementById("interviewer");
+                        var interviewer = ddlinterviewer.options[ddlinterviewer.selectedIndex].value;
+                        var currentsalary = document.getElementById("currentsalary").value;
+                        var expectedsalary = document.getElementById("expectedsalary").value;
+                        var remark = document.getElementById("remark").value;
+                        var finalsalary = document.getElementById("finalsalary").value;
+                        var expjoiningdate = document.getElementById("expjoiningdate").value;
 
-                            var ddldepartment = document.getElementById("department");
-                            var department = ddldepartment.options[ddldepartment.selectedIndex].value;
-                            var departmentName = ddldepartment.options[ddldepartment.selectedIndex].text;
-                            var ddlshift = document.getElementById("shift");
-                            var shift = ddlshift.options[ddlshift.selectedIndex].value;
-                            var ddldesignation = document.getElementById("designation");
-                            var designation = ddldesignation.options[ddldesignation.selectedIndex].value;
-                            var designationName = ddldesignation.options[ddldesignation.selectedIndex].text;
-                            var ddlmanager = document.getElementById("manager");
-                            var manager = ddlmanager.options[ddlmanager.selectedIndex].value;
-                            var managerName = ddlmanager.options[ddlmanager.selectedIndex].text;
-                            var cutofftime = document.getElementById("cutofftime").value;
-                            var otherremark = document.getElementById("otherremark").value;
-                            if (status == 'Select') {
-                                alert("Please select status");
+                        var ddldepartment = document.getElementById("department");
+                        var department = ddldepartment.options[ddldepartment.selectedIndex].value;
+                        var departmentName = ddldepartment.options[ddldepartment.selectedIndex].text;
+                        var ddlshift = document.getElementById("shift");
+                        var shift = ddlshift.options[ddlshift.selectedIndex].value;
+                        var ddldesignation = document.getElementById("designation");
+                        var designation = ddldesignation.options[ddldesignation.selectedIndex].value;
+                        var designationName = ddldesignation.options[ddldesignation.selectedIndex].text;
+                        var ddlmanager = document.getElementById("manager");
+                        var manager = ddlmanager.options[ddlmanager.selectedIndex].value;
+                        var managerName = ddlmanager.options[ddlmanager.selectedIndex].text;
+                        var cutofftime = document.getElementById("cutofftime").value;
+                        var otherremark = document.getElementById("otherremark").value;
+                        if (status == 'Select') {
+                            alert("Please select status");
+                            return;
+                        }
+
+                        if (status == "Proceed For Next Round") {
+                            if (intdate == '') {
+                                alert("Please select interview date");
                                 return;
                             }
-
-                            if (status == "Proceed For Next Round") {
-                                if (intdate == '') {
-                                    alert("Please select interview date");
-                                    return;
-                                }
-                                if (inttime == '') {
-                                    alert("Please select interview time");
-                                    return;
-                                }
-                                if (interviewer == '') {
-                                    alert("Please select interviewer");
-                                    return;
-                                }
-                                if (remark == '') {
-                                    alert("Please enter remark");
-                                    return;
-                                }
-                                expjoiningdate = '';
-                                department = '0';
-                                designation = '0';
-                                manager = '0';
-                                shift = '0';
-                                cutofftime = '';
-                                otherremark = '';
-
+                            if (inttime == '') {
+                                alert("Please select interview time");
+                                return;
                             }
-                            else if (status == "Selected") {
-                                if (finalsalary == '') {
-                                    alert("Please enter final salary");
-                                    return;
-                                }
-                                if (expjoiningdate == '') {
-                                    alert("Please enter expected joining date");
-                                    return;
-                                }
-                                if (department == '') {
-                                    alert("Please select department");
-                                    return;
-                                }
-                                if (shift == '') {
-                                    alert("Please select shift");
-                                    return;
-                                }
-                                if (cutofftime == '') {
-                                    alert("Please enter cut off time");
-                                    return;
-                                }
-                                if (designation == '') {
-                                    alert("Please select designation");
-                                    return;
-                                }
-                                if (manager == '') {
-                                    alert("Please select reporting manager");
-                                    return;
-                                }
-                                intdate = '';
-                                inttime = '';
-                                interviewer = '0';
-                                method = '';
-                                location = '';
+                            if (interviewer == '') {
+                                alert("Please select interviewer");
+                                return;
                             }
-                            else {
-                                intdate = '';
-                                inttime = '';
-                                interviewer = '0';
-                                method = '';
-                                location = '';
-                                expjoiningdate = '';
-                                department = '0';
-                                designation = '0';
-                                manager = '0';
-                                shift = '0';
-                                cutofftime = '';
-                                otherremark = '';
-                                finalsalary = '';
-                                if (reqvalue == '')
-                                    reqvalue = 0;
+                            if (remark == '') {
+                                alert("Please enter remark");
+                                return;
                             }
-                            const urlParams1 = new URLSearchParams(window.location.search);
-                            var AppId1 = urlParams1.get('AppId');
-                            if (AppId1 == null) {
-                                AppId1 = urlParams1.get('ShortlistedRemark');
-                            }
-                            if (AppId1 == null) {
-                                AppId1 = urlParams1.get('InResult');
-                            }
-                            //PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, OnSucceed, OnError);
-                            alert(reqvalue);
-                            PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, expjoiningdate, department, designation, manager, shift, cutofftime, otherremark, reqvalue, reqtext, name, position, departmentName, designationName, managerName, OnSucceed, OnError);
-
-                            return false;
+                            expjoiningdate = '';
+                            department = '0';
+                            designation = '0';
+                            manager = '0';
+                            shift = '0';
+                            cutofftime = '';
+                            otherremark = '';
 
                         }
-                        function OnSucceed(result) {
-                            alert('Remark added successfully!');
-                            $('#waitingpanel').modal('hide');
-                            location.reload();
+                        else if (status == "Selected") {
+                            if (finalsalary == '') {
+                                alert("Please enter final salary");
+                                return;
+                            }
+                            if (expjoiningdate == '') {
+                                alert("Please enter expected joining date");
+                                return;
+                            }
+                            if (department == '') {
+                                alert("Please select department");
+                                return;
+                            }
+                            if (shift == '') {
+                                alert("Please select shift");
+                                return;
+                            }
+                            if (cutofftime == '') {
+                                alert("Please enter cut off time");
+                                return;
+                            }
+                            if (designation == '') {
+                                alert("Please select designation");
+                                return;
+                            }
+                            if (manager == '') {
+                                alert("Please select reporting manager");
+                                return;
+                            }
+                            intdate = '';
+                            inttime = '';
+                            interviewer = '0';
+                            method = '';
+                            location = '';
+                        }
+                        else {
+                            intdate = '';
+                            inttime = '';
+                            interviewer = '0';
+                            method = '';
+                            location = '';
+                            expjoiningdate = '';
+                            department = '0';
+                            designation = '0';
+                            manager = '0';
+                            shift = '0';
+                            cutofftime = '';
+                            otherremark = '';
+                            finalsalary = '';
+                            if (reqvalue == '')
+                                reqvalue = 0;
+                        }
+                        const urlParams1 = new URLSearchParams(window.location.search);
+                        var AppId1 = urlParams1.get('AppId');
+                        if (AppId1 == null) {
+                            AppId1 = urlParams1.get('ShortlistedRemark');
+                        }
+                        if (AppId1 == null) {
+                            AppId1 = urlParams1.get('InResult');
+                        }
+                        //PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, OnSucceed, OnError);
+                        alert(reqvalue);
+                        PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, expjoiningdate, department, designation, manager, shift, cutofftime, otherremark, reqvalue, reqtext, name, position, departmentName, designationName, managerName, OnSucceed, OnError);
 
-                        }
-                        function OnError(error) {
-                            alert(error.responseText);
-                        }
+                        return false;
+
+                    }
+                    function OnSucceed(result) {
+                        alert('Remark added successfully!');
+                        $('#waitingpanel').modal('hide');
+                        location.reload();
+
+                    }
+                    function OnError(error) {
+                        alert(error.responseText);
+                    }
                     </script>
             </div>
 

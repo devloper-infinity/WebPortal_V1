@@ -568,7 +568,18 @@ SELECT 1;");
             return dt;
 
         }
-               
+
+
+        public DataTable GetDealFromLoan(string LoanNo)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_getDealNoFromLoanNo]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, LoanNo);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+
+        }
+
+
 
         public DataTable GetAllOrderNoByProjectWise(int ProjectID, string DealNo, string ProcessName, string Review, string Type)
         {
