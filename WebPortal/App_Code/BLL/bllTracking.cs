@@ -200,9 +200,9 @@ namespace WebPortal.App_Code.BLL
         }
 
        
-        public int InsertModifyUWOrderOC22(Hashtable htParam)
+        public int AllocateOrder_Self(Hashtable htParam)
         {
-            return dalTracking.InsertModifyUWOrderOC22(htParam);
+            return dalTracking.AllocateOrder_Self(htParam);
         }
 
         public int InsertModifyUWOrderOC22Servicing(Hashtable htParam)

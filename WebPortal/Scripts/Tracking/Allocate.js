@@ -1,4 +1,5 @@
 
+console.log('Allocate');
 
 /*---------------- Tab 1 - Order Allocation ----------------*/
 
@@ -32,7 +33,17 @@ $(document).on('shown.bs.tab', 'a[data-toggle="pill"], a[data-toggle="tab"]', ad
 
 $(window).on('resize', adjustAllocateDataTables);
 
-function allocate_bindProject_ICG() {
+
+$('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
+
+    alert('1');
+
+    var rowData = $('#table_OrderAllocate').DataTable().row($(this).closest('tr')).data();
+
+    selectedRows.push(rowData);
+});
+
+function allocate_bindProject() {
 
     $.ajax({
         type: "POST",
@@ -76,13 +87,10 @@ function allocate_bindProject_ICG() {
     return false;
 }
 
+
 function allocate_bindProcess(id) {
 
-    // var prjId = 17;
-
-    var prjId = id.val();
-
-    alert(prjId);
+    var prjId = id.options[id.selectedIndex].value;
 
     $.ajax({
         type: "POST",
@@ -109,6 +117,7 @@ function allocate_bindProcess(id) {
         }
     });
 }
+
 
 function GetLoansToAllocate_bindGrid() {
 
@@ -152,7 +161,7 @@ function GetLoansToAllocate_bindGrid() {
 
                 columns: [
                     {
-                        data: null,
+                        data: "SrNo",
                         render: function (data, type, row, meta) {
                             return meta.row + 1;
                         }
@@ -165,9 +174,9 @@ function GetLoansToAllocate_bindGrid() {
                         }
                     },
                     { data: "ProjectName" },
-                    { data: "Process" },
                     { data: "DealNo" },
                     { data: "LoanNo" },
+                    { data: "Process" },
                     { data: "CurrentStatus" },
                     { data: "Remark" },
                 ],
@@ -183,9 +192,7 @@ function GetLoansToAllocate_bindGrid() {
                 scrollTop: $('#table_OrderAllocate').offset().top - 100
             }, 300);
             // Allow maximum 2 selections
-            $('#table_OrderAllocate tbody')
-                .off('change', '.loan-checkbox')
-                .on('change', '.loan-checkbox', function () {
+            $('#table_OrderAllocate tbody').off('change', '.loan-checkbox').on('change', '.loan-checkbox', function () {
 
                     var checkedCount = $('#table_OrderAllocate tbody .loan-checkbox:checked').length;
 
@@ -212,13 +219,6 @@ function GetLoansToAllocate_bindGrid() {
     });
 }
 
-$('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
-    var rowData = $('#table_OrderAllocate').DataTable()
-        .row($(this).closest('tr'))
-        .data();
-
-    selectedRows.push(rowData);
-});
 
 function AllocateOrders() {
 
@@ -231,10 +231,7 @@ function AllocateOrders() {
 
         if (rowData) {
             selectedLoans.push({
-                Project: rowData.ProjectName,   // change to ProjectNumber if your data has it
-                DealNo: rowData.DealNo,
-                OrderNo: rowData.LoanNo,
-                Process: "Loan Setup"/*  rowData.Process */
+                s_Loans: rowData.SrNo
             });
         }
     });
@@ -262,10 +259,7 @@ function AllocateOrders() {
                     type: "POST",
                     url: "Allocate.aspx/AllocateOrders_Self",
                     data: JSON.stringify({
-                        Project: loan.Project,
-                        DealNo: loan.DealNo,
-                        OrderNo: loan.OrderNo,
-                        Process: loan.Process
+                        Loans: loan.s_Loans
                     }),
                     contentType: "application/json; charset=utf-8",
                     dataType: "json"

@@ -500,7 +500,7 @@
                 grid-template-columns: 1fr;
             }
         }
- 
+
         @media (max-width: 768px) {
             .sec-hero {
                 height: auto;
@@ -696,10 +696,10 @@
             overflow: visible !important;
         }
 
-        #table_OrderComplete_wrapper .row:nth-child(2) {
-            overflow-x: visible !important;
-            margin: 0 !important;
-        }
+            #table_OrderComplete_wrapper .row:nth-child(2) {
+                overflow-x: visible !important;
+                margin: 0 !important;
+            }
 
         #table_OrderComplete,
         #table_OrderComplete.dataTable {
@@ -714,97 +714,134 @@
             background: #fff;
         }
 
-        #table_OrderComplete thead th,
-        #table_OrderComplete.dataTable thead th {
-            background: #f8fafc !important;
-            color: #344054 !important;
-            border-bottom: 1px solid #d9e2f1 !important;
-            font-size: 12px !important;
-            font-weight: 800 !important;
-            text-transform: uppercase;
-            letter-spacing: 0;
-            white-space: normal !important;
-            line-height: 1.2 !important;
-            padding: 12px 10px !important;
-            text-align: left !important;
-            box-sizing: border-box !important;
-        }
+            #table_OrderComplete thead th,
+            #table_OrderComplete.dataTable thead th {
+                background: #f8fafc !important;
+                color: #344054 !important;
+                border-bottom: 1px solid #d9e2f1 !important;
+                font-size: 12px !important;
+                font-weight: 800 !important;
+                text-transform: uppercase;
+                letter-spacing: 0;
+                white-space: normal !important;
+                line-height: 1.2 !important;
+                padding: 12px 10px !important;
+                text-align: left !important;
+                box-sizing: border-box !important;
+            }
 
-        #table_OrderComplete tbody td,
-        #table_OrderComplete.dataTable tbody td {
-            vertical-align: middle !important;
-            border-color: #edf2f8 !important;
-            background: #fff !important;
-            color: #344054;
-            font-size: 13px;
-            padding: 12px 10px !important;
-            white-space: normal !important;
-            overflow-wrap: anywhere;
-            box-sizing: border-box !important;
-        }
+            #table_OrderComplete tbody td,
+            #table_OrderComplete.dataTable tbody td {
+                vertical-align: middle !important;
+                border-color: #edf2f8 !important;
+                background: #fff !important;
+                color: #344054;
+                font-size: 13px;
+                padding: 12px 10px !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere;
+                box-sizing: border-box !important;
+            }
 
-        #table_OrderComplete tbody tr:hover td {
-            background: #f8fafc !important;
-        }
+            #table_OrderComplete tbody tr:hover td {
+                background: #f8fafc !important;
+            }
 
-        #table_OrderComplete th:nth-child(1),
-        #table_OrderComplete td:nth-child(1) { width: 4% !important; }
-        #table_OrderComplete th:nth-child(2),
-        #table_OrderComplete td:nth-child(2) { width: 7% !important; }
-        #table_OrderComplete th:nth-child(3),
-        #table_OrderComplete td:nth-child(3) { width: 7% !important; }
-        #table_OrderComplete th:nth-child(4),
-        #table_OrderComplete td:nth-child(4) { width: 7% !important; }
-        #table_OrderComplete th:nth-child(5),
-        #table_OrderComplete td:nth-child(5) { width: 11% !important; }
-        #table_OrderComplete th:nth-child(6),
-        #table_OrderComplete td:nth-child(6) { width: 16% !important; }
-        #table_OrderComplete th:nth-child(7),
-        #table_OrderComplete td:nth-child(7) { width: 11% !important; }
-        #table_OrderComplete th:nth-child(8),
-        #table_OrderComplete td:nth-child(8) { width: 15% !important; }
-        #table_OrderComplete th:nth-child(9),
-        #table_OrderComplete td:nth-child(9) { width: 8% !important; }
-        #table_OrderComplete th:nth-child(10),
-        #table_OrderComplete td:nth-child(10) { width: 8% !important; }
-        #table_OrderComplete th:nth-child(11),
-        #table_OrderComplete td:nth-child(11) { width: 6% !important; }
+            #table_OrderComplete th:nth-child(1),
+            #table_OrderComplete td:nth-child(1) {
+                width: 4% !important;
+            }
 
-        #table_OrderComplete .form-control {
-            width: 100% !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            height: 44px;
-            border-radius: 8px;
-            font-size: 12px;
-            padding: 8px 9px !important;
-        }
+            #table_OrderComplete th:nth-child(2),
+            #table_OrderComplete td:nth-child(2) {
+                width: 7% !important;
+            }
 
-        #table_OrderComplete textarea.Remark {
-            height: 54px !important;
-            min-height: 54px !important;
-            line-height: 1.35;
-            resize: vertical;
-        }
+            #table_OrderComplete th:nth-child(3),
+            #table_OrderComplete td:nth-child(3) {
+                width: 7% !important;
+            }
 
-        #table_OrderComplete .alloc-open-feedback,
-        #table_OrderComplete .btn.btn-sm {
-            width: 100%;
-            min-width: 0 !important;
-            height: 34px;
-            padding: 0 7px !important;
-            border-radius: 8px !important;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 800;
-            white-space: nowrap !important;
-        }
+            #table_OrderComplete th:nth-child(4),
+            #table_OrderComplete td:nth-child(4) {
+                width: 7% !important;
+            }
+
+            #table_OrderComplete th:nth-child(5),
+            #table_OrderComplete td:nth-child(5) {
+                width: 11% !important;
+            }
+
+            #table_OrderComplete th:nth-child(6),
+            #table_OrderComplete td:nth-child(6) {
+                width: 16% !important;
+            }
+
+            #table_OrderComplete th:nth-child(7),
+            #table_OrderComplete td:nth-child(7) {
+                width: 11% !important;
+            }
+
+            #table_OrderComplete th:nth-child(8),
+            #table_OrderComplete td:nth-child(8) {
+                width: 15% !important;
+            }
+
+            #table_OrderComplete th:nth-child(9),
+            #table_OrderComplete td:nth-child(9) {
+                width: 8% !important;
+            }
+
+            #table_OrderComplete th:nth-child(10),
+            #table_OrderComplete td:nth-child(10) {
+                width: 8% !important;
+            }
+
+            #table_OrderComplete th:nth-child(11),
+            #table_OrderComplete td:nth-child(11) {
+                width: 6% !important;
+            }
+
+            #table_OrderComplete .form-control {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                height: 44px;
+                border-radius: 8px;
+                font-size: 12px;
+                padding: 8px 9px !important;
+            }
+
+            #table_OrderComplete textarea.Remark {
+                height: 54px !important;
+                min-height: 54px !important;
+                line-height: 1.35;
+                resize: vertical;
+            }
+
+            #table_OrderComplete .alloc-open-feedback,
+            #table_OrderComplete .btn.btn-sm {
+                width: 100%;
+                min-width: 0 !important;
+                height: 34px;
+                padding: 0 7px !important;
+                border-radius: 8px !important;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                font-size: 11px;
+                font-weight: 800;
+                white-space: nowrap !important;
+            }
     </style>
 
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../Scripts/Tracking/Allocate.js"></script>
+
+
+
     <script>
 
         $(document).ready(function () {
@@ -816,55 +853,10 @@
 
         });
 
-        function allocate_bindProject() {
-
-            $.ajax({
-                type: "POST",
-                url: "Allocate.aspx/GetAllProjectByUser",
-                data: "{}",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-
-                success: function (response) {
-
-                    var ddl = $("#allocate_project");
-
-                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
-
-                    var data = response.d;
-
-                    if (typeof data === "string") {
-                        data = JSON.parse(data || "[]");
-                    }
-
-                    $.each(data, function (i, item) {
-                        ddl.append(
-                            $("<option></option>")
-                                .val(item.ProjectID)
-                                .text(item.ProjectName)
-                        );
-                    });
-                },
-
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Unable to load project list."
-                    });
-                }
-            });
-
-            return false;
-        }
 
     </script>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Tracking/Allocate.js?v=@DateTime.Now.Ticks"></script>
 
 </asp:Content>
 
@@ -922,7 +914,7 @@
                             <div class="row align-items-end">
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
                                     <label for="bank_name" class="bank-form-label">Project</label>
-                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(id);">
+                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(this);">
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
@@ -949,9 +941,9 @@
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Action</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
                                 </tr>
