@@ -117,9 +117,12 @@ namespace WebPortal.Tracking
 
 
         [WebMethod]
-        public static object GetUserLoans(string UserName)
+        public static object GetUserLoans()
         {
-            DataTable dt = new bllMaster().GetAllProject(); //bllTracking().GetProcessDetails(UserName);
+            string UserName = EmployeeInfo.Current.PseudoName;
+            UserName = "KIP";
+
+            DataTable dt = new bllTracking().GetProcessDetails(UserName);
             dt = dt.AsEnumerable().Take(5).CopyToDataTable();
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 
@@ -162,7 +165,7 @@ namespace WebPortal.Tracking
 
                 if (Project == "561" || Project == "667")
                 {
-                    ReturnValue = new bllTracking().InsertModifyUWOrderOC22Servicing(htParam);
+                    ReturnValue = 10;// new bllTracking().InsertModifyUWOrderOC22Servicing(htParam);
                 }
                 else
                 {

@@ -1,5 +1,6 @@
 
 console.log('Allocate');
+var commaSeparatedSrNo;
 
 /*---------------- Tab 1 - Order Allocation ----------------*/
 
@@ -18,30 +19,6 @@ function getOrderRowValue(row, keys) {
 
     return '';
 }
-
-function adjustAllocateDataTables() {
-    window.setTimeout(function () {
-        $.each(['#table_OrderAllocate', '#table_OrderComplete', '#table_Orderreport'], function (_, selector) {
-            if ($.fn.DataTable.isDataTable(selector)) {
-                $(selector).DataTable().columns.adjust();
-            }
-        });
-    }, 0);
-}
-
-$(document).on('shown.bs.tab', 'a[data-toggle="pill"], a[data-toggle="tab"]', adjustAllocateDataTables);
-
-$(window).on('resize', adjustAllocateDataTables);
-
-
-$('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
-
-    alert('1');
-
-    var rowData = $('#table_OrderAllocate').DataTable().row($(this).closest('tr')).data();
-
-    selectedRows.push(rowData);
-});
 
 function allocate_bindProject() {
 
@@ -87,7 +64,6 @@ function allocate_bindProject() {
     return false;
 }
 
-
 function allocate_bindProcess(id) {
 
     var prjId = id.options[id.selectedIndex].value;
@@ -117,7 +93,6 @@ function allocate_bindProcess(id) {
         }
     });
 }
-
 
 function GetLoansToAllocate_bindGrid() {
 
@@ -194,18 +169,34 @@ function GetLoansToAllocate_bindGrid() {
             // Allow maximum 2 selections
             $('#table_OrderAllocate tbody').off('change', '.loan-checkbox').on('change', '.loan-checkbox', function () {
 
-                    var checkedCount = $('#table_OrderAllocate tbody .loan-checkbox:checked').length;
+                var checkedCount = $('#table_OrderAllocate tbody .loan-checkbox:checked').length;
 
-                    if (checkedCount > 2) {
-                        $(this).prop('checked', false);
+                if (checkedCount > 2) {
+                    $(this).prop('checked', false);
 
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Limit Exceeded',
-                            text: 'You can select only 2 loans at a time.'
-                        });
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Limit Exceeded',
+                        text: 'You can select only 2 loans at a time.'
+                    });
+                }
+
+                var srNoList = [];
+
+                $('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
+                    var rowData = OrderAllocate_table.row($(this).closest('tr')).data();
+
+                    if (rowData) {
+
+                        srNoList.push(rowData.SrNo);   // database SrNo
+                        //srNoList.push(OrderAllocate_table.row($(this).closest('tr')).index() + 1); // table SrNo
                     }
                 });
+
+                commaSeparatedSrNo = srNoList.join(',');
+
+                console.log(commaSeparatedSrNo);
+            });
         },
 
         error: function (xhr) {
@@ -219,79 +210,96 @@ function GetLoansToAllocate_bindGrid() {
     });
 }
 
-
 function AllocateOrders() {
 
     var table = $('#table_OrderAllocate').DataTable();
-    var selectedLoans = [];
+    var selectedSrNo = [];
 
     $('#table_OrderAllocate tbody .loan-checkbox:checked').each(function () {
 
         var rowData = table.row($(this).closest('tr')).data();
 
-        if (rowData) {
-            selectedLoans.push({
-                s_Loans: rowData.SrNo
-            });
+        if (rowData && rowData.SrNo != null) {
+            selectedSrNo.push(rowData.SrNo);
         }
     });
 
-    if (selectedLoans.length === 0) {
-        Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Please select at least one loan.' });
+    if (selectedSrNo.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation Error',
+            text: 'Please select at least one loan.',
+            confirmButtonText: 'OK'
+        });
         return false;
     }
 
+    // Example: "101,102"
+    var commaSeparatedSrNo = selectedSrNo.join(',');
+
     Swal.fire({
         title: 'Are you sure?',
-        text: 'Do you want to allocate selected loan(s)?',
+        text: 'Do you want to allocate ' + selectedSrNo.length + ' selected loan(s)?',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Yes, Allocate'
+        confirmButtonText: 'Yes, Allocate',
+        cancelButtonText: 'Cancel'
     }).then(function (result) {
 
-        if (result.isConfirmed) {
-
-            $('#load1').show();
-
-            var requests = selectedLoans.map(function (loan) {
-
-                return $.ajax({
-                    type: "POST",
-                    url: "Allocate.aspx/AllocateOrders_Self",
-                    data: JSON.stringify({
-                        Loans: loan.s_Loans
-                    }),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json"
-                });
-            });
-
-            $.when.apply($, requests)
-                .done(function () {
-
-                    $('#load1').hide();
-
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Selected loan(s) allocated successfully.' });
-
-                    GetLoansToAllocate_bindGrid();
-                    $("#sectrack_stat_deals").text(selectedLoans.length);
-                })
-                .fail(function (xhr) {
-
-                    $('#load1').hide();
-
-                    console.error(xhr.responseText);
-
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Error while allocating loan(s).' });
-                });
+        if (!result.isConfirmed) {
+            return;
         }
+
+        $('#load1').show();
+
+        $.ajax({
+            type: "POST",
+            url: "Allocate.aspx/AllocateOrders_Self",
+            data: JSON.stringify({
+                Loans: commaSeparatedSrNo
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+
+            success: function (response) {
+
+                $('#load1').hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Selected loan(s) allocated successfully.',
+                    confirmButtonText: 'OK'
+                }).then(function () {
+                    GetLoansToAllocate_bindGrid();
+                });
+
+                $("#sectrack_stat_deals").text(selectedSrNo.length);
+            },
+
+            error: function (xhr) {
+
+                $('#load1').hide();
+
+                console.error(xhr.responseText);
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error while allocating selected loan(s).',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
     });
+
+    return false;
 }
 
 
 /*---------------- Tab 2 - Order Status ----------------*/
 
-function allocate_bindCompleteOrder_Grid() {
+function allocate_CompleteOrder_bindGrid() {
 
     var UserName = 'SHAWN MITCHELL';
     var UserName = 'VPC';
@@ -319,16 +327,7 @@ function allocate_bindCompleteOrder_Grid() {
             $('#table_OrderComplete').DataTable({
 
                 data: dataArray,
-                // dom: 'ftip',
-                // scrollCollapse: true,
                 paging: false,
-                // autoWidth: false,
-                // ordering: false,
-                // processing: true,
-
-                // select: {
-                //     style: 'single'
-                // },
 
                 columns: [
                     {
@@ -338,8 +337,8 @@ function allocate_bindCompleteOrder_Grid() {
                         }
                     },
                     { data: "ProjectName" },
-                    { data: "ProjectName" },
-                    { data: "ProjectName" },
+                    { data: "DealNo" },
+                    { data: "OrderNumber" },
                     {
                         data: null,
                         render: function (data, type, row) {
@@ -385,8 +384,8 @@ function allocate_bindCompleteOrder_Grid() {
                             return `<textarea class="form-control Remark">${data || ""}</textarea>`;
                         }
                     },
-                    { data: "ProjectName" },
-                    { data: "ProjectName" },
+                    { data: "ProcessDate" },
+                    { data: "ProcessDate" },
                     {
                         data: null,
                         title: "Action",
@@ -607,6 +606,20 @@ $(document).on('click', '.openRemarkPopup', function () {
     var row = table.row($(this).closest('tr')).data() || {};
     AllocateFeedbackPopup.open(row);
 });
+
+function adjustAllocateDataTables() {
+    window.setTimeout(function () {
+        $.each(['#table_OrderAllocate', '#table_OrderComplete', '#table_Orderreport'], function (_, selector) {
+            if ($.fn.DataTable.isDataTable(selector)) {
+                $(selector).DataTable().columns.adjust();
+            }
+        });
+    }, 0);
+}
+
+$(document).on('shown.bs.tab', 'a[data-toggle="pill"], a[data-toggle="tab"]', adjustAllocateDataTables);
+
+$(window).on('resize', adjustAllocateDataTables);
 
 
 /*--------- Feedbacks ----------*/

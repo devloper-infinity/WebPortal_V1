@@ -21,20 +21,126 @@ var tablesLoaded = 0;
 var currentStep = 0;
 var waitingModal;
 var progressInterval;
+var exportStarted = false;
+var isExportButtonClicked = false;
+
+function normalizeHRRows(response) {
+    var payload = response && response.d !== undefined ? response.d : response;
+
+    if (typeof payload === "string") {
+        payload = payload.trim();
+
+        if (!payload) {
+            return [];
+        }
+
+        try {
+            payload = JSON.parse(payload);
+        }
+        catch (ex) {
+            showHRGridError("Unable to read report data returned by the server.");
+            console.error("Invalid HR report JSON response", ex, payload);
+            return [];
+        }
+    }
+
+    if (payload && payload.error) {
+        showHRGridError(payload.error);
+        return [];
+    }
+
+    if (payload && $.isArray(payload.data)) {
+        return payload.data;
+    }
+
+    if ($.isArray(payload)) {
+        return payload;
+    }
+
+    if (payload == null) {
+        return [];
+    }
+
+    showHRGridError("Unexpected report data format returned by the server.");
+    console.warn("Unexpected HR report response", response);
+    return [];
+}
+
+function showHRGridError(message) {
+    hidePageLoader();
+
+    var cleanMessage = message || "Unable to load report data.";
+
+    if (typeof Swal !== "undefined") {
+        Swal.fire({
+            icon: "error",
+            title: "Report data not loaded",
+            text: cleanMessage
+        });
+    }
+    else {
+        alert(cleanMessage);
+    }
+}
+
+function showHRGridAjaxError(error) {
+    var message = "Unable to load report data.";
+
+    if (error && error.responseJSON && error.responseJSON.Message) {
+        message = error.responseJSON.Message;
+    }
+    else if (error && error.responseText) {
+        message = error.responseText;
+    }
+
+    showHRGridError(message);
+}
+
+function showPageLoader() {
+    $('#load1').css('display', 'flex');
+}
+
+function hidePageLoader() {
+    $('#load1').hide();
+}
+
+function syncHRDateRange(fromDateOverride, toDateOverride) {
+    fromDate = fromDateOverride || $("#hrUser_fromDate").val() || fromDate;
+    toDate = toDateOverride || $("#hrUser_toDate").val() || toDate;
+
+    if (!fromDate || !toDate) {
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: "warning",
+                title: "Select dates",
+                text: "Please select From Date and To Date."
+            });
+        }
+        else {
+            alert("Select dates");
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
+$(document).on('shown.bs.tab', 'a[data-toggle="pill"]', function () {
+    if ($.fn.dataTable) {
+        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    }
+});
 
 
 /*------------- bind grid -------------*/
 function NonDD_summary_bindGrid(fromDate1, toDate1) {
 
-    fromDate = fromDate1;
-    toDate = toDate1;
-
-    if (!fromDate || !toDate) {
-        alert("Select dates");
+    if (!syncHRDateRange(fromDate1, toDate1)) {
         return;
     }
 
-    $('#load1').show();
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -45,7 +151,7 @@ function NonDD_summary_bindGrid(fromDate1, toDate1) {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             nondd_Summary_table = $('#table_nondd_Summary').DataTable({
                 destroy: true,
@@ -59,6 +165,7 @@ function NonDD_summary_bindGrid(fromDate1, toDate1) {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -79,22 +186,15 @@ function NonDD_summary_bindGrid(fromDate1, toDate1) {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
             });
 
-            if (dataArray.length == 0) {
-
-                $('#load1').hide();
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -102,7 +202,9 @@ function NonDD_summary_bindGrid(fromDate1, toDate1) {
 
 function NonDD_Prod_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -113,7 +215,7 @@ function NonDD_Prod_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             nondd_prod_table = $('#table_nondd_prod').DataTable({
                 destroy: true,
@@ -127,6 +229,7 @@ function NonDD_Prod_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -144,21 +247,15 @@ function NonDD_Prod_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
             });
 
-            if (dataArray.length == 0) {
-                $('#load1').hide();
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -166,7 +263,9 @@ function NonDD_Prod_bindGrid() {
 
 function NonDD_feedback_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -177,7 +276,7 @@ function NonDD_feedback_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             nondd_feedback_table = $('#table_nondd_feedback').DataTable({
                 destroy: true,
@@ -191,6 +290,7 @@ function NonDD_feedback_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -223,21 +323,15 @@ function NonDD_feedback_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
             });
 
-            if (dataArray.length == 0) {
-                $('#load1').hide();
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -245,7 +339,9 @@ function NonDD_feedback_bindGrid() {
 
 function NonDD_attn_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -256,7 +352,7 @@ function NonDD_attn_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             nondd_attn_table = $('#table_nondd_attn').DataTable({
                 destroy: true,
@@ -270,6 +366,7 @@ function NonDD_attn_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -291,21 +388,16 @@ function NonDD_attn_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
 
             });
 
-            if (dataArray.length == 0) {
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -314,7 +406,9 @@ function NonDD_attn_bindGrid() {
 
 function cred_summary_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -325,7 +419,7 @@ function cred_summary_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             cred_Summary_table = $('#table_cred_Summary').DataTable({
                 destroy: true,
@@ -339,6 +433,7 @@ function cred_summary_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -359,20 +454,15 @@ function cred_summary_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
             });
 
-            if (dataArray.length == 0) {
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -380,7 +470,9 @@ function cred_summary_bindGrid() {
 
 function cred_Prod_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -391,7 +483,7 @@ function cred_Prod_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             cred_prod_table = $('#table_cred_prod').DataTable({
                 destroy: true,
@@ -405,6 +497,7 @@ function cred_Prod_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -421,21 +514,16 @@ function cred_Prod_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
 
             });
 
-            if (dataArray.length == 0) {
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -443,7 +531,9 @@ function cred_Prod_bindGrid() {
 
 function cred_feedback_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -454,7 +544,7 @@ function cred_feedback_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             cred_feedback_table = $('#table_cred_feedback').DataTable({
                 destroy: true,
@@ -468,6 +558,7 @@ function cred_feedback_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -500,7 +591,7 @@ function cred_feedback_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
@@ -508,9 +599,7 @@ function cred_feedback_bindGrid() {
             });
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -518,7 +607,9 @@ function cred_feedback_bindGrid() {
 
 function cred_attn_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -529,7 +620,7 @@ function cred_attn_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             cred_attn_table = $('#table_cred_attn').DataTable({
                 destroy: true,
@@ -543,6 +634,7 @@ function cred_attn_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 dom: 'ftip',
                 columns: [
                     { data: 'Code', title: 'Code' },
@@ -561,21 +653,16 @@ function cred_attn_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
 
             });
 
-            if (dataArray.length == 0) {
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -584,7 +671,9 @@ function cred_attn_bindGrid() {
 
 function serv_summary_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -595,7 +684,7 @@ function serv_summary_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             serv_Summary_table = $('#table_serv_Summary').DataTable({
                 destroy: true,
@@ -609,6 +698,7 @@ function serv_summary_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -629,21 +719,16 @@ function serv_summary_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
 
             });
 
-            if (dataArray.length == 0) {
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -651,7 +736,9 @@ function serv_summary_bindGrid() {
 
 function serv_Prod_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -662,7 +749,7 @@ function serv_Prod_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             serv_prod_table = $('#table_serv_prod').DataTable({
                 destroy: true,
@@ -676,6 +763,7 @@ function serv_Prod_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -693,21 +781,16 @@ function serv_Prod_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
 
             });
 
-            if (dataArray.length == 0) {
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -715,7 +798,9 @@ function serv_Prod_bindGrid() {
 
 function serv_feedback_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -726,7 +811,7 @@ function serv_feedback_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             serv_feedback_table = $('#table_serv_feedback').DataTable({
                 destroy: true,
@@ -740,6 +825,7 @@ function serv_feedback_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 language: {
                     emptyTable: "No data available"
                 },
@@ -772,16 +858,14 @@ function serv_feedback_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
             });
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -789,7 +873,9 @@ function serv_feedback_bindGrid() {
 
 function serv_attn_bindGrid() {
 
-    $('#load1').show();
+    if (!syncHRDateRange()) return false;
+
+    showPageLoader();
 
     $.ajax({
         type: "POST",
@@ -800,7 +886,7 @@ function serv_attn_bindGrid() {
 
         success: function (data) {
 
-            var dataArray = data.d || [];
+            var dataArray = normalizeHRRows(data);
 
             serv_attn_table = $('#table_serv_attn').DataTable({
                 destroy: true,
@@ -814,6 +900,7 @@ function serv_attn_bindGrid() {
                 ordering: false,
                 searching: false,
                 autoWidth: false,
+                columnDefs: [{ targets: '_all', defaultContent: '' }],
                 dom: 'ftip',
                 columns: [
                     { data: 'Code', title: 'Code' },
@@ -832,25 +919,19 @@ function serv_attn_bindGrid() {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    hidePageLoader();
                     tableLoaded();
                 },
 
                 //complete: function () {
-                //    $('#load1').hide();
+                //    hidePageLoader();
                 //    tableLoaded();
                 //},
             });
 
-            if (dataArray.length == 0) {
-                $('#load1').hide();
-                tableLoaded();
-            }
         },
 
-        error: function (error) {
-            alert(error.responseText);
-        }
+        error: showHRGridAjaxError
     });
 
     return false;
@@ -858,16 +939,78 @@ function serv_attn_bindGrid() {
 
 
 /*------------- export to excel -------------*/
+function getExcelStepCount() {
+    return $(".excel-steps li").length || tablesToLoad + 1 || 13;
+}
+
+function getExcelStepLabel(stepItem) {
+    var label = stepItem.data("label");
+
+    if (!label) {
+        label = $.trim(stepItem.find(".excel-step-name").text() || stepItem.text());
+        label = label.replace(/^[^A-Za-z0-9]+/, "").trim();
+        stepItem.data("label", label);
+    }
+
+    return label;
+}
+
+function renderExcelStep(stepItem, stateClass) {
+    var label = getExcelStepLabel(stepItem);
+
+    stepItem.removeClass("step-active activeStep step-done");
+
+    if (stateClass) {
+        stepItem.addClass(stateClass);
+    }
+
+    stepItem.empty()
+        .append($("<span>", { "class": "excel-step-marker", "aria-hidden": "true" }))
+        .append($("<span>", { "class": "excel-step-name", text: label }));
+}
+
+function setExcelProgress(percent) {
+    var value = Math.max(0, Math.min(100, Math.round(percent)));
+
+    $("#excelProgressBar")
+        .css("width", value + "%")
+        .attr("aria-valuenow", value);
+
+    $("#excelProgressText").text(value + "%");
+}
+
+function resetExcelProgress() {
+    setExcelProgress(0);
+
+    $(".excel-steps li").each(function (index) {
+        renderExcelStep($(this), index === 0 ? "step-active" : "");
+    });
+}
+
+function setExcelStepState(activeStep) {
+    var totalSteps = getExcelStepCount();
+    var boundedStep = Math.max(1, Math.min(totalSteps, activeStep));
+
+    $(".excel-steps li").each(function () {
+        var stepNumber = parseInt(this.id.replace("step", ""), 10);
+        var stateClass = "";
+
+        if (stepNumber < boundedStep) {
+            stateClass = "step-done";
+        }
+        else if (stepNumber === boundedStep) {
+            stateClass = "step-active";
+        }
+
+        renderExcelStep($(this), stateClass);
+    });
+}
+
 function showWaiting() {
     waitingModal = new bootstrap.Modal(document.getElementById('waitingpanel'));
     waitingModal.show();
 
-    $("#excelProgressBar").css("width", "0%");
-
-    $(".excel-steps li").each(function () {
-        var text = $(this).text().substring(2);
-        $(this).text("⬜ " + text);
-    });
+    resetExcelProgress();
 
     tablesLoaded = 0;
     currentStep = 0;
@@ -880,25 +1023,25 @@ function hideWaiting() {
 function updateProgressStep() {
     currentStep++;
 
-    var percent = (currentStep / tablesToLoad) * 100;
-    $("#excelProgressBar").css("width", percent + "%");
+    var totalSteps = getExcelStepCount();
+    var boundedStep = Math.min(currentStep, totalSteps);
+    var percent = (boundedStep / totalSteps) * 100;
 
-    var stepItem = $("#step" + currentStep);
-    var text = stepItem.text().substring(2);
-
-    // Highlight current step
-    $("#excelSteps li").removeClass("activeStep");
-    stepItem.addClass("activeStep");
-
-    stepItem.text("✔ " + text);
+    setExcelProgress(percent);
+    setExcelStepState(boundedStep);
 
     // Safe scroll
+    var stepItem = $("#step" + boundedStep);
     if (stepItem.length) {
         stepItem[0].scrollIntoView({ behavior: "smooth", block: "center" });
     }
 }
 
 function tableLoaded() {
+    if (!isExportButtonClicked) {
+        return;
+    }
+
     tablesLoaded++;
 
     console.log("Tables Loaded: " + tablesLoaded);
@@ -1043,7 +1186,7 @@ function exportNow() {
 function exportAllDataTables() {
 
     isExportButtonClicked = true;
-    $('#load1').hide();
+    hidePageLoader();
 
     fromDate = $("#hrUser_fromDate").val();
     toDate = $("#hrUser_toDate").val();
@@ -1098,40 +1241,20 @@ function server_showWaiting() {
     waitingModal = new bootstrap.Modal(document.getElementById('waitingpanel'));
     waitingModal.show();
 
-    $("#excelProgressBar").css("width", "0%");
-    $(".excel-steps li").each(function () {
-        var text = $(this).text().substring(2);
-        $(this).text("⬜ " + text);
-    });
+    resetExcelProgress();
 }
 
 function server_updateProgress(step) {
 
-    var totalSteps = 13;
+    var totalSteps = getExcelStepCount();
+    var boundedStep = Math.max(1, Math.min(totalSteps, step));
 
-    $(".excel-steps li").each(function () {
-        var id = $(this).attr("id").replace("step", "");
-        id = parseInt(id);
+    setExcelStepState(boundedStep);
+    setExcelProgress((boundedStep / totalSteps) * 100);
+}
 
-        var text = $(this).text().substring(2);
-
-        if (id < step) {
-            $(this).text("✔ " + text);
-            $(this).removeClass("step-active").addClass("step-done");
-        }
-        else if (id == step) {
-            $(this).text("⏳ " + text);
-            $(this).removeClass("step-done").addClass("step-active");
-        }
-        else {
-            $(this).text("⬜ " + text);
-            $(this).removeClass("step-active step-done");
-        }
-    });
-
-    // Progress Bar
-    var percent = ((step - 1) / totalSteps) * 100;
-    $("#excelProgressBar").css("width", percent + "%");
+function updateProgress(step) {
+    server_updateProgress(step);
 }
 
 function exportExcel() {
@@ -1165,7 +1288,7 @@ function checkExportProgress() {
             updateProgress(step);
 
             if (step >= 13) {
-                $("#excelProgressBar").css("width", "100%");
+                setExcelProgress(100);
 
                 clearInterval(progressInterval);
 
@@ -1199,7 +1322,7 @@ function core_tableLoaded() {
 
 function Core_exportAllDataTables() {
 
-    $('#load1').hide();
+    hidePageLoader();
 
     fromDate = $("#hrUser_fromDate").val();
     toDate = $("#hrUser_toDate").val();
