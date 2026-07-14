@@ -117,6 +117,32 @@ namespace WebPortal.US
         }
 
         [WebMethod]
+        public static int UpdateUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client, string Finding, string Severity)
+        {
+            Hashtable htParam = new Hashtable();
+            htParam.Add("FeedbackID", FeedbackID);
+            htParam.Add("LoanNo", LoanNo);
+            htParam.Add("Client", Client);
+            htParam.Add("Finding", Finding);
+            htParam.Add("Severity", Severity);
+            htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            return new bllUS().UpdateUSImportedFeedback_NewERP(htParam);
+        }
+
+        [WebMethod]
+        public static int DeleteUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client)
+        {
+            Hashtable htParam = new Hashtable();
+            htParam.Add("FeedbackID", FeedbackID);
+            htParam.Add("LoanNo", LoanNo);
+            htParam.Add("Client", Client);
+            htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            return new bllUS().DeleteUSImportedFeedback_NewERP(htParam);
+        }
+
+        [WebMethod]
         public static int CompleteLoan(int ProcessID)
         {
             DataTable dt = new bllUS().GetLoanDetails_RemoteUW_ByID(ProcessID);

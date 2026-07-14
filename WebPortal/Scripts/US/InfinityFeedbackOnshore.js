@@ -280,8 +280,8 @@ function bind_onshoredata(date1, date2) {
                         }
                     },
                     { data: 'Client', title: 'Client' },
-                    { data: 'UWName', title: 'UW Name' },
-                    { data: 'QCName', title: 'QC Name' },
+                    { data: 'UWName', title: 'UW Name', className: 'text-nowrap' },
+                    { data: 'QCName', title: 'QC Name', className: 'text-nowrap' },
                     { data: 'DateReviewed', title: 'Date Reviewed' },
                     { data: 'QCDate', title: 'QC Date' },
                     { data: 'Category', title: 'Category' },
