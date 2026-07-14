@@ -131,6 +131,16 @@ namespace WebPortal.App_Code.BLL
             return dalUS.InsertUSImportedFeedback_NewERP(htParam);
         }
 
+        public int UpdateUSImportedFeedback_NewERP(Hashtable htParam)
+        {
+            return dalUS.UpdateUSImportedFeedback_NewERP(htParam);
+        }
+
+        public int DeleteUSImportedFeedback_NewERP(Hashtable htParam)
+        {
+            return dalUS.DeleteUSImportedFeedback_NewERP(htParam);
+        }
+
         public int InsertModifyUWOrderOC22Servicing(Hashtable htParam)
         {
             return dalUS.InsertModifyUWOrderOC22Servicing(htParam);

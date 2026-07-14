@@ -362,6 +362,20 @@
                 width: 100%;
             }
         }
+
+        .feedback-row-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            margin: 0 2px;
+            border: 0;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .feedback-row-action.edit { background: #2f80ed; }
+        .feedback-row-action.delete { background: #dc3545; }
     </style>
 
 <script>
@@ -456,8 +470,12 @@
                 </div>
 
                 <div class="feedback-actions">
+                    <input type="hidden" id="USFeedback_EditId" value="0" />
                     <button class="btn btn-primary" type="button" id="btnAddFeedback" onclick="return OnClickAddFeedback();">
                         <i class="fas fa-plus"></i>&nbsp; Add Feedback
+                    </button>
+                    <button class="btn btn-secondary" type="button" id="btnCancelEdit" style="display:none;" onclick="return CancelFeedbackEdit();">
+                        <i class="fas fa-times"></i>&nbsp; Cancel Edit
                     </button>
                     <button class="btn btn-primary" type="button" id="btnCompleteLoan" onclick="return OnClickCompleteLoan();">
                         <i class="fas fa-check"></i>&nbsp; Complete Loan
@@ -478,6 +496,7 @@
                     <table class="table" id="table_usfeedback" style="padding-top: 10px; width: 100%!important;">
                         <thead>
                             <tr>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Actions</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Sr. #</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan #</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>

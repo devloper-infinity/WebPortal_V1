@@ -197,6 +197,7 @@ var LoanNo = "";
 var usfeedback_html;
 var usfeedback_table;
 var ProcessFeedbackID = 0;
+var feedbackRows = [];
 
 function BindInfinityFeedback_US(ProcessID) {
 
@@ -261,6 +262,7 @@ function OnClickAddFeedback() {
     var FeedbackRecDate = document.getElementById("USLoanDetails_DateReviewed").value;
     var QcDate = document.getElementById("USLoanDetails_QcDate").value;
     var Source = "ReQC";
+    var FeedbackID = parseInt(document.getElementById("USFeedback_EditId").value, 10) || 0;
 
     if (Finding == "") {
         Swal.fire({
@@ -278,6 +280,35 @@ function OnClickAddFeedback() {
             title: 'Validation',
             text: 'Please select Severity.'
         });
+        return false;
+    }
+
+    if (FeedbackID > 0) {
+        PageMethods.UpdateUSImportedFeedback_NewERP(
+            FeedbackID,
+            LoanNo,
+            Client,
+            Finding,
+            Severity,
+            function (result) {
+                if (result > 0) {
+                    CancelFeedbackEdit();
+                    BindUSFeedbackDetails_Grid(LoanNo);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Feedback updated successfully.'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Not updated',
+                        text: 'The feedback was not found or you do not have permission to update it.'
+                    });
+                }
+            },
+            showFeedbackRequestError
+        );
         return false;
     }
 
@@ -318,14 +349,7 @@ function OnClickAddFeedback() {
             }
         },
 
-        function (error) {
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.responseText
-            });
-        }
+        showFeedbackRequestError
     );
 
     return false;
@@ -417,25 +441,33 @@ function BindUSFeedbackDetails_Grid(loanNo) {
     $.ajax({
         url: "AddFeedback.aspx/GetUSImportedFeedback_ByUser_NewERP",
         type: "POST",
-        data: "{LoanNo:'" + loanNo + "'}",
+        data: JSON.stringify({ LoanNo: loanNo }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
         success: function (data) {
             var dataArray = JSON.parse(data.d);
+            feedbackRows = dataArray || [];
 
-            $.each(dataArray, function (index, value) {
+            $.each(feedbackRows, function (index, value) {
+
+                var feedbackId = getFeedbackId(value);
 
                 usfeedback_html += '<tr>';
-                html += '<td style="white-space:nowrap;text-align:center;">' +
-                    '<button type="button" class="btn-edit-feedback" title="Edit" onclick="EditFeedback(' + index + ');">' +
-                    '<i class="fas fa-edit"></i></button></td>';
-                usfeedback_html += '<td style="text-wrap: nowrap;text-align: center;">' + blankForNull(value.SrNo) + '</td>';
-                usfeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LoanNo) + '</td>';
-                usfeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Severity) + '</td>';
-                usfeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Finding) + '</td>';
-                usfeedback_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.AddedByName) + '</td>';
-                usfeedback_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.AddedDate) + '</td>';
+                usfeedback_html += '<td style="white-space:nowrap;text-align:center;">';
+                if (feedbackId > 0) {
+                    usfeedback_html += '<button type="button" class="feedback-row-action edit" title="Edit feedback" aria-label="Edit feedback" onclick="return EditFeedback(' + index + ');">' +
+                        '<i class="fas fa-edit"></i></button>' +
+                        '<button type="button" class="feedback-row-action delete" title="Delete feedback" aria-label="Delete feedback" onclick="return DeleteFeedback(' + index + ');">' +
+                        '<i class="fas fa-trash-alt"></i></button>';
+                }
+                usfeedback_html += '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap;text-align: center;">' + feedbackHtml(value.SrNo) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.LoanNo) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.Severity) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.Finding) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap; display:none;">' + feedbackHtml(value.AddedByName) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap; display:none;">' + feedbackHtml(value.AddedDate) + '</td>';
 
                 usfeedback_html += '</tr>';
 
@@ -488,6 +520,53 @@ function EditFeedback(index) {
     return false;
 }
 
+function DeleteFeedback(index) {
+    var row = feedbackRows[index];
+    if (!row) return false;
+
+    var feedbackId = getFeedbackId(row);
+    if (!feedbackId) return false;
+
+    var loanNo = document.getElementById("USLoanDetails_LoanNo").value;
+    var client = document.getElementById("USLoanDetails_Client").value;
+
+    Swal.fire({
+        title: 'Delete feedback?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, delete',
+        cancelButtonText: 'Cancel'
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        PageMethods.DeleteUSImportedFeedback_NewERP(
+            feedbackId,
+            loanNo,
+            client,
+            function (deleteResult) {
+                if (deleteResult > 0) {
+                    if ((parseInt($('#USFeedback_EditId').val(), 10) || 0) === feedbackId) {
+                        CancelFeedbackEdit();
+                    }
+                    BindUSFeedbackDetails_Grid(loanNo);
+                    Swal.fire({ icon: 'success', title: 'Deleted', text: 'Feedback deleted successfully.' });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Not deleted',
+                        text: 'The feedback was not found or you do not have permission to delete it.'
+                    });
+                }
+            },
+            showFeedbackRequestError
+        );
+    });
+
+    return false;
+}
+
 function CancelFeedbackEdit() {
     $('#USFeedback_EditId').val('0');
     $('#USLoanDetails_Severity').val('');
@@ -495,6 +574,23 @@ function CancelFeedbackEdit() {
     $('#btnAddFeedback').html('<i class="fas fa-plus"></i>&nbsp; Add Feedback');
     $('#btnCancelEdit').hide();
     return false;
+}
+
+function getFeedbackId(row) {
+    return parseInt(row.FeedbackID || row.FeedbackId || row.ID || row.Id, 10) || 0;
+}
+
+function feedbackHtml(value) {
+    if (value === null || value === undefined) return '';
+    return $('<div/>').text(value).html();
+}
+
+function showFeedbackRequestError(error) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.get_message ? error.get_message() : error.responseText
+    });
 }
 
 

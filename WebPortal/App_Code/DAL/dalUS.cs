@@ -238,6 +238,67 @@ ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+        public int UpdateUSImportedFeedback_NewERP(Hashtable htParam)
+        {
+            string query = @"
+                SET NOCOUNT ON;
+                IF @Client = '561'
+                    UPDATE ImportedFeedbacks_Servicing
+                    SET Finding = @Finding, Severity = @Severity
+                    WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
+                      AND Client = @Client AND AddedBy = @AddedBy;
+                ELSE
+                    UPDATE ImportedFeedbacks
+                    SET Finding = @Finding, Severity = @Severity
+                    WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
+                      AND Client = @Client AND AddedBy = @AddedBy;
+                SET @RowsAffected = @@ROWCOUNT;";
+
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, query);
+            AddFeedbackMutationParameters(cmd, htParam, true);
+            SQLHelper.AddParamToSQLCmd(cmd, "@RowsAffected", SqlDbType.Int, 0, ParameterDirection.Output, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int rowsAffected = Convert.ToInt32(cmd.Parameters["@RowsAffected"].Value);
+            cmd.Dispose();
+            return rowsAffected;
+        }
+
+        public int DeleteUSImportedFeedback_NewERP(Hashtable htParam)
+        {
+            string query = @"
+                SET NOCOUNT ON;
+                IF @Client = '561'
+                    DELETE FROM ImportedFeedbacks_Servicing
+                    WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
+                      AND Client = @Client AND AddedBy = @AddedBy;
+                ELSE
+                    DELETE FROM ImportedFeedbacks
+                    WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
+                      AND Client = @Client AND AddedBy = @AddedBy;
+                SET @RowsAffected = @@ROWCOUNT;";
+
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, query);
+            AddFeedbackMutationParameters(cmd, htParam, false);
+            SQLHelper.AddParamToSQLCmd(cmd, "@RowsAffected", SqlDbType.Int, 0, ParameterDirection.Output, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int rowsAffected = Convert.ToInt32(cmd.Parameters["@RowsAffected"].Value);
+            cmd.Dispose();
+            return rowsAffected;
+        }
+
+        private static void AddFeedbackMutationParameters(SqlCommand cmd, Hashtable htParam, bool includeValues)
+        {
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", SqlDbType.Int, 0, ParameterDirection.Input, htParam["FeedbackID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Client"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            if (includeValues)
+            {
+                SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
+                SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Severity"]);
+            }
+        }
+
 
         // ********* for underwriting database
         public int InsertModifyUWOrderOC22Servicing(Hashtable htParam)
