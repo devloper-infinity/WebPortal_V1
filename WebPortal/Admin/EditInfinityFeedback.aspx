@@ -439,7 +439,7 @@
                     </div>
                     <div class="inf-field">
                         <label for="infFeedback_Severity">Severity</label>
-                        <select id="infFeedback_Severity" name="infFeedback_Severity" class="form-control">
+                        <select id="infFeedback_Severity" name="infFeedback_Severity" class="form-control" disabled>
                             <option value="">Select</option>
                             <option value="Critical">Critical</option>
                             <option value="Non-Critical">Non-Critical</option>
