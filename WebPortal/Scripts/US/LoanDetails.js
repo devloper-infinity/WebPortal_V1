@@ -427,6 +427,9 @@ function BindUSFeedbackDetails_Grid(loanNo) {
             $.each(dataArray, function (index, value) {
 
                 usfeedback_html += '<tr>';
+                html += '<td style="white-space:nowrap;text-align:center;">' +
+                    '<button type="button" class="btn-edit-feedback" title="Edit" onclick="EditFeedback(' + index + ');">' +
+                    '<i class="fas fa-edit"></i></button></td>';
                 usfeedback_html += '<td style="text-wrap: nowrap;text-align: center;">' + blankForNull(value.SrNo) + '</td>';
                 usfeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LoanNo) + '</td>';
                 usfeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Severity) + '</td>';
@@ -468,6 +471,29 @@ function BindUSFeedbackDetails_Grid(loanNo) {
             alert('error; ' + error.responseText);
         }
     });
+    return false;
+}
+
+function EditFeedback(index) {
+    var row = feedbackRows[index];
+    if (!row) return false;
+
+    $('#USFeedback_EditId').val(getFeedbackId(row));
+    $('#USLoanDetails_Severity').val(row.Severity || '');
+    $('#USLoanDetails_Finding').val(row.Finding || '');
+    $('#btnAddFeedback').html('<i class="fas fa-save"></i>&nbsp; Update Feedback');
+    $('#btnCancelEdit').show();
+    $('#USLoanDetails_Severity').focus();
+    $('html, body').animate({ scrollTop: $('.feedback-card').first().offset().top - 15 }, 250);
+    return false;
+}
+
+function CancelFeedbackEdit() {
+    $('#USFeedback_EditId').val('0');
+    $('#USLoanDetails_Severity').val('');
+    $('#USLoanDetails_Finding').val('');
+    $('#btnAddFeedback').html('<i class="fas fa-plus"></i>&nbsp; Add Feedback');
+    $('#btnCancelEdit').hide();
     return false;
 }
 
@@ -1642,7 +1668,7 @@ function us_rpt_getproductionSummary() {
                 "data": dataArray,
                 columns: columns,
                 columnDefs: [
-                    { targets: [15, 17, 18], visible: false }
+                    { targets: [15,16, 17], visible: false }
                 ],
                 fnCreatedRow: function (nRow, aData, iDataIndex) {
                     $(nRow).children("td").css("text-wrap", "nowrap");
