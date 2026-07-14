@@ -4375,6 +4375,26 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, FeedbackID);
             SQLHelper.AddParamToSQLCmd(cmd, "@Subdomain", System.Data.SqlDbType.NVarChar, 0, System.Data.ParameterDirection.Input, Subdomain);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                SqlCommand statusCmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
+                    "IF @Subdomain IN (N'C', N'Credit') " +
+                    "SELECT ISNULL([Finding Status], N'') FROM dbo.ImportedFeedbacks WHERE FeedbackID = @FeedbackID; " +
+                    "ELSE " +
+                    "SELECT ISNULL([Finding Status], N'') FROM dbo.ImportedFeedbacks_Servicing WHERE FeedbackID = @FeedbackID;");
+                SQLHelper.AddParamToSQLCmd(statusCmd, "@FeedbackID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, FeedbackID);
+                SQLHelper.AddParamToSQLCmd(statusCmd, "@Subdomain", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Subdomain);
+
+                object feedbackStatus = SQLHelper.ExecuteScalarCmd(statusCmd);
+                if (!dt.Columns.Contains("FeedbackStatus"))
+                    dt.Columns.Add("FeedbackStatus", typeof(string));
+
+                dt.Rows[0]["FeedbackStatus"] = feedbackStatus == null || feedbackStatus == DBNull.Value
+                    ? string.Empty
+                    : feedbackStatus.ToString();
+            }
+
             return dt;
         }
 
@@ -4403,11 +4423,13 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackReceivedDate", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["FeedbackReceivedDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@IsDisplayInERP", System.Data.SqlDbType.Bit, 10, System.Data.ParameterDirection.Input, htParam["IsDisplayInERP"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Subdomain", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Subdomain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackStatus", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FeedbackStatus"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
             cmd.Dispose();
+                   
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 

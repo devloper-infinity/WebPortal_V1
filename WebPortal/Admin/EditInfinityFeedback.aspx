@@ -4,6 +4,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -148,6 +149,11 @@
 
         .inf-field {
             min-width: 0;
+        }
+
+        .inf-severity-dependent[hidden],
+        .inf-feedback-status-field[hidden] {
+            display: none !important;
         }
 
         .inf-field-wide {
@@ -328,12 +334,17 @@
             const urlParams = new URLSearchParams(window.location.search);
             const FeedbackID = urlParams.get('FID');
             const subdomain = urlParams.get('s');
+
+            $('#infFeedback_Severity').on('change', toggleSeverityDependentFields);
+            toggleSeverityDependentFields();
             BindInfinityFeedback(FeedbackID, subdomain);
 
             //  BingProductionDataGrid('9761798470', 'EDWIN ROBERT'); //9761798470	2377	EDWIN ROBERT
         });
 
     </script>
+
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -402,27 +413,27 @@
 
                 <div class="inf-section-title"><i class="fas fa-triangle-exclamation"></i>Feedback Classification</div>
                 <div class="inf-form-grid">
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_Category">Category</label>
                         <input type="text" id="infFeedback_Category" name="infFeedback_Category" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_SubCategory">Sub Category</label>
                         <input type="text" id="infFeedback_SubCategory" name="infFeedback_SubCategory" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_ErrorField">Error Field</label>
                         <input type="text" id="infFeedback_ErrorField" name="infFeedback_Sategory" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_Screen">Screen</label>
                         <input type="text" id="infFeedback_Screen" name="infFeedback_Screen" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_ErrorType">Error Type</label>
                         <input type="text" id="infFeedback_ErrorType" name="infFeedback_ErrorType" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_FeedbackType">Feedback Type</label>
                         <input type="text" id="infFeedback_FeedbackType" name="infFeedback_FeedbackType" class="form-control" />
                     </div>
@@ -435,6 +446,14 @@
                             <option value="No Error">No Error</option>
                         </select>
                     </div>
+                    <div class="inf-field inf-feedback-status-field" hidden="hidden">
+                        <label for="infFeedback_FeedbackStatus">Feedback Status</label>
+                        <select id="infFeedback_FeedbackStatus" name="infFeedback_FeedbackStatus" class="form-control">
+                            <option value="">Select</option>
+                            <option value="Agree">Agree</option>
+                            <option value="Disagree">Disagree</option>
+                        </select>
+                    </div>
                     <div class="inf-field">
                         <label for="infFeedback_Source">Source</label>
                         <input type="text" id="infFeedback_Source" name="infFeedback_Source" class="form-control" />
@@ -443,12 +462,12 @@
                         <label for="infFeedback_FeedbackRecDate">Feedback Received Date</label>
                         <input type="text" id="infFeedback_FeedbackRecDate" name="infFeedback_FeedbackRecDate" class="form-control" />
                     </div>
-                    <div class="inf-field inf-field-wide">
+                    <div class="inf-field inf-field-wide inf-severity-dependent">
                         <label for="infFeedback_Finding">Finding</label>
                         <textarea id="infFeedback_Finding" name="infFeedback_Finding" class="form-control"></textarea>
                     </div>
-                    <div class="inf-field inf-field-wide">
-                        <label for="infFeedback_RCA">RCA</label>
+                    <div class="inf-field inf-field-wide inf-severity-dependent">
+                        <label for="infFeedback_RCA">RCA / Rebuttal Comments</label>
                         <textarea id="infFeedback_RCA" name="infFeedback_RCA" class="form-control"></textarea>
                     </div>
                 </div>
@@ -474,7 +493,7 @@
                 <table class="table" id="table_productionData">
                     <thead>
                         <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display:none;">Actions</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">ProdID</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Code</th>

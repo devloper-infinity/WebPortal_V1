@@ -179,6 +179,10 @@
             max-width: 1180px;
         }
 
+        .alloc-status-modal .modal-dialog {
+            max-width: 760px;
+        }
+
         .alloc-open-feedback {
             align-items: center;
             background: #eefaf8;
@@ -268,6 +272,10 @@
             grid-template-columns: repeat(5, minmax(0, 1fr));
             margin-bottom: 14px;
             overflow: hidden;
+        }
+
+        .alloc-status-context-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
         .alloc-context-item {
@@ -364,6 +372,14 @@
                 min-height: 74px;
                 resize: vertical;
             }
+
+        .alloc-status-modal .alloc-feedback-panel {
+            padding-bottom: 14px;
+        }
+
+        .alloc-status-modal .alloc-feedback-field textarea.form-control {
+            min-height: 96px;
+        }
 
         .alloc-feedback-actions {
             align-items: center;
@@ -604,7 +620,7 @@
             border-bottom: 1px solid #edf2f8 !important;
             white-space: nowrap !important;
             vertical-align: middle !important;
-            text-align: left;
+            text-align: left !important;
         }
 
         /* Remove forced duplicate table header display */
@@ -612,7 +628,7 @@
         .dataTables_wrapper table[id] thead,
         table.dataTable thead {
             display: table-header-group;
-            text-align: left;
+            text-align: left !important;
         }
 
         /* Scroll fix */
@@ -754,86 +770,89 @@
 
             #table_OrderComplete th:nth-child(2),
             #table_OrderComplete td:nth-child(2) {
-                width: 7% !important;
+                width: 9% !important;
             }
 
             #table_OrderComplete th:nth-child(3),
             #table_OrderComplete td:nth-child(3) {
-                width: 7% !important;
+                width: 8% !important;
             }
 
             #table_OrderComplete th:nth-child(4),
             #table_OrderComplete td:nth-child(4) {
-                width: 7% !important;
+                width: 9% !important;
             }
 
             #table_OrderComplete th:nth-child(5),
             #table_OrderComplete td:nth-child(5) {
-                width: 11% !important;
+                width: 10% !important;
             }
 
             #table_OrderComplete th:nth-child(6),
             #table_OrderComplete td:nth-child(6) {
-                width: 16% !important;
+                width: 13% !important;
             }
 
             #table_OrderComplete th:nth-child(7),
             #table_OrderComplete td:nth-child(7) {
-                width: 11% !important;
+                width: 15% !important;
             }
 
             #table_OrderComplete th:nth-child(8),
             #table_OrderComplete td:nth-child(8) {
-                width: 15% !important;
+                width: 10% !important;
             }
 
             #table_OrderComplete th:nth-child(9),
             #table_OrderComplete td:nth-child(9) {
-                width: 8% !important;
+                width: 10% !important;
             }
 
             #table_OrderComplete th:nth-child(10),
             #table_OrderComplete td:nth-child(10) {
-                width: 8% !important;
+                width: 12% !important;
             }
 
-            #table_OrderComplete th:nth-child(11),
-            #table_OrderComplete td:nth-child(11) {
-                width: 6% !important;
+            #table_OrderComplete .alloc-table-empty {
+                color: #98a2b3;
             }
 
-            #table_OrderComplete .form-control {
-                width: 100% !important;
-                min-width: 0 !important;
-                max-width: 100% !important;
-                height: 44px;
-                border-radius: 8px;
-                font-size: 12px;
-                padding: 8px 9px !important;
-            }
-
-            #table_OrderComplete textarea.Remark {
-                height: 54px !important;
-                min-height: 54px !important;
-                line-height: 1.35;
-                resize: vertical;
-            }
-
-            #table_OrderComplete .alloc-open-feedback,
-            #table_OrderComplete .btn.btn-sm {
-                width: 100%;
-                min-width: 0 !important;
-                height: 34px;
-                padding: 0 7px !important;
-                border-radius: 8px !important;
+            #table_OrderComplete .alloc-status-badge {
+                background: #eef4ff;
+                border: 1px solid #d6e4ff;
+                border-radius: 999px;
+                color: #1849a9;
                 display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
                 font-size: 11px;
                 font-weight: 800;
-                white-space: nowrap !important;
+                line-height: 1;
+                padding: 7px 9px;
             }
+
+                #table_OrderComplete .alloc-status-badge.is-hold {
+                    background: #fff7ed;
+                    border-color: #fed7aa;
+                    color: #9a3412;
+                }
+
+            #table_OrderComplete .alloc-row-actions {
+                display: inline-flex;
+                width: 100%;
+            }
+
+                #table_OrderComplete .alloc-row-actions .btn {
+                    flex: 1 1 50%;
+                    min-width: 0 !important;
+                    height: 34px;
+                    padding: 0 5px !important;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 4px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    white-space: nowrap !important;
+                }
     </style>
 
 
@@ -953,20 +972,19 @@
                             <table class="table allocate-fixed-table" id="table_OrderComplete" style="width: 100%;">
                                 <thead style="text-align: left;">
                                     <tr>
-                                        <th>Sr. #</th>
+                                        <th>Update Status</th>
+                                        <th>Add Feedback</th>
                                         <th>Project</th>
                                         <th>Deal #</th>
                                         <th>Loan #</th>
                                         <th>Status</th>
                                         <th>Hold Reason</th>
-                                        <th>Add Feedback</th>
                                         <th>Remark</th>
                                         <th>Allocated Date</th>
-                                        <th>Complition Date</th>
-                                        <th>Action</th>
+                                        <th>Completion Date</th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody style="text-align:left!important"></tbody>
                             </table>
                         </div>
                     </div>
@@ -1006,6 +1024,89 @@
                                 </thead>
                                 <tbody></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade alloc-feedback-modal alloc-status-modal" id="popUp_updateOrderStatus" tabindex="-1" role="dialog" aria-labelledby="allocStatusTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="alloc-feedback-title">
+                        <span class="alloc-feedback-icon"><i class="fas fa-tasks"></i></span>
+                        <div>
+                            <h5 id="allocStatusTitle">Update Loan Status</h5>
+                            <p>Update the status details for the selected loan.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alloc-context-grid alloc-status-context-grid">
+                        <div class="alloc-context-item">
+                            <span>Project</span>
+                            <strong id="allocstatus_ctxProject">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Deal No</span>
+                            <strong id="allocstatus_ctxDeal">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Loan No</span>
+                            <strong id="allocstatus_ctxLoan">-</strong>
+                        </div>
+                        <div class="alloc-context-item">
+                            <span>Process</span>
+                            <strong id="allocstatus_ctxProcess">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="alloc-feedback-panel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alloc-feedback-field">
+                                    <label for="allocstatus_status">Status</label>
+                                    <select id="allocstatus_status" class="form-control">
+                                        <option value="">Select</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="Hold">Hold</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alloc-feedback-field">
+                                    <label for="allocstatus_holdReason">Hold Reason</label>
+                                    <select id="allocstatus_holdReason" class="form-control" disabled="disabled">
+                                        <option value="">Select</option>
+                                        <option value="PDF Issue">PDF Issue</option>
+                                        <option value="Audit Worksheet Not available in Box">Audit Worksheet Not available in Box</option>
+                                        <option value="Partially Review in Scienna">Partially Review in Scienna</option>
+                                        <option value="Wrongly pulled in ERP">Wrongly pulled in ERP</option>
+                                        <option value="Miscellaneous – Any other issue with comments">Miscellaneous – Any other issue with comments</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="alloc-feedback-field">
+                                    <label for="allocstatus_remark">Remark</label>
+                                    <textarea id="allocstatus_remark" class="form-control" placeholder="Enter a remark if required"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alloc-feedback-actions">
+                            <button type="button" class="alloc-outline-btn" data-dismiss="modal">
+                                <i class="fas fa-times mr-1"></i>Cancel
+                           
+                            </button>
+                            <button type="button" class="bank-submit-btn" id="allocstatus_btnSave">
+                                <i class="fas fa-save mr-1"></i>Update
+                           
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1267,5 +1368,62 @@
         </div>
     </div>
 
+    <style>
+        #table_OrderComplete {
+            width: 100% !important;
+            table-layout: auto !important;
+        }
+
+            #table_OrderComplete thead th {
+                white-space: nowrap !important;
+                text-align: left !important;
+            }
+
+            #table_OrderComplete th.action-column,
+            #table_OrderComplete td.action-column {
+                width: 65px !important;
+                min-width: 65px !important;
+                max-width: 65px !important;
+                text-align: left !important;
+            }
+
+        .alloc-icon-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+            .alloc-icon-btn:focus {
+                outline: none;
+                box-shadow: none;
+            }
+
+        .status-icon {
+            color: #0d6efd;
+        }
+
+            .status-icon:hover {
+                color: #ffffff;
+                background: #0d6efd;
+            }
+
+        .feedback-icon {
+            color: #16a34a;
+        }
+
+            .feedback-icon:hover {
+                color: #ffffff;
+                background: #16a34a;
+            }
+    </style>
 </asp:Content>
 

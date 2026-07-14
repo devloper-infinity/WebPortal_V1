@@ -90,9 +90,26 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int UpdateInfinityImportedFeedback_NewERP(int FeedbackID, string ProdIDs, string Category, string SubCategory, string ErrorField, string Screen, string ErrorType, string Finding, string FeedbackType, string Severity, string RCA, string Source, string FeedbackReceivedDate, bool IsDisplayInERP, string Subdomain)
+        public static int UpdateInfinityImportedFeedback_NewERP(int FeedbackID, string ProdIDs, string Category, string SubCategory, string ErrorField, string Screen, string ErrorType, string Finding, string FeedbackType, string Severity, string FeedbackStatus, string RCA, string Source, string FeedbackReceivedDate, bool IsDisplayInERP, string Subdomain)
         {
             int ReturnValue = 0;
+
+            bool requiresFeedbackStatus = string.Equals(Severity, "Critical", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Severity, "Non-Critical", StringComparison.OrdinalIgnoreCase);
+
+            if (requiresFeedbackStatus)
+            {
+                if (string.Equals(FeedbackStatus, "Agree", StringComparison.OrdinalIgnoreCase))
+                    FeedbackStatus = "Agree";
+                else if (string.Equals(FeedbackStatus, "Disagree", StringComparison.OrdinalIgnoreCase))
+                    FeedbackStatus = "Disagree";
+                else
+                    return 0;
+            }
+            else
+            {
+                FeedbackStatus = string.Empty;
+            }
 
             Hashtable htParam = new Hashtable();
             htParam.Add("FeedbackID", FeedbackID);
@@ -104,6 +121,7 @@ namespace WebPortal.Admin
             htParam.Add("Finding", Finding);
             htParam.Add("FeedbackType", FeedbackType);
             htParam.Add("Severity", Severity);
+            htParam.Add("FeedbackStatus", FeedbackStatus);
             htParam.Add("RCA", RCA);
             htParam.Add("Source", Source);
             htParam.Add("FeedbackReceivedDate", FeedbackReceivedDate);

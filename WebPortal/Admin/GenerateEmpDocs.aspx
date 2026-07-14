@@ -20,9 +20,6 @@
         }
 
         .empdoc-header {
-            /*   background: linear-gradient(135deg, #1d4ed8, #2563eb, #38bdf8);
-            color: #fff;
-            padding: 14px 22px 30px;*/
             position: relative;
             overflow: hidden;
             display: flex;
@@ -434,7 +431,9 @@
 
 
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -443,10 +442,8 @@
     <input type="hidden" id="empdoc_subdomain_hid" name="empdoc_subdomain_hid" />
     <input type="hidden" id="empdoc_appdate_hid" name="empdoc_appdate_hid" />
 
-
     <div class="col-lg-12">
         <div class="empdoc-shell">
-          
             <div class="empdoc-header">
                 <span class="empdoc-header-icon">
                     <i class="fas fa-file-signature"></i>
@@ -458,11 +455,9 @@
                     </p>
                 </div>
                 <div style="text-align: right!important; width: 100px;">
-                 <%--  <a href="#" class="empdoc-header-back" onclick="window.history.go(-1); return false;">&lt;&lt; Back</a>--%>
+                    <%--  <a href="#" class="empdoc-header-back" onclick="window.history.go(-1); return false;">&lt;&lt; Back</a>--%>
                 </div>
             </div>
-
-
 
             <div class="employee-card">
                 <div class="employee-left">

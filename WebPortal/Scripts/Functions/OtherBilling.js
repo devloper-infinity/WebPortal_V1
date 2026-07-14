@@ -30,9 +30,13 @@ function BindDomainWise_Project(DomainID) {
     });
 }
 
-function bindDeals(ddlprojectId) {
+function otherbil_bindDeals(ddlprojectId) {
+
+    alert(ddlprojectId);
 
     var projectID = ddlprojectId.options[ddlprojectId.selectedIndex].value;
+
+    alert(projectID);
 
     var Select = document.getElementById("otherBilling_DealNo");
     let options = Select.getElementsByTagName('option');
@@ -123,7 +127,7 @@ function btnOtherBilling_Verify() {
     PageMethods.VerifyAndSubmitData(ProjectType, Project, DealNo, verify_OnSuccess, verify_OnError);
 
     return false;
-}
+} 
 
 function verify_OnSuccess(result) {
 

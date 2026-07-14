@@ -406,6 +406,7 @@ namespace WebPortal.Admin
                 ReplacePlaceholder(body, "«ExistingSalary»", Convert.ToString(dt.Rows[0]["BeforeSalary"]));
                 ReplacePlaceholder(body, "«IncrementedAmount»", Convert.ToString(dt.Rows[0]["Difference"]));
                 ReplacePlaceholder(body, "«RevisedSalary»", Convert.ToString(dt.Rows[0]["CurrentSalary"]));
+                ReplacePlaceholder(body, "«NextIncrementDue»", Convert.ToString(dt.Rows[0]["NextIncrementDue"]));
                 ReplacePlaceholder(body, "«Reference»", Convert.ToString(dt.Rows[0]["CompanyName"]).Contains("Infinity") ? "APL/INF/" + Convert.ToString(dt.Rows[0]["EmployeeId"]) : "APL/HOR/" + Convert.ToString(dt.Rows[0]["EmployeeId"]));
                 ReplacePlaceholder(body, "«FirstName»", Convert.ToString(dt.Rows[0]["FirstName"]));
 
@@ -655,9 +656,10 @@ namespace WebPortal.Admin
                 ReplacePlaceholder(body, "«NetMonth»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryMonth"]));
                 ReplacePlaceholder(body, "«NetYear»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryYear"]));
                 ReplacePlaceholder(body, "«CompanyTotMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalBMonth"]));
-                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["CompanyTotYear"]));
+                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["TotalBYear"]));
                 ReplacePlaceholder(body, "«TotalCostMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalCostMonth"]));
                 ReplacePlaceholder(body, "«TotalCostYear»", Convert.ToString(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"]).ToString("#,##0")));
+                ReplacePlaceholder(body, "«TotalCostInWords»", Convert.ToString(numEng.ConvertMyword(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"])).Replace("Fourty", "Forty") + " Only"));
                 ReplacePlaceholder(body, "«TotalCostInWords»", Convert.ToString(numEng.ConvertMyword(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"])).Replace("Fourty", "Forty") + " Only"));
 
                 ReplacePlaceholder(body, "«Roles»", "");
@@ -769,7 +771,7 @@ namespace WebPortal.Admin
                 ReplacePlaceholder(body, "«NetMonth»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryMonth"]));
                 ReplacePlaceholder(body, "«NetYear»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryYear"]));
                 ReplacePlaceholder(body, "«CompanyTotMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalBMonth"]));
-                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["CompanyTotYear"]));
+                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["TotalBYear"]));
                 ReplacePlaceholder(body, "«TotalCostMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalCostMonth"]));
                 ReplacePlaceholder(body, "«TotalCostYear»", Convert.ToString(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"]).ToString("#,##0")));
                 ReplacePlaceholder(body, "«TotalCostInWords»", Convert.ToString(numEng.ConvertMyword(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"])).Replace("Fourty", "Forty") + " Only"));
@@ -885,7 +887,7 @@ namespace WebPortal.Admin
                 ReplacePlaceholder(body, "«NetMonth»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryMonth"]));
                 ReplacePlaceholder(body, "«NetYear»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryYear"]));
                 ReplacePlaceholder(body, "«CompanyTotMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalBMonth"]));
-                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["CompanyTotYear"]));
+                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["TotalBYear"]));
                 ReplacePlaceholder(body, "«TotalCostMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalCostMonth"]));
                 ReplacePlaceholder(body, "«TotalCostYear»", Convert.ToString(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"]).ToString("#,##0")));
                 ReplacePlaceholder(body, "«TotalCostInWords»", Convert.ToString(numEng.ConvertMyword(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"])).Replace("Fourty", "Forty") + " Only"));
@@ -2355,7 +2357,7 @@ namespace WebPortal.Admin
                 ReplacePlaceholder(body, "«NetMonth»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryMonth"]));
                 ReplacePlaceholder(body, "«NetYear»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryYear"]));
                 ReplacePlaceholder(body, "«CompanyTotMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalBMonth"]));
-                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["CompanyTotYear"]));
+                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["TotalBYear"]));
                 ReplacePlaceholder(body, "«TotalCostMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalCostMonth"]));
                 ReplacePlaceholder(body, "«TotalCostYear»", Convert.ToString(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"]).ToString("#,##0")));
                 ReplacePlaceholder(body, "«TotalCostInWords»", Convert.ToString(numEng.ConvertMyword(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"])).Replace("Fourty", "Forty") + " Only"));
@@ -2469,7 +2471,7 @@ namespace WebPortal.Admin
                 ReplacePlaceholder(body, "«NetMonth»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryMonth"]));
                 ReplacePlaceholder(body, "«NetYear»", Convert.ToString(dtAnnx.Rows[0]["NetSalaryYear"]));
                 ReplacePlaceholder(body, "«CompanyTotMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalBMonth"]));
-                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["CompanyTotYear"]));
+                ReplacePlaceholder(body, "«CompanyTotYear»", Convert.ToString(dtAnnx.Rows[0]["TotalBYear"]));
                 ReplacePlaceholder(body, "«TotalCostMonth»", Convert.ToString(dtAnnx.Rows[0]["TotalCostMonth"]));
                 ReplacePlaceholder(body, "«TotalCostYear1»", Convert.ToString(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"]).ToString("#,##0")));
                 ReplacePlaceholder(body, "«TotalCostInWords»", Convert.ToString(numEng.ConvertMyword(Convert.ToInt32(dtAnnx.Rows[0]["TotalCostYear"])).Replace("Fourty", "Forty") + " Only"));

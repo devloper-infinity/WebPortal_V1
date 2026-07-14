@@ -20,6 +20,44 @@ function getOrderRowValue(row, keys) {
     return '';
 }
 
+function escapeOrderHtml(value) {
+    return $('<div></div>').text(value === undefined || value === null ? '' : String(value)).html();
+}
+
+function renderOrderText(value, emptyText) {
+    var text = $.trim(value === undefined || value === null ? '' : String(value));
+
+    if (!text) {
+        return '<span class="alloc-table-empty">' + escapeOrderHtml(emptyText || '-') + '</span>';
+    }
+
+    return escapeOrderHtml(text);
+}
+
+function setOrderRowValue(row, keys, fallbackKey, value) {
+    row = row || {};
+
+    for (var i = 0; i < keys.length; i++) {
+        if (Object.prototype.hasOwnProperty.call(row, keys[i])) {
+            row[keys[i]] = value;
+            return;
+        }
+    }
+
+    row[fallbackKey] = value;
+}
+
+function getCompletedOrderDataTableRow(element) {
+    var table = $('#table_OrderComplete').DataTable();
+    var $tr = $(element).closest('tr');
+
+    if ($tr.hasClass('child')) {
+        $tr = $tr.prev();
+    }
+
+    return table.row($tr);
+}
+
 function allocate_bindProject() {
 
     $.ajax({
@@ -97,7 +135,7 @@ function allocate_bindProcess(id) {
 function GetLoansToAllocate_bindGrid() {
 
     var processName = $('#allocate_process').val();
-    processName = 'Loan Setup';
+    // processName = 'Loan Setup';
     if (processName == '') {
         Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Please select an Allocate Process.', confirmButtonText: 'OK' });
         return false;
@@ -299,158 +337,177 @@ function AllocateOrders() {
 
 /*---------------- Tab 2 - Order Status ----------------*/
 
+
 function allocate_CompleteOrder_bindGrid() {
 
-    var UserName = 'SHAWN MITCHELL';
+    $('#load1').show();
+
     var UserName = 'VPC';
-    var Process = "Loan Setup";
 
     $.ajax({
         type: "POST",
         url: "Allocate.aspx/GetUserLoans",
-        data: JSON.stringify({ UserName: UserName }),
+        data: JSON.stringify({
+            UserName: UserName
+        }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
+
         success: function (data) {
 
-            var dataArray = data.d;
+            var dataArray = data.d || [];
 
-            // Destroy existing DataTable
             if ($.fn.DataTable.isDataTable('#table_OrderComplete')) {
-                $('#table_OrderComplete').DataTable().destroy();
+                $('#table_OrderComplete').DataTable().clear().destroy();
             }
 
-            $("#sectrack_stat_deals").text("1");
-            $("#sectrack_stat_pending").text("1");
-            $("#sectrack_stat_completed").text("1");
-
             $('#table_OrderComplete').DataTable({
-
                 data: dataArray,
                 paging: false,
+                ordering: true,
+                searching: true,
+                autoWidth: false,
+                scrollX: true,
 
                 columns: [
                     {
                         data: null,
-                        render: function (data, type, row, meta) {
-                            return meta.row + 1;
-                        }
-                    },
-                    { data: "ProjectName" },
-                    { data: "DealNo" },
-                    { data: "OrderNumber" },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            return `
-        <select class="form-control Status" onchange="enableHoldRemark(this)">
-            <option value="">Select</option>
-            <option value="Completed" ${data === "Completed" ? "selected" : ""}>Completed</option>
-            <option value="Hold" ${data === "Hold" ? "selected" : ""}>Hold</option>
-        </select>`;
-                        }
-                    },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-
-                            var disabled = row.Status === "Hold" ? "" : "disabled";
-
-                            return `
-        <select class="form-control HoldReason" ${disabled}>
-            <option value="">Select</option>
-            <option value="PDF Issue" ${data === "PDF Issue" ? "selected" : ""}>PDF Issue</option>
-            <option value="Audit Worksheet Not available in Box" ${data === "Audit Worksheet Not available in Box" ? "selected" : ""}>Audit Worksheet Not available in Box</option>
-            <option value="Partially Review in Scienna" ${data === "Partially Review in Scienna" ? "selected" : ""}>Partially Review in Scienna</option>
-            <option value="Wrongly pulled in ERP" ${data === "Wrongly pulled in ERP" ? "selected" : ""}>Wrongly pulled in ERP</option>
-            <option value="Miscellaneous – Any other issue with comments"
-                ${data === "Miscellaneous – Any other issue with comments" ? "selected" : ""}>
-                Miscellaneous – Any other issue with comments
-            </option>
-        </select>`;
-                        }
-                    },
-                    {
-                        data: null,
-                        render: function (data, type, row) {
-                            return `<button type="button" class="alloc-open-feedback openRemarkPopup" title="Add Feedback">
-                                <i class="fas fa-comment-dots"></i><span>Add Feedback</span>
-                            </button>`;
-                        }
-                    },
-                    {
-                        data: "Remark",
-                        render: function (data, type, row) {
-                            return `<textarea class="form-control Remark">${data || ""}</textarea>`;
-                        }
-                    },
-                    { data: "ProcessDate" },
-                    { data: "ProcessDate" },
-                    {
-                        data: null,
-                        title: "Action",
+                        title: "Status",
                         orderable: false,
-                        className: "text-center",
-                        render: function (data, type, row, meta) {
+                        searchable: false,
+                        className: "text-center action-column",
+                        width: "55px",
+                        render: function () {
                             return `
-            <button type="button"
-                class="btn btn-sm btn-primary"
-                onclick="updateOrderStatus(this)">
-                <i class="fas fa-save"></i> Update
-            </button>`;
+                                <button type="button"
+                                        class="alloc-icon-btn status-icon openStatusPopup"
+                                        title="Update Status"
+                                        aria-label="Update Status">
+                                    <i class="fas fa-edit"></i>
+                                </button>`;
                         }
+                    },
+                    // {
+                    //     data: null,
+                    //     title: "Feedback",
+                    //     orderable: false,
+                    //     searchable: false,
+                    //     className: "text-center action-column",
+                    //     width: "65px",
+                    //     render: function () {
+                    //         return `
+                    //             <button type="button"
+                    //                     class="alloc-icon-btn feedback-icon openRemarkPopup"
+                    //                     title="Add Feedback"
+                    //                     aria-label="Add Feedback">
+                    //                 <i class="fas fa-comment-dots"></i>
+                    //             </button>`;
+                    //     }
+                    // },
+                    {
+                        data: "ProcessID",
+                        title: "Feedback",
+                        orderable: false,
+                        searchable: false,
+                        className: "text-center action-column",
+                        width: "65px",
+                        render: function (data) {
+                            return `<a href="AddFeedback.aspx?ProcessID=${encodeURIComponent(data)}" class="alloc-icon-btn feedback-icon" title="Add Feedback" aria-label="Add Feedback"><i class="fas fa-comment-dots"></i></a>`;
+                        }
+                    },
+
+                    {
+                        data: 'ProjectName',
+                        title: 'Project',
+                        className: 'text-nowrap',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'DealNo',
+                        title: 'Deal #',
+                        className: 'text-nowrap',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'OrderNumber',
+                        title: 'Loan #',
+                        className: 'text-nowrap',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'OrderStatus',
+                        title: 'Status',
+                        className: 'text-nowrap',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'HoldReason',
+                        title: 'Hold Reason',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'Remark',
+                        title: 'Remark',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'AddedDate',
+                        title: 'Allocated Date',
+                        className: 'text-nowrap',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'ProcessDate',
+                        title: 'Completion Date',
+                        className: 'text-nowrap',
+                        defaultContent: '-'
+                    }
+                ],
+
+                columnDefs: [
+                    {
+                        targets: [0, 1],
+                        width: "65px"
                     }
                 ],
 
                 initComplete: function () {
                     $('#load1').hide();
-                    adjustAllocateDataTables();
+                    this.api().columns.adjust();
                 },
-                drawCallback: adjustAllocateDataTables
+
+                drawCallback: function () {
+                    $('#load1').hide();
+                }
             });
         },
 
         error: function (xhr) {
-
             $('#load1').hide();
 
             console.error(xhr.responseText);
 
-            alert("Error loading data");
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to load completed orders."
+            });
         }
     });
 }
 
-function updateOrderStatus(btn) {
+$('#table_OrderComplete').on('click', '.openFeedback', function (e) {
+    e.preventDefault();
 
-    var table = $('#table_OrderComplete').DataTable();
-    var tr = $(btn).closest('tr');
-    var row = table.row(tr).data();
+    var row = JSON.parse($(this).attr('data-row'));
 
-    var status = tr.find('.Status').val();
+    sessionStorage.setItem("SelectedFeedbackRow", JSON.stringify(row));
 
-    var holdReason = tr.find('.HoldReason').val();
-    var remark = tr.find('.Remark').val();
+    window.location.href = "AddFeedback.aspx";
+});
 
-    if (!status) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Validation',
-            text: 'Please select Status.'
-        });
-        return;
-    }
-
-    if (status === "Hold" && !holdReason) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Validation',
-            text: 'Hold Reason is mandatory when Status is Hold.'
-        });
-        return;
-    }
-
-    var request = {
+function buildOrderStatusRequest(row, status, holdReason, remark) {
+    return {
         Project: getOrderRowValue(row, ['ProjectName', 'ProjectNo', 'ProjectNumber', 'Project']),
         DealNo: getOrderRowValue(row, ['DealNo', 'DealNumber', 'Deal', 'UniqueCol1']),
         OrderNo: getOrderRowValue(row, ['OrderNo', 'OrderNumber', 'LoanNo', 'LoanNumber', 'Loan1No', 'Loan1', 'Loan1 #', 'Loan #', 'UniqueCol2']),
@@ -462,16 +519,9 @@ function updateOrderStatus(btn) {
         ProductType: getOrderRowValue(row, ['ProductType']),
         UserName: "VPC"
     };
-
-    if ($.trim(remark || '') !== '') {
-        validateFeedbackBeforeStatusUpdate(btn, request);
-        return;
-    }
-
-    saveOrderStatus(btn, request);
 }
 
-function validateFeedbackBeforeStatusUpdate(btn, request) {
+function validateFeedbackBeforeStatusUpdate(btn, request, onSuccess) {
     $.ajax({
         type: "POST",
         url: "Allocate.aspx/HasTrackingFeedback",
@@ -497,7 +547,7 @@ function validateFeedbackBeforeStatusUpdate(btn, request) {
             Swal.close();
 
             if (response.d === true) {
-                saveOrderStatus(btn, request);
+                saveOrderStatus(btn, request, onSuccess);
                 return;
             }
 
@@ -520,7 +570,7 @@ function validateFeedbackBeforeStatusUpdate(btn, request) {
     });
 }
 
-function saveOrderStatus(btn, request) {
+function saveOrderStatus(btn, request, onSuccess) {
     $.ajax({
         type: "POST",
         url: "Allocate.aspx/UpdateLoanStatus",
@@ -560,10 +610,14 @@ function saveOrderStatus(btn, request) {
                     showConfirmButton: false
                 });
 
-                $(btn)
-                    .removeClass('btn-primary')
-                    .addClass('btn-success')
-                    .html('<i class="fas fa-check"></i> Updated');
+                if (typeof onSuccess === 'function') {
+                    onSuccess(response.d);
+                } else if (btn) {
+                    $(btn)
+                        .removeClass('btn-primary')
+                        .addClass('btn-success')
+                        .html('<i class="fas fa-check"></i> Updated');
+                }
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -587,24 +641,126 @@ function saveOrderStatus(btn, request) {
     });
 }
 
-function enableHoldRemark(obj) {
+var AllocateStatusPopup = (function () {
+    var selectedRow = {};
+    var selectedDataTableRow = null;
+    var selectedTrigger = null;
 
-    var tr = $(obj).closest('tr');
-    var holdReason = tr.find('.HoldReason');
+    function init() {
+        $(document).off('click.allocstatus', '.openStatusPopup').on('click.allocstatus', '.openStatusPopup', function () {
+            var dataTableRow = getCompletedOrderDataTableRow(this);
+            open(dataTableRow.data() || {}, dataTableRow, this);
+        });
 
-    if ($(obj).val() === 'Hold') {
-        holdReason.prop('disabled', false);
+        $('#allocstatus_status').off('change.allocstatus').on('change.allocstatus', toggleHoldReason);
+        $('#allocstatus_btnSave').off('click.allocstatus').on('click.allocstatus', submit);
+
+        $('#popUp_updateOrderStatus').off('hidden.bs.modal.allocstatus').on('hidden.bs.modal.allocstatus', function () {
+            selectedRow = {};
+            selectedDataTableRow = null;
+            selectedTrigger = null;
+            resetFields();
+        });
     }
-    else {
-        holdReason.val('');
-        holdReason.prop('disabled', true);
+
+    function open(row, dataTableRow, trigger) {
+        selectedRow = row || {};
+        selectedDataTableRow = dataTableRow;
+        selectedTrigger = trigger;
+
+        $('#allocstatus_ctxProject').text(getOrderRowValue(selectedRow, ['ProjectName', 'ProjectNo', 'ProjectNumber', 'Project']) || '-');
+        $('#allocstatus_ctxDeal').text(getOrderRowValue(selectedRow, ['DealNo', 'DealNumber', 'Deal', 'UniqueCol1']) || '-');
+        $('#allocstatus_ctxLoan').text(getOrderRowValue(selectedRow, ['OrderNo', 'OrderNumber', 'LoanNo', 'LoanNumber', 'Loan1No', 'UniqueCol2']) || '-');
+        $('#allocstatus_ctxProcess').text(getOrderRowValue(selectedRow, ['DomainName', 'Process', 'ProcessName']) || $('#allocate_process').val() || 'Loan Setup');
+
+        var status = getOrderRowValue(selectedRow, ['Status', 'CurrentStatus', 'ProcessStatus']);
+        var holdReason = getOrderRowValue(selectedRow, ['HoldRemark', 'HoldReason', 'HoldReasonRemark']);
+        var remark = getOrderRowValue(selectedRow, ['Remark', 'Remarks', 'Comment']);
+
+        $('#allocstatus_status').val(status === 'Completed' || status === 'Hold' ? status : '');
+        ensureStatusOption($('#allocstatus_holdReason'), holdReason);
+        $('#allocstatus_holdReason').val(holdReason);
+        $('#allocstatus_remark').val(remark);
+        toggleHoldReason();
+
+        $('#popUp_updateOrderStatus').modal('show');
     }
-}
+
+    function ensureStatusOption($select, value) {
+        if (!value) {
+            return;
+        }
+
+        var exists = $select.find('option').filter(function () {
+            return $(this).val() === value;
+        }).length > 0;
+
+        if (!exists) {
+            $select.append($('<option></option>').val(value).text(value));
+        }
+    }
+
+    function toggleHoldReason() {
+        var isHold = $('#allocstatus_status').val() === 'Hold';
+        $('#allocstatus_holdReason').prop('disabled', !isHold);
+
+        if (!isHold) {
+            $('#allocstatus_holdReason').val('');
+        }
+    }
+
+    function resetFields() {
+        $('#allocstatus_status,#allocstatus_holdReason').val('');
+        $('#allocstatus_holdReason').prop('disabled', true);
+        $('#allocstatus_remark').val('');
+        $('#allocstatus_ctxProject,#allocstatus_ctxDeal,#allocstatus_ctxLoan,#allocstatus_ctxProcess').text('-');
+    }
+
+    function submit() {
+        var status = $('#allocstatus_status').val() || '';
+        var holdReason = $('#allocstatus_holdReason').val() || '';
+        var remark = $('#allocstatus_remark').val() || '';
+
+        if (!status) {
+            Swal.fire('Validation', 'Please select Status.', 'warning');
+            return;
+        }
+
+        if (status === 'Hold' && !holdReason) {
+            Swal.fire('Validation', 'Hold Reason is mandatory when Status is Hold.', 'warning');
+            return;
+        }
+
+        var request = buildOrderStatusRequest(selectedRow, status, holdReason, remark);
+        var onSuccess = function () {
+            setOrderRowValue(selectedRow, ['Status', 'CurrentStatus', 'ProcessStatus'], 'Status', status);
+            setOrderRowValue(selectedRow, ['HoldRemark', 'HoldReason', 'HoldReasonRemark'], 'HoldRemark', holdReason);
+            setOrderRowValue(selectedRow, ['Remark', 'Remarks', 'Comment'], 'Remark', remark);
+
+            if (selectedDataTableRow && typeof selectedDataTableRow.data === 'function') {
+                selectedDataTableRow.data(selectedRow).invalidate().draw(false);
+            }
+
+            $('#popUp_updateOrderStatus').modal('hide');
+        };
+
+        if ($.trim(remark) !== '') {
+            validateFeedbackBeforeStatusUpdate(selectedTrigger, request, onSuccess);
+            return;
+        }
+
+        saveOrderStatus(selectedTrigger, request, onSuccess);
+    }
+
+    return {
+        init: init,
+        open: open
+    };
+})();
 
 $(document).on('click', '.openRemarkPopup', function () {
-    var table = $('#table_OrderComplete').DataTable();
-    var row = table.row($(this).closest('tr')).data() || {};
-    AllocateFeedbackPopup.open(row);
+    var dataTableRow = getCompletedOrderDataTableRow(this);
+    AllocateFeedbackPopup.open(dataTableRow.data() || {});
 });
 
 function adjustAllocateDataTables() {
@@ -1115,6 +1271,7 @@ var AllocateFeedbackPopup = (function () {
 })();
 
 $(document).ready(function () {
+    AllocateStatusPopup.init();
     AllocateFeedbackPopup.init();
 });
 

@@ -15,6 +15,7 @@ using System.Web.UI;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
+using WebPortal.Feedback;
 using static WebPortal.Admin.ResponsibilityDelegation;
 using DataTable = System.Data.DataTable;
 
@@ -38,8 +39,6 @@ namespace WebPortal.Tracking
             "Feedback Type",
             "Remark"
         };
-
-
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -68,25 +67,6 @@ namespace WebPortal.Tracking
         }
 
 
-        [WebMethod]
-        public static string GetProcessByProject(int ProjectID)
-        {
-            DataTable dt1 = new bllTracking().getProcess(ProjectID);
-            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            Dictionary<string, object> row;
-            foreach (DataRow dr in dt1.Rows)
-            {
-                row = new Dictionary<string, object>();
-                foreach (DataColumn col in dt1.Columns)
-                {
-                    row.Add(col.ColumnName, dr[col]);
-                }
-                rows.Add(row);
-            }
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            ser.MaxJsonLength = int.MaxValue;
-            return ser.Serialize(rows);
-        }
 
 
         [WebMethod]
@@ -176,7 +156,6 @@ namespace WebPortal.Tracking
         }
 
 
-
         //public DataTable GetProcessDetails(string UserName)
         //{
         //    SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser"); //usp_getuniquecolumn
@@ -184,6 +163,7 @@ namespace WebPortal.Tracking
         //    DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
         //    return dt;
         //}
+
 
         [WebMethod]
         public static int UpdateLoanStatus(string Project, string DealNo, string OrderNo, string Process, string ProjectID, string Status, string HoldRemark, string Remark, string ProductType, string UserName)
@@ -202,6 +182,43 @@ namespace WebPortal.Tracking
             htParamValidate.Add("UserCode", UserName);
 
             ReturnValue = 10;// new bllTracking().ValidateUserProcessTAT(htParamValidate);
+            return ReturnValue;
+        }
+
+
+        [WebMethod]
+        public static int AddFeddback(string Project, string DealNo, string LoanNo, string DateReviewed, string ErrorBy, string FeedbackBy, string ErrorType, string Category, string SubCategory, string ErrorField, string Severity, string FeedbackType, string Shouldbe, string ShouldBe, string Remark)
+        {
+
+            int ReturnValue = 0;
+
+            int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            string feedbackBy = EmployeeInfo.Current.PseudoName;
+
+            Hashtable htFeedback = new Hashtable();
+            htFeedback["LoanNumber"] = LoanNo;
+            htFeedback["DealNo"] = DealNo;
+            htFeedback["DateReviewed"] = DateReviewed;
+            htFeedback["Client"] = Project;
+            htFeedback["ErrorBy"] = ErrorBy;
+            htFeedback["FeedbackBy"] = FeedbackBy;
+            htFeedback["ErrorType"] = ErrorType;
+            htFeedback["Category"] = Category;
+            htFeedback["SubCategory"] = SubCategory;
+            htFeedback["Severity"] = Severity;
+            htFeedback["ErrorField"] = ErrorField;
+            htFeedback["FeedbackType"] = FeedbackType;
+            htFeedback["Shouldbe"] = ShouldBe;
+            htFeedback["Comments"] = Remark;
+            htFeedback["AddedBy"] = addedBy;
+
+            if (Project == "561")
+
+                ReturnValue = new bllTracking().InsertImportedFeedback_Servicing(htFeedback);
+
+            else
+                ReturnValue = new bllTracking().InsertImportedFeedback_Credit(htFeedback);
+
             return ReturnValue;
         }
 
@@ -345,28 +362,26 @@ namespace WebPortal.Tracking
 
             int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
             string errorBy = (model.ErrorBy ?? string.Empty).Trim().ToUpperInvariant();
-            string feedbackBy = (model.FeedbackBy ?? string.Empty).Trim().ToUpperInvariant();
+            string feedbackBy = EmployeeInfo.Current.PseudoName;
 
             Hashtable htFeedback = new Hashtable();
-            htFeedback["OrderNo"] = Clean(model.LoanNo);
+            htFeedback["LoanNumber"] = Clean(model.LoanNo);
             htFeedback["DealNo"] = Clean(model.DealNo);
-            htFeedback["OrderDate"] = Clean(model.OrderDate);
-            htFeedback["ProjectID"] = projectId;
-            htFeedback["ProcessID"] = processId;
-            htFeedback["ErrorDoneBy"] = errorBy;
-            htFeedback["FeedbackGivenBy"] = feedbackBy;
+            htFeedback["DateReviewed"] = Clean(model.OrderDate);
+            htFeedback["Client"] = projectId;
+            htFeedback["ErrorBy"] = errorBy;
+            htFeedback["FeedbackBy"] = feedbackBy;
             htFeedback["ErrorType"] = Clean(model.ErrorType);
-            htFeedback["Fatal"] = Clean(model.Severity);
+            htFeedback["Category"] = Clean(model.Category);
+            htFeedback["SubCategory"] = Clean(model.SubCategory);
+            htFeedback["Severity"] = Clean(model.Severity);
             htFeedback["ErrorField"] = Clean(model.ErrorField);
-            htFeedback["Error"] = Clean(model.Error);
-            htFeedback["Shouldbe"] = Clean(model.ShouldBe);
             htFeedback["FeedbackType"] = Clean(model.FeedbackType);
-            htFeedback["FeedbackRecivedDate"] = string.Empty;
-            htFeedback["Remark"] = Clean(model.Remark);
+            htFeedback["Shouldbe"] = Clean(model.ShouldBe);
+            htFeedback["Comments"] = Clean(model.Remark);
             htFeedback["AddedBy"] = addedBy;
-            htFeedback["Section"] = Clean(model.Category);
-            htFeedback["Field"] = Clean(model.SubCategory);
-            htFeedback["FeedbackerrorPath"] = string.Empty;
+
+            int result = new bllTracking().InsertImportedFeedback_Credit(htFeedback);
 
             int feedbackId = new bllTracking().InsertFeedbackForNewOrderUnderwritingByTracking(htFeedback);
             if (feedbackId <= 0)

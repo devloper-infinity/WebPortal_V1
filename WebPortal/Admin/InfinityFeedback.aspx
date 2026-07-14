@@ -396,7 +396,7 @@
                     <thead>
                         <tr>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">FeedbackID</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display:none;">FeedbackID</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan Number</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Client</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">UW Name</th>

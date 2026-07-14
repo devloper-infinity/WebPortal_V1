@@ -5,6 +5,34 @@ var UwName = '';
 var productionData_table;
 var productionData_html;
 
+function isNoErrorSeverityValue(severity) {
+    return $.trim(severity).toLowerCase() === "no error";
+}
+
+function severityRequiresFeedbackStatus(severity) {
+    var normalizedSeverity = $.trim(severity).toLowerCase();
+    return normalizedSeverity === "critical" || normalizedSeverity === "non-critical";
+}
+
+function toggleSeverityDependentFields() {
+    var severity = $("#infFeedback_Severity").val();
+    var shouldHide = isNoErrorSeverityValue(severity);
+    var shouldShowFeedbackStatus = severityRequiresFeedbackStatus(severity);
+    var $dependentFields = $(".inf-severity-dependent");
+    var $feedbackStatusField = $(".inf-feedback-status-field");
+
+    $dependentFields.prop("hidden", shouldHide).attr("aria-hidden", shouldHide ? "true" : "false");
+    $feedbackStatusField.prop("hidden", !shouldShowFeedbackStatus).attr("aria-hidden", shouldShowFeedbackStatus ? "false" : "true");
+
+    if (shouldHide) {
+        $dependentFields.find(":input").val("");
+    }
+
+    if (!shouldShowFeedbackStatus) {
+        $feedbackStatusField.find(":input").val("");
+    }
+}
+
 function BindInfinityFeedback(FeedbackID, subdomain) {
     FeedbackID_1 = FeedbackID;
     subdomain_new = subdomain;
@@ -34,10 +62,13 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
                 document.getElementById("infFeedback_ErrorType").value = value.ErrorType;
                 document.getElementById("infFeedback_FeedbackType").value = value.FeedbackType;
                 document.getElementById("infFeedback_Severity").value = value.Severity;
+                document.getElementById("infFeedback_FeedbackStatus").value = value.FeedbackStatus || "";
 
                 document.getElementById("infFeedback_Source").value = value.Source;
                 document.getElementById("infFeedback_RCA").value = value.RCA;
                 document.getElementById("infFeedback_Finding").value = value.Finding;
+
+                toggleSeverityDependentFields();
 
 
 
@@ -90,10 +121,10 @@ function BindProductionDataGrid(LoanNo, UwName) {
                 productionData_html += '<tr>';
 
                 if (UwName.toUpperCase() == EmpName1.toUpperCase()) {
-                    productionData_html += '<td style="text-wrap: nowrap;"><input type="checkbox" checked="checked" id="' + blankForNull(value.ProdID) + '" onchange="return GetCheckedCheckboxes_Prod(this);" /></td>';
+                    productionData_html += '<td style="text-wrap: nowrap; display:none;"><input type="checkbox" checked="checked" id="' + blankForNull(value.ProdID) + '" onchange="return GetCheckedCheckboxes_Prod(this);" /></td>';
                 }
                 else {
-                    productionData_html += '<td style="text-wrap: nowrap;"><input type="checkbox" id="' + blankForNull(value.ProdID) + '" onchange="return GetCheckedCheckboxes_Prod(this);" /></td>';
+                    productionData_html += '<td style="text-wrap: nowrap; display:none;"><input type="checkbox" id="' + blankForNull(value.ProdID) + '" onchange="return GetCheckedCheckboxes_Prod(this);" /></td>';
                 }
 
                 productionData_html += '<td style="text-wrap: nowrap;">' + blankForNull((index + 1)) + '</td>';
@@ -151,6 +182,7 @@ function edit_OnClickAddFeedback() {
         }
     }
 
+
     var Category = document.getElementById("infFeedback_Category").value.trim();
     var SubCategory = document.getElementById("infFeedback_SubCategory").value.trim();
     var ErrorField = document.getElementById("infFeedback_ErrorField").value.trim();
@@ -164,59 +196,85 @@ function edit_OnClickAddFeedback() {
 
     var inf_Severity = document.getElementById("infFeedback_Severity");
     var Severity = inf_Severity.options[inf_Severity.selectedIndex].value;
+    var FeedbackStatus = document.getElementById("infFeedback_FeedbackStatus").value.trim();
+    var isNoError = isNoErrorSeverityValue(Severity);
+
+    if (isNoError) {
+        Category = "";
+        SubCategory = "";
+        ErrorField = "";
+        Screen = "";
+        ErrorType = "";
+        Finding = "";
+        FeedbackType = "";
+        FeedbackStatus = "";
+        RCA = "";
+    }
 
     var IsDisplayInERP = true;
 
-    function showValidation(message, elementId) {
-
-        Swal.fire({ icon: "warning", title: "Validation", text: message }).then(function () { document.getElementById(elementId).focus(); });
-
-        return false;
-    }
-
-    if (Category == "") {
-        return showValidation("Please enter Category.", "infFeedback_Category");
-    }
-
-    if (SubCategory == "") {
-        return showValidation("Please enter Sub-Category.", "infFeedback_SubCategory");
-    }
-
-    if (ErrorField == "") {
-        return showValidation("Please enter Error Field.", "infFeedback_ErrorField");
-    }
-
-    if (Screen == "") {
-        return showValidation("Please enter Screen.", "infFeedback_Screen");
-    }
-
-    if (ErrorType == "") {
-        return showValidation("Please enter Error Type.", "infFeedback_ErrorType");
-    }
-
-    if (Finding == "") {
-        return showValidation("Please enter Finding.", "infFeedback_Finding");
-    }
-
-    if (FeedbackType == "") {
-        return showValidation("Please enter Feedback Type.", "infFeedback_FeedbackType");
-    }
-
-    if (RCA == "") {
-        return showValidation("Please enter RCA.", "infFeedback_RCA");
-    }
-
-    if (Source == "") {
-        return showValidation("Please enter Source.", "infFeedback_Source");
-    }
-
-    if (FeedbackRecDate == "") {
-        return showValidation("Please enter Feedback Rec Date.", "infFeedback_FeedbackRecDate");
-    }
 
     if (Severity == "" || Severity == "Select") {
         return showValidation("Please select Severity.", "infFeedback_Severity");
     }
+
+    if (!isNoError) {
+        if (Category == "") {
+            document.getElementById("infFeedback_Category").focus();
+            return showValidation("Please enter Category.", "infFeedback_Category");
+        }
+
+        if (SubCategory == "") {
+            document.getElementById("infFeedback_SubCategory").focus();
+            return showValidation("Please enter Sub-Category.", "infFeedback_SubCategory");
+        }
+
+        if (ErrorField == "") {
+            document.getElementById("infFeedback_ErrorField").focus();
+            return showValidation("Please enter Error Field.", "infFeedback_ErrorField");
+        }
+
+        if (Screen == "") {
+            document.getElementById("infFeedback_Screen").focus();
+            return showValidation("Please enter Screen.", "infFeedback_Screen");
+        }
+
+        if (ErrorType == "") {
+            document.getElementById("infFeedback_ErrorType").focus();
+            return showValidation("Please enter Error Type.", "infFeedback_ErrorType");
+        }
+
+        if (Finding == "") {
+            document.getElementById("infFeedback_Finding").focus();
+            return showValidation("Please enter Finding.", "infFeedback_Finding");
+        }
+
+        if (FeedbackType == "") {
+            document.getElementById("infFeedback_FeedbackType").focus();
+            return showValidation("Please enter Feedback Type.", "infFeedback_FeedbackType");
+        }
+
+        if (RCA == "") {
+            document.getElementById("infFeedback_RCA").focus();
+            return showValidation("Please enter RCA.", "infFeedback_RCA");
+        }
+    }
+
+    if (severityRequiresFeedbackStatus(Severity) && FeedbackStatus == "") {
+        document.getElementById("infFeedback_FeedbackStatus").focus();
+        return showValidation("Please select Feedback Status.", "infFeedback_FeedbackStatus");
+    }
+
+    if (Source == "") {
+        document.getElementById("infFeedback_Source").focus();
+        return showValidation("Please enter Source.", "infFeedback_Source");
+    }
+
+    if (FeedbackRecDate == "") {
+        document.getElementById("infFeedback_FeedbackRecDate").focus();
+        return showValidation("Please enter Feedback Rec Date.", "infFeedback_FeedbackRecDate");
+    }
+
 
     Swal.fire({
         title: "Please wait...", text: "Updating feedback...", allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false, didOpen: function () {
@@ -224,7 +282,7 @@ function edit_OnClickAddFeedback() {
         }
     });
 
-    PageMethods.UpdateInfinityImportedFeedback_NewERP(FeedbackID_1, ProdIDs, Category, SubCategory, ErrorField, Screen, ErrorType, Finding, FeedbackType, Severity, RCA, Source, FeedbackRecDate, IsDisplayInERP, subdomain_new,
+    PageMethods.UpdateInfinityImportedFeedback_NewERP(FeedbackID_1, ProdIDs, Category, SubCategory, ErrorField, Screen, ErrorType, Finding, FeedbackType, Severity, FeedbackStatus, RCA, Source, FeedbackRecDate, IsDisplayInERP, subdomain_new,
 
         function (result) {
 
@@ -262,6 +320,13 @@ function edit_OnClickAddFeedback() {
 
 
 
+function showValidation(message, elementId) {
+
+    Swal.fire({ icon: "warning", title: "Validation", text: message }).then(function () { document.getElementById(elementId).focus(); });
+
+    return false;
+}
+
 function core_edit_OnClickAddFeedback() {
 
     var ProdIDs = 0;
@@ -288,46 +353,68 @@ function core_edit_OnClickAddFeedback() {
     var FeedbackRecDate = document.getElementById("infFeedback_FeedbackRecDate").value;
     var inf_Severity = document.getElementById("infFeedback_Severity");
     var Severity = inf_Severity.options[inf_Severity.selectedIndex].value;
+    var FeedbackStatus = document.getElementById("infFeedback_FeedbackStatus").value;
+    var isNoError = isNoErrorSeverityValue(Severity);
+
+    if (isNoError) {
+        Category = "";
+        SubCategory = "";
+        ErrorField = "";
+        Screen = "";
+        ErrorType = "";
+        Finding = "";
+        FeedbackType = "";
+        FeedbackStatus = "";
+        RCA = "";
+    }
+
     var IsDisplayInERP = true;
 
-    if (Category == "") {
-        alert("Please enter Category.");
-        document.getElementById("infFeedback_Category").focus();
-        return false;
+    if (!isNoError) {
+        if (Category == "") {
+            alert("Please enter Category.");
+            document.getElementById("infFeedback_Category").focus();
+            return false;
+        }
+        if (SubCategory == "") {
+            alert("Please enter Sub-Category");
+            document.getElementById("infFeedback_SubCategory").focus();
+            return false;
+        }
+        if (ErrorField == "") {
+            alert("Please enter Error Field.");
+            document.getElementById("infFeedback_ErrorField").focus();
+            return false;
+        }
+        if (Screen == "") {
+            alert("Please enter Screen.");
+            document.getElementById("infFeedback_Screen").focus();
+            return false;
+        }
+        if (ErrorType == "") {
+            alert("Please enter Error Type.");
+            document.getElementById("infFeedback_ErrorType").focus();
+            return false;
+        }
+        if (Finding == "") {
+            alert("Please enter Finding.");
+            document.getElementById("infFeedback_Finding").focus();
+            return false;
+        }
+        if (FeedbackType == "") {
+            alert("Please enter Feedback Type.");
+            document.getElementById("infFeedback_FeedbackType").focus();
+            return false;
+        }
+        if (RCA == "") {
+            alert("Please enter RCA.");
+            document.getElementById("infFeedback_RCA").focus();
+            return false;
+        }
     }
-    if (SubCategory == "") {
-        alert("Please enter Sub-Category");
-        document.getElementById("infFeedback_SubCategory").focus();
-        return false;
-    }
-    if (ErrorField == "") {
-        alert("Please enter Error Field.");
-        document.getElementById("infFeedback_ErrorField").focus();
-        return false;
-    }
-    if (Screen == "") {
-        alert("Please enter Screen.");
-        document.getElementById("infFeedback_Screen").focus();
-        return false;
-    }
-    if (ErrorType == "") {
-        alert("Please enter Error Type.");
-        document.getElementById("infFeedback_ErrorType").focus();
-        return false;
-    }
-    if (Finding == "") {
-        alert("Please enter Finding.");
-        document.getElementById("infFeedback_Finding").focus();
-        return false;
-    }
-    if (FeedbackType == "") {
-        alert("Please enter Feedback Type.");
-        document.getElementById("infFeedback_FeedbackType").focus();
-        return false;
-    }
-    if (RCA == "") {
-        alert("Please enter RCA.");
-        document.getElementById("infFeedback_RCA").focus();
+    if (severityRequiresFeedbackStatus(Severity) && FeedbackStatus == "") {
+        alert("Please select Feedback Status.");
+        document.getElementById("infFeedback_FeedbackStatus").focus();
         return false;
     }
     if (Source == "") {
@@ -343,7 +430,7 @@ function core_edit_OnClickAddFeedback() {
         alert("Please select Severity.").focus();
         return false;
     }
-    PageMethods.UpdateInfinityImportedFeedback_NewERP(FeedbackID_1, ProdIDs, Category, SubCategory, ErrorField, Screen, ErrorType, Finding, FeedbackType, Severity, RCA, Source, FeedbackRecDate, IsDisplayInERP, subdomain_new, OnSuccessFeedback, OnErrorFeedback);
+    PageMethods.UpdateInfinityImportedFeedback_NewERP(FeedbackID_1, ProdIDs, Category, SubCategory, ErrorField, Screen, ErrorType, Finding, FeedbackType, Severity, FeedbackStatus, RCA, Source, FeedbackRecDate, IsDisplayInERP, subdomain_new, OnSuccessFeedback, OnErrorFeedback);
     return false;
 }
 

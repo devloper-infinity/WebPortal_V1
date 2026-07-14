@@ -322,7 +322,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetProcessDetails(string UserName)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser"); 
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser");
             SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             return dt;
@@ -347,10 +347,10 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
 
         }
-        
+
         public DataTable GetProcessDetailsForFeedbackUser(string UserName, string FromDate, string ToDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User"); //usp_getuniquecolumn
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User"); 
             SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, ToDate);
@@ -440,10 +440,10 @@ namespace WebPortal.App_Code.DAL
         }
 
 
-        
+
         public int InsertFeedbackForNewOrderUnderwritingByTracking(Hashtable htParam)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertFeedbackForNewOrder_KRL");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertImportedFeedback_WebPortal");
             SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OrderNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@OrderDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OrderDate"]);
@@ -477,7 +477,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.ExecuteNonQueryCmd(cmd);
             return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
-     
+
 
 
         public DataTable GetAllProjectDealNumberNew(int ProjectId)
@@ -559,6 +559,16 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+
+        public DataTable GetLoanDetailsByProcessID(int ProcessID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLoanDetailsByProcessID");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProcessID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            return dt;
+        }
+
+
         public int GetEmployeePseudonameNew(string Code)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetPsedonameforattendance_Validate");
@@ -604,6 +614,68 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Code);
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             return dt;
+        }
+
+
+        public int InsertImportedFeedback_Credit(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertImportedFeedback_WebPortal");
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNumber", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["LoanNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Client"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorBy", SqlDbType.NVarChar, 500, ParameterDirection.Input, htParam["ErrorBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackBy", SqlDbType.NVarChar, 500, ParameterDirection.Input, htParam["FeedbackBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DateReviewed", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "DateReviewed"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorType", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "ErrorType"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Category", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "Category"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@SubCategory", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "SubCategory"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "Severity"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorField", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "ErrorField"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackType", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "FeedbackType"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "Finding"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ShouldBe", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "ShouldBe"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Comments", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "Comments"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.Int, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            object returnValue = cmd.Parameters["@ReturnValue"].Value;
+            return returnValue == null || returnValue == DBNull.Value ? 0 : Convert.ToInt32(returnValue);
+        }
+
+        public int InsertImportedFeedback_Servicing(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertImportedFeedback_Servicing_WebPortal");
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNumber", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["LoanNumber"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Client"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorBy", SqlDbType.NVarChar, 500, ParameterDirection.Input, htParam["ErrorBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackBy", SqlDbType.NVarChar, 500, ParameterDirection.Input, htParam["FeedbackBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DateReviewed", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "DateReviewed"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorType", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "ErrorType"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Category", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "Category"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@SubCategory", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "SubCategory"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "Severity"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ErrorField", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "ErrorField"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackType", SqlDbType.NVarChar, 100, ParameterDirection.Input, GetDbValue(htParam, "FeedbackType"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "Finding"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ShouldBe", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "ShouldBe"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Comments", SqlDbType.NVarChar, -1, ParameterDirection.Input, GetDbValue(htParam, "Comments"));
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.Int, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            object returnValue = cmd.Parameters["@ReturnValue"].Value;
+            return returnValue == null || returnValue == DBNull.Value ? 0 : Convert.ToInt32(returnValue);
+        }
+
+        private object GetDbValue(Hashtable htParam, string key)
+        {
+            if (htParam == null || !htParam.ContainsKey(key))
+                return DBNull.Value;
+
+            object value = htParam[key];
+
+            if (value == null || string.IsNullOrWhiteSpace(Convert.ToString(value)))
+                return DBNull.Value;
+
+            return value;
         }
     }
 }
