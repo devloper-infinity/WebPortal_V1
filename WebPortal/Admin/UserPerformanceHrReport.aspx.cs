@@ -3,8 +3,10 @@ using Newtonsoft.Json;
 using Spire.Xls;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -39,24 +41,54 @@ namespace WebPortal.Admin
             //}
         }
 
+        private static int GetCurrentEmployeeId()
+        {
+            int employeeId;
+            string identityName = Convert.ToString(HttpContext.Current.User.Identity.Name);
+
+            if (int.TryParse(identityName, out employeeId))
+                return employeeId;
+
+            string localEmployeeId = ConfigurationManager.AppSettings["LocalEmployeeID"];
+
+            if (int.TryParse(localEmployeeId, out employeeId))
+                return employeeId;
+
+            throw new InvalidOperationException("Current login identity is not a numeric employee id. Login through the application, or set LocalEmployeeID in Web.config for local debugging.");
+        }
+
+        private static string NormalizeReportDate(string value)
+        {
+            DateTime parsedDate;
+
+            if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                return parsedDate.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture);
+
+            return value;
+        }
+
+        private static List<Dictionary<string, object>> ToRows(DataTable dt)
+        {
+            return dt.AsEnumerable()
+                .Select(row => dt.Columns.Cast<DataColumn>()
+                    .ToDictionary(col => col.ColumnName, col => row[col] == DBNull.Value ? null : row[col]))
+                .ToList();
+        }
+
         [WebMethod]
         public static object GetUserPerformanceFeedbackDetailsNonDD(string type, string tab, string FromDate, string EndDate)
         {
-          DataTable  dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+          DataTable  dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(NormalizeReportDate(FromDate), NormalizeReportDate(EndDate), GetCurrentEmployeeId());
 
-            var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
-
-            return data;
+            return ToRows(dt);
         }
 
         [WebMethod]
         public static object GetUserPerformanceFeedbackDetailsCredit(string type, string tab, string FromDate, string EndDate)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(NormalizeReportDate(FromDate), NormalizeReportDate(EndDate), GetCurrentEmployeeId());
 
-            var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
-
-            return data;
+            return ToRows(dt);
         }
 
 
@@ -76,54 +108,57 @@ namespace WebPortal.Admin
         {
             try
             {
+                int employeeId = GetCurrentEmployeeId();
+                req.FromDate = NormalizeReportDate(req.FromDate);
+                req.EndDate = NormalizeReportDate(req.EndDate);
 
                 DataTable dt = new DataTable();// new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(req.FromDate,req.EndDate,int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
                 if (req.type == "nondd")
                 {
                     if (req.tab == "summary")
-                        dt = new bllMaster().GetUserPerformanceReport_HR_NonDD(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceReport_HR_NonDD(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "production")
-                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "feedback")
-                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "attendance")
                         //   dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate, employeeId);
                 }
 
                 else if (req.type == "credit")
                 {
                     if (req.tab == "summary")
-                        dt = new bllMaster().GetUserPerformanceReport_HR_Credit(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceReport_HR_Credit(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "production")
-                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Credit(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Credit(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "feedback")
-                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "attendance")
                         //  dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate,  int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate,  employeeId);
                 }
 
                 else if (req.type == "servicing")
                 {
                     if (req.tab == "summary")
-                        dt = new bllMaster().GetUserPerformanceReport_HR_Servicing(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceReport_HR_Servicing(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "production")
-                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Servicing(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Servicing(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "feedback")
-                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(req.FromDate, req.EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "attendance")
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate,  int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate,  employeeId);
                                                                                                           // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 }
 
@@ -157,60 +192,62 @@ namespace WebPortal.Admin
         {
             try
             {
+                int employeeId = GetCurrentEmployeeId();
+                FromDate = NormalizeReportDate(FromDate);
+                EndDate = NormalizeReportDate(EndDate);
+
                 DataTable dt = new DataTable();
 
                 // 👉 Call your BLL based on tab
                 if (type == "nondd")
                 {
                     if (tab == "summary")
-                        dt = new bllMaster().GetUserPerformanceReport_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceReport_HR_NonDD(FromDate, EndDate, employeeId);
 
                     else if (tab == "production")
-                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(FromDate, EndDate, employeeId);
 
                     else if (tab == "feedback")
-                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(FromDate, EndDate, employeeId);
 
                     else if (tab == "attendance")
                         //   dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, employeeId);
                 }
 
                 else if (type == "credit")
                 {
                     if (tab == "summary")
-                        dt = new bllMaster().GetUserPerformanceReport_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceReport_HR_Credit(FromDate, EndDate, employeeId);
 
                     else if (tab == "production")
-                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Credit(FromDate, EndDate, employeeId);
 
                     else if (tab == "feedback")
-                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(FromDate, EndDate, employeeId);
 
                     else if (tab == "attendance")
                         //  dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, employeeId);
                 }
 
                 else if (type == "servicing")
                 {
                     if (tab == "summary")
-                        dt = new bllMaster().GetUserPerformanceReport_HR_Servicing(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceReport_HR_Servicing(FromDate, EndDate, employeeId);
 
                     else if (tab == "production")
-                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Servicing(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceProdDetails_HR_Servicing(FromDate, EndDate, employeeId);
 
                     else if (tab == "feedback")
-                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(FromDate, EndDate, employeeId);
 
                     else if (tab == "attendance")
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, employeeId);
                                                                                                           // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 }
 
-                var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
-
-                return data;
+                return ToRows(dt);
 
                 //List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
                 //Dictionary<string, object> row;
@@ -241,8 +278,8 @@ namespace WebPortal.Admin
             //HttpContext.Current.Session["FromDate"] = FromDate;
             //HttpContext.Current.Session["ToDate"] = ToDate;
 
-            From_Date = FromDate;
-            To_Date = ToDate;
+            From_Date = NormalizeReportDate(FromDate);
+            To_Date = NormalizeReportDate(ToDate);
 
             GenerateExcel();
         }
@@ -316,7 +353,7 @@ namespace WebPortal.Admin
 
         public static void GenerateNonDDSummary(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceReport_HR_NonDD(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceReport_HR_NonDD(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("NonDD Summary");
 
@@ -327,7 +364,7 @@ namespace WebPortal.Admin
 
         public static void GenerateNonDDProduction(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceProdDetails_HR_NonDD(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("NonDD Production");
             ws.Cell(1, 1).InsertTable(dt);
@@ -336,7 +373,7 @@ namespace WebPortal.Admin
 
         public static void GenerateNonDDFeedback(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("NonDD Feedback");
             ws.Cell(1, 1).InsertTable(dt);
@@ -345,7 +382,7 @@ namespace WebPortal.Admin
 
         public static void GenerateNonDDAttendance(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceAttendanceDetails(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceAttendanceDetails(From_Date, To_Date, GetCurrentEmployeeId());
             //   dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
             var ws = workbook.Worksheets.Add("NonDD Attendance");
@@ -355,7 +392,7 @@ namespace WebPortal.Admin
 
         public static void GenerateCreditSummary(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceReport_HR_Credit(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceReport_HR_Credit(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("Credit Summary");
             ws.Cell(1, 1).InsertTable(dt);
@@ -364,7 +401,7 @@ namespace WebPortal.Admin
 
         public static void GenerateCreditProduction(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceProdDetails_HR_Credit(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceProdDetails_HR_Credit(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("Credit Production");
             ws.Cell(1, 1).InsertTable(dt);
@@ -373,7 +410,7 @@ namespace WebPortal.Admin
 
         public static void GenerateCreditFeedback(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Credit(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("Credit Feedback");
             ws.Cell(1, 1).InsertTable(dt);
@@ -383,7 +420,7 @@ namespace WebPortal.Admin
         public static void GenerateCreditAttendance(XLWorkbook workbook)
         {
             DataTable dt = //new bllMaster().GetUserPerformanceAttendanceDetails_HR_Credit(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            dt = new bllMaster().GetUserPerformanceAttendanceDetails(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            dt = new bllMaster().GetUserPerformanceAttendanceDetails(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("Credit Attendance");
             ws.Cell(1, 1).InsertTable(dt);
@@ -394,7 +431,7 @@ namespace WebPortal.Admin
         {
             DataTable dt = new bllMaster().GetUserPerformanceReport_HR_Servicing(
                 From_Date, To_Date,
-                int.Parse(HttpContext.Current.User.Identity.Name.ToString())
+                GetCurrentEmployeeId()
             );
 
             var ws = workbook.Worksheets.Add("Servicing Summary");
@@ -404,7 +441,7 @@ namespace WebPortal.Admin
 
         public static void GenerateServicingProduction(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceProdDetails_HR_Servicing(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceProdDetails_HR_Servicing(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("Servicing Production");
             ws.Cell(1, 1).InsertTable(dt);
@@ -413,7 +450,7 @@ namespace WebPortal.Admin
 
         public static void GenerateServicingFeedback(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(From_Date, To_Date, GetCurrentEmployeeId());
 
             var ws = workbook.Worksheets.Add("Servicing Feedback");
             ws.Cell(1, 1).InsertTable(dt);
@@ -422,7 +459,7 @@ namespace WebPortal.Admin
 
         public static void GenerateServicingAttendance(XLWorkbook workbook)
         {
-            DataTable dt = new bllMaster().GetUserPerformanceAttendanceDetails(From_Date, To_Date, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt = new bllMaster().GetUserPerformanceAttendanceDetails(From_Date, To_Date, GetCurrentEmployeeId());
             //GetUserPerformanceAttendanceDetails_Servicing
 
             var ws = workbook.Worksheets.Add("Servicing Attendance");

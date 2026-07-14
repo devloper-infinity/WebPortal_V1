@@ -5201,7 +5201,6 @@
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />
-    <Folder Include="Scripts\TrackingSheet\" />
     <Folder Include="SearchDocuments\" />
     <Folder Include="TempFiles\" />
   </ItemGroup>

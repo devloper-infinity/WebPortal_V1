@@ -204,7 +204,7 @@
        <asp:ScriptReference Path="~/Scripts/Functions/EmployeeComments.js?v=@DateTime.Now.Ticks" />
        <asp:ScriptReference Path="~/Scripts/Functions/HRInvoice.js?v=@DateTime.Now.Ticks" />
        <asp:ScriptReference Path="~/Scripts/Functions/DailyLogin.js?v=@DateTime.Now.Ticks" />
-       <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceHR.js?v=@DateTime.Now.Ticks" />
+       <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceHR.js?v=20260709-hr-report-fix" />
        <asp:ScriptReference Path="~/Scripts/Functions/ClientHolidays.js?v=@DateTime.Now.Ticks" />
        <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=@DateTime.Now.Ticks" />
        <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=@DateTime.Now.Ticks" />

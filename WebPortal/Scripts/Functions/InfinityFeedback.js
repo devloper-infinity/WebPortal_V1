@@ -121,12 +121,12 @@ function infinityfeecback_bindsubdomain() {
                 if (blankForNull(value.SubDomain) == "Credit" || blankForNull(value.SubDomain) == "Servicing") {
                     $("#inffeedback_domain").val(blankForNull(value.SubDomain));
                     document.getElementById("tddomainhead").style.display = "none";
-                    document.getElementById("tddomainrow").style.display = "none";
+                    // document.getElementById("tddomainrow").style.display = "none";
                 }
                 else {
                     $("#inffeedback_domain").val("");
                     document.getElementById("tddomainhead").style.display = "";
-                    document.getElementById("tddomainrow").style.display = "";
+                    // document.getElementById("tddomainrow").style.display = "";
                 }
             })
         }

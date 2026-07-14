@@ -118,7 +118,7 @@ namespace WebPortal.Tracking
                     Hashtable htParam = BuildAllocationParams(row, request, orderDate);
                     int returnValue = ShouldUseServicing(Clean(row["ProjectNo"]), request.Mode)
                         ? new bllTracking().InsertModifyUWOrderOC22Servicing(htParam)
-                        : new bllTracking().InsertModifyUWOrderOC22(htParam);
+                        : new bllTracking().AllocateOrder_Self(htParam);
 
                     if (returnValue > 0)
                     {

@@ -500,7 +500,7 @@
                 grid-template-columns: 1fr;
             }
         }
- 
+
         @media (max-width: 768px) {
             .sec-hero {
                 height: auto;
@@ -696,10 +696,10 @@
             overflow: visible !important;
         }
 
-        #table_OrderComplete_wrapper .row:nth-child(2) {
-            overflow-x: visible !important;
-            margin: 0 !important;
-        }
+            #table_OrderComplete_wrapper .row:nth-child(2) {
+                overflow-x: visible !important;
+                margin: 0 !important;
+            }
 
         #table_OrderComplete,
         #table_OrderComplete.dataTable {
@@ -714,97 +714,132 @@
             background: #fff;
         }
 
-        #table_OrderComplete thead th,
-        #table_OrderComplete.dataTable thead th {
-            background: #f8fafc !important;
-            color: #344054 !important;
-            border-bottom: 1px solid #d9e2f1 !important;
-            font-size: 12px !important;
-            font-weight: 800 !important;
-            text-transform: uppercase;
-            letter-spacing: 0;
-            white-space: normal !important;
-            line-height: 1.2 !important;
-            padding: 12px 10px !important;
-            text-align: left !important;
-            box-sizing: border-box !important;
-        }
+            #table_OrderComplete thead th,
+            #table_OrderComplete.dataTable thead th {
+                background: #f8fafc !important;
+                color: #344054 !important;
+                border-bottom: 1px solid #d9e2f1 !important;
+                font-size: 12px !important;
+                font-weight: 800 !important;
+                text-transform: uppercase;
+                letter-spacing: 0;
+                white-space: normal !important;
+                line-height: 1.2 !important;
+                padding: 12px 10px !important;
+                text-align: left !important;
+                box-sizing: border-box !important;
+            }
 
-        #table_OrderComplete tbody td,
-        #table_OrderComplete.dataTable tbody td {
-            vertical-align: middle !important;
-            border-color: #edf2f8 !important;
-            background: #fff !important;
-            color: #344054;
-            font-size: 13px;
-            padding: 12px 10px !important;
-            white-space: normal !important;
-            overflow-wrap: anywhere;
-            box-sizing: border-box !important;
-        }
+            #table_OrderComplete tbody td,
+            #table_OrderComplete.dataTable tbody td {
+                vertical-align: middle !important;
+                border-color: #edf2f8 !important;
+                background: #fff !important;
+                color: #344054;
+                font-size: 13px;
+                padding: 12px 10px !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere;
+                box-sizing: border-box !important;
+            }
 
-        #table_OrderComplete tbody tr:hover td {
-            background: #f8fafc !important;
-        }
+            #table_OrderComplete tbody tr:hover td {
+                background: #f8fafc !important;
+            }
 
-        #table_OrderComplete th:nth-child(1),
-        #table_OrderComplete td:nth-child(1) { width: 4% !important; }
-        #table_OrderComplete th:nth-child(2),
-        #table_OrderComplete td:nth-child(2) { width: 7% !important; }
-        #table_OrderComplete th:nth-child(3),
-        #table_OrderComplete td:nth-child(3) { width: 7% !important; }
-        #table_OrderComplete th:nth-child(4),
-        #table_OrderComplete td:nth-child(4) { width: 7% !important; }
-        #table_OrderComplete th:nth-child(5),
-        #table_OrderComplete td:nth-child(5) { width: 11% !important; }
-        #table_OrderComplete th:nth-child(6),
-        #table_OrderComplete td:nth-child(6) { width: 16% !important; }
-        #table_OrderComplete th:nth-child(7),
-        #table_OrderComplete td:nth-child(7) { width: 11% !important; }
-        #table_OrderComplete th:nth-child(8),
-        #table_OrderComplete td:nth-child(8) { width: 15% !important; }
-        #table_OrderComplete th:nth-child(9),
-        #table_OrderComplete td:nth-child(9) { width: 8% !important; }
-        #table_OrderComplete th:nth-child(10),
-        #table_OrderComplete td:nth-child(10) { width: 8% !important; }
-        #table_OrderComplete th:nth-child(11),
-        #table_OrderComplete td:nth-child(11) { width: 6% !important; }
+            #table_OrderComplete th:nth-child(1),
+            #table_OrderComplete td:nth-child(1) {
+                width: 4% !important;
+            }
 
-        #table_OrderComplete .form-control {
-            width: 100% !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            height: 44px;
-            border-radius: 8px;
-            font-size: 12px;
-            padding: 8px 9px !important;
-        }
+            #table_OrderComplete th:nth-child(2),
+            #table_OrderComplete td:nth-child(2) {
+                width: 7% !important;
+            }
 
-        #table_OrderComplete textarea.Remark {
-            height: 54px !important;
-            min-height: 54px !important;
-            line-height: 1.35;
-            resize: vertical;
-        }
+            #table_OrderComplete th:nth-child(3),
+            #table_OrderComplete td:nth-child(3) {
+                width: 7% !important;
+            }
 
-        #table_OrderComplete .alloc-open-feedback,
-        #table_OrderComplete .btn.btn-sm {
-            width: 100%;
-            min-width: 0 !important;
-            height: 34px;
-            padding: 0 7px !important;
-            border-radius: 8px !important;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 800;
-            white-space: nowrap !important;
-        }
+            #table_OrderComplete th:nth-child(4),
+            #table_OrderComplete td:nth-child(4) {
+                width: 7% !important;
+            }
+
+            #table_OrderComplete th:nth-child(5),
+            #table_OrderComplete td:nth-child(5) {
+                width: 11% !important;
+            }
+
+            #table_OrderComplete th:nth-child(6),
+            #table_OrderComplete td:nth-child(6) {
+                width: 16% !important;
+            }
+
+            #table_OrderComplete th:nth-child(7),
+            #table_OrderComplete td:nth-child(7) {
+                width: 11% !important;
+            }
+
+            #table_OrderComplete th:nth-child(8),
+            #table_OrderComplete td:nth-child(8) {
+                width: 15% !important;
+            }
+
+            #table_OrderComplete th:nth-child(9),
+            #table_OrderComplete td:nth-child(9) {
+                width: 8% !important;
+            }
+
+            #table_OrderComplete th:nth-child(10),
+            #table_OrderComplete td:nth-child(10) {
+                width: 8% !important;
+            }
+
+            #table_OrderComplete th:nth-child(11),
+            #table_OrderComplete td:nth-child(11) {
+                width: 6% !important;
+            }
+
+            #table_OrderComplete .form-control {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                height: 44px;
+                border-radius: 8px;
+                font-size: 12px;
+                padding: 8px 9px !important;
+            }
+
+            #table_OrderComplete textarea.Remark {
+                height: 54px !important;
+                min-height: 54px !important;
+                line-height: 1.35;
+                resize: vertical;
+            }
+
+            #table_OrderComplete .alloc-open-feedback,
+            #table_OrderComplete .btn.btn-sm {
+                width: 100%;
+                min-width: 0 !important;
+                height: 34px;
+                padding: 0 7px !important;
+                border-radius: 8px !important;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                font-size: 11px;
+                font-weight: 800;
+                white-space: nowrap !important;
+            }
     </style>
 
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../Scripts/Tracking/Allocate.js"></script>
+
     <script>
 
         $(document).ready(function () {
@@ -812,59 +847,11 @@
             allocate_bindProject();
             // allocate_bindProcess();
             // allocate_bindAllocatedogrdes_Grid();
-            allocate_bindCompleteOrder_Grid();
+            allocate_CompleteOrder_bindGrid();
 
         });
 
-        function allocate_bindProject() {
-
-            $.ajax({
-                type: "POST",
-                url: "Allocate.aspx/GetAllProjectByUser",
-                data: "{}",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-
-                success: function (response) {
-
-                    var ddl = $("#allocate_project");
-
-                    ddl.empty().append($("<option></option>").val("0").text("Select Project"));
-
-                    var data = response.d;
-
-                    if (typeof data === "string") {
-                        data = JSON.parse(data || "[]");
-                    }
-
-                    $.each(data, function (i, item) {
-                        ddl.append(
-                            $("<option></option>")
-                                .val(item.ProjectID)
-                                .text(item.ProjectName)
-                        );
-                    });
-                },
-
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-
-                    Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: "Unable to load project list."
-                    });
-                }
-            });
-
-            return false;
-        }
-
     </script>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Tracking/Allocate.js?v=@DateTime.Now.Ticks"></script>
 
 </asp:Content>
 
@@ -922,7 +909,7 @@
                             <div class="row align-items-end">
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
                                     <label for="bank_name" class="bank-form-label">Project</label>
-                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(id);">
+                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(this);">
                                     </select>
                                 </div>
                                 <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
@@ -949,9 +936,9 @@
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Action</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
+                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
                                 </tr>
@@ -1071,11 +1058,11 @@
                                 <i class="fas fa-plus-circle"></i>Add Feedback
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <%--    <li class="nav-item">
                             <a class="nav-link" id="allocfb-import-tab" data-toggle="tab" href="#allocfb-import" role="tab" aria-controls="allocfb-import" aria-selected="false">
                                 <i class="fas fa-file-import"></i>Import Feedback
                             </a>
-                        </li>
+                        </li>--%>
                     </ul>
 
                     <div class="tab-content" id="allocFeedbackTabContent">
@@ -1281,760 +1268,4 @@
     </div>
 
 </asp:Content>
-
-
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
-
-    <script>
-
-        function applyModernHrFormLayout() {
-            $('.tab-pane > table.table:first-child').each(function () {
-                var $table = $(this);
-                if ($table.data('modernized') === true) return;
-
-                $table.find('tr').each(function () {
-                    var $row = $(this);
-                    var $cells = $row.children('td').toArray();
-                    var $newCells = $();
-
-                    for (var i = 0; i < $cells.length; i++) {
-                        var $cell = $($cells[i]);
-                        var $label = $cell.children('b').first();
-                        var next = $cells[i + 1] ? $($cells[i + 1]) : null;
-
-                        if ($label.length && next && !next.children('b').length) {
-                            var $fieldCell = $('<td class="hr-field-cell"></td>');
-                            var $field = $('<div class="hr-form-field"></div>');
-                            $('<label></label>').html($label.html().replace(':', '')).appendTo($field);
-                            next.contents().appendTo($field);
-                            $field.appendTo($fieldCell);
-                            $newCells = $newCells.add($fieldCell);
-                            i++;
-                        } else if ($.trim($cell.text()).length || $cell.children().length) {
-                            $cell.addClass('hr-action-cell');
-                            $newCells = $newCells.add($cell);
-                        }
-                    }
-
-                    $row.empty().append($newCells);
-                });
-
-                $table.data('modernized', true).addClass('hr-modern-form');
-            });
-        }
-
-        $(document).ready(function () {
-            applyModernHrFormLayout();
-            $('a[data-toggle="pill"]').on('shown.bs.tab', applyModernHrFormLayout);
-        });
-    </script>
-
-
-    <style>
-        body {
-            background: #f4f7fb;
-        }
-
-        .dashboard-header {
-            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
-            border-radius: 15px;
-            padding: 12px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-
-            .dashboard-header::after {
-                content: '';
-                position: absolute;
-                right: -70px;
-                top: -50px;
-                width: 220px;
-                height: 220px;
-                background: rgba(255,255,255,0.12);
-                border-radius: 50%;
-            }
-
-        .dashboard-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .dashboard-subtitle {
-            font-size: 12px;
-            opacity: 0.9;
-            /*text-transform: uppercase;*/
-        }    </style>
-
-    <style>
-        :root {
-            --hr-primary: #4f46e5;
-            --hr-primary-dark: #3730a3;
-            --hr-accent: #0e7490;
-            --hr-bg: #f6f8fc;
-            --hr-surface: #ffffff;
-            --hr-border: #d9e2f1;
-            --hr-text: #0b1f3a;
-            --hr-muted: #58708d;
-            --hr-radius: 16px;
-            --hr-shadow: 0 12px 28px rgba(15, 23, 42, .08);
-        }
-
-        body {
-            background: var(--hr-bg) !important;
-        }
-
-        .content-header {
-            display: none;
-        }
-
-        .col-lg-12 {
-            padding: 10px 12px 0 !important;
-            width: 100%;
-        }
-
-        .card {
-            border: 0 !important;
-            box-shadow: none !important;
-            background: transparent !important;
-            width: 100%;
-        }
-
-            .card > .card-body {
-                padding: 0 !important;
-                width: 100%;
-            }
-
-        .card-tabs {
-            border: 1px solid #dce6f4 !important;
-            border-radius: 0 !important;
-            background: #f8fbff !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-        }
-
-            .card-tabs > .card-header {
-                margin: 8px 0 12px !important;
-                padding: 8px 6px !important;
-                background: #eaf0fb !important;
-                border: 0 !important;
-                border-radius: 14px !important;
-            }
-
-        .nav-tabs {
-            display: grid !important;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px !important;
-            width: 100%;
-        }
-
-            .nav-tabs .nav-item {
-                width: 100%;
-            }
-
-            .nav-tabs .nav-link {
-                width: 100%;
-                min-height: 42px;
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                border: 1px solid transparent !important;
-                border-radius: 10px !important;
-                background: transparent !important;
-                color: #102a4c !important;
-                font-size: 12px;
-                font-weight: 800 !important;
-                box-shadow: none !important;
-            }
-
-                .nav-tabs .nav-link.active {
-                    background: #fff !important;
-                    color: #083344 !important;
-                    border-color: #d7e2f0 !important;
-                    border-bottom: 3px solid #087c9a !important;
-                    box-shadow: 0 8px 14px rgba(15, 23, 42, .10) !important;
-                }
-
-                .nav-tabs .nav-link:hover {
-                    background: #f7fbff !important;
-                    color: #083344 !important;
-                }
-
-        .card-tabs > .card-body {
-            margin: 0 14px 14px !important;
-            padding: 20px !important;
-            background: #fff !important;
-            border-radius: 18px !important;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, .04) !important;
-        }
-
-        .tab-pane > .table:first-child,
-        .tab-pane > .table:first-child.hr-modern-form {
-            display: block !important;
-            width: 100%;
-            margin: 0 0 22px !important;
-            padding: 0 !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-        }
-
-        .hr-modern-form tbody {
-            display: block !important;
-            width: 100%;
-        }
-
-        .hr-modern-form tr {
-            display: grid !important;
-            grid-template-columns: repeat(4, minmax(180px, 1fr));
-            gap: 16px 18px !important;
-            width: 100%;
-            margin-bottom: 16px !important;
-        }
-
-        .hr-modern-form td,
-        .tab-pane .table.hr-modern-form td {
-            display: block !important;
-            min-width: 0 !important;
-            padding: 0 !important;
-            border: 0 !important;
-        }
-
-        .hr-form-field label {
-            display: block;
-            margin: 0 0 8px;
-            color: #17365d;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .hr-form-field .form-control,
-        .hr-form-field select.form-control,
-        .hr-form-field input.form-control,
-        .hr-form-field textarea.form-control {
-            width: 100% !important;
-            height: 42px;
-            min-height: 42px;
-            border-radius: 10px !important;
-            border: 1px solid #cfdced !important;
-            background-color: #fff !important;
-            color: #0f172a !important;
-            font-size: 12px;
-            box-shadow: none !important;
-        }
-
-        .hr-form-field textarea.form-control {
-            height: auto;
-            min-height: 86px;
-        }
-
-        .hr-form-field .form-control:focus {
-            border-color: #087c9a !important;
-            box-shadow: 0 0 0 3px rgba(8,124,154,.12) !important;
-        }
-
-        .hr-action-cell {
-            display: flex !important;
-            align-items: end;
-            gap: 10px;
-        }
-
-        .btn.btn-primary {
-            min-height: 42px;
-            border-radius: 10px !important;
-            background: linear-gradient(135deg, #2563eb, #6d28d9) !important;
-            box-shadow: 0 8px 18px rgba(37, 99, 235, .25) !important;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .tab-pane > table[id] {
-            width: 100% !important;
-            margin-top: 18px;
-            border: 1px solid #d9e2f1 !important;
-            border-radius: 14px !important;
-            overflow: hidden;
-            background: #fff;
-        }
-
-            .tab-pane > table[id] thead th {
-                background: #f4f7fb !important;
-                color: #17365d !important;
-                font-size: 12px !important;
-            }
-
-        @media (max-width: 992px) {
-            .nav-tabs {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .hr-modern-form tr {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 576px) {
-            .nav-tabs, .hr-modern-form tr {
-                grid-template-columns: 1fr;
-            }
-
-            .card-tabs > .card-body {
-                margin: 0 8px 8px !important;
-                padding: 14px !important;
-            }
-        }
-
-
-        /* Final HR module polish: asset-style cards, modern tabs, and fixed data grids */
-        .card-tabs {
-            background: transparent !important;
-            border: 0 !important;
-        }
-
-            .card-tabs > .card-header {
-                margin: 0 0 14px !important;
-                padding: 8px !important;
-                background: #eaf1fb !important;
-                border-radius: 14px !important;
-                box-shadow: inset 0 0 0 1px #d9e5f4 !important;
-            }
-
-        .nav-tabs {
-            gap: 12px !important;
-        }
-
-            .nav-tabs .nav-link {
-                height: 46px !important;
-                border-radius: 10px !important;
-                letter-spacing: .01em;
-            }
-
-                .nav-tabs .nav-link.active {
-                    border-bottom: 3px solid #087c9a !important;
-                    box-shadow: 0 9px 18px rgba(15, 23, 42, .12) !important;
-                }
-
-        .card-tabs > .card-body {
-            position: relative;
-            padding: 18px !important;
-            border: 1px solid #d9e5f4 !important;
-            border-radius: 18px !important;
-            background: #fff !important;
-        }
-
-        .tab-pane:before {
-            display: block;
-            margin: 2px 0 4px;
-            color: #0b1f3a;
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .tab-pane:after {
-            content: "Fill in the details below and review the saved records.";
-            display: block;
-            margin: -2px 0 16px;
-            padding-bottom: 14px;
-            color: #58708d;
-            font-size: 12px;
-            border-bottom: 1px solid #d9e5f4;
-        }
-
-        .tab-pane > .table:first-child.hr-modern-form {
-            padding: 0 6px 4px !important;
-            margin-bottom: 22px !important;
-        }
-
-        .hr-modern-form tr {
-            grid-template-columns: repeat(4, minmax(190px, 1fr)) !important;
-            align-items: end !important;
-        }
-
-            .hr-modern-form tr:empty {
-                display: none !important;
-            }
-
-        .hr-form-field label {
-            text-transform: none !important;
-            color: #17365d !important;
-            font-size: 12px !important;
-            font-weight: 700 !important;
-        }
-
-        .hr-form-field .form-control,
-        .hr-form-field select.form-control,
-        .hr-form-field input.form-control {
-            height: 44px !important;
-            min-height: 44px !important;
-            border-radius: 10px !important;
-            padding: 8px 13px !important;
-        }
-
-        .hr-action-cell {
-            align-self: end !important;
-        }
-
-        .btn.btn-primary {
-            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
-            height: 44px !important;
-            min-width: 88px;
-            padding: 0 22px !important;
-        }
-
-        hr {
-            border: 0 !important;
-            border-top: 1px solid #d9e5f4 !important;
-            margin: 20px 0 16px !important;
-        }
-
-        /* Top Toolbar Alignment */
-        .dataTables_wrapper .row:first-child {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            gap: 15px !important;
-            margin-bottom: 15px !important;
-        }
-
-        /* Page Length */
-        .dataTables_wrapper .dataTables_length {
-            display: flex !important;
-            align-items: center !important;
-            margin: 0 !important;
-        }
-
-            .dataTables_wrapper .dataTables_length label {
-                display: flex !important;
-                align-items: center !important;
-                gap: 8px;
-                margin: 0 !important;
-                font-size: 13px;
-            }
-
-        /* Excel Button */
-        .dt-buttons {
-            margin: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        .buttons-excel {
-            height: 40px !important;
-            margin: 0 !important;
-        }
-
-        /* Search Box */
-        .dataTables_wrapper .dataTables_filter {
-            margin-left: auto !important;
-            display: flex !important;
-            align-items: center !important;
-        }
-
-            .dataTables_wrapper .dataTables_filter label {
-                display: flex !important;
-                align-items: center !important;
-                gap: 8px;
-                margin: 0 !important;
-            }
-
-            .dataTables_wrapper .dataTables_filter input {
-                width: 240px !important;
-                margin-left: 0 !important;
-            }
-
-        .dt-button, button.dt-button, .buttons-excel, .btn-secondary {
-            min-height: 38px !important;
-            border: 0 !important;
-            border-radius: 10px !important;
-            padding: 8px 16px !important;
-            background: linear-gradient(135deg, #ff9f8e, #fb5f90) !important;
-            color: #0b1f3a !important;
-            font-weight: 800 !important;
-            box-shadow: 0 8px 18px rgba(251, 95, 144, .22) !important;
-        }
-
-        /* Critical reset: record grids must remain real tables, not flex rows */
-        .tab-pane > table[id],
-        .dataTables_wrapper table[id],
-        table.dataTable {
-            display: table !important;
-            width: 100% !important;
-            min-width: 760px !important;
-            table-layout: auto !important;
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
-            border: 1px solid #d9e2f1 !important;
-            border-radius: 12px !important;
-            overflow: hidden !important;
-        }
-
-            .tab-pane > table[id] thead,
-            .tab-pane > table[id] tbody,
-            .dataTables_wrapper table[id] thead,
-            .dataTables_wrapper table[id] tbody,
-            table.dataTable thead,
-            table.dataTable tbody {
-                display: table-header-group !important;
-                padding: 0px;
-            }
-
-            .tab-pane > table[id] tbody,
-            .dataTables_wrapper table[id] tbody,
-            table.dataTable tbody {
-                display: table-row-group !important;
-            }
-
-            .tab-pane > table[id] tr,
-            .dataTables_wrapper table[id] tr,
-            table.dataTable tr {
-                display: table-row !important;
-                margin: 0 !important;
-            }
-
-            .tab-pane > table[id] th,
-            .tab-pane > table[id] td,
-            .dataTables_wrapper table[id] th,
-            .dataTables_wrapper table[id] td,
-            table.dataTable th,
-            table.dataTable td {
-                display: table-cell;
-                min-width: auto !important;
-                padding: 13px 14px !important;
-                border-top: 0 !important;
-                border-bottom: 1px solid #edf2f8 !important;
-                white-space: nowrap !important;
-            }
-
-            .tab-pane > table[id] thead th,
-            .dataTables_wrapper table[id] thead th,
-            table.dataTable thead th {
-                background: #eef6ff !important;
-                color: #17365d !important;
-                font-size: 12px !important;
-                font-weight: 800 !important;
-            }
-
-            .tab-pane > table[id] tbody tr:hover td,
-            .dataTables_wrapper table[id] tbody tr:hover td,
-            table.dataTable tbody tr:hover td {
-                background: #f8fbff !important;
-            }
-
-        .dataTables_scroll, .dataTables_scrollBody {
-            width: 100% !important;
-        }
-
-        .dataTables_wrapper .row:nth-child(2) {
-            overflow-x: auto !important;
-            margin: 0 !important;
-        }
-
-        @media (max-width: 992px) {
-            .hr-modern-form tr {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            }
-
-            .dataTables_wrapper .row:first-child {
-                align-items: stretch !important;
-                flex-direction: column !important;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .hr-modern-form tr {
-                grid-template-columns: 1fr !important;
-            }
-
-            .card-tabs > .card-body {
-                padding: 14px !important;
-            }
-        }    </style>
-
-    <style>
-        .bank-shell-card {
-            background: white;
-            border: 0;
-            border-radius: 18px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-        }
-
-        .bank-form-panel {
-            border: 1px solid #e9eef5;
-            border-radius: 16px;
-            background: #f8fafc;
-            padding: 18px;
-        }
-
-        .bank-form-label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #334155;
-            margin-bottom: 8px;
-        }
-
-        /* .bank-input,
-        .bank-Select {
-            min-height: 42px;
-            border-radius: 10px;
-            border-color: #d9e2ec;
-        }*/
-
-
-        .form-control {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            padding: 9px 9px;
-            height: 45px;
-        }
-
-        .bank-input:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
-        }
-
-        .bank-submit-btn {
-            height: 35px;
-            border-radius: 10px;
-            font-weight: 700;
-            /* padding-left: 24px;
-            padding-right: 24px;*/
-            padding: 24px;
-            box-shadow: 0 8px 18px rgba(13, 110, 253, 0.22);
-            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%) !important;
-        }    </style>
-
-    <script>
-
-        $(document).ready(function () {
-
-            allocate_bindProcess();
-        });
-
-    </script>
-
-    <script src="../Scripts/TrackingSheet/Allocate.js?v=2"></script>
-
-</asp:Content>
-
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <input id="filep" style="display: none;" />
-    <input id="glass_filep" style="display: none;" />
-    <input id="glasscomp_filep" style="display: none;" />
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-    <div class="dashboard-header">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-            <div>
-                <div class="dashboard-title">
-                    <i class="fas fa-tasks mr-2"></i>
-                    Order Allocation & Tracking
-                </div>
-                <div class="dashboard-subtitle">
-                    Allocate loan orders, monitor workflow progress, and track processing status from assignment to completion.
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-12">
-        <div class="card card-tabs">
-            <div class="card-header p-0 pt-1">
-                <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b>Allocation</b></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false"><b>Update Status</b></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="custom-tabs-one-messages-tab" data-toggle="pill" href="#custom-tabs-one-messages" role="tab" aria-controls="custom-tabs-one-messages" aria-selected="false"><b>Report</b></a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="card-body">
-                <div class="tab-content" id="custom-tabs-one-tabContent">
-                    <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                        <div class="bank-form-panel mb-4">
-                            <div class="row align-items-end">
-                                <div class="col-lg-6 col-md-8 mb-3 mb-md-0">
-                                    <label for="bank_name" class="bank-form-label">Process</label>
-                                    <select id="allocate_process" name="allocate_process" class="form-control">
-                                    </select>
-                                </div>
-                                <div class="col-lg-3 col-md-4">
-                                    <button id="allocate_btnSubmit" class="btn btn-primary bank-submit-btn" onclick="return allocate_GetOrder();">
-                                        <i class="fas fa-save mr-1"></i>Get Order
-                                           
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <hr />
-                        <table class="table" id="allocate_table" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">User</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Added Date</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-
-                    <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
-                        <table class="table" id="table_completed" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Added Date</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-
-                    <div class="tab-pane fade" id="custom-tabs-one-messages" role="tabpanel" aria-labelledby="custom-tabs-one-messages-tab">
-                        <table class="table" id="table_report" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">User</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process End Time</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</asp:Content>--%>
 

@@ -601,7 +601,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="Condition_ToDate" class="form-label">
-                                <b>Year</b>
+                                <b>To Date</b>
                             </label>
                             <input type="date" class="my-input" id="infFeedback_ToDateOnShore" name="infFeedback_ToDateOnShore" />
                         </div>

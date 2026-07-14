@@ -22,6 +22,7 @@ namespace WebPortal.Tracking
 {
     public partial class Allocate : System.Web.UI.Page
     {
+        public static DataTable dt_allocate;
         private static readonly string[] FeedbackImportHeaders =
         {
             "Deal No",
@@ -37,6 +38,8 @@ namespace WebPortal.Tracking
             "Feedback Type",
             "Remark"
         };
+
+
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -64,7 +67,7 @@ namespace WebPortal.Tracking
             return ser.Serialize(rows);
         }
 
-        
+
         [WebMethod]
         public static string GetProcessByProject(int ProjectID)
         {
@@ -93,6 +96,20 @@ namespace WebPortal.Tracking
 
             //DataTable dt = new bllUS().GetAllOrderNoByProjectWise(ProjectID, DealNo, "", "", "Allocation2");
             DataTable dt = new bllTracking().GetAllProjectDealNo_OrderNo_UW_Process(ProcessName, Reviewer, Type);
+
+            // Add SrNo column
+            dt.Columns.Add("SrNo", typeof(int));
+
+            int sr = 1;
+            foreach (DataRow dr in dt.Rows)
+            {
+                dr["SrNo"] = sr++;
+            }
+
+            // Move SrNo as first column
+            dt.Columns["SrNo"].SetOrdinal(0);
+            dt_allocate = dt;
+
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 
             return data;
@@ -100,9 +117,12 @@ namespace WebPortal.Tracking
 
 
         [WebMethod]
-        public static object GetUserLoans(string UserName)
+        public static object GetUserLoans()
         {
-            DataTable dt = new bllMaster().GetAllProject(); //bllTracking().GetProcessDetails(UserName);
+            string UserName = EmployeeInfo.Current.PseudoName;
+            UserName = "KIP";
+
+            DataTable dt = new bllTracking().GetProcessDetails(UserName);
             dt = dt.AsEnumerable().Take(5).CopyToDataTable();
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 
@@ -122,33 +142,36 @@ namespace WebPortal.Tracking
 
 
         [WebMethod]
-        public static int AllocateOrders_Self(string Project, string DealNo, string OrderNo, string Process)
+        public static int AllocateOrders_Self(string Loans) /* (string Project, string DealNo, string OrderNo, string Process)*/
         {
             int ReturnValue = 0;
-            DateTime dt = new DateTime();
-            Hashtable htParam = new Hashtable();
 
-            string Reviewer = EmployeeInfo.Current.Code;
-
-            htParam.Add("ProjectNumber", Project);
-            htParam.Add("DealNo", DealNo);
-            htParam.Add("OrderNumber", OrderNo);
-            htParam.Add("Review", Reviewer);
-            htParam.Add("ReviewEndTime", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
-            htParam.Add("Process", Process);
-            htParam.Add("ProductType", "");
-            htParam.Add("Status", "Pending");
-            htParam.Add("Type", "Allocation");
-
-            if (Project == "561" || Project == "667")
+            foreach (string srNo in Loans.Split(','))
             {
-                ReturnValue = new bllTracking().InsertModifyUWOrderOC22Servicing(htParam);
-            }
-            else
-            {
-                ReturnValue = new bllTracking().InsertModifyUWOrderOC22(htParam); /* created proc AllocateOrder_Self*/
-            }
+                DataRow row = dt_allocate.AsEnumerable().FirstOrDefault(r => r.Field<int>("SrNo") == Convert.ToInt32(srNo));
 
+                Hashtable htParam = new Hashtable();
+
+                string Reviewer = EmployeeInfo.Current.PseudoName;
+                string Project = row["ProjectName"].ToString();
+                htParam.Add("ProjectNumber", Project);
+                htParam.Add("DealNo", row["DealNo"].ToString());
+                htParam.Add("OrderNumber", row["LoanNo"].ToString());
+                htParam.Add("Review", Reviewer);
+                htParam.Add("Process", row["Process"].ToString());
+                htParam.Add("ProductType", "");
+                htParam.Add("Status", "Pending");
+                htParam.Add("Type", "Allocation");
+
+                if (Project == "561" || Project == "667")
+                {
+                    ReturnValue = 10;// new bllTracking().InsertModifyUWOrderOC22Servicing(htParam);
+                }
+                else
+                {
+                    ReturnValue = new bllTracking().AllocateOrder_Self(htParam); /* created proc  InsertModifyUWOrderOC22*/
+                }
+            }
             return ReturnValue;
         }
 

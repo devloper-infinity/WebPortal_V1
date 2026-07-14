@@ -5,9 +5,10 @@
 
     <style>
         :root {
-            --upr-primary: #1d4ed8;
-            --upr-primary-2: #2563eb;
-            --upr-cyan: #22c1dc;
+            --upr-primary: #155e75;
+            --upr-primary-2: #0f766e;
+            --upr-cyan: #0891b2;
+            --upr-success: #16a34a;
             --upr-dark: #0f172a;
             --upr-muted: #64748b;
             --upr-border: #e2e8f0;
@@ -15,23 +16,26 @@
             --upr-white: #ffffff;
         }
 
+        .upr-page {
+            min-height: calc(100vh - 120px);
+            background: #f6f8fb;
+        }
+
         .upr-hero {
             position: relative;
             overflow: hidden;
-            border-radius: 18px;
-            padding: 22px 24px;
+            border-radius: 8px;
+            padding: 18px 20px;
             margin-bottom: 16px;
-            background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 65%, #22c1dc 100%);
-            color: #fff;
-            box-shadow: 0 14px 35px rgba(37, 99, 235, .22);
+            background: #fff;
+            color: var(--upr-dark);
+            border: 1px solid var(--upr-border);
+            box-shadow: 0 10px 26px rgba(15,23,42,.06);
         }
 
         .upr-hero:before,
         .upr-hero:after {
-            content: "";
-            position: absolute;
-            border-radius: 999px;
-            background: rgba(255,255,255,.14);
+            display: none;
         }
 
         .upr-hero:before {
@@ -65,27 +69,28 @@
         }
 
         .upr-hero-icon {
-            width: 58px;
-            height: 58px;
-            border-radius: 16px;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,.18);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,.24);
-            font-size: 26px;
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+            font-size: 22px;
         }
 
         .upr-hero h4 {
             margin: 0;
             font-size: 21px;
             font-weight: 800;
-            letter-spacing: .2px;
+            letter-spacing: 0;
         }
 
         .upr-hero p {
             margin: 4px 0 0;
-            opacity: .92;
+            color: var(--upr-muted);
             font-size: 13px;
         }
 
@@ -95,8 +100,9 @@
             gap: 8px;
             padding: 9px 14px;
             border-radius: 999px;
-            background: rgba(255,255,255,.16);
-            border: 1px solid rgba(255,255,255,.22);
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #166534;
             font-weight: 700;
             font-size: 12px;
             white-space: nowrap;
@@ -106,8 +112,8 @@
         .upr-report-card {
             background: var(--upr-white);
             border: 1px solid var(--upr-border);
-            border-radius: 18px;
-            box-shadow: 0 10px 28px rgba(15,23,42,.07);
+            border-radius: 8px;
+            box-shadow: 0 10px 26px rgba(15,23,42,.05);
             margin-bottom: 16px;
         }
 
@@ -127,12 +133,12 @@
         .upr-section-title i {
             width: 34px;
             height: 34px;
-            border-radius: 10px;
+            border-radius: 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            background: linear-gradient(135deg, var(--upr-primary-2), var(--upr-cyan));
+            background: var(--upr-primary);
         }
 
         .upr-field label {
@@ -146,9 +152,10 @@
         .upr-field .form-control {
             min-height: 42px;
             border: 1px solid #dbe3ef;
-            border-radius: 12px;
+            border-radius: 8px;
             box-shadow: none !important;
             font-size: 13px;
+            background: #fff;
         }
 
         .upr-field .form-control:focus {
@@ -168,7 +175,7 @@
         .upr-btn {
             min-height: 42px;
             padding: 10px 18px;
-            border-radius: 12px;
+            border-radius: 8px;
             border: none;
             display: inline-flex;
             align-items: center;
@@ -181,14 +188,14 @@
 
         .upr-btn-primary {
             color: #fff;
-            background: linear-gradient(135deg, var(--upr-primary), var(--upr-cyan));
-            box-shadow: 0 10px 22px rgba(37,99,235,.22);
+            background: var(--upr-primary);
+            box-shadow: 0 8px 18px rgba(21,94,117,.18);
         }
 
         .upr-btn-success {
             color: #fff;
-            background: linear-gradient(135deg, #16a34a, #22c55e);
-            box-shadow: 0 10px 22px rgba(34,197,94,.20);
+            background: var(--upr-success);
+            box-shadow: 0 8px 18px rgba(22,163,74,.18);
         }
 
         .upr-btn:hover {
@@ -200,19 +207,18 @@
             border: 0;
             box-shadow: none;
             margin-bottom: 0;
+            background: transparent;
         }
 
         .upr-tabs-card > .card-header {
-            background: #f8fafc;
-            border: 1px solid var(--upr-border);
-            border-bottom: 0;
-            border-radius: 16px 16px 0 0;
-            padding: 10px 10px 0 !important;
+            background: transparent;
+            border: 0;
+            padding: 0 0 12px !important;
         }
 
         .upr-tabs-card > .card-body {
             border: 1px solid var(--upr-border);
-            border-radius: 0 0 16px 16px;
+            border-radius: 8px;
             padding: 14px;
             background: #fff;
         }
@@ -230,7 +236,7 @@
             border: 1px solid #dbe3ef !important;
             background: #fff;
             color: #334155;
-            border-radius: 12px 12px 0 0;
+            border-radius: 8px !important;
             font-weight: 800;
             font-size: 13px;
             padding: 10px 14px;
@@ -238,7 +244,7 @@
         }
 
         .upr-sub-tabs .nav-link {
-            border-radius: 999px !important;
+            border-radius: 8px !important;
             padding: 8px 13px;
             font-size: 12px;
         }
@@ -251,19 +257,19 @@
 
         .upr-main-tabs .nav-link.active,
         .upr-sub-tabs .nav-link.active {
-            background: linear-gradient(135deg, var(--upr-primary), var(--upr-cyan)) !important;
+            background: var(--upr-primary) !important;
             color: #fff !important;
             border-color: transparent !important;
-            box-shadow: 0 8px 18px rgba(37,99,235,.18);
+            box-shadow: 0 8px 18px rgba(21,94,117,.16);
         }
 
         .upr-data-wrap {
             width: 100%;
             overflow-x: auto;
             border: 1px solid var(--upr-border);
-            border-radius: 14px;
+            border-radius: 8px;
             background: #fff;
-            padding: 8px;
+            padding: 0;
         }
 
         .upr-data-wrap .table {
@@ -275,7 +281,7 @@
         .upr-data-wrap table thead th {
             white-space: nowrap !important;
             text-align: center !important;
-            background: #edf3f6 !important;
+            background: #f1f5f9 !important;
             color: #0f172a !important;
             font-weight: 800 !important;
             border-bottom: 1px solid #dbe3ef !important;
@@ -287,12 +293,27 @@
             background: none;
             vertical-align: middle !important;
             font-size: 12px;
+            color: #334155;
+        }
+
+        .upr-data-wrap table.dataTable tbody tr:hover td {
+            background: #f8fafc !important;
+        }
+
+        .upr-data-wrap .dataTables_wrapper {
+            padding: 10px;
+        }
+
+        .upr-data-wrap .dataTables_info {
+            color: var(--upr-muted);
+            font-size: 12px;
+            padding-top: 12px !important;
         }
 
         .dataTables_wrapper .dataTables_filter input,
         .dataTables_wrapper .dataTables_length select {
             border: 1px solid #dbe3ef;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 5px 8px;
             outline: none;
         }
@@ -306,17 +327,30 @@
 
         .buttons-excel {
             color: #fff !important;
-            background: linear-gradient(135deg, #16a34a, #22c55e) !important;
+            background: var(--upr-success) !important;
             border: 0 !important;
-            border-radius: 10px !important;
+            border-radius: 8px !important;
             font-weight: 800 !important;
             margin: 0 8px 8px 0 !important;
-            box-shadow: 0 8px 16px rgba(34,197,94,.18) !important;
+            box-shadow: 0 8px 16px rgba(22,163,74,.16) !important;
         }
 
         .dataTables_paginate {
             float: right;
             text-align: right;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 8px !important;
+            border: 1px solid transparent !important;
+            margin-left: 4px !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            background: var(--upr-primary) !important;
+            border-color: var(--upr-primary) !important;
+            color: #fff !important;
         }
 
         .dt-center {
@@ -343,50 +377,222 @@
         .loading > div {
             background: #fff;
             padding: 22px 28px;
-            border-radius: 18px;
+            border-radius: 10px;
             box-shadow: 0 16px 45px rgba(15,23,42,.20);
             font-size: 13px !important;
             font-weight: 800 !important;
             color: #334155;
         }
 
-        .waiting-box {
-            border-radius: 18px;
+        #waitingpanel .modal-dialog {
+            max-width: 520px;
+        }
+
+        #waitingpanel .modal-content {
             border: 0;
-            box-shadow: 0 18px 50px rgba(15,23,42,.20);
+        }
+
+        #waitingpanel .modal-content.waiting-box {
+            position: relative;
+            overflow: hidden;
+            padding: 0 !important;
+            border-radius: 10px;
+            border: 1px solid rgba(226,232,240,.95);
+            background: #fff;
+            box-shadow: 0 24px 70px rgba(15,23,42,.28);
+        }
+
+        .waiting-box:before {
+            content: "";
+            display: block;
+            height: 5px;
+            background: linear-gradient(90deg, #2563eb, #06b6d4, #22c55e);
+        }
+
+        .excel-progress-panel {
+            padding: 22px 24px 18px;
+        }
+
+        .excel-progress-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+        }
+
+        .excel-progress-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ecfeff;
+            color: #0891b2;
+            border: 1px solid #cffafe;
+            font-size: 20px;
+            flex: 0 0 46px;
+        }
+
+        .excel-progress-title {
+            margin: 0;
+            color: #0f172a;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .excel-progress-subtitle {
+            margin: 4px 0 0;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .excel-progress-track-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .excel-progress-track {
+            flex: 1 1 auto;
+            height: 14px;
+            padding: 3px;
+            margin: 0;
+            border-radius: 999px;
+            background: #e2e8f0;
+            box-shadow: inset 0 1px 2px rgba(15,23,42,.12);
+            overflow: hidden;
+        }
+
+        .excel-progress-track .progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #2563eb 0%, #06b6d4 48%, #22c55e 100%) !important;
+            box-shadow: 0 0 0 1px rgba(255,255,255,.25), 0 5px 12px rgba(14,165,233,.24);
+            transition: width .35s ease;
+        }
+
+        .excel-progress-value {
+            min-width: 48px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
         }
 
         .excel-steps {
+            display: grid;
+            gap: 8px;
             list-style: none;
-            padding-left: 0;
-            font-size: 14px;
-            max-height: 250px;
+            padding: 16px 18px 18px;
+            font-size: 13px;
+            max-height: 275px;
             overflow-y: auto;
-            margin-bottom: 0;
+            margin: 0;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .excel-steps::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .excel-steps::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 999px;
+        }
+
+        .excel-steps::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 999px;
         }
 
         .excel-steps li,
         #excelSteps li {
-            padding: 8px 10px;
-            border-radius: 10px;
-            margin-bottom: 6px;
-            transition: all .3s ease;
-            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            margin: 0;
+            transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease, color .25s ease;
+            background: #fff;
             border: 1px solid #e2e8f0;
+            color: #334155;
+            font-weight: 700;
+        }
+
+        .excel-step-marker {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 22px;
+            border: 2px solid #cbd5e1;
+            background: #fff;
+        }
+
+        .excel-step-marker:after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #94a3b8;
         }
 
         .step-active,
         .activeStep {
-            background-color: #eff6ff !important;
-            border-left: 4px solid #2563eb !important;
-            font-weight: 800;
+            background: #eff6ff !important;
+            border-color: #93c5fd !important;
+            color: #1d4ed8 !important;
+            box-shadow: 0 8px 18px rgba(37,99,235,.12);
+        }
+
+        .step-active .excel-step-marker,
+        .activeStep .excel-step-marker {
+            border-color: #2563eb;
+            background: #dbeafe;
+        }
+
+        .step-active .excel-step-marker:after,
+        .activeStep .excel-step-marker:after {
+            width: 8px;
+            height: 8px;
+            background: #2563eb;
         }
 
         .step-done {
-            background-color: #dcfce7 !important;
+            background: #f0fdf4 !important;
             color: #166534 !important;
             border-color: #bbf7d0 !important;
             font-weight: 800;
+        }
+
+        .step-done .excel-step-marker {
+            border-color: #22c55e;
+            background: #dcfce7;
+        }
+
+        .step-done .excel-step-marker:after {
+            content: "\2713";
+            width: auto;
+            height: auto;
+            border-radius: 0;
+            background: transparent;
+            color: #15803d;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
         }
 
         .dots::after {
@@ -404,7 +610,7 @@
 
         @media (max-width: 768px) {
             .upr-page { padding: 10px; }
-            .upr-hero { padding: 18px; border-radius: 14px; }
+            .upr-hero { padding: 18px; border-radius: 8px; }
             .upr-hero-left { align-items: flex-start; }
             .upr-hero-icon { width: 48px; height: 48px; font-size: 21px; }
             .upr-hero h4 { font-size: 17px; }
@@ -412,7 +618,12 @@
             .upr-actions { justify-content: stretch; }
             .upr-btn { width: 100%; }
             .upr-main-tabs .nav-link,
-            .upr-sub-tabs .nav-link { width: 100%; text-align: center; border-radius: 12px !important; }
+            .upr-sub-tabs .nav-link { width: 100%; text-align: center; border-radius: 8px !important; }
+            #waitingpanel .modal-dialog { margin: .75rem; }
+            .excel-progress-panel { padding: 18px; }
+            .excel-progress-track-row { align-items: stretch; flex-direction: column; }
+            .excel-progress-value { align-self: flex-end; }
+            .excel-steps { max-height: 50vh; padding: 14px; }
         }
     </style>
 
@@ -601,28 +812,36 @@
 
     <div class="modal fade" id="waitingpanel" tabindex="-1" data-backdrop="static" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-4 waiting-box">
-                <div class="text-center mb-3">
-                    <div class="spinner-border text-success" role="status" style="width:3rem;height:3rem;"></div>
-                    <h5 class="mt-3">Preparing Excel File<span class="dots"></span></h5>
-                    <div class="progress mt-3" style="height:10px;border-radius:20px;">
-                        <div id="excelProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:0%"></div>
+            <div class="modal-content waiting-box">
+                <div class="excel-progress-panel">
+                    <div class="excel-progress-heading">
+                        <div class="excel-progress-icon"><i class="fas fa-file-excel"></i></div>
+                        <div>
+                            <h5 class="excel-progress-title">Preparing Excel File<span class="dots"></span></h5>
+                            <p class="excel-progress-subtitle">Collecting report sheets and formatting workbook</p>
+                        </div>
+                    </div>
+                    <div class="excel-progress-track-row">
+                        <div class="progress excel-progress-track">
+                            <div id="excelProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-label="Excel export progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+                        </div>
+                        <span id="excelProgressText" class="excel-progress-value">0%</span>
                     </div>
                 </div>
                 <ul id="excelSteps" class="excel-steps">
-                    <li id="step1">⬜ NonDD Summary</li>
-                    <li id="step2">⬜ NonDD Production</li>
-                    <li id="step3">⬜ NonDD Feedback</li>
-                    <li id="step4">⬜ NonDD Attendance</li>
-                    <li id="step5">⬜ Credit Summary</li>
-                    <li id="step6">⬜ Credit Production</li>
-                    <li id="step7">⬜ Credit Feedback</li>
-                    <li id="step8">⬜ Credit Attendance</li>
-                    <li id="step9">⬜ Servicing Summary</li>
-                    <li id="step10">⬜ Servicing Production</li>
-                    <li id="step11">⬜ Servicing Feedback</li>
-                    <li id="step12">⬜ Servicing Attendance</li>
-                    <li id="step13">⬜ Finalizing Excel</li>
+                    <li id="step1" data-label="NonDD Summary"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">NonDD Summary</span></li>
+                    <li id="step2" data-label="NonDD Production"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">NonDD Production</span></li>
+                    <li id="step3" data-label="NonDD Feedback"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">NonDD Feedback</span></li>
+                    <li id="step4" data-label="NonDD Attendance"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">NonDD Attendance</span></li>
+                    <li id="step5" data-label="Credit Summary"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Credit Summary</span></li>
+                    <li id="step6" data-label="Credit Production"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Credit Production</span></li>
+                    <li id="step7" data-label="Credit Feedback"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Credit Feedback</span></li>
+                    <li id="step8" data-label="Credit Attendance"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Credit Attendance</span></li>
+                    <li id="step9" data-label="Servicing Summary"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Servicing Summary</span></li>
+                    <li id="step10" data-label="Servicing Production"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Servicing Production</span></li>
+                    <li id="step11" data-label="Servicing Feedback"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Servicing Feedback</span></li>
+                    <li id="step12" data-label="Servicing Attendance"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Servicing Attendance</span></li>
+                    <li id="step13" data-label="Finalizing Excel"><span class="excel-step-marker" aria-hidden="true"></span><span class="excel-step-name">Finalizing Excel</span></li>
                 </ul>
             </div>
         </div>
