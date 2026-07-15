@@ -3,7 +3,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
-    <script src="../Scripts/Functions/EditSecruitization.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/EditSecruitization.js" runat="server"></portal:VersionedScript>
 
     <style>
         body {

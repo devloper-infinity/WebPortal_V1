@@ -469,7 +469,7 @@
         }
     </style>
 
-    <script src="../Scripts/Search/Costing.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Search/Costing.js" runat="server"></portal:VersionedScript>
     
     <script>
         $(document).ready(function () {

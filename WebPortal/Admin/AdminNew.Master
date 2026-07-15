@@ -227,8 +227,9 @@ function renderChildMenu(item) {
 
 <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/js/adminlte.min.js"></script>
-<script src="../Scripts/AI.js?v=1"></script>
+<portal:VersionedScript Src="~/Scripts/AI.js" runat="server"></portal:VersionedScript>
 
+    <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
 </form>
 </body>
 </html>

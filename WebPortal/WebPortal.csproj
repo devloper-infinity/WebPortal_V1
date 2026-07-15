@@ -797,6 +797,7 @@
     <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
+    <Content Include="SessionKeepAlive.aspx" />
     <Content Include="MenuService.aspx" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert - Copy.jpeg" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert.jpeg" />
@@ -4039,6 +4040,7 @@
     <Compile Include="App_Code\DAL\dalReport.cs" />
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
+    <Compile Include="Infrastructure\AssetVersion.cs" />
     <Compile Include="App_Code\Class\EmployeeInfo.cs" />
     <Compile Include="Feedback\AddFeedbackForSearchProject.aspx.cs">
       <DependentUpon>AddFeedbackForSearchProject.aspx</DependentUpon>
@@ -4545,6 +4547,10 @@
     </Compile>
     <Compile Include="LogoutNew.aspx.designer.cs">
       <DependentUpon>LogoutNew.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="SessionKeepAlive.aspx.cs">
+      <DependentUpon>SessionKeepAlive.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="MenuService.aspx.cs">
       <DependentUpon>MenuService.aspx</DependentUpon>

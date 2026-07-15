@@ -119,7 +119,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <%--<script src="../Scripts/Functions/CreateProfile.js"></script>--%>
-    <script src="../Scripts/Functions/CreateprofileNew.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/CreateprofileNew.js" runat="server"></portal:VersionedScript>
 
 </asp:Content>
 

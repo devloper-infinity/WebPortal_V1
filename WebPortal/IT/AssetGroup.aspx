@@ -254,7 +254,7 @@
 
     </script>
 
-    <script src="../Scripts/IT/AssetGroup.js"></script>
+    <portal:VersionedScript Src="~/Scripts/IT/AssetGroup.js" runat="server"></portal:VersionedScript>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

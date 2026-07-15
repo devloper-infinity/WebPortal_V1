@@ -177,7 +177,7 @@
 
     <%--<script src="../Scripts/Functions/Delegation.js?v=@DateTime.Now.Ticks"></script>--%>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Functions/Delegation.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/Functions/Delegation.js")).Ticks %>"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/Delegation.js" runat="server"></portal:VersionedScript>
 
 </asp:Content>
 
@@ -267,6 +267,6 @@
         </div>
     </div>
 
-    <script src="../assets/js/PMDelegationMaster.js"></script>
+    <portal:VersionedScript Src="~/assets/js/PMDelegationMaster.js" runat="server"></portal:VersionedScript>
 </asp:Content>
 

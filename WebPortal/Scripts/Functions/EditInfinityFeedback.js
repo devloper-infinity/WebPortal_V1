@@ -4,6 +4,7 @@ var subdomain_new = '';
 var UwName = '';
 var productionData_table;
 var productionData_html;
+var feedbackHistory_table;
 
 function isNoErrorSeverityValue(severity) {
     return $.trim(severity).toLowerCase() === "no error";
@@ -34,6 +35,7 @@ function toggleSeverityDependentFields() {
 }
 
 function BindInfinityFeedback(FeedbackID, subdomain) {
+
     FeedbackID_1 = FeedbackID;
     subdomain_new = subdomain;
     $.ajax({
@@ -70,10 +72,6 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
 
                 toggleSeverityDependentFields();
 
-
-
-                // document.getElementById("chk_IsShowFeedbackToUser").checked = value.IsDisplayFeedbackInERP;
-
                 var date = new Date(value.FDate);
                 var day = date.getDate();
                 if (day < 10)
@@ -85,7 +83,7 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
                 var actualdate = (month) + "/" + (day) + "/" + year;
 
                 $("#infFeedback_FeedbackRecDate").val(actualdate);
-                BindProductionDataGrid(value.LoanNumber, value.UWName);
+                productionData_bindGrid(value.LoanNumber, value.UWName);
 
                 // BindProductionDataGrid('9761798470', 'EDWIN ROBERT');
             });
@@ -99,75 +97,6 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
     return false;
 }
 
-function BindProductionDataGrid(LoanNo, UwName) {
-
-    $('#load1').show();
-
-    var productionData_html = '';
-
-    $.ajax({
-        url: "EditInfinityFeedback.aspx/GetProductionDataForUpdateFeedback_NewFormat",
-        type: "POST",
-        dataType: "json",
-        data: "{LoanNo:'" + LoanNo + "'}",
-        contentType: "application/json; charset=utf-8",
-
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);
-            $.each(dataArray, function (index, value) {
-
-                var EmpName1 = value.Employee;
-
-                productionData_html += '<tr>';
-
-                if (UwName.toUpperCase() == EmpName1.toUpperCase()) {
-                    productionData_html += '<td style="text-wrap: nowrap; display:none;"><input type="checkbox" checked="checked" id="' + blankForNull(value.ProdID) + '" onchange="return GetCheckedCheckboxes_Prod(this);" /></td>';
-                }
-                else {
-                    productionData_html += '<td style="text-wrap: nowrap; display:none;"><input type="checkbox" id="' + blankForNull(value.ProdID) + '" onchange="return GetCheckedCheckboxes_Prod(this);" /></td>';
-                }
-
-                productionData_html += '<td style="text-wrap: nowrap;">' + blankForNull((index + 1)) + '</td>';
-                productionData_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.ProdID) + '</td>';
-                productionData_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
-                productionData_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Employee.toUpperCase()) + '</td>';
-                productionData_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Process) + '</td>';
-                productionData_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.CompletionDate) + '</td>';
-                productionData_html += '</tr>';
-            });
-
-            if ($.fn.dataTable.isDataTable('#table_productionData')) {
-                productionData_table.destroy();
-            }
-            $('#table_productionData tbody').html(productionData_html);
-
-            productionData_table = $('#table_productionData').DataTable({
-                dom: 't',
-                scrollx: true,
-                destroy: true,
-                "paging": false,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                'select': {
-                    'style': 'single'
-                },
-
-                initComplete: function () {
-
-                    $('#load1').hide();
-                },
-            });
-        },
-
-        error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
-        }
-    });
-    return false;
-}
 
 
 function edit_OnClickAddFeedback() {
@@ -318,8 +247,6 @@ function edit_OnClickAddFeedback() {
     return false;
 }
 
-
-
 function showValidation(message, elementId) {
 
     Swal.fire({ icon: "warning", title: "Validation", text: message }).then(function () { document.getElementById(elementId).focus(); });
@@ -327,133 +254,446 @@ function showValidation(message, elementId) {
     return false;
 }
 
-function core_edit_OnClickAddFeedback() {
 
-    var ProdIDs = 0;
 
-    var chkLen = chkIds_feedback.length;
+function BindFeedbackHistory_Grid(feedbackId, subdomain) {
 
-    if (chkLen > 0) {
+    $('#load1').show();
 
-        for (let i = 0; i < chkLen; i++) {
+    $.ajax({
+        url: "EditInfinityFeedback.aspx/GetCreditAndServicingFeedbackHistory",
+        type: "POST",
+        data: JSON.stringify({
+            FeedbackID: feedbackId,
+            SubDomain: subdomain
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
 
-            ProdIDs = ProdIDs + "," + chkIds_feedback[i];
-        }
-    }
+        success: function (response) {
 
-    var Category = document.getElementById("infFeedback_Category").value;
-    var SubCategory = document.getElementById("infFeedback_SubCategory").value;
-    var ErrorField = document.getElementById("infFeedback_ErrorField").value;
-    var Screen = document.getElementById("infFeedback_Screen").value;
-    var ErrorType = document.getElementById("infFeedback_ErrorType").value;
-    var Finding = document.getElementById("infFeedback_Finding").value;
-    var FeedbackType = document.getElementById("infFeedback_FeedbackType").value;
-    var RCA = document.getElementById("infFeedback_RCA").value;
-    var Source = document.getElementById("infFeedback_Source").value;
-    var FeedbackRecDate = document.getElementById("infFeedback_FeedbackRecDate").value;
-    var inf_Severity = document.getElementById("infFeedback_Severity");
-    var Severity = inf_Severity.options[inf_Severity.selectedIndex].value;
-    var FeedbackStatus = document.getElementById("infFeedback_FeedbackStatus").value;
-    var isNoError = isNoErrorSeverityValue(Severity);
+            var dataArray = [];
 
-    if (isNoError) {
-        Category = "";
-        SubCategory = "";
-        ErrorField = "";
-        Screen = "";
-        ErrorType = "";
-        Finding = "";
-        FeedbackType = "";
-        FeedbackStatus = "";
-        RCA = "";
-    }
+            try {
+                dataArray = typeof response.d === "string"
+                    ? JSON.parse(response.d || "[]")
+                    : (response.d || []);
+            }
+            catch (e) {
+                console.error("Invalid JSON response:", e);
+                console.log("Response:", response.d);
 
-    var IsDisplayInERP = true;
+                $('#load1').hide();
 
-    if (!isNoError) {
-        if (Category == "") {
-            alert("Please enter Category.");
-            document.getElementById("infFeedback_Category").focus();
-            return false;
+                Swal.fire({ icon: 'error', title: 'Invalid Response', text: 'Unable to read feedback history data.' });
+
+                return;
+            }
+
+            if ($.fn.DataTable.isDataTable('#table_feedbackHistory')) {
+                $('#table_feedbackHistory').DataTable().clear().destroy();
+            }
+
+            $('#table_feedbackHistory').DataTable({
+                data: dataArray,
+                dom: 't',
+                paging: false,
+                searching: false,
+                info: false,
+                ordering: false,
+                processing: true,
+                deferRender: true,
+                destroy: true,
+                autoWidth: false,
+                scrollX: true,
+
+                columns: [
+                    {
+                        data: null,
+                        title: "Sr. No.",
+                        className: "text-center text-nowrap",
+                        width: "60px",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    {
+                        data: "UW Name",
+                        title: "UW Name",
+                        className: "text-nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "QC Name",
+                        title: "QC Name",
+                        className: "text-nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Date Reviewed",
+                        title: "Date Reviewed",
+                        className: "text-nowrap text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "QC Date",
+                        title: "QC Date",
+                        className: "text-nowrap text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Category",
+                        title: "Category",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Sub category",
+                        title: "Sub Category",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Error Field",
+                        title: "Error Field",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Screen",
+                        title: "Screen",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Error Type",
+                        title: "Error Type",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Finding",
+                        title: "Finding",
+                        defaultContent: "",
+                        className: "nowrap",
+                        width: "500px"
+                    },
+                    {
+                        data: "Feedback Type",
+                        title: "Feedback Type",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Severity",
+                        title: "Severity",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "RCA",
+                        title: "RCA/Rebuttal",
+                        className: "text-nowrap",
+                        defaultContent: "",
+                        width: "500px",
+                    },
+                    {
+                        data: "Week",
+                        title: "Week",
+                        className: "text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Month",
+                        title: "Month",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Feedback Pending",
+                        title: "Feedback Pending",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Comments",
+                        title: "Comments",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Onshore/GT",
+                        title: "Onshore / GT",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Source",
+                        title: "Source",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Feedback Received Date",
+                        title: "Feedback Received Date",
+                        className: "text-nowrap text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Emp Status",
+                        title: "Emp Status",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "F25",
+                        title: "F25",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "UpdatedByName",
+                        title: "Updated By",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "UpdatedDate",
+                        title: "Updated Date",
+                        className: "text-nowrap text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "IsDisplayFeedbackInERP",
+                        title: "Display In ERP",
+                        className: "text-center",
+                        defaultContent: "",
+                        render: function (data) {
+                            return data === true ||
+                                data === 1 ||
+                                data === "1" ||
+                                String(data).toLowerCase() === "true"
+                                ? "Yes"
+                                : "No";
+                        }
+                    },
+                    {
+                        data: "Status",
+                        title: "Status",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "StatusUpdatedDate",
+                        title: "Status Updated Date",
+                        className: "text-nowrap text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "QCDate_Converted",
+                        title: "QC Date Converted",
+                        className: "text-nowrap text-center",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Finding Status",
+                        title: "Finding Status",
+                        className: "nowrap",
+                        defaultContent: ""
+                    }
+                ],
+
+                language: {
+                    emptyTable: "No feedback records found."
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+
+            $('#table_feedbackHistory')
+                .off('error.dt')
+                .on('error.dt', function (e, settings, techNote, message) {
+                    console.error("DataTable error:", message);
+                });
+        },
+
+        error: function (xhr) {
+
+            $('#load1').hide();
+
+            console.error("AJAX error:", xhr.responseText);
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: xhr.responseJSON && xhr.responseJSON.Message
+                    ? xhr.responseJSON.Message
+                    : 'Unable to load feedback data.'
+            });
         }
-        if (SubCategory == "") {
-            alert("Please enter Sub-Category");
-            document.getElementById("infFeedback_SubCategory").focus();
-            return false;
-        }
-        if (ErrorField == "") {
-            alert("Please enter Error Field.");
-            document.getElementById("infFeedback_ErrorField").focus();
-            return false;
-        }
-        if (Screen == "") {
-            alert("Please enter Screen.");
-            document.getElementById("infFeedback_Screen").focus();
-            return false;
-        }
-        if (ErrorType == "") {
-            alert("Please enter Error Type.");
-            document.getElementById("infFeedback_ErrorType").focus();
-            return false;
-        }
-        if (Finding == "") {
-            alert("Please enter Finding.");
-            document.getElementById("infFeedback_Finding").focus();
-            return false;
-        }
-        if (FeedbackType == "") {
-            alert("Please enter Feedback Type.");
-            document.getElementById("infFeedback_FeedbackType").focus();
-            return false;
-        }
-        if (RCA == "") {
-            alert("Please enter RCA.");
-            document.getElementById("infFeedback_RCA").focus();
-            return false;
-        }
-    }
-    if (severityRequiresFeedbackStatus(Severity) && FeedbackStatus == "") {
-        alert("Please select Feedback Status.");
-        document.getElementById("infFeedback_FeedbackStatus").focus();
-        return false;
-    }
-    if (Source == "") {
-        alert("Please enter Source.");
-        document.getElementById("infFeedback_Source").focus();
-        return false;
-    }
-    if (FeedbackRecDate == "") {
-        alert("Please enter FeedbackRecDate.").focus();
-        return false;
-    }
-    if (Severity == "") {
-        alert("Please select Severity.").focus();
-        return false;
-    }
-    PageMethods.UpdateInfinityImportedFeedback_NewERP(FeedbackID_1, ProdIDs, Category, SubCategory, ErrorField, Screen, ErrorType, Finding, FeedbackType, Severity, FeedbackStatus, RCA, Source, FeedbackRecDate, IsDisplayInERP, subdomain_new, OnSuccessFeedback, OnErrorFeedback);
+    });
+
     return false;
 }
 
-function OnSuccessFeedback(result) {
 
-    FeedbackID_1 = 0;
-    subdomain_new = '';
 
-    if (result > 0) {
-        alert("Feedback updated successfully.");
-        location.reload();
-        return false;
-    }
-    else {
-        alert("Oops! Error occured while updating status. Please contact administrator");
-        location.reload();
-        return false;
-    }
+function productionData_bindGrid(LoanNo, UwName) {
+
+    $('#load1').show();
+
+    $.ajax({
+        url: "EditInfinityFeedback.aspx/GetProductionDataForUpdateFeedback_NewFormat",
+        type: "POST",
+        data: JSON.stringify({
+            LoanNo: LoanNo
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+
+        success: function (response) {
+
+            var dataArray = [];
+
+            try {
+                dataArray = JSON.parse(response.d || "[]");
+            }
+            catch (e) {
+                console.error("Invalid JSON response:", e);
+                dataArray = [];
+            }
+
+            var uwNameValue = (UwName || "").trim().toUpperCase();
+
+            if ($.fn.DataTable.isDataTable('#table_productionData')) {
+                $('#table_productionData').DataTable().clear().destroy();
+            }
+
+            productionData_table = $('#table_productionData').DataTable({
+                data: dataArray,
+                dom: 't',
+                paging: false,
+                searching: false,
+                info: false,
+                ordering: false,
+                processing: true,
+                deferRender: true,
+                destroy: true,
+                autoWidth: false,
+                scrollX: true,
+                select: {
+                    style: 'single'
+                },
+
+                columns: [
+                    {
+                        data: null,
+                        title: "Select",
+                        visible: false,
+                        orderable: false,
+                        searchable: false,
+                        className: "text-center",
+                        render: function (data, type, row) {
+
+                            var employeeName = (row.Employee || "")
+                                .trim()
+                                .toUpperCase();
+
+                            var isChecked = employeeName === uwNameValue
+                                ? 'checked'
+                                : '';
+
+                            return `
+                                <input type="checkbox"
+                                       class="production-checkbox"
+                                       id="${blankForNull(row.ProdID)}"
+                                       data-prodid="${blankForNull(row.ProdID)}"
+                                       ${isChecked}
+                                       onchange="return GetCheckedCheckboxes_Prod(this);" />
+                            `;
+                        }
+                    },
+                    {
+                        data: null,
+                        title: "Sr. No.",
+                        className: "text-center text-nowrap",
+                        width: "70px",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    {
+                        data: "ProdID",
+                        title: "ProdID",
+                        visible: false,
+                        defaultContent: ""
+                    },
+                    {
+                        data: "Code",
+                        title: "Code",
+                        className: "text-nowrap",
+                        defaultContent: "",
+                        render: function (data) {
+                            return blankForNull(data);
+                        }
+                    },
+                    {
+                        data: "Employee",
+                        title: "Employee",
+                        className: "text-nowrap",
+                        defaultContent: "",
+                        render: function (data) {
+                            return blankForNull(data).toUpperCase();
+                        }
+                    },
+                    {
+                        data: "Process",
+                        title: "Process",
+                        className: "text-nowrap",
+                        defaultContent: "",
+                        render: function (data) {
+                            return blankForNull(data);
+                        }
+                    },
+                    {
+                        data: "CompletionDate",
+                        title: "Completion Date",
+                        className: "text-nowrap text-center",
+                        defaultContent: "",
+                        render: function (data) {
+                            return blankForNull(data);
+                        }
+                    }
+                ],
+
+                language: {
+                    emptyTable: "No production records found."
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
+        },
+
+        error: function (xhr) {
+
+            $('#load1').hide();
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: xhr.responseJSON && xhr.responseJSON.Message
+                    ? xhr.responseJSON.Message
+                    : 'Unable to load production data.'
+            });
+        }
+    });
+
+    return false;
 }
 
-function OnErrorFeedback(error) {
-    alert(error.get_message());
-}
 
 const chkIds_feedback = [];
 

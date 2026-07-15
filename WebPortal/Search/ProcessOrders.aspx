@@ -594,7 +594,7 @@
     </script>
 
 
-    <script src="../Scripts/Search/ProcessOrders.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Search/ProcessOrders.js" runat="server"></portal:VersionedScript>
 
 </asp:Content>
 

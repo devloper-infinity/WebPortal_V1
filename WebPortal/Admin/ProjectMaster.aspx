@@ -559,5 +559,5 @@
     </div>
 
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/Functions/ProjectMaster.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/ProjectMaster.js" runat="server"></portal:VersionedScript>
 </asp:Content>

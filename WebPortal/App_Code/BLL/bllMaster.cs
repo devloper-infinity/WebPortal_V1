@@ -1944,6 +1944,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetFeedbackDetailsByID_NewFormat(FeedbackID, Subdomain);
         }
 
+        public DataTable GetCreditAndServicingFeedbackHistory(int FeedbackID, string SubDomain)
+        {
+            return dalMaster.GetCreditAndServicingFeedbackHistory(FeedbackID, SubDomain);
+        }
+
         public DataTable GetProductionDataForUpdateFeedback_NewFormat(string LoanNo)
         {
             return dalMaster.GetProductionDataForUpdateFeedback_NewFormat(LoanNo);

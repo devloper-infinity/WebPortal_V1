@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <!-- Theme style -->
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
-    <script src="../Scripts/SessionHandler.js"></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
@@ -147,14 +146,14 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=@DateTime.Now.Ticks" />
-                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js?v=@DateTime.Now.Ticks" />
+                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js" />
+                <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js" />
+                <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js" />
+                <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js" />
+                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js" />
+                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js" />
 
                 <%--<asp:ScriptReference Path="../Scripts/Functions/Delegation.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/Functions/Delegation.js")).Ticks %>" />--%>
                 <%--<asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/US/LoanDetails.js")).Ticks %>" />--%>
@@ -590,6 +589,7 @@
         <!-- AdminLTE for demo purposes -->
 
 
+        <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
     </form>
 </body>
 </html>

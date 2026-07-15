@@ -4369,6 +4369,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetCreditAndServicingFeedbackHistory(int FeedbackID, string SubDomain)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetCreditAndServicingFeedbackHistory");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, FeedbackID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SubDomain", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, SubDomain);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetFeedbackDetailsByID_NewFormat(int FeedbackID, string Subdomain)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetFeedbackDetailsByID_NewFormat_1");
@@ -4429,7 +4438,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.ExecuteNonQueryCmd(cmd);
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
             cmd.Dispose();
-                   
+
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 

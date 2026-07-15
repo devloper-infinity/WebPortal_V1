@@ -210,36 +210,44 @@
             overflow-x: auto;
         }
 
-        #table_productionData {
+        #table_productionData,
+        #table_feedbackHistory {
             border-collapse: separate !important;
             border-spacing: 0;
             margin: 0 !important;
             width: 100% !important;
         }
 
-            #table_productionData thead th {
+            #table_productionData thead th,
+            #table_feedbackHistory thead th {
                 background: #edf3f6 !important;
                 border-color: #d7e2ea !important;
                 color: #263747;
                 font-size: 12px;
-                /*text-align: center;*/
+                /* text-align: center; */
                 vertical-align: middle;
                 white-space: nowrap;
             }
 
-            #table_productionData tbody td {
-                /*  background: #fff;*/
-                background: #edf3f6 !important;
-                border-color: #d7e2ea !important;
+            #table_productionData tbody td,
+            #table_feedbackHistory tbody td {
+                /*   background: #edf3f6 !important;*/
                 border-color: #e2e9ef !important;
-                color: #263747;
+                /* color: #263747; */
                 font-size: 12px;
                 vertical-align: middle;
             }
 
-            #table_productionData tbody tr:hover td {
-                background: #f7fbfa;
+            #table_productionData tbody tr:hover td,
+            #table_feedbackHistory tbody tr:hover td {
+                /* background: #f7fbfa !important;*/
             }
+
+        .nowrap {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         .loading {
             align-items: center;
@@ -338,8 +346,8 @@
             $('#infFeedback_Severity').on('change', toggleSeverityDependentFields);
             toggleSeverityDependentFields();
             BindInfinityFeedback(FeedbackID, subdomain);
-
-            //  BingProductionDataGrid('9761798470', 'EDWIN ROBERT'); //9761798470	2377	EDWIN ROBERT
+            BindFeedbackHistory_Grid(FeedbackID, subdomain);
+            //BindProductionDataGrid('9761798470', 'EDWIN ROBERT'); //9761798470	2377	EDWIN ROBERT
         });
 
     </script>
@@ -479,6 +487,23 @@
                    
                     </button>
                 </div>
+
+
+            </div>
+        </div>
+
+        <div class="inf-panel">
+            <div class="inf-panel-header">
+                <div>
+                    <h2 class="inf-panel-title"><i class="fas fa-table-list"></i>Feedback History</h2>
+                    <div class="inf-panel-subtitle">To show loan feedback History.</div>
+                </div>
+            </div>
+            <div class="inf-table-wrap">
+                <table class="table" id="table_feedbackHistory">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
@@ -493,7 +518,7 @@
                 <table class="table" id="table_productionData">
                     <thead>
                         <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display:none;">Actions</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Actions</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">ProdID</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Code</th>

@@ -517,6 +517,7 @@
         <!-- AdminLTE for demo purposes -->
 
 
-    </form>
+    <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
+</form>
 </body>
 </html>

@@ -1127,7 +1127,7 @@
 
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <%--  <script src="../Scripts/Tracking/AddFeedback.js"></script>--%>
-    <script src="../Scripts/Tracking/Feedback.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Tracking/Feedback.js" runat="server"></portal:VersionedScript>
 </asp:Content>
 
 

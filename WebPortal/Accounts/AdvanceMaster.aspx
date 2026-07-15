@@ -80,7 +80,7 @@
 
     </script>
 
-    <script src="../Scripts/Accounts/Advance.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Accounts/Advance.js" runat="server"></portal:VersionedScript>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>

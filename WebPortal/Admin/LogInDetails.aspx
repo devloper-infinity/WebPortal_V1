@@ -45,7 +45,7 @@
         }
     </style>
 
-    <script src="~/Scripts/Functions/LogInDetails.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/LogInDetails.js" runat="server"></portal:VersionedScript>
 
     <script>
         $(document).ready(function () {

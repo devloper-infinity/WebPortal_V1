@@ -473,5 +473,5 @@
         </div>
     </div>
 
-    <script src="../Scripts/Functions/InitiateResignation.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/InitiateResignation.js" runat="server"></portal:VersionedScript>
 </asp:Content>

@@ -3,7 +3,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/Tracking/TodaySatus.js?v=1.0"></script>
+    <portal:VersionedScript Src="~/Scripts/Tracking/TodaySatus.js" runat="server"></portal:VersionedScript>
     <style>
         .content .container { max-width: 1500px; }
         .status-page { color: #1f2937; padding: 18px 0 30px; }

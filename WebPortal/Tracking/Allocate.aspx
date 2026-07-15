@@ -857,7 +857,7 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Tracking/Allocate.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Tracking/Allocate.js" runat="server"></portal:VersionedScript>
 
     <script>
 

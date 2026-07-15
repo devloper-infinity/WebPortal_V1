@@ -667,5 +667,5 @@
         </div>
     </div>
 
-    <script src="../Scripts/Functions/UsersAppreciationDisplinaryAction.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/UsersAppreciationDisplinaryAction.js" runat="server"></portal:VersionedScript>
 </asp:Content>
