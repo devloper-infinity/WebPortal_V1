@@ -109,6 +109,41 @@ namespace WebPortal.Admin
             range.Style.Font.FontName = "Aptos Narrow";
         }
 
+        public static void HeaderFormat_Static_Green(CellRange range)
+        {
+            range.Style.Borders.LineStyle = LineStyleType.Thin;
+            range.Style.Borders[BordersLineType.DiagonalUp].LineStyle = LineStyleType.None;
+            range.Style.Borders[BordersLineType.DiagonalDown].LineStyle = LineStyleType.None;
+            range.Style.Color = Color.FromArgb(226, 240, 217);
+            range.Style.Font.Color = Color.Black;
+            range.Style.HorizontalAlignment = HorizontalAlignType.Center;
+            //range.Style.Font.IsBold = true;
+            range.Style.Font.FontName = "Aptos Narrow";
+        }
+        public static void HeaderFormat_Static_Yellow(CellRange range)
+        {
+            range.Style.Borders.LineStyle = LineStyleType.Thin;
+            range.Style.Borders[BordersLineType.DiagonalUp].LineStyle = LineStyleType.None;
+            range.Style.Borders[BordersLineType.DiagonalDown].LineStyle = LineStyleType.None;
+            range.Style.Color = Color.FromArgb(255, 242, 204);
+            range.Style.Font.Color = Color.Black;
+            range.Style.HorizontalAlignment = HorizontalAlignType.Center;
+            //range.Style.Font.IsBold = true;
+            range.Style.Font.FontName = "Aptos Narrow";
+        }
+
+        public static void HeaderFormat_Static_Red(CellRange range)
+        {
+            range.Style.Borders.LineStyle = LineStyleType.Thin;
+            range.Style.Borders[BordersLineType.DiagonalUp].LineStyle = LineStyleType.None;
+            range.Style.Borders[BordersLineType.DiagonalDown].LineStyle = LineStyleType.None;
+            range.Style.Color = Color.FromArgb(252, 228, 214);
+            range.Style.Font.Color = Color.Black;
+            range.Style.HorizontalAlignment = HorizontalAlignType.Center;
+            //range.Style.Font.IsBold = true;
+            range.Style.Font.FontName = "Aptos Narrow";
+        }
+
         public static void AllBorder_Static(CellRange range)
         {
             //try
@@ -1367,15 +1402,15 @@ namespace WebPortal.Admin
 
                 wksheet.Range[1, 3].Value = "Internal";
                 wksheet.Range[1, 3, 1, 4].Merge();
-                HeaderFormat_Static(wksheet.Range[1, 3, 1, 4]);
+                HeaderFormat_Static_Green(wksheet.Range[1, 3, 1, 4]);
 
                 wksheet.Range[1, 5].Value = "ReQC";
                 wksheet.Range[1, 5, 1, 6].Merge();
-                HeaderFormat_Static(wksheet.Range[1, 5, 1, 6]);
+                HeaderFormat_Static_Yellow(wksheet.Range[1, 5, 1, 6]);
 
                 wksheet.Range[1, 7].Value = "Client";
                 wksheet.Range[1, 7, 1, 8].Merge();
-                HeaderFormat_Static(wksheet.Range[1, 7, 1, 8]);
+                HeaderFormat_Static_Red(wksheet.Range[1, 7, 1, 8]);
 
                 wksheet.Range[1, 9].Value = "Total";
                 wksheet.Range[1, 9, 1, 10].Merge();
@@ -1390,11 +1425,17 @@ namespace WebPortal.Admin
                 HeaderFormat_Static(range12);
 
                 wksheet.Range["C2:C2"].Value = "Non-Critical";
+                HeaderFormat_Static_Green(wksheet.Range["C2:C" + wksheet.LastRow]);
                 wksheet.Range["D2:D2"].Value = "Critical";
+                HeaderFormat_Static_Green(wksheet.Range["D2:D" + wksheet.LastRow]);
                 wksheet.Range["E2:E2"].Value = "Non-Critical";
+                HeaderFormat_Static_Yellow(wksheet.Range["E2:E" + wksheet.LastRow]);
                 wksheet.Range["F2:F2"].Value = "Critical";
+                HeaderFormat_Static_Yellow(wksheet.Range["F2:F"+ wksheet.LastRow]);
                 wksheet.Range["G2:G2"].Value = "Non-Critical";
+                HeaderFormat_Static_Red(wksheet.Range["G2:G" + wksheet.LastRow]);
                 wksheet.Range["H2:H2"].Value = "Critical";
+                HeaderFormat_Static_Red(wksheet.Range["H2:H" + wksheet.LastRow]);
                 wksheet.Range["I2:I2"].Value = "Non-Critical";
                 wksheet.Range["J2:J2"].Value = "Critical";
 

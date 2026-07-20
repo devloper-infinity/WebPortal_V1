@@ -238,6 +238,26 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.GetAllOrderNoByProjectWise(ProjectID, DealNo, ProcessName, Review, Type);
         }
 
+        public DataTable GetBulkAllocatedOrders(int projectId, string processName)
+        {
+            return dalTracking.GetBulkAllocatedOrders(projectId, processName);
+        }
+
+        public string GetBulkAllocationDuplicateStatus(
+            int projectId,
+            string dealNo,
+            string loanNo,
+            string userCode,
+            string processName)
+        {
+            return dalTracking.GetBulkAllocationDuplicateStatus(
+                projectId,
+                dealNo,
+                loanNo,
+                userCode,
+                processName);
+        }
+
         public DataTable GetAllDealDispatchDate()
         {
             return dalTracking.GetAllDealDispatchDate();

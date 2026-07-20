@@ -500,6 +500,166 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetBulkAllocatedOrders(int projectId, string processName)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+;WITH CurrentQueue AS
+(
+    SELECT
+        ProcessID,
+        ProjectId,
+        ProjectNo,
+        DealNo,
+        OrderNumber,
+        UserCode,
+        [Process],
+        OrderStatus,
+        AddedDate,
+        ProcessDate,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY ProjectId, DealNo, OrderNumber, [Process]
+            ORDER BY ProcessDate DESC, ProcessID DESC
+        ) AS RowNumber
+    FROM dbo.WBT_TrackingsheetOrderProcessQueue
+    WHERE ProjectId = @ProjectId
+      AND [Process] = @ProcessName
+),
+LatestHistory AS
+(
+    SELECT
+        ProcessID,
+        ProjectId,
+        ProjectNo,
+        DealNo,
+        OrderNumber,
+        UserCode,
+        [Process],
+        OrderStatus,
+        AddedDate,
+        ProcessDate,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY ProjectId, DealNo, OrderNumber, [Process]
+            ORDER BY ProcessDate DESC, ProcessID DESC
+        ) AS RowNumber
+    FROM dbo.WBT_TrackingsheetOrderProcessHistory
+    WHERE ProjectId = @ProjectId
+      AND [Process] = @ProcessName
+)
+SELECT
+    ProjectNo AS Project,
+    DealNo,
+    OrderNumber AS LoanNo,
+    UserCode AS Employee,
+    [Process],
+    OrderStatus AS [Status],
+    AddedDate,
+    ProcessDate
+FROM CurrentQueue
+WHERE RowNumber = 1
+
+UNION ALL
+
+SELECT
+    history.ProjectNo AS Project,
+    history.DealNo,
+    history.OrderNumber AS LoanNo,
+    history.UserCode AS Employee,
+    history.[Process],
+    history.OrderStatus AS [Status],
+    history.AddedDate,
+    history.ProcessDate
+FROM LatestHistory history
+WHERE history.RowNumber = 1
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM CurrentQueue queue
+      WHERE queue.RowNumber = 1
+        AND queue.ProjectId = history.ProjectId
+        AND ISNULL(queue.DealNo, '') = ISNULL(history.DealNo, '')
+        AND queue.OrderNumber = history.OrderNumber
+        AND queue.[Process] = history.[Process]
+  )
+ORDER BY ProcessDate DESC, LoanNo;");
+
+            SQLHelper.AddParamToSQLCmd(
+                cmd,
+                "@ProjectId",
+                SqlDbType.BigInt,
+                0,
+                ParameterDirection.Input,
+                projectId);
+            SQLHelper.AddParamToSQLCmd(
+                cmd,
+                "@ProcessName",
+                SqlDbType.NVarChar,
+                4000,
+                ParameterDirection.Input,
+                processName);
+
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            cmd.Dispose();
+            return dt;
+        }
+
+        public string GetBulkAllocationDuplicateStatus(
+            int projectId,
+            string dealNo,
+            string loanNo,
+            string userCode,
+            string processName)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT TOP 1 ExistingOrder.OrderStatus
+FROM
+(
+    SELECT
+        OrderStatus,
+        ProcessDate,
+        ProcessID,
+        0 AS SourcePriority
+    FROM dbo.WBT_TrackingsheetOrderProcessQueue
+    WHERE ProjectId = @ProjectId
+      AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo))
+      AND LTRIM(RTRIM(ISNULL(OrderNumber, ''))) = LTRIM(RTRIM(@LoanNo))
+      AND LTRIM(RTRIM(ISNULL(UserCode, ''))) = LTRIM(RTRIM(@UserCode))
+      AND LTRIM(RTRIM(ISNULL([Process], ''))) = LTRIM(RTRIM(@ProcessName))
+
+    UNION ALL
+
+    SELECT
+        OrderStatus,
+        ProcessDate,
+        ProcessID,
+        1 AS SourcePriority
+    FROM dbo.WBT_TrackingsheetOrderProcessHistory
+    WHERE ProjectId = @ProjectId
+      AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo))
+      AND LTRIM(RTRIM(ISNULL(OrderNumber, ''))) = LTRIM(RTRIM(@LoanNo))
+      AND LTRIM(RTRIM(ISNULL(UserCode, ''))) = LTRIM(RTRIM(@UserCode))
+      AND LTRIM(RTRIM(ISNULL([Process], ''))) = LTRIM(RTRIM(@ProcessName))
+) ExistingOrder
+ORDER BY ExistingOrder.SourcePriority, ExistingOrder.ProcessDate DESC, ExistingOrder.ProcessID DESC;");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectId", SqlDbType.BigInt, 0, ParameterDirection.Input, projectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, dealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, loanNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", SqlDbType.NVarChar, 500, ParameterDirection.Input, userCode);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessName", SqlDbType.NVarChar, 4000, ParameterDirection.Input, processName);
+
+            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+            cmd.Dispose();
+            if (dt == null)
+                throw new System.InvalidOperationException("Unable to validate duplicate allocation.");
+            if (dt.Rows.Count == 0)
+                return "";
+
+            string status = System.Convert.ToString(dt.Rows[0]["OrderStatus"]).Trim();
+            return string.IsNullOrWhiteSpace(status) ? "Existing" : status;
+        }
+
         public DataTable GetAllDealDispatchDate()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_BindDealDispatchDate]");

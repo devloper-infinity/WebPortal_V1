@@ -1,0 +1,2 @@
+using System;using System.Web;using System.Web.Services;using WebPortal.Assets.Classes;
+namespace WebPortal.Assets{public partial class AssetDetails:System.Web.UI.Page{static AssetBAL S=>new AssetBAL();static long U=>Convert.ToInt64(HttpContext.Current.User.Identity.Name.ToString());protected void Page_Load(object sender,EventArgs e){}[WebMethod]public static object Get(long id){return AssetBAL.Sets(S.Detail("Asset",id));}}}
