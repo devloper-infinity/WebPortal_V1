@@ -523,6 +523,9 @@
             $(this).removeClass("ob-dragover");
         });
 </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -568,7 +571,7 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="ob-field">
                             <label for="otherBilling_Project">Project</label>
-                            <select id="otherBilling_Project" name="otherBilling_Project" class="form-control" onchange="return bindDeals(this);">
+                            <select id="otherBilling_Project" name="otherBilling_Project" class="form-control" onchange="return otherbil_bindDeals(this);">
                             </select>
                         </div>
                     </div>

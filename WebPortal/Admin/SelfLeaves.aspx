@@ -486,7 +486,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Functions/Leaves.js?v=@DateTime.Now.Ticks"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/Leaves.js" runat="server"></portal:VersionedScript>
 
 </asp:Content>
 

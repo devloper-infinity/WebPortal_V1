@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="../plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css" />
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/Functions/Birthday.js?v=@DateTime.Now.Ticks"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/Birthday.js" runat="server"></portal:VersionedScript>
 
     <style>
         :root {

@@ -356,7 +356,7 @@
 
     <script src="../plugins/jquery/jquery.min.js"></script>
 
-    <script src="../Scripts/AI.js"></script>
+    <portal:VersionedScript Src="~/Scripts/AI.js" runat="server"></portal:VersionedScript>
 
 </body>
 </html>

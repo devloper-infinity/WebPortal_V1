@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Functions/SecuritizationBillingImport.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/SecuritizationBillingImport.js" runat="server"></portal:VersionedScript>
 
     <style>
         body {

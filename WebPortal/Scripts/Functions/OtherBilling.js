@@ -30,7 +30,7 @@ function BindDomainWise_Project(DomainID) {
     });
 }
 
-function bindDeals(ddlprojectId) {
+function otherbil_bindDeals(ddlprojectId) {
 
     var projectID = ddlprojectId.options[ddlprojectId.selectedIndex].value;
 
@@ -59,6 +59,81 @@ function bindDeals(ddlprojectId) {
 }
 
 function btnOtherBilling_Import() {
+
+
+
+
+    document.getElementById("spntext").innerHTML = "Reading data from Excel...";
+    $('#OtherBilling_Waitingpanel').modal('show');
+
+    PageMethods.ImportExcel(
+
+        function (result) {
+
+            $('#OtherBilling_Waitingpanel').modal('hide');
+
+            if (result > 0) {
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Import Successful",
+                    text: "Excel data imported successfully.",
+                    confirmButtonText: "OK"
+                }).then(function () {
+
+                    var ProjectType = $("#otherBilling_ProjectType").val();
+
+                    $("#table_Research").hide();
+                    $("#table_Rebuttal").hide();
+
+                    if (ProjectType === "Research") {
+                        $("#table_Research").show();
+                        research_BindGrid();
+                    }
+                    else if (ProjectType === "Rebuttal") {
+                        $("#table_Rebuttal").show();
+                        rebuttal_BindGrid();
+                    }
+                });
+            }
+            else if (result === -1) {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Invalid File",
+                    text: "Please select an Excel file with the .xlsx extension.",
+                    confirmButtonText: "OK"
+                });
+            }
+            else {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Import Failed",
+                    text: "Something went wrong. Please contact the administrator.",
+                    confirmButtonText: "OK"
+                });
+            }
+        },
+
+        function (error) {
+
+            $('#OtherBilling_Waitingpanel').modal('hide');
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error.get_message ? error.get_message() : error.responseText,
+                confirmButtonText: "OK"
+            });
+        }
+    );
+
+    return false;
+}
+
+
+function core_btnOtherBilling_Import() {
 
     //$('#OtherBilling_Waitingpanel').modal('show');
 
@@ -123,7 +198,7 @@ function btnOtherBilling_Verify() {
     PageMethods.VerifyAndSubmitData(ProjectType, Project, DealNo, verify_OnSuccess, verify_OnError);
 
     return false;
-}
+} 
 
 function verify_OnSuccess(result) {
 

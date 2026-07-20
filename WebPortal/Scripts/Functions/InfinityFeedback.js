@@ -37,9 +37,9 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
         data: "{FromDate:'" + FromDate + "',ToDate:'" + ToDate + "', SubDomain : '" + subdomain + "'}",
         contentType: "application/json; charset=utf-8",
 
-        success: function(data) {
+        success: function (data) {
             var dataArray = JSON.parse(data.d);
-            $.each(dataArray, function(index, value) {
+            $.each(dataArray, function (index, value) {
 
                 var approveddate = '';
                 /*   if (value.FeedbackReceivedDate != null && value.FeedbackReceivedDate != '') {
@@ -47,7 +47,7 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                    }*/
                 InfinityFeedback_html += '<tr>';
                 InfinityFeedback_html += '<td style="text-align:center;"><a class="dropdown-item" target="_blank" href="EditInfinityFeedback.aspx?FID=' + value.FeedbackID + '&s=' + subdomain.substring(0, 1) + '" title="Edit Feedback"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-pen" style="font-size:16px;"></i></span></a></td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.FeedbackID) + '</td>';
+                InfinityFeedback_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.FeedbackID) + '</td>';
                 InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LoanNumber) + '</td>';
                 InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Client) + '</td>';
                 InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.UWName) + '</td>';
@@ -91,14 +91,14 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                         extend: 'excelHtml5', title: 'Feedback Details', autoFilter: true
                     },
                 ],
-                initComplete: function() {
+                initComplete: function () {
 
                     $('#load1').hide();
                 },
             });
         },
 
-        error: function(error) {
+        error: function (error) {
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
@@ -113,10 +113,10 @@ function infinityfeecback_bindsubdomain() {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
-        success: function(data) {
+        success: function (data) {
             dataArray = JSON.parse(data.d);
 
-            $.each(dataArray, function(data, value) {
+            $.each(dataArray, function (data, value) {
 
                 if (blankForNull(value.SubDomain) == "Credit" || blankForNull(value.SubDomain) == "Servicing") {
                     $("#inffeedback_domain").val(blankForNull(value.SubDomain));

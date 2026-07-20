@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <!-- Theme style -->
-    <script src="../Scripts/SessionHandler.js"></script>
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
@@ -624,10 +623,11 @@
         <!-- AdminLTE App -->
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../dist/js/adminlte.min.js"></script>
-        <script src="../Scripts/AI.js?v=1"></script>
+        <portal:VersionedScript Src="~/Scripts/AI.js" runat="server"></portal:VersionedScript>
         <!-- AdminLTE for demo purposes -->
 
 
+        <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
     </form>
 </body>
 </html>

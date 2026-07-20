@@ -6,7 +6,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
     <script src="../plugins/chart.js/Chart.bundle.min.js"></script>
-    <script src="../Scripts/Functions/DashboardTest.js?v=@DateTime.Now.Ticks"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/DashboardTest.js" runat="server"></portal:VersionedScript>
     <style>
         #dashboard_alert_table_wrapper .dataTables_scroll {
             height: 225px !important;
@@ -2794,5 +2794,5 @@
             </div>
         </div>
     </div>
-    <script src="../Scripts/Functions/DashboardTest.js?v=1"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/DashboardTest.js" runat="server"></portal:VersionedScript>
 </asp:Content>

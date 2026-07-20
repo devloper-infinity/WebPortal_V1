@@ -423,7 +423,7 @@
             // BindViewLeaveDetails_Grid();
         });
     </script>
-    <script src="../Scripts/Functions/Leaves.js?v=@DateTime.Now.Ticks"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/Leaves.js" runat="server"></portal:VersionedScript>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

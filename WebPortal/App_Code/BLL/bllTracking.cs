@@ -199,7 +199,7 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.GetAllProjectFeedbackinERP_Servicing(ProjectId, OrderNo, Process, FeedbackBy);
         }
 
-       
+
         public int AllocateOrder_Self(Hashtable htParam)
         {
             return dalTracking.AllocateOrder_Self(htParam);
@@ -288,6 +288,11 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.GetTrackingsheetLoanForDispatchDate_Servicing(ProjectID, DealNumber);
         }
 
+        public DataTable GetLoanDetailsByProcessID(int ProcessID)
+        {
+            return dalTracking.GetLoanDetailsByProcessID(ProcessID);
+        }
+
         public int GetEmployeePseudonameNew(string Code)
         {
             return dalTracking.GetEmployeePseudonameNew(Code);
@@ -311,6 +316,15 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetProcessDetailsForFeedbackUserCompleted(string UserName, string ToDate, string Code)
         {
             return dalTracking.GetProcessDetailsForFeedbackUserCompleted(UserName, ToDate, Code);
+        }
+
+        public int InsertImportedFeedback_Credit(Hashtable htParam)
+        {
+            return dalTracking.InsertImportedFeedback_Credit(htParam);
+        }
+        public int InsertImportedFeedback_Servicing(Hashtable htParam)
+        {
+            return dalTracking.InsertImportedFeedback_Servicing(htParam);
         }
     }
 }

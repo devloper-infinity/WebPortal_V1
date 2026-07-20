@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
+using System.Web.UI;
 using WebPortal.App_Code.Class;
 
 namespace WebPortal
@@ -47,6 +48,24 @@ namespace WebPortal
                         HttpContext.Current.User = new System.Security.Principal.GenericPrincipal(id, roles);
                     }
                 }
+            }
+        }
+
+        protected void Application_PreRequestHandlerExecute(object sender, EventArgs e)
+        {
+            Page page = Context.CurrentHandler as Page;
+            if (page != null)
+            {
+                page.PreRender += ApplyScriptVersions;
+            }
+        }
+
+        private static void ApplyScriptVersions(object sender, EventArgs e)
+        {
+            Page page = sender as Page;
+            if (page != null)
+            {
+                AssetVersion.ApplyTo(ScriptManager.GetCurrent(page));
             }
         }
 

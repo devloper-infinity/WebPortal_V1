@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Accounts/Accounts.Master" AutoEventWireup="true" CodeBehind="CompareReportDueSalary.aspx.cs" Inherits="WebPortal.Accounts.CompareReportDueSalary" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <script src="../Scripts/Reports/CompareReport.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Reports/CompareReport.js" runat="server"></portal:VersionedScript>
     <style>
         .report-page {
             background: #f4f7fb;

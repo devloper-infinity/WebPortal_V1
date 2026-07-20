@@ -1148,5 +1148,5 @@
         </div>
     </div>
 
-    <script src="../Scripts/Functions/Resignation.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/Resignation.js" runat="server"></portal:VersionedScript>
 </asp:Content>

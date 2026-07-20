@@ -462,7 +462,7 @@
         });
     </script>
 
-    <script src="../Scripts/Functions/EmpLeave.js?v=@DateTime.Now.Ticks"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/EmpLeave.js" runat="server"></portal:VersionedScript>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>

@@ -2,7 +2,7 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../Scripts/Functions/HealthInsurance.js"></script>
+    <portal:VersionedScript Src="~/Scripts/Functions/HealthInsurance.js" runat="server"></portal:VersionedScript>
 
     <style>
         label:not(.form-check-label):not(.custom-file-label) {

@@ -248,6 +248,7 @@
     <Content Include="Admin\AttritionReport.aspx" />
     <Content Include="Admin\BankDeatailsApprovalReport.aspx" />
     <Content Include="Admin\BankNameMaster.aspx" />
+    <Content Include="Admin\ProjectMaster.aspx" />
     <Content Include="Admin\CanopyData.aspx" />
     <Content Include="Admin\ChangePassword.aspx" />
     <Content Include="Admin\CreditConsolidatedReport.aspx" />
@@ -845,6 +846,7 @@
     <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
+    <Content Include="SessionKeepAlive.aspx" />
     <Content Include="MenuService.aspx" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert - Copy.jpeg" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert.jpeg" />
@@ -2772,6 +2774,7 @@
     <Content Include="Scripts\Functions\AssetMasters.js" />
     <Content Include="Scripts\Functions\Attendance.js" />
     <Content Include="Scripts\Functions\Bank.js" />
+    <Content Include="Scripts\Functions\ProjectMaster.js" />
     <Content Include="Scripts\Functions\Canopy.js" />
     <Content Include="Scripts\Functions\CCInvoice.js" />
     <Content Include="Scripts\Functions\CreditCard.js" />
@@ -2835,6 +2838,7 @@
     <Content Include="Scripts\SessionHandler.js" />
     <Content Include="Scripts\Tracking\AddFeedback.js" />
     <Content Include="Scripts\Tracking\Allocate.js" />
+    <Content Include="Scripts\Tracking\Feedback.js" />
     <Content Include="Scripts\Tracking\OrderAllocation.js" />
     <Content Include="Scripts\Tracking\UpdateDispatchDate.js" />
     <Content Include="Scripts\Tracking\TodaySatus.js" />
@@ -3750,6 +3754,13 @@
     <Compile Include="Admin\BankNameMaster.aspx.designer.cs">
       <DependentUpon>BankNameMaster.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\ProjectMaster.aspx.cs">
+      <DependentUpon>ProjectMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ProjectMaster.aspx.designer.cs">
+      <DependentUpon>ProjectMaster.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\CanopyData.aspx.cs">
       <DependentUpon>CanopyData.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4426,6 +4437,7 @@
     <Compile Include="App_Code\DAL\dalReport.cs" />
     <Compile Include="App_Code\DAL\dalTracking.cs" />
     <Compile Include="App_Code\DAL\dalUS.cs" />
+    <Compile Include="Infrastructure\AssetVersion.cs" />
     <Compile Include="App_Code\Class\EmployeeInfo.cs" />
     <Compile Include="Feedback\AddFeedbackForSearchProject.aspx.cs">
       <DependentUpon>AddFeedbackForSearchProject.aspx</DependentUpon>
@@ -4932,6 +4944,10 @@
     </Compile>
     <Compile Include="LogoutNew.aspx.designer.cs">
       <DependentUpon>LogoutNew.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="SessionKeepAlive.aspx.cs">
+      <DependentUpon>SessionKeepAlive.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="MenuService.aspx.cs">
       <DependentUpon>MenuService.aspx</DependentUpon>

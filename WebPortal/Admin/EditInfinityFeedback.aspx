@@ -4,6 +4,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -150,6 +151,11 @@
             min-width: 0;
         }
 
+        .inf-severity-dependent[hidden],
+        .inf-feedback-status-field[hidden] {
+            display: none !important;
+        }
+
         .inf-field-wide {
             grid-column: span 3;
         }
@@ -204,36 +210,44 @@
             overflow-x: auto;
         }
 
-        #table_productionData {
+        #table_productionData,
+        #table_feedbackHistory {
             border-collapse: separate !important;
             border-spacing: 0;
             margin: 0 !important;
             width: 100% !important;
         }
 
-            #table_productionData thead th {
+            #table_productionData thead th,
+            #table_feedbackHistory thead th {
                 background: #edf3f6 !important;
                 border-color: #d7e2ea !important;
                 color: #263747;
                 font-size: 12px;
-                /*text-align: center;*/
+                /* text-align: center; */
                 vertical-align: middle;
                 white-space: nowrap;
             }
 
-            #table_productionData tbody td {
-                /*  background: #fff;*/
-                background: #edf3f6 !important;
-                border-color: #d7e2ea !important;
+            #table_productionData tbody td,
+            #table_feedbackHistory tbody td {
+                /*   background: #edf3f6 !important;*/
                 border-color: #e2e9ef !important;
-                color: #263747;
+                /* color: #263747; */
                 font-size: 12px;
                 vertical-align: middle;
             }
 
-            #table_productionData tbody tr:hover td {
-                background: #f7fbfa;
+            #table_productionData tbody tr:hover td,
+            #table_feedbackHistory tbody tr:hover td {
+                /* background: #f7fbfa !important;*/
             }
+
+        .nowrap {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         .loading {
             align-items: center;
@@ -328,12 +342,17 @@
             const urlParams = new URLSearchParams(window.location.search);
             const FeedbackID = urlParams.get('FID');
             const subdomain = urlParams.get('s');
-            BindInfinityFeedback(FeedbackID, subdomain);
 
-            //  BingProductionDataGrid('9761798470', 'EDWIN ROBERT'); //9761798470	2377	EDWIN ROBERT
+            $('#infFeedback_Severity').on('change', toggleSeverityDependentFields);
+            toggleSeverityDependentFields();
+            BindInfinityFeedback(FeedbackID, subdomain);
+            BindFeedbackHistory_Grid(FeedbackID, subdomain);
+            //BindProductionDataGrid('9761798470', 'EDWIN ROBERT'); //9761798470	2377	EDWIN ROBERT
         });
 
     </script>
+
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -402,37 +421,45 @@
 
                 <div class="inf-section-title"><i class="fas fa-triangle-exclamation"></i>Feedback Classification</div>
                 <div class="inf-form-grid">
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_Category">Category</label>
                         <input type="text" id="infFeedback_Category" name="infFeedback_Category" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_SubCategory">Sub Category</label>
                         <input type="text" id="infFeedback_SubCategory" name="infFeedback_SubCategory" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_ErrorField">Error Field</label>
                         <input type="text" id="infFeedback_ErrorField" name="infFeedback_Sategory" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_Screen">Screen</label>
                         <input type="text" id="infFeedback_Screen" name="infFeedback_Screen" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_ErrorType">Error Type</label>
                         <input type="text" id="infFeedback_ErrorType" name="infFeedback_ErrorType" class="form-control" />
                     </div>
-                    <div class="inf-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_FeedbackType">Feedback Type</label>
                         <input type="text" id="infFeedback_FeedbackType" name="infFeedback_FeedbackType" class="form-control" />
                     </div>
                     <div class="inf-field">
                         <label for="infFeedback_Severity">Severity</label>
-                        <select id="infFeedback_Severity" name="infFeedback_Severity" class="form-control">
+                        <select id="infFeedback_Severity" name="infFeedback_Severity" class="form-control" disabled>
                             <option value="">Select</option>
                             <option value="Critical">Critical</option>
                             <option value="Non-Critical">Non-Critical</option>
                             <option value="No Error">No Error</option>
+                        </select>
+                    </div>
+                    <div class="inf-field inf-feedback-status-field" hidden="hidden">
+                        <label for="infFeedback_FeedbackStatus">Feedback Status</label>
+                        <select id="infFeedback_FeedbackStatus" name="infFeedback_FeedbackStatus" class="form-control">
+                            <option value="">Select</option>
+                            <option value="Agree">Agree</option>
+                            <option value="Disagree">Disagree</option>
                         </select>
                     </div>
                     <div class="inf-field">
@@ -443,12 +470,12 @@
                         <label for="infFeedback_FeedbackRecDate">Feedback Received Date</label>
                         <input type="text" id="infFeedback_FeedbackRecDate" name="infFeedback_FeedbackRecDate" class="form-control" />
                     </div>
-                    <div class="inf-field inf-field-wide">
+                    <div class="inf-field inf-field-wide inf-severity-dependent">
                         <label for="infFeedback_Finding">Finding</label>
                         <textarea id="infFeedback_Finding" name="infFeedback_Finding" class="form-control"></textarea>
                     </div>
-                    <div class="inf-field inf-field-wide">
-                        <label for="infFeedback_RCA">RCA</label>
+                    <div class="inf-field inf-field-wide inf-severity-dependent">
+                        <label for="infFeedback_RCA">RCA / Rebuttal Comments</label>
                         <textarea id="infFeedback_RCA" name="infFeedback_RCA" class="form-control"></textarea>
                     </div>
                 </div>
@@ -460,6 +487,23 @@
                    
                     </button>
                 </div>
+
+
+            </div>
+        </div>
+
+        <div class="inf-panel">
+            <div class="inf-panel-header">
+                <div>
+                    <h2 class="inf-panel-title"><i class="fas fa-table-list"></i>Feedback History</h2>
+                    <div class="inf-panel-subtitle">To show loan feedback History.</div>
+                </div>
+            </div>
+            <div class="inf-table-wrap">
+                <table class="table" id="table_feedbackHistory">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
@@ -474,7 +518,7 @@
                 <table class="table" id="table_productionData">
                     <thead>
                         <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Actions</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">ProdID</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Code</th>

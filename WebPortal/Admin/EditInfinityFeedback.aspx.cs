@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Collections;
 using System.Linq;
 using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.Web.Script.Serialization;
 using System.Web.Services;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Admin
 {
@@ -55,6 +56,29 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
+        public static string GetCreditAndServicingFeedbackHistory(int FeedbackID, string SubDomain)
+        {
+            DataTable dt1 = new bllMaster().GetCreditAndServicingFeedbackHistory(FeedbackID, SubDomain);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+
+        [WebMethod]
         public static string GetProductionDataForUpdateFeedback_NewFormat(string LoanNo)
         {
             DataTable dt1 = new bllMaster().GetProductionDataForUpdateFeedback_NewFormat(LoanNo);
@@ -90,9 +114,26 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int UpdateInfinityImportedFeedback_NewERP(int FeedbackID, string ProdIDs, string Category, string SubCategory, string ErrorField, string Screen, string ErrorType, string Finding, string FeedbackType, string Severity, string RCA, string Source, string FeedbackReceivedDate, bool IsDisplayInERP, string Subdomain)
+        public static int UpdateInfinityImportedFeedback_NewERP(int FeedbackID, string ProdIDs, string Category, string SubCategory, string ErrorField, string Screen, string ErrorType, string Finding, string FeedbackType, string Severity, string FeedbackStatus, string RCA, string Source, string FeedbackReceivedDate, bool IsDisplayInERP, string Subdomain)
         {
             int ReturnValue = 0;
+
+            bool requiresFeedbackStatus = string.Equals(Severity, "Critical", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(Severity, "Non-Critical", StringComparison.OrdinalIgnoreCase);
+
+            if (requiresFeedbackStatus)
+            {
+                if (string.Equals(FeedbackStatus, "Agree", StringComparison.OrdinalIgnoreCase))
+                    FeedbackStatus = "Agree";
+                else if (string.Equals(FeedbackStatus, "Disagree", StringComparison.OrdinalIgnoreCase))
+                    FeedbackStatus = "Disagree";
+                else
+                    return 0;
+            }
+            else
+            {
+                FeedbackStatus = string.Empty;
+            }
 
             Hashtable htParam = new Hashtable();
             htParam.Add("FeedbackID", FeedbackID);
@@ -104,6 +145,7 @@ namespace WebPortal.Admin
             htParam.Add("Finding", Finding);
             htParam.Add("FeedbackType", FeedbackType);
             htParam.Add("Severity", Severity);
+            htParam.Add("FeedbackStatus", FeedbackStatus);
             htParam.Add("RCA", RCA);
             htParam.Add("Source", Source);
             htParam.Add("FeedbackReceivedDate", FeedbackReceivedDate);
