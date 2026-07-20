@@ -576,10 +576,8 @@
         });
     </script>
 
-    <style>
-    </style>
-
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <input id="filep_ap" style="display: none;" />
     <%-- <div class="loading" id="load1">
@@ -668,8 +666,12 @@
                             <strong id="spnInfinityOnshoreRCA" class="feedback-detail-text">-</strong>
                         </div>
                         <div class="feedback-remark-context-item wide">
-                            <span>Comments</span>
-                            <strong id="spnInfinityOnshoreComments" class="feedback-detail-text">-</strong>
+                            <span>Rebuttal Status</span>
+                            <select id="ddlInfinityOnshore_RebuttalStatus">
+                                <option value="">Select Status</option>
+                                <option value="Agree">Agree</option>
+                                <option value="Rebuttal">Rebuttal</option>
+                            </select>
                         </div>
                     </div>
                     <label for="txtInfinityOnshoreRemark">Remark <span class="req">*</span></label>

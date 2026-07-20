@@ -60,9 +60,9 @@ namespace WebPortal.Tracking
         }
 
         [WebMethod]
-        public static ApiResult Save(SequenceInput input)
+        public static ApiResult_Track Save(SequenceInput input)
         {
-            if (input == null) return new ApiResult(false, "Invalid request.");
+            if (input == null) return new ApiResult_Track(false, "Invalid request.");
 
             return ExecuteResult("usp_PPS_Save",
                 new SqlParameter("@ProjectProcessSequenceID", DbValue(input.ProjectProcessSequenceID)),
@@ -103,7 +103,7 @@ namespace WebPortal.Tracking
             return rows;
         }
 
-        private static ApiResult ExecuteResult(string procedure, params SqlParameter[] parameters)
+        private static ApiResult_Track ExecuteResult(string procedure, params SqlParameter[] parameters)
         {
             using (var con = new SqlConnection(ConnectionString))
             using (var cmd = new SqlCommand(procedure, con))
@@ -113,8 +113,8 @@ namespace WebPortal.Tracking
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                 {
-                    if (!dr.Read()) return new ApiResult(false, "No response returned by procedure.");
-                    return new ApiResult(Convert.ToBoolean(dr["IsSuccess"]), Convert.ToString(dr["Message"]));
+                    if (!dr.Read()) return new ApiResult_Track(false, "No response returned by procedure.");
+                    return new ApiResult_Track(Convert.ToBoolean(dr["IsSuccess"]), Convert.ToString(dr["Message"]));
                 }
             }
         }

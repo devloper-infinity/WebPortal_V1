@@ -51,6 +51,7 @@ function saveInfinityOnshoreRemark() {
     var feedbackId = parseInt($('#hdnInfinityOnshoreFeedbackId').val(), 10) || 0;
     var client = $('#spnInfinityOnshoreClient').text();
     var remark = $.trim($('#txtInfinityOnshoreRemark').val());
+    var findingStatus = $("#ddlInfinityOnshore_RebuttalStatus").val();
 
     if (!feedbackId) {
         alert('Please select feedback row.');

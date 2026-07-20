@@ -4,6 +4,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -416,8 +417,8 @@
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Finding</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Type</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Comments</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Status</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA/Rebuttal Comments</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Source</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Received Date</th>
                         </tr>

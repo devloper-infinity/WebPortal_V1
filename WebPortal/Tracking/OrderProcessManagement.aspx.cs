@@ -54,7 +54,7 @@ namespace WebPortal
         }
 
         [WebMethod]
-        public static ApiResult TakeOrders(string orderIDs, long projectID, long processID)
+        public static ApiResult_Track TakeOrders(string orderIDs, long projectID, long processID)
         {
             return ExecuteResult("usp_OPM_AllocateOrders",
                 new SqlParameter("@OrderIDs", orderIDs),
@@ -75,7 +75,7 @@ namespace WebPortal
         }
 
         [WebMethod]
-        public static ApiResult StartOrder(long orderID, long processID)
+        public static ApiResult_Track StartOrder(long orderID, long processID)
         {
             return ExecuteResult("usp_OPM_StartOrder",
                 new SqlParameter("@OrderID", orderID),
@@ -84,7 +84,7 @@ namespace WebPortal
         }
 
         [WebMethod]
-        public static ApiResult HoldOrder(long orderID, long processID, string remarks)
+        public static ApiResult_Track HoldOrder(long orderID, long processID, string remarks)
         {
             return ExecuteResult("usp_OPM_HoldOrder",
                 new SqlParameter("@OrderID", orderID),
@@ -94,7 +94,7 @@ namespace WebPortal
         }
 
         [WebMethod]
-        public static ApiResult CompleteOrder(long orderID, long processID, string remarks)
+        public static ApiResult_Track CompleteOrder(long orderID, long processID, string remarks)
         {
             return ExecuteResult("usp_OPM_CompleteOrder",
                 new SqlParameter("@OrderID", orderID),
@@ -152,7 +152,7 @@ namespace WebPortal
             return rows;
         }
 
-        private static ApiResult ExecuteResult(string procedure, params SqlParameter[] parameters)
+        private static ApiResult_Track ExecuteResult(string procedure, params SqlParameter[] parameters)
         {
             using (var con = new SqlConnection(ConnectionString))
             using (var cmd = new SqlCommand(procedure, con))
@@ -162,20 +162,20 @@ namespace WebPortal
                 con.Open();
                 using (var dr = cmd.ExecuteReader())
                 {
-                    if (!dr.Read()) return new ApiResult(false, "No response returned by procedure.");
-                    return new ApiResult(Convert.ToBoolean(dr["IsSuccess"]), Convert.ToString(dr["Message"]));
+                    if (!dr.Read()) return new ApiResult_Track(false, "No response returned by procedure.");
+                    return new ApiResult_Track(Convert.ToBoolean(dr["IsSuccess"]), Convert.ToString(dr["Message"]));
                 }
             }
         }
     }
 
-    public class ApiResult
+    public class ApiResult_Track
     {
         public bool IsSuccess { get; set; }
         public string Message { get; set; }
 
-        public ApiResult() { }
-        public ApiResult(bool isSuccess, string message)
+        public ApiResult_Track() { }
+        public ApiResult_Track(bool isSuccess, string message)
         {
             IsSuccess = isSuccess;
             Message = message;

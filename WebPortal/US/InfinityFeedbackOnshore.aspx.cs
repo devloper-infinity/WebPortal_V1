@@ -58,7 +58,7 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static string SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark)
+        public static string SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, string RebuttalStatus)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace WebPortal.US
                 }
 
                 int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-                int result = new bllUS().SaveInfinityOnshoreRemark(FeedbackID, Client, Remark, addedBy);
+                int result = new bllUS().SaveInfinityOnshoreRemark(FeedbackID, Client, Remark, RebuttalStatus, addedBy);
 
                 if (result > 0)
                 {
