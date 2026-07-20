@@ -215,56 +215,13 @@ namespace WebPortal.App_Code.DAL
             Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@UserID", SqlDbType.Int, userId); return Execute(command);
         }
 
-        public void SyncImportedItems(int projectId, int userId)
-        {
-            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
-            using (SqlCommand command = new SqlCommand(@"
-;WITH ImportedValues AS
-(
-    SELECT r.ProjectID, r.RowId, r.AddedBy,
-        MAX(CASE WHEN n.NormalizedName IN ('loan','loanno','loannumber','loanid','order','orderno','ordernumber','orderid')
-                 THEN NULLIF(LTRIM(RTRIM(v.FieldValue)), '') END) AS ItemNumber,
-        MAX(CASE WHEN n.NormalizedName IN ('deal','dealno','dealnumber','dealid')
-                 THEN NULLIF(LTRIM(RTRIM(v.FieldValue)), '') END) AS DealNumber
-    FROM dbo.WBT_ProjectTrackingSheetRows r
-    INNER JOIN dbo.WBT_ProjectTrackingSheetValues v ON v.RowId = r.RowId
-    INNER JOIN dbo.WBT_ProjectTrackingFieldConfig f ON f.FieldConfigId = v.FieldConfigId AND f.IsDeleted = 0
-    INNER JOIN dbo.OLTracking_ImportFieldConfiguration ic ON ic.FieldConfigId = f.FieldConfigId AND ic.IsForImport = 1
-    CROSS APPLY
-    (
-        SELECT LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(f.FieldName)), ' ', ''), '#', ''), '_', ''), '-', ''), '/', '')) AS NormalizedName
-    ) n
-    WHERE r.ProjectID = @ProjectID AND r.IsDeleted = 0
-    GROUP BY r.ProjectID, r.RowId, r.AddedBy
-), IdentifiedItems AS
-(
-    SELECT ProjectID, ItemNumber, MAX(DealNumber) AS DealNumber, MAX(AddedBy) AS AddedBy
-    FROM ImportedValues WHERE ItemNumber IS NOT NULL
-    GROUP BY ProjectID, ItemNumber
-)
-MERGE dbo.OLTracking_Item WITH (HOLDLOCK) AS target
-USING IdentifiedItems AS source
-   ON target.ProjectID = source.ProjectID AND target.ItemNumber = source.ItemNumber
-WHEN MATCHED THEN UPDATE SET
-    target.DealNumber = COALESCE(source.DealNumber, target.DealNumber),
-    target.IsDeleted = 0, target.UpdatedBy = @UserID, target.UpdatedDate = GETDATE()
-WHEN NOT MATCHED THEN
-    INSERT (ProjectID, ItemNumber, DealNumber, CurrentProcessID, ItemStatus, IsDeleted, AddedBy, AddedDate)
-    VALUES (source.ProjectID, source.ItemNumber, source.DealNumber, NULL, 'Pending', 0,
-            CASE WHEN source.AddedBy > 0 THEN source.AddedBy ELSE @UserID END, GETDATE());", connection))
-            {
-                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
-                command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
-                connection.Open(); command.ExecuteNonQuery();
-            }
-        }
-
         public DataTable GetImportedDeals(int projectId)
         {
+            EnsureImportSourceColumn();
             SqlCommand command = new SqlCommand(@"
 SELECT DISTINCT DealNumber AS DealNo, DealNumber
 FROM dbo.OLTracking_Item
-WHERE ProjectID = @ProjectID AND IsDeleted = 0
+WHERE ProjectID = @ProjectID AND IsDeleted = 0 AND RecordSource = 'Import'
   AND NULLIF(LTRIM(RTRIM(DealNumber)), '') IS NOT NULL
 ORDER BY DealNumber;") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId); return Table(command);
@@ -272,14 +229,87 @@ ORDER BY DealNumber;") { CommandType = CommandType.Text };
 
         public DataTable GetImportedLoans(int projectId, string dealNumber)
         {
+            EnsureImportSourceColumn();
             SqlCommand command = new SqlCommand(@"
 SELECT ItemNumber AS LoanNumber, ISNULL(DealNumber, '') AS DealNumber
 FROM dbo.OLTracking_Item
-WHERE ProjectID = @ProjectID AND IsDeleted = 0
+WHERE ProjectID = @ProjectID AND IsDeleted = 0 AND RecordSource = 'Import'
   AND ISNULL(DealNumber, '') = ISNULL(@DealNumber, '')
 ORDER BY ItemID;") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150); return Table(command);
+        }
+
+        public DataTable GetNextEligibleImportedLoan(int projectId, string dealNumber, int processId)
+        {
+            EnsureImportSourceColumn();
+            SqlCommand command = new SqlCommand(@"
+DECLARE @StageNo int =
+(
+    SELECT StageNo FROM dbo.OLTracking_ProcessFlow
+    WHERE ProjectID = @ProjectID AND ProcessID = @ProcessID AND IsActive = 1
+);
+DECLARE @PreviousStage int =
+(
+    SELECT MAX(StageNo) FROM dbo.OLTracking_ProcessFlow
+    WHERE ProjectID = @ProjectID AND IsActive = 1 AND StageNo < @StageNo
+);
+
+SELECT TOP (1)
+    i.ItemNumber AS LoanNumber,
+    ISNULL(i.DealNumber, '') AS DealNumber
+FROM dbo.OLTracking_Item i
+WHERE @StageNo IS NOT NULL
+  AND i.ProjectID = @ProjectID
+  AND i.IsDeleted = 0
+  AND i.RecordSource = 'Import'
+  AND LTRIM(RTRIM(ISNULL(i.DealNumber, ''))) = LTRIM(RTRIM(ISNULL(@DealNumber, '')))
+  AND NOT EXISTS
+  (
+      SELECT 1 FROM dbo.OLTracking_Assignment a
+      WHERE a.ItemID = i.ItemID AND a.ProcessID = @ProcessID
+        AND (a.IsCurrent = 1 OR a.AssignmentStatus IN ('Completed', 'Skipped'))
+  )
+  AND
+  (
+      @PreviousStage IS NULL
+      OR NOT EXISTS
+      (
+          SELECT 1 FROM dbo.OLTracking_ProcessFlow previousFlow
+          WHERE previousFlow.ProjectID = @ProjectID AND previousFlow.IsActive = 1
+            AND previousFlow.StageNo = @PreviousStage AND previousFlow.IsMandatory = 1
+      )
+      OR EXISTS
+      (
+          SELECT 1
+          FROM dbo.OLTracking_Assignment completedAssignment
+          INNER JOIN dbo.OLTracking_ProcessFlow completedFlow
+              ON completedFlow.ProjectID = @ProjectID
+             AND completedFlow.ProcessID = completedAssignment.ProcessID
+             AND completedFlow.IsActive = 1
+             AND completedFlow.IsMandatory = 1
+             AND completedFlow.StageNo = @PreviousStage
+          WHERE completedAssignment.ItemID = i.ItemID
+            AND completedAssignment.AssignmentStatus IN ('Completed', 'Skipped')
+      )
+  )
+ORDER BY i.ItemID; ") { CommandType = CommandType.Text };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);
+            Add(command, "@ProcessID", SqlDbType.Int, processId);
+            return Table(command);
+        }
+
+        private static void EnsureImportSourceColumn()
+        {
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand(@"
+IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
+    ALTER TABLE dbo.OLTracking_Item ADD RecordSource varchar(20) NOT NULL
+        CONSTRAINT DF_OLTracking_Item_RecordSource DEFAULT ('Tracking') WITH VALUES;", connection))
+            {
+                connection.Open(); command.ExecuteNonQuery();
+            }
         }
 
         public bool IsLoanEligible(int projectId, int processId, string loanNumber)
@@ -316,6 +346,42 @@ ORDER BY ItemID;") { CommandType = CommandType.Text };
             Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000);
             Add(command, "@FeedbackXml", SqlDbType.Xml, root.HasElements ? root.ToString(SaveOptions.DisableFormatting) : null);
             Add(command, "@UserID", SqlDbType.Int, userId); ExecuteNonQuery(command);
+        }
+
+        public DataSet GetFeedbackDefaults(long assignmentId, int userId, string feedbackBy)
+        {
+            SqlCommand command = Command("OLTracking_GetFeedbackDefaults");
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            Add(command, "@FeedbackBy", SqlDbType.NVarChar, feedbackBy, 200);
+            return Set(command);
+        }
+
+        public DataTable SaveFeedback(long assignmentId, string markedTo, string errorBy, string feedbackBy,
+            string errorType, int categoryId, string category, int subcategoryId, string subcategory, string severity,
+            string errorField, string screen, string feedbackType, string error, string shouldBe, string remark,
+            string dateReviewed, int userId)
+        {
+            SqlCommand command = Command("OLTracking_SaveFeedback");
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(command, "@MarkedTo", SqlDbType.NVarChar, markedTo, 200);
+            Add(command, "@ErrorBy", SqlDbType.NVarChar, errorBy, 200);
+            Add(command, "@FeedbackBy", SqlDbType.NVarChar, feedbackBy, 200);
+            Add(command, "@ErrorType", SqlDbType.NVarChar, errorType, 100);
+            Add(command, "@CategoryID", SqlDbType.Int, categoryId);
+            Add(command, "@Category", SqlDbType.NVarChar, category, 200);
+            Add(command, "@SubcategoryID", SqlDbType.Int, subcategoryId);
+            Add(command, "@Subcategory", SqlDbType.NVarChar, subcategory, 200);
+            Add(command, "@Severity", SqlDbType.NVarChar, severity, 100);
+            Add(command, "@ErrorField", SqlDbType.NVarChar, errorField, 500);
+            Add(command, "@Screen", SqlDbType.NVarChar, screen, 1000);
+            Add(command, "@FeedbackType", SqlDbType.NVarChar, feedbackType, 100);
+            Add(command, "@Error", SqlDbType.NVarChar, error, 2000);
+            Add(command, "@ShouldBe", SqlDbType.NVarChar, shouldBe, 2000);
+            Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000);
+            Add(command, "@DateReviewed", SqlDbType.NVarChar, dateReviewed, 100);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Table(command);
         }
 
         public DataTable GetUserDailyStatus(int userId, int processId, DateTime? fromDate, DateTime? toDate)

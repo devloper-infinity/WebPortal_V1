@@ -38,9 +38,9 @@
                 <div class="ol-import-grid">
                     <div>
                         <label for="ddlProject">Project</label>
-                        <asp:DropDownList ID="ddlProject" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="ddlProject_SelectedIndexChanged" />
+                        <asp:DropDownList ID="ddlProject" runat="server" CssClass="form-control" AutoPostBack="true" onchange="OLT.showLoading('Loading project import configuration...');" OnSelectedIndexChanged="ddlProject_SelectedIndexChanged" />
                     </div>
-                    <asp:Button ID="btnDownloadTemplate" runat="server" Text="Download Import Template" CssClass="btn btn-primary" OnClick="btnDownloadTemplate_Click" />
+                    <asp:Button ID="btnDownloadTemplate" runat="server" Text="Download Import Template" CssClass="btn btn-primary" OnClientClick="OLT.showLoading('Preparing import template...'); window.setTimeout(function(){ OLT.hideLoading(true); }, 5000);" OnClick="btnDownloadTemplate_Click" />
                 </div>
                 <asp:Label ID="lblConfiguredFields" runat="server" CssClass="ol-field-summary" />
                 <div class="ol-help">The template contains only fields marked <strong>For Import</strong>. Its hidden identity sheet lets the upload recognize the project automatically.</div>
@@ -56,7 +56,7 @@
                         <label for="fuImportFile">Excel file (.xlsx)</label>
                         <asp:FileUpload ID="fuImportFile" runat="server" CssClass="form-control" accept=".xlsx" />
                     </div>
-                    <asp:Button ID="btnImport" runat="server" Text="Import into Selected Project" CssClass="btn btn-success" OnClick="btnImport_Click" />
+                    <asp:Button ID="btnImport" runat="server" Text="Import into Selected Project" CssClass="btn btn-success" OnClientClick="OLT.showLoading('Validating and importing data...');" OnClick="btnImport_Click" />
                 </div>
                 <div class="ol-help">The selected project must match the project identified inside the template. A mismatch is rejected before any data is saved.</div>
             </div>
@@ -78,4 +78,5 @@
             </div>
         </div>
     </div>
+    <script src="OLTracking.js"></script>
 </asp:Content>

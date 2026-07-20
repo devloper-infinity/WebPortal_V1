@@ -12,9 +12,7 @@ namespace WebPortal.App_Code.BLL
         public void SaveImportFlag(int fieldConfigId, int projectId, bool isForImport, int userId) { dal.SaveImportFlag(fieldConfigId, projectId, isForImport, userId); }
         public long ImportRows(int projectId, string originalFileName, DataTable values, int userId)
         {
-            long batchId = dal.ImportRows(projectId, originalFileName, values, userId);
-            new dalOLTracking().SyncImportedItems(projectId, userId);
-            return batchId;
+            return dal.ImportRows(projectId, originalFileName, values, userId);
         }
         public DataTable GetRecentImports(int userId) { return dal.GetRecentImports(userId); }
     }

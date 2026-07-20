@@ -1,0 +1,14 @@
+.olt-dialog.olt-dialog-large{width:min(1100px,96vw)}
+.olt-dialog-head{align-items:center}
+.olt-dialog-head>button:not(.olt-dialog-close){display:none}
+.olt-dialog-close{width:34px;height:34px;padding:0;border:0;border-radius:50%;background:transparent;color:#334155;font-size:26px;line-height:30px;cursor:pointer}
+.olt-dialog-close:hover{background:#eef4f8;color:#0f6b8f}
+.olt-feedback-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.olt-feedback-heading h3{margin:0 0 4px;font-size:23px}.olt-feedback-heading p{margin:0;color:#64748b}
+.olt-feedback-count{padding:7px 12px;border-radius:15px;background:#e8f7f0;color:#176448;font-weight:700;white-space:nowrap}
+.olt-feedback-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.olt-feedback-form .olt-field{grid-column:span 1}.olt-feedback-form .span-2{grid-column:span 2}.olt-feedback-form .span-3{grid-column:span 3}
+.olt-feedback-actions{margin-top:16px}.olt-btn:disabled{border-color:#a9b8c5;background:#d9e1e8;color:#748596;cursor:not-allowed}
+.olt-saved-feedback{margin-top:12px;color:#176448;font-size:12px}.olt-saved-feedback div{padding:7px 10px;border-radius:5px;background:#eaf8f3}
+@media(max-width:900px){.olt-feedback-form{grid-template-columns:repeat(2,minmax(0,1fr))}.olt-feedback-form .span-3{grid-column:span 2}}
+@media(max-width:600px){.olt-feedback-form{grid-template-columns:1fr}.olt-feedback-form .olt-field,.olt-feedback-form .span-2,.olt-feedback-form .span-3{grid-column:span 1}.olt-feedback-heading{align-items:flex-start;flex-direction:column}}

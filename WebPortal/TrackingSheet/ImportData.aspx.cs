@@ -210,6 +210,7 @@ namespace WebPortal.TrackingSheet
             values.Columns.Add("ImportRowNumber", typeof(int));
             values.Columns.Add("EntryDate", typeof(DateTime));
             values.Columns.Add("FieldConfigId", typeof(int));
+            values.Columns.Add("FieldName", typeof(string));
             values.Columns.Add("FieldValue", typeof(string));
 
             IXLRange usedRange = sheet.RangeUsed();
@@ -253,6 +254,7 @@ namespace WebPortal.TrackingSheet
                     value["ImportRowNumber"] = importRow;
                     value["EntryDate"] = entryDate.Date;
                     value["FieldConfigId"] = Convert.ToInt32(field["FieldConfigId"]);
+                    value["FieldName"] = Convert.ToString(field["FieldName"]);
                     value["FieldValue"] = normalized;
                     values.Rows.Add(value);
                 }

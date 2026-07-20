@@ -2863,6 +2863,10 @@
     <Content Include="Search\VerifyBilling.aspx" />
     <Content Include="Search\ViewBilling.aspx" />
     <Content Include="DatabaseScripts\OLTracking_003_ImportFacility.sql" />
+    <Content Include="DatabaseScripts\OLTracking_004_CompleteLoan.sql" />
+    <Content Include="DatabaseScripts\OLTracking_005_ParallelBranchEligibility.sql" />
+    <Content Include="DatabaseScripts\OLTracking_006_FeedbackWorkflow.sql" />
+    <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />
     <Content Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx" />
