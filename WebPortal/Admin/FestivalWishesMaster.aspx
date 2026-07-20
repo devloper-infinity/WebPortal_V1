@@ -561,7 +561,7 @@
                     <div class="card-body">
                         <div class="row mb-3">
                             <div class="col-md-3">
-                                <label for="festWish_title">Title :</label>
+                                <label for="festWish_title">Title</label>
                                 <select id="festWish_title" name="festWish_title" class="form-control">
                                     <option value="">Select</option>
                                     <option value="Christmas">Christmas</option>
@@ -580,12 +580,12 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label for="festWish_date">Date :</label>
+                                <label for="festWish_date">Date</label>
                                 <input type="date" id="festWish_date" class="form-control" onkeydown="return false" />
                             </div>
 
                             <div class="col-md-3">
-                                <label for="locationDropdownBtn">Location :</label>
+                                <label for="locationDropdownBtn">Location</label>
                                 <div class="dropdown">
                                     <button id="locationDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Location</button>
                                     <div class="dropdown-menu multi-dropdown-menu">
@@ -599,7 +599,7 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label for="departmentDropdownBtn">Department :</label>
+                                <label for="departmentDropdownBtn">Department</label>
                                 <div class="dropdown">
                                     <button id="departmentDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Department</button>
                                     <div class="dropdown-menu multi-dropdown-menu">
@@ -615,7 +615,7 @@
 
                         <div class="row mb-3">
                             <div class="col-md-3">
-                                <label for="designationDropdownBtn">Designation :</label>
+                                <label for="designationDropdownBtn">Designation</label>
                                 <div class="dropdown">
                                     <button id="designationDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Designation</button>
                                     <div class="dropdown-menu multi-dropdown-menu">
@@ -629,7 +629,17 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label for="userDropdownBtn">User :</label>
+                                <label for="festWish_gender">Gender</label>
+                                <select id="festWish_gender" name="festWish_gender" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="All">All</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Male">Male</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label for="userDropdownBtn">User</label>
                                 <div class="dropdown">
                                     <button id="userDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Employee</button>
                                     <div class="dropdown-menu multi-dropdown-menu">
@@ -641,19 +651,8 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="col-md-3">
-                                <label for="festWish_gender">Gender :</label>
-                                <select id="festWish_gender" name="festWish_gender" class="form-control">
-                                    <option value="">Select</option>
-                                    <option value="All">All</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Male">Male</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label for="festWish_attachment">Image :</label>
+                                <label for="festWish_attachment">Image</label>
                                 <input type="file" id="festWish_attachment" class="form-control" />
                             </div>
                         </div>

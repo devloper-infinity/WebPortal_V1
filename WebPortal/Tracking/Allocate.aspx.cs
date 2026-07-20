@@ -68,6 +68,25 @@ namespace WebPortal.Tracking
 
 
 
+        [WebMethod]
+        public static string GetProcessByProject(int ProjectID)
+        {
+            DataTable dt1 = new bllTracking().GetProcessByProjectAndSequence(ProjectID);// getProcess(ProjectID);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
 
         [WebMethod]
         public static object GetLoansToAllocate(string ProcessName, string Type)
@@ -99,11 +118,7 @@ namespace WebPortal.Tracking
         [WebMethod]
         public static object GetUserLoans()
         {
-            string UserName = EmployeeInfo.Current.PseudoName;
-            UserName = "KIP";
-
-            DataTable dt = new bllTracking().GetProcessDetails(UserName);
-            dt = dt.AsEnumerable().Take(5).CopyToDataTable();
+            DataTable dt = new bllTracking().GetAllcatedLoansByUser(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             var data = dt.AsEnumerable().Select(row => dt.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col]));
 
             return data;
@@ -122,7 +137,7 @@ namespace WebPortal.Tracking
 
 
         [WebMethod]
-        public static int AllocateOrders_Self(string Loans) /* (string Project, string DealNo, string OrderNo, string Process)*/
+        public static int AllocateOrders_Self(string Loans, string Project, string Process, int ProcessID)
         {
             int ReturnValue = 0;
 
@@ -132,56 +147,36 @@ namespace WebPortal.Tracking
 
                 Hashtable htParam = new Hashtable();
 
-                string Reviewer = EmployeeInfo.Current.PseudoName;
-                string Project = row["ProjectName"].ToString();
-                htParam.Add("ProjectNumber", Project);
+                htParam.Add("PrevID", 0);
+                htParam.Add("TrackingSheetID", 1);// row["TrackingSheetID"].ToString());
+                htParam.Add("ProjectID", Project);
                 htParam.Add("DealNo", row["DealNo"].ToString());
-                htParam.Add("OrderNumber", row["LoanNo"].ToString());
-                htParam.Add("Review", Reviewer);
                 htParam.Add("Process", row["Process"].ToString());
-                htParam.Add("ProductType", "");
-                htParam.Add("Status", "Pending");
-                htParam.Add("Type", "Allocation");
+                htParam.Add("ProcessID", ProcessID);
+                htParam.Add("LoanNo", row["LoanNo"].ToString());
+                htParam.Add("AllocationStatus", "Allocated");
+                htParam.Add("PseudoName", EmployeeInfo.Current.PseudoName);
+                htParam.Add("UserID", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-                if (Project == "561" || Project == "667")
-                {
-                    ReturnValue = 10;// new bllTracking().InsertModifyUWOrderOC22Servicing(htParam);
-                }
-                else
-                {
-                    ReturnValue = new bllTracking().AllocateOrder_Self(htParam); /* created proc  InsertModifyUWOrderOC22*/
-                }
+                ReturnValue = new bllTracking().AllocateOrder_Self(htParam);
             }
             return ReturnValue;
         }
 
 
-        //public DataTable GetProcessDetails(string UserName)
-        //{
-        //    SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser"); //usp_getuniquecolumn
-        //    SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
-        //    DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-        //    return dt;
-        //}
-
-
         [WebMethod]
-        public static int UpdateLoanStatus(string Project, string DealNo, string OrderNo, string Process, string ProjectID, string Status, string HoldRemark, string Remark, string ProductType, string UserName)
+        public static int UpdateLoanStatus(int AllocationID, string AllocationStatus, string HoldReason, string Remark)
         {
             int ReturnValue = 0;
-            Hashtable htParamValidate = new Hashtable();
 
-            if (!string.IsNullOrWhiteSpace(Remark) && !HasFeedbackForLoan(ProjectID, OrderNo, Process, UserName))
-                return -2;
+            Hashtable htParam = new Hashtable();
 
-            htParamValidate.Add("ProjectNumber", Project);
-            htParamValidate.Add("DealNo", DealNo);
-            htParamValidate.Add("OrderNumber", OrderNo);
-            htParamValidate.Add("Process", Process);
-            htParamValidate.Add("ProjectId", ProjectID);
-            htParamValidate.Add("UserCode", UserName);
+            htParam.Add("AllocationID", AllocationID);
+            htParam.Add("AllocationStatus", AllocationStatus);
+            htParam.Add("HoldReason", HoldReason);
+            htParam.Add("Remark", Remark);
 
-            ReturnValue = 10;// new bllTracking().ValidateUserProcessTAT(htParamValidate);
+            ReturnValue = new bllTracking().UpdateLoanStatus(htParam);
             return ReturnValue;
         }
 

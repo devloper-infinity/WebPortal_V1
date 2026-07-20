@@ -2677,5 +2677,11 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.DeleteExistingOthertaskRecords(htParam);
         }
+
+        public DataTable GetAllUserERPLoginDetails()
+        {
+            return dalMaster.GetAllUserERPLoginDetails();
+
+        }
     }
 }

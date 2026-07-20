@@ -285,10 +285,24 @@ function validateBankDetails() {
 
 function saveBankDetails() {
 
+
+    var file = $('#fpBankProof').val();
+
+    if (!file) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation Error',
+            text: 'Please upload Bank Proof.',
+            confirmButtonText: 'OK'
+        });
+
+        $('#fpBankProof').focus();
+        return false;
+    }
+
     $("#bank_btnAccSave").prop("disabled", true);
     $("#btnBankIcon").removeClass("fa-paper-plane").addClass("fa-spinner fa-spin");
     $("#btnBankText").text("Saving Data...");
-
 
     if (!validateBankDetails()) {
         return false;
@@ -304,8 +318,8 @@ function saveBankDetails() {
 
             $("#load1").hide();
 
-            if (result > 0) {
-                Swal.fire({ icon: "success", title: "Success", text: "Bank details saved successfully.", confirmButtonText: "OK" }).then(function () {
+            if (result === 1) {
+                Swal.fire({ icon: "success", title: "Updated", text: "Bank details updated successfully.", confirmButtonText: "OK" }).then(function () {
                     clearBankDetailsForm();
 
                     $("#bank_btnAccSave").prop("disabled", false);
@@ -313,6 +327,16 @@ function saveBankDetails() {
                     $("#btnBankText").text("Submit Bank Details");
                 });
             }
+            else
+                if (result > 0) {
+                    Swal.fire({ icon: "success", title: "Success", text: "Bank details saved successfully.", confirmButtonText: "OK" }).then(function () {
+                        clearBankDetailsForm();
+
+                        $("#bank_btnAccSave").prop("disabled", false);
+                        $("#btnBankIcon").removeClass("fa-spinner fa-spin").addClass("fa-paper-plane");
+                        $("#btnBankText").text("Submit Bank Details");
+                    });
+                }
             else {
                 showSwal("error", "Error", "Unable to save bank details. Please contact administrator.");
             }

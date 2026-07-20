@@ -20,11 +20,19 @@ namespace WebPortal.Admin
 {
     public partial class SelfLeaves : System.Web.UI.Page
     {
-        static string user_code;
-
         protected void Page_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private static int GetCurrentEmployeeId()
+        {
+            return int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+        }
+
+        private static string GetCurrentUserCode()
+        {
+            return new bllMaster().GetCodeFromEmployeeId(GetCurrentEmployeeId());
         }
 
         [WebMethod]
@@ -35,7 +43,6 @@ namespace WebPortal.Admin
             Dictionary<string, object> row;
             if (dt1 != null)
             {
-                user_code = Convert.ToString(dt1.Rows[0]["Code"]);
                 foreach (DataRow dr in dt1.Rows)
                 {
                     row = new Dictionary<string, object>();
@@ -54,7 +61,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetUserleavesbyCode()
         {
-            DataTable dt1 = new bllMaster().GetUserLeavesbyCode(user_code);
+            DataTable dt1 = new bllMaster().GetUserLeavesbyCode(GetCurrentUserCode());
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             if (dt1 != null)
@@ -75,32 +82,89 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int InsertLeave(string LeaveType, int ForDays, string FromDate, string ToDate, string Reason)
+        public static string GetLeaveDetails()
+        {
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            string code = new bllMaster().GetCodeFromEmployeeId(employeeId);
+            DataTable dt1 = new bllMaster().GetLeaveDetails(code);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            if (dt1 != null)
+            {
+                foreach (DataRow dr in dt1.Rows)
+                {
+                    Dictionary<string, object> row = new Dictionary<string, object>();
+                    foreach (DataColumn col in dt1.Columns)
+                    {
+                        row.Add(col.ColumnName, dr[col]);
+                    }
+                    rows.Add(row);
+                }
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static int InsertLeave(string LeaveType, int ForDays, string FromDate, string ToDate, string Reason, string PaidStatus)
         {
             int returnvalue = 0;
+            int employeeId = GetCurrentEmployeeId();
+            string userCode = GetCurrentUserCode();
+
+            DataTable userInfo = new bllLogin().GetUserInformation(employeeId);
+            bool paidLeaveEligible = false;
+            if (userInfo != null && userInfo.Rows.Count > 0)
+            {
+                string domain = Convert.ToString(userInfo.Rows[0]["Domain"]);
+                string workingBranch = Convert.ToString(userInfo.Rows[0]["WorkingBranch"]);
+                paidLeaveEligible = domain == "9" || workingBranch == "11" || workingBranch == "3";
+            }
+
+            PaidStatus = paidLeaveEligible ? "Paid" : "Unpaid";
+
+            if (PaidStatus == "Paid")
+            {
+                DataTable leaveDetails = new bllMaster().GetLeaveDetails(userCode);
+                decimal pendingLeaves = 0;
+                if (leaveDetails != null && leaveDetails.Rows.Count > 0)
+                {
+                    decimal.TryParse(Convert.ToString(leaveDetails.Rows[0]["PendingLeaves"]), out pendingLeaves);
+                }
+
+                if (pendingLeaves < ForDays)
+                {
+                    return -2;
+                }
+            }
 
             Hashtable htParam = new Hashtable();
-            htParam.Add("Code", user_code);
+            htParam.Add("Code", userCode);
             htParam.Add("LeaveType", LeaveType);
             htParam.Add("ForDays", ForDays);
             htParam.Add("LeaveFrom", Convert.ToDateTime(FromDate).ToString("dd-MMM-yyyy"));
             htParam.Add("LeaveTo", Convert.ToDateTime(ToDate).ToString("dd-MMM-yyyy"));
             htParam.Add("ReasonForLeave", Reason);
-            htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            htParam.Add("AddedBy", employeeId);
 
             returnvalue = new bllMaster().InsertLeave(htParam);
 
             if (returnvalue > 0)
             {
-                new bllMaster().InsertPaidLeave(htParam, returnvalue);
-                UserLeaveEmail(user_code, ForDays, FromDate, ToDate, Reason, LeaveType);
+                if (PaidStatus == "Paid")
+                {
+                    new bllMaster().InsertPaidLeave(htParam, returnvalue);
+                }
+                UserLeaveEmail(userCode, ForDays, FromDate, ToDate, Reason, LeaveType, PaidStatus);
             }
 
             return returnvalue;
         }
 
         [WebMethod]
-        public static int UserLeaveEmail(string Code, int Days, string FromDate, string ToDate, string Reason, string LeaveType)
+        public static int UserLeaveEmail(string Code, int Days, string FromDate, string ToDate, string Reason, string LeaveType, string PaidStatus)
         {
             int returnvalue = 0;
             string To = "";
@@ -164,6 +228,7 @@ namespace WebPortal.Admin
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain Head:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(DomainHead) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Location Head:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(LocationHead) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Leave Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(LeaveType) + "</td></tr>");
+                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Paid / Unpaid:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(PaidStatus) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>No Of Days:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Days) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>From Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(FromDate) + "</td></tr>");
                     body.Append("<tr><td  style=\"border:solid 1px Gray;border-top:none;\"><b>To Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ToDate) + "</td></tr>");

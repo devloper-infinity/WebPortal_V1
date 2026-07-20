@@ -51,6 +51,7 @@ function saveInfinityOnshoreRemark() {
     var feedbackId = parseInt($('#hdnInfinityOnshoreFeedbackId').val(), 10) || 0;
     var client = $('#spnInfinityOnshoreClient').text();
     var remark = $.trim($('#txtInfinityOnshoreRemark').val());
+    var findingStatus = $("#ddlInfinityOnshore_RebuttalStatus").val();
 
     if (!feedbackId) {
         alert('Please select feedback row.');
@@ -250,6 +251,13 @@ function bind_onshoredata(date1, date2) {
                 ordering: false,
                 serverSide: false,
 
+
+                createdRow: function (row, data, dataIndex) {
+                    if ((data["Finding Status"] || "").toString().trim().toLowerCase() === "rebuttal") {
+                        $(row).addClass("row-disagree");
+                    }
+                },
+
                 columns: [
                     {
                         data: null, title: 'Sr. #',
@@ -292,11 +300,11 @@ function bind_onshoredata(date1, date2) {
                     { data: 'Finding', title: 'Finding', className:'text-nowrap' },
                     { data: 'FeedbackType', title: 'Feedback Type' },
                     { data: 'Severity', title: 'Severity' },
-                    { data: 'RCA', title: 'RCA' },
-                    { data: 'Comments', title: 'Comments' },
-                    { data: 'Source', title: 'Source' },
+                    { data: 'RCA', title: 'RCA', className: "nowrap" },
+                    { data: 'Finding Status', title: 'Finding Status' },
+                    { data: 'Source', title: 'Source', className: "nowrap" },
                     { data: 'FeedbackReceivedDate', title: 'Feedback Received Date' },
-                    { data: 'RebuttalRemark', title: 'RebuttalRemark' },
+                    { data: 'RebuttalRemark', title: 'Rebuttal Remark' },
                     { data: 'RebuttalAddedDate', title: 'Rebuttal AddedDate' }
                 ],
 

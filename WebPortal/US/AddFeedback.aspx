@@ -214,13 +214,13 @@
             resize: vertical;
         }
 
-        .feedback-field .form-control:focus,
-        .feedback-field select:focus,
-        .feedback-field textarea:focus {
-            border-color: var(--ca-primary);
-            box-shadow: 0 0 0 4px var(--ca-ring);
-            outline: none;
-        }
+            .feedback-field .form-control:focus,
+            .feedback-field select:focus,
+            .feedback-field textarea:focus {
+                border-color: var(--ca-primary);
+                box-shadow: 0 0 0 4px var(--ca-ring);
+                outline: none;
+            }
 
         .feedback-field .form-control:disabled {
             background: #f9fafb;
@@ -272,30 +272,30 @@
             width: 100% !important;
         }
 
-        #table_usfeedback thead th,
-        .table.dataTable th {
-            white-space: nowrap;
-            border: 0 !important;
-        /*    padding: 13px 14px !important;*/
-         /*   background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;*/
-           /* color: #fff !important;*/
-            font-size: 13px;
-            font-weight: 800;
-            border-bottom-color:black;
-        }
+            #table_usfeedback thead th,
+            .table.dataTable th {
+                white-space: nowrap;
+                border: 0 !important;
+                /*    padding: 13px 14px !important;*/
+                /*   background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;*/
+                /* color: #fff !important;*/
+                font-size: 13px;
+                font-weight: 800;
+                border-bottom-color: black;
+            }
 
-        #table_usfeedback tbody td,
-        .table.dataTable tr td {
-            padding: 12px 14px !important;
-            border-top: 1px solid var(--ca-border) !important;
-            background-color: #fff !important;
-            color: #374151;
-            vertical-align: middle;
-        }
+            #table_usfeedback tbody td,
+            .table.dataTable tr td {
+                padding: 12px 14px !important;
+                border-top: 1px solid var(--ca-border) !important;
+                background-color: #fff !important;
+                color: #374151;
+                vertical-align: middle;
+            }
 
-        #table_usfeedback tbody tr:hover td {
-            background-color: var(--ca-primary-soft) !important;
-        }
+            #table_usfeedback tbody tr:hover td {
+                background-color: var(--ca-primary-soft) !important;
+            }
 
         .dataTables_wrapper {
             padding: 0;
@@ -374,22 +374,29 @@
             cursor: pointer;
         }
 
-        .feedback-row-action.edit { background: #2f80ed; }
-        .feedback-row-action.delete { background: #dc3545; }
+            .feedback-row-action.edit {
+                background: #2f80ed;
+            }
+
+            .feedback-row-action.delete {
+                background: #dc3545;
+            }
     </style>
 
-<script>
+    <script>
 
-    $(document).ready(function () {
+        $(document).ready(function () {
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const ProcessID = urlParams.get('ProcessID');
+            const urlParams = new URLSearchParams(window.location.search);
+            const ProcessID = urlParams.get('ProcessID');
 
-        BindInfinityFeedback_US(ProcessID);
-    });
+            BindInfinityFeedback_US(ProcessID);
+        });
 
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -474,7 +481,7 @@
                     <button class="btn btn-primary" type="button" id="btnAddFeedback" onclick="return OnClickAddFeedback();">
                         <i class="fas fa-plus"></i>&nbsp; Add Feedback
                     </button>
-                    <button class="btn btn-secondary" type="button" id="btnCancelEdit" style="display:none;" onclick="return CancelFeedbackEdit();">
+                    <button class="btn btn-secondary" type="button" id="btnCancelEdit" style="display: none;" onclick="return CancelFeedbackEdit();">
                         <i class="fas fa-times"></i>&nbsp; Cancel Edit
                     </button>
                     <button class="btn btn-primary" type="button" id="btnCompleteLoan" onclick="return OnClickCompleteLoan();">
@@ -501,8 +508,8 @@
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan #</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Findings</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; display:none;">Added By Name</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; display:none;">Added Date</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Added By Name</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Added Date</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

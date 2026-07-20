@@ -4,6 +4,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -75,12 +76,12 @@
             color: #fff;
         }
 
-        .inf-btn-primary:hover,
-        .inf-btn-primary:focus {
-            background: #0b5f59;
-            border-color: #0b5f59;
-            color: #fff;
-        }
+            .inf-btn-primary:hover,
+            .inf-btn-primary:focus {
+                background: #0b5f59;
+                border-color: #0b5f59;
+                color: #fff;
+            }
 
         .inf-btn-light {
             background: rgba(255,255,255,0.96);
@@ -89,11 +90,11 @@
             text-decoration: none;
         }
 
-        .inf-btn-light:hover,
-        .inf-btn-light:focus {
-            color: #0f766e;
-            text-decoration: none;
-        }
+            .inf-btn-light:hover,
+            .inf-btn-light:focus {
+                color: #0f766e;
+                text-decoration: none;
+            }
 
         .inf-panel {
             background: #fff;
@@ -144,28 +145,28 @@
             min-width: 0;
         }
 
-        .inf-field label {
-            color: #46596b;
-            display: block;
-            font-size: 12px;
-            font-weight: 700 !important;
-            margin-bottom: 6px;
-        }
+            .inf-field label {
+                color: #46596b;
+                display: block;
+                font-size: 12px;
+                font-weight: 700 !important;
+                margin-bottom: 6px;
+            }
 
-        .inf-field .form-control {
-            border-color: #cfdbe5;
-            border-radius: 6px;
-            box-shadow: none;
-            color: #172737;
-            font-size: 13px;
-            min-height: 38px;
-            width: 100%;
-        }
+            .inf-field .form-control {
+                border-color: #cfdbe5;
+                border-radius: 6px;
+                box-shadow: none;
+                color: #172737;
+                font-size: 13px;
+                min-height: 38px;
+                width: 100%;
+            }
 
-        .inf-field .form-control:focus {
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-        }
+                .inf-field .form-control:focus {
+                    border-color: #0f766e;
+                    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+                }
 
         .inf-table-wrap {
             overflow-x: auto;
@@ -179,27 +180,27 @@
             width: 100% !important;
         }
 
-        #table_InfinityFeedback thead th {
-            background: #edf3f6 !important;
-            border-color: #d7e2ea !important;
-            color: #263747;
-            font-size: 12px;
-            text-align: center;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
+            #table_InfinityFeedback thead th {
+                background: #edf3f6 !important;
+                border-color: #d7e2ea !important;
+                color: #263747;
+                font-size: 12px;
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
 
-        #table_InfinityFeedback tbody td {
-            background: #fff !important;
-            border-color: #e2e9ef !important;
-            color: #263747;
-            font-size: 12px;
-            vertical-align: middle;
-        }
+            #table_InfinityFeedback tbody td {
+                background: #fff !important;
+                border-color: #e2e9ef !important;
+                color: #263747;
+                font-size: 12px;
+                vertical-align: middle;
+            }
 
-        #table_InfinityFeedback tbody tr:hover td {
-            background: #f7fbfa !important;
-        }
+            #table_InfinityFeedback tbody tr:hover td {
+                background: #f7fbfa !important;
+            }
 
         .dataTables_length,
         .dataTables_info {
@@ -273,11 +274,11 @@
             z-index: 99999;
         }
 
-        .loading img {
-            display: block;
-            margin: 0 auto 10px;
-            max-width: 44px;
-        }
+            .loading img {
+                display: block;
+                margin: 0 auto 10px;
+                max-width: 44px;
+            }
 
         @media (max-width: 1199px) {
             .inf-filter-grid {
@@ -352,7 +353,7 @@
         <div class="inf-panel">
             <div class="inf-panel-header">
                 <div>
-                    <h2 class="inf-panel-title"><i class="fas fa-filter"></i> Search Filters</h2>
+                    <h2 class="inf-panel-title"><i class="fas fa-filter"></i>Search Filters</h2>
                     <div class="inf-panel-subtitle">Labels are placed above inputs for a modern, responsive filter area.</div>
                 </div>
             </div>
@@ -379,6 +380,11 @@
                             <i class="fas fa-magnifying-glass"></i>
                             Show
                         </button>
+                        <%-- <button class="inf-btn inf-btn-primary" type="button" id="btnEditFeedbackExport" runat="server" onclick="">
+                            <i class="fas fa-magnifying-glass"></i>
+                            Show
+                        </button>--%>
+                        <asp:Button ID="btnExportFeedback" runat="server" Text="Export Excel" CssClass="btn btn-success" OnClick="btnExportFeedback_Click" />
                     </div>
                 </div>
             </div>
@@ -387,7 +393,7 @@
         <div class="inf-panel">
             <div class="inf-panel-header">
                 <div>
-                    <h2 class="inf-panel-title"><i class="fas fa-table-list"></i> Feedback Records</h2>
+                    <h2 class="inf-panel-title"><i class="fas fa-table-list"></i>Feedback Records</h2>
                     <div class="inf-panel-subtitle">Use the action column to edit a selected feedback record.</div>
                 </div>
             </div>
@@ -396,7 +402,7 @@
                     <thead>
                         <tr>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display:none;">FeedbackID</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">FeedbackID</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan Number</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Client</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">UW Name</th>
@@ -411,8 +417,8 @@
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Finding</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Type</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Comments</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Status</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA/Rebuttal Comments</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Source</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Received Date</th>
                         </tr>

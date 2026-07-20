@@ -268,7 +268,7 @@ namespace WebPortal.Admin
 
                         try
                         {
-                            client.Send(mail);
+                           // client.Send(mail);
                         }
                         catch { }
                     }

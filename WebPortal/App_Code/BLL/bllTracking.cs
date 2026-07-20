@@ -199,10 +199,19 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.GetAllProjectFeedbackinERP_Servicing(ProjectId, OrderNo, Process, FeedbackBy);
         }
 
+        public int AllocateOrder_Self_OLD(Hashtable htParam)
+        {
+            return dalTracking.AllocateOrder_Self_OLD(htParam);
+        }
 
         public int AllocateOrder_Self(Hashtable htParam)
         {
             return dalTracking.AllocateOrder_Self(htParam);
+        }
+
+        public int UpdateLoanStatus(Hashtable htParam)
+        {
+            return dalTracking.UpdateLoanStatus(htParam);
         }
 
         public int InsertModifyUWOrderOC22Servicing(Hashtable htParam)
@@ -226,6 +235,16 @@ namespace WebPortal.App_Code.BLL
         public DataTable getProcess(int ProjectID)
         {
             return dalTracking.getProcess(ProjectID);
+        }
+
+        public DataTable GetProcessByProjectAndSequence(int ProjectID)
+        {
+            return dalTracking.GetProcessByProjectAndSequence(ProjectID);
+        }
+
+        public DataTable GetAllcatedLoansByUser(int UserID)
+        {
+            return dalTracking.GetAllcatedLoansByUser(UserID);
         }
 
         public DataTable GetAllProjectDealNumberNew(int ProjectId)

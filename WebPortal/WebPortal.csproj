@@ -139,6 +139,7 @@
     <Content Include="Accounts\PrepareCheques.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="Admin\All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
     <Content Include="Admin\BranchAndDateWiseAttendanceReport.aspx" />
@@ -2875,6 +2876,8 @@
     <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
     <Content Include="Tracking\OrderAllocation.aspx" />
+    <Content Include="Tracking\OrderProcessManagement.aspx" />
+    <Content Include="Tracking\ProjectProcessSequence.aspx" />
     <Content Include="Tracking\UpdateDispatchDate.aspx" />
     <Content Include="Tracking\TodaySatus.aspx" />
     <Content Include="Tracking\CssMaster.css" />
@@ -3005,6 +3008,13 @@
     </Compile>
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\All.aspx.cs">
+      <DependentUpon>All.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\All.aspx.designer.cs">
+      <DependentUpon>All.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\Birthday.aspx.cs">
       <DependentUpon>Birthday.aspx</DependentUpon>
@@ -5121,6 +5131,20 @@
     </Compile>
     <Compile Include="Tracking\OrderAllocation.aspx.designer.cs">
       <DependentUpon>OrderAllocation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tracking\OrderProcessManagement.aspx.cs">
+      <DependentUpon>OrderProcessManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tracking\OrderProcessManagement.aspx.designer.cs">
+      <DependentUpon>OrderProcessManagement.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Tracking\ProjectProcessSequence.aspx.cs">
+      <DependentUpon>ProjectProcessSequence.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Tracking\ProjectProcessSequence.aspx.designer.cs">
+      <DependentUpon>ProjectProcessSequence.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tracking\UpdateDispatchDate.aspx.cs">
       <DependentUpon>UpdateDispatchDate.aspx</DependentUpon>

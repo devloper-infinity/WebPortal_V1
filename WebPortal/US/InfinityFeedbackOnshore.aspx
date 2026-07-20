@@ -357,6 +357,7 @@
         .swal2-container {
             z-index: 200000 !important;
         }
+
         .feedback-action-link {
             width: 30px;
             height: 30px;
@@ -375,6 +376,7 @@
                 background: var(--ca-primary);
                 text-decoration: none;
             }
+
         .feedback-loan-link {
             display: inline-flex;
             align-items: center;
@@ -433,31 +435,31 @@
             background: #f8fafc;
         }
 
-        .feedback-remark-context-item span {
-            display: block;
-            color: var(--ca-muted);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
+            .feedback-remark-context-item span {
+                display: block;
+                color: var(--ca-muted);
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
 
-        .feedback-remark-context-item strong {
-            display: block;
-            margin-top: 3px;
-            color: var(--ca-text);
-            font-size: 13px;
-            word-break: break-word;
-        }
+            .feedback-remark-context-item strong {
+                display: block;
+                margin-top: 3px;
+                color: var(--ca-text);
+                font-size: 13px;
+                word-break: break-word;
+            }
 
-        .feedback-remark-context-item.wide {
-            grid-column: 1 / -1;
-        }
+            .feedback-remark-context-item.wide {
+                grid-column: 1 / -1;
+            }
 
-        .feedback-remark-context-item .feedback-detail-text {
-            max-height: 92px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
+            .feedback-remark-context-item .feedback-detail-text {
+                max-height: 92px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+            }
 
         #txtInfinityOnshoreRemark {
             min-height: 130px;
@@ -553,20 +555,29 @@
                 flex-basis: 100%;
             }
         }
+
+        .nowrap {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #table_InfinityFeedbackOnShore tbody tr.row-disagree td {
+            background-color: #AFEEEE !important;
+            font-weight: 600;
+        }
     </style>
     <script>
 
         $(document).ready(function () {
 
-             bind_onshoredata("01-Apr-2026", "01-Jul-2026");
+            // bind_onshoredata("01-Apr-2026", "01-Jul-2026");
 
         });
     </script>
 
-    <style>
-    </style>
-
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <input id="filep_ap" style="display: none;" />
     <%-- <div class="loading" id="load1">
@@ -655,8 +666,12 @@
                             <strong id="spnInfinityOnshoreRCA" class="feedback-detail-text">-</strong>
                         </div>
                         <div class="feedback-remark-context-item wide">
-                            <span>Comments</span>
-                            <strong id="spnInfinityOnshoreComments" class="feedback-detail-text">-</strong>
+                            <span>Rebuttal Status</span>
+                            <select id="ddlInfinityOnshore_RebuttalStatus">
+                                <option value="">Select Status</option>
+                                <option value="Agree">Agree</option>
+                                <option value="Rebuttal">Rebuttal</option>
+                            </select>
                         </div>
                     </div>
                     <label for="txtInfinityOnshoreRemark">Remark <span class="req">*</span></label>
@@ -666,6 +681,7 @@
                     <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="btnSaveInfinityOnshoreRemark" onclick="return saveInfinityOnshoreRemark();">
                         <i class="fas fa-save mr-1"></i>Save Remark
+                   
                     </button>
                 </div>
             </div>

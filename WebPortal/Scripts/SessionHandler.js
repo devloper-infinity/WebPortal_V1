@@ -299,6 +299,10 @@
 
         if (warningShownForDeadline !== deadline) {
             warningShownForDeadline = deadline;
+            window.alert(
+                "Your WebPortal session is about to expire.\n\n" +
+                "Return to WebPortal and select 'Stay signed in' to continue working."
+            );
             showDesktopNotification();
         }
     }

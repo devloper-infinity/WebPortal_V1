@@ -151,9 +151,38 @@
         }
 
         .sl-field-action {
-            grid-column: span 3;
+            grid-column: 10 / -1;
             display: flex;
-            align-items: end;
+            align-items: end !important;
+            justify-content: flex-end;
+        }
+
+        .sl-paid-details {
+            grid-column: span 12;
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            padding: 18px;
+            border: 1px solid var(--sl-border);
+            border-radius: 14px;
+            background: #f8fafc;
+        }
+
+            .sl-paid-details.is-visible {
+                display: grid;
+            }
+
+        .sl-metric-value {
+            display: flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 10px 14px;
+            border: 1px solid var(--sl-border);
+            border-radius: 14px;
+            background: #fff;
+            color: var(--sl-text);
+            font-size: 15px;
+            font-weight: 800;
         }
 
         .sl-label {
@@ -334,7 +363,7 @@
             background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
             box-shadow: 0 10px 20px rgba(22, 163, 74, .2) !important;
             margin: 0 8px !important;
-            margin-bottom: -20px!important;
+            margin-bottom: -20px !important;
         }
 
         .loading {
@@ -433,7 +462,11 @@
             }
 
             .sl-field-action {
-                grid-column: span 12;
+                grid-column: 1 / -1;
+            }
+
+            .sl-paid-details {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
@@ -448,6 +481,10 @@
 
             .sl-field {
                 grid-column: span 12;
+            }
+
+            .sl-paid-details {
+                grid-template-columns: 1fr;
             }
 
             .sl-table-wrap {
@@ -479,6 +516,7 @@
                     $.each(dataArray, function (data1, value1) {
                         selfleave_empId = value1.EmployeeID;
                         selfleave_branch = value1.WorkingBranch;
+                        selfleave_loadPaidEligibility(value1.Domain, value1.WorkingBranch);
                     });
                 }
             });
@@ -573,6 +611,23 @@
                         <div class="sl-field-wide">
                             <label class="sl-label" for="selfleave_reason">Reason</label>
                             <textarea id="selfleave_reason" name="selfleave_reason" class="form-control" placeholder="Enter the reason for your leave request" required></textarea>
+                        </div>
+
+                        <div class="sl-paid-details" id="selfleave_paid_details">
+                            <div>
+                                <label class="sl-label" for="selfleave_totalleaves">Total Leaves</label>
+                                <span id="selfleave_totalleaves" class="sl-metric-value">0</span>
+                            </div>
+
+                            <div>
+                                <label class="sl-label" for="selfleave_appliedleaves">Applied Leaves</label>
+                                <span id="selfleave_appliedleaves" class="sl-metric-value">0</span>
+                            </div>
+
+                            <div>
+                                <label class="sl-label" for="selfleave_pendingleaves">Pending Leaves</label>
+                                <span id="selfleave_pendingleaves" class="sl-metric-value">0</span>
+                            </div>
                         </div>
 
                         <div class="sl-field-action">
