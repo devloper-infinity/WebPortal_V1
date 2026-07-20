@@ -12,7 +12,7 @@ function blankForNull(s) {
 }
 
 function selfleave_bindgrid() {
-    $('#load1').show();
+    $('#load1').css('display', 'flex');
 
     $.ajax({
         url: "SelfLeaves.aspx/GetUserleavesbyCode",
@@ -91,6 +91,39 @@ function safeText(value) {
     return $('<div>').text(value).html();
 }
 
+function selfleave_loadPaidEligibility(domain, workingBranch) {
+    var eligible = String(domain) === "9" || String(workingBranch) === "11" || String(workingBranch) === "3";
+    var details = document.getElementById("selfleave_paid_details");
+
+    if (!details) return;
+
+    details.classList.toggle("is-visible", eligible);
+
+    if (!eligible) {
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "SelfLeaves.aspx/GetLeaveDetails",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        data: "{}",
+        success: function (res) {
+            var leaveDetails = JSON.parse(res.d || "[]");
+            if (leaveDetails.length === 0) return;
+
+            var value = leaveDetails[0];
+            document.getElementById("selfleave_totalleaves").textContent = blankForNull(value.TotalLeaves) || "0";
+            document.getElementById("selfleave_appliedleaves").textContent = blankForNull(value.AppliedLeaves) || "0";
+            document.getElementById("selfleave_pendingleaves").textContent = blankForNull(value.PendingLeaves) || "0";
+        },
+        error: function () {
+            Swal.fire("Error", "Unable to load paid-leave balance.", "error");
+        }
+    });
+}
+
 
 function selfleave_validatedates() {
 
@@ -126,15 +159,25 @@ function selfleave_Submit() {
     var selfleave_fromdate = $("#selfleave_fromdate").val();
     var selfleave_todate = $("#selfleave_todate").val();
     var selfleave_reason = $("#selfleave_reason").val().trim();
+    var paidDetailsVisible = $("#selfleave_paid_details").hasClass("is-visible");
+    var selfleave_paidstatus = paidDetailsVisible ? "Paid" : "Unpaid";
 
     if (selfleave_leavetype === "") {
         Swal.fire("Validation", "Please select leave type", "warning");
         return false;
     }
 
-    if (selfleave_days === "") {
+    if (selfleave_days === "" || selfleave_days === "0") {
         Swal.fire("Validation", "Please select days", "warning");
         return false;
+    }
+
+    if (selfleave_paidstatus === "Paid") {
+        var pendingLeaves = parseFloat($("#selfleave_pendingleaves").text()) || 0;
+        if (pendingLeaves < parseFloat(selfleave_days)) {
+            Swal.fire("Insufficient Paid Leaves", "You do not have sufficient paid leaves for the selected duration.", "warning");
+            return false;
+        }
     }
 
     if (selfleave_fromdate === "") {
@@ -171,6 +214,7 @@ function selfleave_Submit() {
         selfleave_fromdate,
         selfleave_todate,
         selfleave_reason,
+        selfleave_paidstatus,
         function (result) {
             $("#slefleave_waitingpanel").modal("hide");
 
@@ -181,6 +225,12 @@ function selfleave_Submit() {
                     icon: "success"
                 }).then(function () {
                     location.reload();
+                });
+            } else if (result === -2) {
+                Swal.fire({
+                    title: "Insufficient Paid Leaves",
+                    text: "You do not have sufficient paid leaves for the selected duration.",
+                    icon: "warning"
                 });
             } else {
                 Swal.fire({

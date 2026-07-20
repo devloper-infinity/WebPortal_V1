@@ -702,17 +702,17 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
-                                            <small class="text-muted d-block">Bank Name</small>
+                                            <label class="text-muted d-block">Bank Name</label>
                                             <div class="font-weight-bold" id="bankapprv_oldbankname"></div>
                                         </div>
 
                                         <div class="col-md-4 mb-3">
-                                            <small class="text-muted d-block">Account #</small>
+                                            <label class="text-muted d-block">Account #</label>
                                             <div class="font-weight-bold" id="bankapprv_oldaccno"></div>
                                         </div>
 
                                         <div class="col-md-4 mb-3">
-                                            <small class="text-muted d-block">IFSC Code</small>
+                                            <label class="text-muted d-block">IFSC Code</label>
                                             <div class="font-weight-bold" id="bankapprv_oldifsc"></div>
                                         </div>
                                     </div>
@@ -731,17 +731,17 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
-                                            <small class="text-muted d-block">Bank Name</small>
+                                            <label class="text-muted d-block">Bank Name</label>
                                             <div class="font-weight-bold text-primary" id="bankapprv_newbankname"></div>
                                         </div>
 
                                         <div class="col-md-4 mb-3">
-                                            <small class="text-muted d-block">Account #</small>
+                                            <label class="text-muted d-block">Account #</label>
                                             <div class="font-weight-bold text-primary" id="bankapprv_newaccno"></div>
                                         </div>
 
                                         <div class="col-md-4 mb-3">
-                                            <small class="text-muted d-block">IFSC Code</small>
+                                            <label class="text-muted d-block">IFSC Code</label>
                                             <div class="font-weight-bold text-primary" id="bankapprv_newifsc"></div>
                                         </div>
                                     </div>

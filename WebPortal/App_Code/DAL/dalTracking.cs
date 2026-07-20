@@ -350,7 +350,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetProcessDetailsForFeedbackUser(string UserName, string FromDate, string ToDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User"); 
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_GetProcessDetilsByUser_ForFeedback_User");
             SQLHelper.AddParamToSQLCmd(cmd, "@UserCode", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, UserName);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, ToDate);
@@ -397,7 +397,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-        public int AllocateOrder_Self(Hashtable htParam)
+             public DataTable GetProcessByProjectAndSequence(int ProjectID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetProcessByProjectAndSequence");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int AllocateOrder_Self_OLD(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "AllocateOrder_Self");/*WBT_usp_CompleteAllocateOrderToVendorInTrackingSheet_DISP_Allocation_KIP*/
             SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ProjectNumber"]);
@@ -412,6 +420,40 @@ namespace WebPortal.App_Code.DAL
 
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public int AllocateOrder_Self(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertLoanAllocation");
+            SQLHelper.AddParamToSQLCmd(cmd, "@PrevID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["PrevID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TrackingSheetID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["TrackingSheetID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ProjectID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AllocationStatus", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["AllocationStatus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PseudoName", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["PseudoName"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["UserID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteDataTableCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public int UpdateLoanStatus(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateLoanStatus");
+            SQLHelper.AddParamToSQLCmd(cmd, "@AllocationID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AllocationID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AllocationStatus", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["AllocationStatus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@HoldReason", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["HoldReason"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteDataTableCmd(cmd);
 
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
             return ReturnValue;
@@ -478,7 +520,13 @@ namespace WebPortal.App_Code.DAL
             return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
 
-
+        public DataTable GetAllcatedLoansByUser(int UserID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllcatedLoansByUser]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, UserID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
 
         public DataTable GetAllProjectDealNumberNew(int ProjectId)
         {

@@ -69,15 +69,6 @@
                 color: #fff;
             }
 
-        .sec-kicker {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            opacity: .9;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
         .sec-title {
             margin: 0;
             font-size: 20px;
@@ -86,54 +77,12 @@
             margin-bottom: -10px;
         }
 
-            .sec-title i {
-                margin-right: 10px;
-            }
-
         .sec-subtitle {
             margin: 10px 0 0;
             font-size: 14px;
             color: rgba(255,255,255,.92);
             line-height: 1.6;
             max-width: 900px;
-        }
-
-        .sec-stat-grid {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin-bottom: 18px;
-        }
-
-        .sec-stat {
-            background: #fff;
-            border: 1px solid #dce5ec;
-            border-left: 4px solid #0f766e;
-            border-radius: 8px;
-            box-shadow: 0 8px 18px rgba(31, 51, 71, 0.06);
-            padding: 14px 16px;
-        }
-
-            .sec-stat span {
-                color: #667789;
-                display: block;
-                font-size: 12px;
-                font-weight: 700;
-                margin-bottom: 4px;
-            }
-
-            .sec-stat strong {
-                color: #172737;
-                display: block;
-                font-size: 22px;
-                line-height: 1;
-            }
-
-        .bank-shell-card {
-            background: white;
-            border: 0;
-            border-radius: 18px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
         }
 
         .bank-form-panel {
@@ -159,11 +108,6 @@
             height: 45px;
         }
 
-        .bank-input:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
-        }
-
         .bank-submit-btn {
             border-radius: 10px;
             font-weight: 700;
@@ -182,30 +126,6 @@
         .alloc-status-modal .modal-dialog {
             max-width: 760px;
         }
-
-        .alloc-open-feedback {
-            align-items: center;
-            background: #eefaf8;
-            border: 1px solid #c9e5e1;
-            border-radius: 8px;
-            color: #075e57;
-            display: inline-flex;
-            font-size: 12px;
-            font-weight: 800;
-            gap: 7px;
-            height: 34px;
-            justify-content: center;
-            padding: 0 12px;
-            white-space: nowrap;
-        }
-
-            .alloc-open-feedback:hover,
-            .alloc-open-feedback:focus {
-                background: #dcf7f2;
-                color: #064e47;
-                outline: none;
-                text-decoration: none;
-            }
 
         .alloc-feedback-modal .modal-content {
             border: 0;
@@ -504,6 +424,7 @@
                 font-size: 12px;
                 padding: 8px 10px;
                 white-space: nowrap;
+                text-align: left;
             }
 
         @media (max-width: 991px) {
@@ -598,6 +519,7 @@
                 line-height: 0 !important;
                 padding-bottom: 0 !important;
                 padding-top: 0 !important;
+                text-align: left;
             }
 
         /* Main visible DataTable header */
@@ -655,50 +577,6 @@
         }
     </style>
 
-    <script>
-
-        function applyModernHrFormLayout() {
-            $('.tab-pane > table.table:first-child').each(function () {
-                var $table = $(this);
-                if ($table.data('modernized') === true) return;
-
-                $table.find('tr').each(function () {
-                    var $row = $(this);
-                    var $cells = $row.children('td').toArray();
-                    var $newCells = $();
-
-                    for (var i = 0; i < $cells.length; i++) {
-                        var $cell = $($cells[i]);
-                        var $label = $cell.children('b').first();
-                        var next = $cells[i + 1] ? $($cells[i + 1]) : null;
-
-                        if ($label.length && next && !next.children('b').length) {
-                            var $fieldCell = $('<td class="hr-field-cell"></td>');
-                            var $field = $('<div class="hr-form-field"></div>');
-                            $('<label></label>').html($label.html().replace(':', '')).appendTo($field);
-                            next.contents().appendTo($field);
-                            $field.appendTo($fieldCell);
-                            $newCells = $newCells.add($fieldCell);
-                            i++;
-                        } else if ($.trim($cell.text()).length || $cell.children().length) {
-                            $cell.addClass('hr-action-cell');
-                            $newCells = $newCells.add($cell);
-                        }
-                    }
-
-                    $row.empty().append($newCells);
-                });
-
-                $table.data('modernized', true).addClass('hr-modern-form');
-            });
-        }
-
-        $(document).ready(function () {
-            applyModernHrFormLayout();
-            $('a[data-toggle="pill"]').on('shown.bs.tab', applyModernHrFormLayout);
-        });
-    </script>
-
     <style>
         /* allocate-rnr-datatable: RnR table treatment for Update Status */
         .allocate-status-grid {
@@ -720,8 +598,8 @@
         #table_OrderComplete,
         #table_OrderComplete.dataTable {
             width: 100% !important;
-            min-width: 0 !important;
-            table-layout: fixed !important;
+            min-width: 1100px !important;
+            table-layout: auto !important;
             border-collapse: separate !important;
             border-spacing: 0 !important;
             border: 1px solid #d9e2f1 !important;
@@ -739,7 +617,7 @@
                 font-weight: 800 !important;
                 text-transform: uppercase;
                 letter-spacing: 0;
-                white-space: normal !important;
+                white-space: nowrap !important;
                 line-height: 1.2 !important;
                 padding: 12px 10px !important;
                 text-align: left !important;
@@ -754,105 +632,135 @@
                 color: #344054;
                 font-size: 13px;
                 padding: 12px 10px !important;
-                white-space: normal !important;
-                overflow-wrap: anywhere;
+                white-space: nowrap !important;
+                text-align: left !important;
                 box-sizing: border-box !important;
             }
 
-            #table_OrderComplete tbody tr:hover td {
-                background: #f8fafc !important;
+        #table_OrderComplete_wrapper .dataTables_scrollHead thead th,
+        #table_OrderComplete_wrapper .dataTables_scrollBody tbody td {
+            white-space: nowrap !important;
+        }
+
+            #table_OrderComplete_wrapper .dataTables_scrollHead thead th:nth-child(-n+2),
+            #table_OrderComplete_wrapper .dataTables_scrollBody tbody td:nth-child(-n+2),
+            #table_OrderComplete thead th:nth-child(-n+2),
+            #table_OrderComplete tbody td:nth-child(-n+2) {
+                text-align: center !important;
             }
 
-            #table_OrderComplete th:nth-child(1),
-            #table_OrderComplete td:nth-child(1) {
-                width: 4% !important;
+            #table_OrderComplete_wrapper .dataTables_scrollHead thead th:nth-child(n+3),
+            #table_OrderComplete_wrapper .dataTables_scrollBody tbody td:nth-child(n+3),
+            #table_OrderComplete thead th:nth-child(n+3),
+            #table_OrderComplete tbody td:nth-child(n+3) {
+                text-align: left !important;
             }
 
-            #table_OrderComplete th:nth-child(2),
-            #table_OrderComplete td:nth-child(2) {
-                width: 9% !important;
+        #table_OrderComplete_wrapper th.action-column,
+        #table_OrderComplete_wrapper td.action-column,
+        #table_OrderComplete th.action-column,
+        #table_OrderComplete td.action-column {
+            width: 65px !important;
+            min-width: 65px !important;
+            max-width: 65px !important;
+            text-align: center !important;
+        }
+
+        #table_OrderComplete tbody tr:hover td {
+            background: #f8fafc !important;
+        }
+
+        #table_OrderComplete th:nth-child(1),
+        #table_OrderComplete td:nth-child(1) {
+            width: 4% !important;
+        }
+
+        #table_OrderComplete th:nth-child(2),
+        #table_OrderComplete td:nth-child(2) {
+            width: 9% !important;
+        }
+
+        #table_OrderComplete th:nth-child(3),
+        #table_OrderComplete td:nth-child(3) {
+            width: 8% !important;
+        }
+
+        #table_OrderComplete th:nth-child(4),
+        #table_OrderComplete td:nth-child(4) {
+            width: 9% !important;
+        }
+
+        #table_OrderComplete th:nth-child(5),
+        #table_OrderComplete td:nth-child(5) {
+            width: 10% !important;
+        }
+
+        #table_OrderComplete th:nth-child(6),
+        #table_OrderComplete td:nth-child(6) {
+            width: 13% !important;
+        }
+
+        #table_OrderComplete th:nth-child(7),
+        #table_OrderComplete td:nth-child(7) {
+            width: 15% !important;
+        }
+
+        #table_OrderComplete th:nth-child(8),
+        #table_OrderComplete td:nth-child(8) {
+            width: 10% !important;
+        }
+
+        #table_OrderComplete th:nth-child(9),
+        #table_OrderComplete td:nth-child(9) {
+            width: 10% !important;
+        }
+
+        #table_OrderComplete th:nth-child(10),
+        #table_OrderComplete td:nth-child(10) {
+            width: 12% !important;
+        }
+
+        #table_OrderComplete .alloc-table-empty {
+            color: #98a2b3;
+        }
+
+        .alloc-icon-btn {
+            align-items: center;
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            font-size: 18px;
+            height: 32px;
+            justify-content: center;
+            padding: 0;
+            transition: background .2s ease, color .2s ease;
+            width: 32px;
+        }
+
+            .alloc-icon-btn:focus {
+                box-shadow: none;
+                outline: none;
             }
 
-            #table_OrderComplete th:nth-child(3),
-            #table_OrderComplete td:nth-child(3) {
-                width: 8% !important;
+        .status-icon {
+            color: #0d6efd;
+        }
+
+            .status-icon:hover {
+                background: #0d6efd;
+                color: #fff;
             }
 
-            #table_OrderComplete th:nth-child(4),
-            #table_OrderComplete td:nth-child(4) {
-                width: 9% !important;
+        .feedback-icon {
+            color: #16a34a;
+        }
+
+            .feedback-icon:hover {
+                background: #16a34a;
+                color: #fff;
             }
-
-            #table_OrderComplete th:nth-child(5),
-            #table_OrderComplete td:nth-child(5) {
-                width: 10% !important;
-            }
-
-            #table_OrderComplete th:nth-child(6),
-            #table_OrderComplete td:nth-child(6) {
-                width: 13% !important;
-            }
-
-            #table_OrderComplete th:nth-child(7),
-            #table_OrderComplete td:nth-child(7) {
-                width: 15% !important;
-            }
-
-            #table_OrderComplete th:nth-child(8),
-            #table_OrderComplete td:nth-child(8) {
-                width: 10% !important;
-            }
-
-            #table_OrderComplete th:nth-child(9),
-            #table_OrderComplete td:nth-child(9) {
-                width: 10% !important;
-            }
-
-            #table_OrderComplete th:nth-child(10),
-            #table_OrderComplete td:nth-child(10) {
-                width: 12% !important;
-            }
-
-            #table_OrderComplete .alloc-table-empty {
-                color: #98a2b3;
-            }
-
-            #table_OrderComplete .alloc-status-badge {
-                background: #eef4ff;
-                border: 1px solid #d6e4ff;
-                border-radius: 999px;
-                color: #1849a9;
-                display: inline-flex;
-                font-size: 11px;
-                font-weight: 800;
-                line-height: 1;
-                padding: 7px 9px;
-            }
-
-                #table_OrderComplete .alloc-status-badge.is-hold {
-                    background: #fff7ed;
-                    border-color: #fed7aa;
-                    color: #9a3412;
-                }
-
-            #table_OrderComplete .alloc-row-actions {
-                display: inline-flex;
-                width: 100%;
-            }
-
-                #table_OrderComplete .alloc-row-actions .btn {
-                    flex: 1 1 50%;
-                    min-width: 0 !important;
-                    height: 34px;
-                    padding: 0 5px !important;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 4px;
-                    font-size: 11px;
-                    font-weight: 800;
-                    white-space: nowrap !important;
-                }
     </style>
 
 
@@ -878,6 +786,7 @@
     <input id="filep" style="display: none;" />
     <input id="glass_filep" style="display: none;" />
     <input id="glasscomp_filep" style="display: none;" />
+    <input id="loan_prevID" style="display: none;" />
 
     <div class="sec-page">
         <div class="sec-hero">
@@ -889,21 +798,6 @@
                 <p class="sec-subtitle">
                     Allocate loan orders, monitor workflow progress, and track processing status from assignment to completion.
                 </p>
-            </div>
-        </div>
-
-        <div class="sec-stat-grid" style="display: none;">
-            <div class="sec-stat">
-                <span>Allocated</span>
-                <strong id="sectrack_stat_deals"></strong>
-            </div>
-            <div class="sec-stat">
-                <span>Open Order</span>
-                <strong id="sectrack_stat_pending">0</strong>
-            </div>
-            <div class="sec-stat">
-                <span>Completed</span>
-                <strong id="sectrack_stat_completed">0</strong>
             </div>
         </div>
 
@@ -924,32 +818,50 @@
                 </div>
                 <div class="tab-content" id="custom-tabs-one-tabContent">
                     <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                        <div class="bank-form-panel mb-4">
-                            <div class="row align-items-end">
-                                <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
-                                    <label for="bank_name" class="bank-form-label">Project</label>
-                                    <select id="allocate_project" name="allocate_project" class="form-control" onchange="return allocate_bindProcess(this);">
-                                    </select>
-                                </div>
-                                <div class="col-lg-3 col-md-8 mb-3 mb-md-0">
-                                    <label for="bank_name" class="bank-form-label">Process</label>
-                                    <select id="allocate_process" name="allocate_process" class="form-control">
-                                    </select>
-                                </div>
-                                <div class="col-lg-3 col-md-4">
-                                    <button id="allocate_btnShow" type="button" class="btn btn-primary w-100" onclick="return GetLoansToAllocate_bindGrid();">
-                                        <i class="fas fa-search me-1"></i>&nbsp;&nbsp;Show Loans
-                                    </button>
-                                </div>
-                                <div class="col-lg-3 col-md-4">
-                                    <button id="allocate_btnSubmit" type="button" class="bank-submit-btn w-100" onclick="return AllocateOrders();">
-                                        <i class="fas fa-tasks me-1"></i>&nbsp;&nbsp;Allocate Loans
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="bank-form-panel mb-5">
+    <div class="row align-items-end g-3">
+
+        <div class="col">
+            <label for="allocate_project" class="bank-form-label">Project</label>
+            <select id="allocate_project" name="allocate_project"
+                    class="form-control"
+                    onchange="return allocate_bindProcess(this);"></select>
+        </div>
+
+        <div class="col">
+            <label for="allocate_dealNo" class="bank-form-label">Deal #</label>
+            <select id="allocate_dealNo" name="allocate_dealno"
+                    class="form-control"></select>
+        </div>
+
+        <div class="col">
+            <label for="allocate_process" class="bank-form-label">Process</label>
+            <select id="allocate_process" name="allocate_process"
+                    class="form-control"></select>
+        </div>
+
+        <div class="col-auto">
+            <button id="allocate_btnShow"
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="return GetLoansToAllocate_bindGrid();">
+                <i class="fas fa-search me-1"></i>&nbsp;Show Loans
+            </button>
+        </div>
+
+        <div class="col-auto">
+            <button id="allocate_btnSubmit"
+                    type="button"
+                    class="bank-submit-btn"
+                    onclick="return AllocateOrders();">
+                <i class="fas fa-tasks me-1"></i>&nbsp;Allocate Loans
+            </button>
+        </div>
+
+    </div>
+</div>
                         <hr />
-                        <table class="table dataTable no-footer" id="table_OrderAllocate" style="width: 100%;">
+                        <table class="table" id="table_OrderAllocate" style="width: 100%;">
                             <thead>
                                 <tr>
                                     <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
@@ -969,8 +881,8 @@
                     <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
 
                         <div class="allocate-status-grid">
-                            <table class="table allocate-fixed-table" id="table_OrderComplete" style="width: 100%;">
-                                <thead style="text-align: left;">
+                            <table class="table" id="table_OrderComplete">
+                                <thead>
                                     <tr>
                                         <th>Update Status</th>
                                         <th>Add Feedback</th>
@@ -982,9 +894,10 @@
                                         <th>Remark</th>
                                         <th>Allocated Date</th>
                                         <th>Completion Date</th>
+                                        <th>PrevID</th>
                                     </tr>
                                 </thead>
-                                <tbody style="text-align:left!important"></tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -1039,7 +952,7 @@
                         <span class="alloc-feedback-icon"><i class="fas fa-tasks"></i></span>
                         <div>
                             <h5 id="allocStatusTitle">Update Loan Status</h5>
-                            <p>Update the status details for the selected loan.</p>
+                            <%--  <p >Update the status details for the selected loan.</p>--%>
                         </div>
                     </div>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -1071,10 +984,11 @@
                             <div class="col-md-6">
                                 <div class="alloc-feedback-field">
                                     <label for="allocstatus_status">Status</label>
-                                    <select id="allocstatus_status" class="form-control">
+                                    <select id="allocstatus_status" class="form-control" onchange="return toggleHoldReason();">
                                         <option value="">Select</option>
                                         <option value="Completed">Completed</option>
                                         <option value="Hold">Hold</option>
+                                        <option value="UnHold">Unhold</option>
                                     </select>
                                 </div>
                             </div>
@@ -1103,7 +1017,7 @@
                                 <i class="fas fa-times mr-1"></i>Cancel
                            
                             </button>
-                            <button type="button" class="bank-submit-btn" id="allocstatus_btnSave">
+                            <button type="button" class="bank-submit-btn" id="allocstatus_btnSave" onclick="return onclick_allocstatus();">
                                 <i class="fas fa-save mr-1"></i>Update
                            
                             </button>
@@ -1368,62 +1282,5 @@
         </div>
     </div>
 
-    <style>
-        #table_OrderComplete {
-            width: 100% !important;
-            table-layout: auto !important;
-        }
-
-            #table_OrderComplete thead th {
-                white-space: nowrap !important;
-                text-align: left !important;
-            }
-
-            #table_OrderComplete th.action-column,
-            #table_OrderComplete td.action-column {
-                width: 65px !important;
-                min-width: 65px !important;
-                max-width: 65px !important;
-                text-align: left !important;
-            }
-
-        .alloc-icon-btn {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            border: none;
-            background: transparent;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.2s ease;
-        }
-
-            .alloc-icon-btn:focus {
-                outline: none;
-                box-shadow: none;
-            }
-
-        .status-icon {
-            color: #0d6efd;
-        }
-
-            .status-icon:hover {
-                color: #ffffff;
-                background: #0d6efd;
-            }
-
-        .feedback-icon {
-            color: #16a34a;
-        }
-
-            .feedback-icon:hover {
-                color: #ffffff;
-                background: #16a34a;
-            }
-    </style>
 </asp:Content>
 

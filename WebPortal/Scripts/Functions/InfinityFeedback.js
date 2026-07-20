@@ -75,7 +75,7 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
             $('#table_InfinityFeedback tbody').html(InfinityFeedback_html);
             //else
             InfinityFeedback_table = $('#table_InfinityFeedback').DataTable({
-                dom: 'Bftip',
+                dom: 'ftip',
                 destroy: true,
                 scrollX: true,
                 "paging": true,
