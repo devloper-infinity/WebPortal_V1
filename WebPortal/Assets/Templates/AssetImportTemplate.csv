@@ -1,0 +1,2 @@
+AssetTagNumber,SerialNumber,Category,AssetType,Brand,Model,Branch,PurchaseDate,PurchaseValue,InvoiceNumber,WarrantyEndDate,Condition,Remarks
+AST-0001,SN-0001,IT Equipment,Laptop,Dell,Latitude 5440,Head Office,2026-01-01,65000,INV-001,2029-01-01,Good,Sample

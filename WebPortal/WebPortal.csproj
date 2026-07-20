@@ -149,6 +149,55 @@
     <Content Include="Admin\ResponsibilityDelegation.aspx" />
     <Content Include="Admin\AICopilot.aspx" />
     <Content Include="Admin\UserDomainAccess.aspx" />
+    <Content Include="Assets\AddAsset.aspx" />
+    <Content Include="Assets\asset-common.css" />
+    <Content Include="Assets\asset-common.js" />
+    <Content Include="Assets\AssetInventoryMenu_Insert.sql" />
+    <Content Include="Assets\AssetCategoryAccess_Setup.sql" />
+    <Content Include="Assets\Assets_DummyData_Reset.sql" />
+    <Content Include="Assets\AssetVendorMaster_Setup.sql" />
+    <Content Include="Assets\AssetAllocation.aspx" />
+    <Content Include="Assets\AssetAllocationBatch_Setup.sql" />
+    <Content Include="Assets\AssetShiftAndEmployeeIT_Setup.sql" />
+    <Content Include="Assets\AssetAllocationHistory.aspx" />
+    <Content Include="Assets\AssetBrandMaster.aspx" />
+    <Content Include="Assets\AssetCategoryMaster.aspx" />
+    <Content Include="Assets\AssetCategoryAccessMaster.aspx" />
+    <Content Include="Assets\AssetDashboard.aspx" />
+    <Content Include="Assets\AssetDetails.aspx" />
+    <Content Include="Assets\AssetDisposal.aspx" />
+    <Content Include="Assets\AssetDisposalReport.aspx" />
+    <Content Include="Assets\AssetMaintenance.aspx" />
+    <Content Include="Assets\AssetMaintenanceHistory.aspx" />
+    <Content Include="Assets\AssetMaster.aspx" />
+    <Content Include="Assets\AssetModelMaster.aspx" />
+    <Content Include="Assets\AssetPurchaseReport.aspx" />
+    <Content Include="Assets\AssetPurchaseRequest.aspx" />
+    <Content Include="Assets\AssetReceipt.aspx" />
+    <Content Include="Assets\AssetReturn.aspx" />
+    <Content Include="Assets\AssetStatusMaster.aspx" />
+    <Content Include="Assets\AssetStockReport.aspx" />
+    <Content Include="Assets\AssetTransfer.aspx" />
+    <Content Include="Assets\AssetTransferHistory.aspx" />
+    <Content Include="Assets\AssetTypeMaster.aspx" />
+    <Content Include="Assets\DisposalApproval.aspx" />
+    <Content Include="Assets\DisposalReasonMaster.aspx" />
+    <Content Include="Assets\EmployeeAssetReport.aspx" />
+    <Content Include="Assets\EmployeeITDetails.aspx" />
+    <Content Include="Assets\EmployeeITFieldMaster.aspx" />
+    <Content Include="Assets\ImportAssets.aspx" />
+    <Content Include="Assets\LocationWiseAssetReport.aspx" />
+    <Content Include="Assets\MaintenanceCostReport.aspx" />
+    <Content Include="Assets\PurchaseOrder.aspx" />
+    <Content Include="Assets\PurchaseRequestApproval.aspx" />
+    <Content Include="Assets\QuotationComparison.aspx" />
+    <Content Include="Assets\TransferApproval.aspx" />
+    <Content Include="Assets\TransferReceipt.aspx" />
+    <Content Include="Assets\VendorMaster.aspx" />
+    <Content Include="Assets\VendorQuotation.aspx" />
+    <Content Include="Assets\ViewAssets.aspx" />
+    <Content Include="Assets\ViewPurchaseOrders.aspx" />
+    <Content Include="Assets\WarrantyExpiryReport.aspx" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
     <Content Include="CRM\Contacts.aspx" />
@@ -2799,6 +2848,7 @@
     <Content Include="Scripts\US\ConditionClearingReport.js" />
     <Content Include="Scripts\US\ConsolidatedReports.js" />
     <Content Include="Scripts\US\AssetsMaster.js" />
+    <Content Include="Scripts\US\BulkOrderAllocation.js" />
     <Content Include="Scripts\US\InfinityFeedbackOnshore.js" />
     <Content Include="Scripts\US\ReQcUtility.js" />
     <Content Include="Scripts\US\LoanDetails.js" />
@@ -2813,6 +2863,12 @@
     <Content Include="Search\ProjectTrackingReport.aspx" />
     <Content Include="Search\VerifyBilling.aspx" />
     <Content Include="Search\ViewBilling.aspx" />
+    <Content Include="DatabaseScripts\OLTracking_003_ImportFacility.sql" />
+    <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
+    <Content Include="TrackingSheet\ImportData.aspx" />
+    <Content Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx" />
+    <Content Include="TrackingSheet\TrackingSheet.aspx" />
+    <Content Include="TrackingSheet\TrackingSheetConfiguration.aspx" />
     <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
     <Content Include="Tracking\OrderAllocation.aspx" />
@@ -2831,6 +2887,7 @@
     <Content Include="User\Dashboard.aspx" />
     <Content Include="User\EmployeeKYC.aspx" />
     <Content Include="US\AddFeedback.aspx" />
+    <Content Include="US\BulkOrderAllocation.aspx" />
     <Content Include="US\ChangePassword.aspx" />
     <Content Include="US\ConditionAnalysis.aspx" />
     <Content Include="US\ConditionClearing.aspx" />
@@ -3014,8 +3071,348 @@
     <Compile Include="App_Code\AIService.cs" />
     <Compile Include="App_Code\BLL\bllFeedback.cs" />
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
+    <Compile Include="App_Code\BLL\bllOLTracking.cs" />
+    <Compile Include="App_Code\BLL\bllOLTrackingImport.cs" />
     <Compile Include="App_Code\DAL\dalFeedback.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
+    <Compile Include="App_Code\DAL\dalOLTracking.cs" />
+    <Compile Include="App_Code\DAL\dalOLTrackingImport.cs" />
+    <Compile Include="App_Code\OLTrackingWeb.cs" />
+    <Compile Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx.cs">
+      <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ImportData.aspx.cs">
+      <DependentUpon>ImportData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ImportData.aspx.designer.cs">
+      <DependentUpon>ImportData.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx.designer.cs">
+      <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\ProcessFlowConfiguration.aspx.cs">
+      <DependentUpon>ProcessFlowConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ProcessFlowConfiguration.aspx.designer.cs">
+      <DependentUpon>ProcessFlowConfiguration.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetConfiguration.aspx.cs">
+      <DependentUpon>TrackingSheetConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetConfiguration.aspx.designer.cs">
+      <DependentUpon>TrackingSheetConfiguration.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheet.aspx.cs">
+      <DependentUpon>TrackingSheet.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheet.aspx.designer.cs">
+      <DependentUpon>TrackingSheet.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AddAsset.aspx.cs">
+      <DependentUpon>AddAsset.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AddAsset.aspx.designer.cs">
+      <DependentUpon>AddAsset.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\Admin.Master.cs">
+      <DependentUpon>Admin.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\Admin.Master.designer.cs">
+      <DependentUpon>Admin.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetAllocation.aspx.cs">
+      <DependentUpon>AssetAllocation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetAllocation.aspx.designer.cs">
+      <DependentUpon>AssetAllocation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetAllocationHistory.aspx.cs">
+      <DependentUpon>AssetAllocationHistory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetAllocationHistory.aspx.designer.cs">
+      <DependentUpon>AssetAllocationHistory.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetBrandMaster.aspx.cs">
+      <DependentUpon>AssetBrandMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetBrandMaster.aspx.designer.cs">
+      <DependentUpon>AssetBrandMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetCategoryMaster.aspx.cs">
+      <DependentUpon>AssetCategoryMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetCategoryMaster.aspx.designer.cs">
+      <DependentUpon>AssetCategoryMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetCategoryAccessMaster.aspx.cs">
+      <DependentUpon>AssetCategoryAccessMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetCategoryAccessMaster.aspx.designer.cs">
+      <DependentUpon>AssetCategoryAccessMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetDashboard.aspx.cs">
+      <DependentUpon>AssetDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetDashboard.aspx.designer.cs">
+      <DependentUpon>AssetDashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetDetails.aspx.cs">
+      <DependentUpon>AssetDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetDetails.aspx.designer.cs">
+      <DependentUpon>AssetDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetDisposal.aspx.cs">
+      <DependentUpon>AssetDisposal.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetDisposal.aspx.designer.cs">
+      <DependentUpon>AssetDisposal.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetDisposalReport.aspx.cs">
+      <DependentUpon>AssetDisposalReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetDisposalReport.aspx.designer.cs">
+      <DependentUpon>AssetDisposalReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetMaintenance.aspx.cs">
+      <DependentUpon>AssetMaintenance.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetMaintenance.aspx.designer.cs">
+      <DependentUpon>AssetMaintenance.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetMaintenanceHistory.aspx.cs">
+      <DependentUpon>AssetMaintenanceHistory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetMaintenanceHistory.aspx.designer.cs">
+      <DependentUpon>AssetMaintenanceHistory.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetMaster.aspx.cs">
+      <DependentUpon>AssetMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetMaster.aspx.designer.cs">
+      <DependentUpon>AssetMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetModelMaster.aspx.cs">
+      <DependentUpon>AssetModelMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetModelMaster.aspx.designer.cs">
+      <DependentUpon>AssetModelMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetPurchaseReport.aspx.cs">
+      <DependentUpon>AssetPurchaseReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetPurchaseReport.aspx.designer.cs">
+      <DependentUpon>AssetPurchaseReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetPurchaseRequest.aspx.cs">
+      <DependentUpon>AssetPurchaseRequest.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetPurchaseRequest.aspx.designer.cs">
+      <DependentUpon>AssetPurchaseRequest.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetReceipt.aspx.cs">
+      <DependentUpon>AssetReceipt.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetReceipt.aspx.designer.cs">
+      <DependentUpon>AssetReceipt.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetReturn.aspx.cs">
+      <DependentUpon>AssetReturn.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetReturn.aspx.designer.cs">
+      <DependentUpon>AssetReturn.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetStatusMaster.aspx.cs">
+      <DependentUpon>AssetStatusMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetStatusMaster.aspx.designer.cs">
+      <DependentUpon>AssetStatusMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetStockReport.aspx.cs">
+      <DependentUpon>AssetStockReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetStockReport.aspx.designer.cs">
+      <DependentUpon>AssetStockReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetTransfer.aspx.cs">
+      <DependentUpon>AssetTransfer.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetTransfer.aspx.designer.cs">
+      <DependentUpon>AssetTransfer.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetTransferHistory.aspx.cs">
+      <DependentUpon>AssetTransferHistory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetTransferHistory.aspx.designer.cs">
+      <DependentUpon>AssetTransferHistory.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\AssetTypeMaster.aspx.cs">
+      <DependentUpon>AssetTypeMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\AssetTypeMaster.aspx.designer.cs">
+      <DependentUpon>AssetTypeMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\Classes\AssetBAL.cs" />
+    <Compile Include="Assets\Classes\AssetCategoryAccessService.cs" />
+    <Compile Include="Assets\Classes\AssetDAL.cs" />
+    <Compile Include="Assets\Classes\AssetEmployeeITService.cs" />
+    <Compile Include="Assets\Classes\AssetDbHelper.cs" />
+    <Compile Include="Assets\Classes\AssetModels.cs" />
+    <Compile Include="Assets\DisposalApproval.aspx.cs">
+      <DependentUpon>DisposalApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\DisposalApproval.aspx.designer.cs">
+      <DependentUpon>DisposalApproval.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\DisposalReasonMaster.aspx.cs">
+      <DependentUpon>DisposalReasonMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\DisposalReasonMaster.aspx.designer.cs">
+      <DependentUpon>DisposalReasonMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\EmployeeAssetReport.aspx.cs">
+      <DependentUpon>EmployeeAssetReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\EmployeeAssetReport.aspx.designer.cs">
+      <DependentUpon>EmployeeAssetReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\EmployeeITDetails.aspx.cs">
+      <DependentUpon>EmployeeITDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\EmployeeITDetails.aspx.designer.cs">
+      <DependentUpon>EmployeeITDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\EmployeeITFieldMaster.aspx.cs">
+      <DependentUpon>EmployeeITFieldMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\EmployeeITFieldMaster.aspx.designer.cs">
+      <DependentUpon>EmployeeITFieldMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\ImportAssets.aspx.cs">
+      <DependentUpon>ImportAssets.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\ImportAssets.aspx.designer.cs">
+      <DependentUpon>ImportAssets.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\LocationWiseAssetReport.aspx.cs">
+      <DependentUpon>LocationWiseAssetReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\LocationWiseAssetReport.aspx.designer.cs">
+      <DependentUpon>LocationWiseAssetReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\MaintenanceCostReport.aspx.cs">
+      <DependentUpon>MaintenanceCostReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\MaintenanceCostReport.aspx.designer.cs">
+      <DependentUpon>MaintenanceCostReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\PurchaseOrder.aspx.cs">
+      <DependentUpon>PurchaseOrder.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\PurchaseOrder.aspx.designer.cs">
+      <DependentUpon>PurchaseOrder.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\PurchaseRequestApproval.aspx.cs">
+      <DependentUpon>PurchaseRequestApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\PurchaseRequestApproval.aspx.designer.cs">
+      <DependentUpon>PurchaseRequestApproval.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\QuotationComparison.aspx.cs">
+      <DependentUpon>QuotationComparison.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\QuotationComparison.aspx.designer.cs">
+      <DependentUpon>QuotationComparison.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\TransferApproval.aspx.cs">
+      <DependentUpon>TransferApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\TransferApproval.aspx.designer.cs">
+      <DependentUpon>TransferApproval.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\TransferReceipt.aspx.cs">
+      <DependentUpon>TransferReceipt.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\TransferReceipt.aspx.designer.cs">
+      <DependentUpon>TransferReceipt.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\VendorMaster.aspx.cs">
+      <DependentUpon>VendorMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\VendorMaster.aspx.designer.cs">
+      <DependentUpon>VendorMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\VendorQuotation.aspx.cs">
+      <DependentUpon>VendorQuotation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\VendorQuotation.aspx.designer.cs">
+      <DependentUpon>VendorQuotation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\ViewAssets.aspx.cs">
+      <DependentUpon>ViewAssets.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\ViewAssets.aspx.designer.cs">
+      <DependentUpon>ViewAssets.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\ViewPurchaseOrders.aspx.cs">
+      <DependentUpon>ViewPurchaseOrders.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\ViewPurchaseOrders.aspx.designer.cs">
+      <DependentUpon>ViewPurchaseOrders.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\WarrantyExpiryReport.aspx.cs">
+      <DependentUpon>WarrantyExpiryReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\WarrantyExpiryReport.aspx.designer.cs">
+      <DependentUpon>WarrantyExpiryReport.aspx</DependentUpon>
+    </Compile>
     <Compile Include="CRM\Accounts.aspx.cs">
       <DependentUpon>Accounts.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4794,6 +5191,13 @@
     <Compile Include="US\AddFeedback.aspx.designer.cs">
       <DependentUpon>AddFeedback.aspx</DependentUpon>
     </Compile>
+    <Compile Include="US\BulkOrderAllocation.aspx.cs">
+      <DependentUpon>BulkOrderAllocation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\BulkOrderAllocation.aspx.designer.cs">
+      <DependentUpon>BulkOrderAllocation.aspx</DependentUpon>
+    </Compile>
     <Compile Include="US\ChangePassword.aspx.cs">
       <DependentUpon>ChangePassword.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5063,6 +5467,8 @@
     <Content Include="OSTAttachment\30-Aug-2016\264896\25-22747-TX tax.pdf" />
     <Content Include="Formats\LoanList.xlsx" />
     <Content Include="Feedback\Feedback.Master" />
+    <Content Include="Assets\Templates\AssetImportTemplate.csv" />
+    <Content Include="Assets\Admin.Master" />
     <None Include="packages.config" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.css.map" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.min.css.map" />
@@ -5213,6 +5619,8 @@
     <Content Include="User\User.Master" />
     <Content Include="Templates\StatementFormat.xlsx" />
     <Content Include="Production\Production.Master" />
+    <Content Include="TrackingSheet\OLTracking.css" />
+    <Content Include="TrackingSheet\OLTracking.js" />
     <Content Include="US\USAdmin.Master" />
     <Content Include="Search\Search.Master" />
     <Content Include="Search\OSTExcel.xlsx" />
@@ -5237,7 +5645,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DatabaseScripts\" />
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />
