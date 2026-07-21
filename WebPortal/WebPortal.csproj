@@ -137,6 +137,7 @@
     <Content Include="Accounts\IncentiveMaster.aspx" />
     <Content Include="Accounts\IncrementReport.aspx" />
     <Content Include="Accounts\PrepareCheques.aspx" />
+    <Content Include="Accounts\SalaryReport_DepartmentWise.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\All.aspx" />
@@ -2994,6 +2995,10 @@
     </Compile>
     <Compile Include="Accounts\PrepareCheques.aspx.designer.cs">
       <DependentUpon>PrepareCheques.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\SalaryReport_DepartmentWise.aspx.cs">
+      <DependentUpon>SalaryReport_DepartmentWise.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Accounts\SalarySlipMaster.aspx.cs">
       <DependentUpon>SalarySlipMaster.aspx</DependentUpon>
