@@ -337,6 +337,44 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
             Add(command, "@UserID", SqlDbType.Int, userId); ExecuteNonQuery(command);
         }
 
+        public void HoldLoan(long assignmentId, string holdReason, int userId)
+        {
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+BEGIN TRAN;
+
+DECLARE @ItemID bigint, @ProcessID int, @OldStatus varchar(20);
+SELECT @ItemID = a.ItemID, @ProcessID = a.ProcessID, @OldStatus = a.AssignmentStatus
+FROM dbo.OLTracking_Assignment a WITH (UPDLOCK, HOLDLOCK)
+WHERE a.AssignmentID = @AssignmentID AND a.UserID = @UserID AND a.IsCurrent = 1;
+
+IF @ItemID IS NULL
+BEGIN
+    ROLLBACK;
+    THROW 50122, 'Assignment was not found.', 1;
+END;
+
+UPDATE dbo.OLTracking_Assignment
+SET AssignmentStatus = 'Hold', HoldDate = GETDATE(), LastRemark = @HoldReason,
+    UpdatedBy = @UserID, UpdatedDate = GETDATE()
+WHERE AssignmentID = @AssignmentID;
+
+UPDATE dbo.OLTracking_Item
+SET ItemStatus = 'Hold', CurrentProcessID = @ProcessID,
+    UpdatedBy = @UserID, UpdatedDate = GETDATE()
+WHERE ItemID = @ItemID;
+
+INSERT dbo.OLTracking_StatusHistory (AssignmentID, OldStatus, NewStatus, Remark, ChangedBy)
+VALUES (@AssignmentID, @OldStatus, 'Hold', @HoldReason, @UserID);
+
+COMMIT;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(command, "@HoldReason", SqlDbType.NVarChar, holdReason, 1000);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            ExecuteNonQuery(command);
+        }
+
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId)
         {
             XElement root = new XElement("feedbacks");

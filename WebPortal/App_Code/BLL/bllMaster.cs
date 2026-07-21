@@ -1959,6 +1959,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.UpdateInfinityImportedFeedback_NewERP(htParam);
         }
 
+        public int UpdateFinalStatusOfImporetdFeedback(Hashtable htParam)
+        {
+            return dalMaster.UpdateFinalStatusOfImporetdFeedback(htParam);
+        }
+
         public int InsertInfinityImportedFeedback_NewERP(Hashtable htParam)
         {
             return dalMaster.InsertInfinityImportedFeedback_NewERP(htParam);

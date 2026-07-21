@@ -1,6 +1,5 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="EditInfinityFeedback.aspx.cs" Inherits="WebPortal.Admin.EditInfinityFeedback" %>
 
-
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -357,6 +356,9 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <input id="filep_ap" style="display: none;" />
+    <asp:HiddenField ID="hdnEmployeeID" runat="server" ClientIDMode="Static"/>
+   
+
     <div class="loading" id="load1">
         <img src="../images/Load_1.gif" />
         <div>One moment, please . . . .</div>
@@ -479,16 +481,48 @@
                         <textarea id="infFeedback_RCA" name="infFeedback_RCA" class="form-control"></textarea>
                     </div>
                 </div>
+                <br />
+                <div id="onshoreConclusionSection" style="display: none;">
+                    <div class="inf-section-title"><i class="fas fa-clipboard-check"></i>Onhore Response</div>
+                    <div class="inf-form-grid">
+                        <div class="inf-field inf-severity-dependent">
+                            <label for="infFeedback_Category">Onshore Rebuttal Response</label>
+                            <input type="text" id="infFeedback_onshore_Response" name="infFeedback_onshore_Response" class="form-control" readonly />
+                        </div>
+                        <div class="inf-field inf-field-wide inf-severity-dependent">
+                            <label for="infFeedback_RCA">Onshore Rebuttal Comments</label>
+                            <textarea id="infFeedback_OnshoreRebutalComments" name="infFeedback_OnshoreRebutalComments" class="form-control" readonly></textarea>
+                        </div>
+                    </div>
+
+                    <div class="inf-section-title"><i class="fas fa-comments"></i>Conclusion</div>
+                    <div class="inf-form-grid">
+                        <div class="inf-field inf-severity-dependent">
+                            <label for="infFeedback_Category">Final Status</label>
+                            <select id="infFeedback_finalStatus" name="infFeedback_finalStatus" class="form-control">
+                                <option value="">Select</option>
+                                 <option value="AgreeWithInhouse">Accept In-House Findings</option>
+    <option value="AgreeWithOnshore">Accept Onshore Findings</option>
+                            </select>
+                        </div>
+                        <div class="inf-field inf-field-wide inf-severity-dependent">
+                            <label for="infFeedback_RCA">Final Comments</label>
+                            <textarea id="infFeedback_FinalComments" name="infFeedback_RCA" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="inf-action-row">
                     <button class="inf-btn inf-btn-primary" type="button" id="btnAddFeedback" onclick="return edit_OnClickAddFeedback();">
                         <i class="fas fa-save"></i>
                         Update Feedback
-                   
+                    </button>
+
+                    <button class="inf-btn inf-btn-primary" type="button" id="btnFinalRemark" onclick="return edit_UpdateFinalRemark();">
+                        <i class="fas fa-rotate"></i>
+                        Add Final Remark
                     </button>
                 </div>
-
-
             </div>
         </div>
 

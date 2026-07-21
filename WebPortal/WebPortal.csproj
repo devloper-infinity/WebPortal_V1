@@ -3037,6 +3037,7 @@
     <Compile Include="Admin\BranchAndDateWiseAttendanceReport.aspx.designer.cs">
       <DependentUpon>BranchAndDateWiseAttendanceReport.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\EditInfinityFeedbackHelpers.cs" />
     <Compile Include="Admin\FileDownload.aspx.cs">
       <DependentUpon>FileDownload.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

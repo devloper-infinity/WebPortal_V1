@@ -166,10 +166,10 @@ namespace WebPortal.Admin
             AddExportColumn(gvExport, "Severity", "Severity");
             AddExportColumn(gvExport, "FindingStatus", "Feedback Status");
             AddExportColumn(gvExport, "RCA", "RCARCA/Rebuttal Comments");
-            AddExportColumn(gvExport, "OnshoreRebuttalResponse", "Onshore Rebuttal Response");
-            AddExportColumn(gvExport, "OnshoreRebuttalComments", "Onshore Rebuttal Comments");
-            AddExportColumn(gvExport, "ManagerFinalStatus", "Manager Final Status");
-            AddExportColumn(gvExport, "ManagerFinalComments", "Manager Final Comments");
+            AddExportColumn(gvExport, "RebuttalStatus", "Onshore Rebuttal Response");
+            AddExportColumn(gvExport, "RebuttalRemark", "Onshore Rebuttal Comments");
+            AddExportColumn(gvExport, "FinalStatus", "Manager Final Status");
+            AddExportColumn(gvExport, "FinalComments", "Manager Final Comments");
             AddExportColumn(gvExport, "Source", "Source");
             AddExportColumn(gvExport, "FeedbackReceivedDate", "Feedback Received Date");
 
@@ -178,15 +178,14 @@ namespace WebPortal.Admin
 
             // Header styling
             gvExport.HeaderStyle.Font.Bold = true;
-            gvExport.HeaderStyle.BackColor =
-                System.Drawing.Color.FromArgb(237, 243, 246);
-            gvExport.HeaderStyle.ForeColor =
-                System.Drawing.Color.Black;
-            gvExport.HeaderStyle.HorizontalAlign =
-                HorizontalAlign.Center;
+            gvExport.HeaderStyle.BackColor = System.Drawing.Color.FromArgb(10, 122, 155);
+            gvExport.HeaderStyle.ForeColor = System.Drawing.Color.White;
+            gvExport.HeaderStyle.HorizontalAlign = HorizontalAlign.Center;
 
             // Cell styling
             gvExport.RowStyle.VerticalAlign = VerticalAlign.Middle;
+            gvExport.RowStyle.HorizontalAlign = HorizontalAlign.Left;
+            gvExport.RowStyle.Font.Size = 10;
 
             Response.Clear();
             Response.Buffer = true;
@@ -194,16 +193,9 @@ namespace WebPortal.Admin
             Response.ContentEncoding = System.Text.Encoding.UTF8;
             Response.ContentType = "application/vnd.ms-excel";
 
-            string exportFileName =
-                fileName + "_" +
-                DateTime.Now.ToString("ddMMyyyy_HHmmss") +
-                ".xls";
+            string exportFileName = fileName + "_" + DateTime.Now.ToString("ddMMyyyy_HHmmss") + ".xls";
 
-            Response.AddHeader(
-                "content-disposition",
-                "attachment;filename=" + exportFileName
-            );
-
+            Response.AddHeader("content-disposition", "attachment;filename=" + exportFileName);
             Response.Write("<html>");
             Response.Write("<head>");
             Response.Write("<meta charset='UTF-8' />");
@@ -228,7 +220,9 @@ namespace WebPortal.Admin
             td {
                 white-space: nowrap;
                 border: 1px solid #b7b7b7;
-                padding: 5px;
+                padding: 7px;
+                font-size :10px;
+                text-align:left;
                 vertical-align: middle;
             }
         </style>

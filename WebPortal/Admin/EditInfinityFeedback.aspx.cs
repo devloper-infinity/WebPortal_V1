@@ -9,15 +9,18 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Admin
 {
     public partial class EditInfinityFeedback : System.Web.UI.Page
     {
+        protected HiddenField hdnEmployeeID;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            hdnEmployeeID.Value = EmployeeInfo.Current.EmployeeID.ToString();
         }
 
         [WebMethod]
@@ -175,5 +178,24 @@ namespace WebPortal.Admin
 
             return ReturnValue;
         }
+
+        [WebMethod]
+        public static int UpdateFinalRemark(int FeedbackID, string FinalStatus, string FinalRemark, string Subdomain)
+        {
+            int ReturnValue = 0;
+
+            Hashtable htParam = new Hashtable();
+            htParam.Add("FeedbackID", FeedbackID);
+            htParam.Add("FinalStatus", FinalStatus);
+            htParam.Add("FinalComments", FinalRemark);
+            htParam.Add("Subdomain", Subdomain);
+            htParam.Add("FinalStatusUpdatedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            ReturnValue = new bllMaster().UpdateFinalStatusOfImporetdFeedback(htParam);
+
+
+            return ReturnValue;
+        }
+
     }
 }

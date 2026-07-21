@@ -307,10 +307,15 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .row-rebuttal td {
+            background-color: #96DED1 !important;
+            /*  color: #9a3412 !important;*/
+            font-weight: 600;
+        }
     </style>
 
-    <script>
-        $(document).ready(function () {
+    <script>        $(document).ready(function () {
 
             infinityfeecback_bindsubdomain();
         });
@@ -380,11 +385,7 @@
                             <i class="fas fa-magnifying-glass"></i>
                             Show
                         </button>
-                        <%-- <button class="inf-btn inf-btn-primary" type="button" id="btnEditFeedbackExport" runat="server" onclick="">
-                            <i class="fas fa-magnifying-glass"></i>
-                            Show
-                        </button>--%>
-                        <asp:Button ID="btnExportFeedback" runat="server" Text="Export Excel" CssClass="btn btn-success" OnClick="btnExportFeedback_Click" />
+                        <asp:Button ID="btnExportFeedback" runat="server" Text="Export Excel" CssClass="btn btn-success" Style="height: 37px;" OnClick="btnExportFeedback_Click" />
                     </div>
                 </div>
             </div>
@@ -400,7 +401,7 @@
             <div class="inf-table-wrap">
                 <table class="table" id="table_InfinityFeedback" style="width: 100%;">
                     <thead>
-                        <tr>
+                        <%--     <tr>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">FeedbackID</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan Number</th>
@@ -419,9 +420,13 @@
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Status</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA/Rebuttal Comments</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Onshore Rebuttal Response</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Onshore Rebuttal Comments</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Manager Final Status</th>
+                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Manager Final Comments</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Source</th>
                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Received Date</th>
-                        </tr>
+                        </tr>--%>
                     </thead>
                     <tbody></tbody>
                 </table>

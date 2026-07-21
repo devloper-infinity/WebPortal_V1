@@ -43,6 +43,7 @@ namespace WebPortal.App_Code.BLL
         public int AllocateLoan(int projectId, int processId, string loanNumber, string dealNumber, int userId) { return dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId); }
         public DataTable GetTrackingQueue(int userId) { return dal.GetTrackingQueue(userId); }
         public void StartLoan(long assignmentId, int userId) { dal.StartLoan(assignmentId, userId); }
+        public void HoldLoan(long assignmentId, string holdReason, int userId) { dal.HoldLoan(assignmentId, holdReason, userId); }
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId) { dal.CompleteLoan(assignmentId, remark, feedbacks, userId); }
         public DataSet GetFeedbackDefaults(long assignmentId, int userId, string feedbackBy) { return dal.GetFeedbackDefaults(assignmentId, userId, feedbackBy); }
         public DataTable SaveFeedback(long assignmentId, string markedTo, string errorBy, string feedbackBy, string errorType,

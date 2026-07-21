@@ -32,9 +32,16 @@ function toggleSeverityDependentFields() {
     if (!shouldShowFeedbackStatus) {
         $feedbackStatusField.find(":input").val("");
     }
+    $("#onshoreConclusionSection").hide();
 }
 
 function BindInfinityFeedback(FeedbackID, subdomain) {
+
+    var employeeId = $("#hdnEmployeeID").val();
+
+    $("#btnAddFeedback").show(); // display
+    $("#btnFinalRemark").hide(); // hide
+    $("#onshoreConclusionSection").hide();
 
     FeedbackID_1 = FeedbackID;
     subdomain_new = subdomain;
@@ -48,6 +55,7 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
         success: function (data) {
 
             var dataArray = JSON.parse(data.d);
+
             $.each(dataArray, function (index, value) {
 
                 document.getElementById("infFeedback_LoanNo").value = value.LoanNumber;
@@ -64,11 +72,27 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
                 document.getElementById("infFeedback_ErrorType").value = value.ErrorType;
                 document.getElementById("infFeedback_FeedbackType").value = value.FeedbackType;
                 document.getElementById("infFeedback_Severity").value = value.Severity;
-                document.getElementById("infFeedback_FeedbackStatus").value = value.FeedbackStatus || "";
+                document.getElementById("infFeedback_FeedbackStatus").text = value.FeedbackStatus || "Select";
 
                 document.getElementById("infFeedback_Source").value = value.Source;
                 document.getElementById("infFeedback_RCA").value = value.RCA;
                 document.getElementById("infFeedback_Finding").value = value.Finding;
+
+
+                /* Onshore Response */
+                if (value.RebuttalStatus === "Agree" || value.RebuttalStatus === "Rebuttal") {
+
+                    $("#onshoreConclusionSection").show();
+                    $("#btnAddFeedback").hide(); // display
+                    $("#btnFinalRemark").show();
+
+                    $("#infFeedback_onshore_Response").val(value.RebuttalStatus);
+                    $("#infFeedback_OnshoreRebutalComments").val(value.RebuttalRemark);
+                }
+
+                /* Final Comments */
+                document.getElementById("infFeedback_onshore_Response").text = value.FinalStatus;
+                document.getElementById("infFeedback_Finding").text = value.FinalRemark;
 
                 toggleSeverityDependentFields();
 
@@ -96,7 +120,6 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
     });
     return false;
 }
-
 
 
 function edit_OnClickAddFeedback() {
@@ -247,14 +270,71 @@ function edit_OnClickAddFeedback() {
     return false;
 }
 
+
+function edit_UpdateFinalRemark() {
+
+    var inf_status = document.getElementById("infFeedback_finalStatus");
+    var final_status = inf_status.options[inf_status.selectedIndex].value;
+
+    var FinalComments = document.getElementById("infFeedback_FinalComments").value.trim();
+
+    if (final_status == "" || final_status == "Select") {
+        return showValidation("Final status is mandatory.", "infFeedback_finalStatus");
+    }
+
+    if (FinalComments == "") {
+        document.getElementById("infFeedback_FinalComments").focus();
+        return showValidation("Final remark is mandatory.", "infFeedback_FinalComments");
+    }
+
+    Swal.fire({
+        title: "Please wait...", text: "Updating status...", allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false, didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    PageMethods.UpdateFinalRemark(FeedbackID_1, final_status, FinalComments, subdomain_new,
+
+        function (result) {
+
+            Swal.close();
+
+            FeedbackID_1 = 0;
+            subdomain_new = "";
+
+            if (result > 0) {
+
+                Swal.fire({ icon: "success", title: "Success", text: "Final status updated successfully." }).then(function () {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: "error", title: "Error", text: "Oops! Error occurred while updating status. Please contact administrator."
+                }).then(function () {
+                    location.reload();
+                });
+            }
+        },
+
+        function (error) {
+
+            Swal.close();
+
+            console.log(error);
+
+            Swal.fire({ icon: "error", title: "Error", text: error.get_message ? error.get_message() : "Something went wrong while updating feedback." });
+        }
+    );
+
+    return false;
+}
+
 function showValidation(message, elementId) {
 
     Swal.fire({ icon: "warning", title: "Validation", text: message }).then(function () { document.getElementById(elementId).focus(); });
 
     return false;
 }
-
-
 
 function BindFeedbackHistory_Grid(feedbackId, subdomain) {
 
@@ -537,8 +617,6 @@ function BindFeedbackHistory_Grid(feedbackId, subdomain) {
     return false;
 }
 
-
-
 function productionData_bindGrid(LoanNo, UwName) {
 
     $('#load1').show();
@@ -693,7 +771,6 @@ function productionData_bindGrid(LoanNo, UwName) {
 
     return false;
 }
-
 
 const chkIds_feedback = [];
 

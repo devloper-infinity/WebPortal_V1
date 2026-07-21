@@ -575,7 +575,7 @@
 
         });
     </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -667,7 +667,7 @@
                         </div>
                         <div class="feedback-remark-context-item wide">
                             <span>Rebuttal Status</span>
-                            <select id="ddlInfinityOnshore_RebuttalStatus">
+                            <select id="ddlInfinityOnshore_RebuttalStatus" class="my-select">
                                 <option value="">Select Status</option>
                                 <option value="Agree">Agree</option>
                                 <option value="Rebuttal">Rebuttal</option>
@@ -681,7 +681,6 @@
                     <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="btnSaveInfinityOnshoreRemark" onclick="return saveInfinityOnshoreRemark();">
                         <i class="fas fa-save mr-1"></i>Save Remark
-                   
                     </button>
                 </div>
             </div>

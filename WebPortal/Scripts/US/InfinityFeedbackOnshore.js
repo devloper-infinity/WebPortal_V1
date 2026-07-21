@@ -47,7 +47,7 @@ function showInfinityOnshoreRemarkPopup(feedbackId) {
     return false;
 }
 
-function saveInfinityOnshoreRemark() {
+function core_saveInfinityOnshoreRemark() {
     var feedbackId = parseInt($('#hdnInfinityOnshoreFeedbackId').val(), 10) || 0;
     var client = $('#spnInfinityOnshoreClient').text();
     var remark = $.trim($('#txtInfinityOnshoreRemark').val());
@@ -58,6 +58,11 @@ function saveInfinityOnshoreRemark() {
         return false;
     }
 
+    if (findingStatus === '') {
+        alert('Please select Finding status.');
+        $('#ddlInfinityOnshore_RebuttalStatus').focus();
+        return false;
+    }
     if (remark === '') {
         alert('Please enter remark.');
         $('#txtInfinityOnshoreRemark').focus();
@@ -71,7 +76,7 @@ function saveInfinityOnshoreRemark() {
         type: 'POST',
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify({ FeedbackID: feedbackId, Client: client, Remark: remark }),
+        data: JSON.stringify({ FeedbackID: feedbackId, Client: client, Remark: remark, RebuttalStatus:findingStatus }),
         success: function (response) {
             var message = response.d || '';
 
@@ -99,6 +104,116 @@ function saveInfinityOnshoreRemark() {
 
     return false;
 }
+
+
+function saveInfinityOnshoreRemark() {
+
+    var feedbackId = parseInt($('#hdnInfinityOnshoreFeedbackId').val(), 10) || 0;
+    var client = $('#spnInfinityOnshoreClient').text();
+    var remark = $.trim($('#txtInfinityOnshoreRemark').val());
+    var findingStatus = $("#ddlInfinityOnshore_RebuttalStatus").val();
+
+    if (!feedbackId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation',
+            text: 'Please select a feedback row.'
+        });
+        return false;
+    }
+
+    if (findingStatus === '') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation',
+            text: 'Please select the finding status.'
+        }).then(() => {
+            $('#ddlInfinityOnshore_RebuttalStatus').focus();
+        });
+        return false;
+    }
+
+    if (remark === '') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation',
+            text: 'Please enter a remark.'
+        }).then(() => {
+            $('#txtInfinityOnshoreRemark').focus();
+        });
+        return false;
+    }
+
+    $('#btnSaveInfinityOnshoreRemark')
+        .prop('disabled', true)
+        .html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+
+    $.ajax({
+        url: 'InfinityFeedbackOnshore.aspx/SaveInfinityOnshoreRemark',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({
+            FeedbackID: feedbackId,
+            Client: client,
+            Remark: remark,
+            RebuttalStatus: findingStatus
+        }),
+
+        success: function (response) {
+
+            var message = response.d || "Remark saved successfully.";
+
+            if (message.indexOf("Error") === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: message
+                });
+                return;
+            }
+
+            if (InfinityFeedbackOnshore_selectedRow) {
+                InfinityFeedbackOnshore_selectedRow.OnshoreRemark = remark;
+                InfinityFeedbackOnshore_selectedRow.Remark = remark;
+            }
+
+            $('#popUp_InfinityOnshoreRemark').modal('hide');
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: message,
+                confirmButtonText: 'OK',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    showdata1();
+                }
+            });
+        },
+
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Request Failed',
+                text: xhr.responseText || 'Something went wrong. Please try again.'
+            });
+        },
+
+        complete: function () {
+            $('#btnSaveInfinityOnshoreRemark')
+                .prop('disabled', false)
+                .html('<i class="fas fa-save me-1"></i> Save Remark');
+        }
+    });
+
+    return false;
+}
+
+
+
+
 
 function core_btnEditFeedbackShowReportOnShore() {
 

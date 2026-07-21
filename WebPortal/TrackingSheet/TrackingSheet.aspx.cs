@@ -42,7 +42,12 @@ namespace WebPortal.TrackingSheet
                 return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
             }
         }
-        [WebMethod] public static string GetQueue() { return OLTrackingWeb.Json(new bllOLTracking().GetTrackingQueue(OLTrackingWeb.UserId)); }
+        [WebMethod]
+        public static string GetQueue()
+        {
+            bllOLTracking tracking = new bllOLTracking();
+            return OLTrackingWeb.Json(AddProjectNames(tracking.GetTrackingQueue(OLTrackingWeb.UserId), tracking));
+        }
         [WebMethod] public static string GetDailyProcesses() { return OLTrackingWeb.Json(new bllOLTracking().GetUserDailyProcesses(OLTrackingWeb.UserId)); }
         [WebMethod]
         public static TrackingActionResult StartLoan(long assignmentId)
@@ -51,6 +56,21 @@ namespace WebPortal.TrackingSheet
             {
                 new bllOLTracking().StartLoan(assignmentId, OLTrackingWeb.UserId);
                 return new TrackingActionResult { Success = true, Message = "Loan marked In Process." };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
+        }
+        [WebMethod]
+        public static TrackingActionResult HoldLoan(long assignmentId, string holdReason)
+        {
+            try
+            {
+                if (!IsValidHoldReason(holdReason))
+                    return new TrackingActionResult { Success = false, Message = "Please select a valid hold reason." };
+                new bllOLTracking().HoldLoan(assignmentId, holdReason, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = true, Message = "Loan placed on hold successfully." };
             }
             catch (Exception exception)
             {
@@ -93,6 +113,7 @@ namespace WebPortal.TrackingSheet
             {
                 string validation = ValidateFeedback(model);
                 if (validation.Length > 0) return new FeedbackSaveResult { Success = false, Message = validation };
+
                 DataTable saved = new bllOLTracking().SaveFeedback(model.AssignmentID, model.MarkedTo, model.ErrorBy,
                     model.FeedbackBy, model.ErrorType, model.CategoryID, model.Category, model.SubcategoryID,
                     model.Subcategory, model.Severity, model.ErrorField, model.Screen, model.FeedbackType, model.Error,
@@ -114,7 +135,54 @@ namespace WebPortal.TrackingSheet
         {
             DateTime parsed; DateTime? from = DateTime.TryParseExact(fromDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsed) ? parsed : (DateTime?)null;
             DateTime? to = DateTime.TryParseExact(toDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsed) ? parsed : (DateTime?)null;
-            return OLTrackingWeb.Json(new bllOLTracking().GetUserDailyStatus(OLTrackingWeb.UserId, processId, from, to));
+            bllOLTracking tracking = new bllOLTracking();
+            return OLTrackingWeb.Json(AddProjectNames(tracking.GetUserDailyStatus(OLTrackingWeb.UserId, processId, from, to), tracking));
+        }
+
+        private static DataTable AddProjectNames(DataTable rows, bllOLTracking tracking)
+        {
+            if (rows == null || !rows.Columns.Contains("ProjectID")) return rows;
+
+            if (!rows.Columns.Contains("ProjectName"))
+                rows.Columns.Add("ProjectName", typeof(string));
+
+            DataTable projects = tracking.GetProjectsByUser(OLTrackingWeb.UserId);
+            Dictionary<int, string> names = new Dictionary<int, string>();
+            if (projects.Columns.Contains("ProjectID") && projects.Columns.Contains("ProjectName"))
+            {
+                foreach (DataRow project in projects.Rows)
+                {
+                    int projectId;
+                    if (int.TryParse(Convert.ToString(project["ProjectID"]), out projectId))
+                        names[projectId] = Convert.ToString(project["ProjectName"]);
+                }
+            }
+
+            foreach (DataRow row in rows.Rows)
+            {
+                int projectId;
+                string projectName;
+                if (int.TryParse(Convert.ToString(row["ProjectID"]), out projectId) && names.TryGetValue(projectId, out projectName))
+                    row["ProjectName"] = projectName;
+                else
+                    row["ProjectName"] = Convert.ToString(row["ProjectID"]);
+            }
+            return rows;
+        }
+
+        private static bool IsValidHoldReason(string holdReason)
+        {
+            switch ((holdReason ?? string.Empty).Trim())
+            {
+                case "PDF Issue":
+                case "Audit Worksheet Not available in Box":
+                case "Partially Review in Scienna":
+                case "Wrongly pulled in ERP":
+                case "Miscellaneous - Any other issue with comments":
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static string UserMessage(Exception exception)

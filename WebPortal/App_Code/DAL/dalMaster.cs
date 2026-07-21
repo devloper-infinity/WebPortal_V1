@@ -4457,6 +4457,23 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+
+        public int UpdateFinalStatusOfImporetdFeedback(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateFinalStatusOfImporetdFeedback");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, htParam["FeedbackID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FinalStatus", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["FinalStatus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FinalComments", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["FinalComments"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Subdomain", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Subdomain"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FinalStatusUpdatedBy", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, htParam["FinalStatusUpdatedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+
         #endregion
 
         public int CheckifProjectExists(string ProjectName)
