@@ -18,7 +18,7 @@ namespace WebPortal.US
         private const int AllocationProjectId = 70;
         private const string AllocationProjectName = "561";
         private const int AllocationProcessId = 2506;
-        private const string AllocationProcessName = "PH RecQC";
+        private const string AllocationProcessName = "PH ReQC";
 
         private static readonly string[] ImportHeaders =
         {
