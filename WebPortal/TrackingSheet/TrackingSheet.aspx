@@ -79,7 +79,7 @@
                 <h2>Tracking Sheet</h2>
                 <p>Allocate eligible loans, update your queue, and review daily status.</p>
             </div>
-            <div class="olt-links"><a href="ProcessFlowConfiguration.aspx">Process flow</a><a href="ImportData.aspx">Import data</a></div>
+            <div class="olt-links"><a href="ProcessFlowConfiguration.aspx">Process flow</a><a href="ImportData.aspx">Import data</a><a href="ManagerDashboard.aspx">Manager dashboard</a><a href="ManagerAllocation.aspx">PM allocation</a></div>
         </div>
         <div id="oltAlert" class="olt-alert"></div>
         <div class="ots-tabs">
@@ -128,12 +128,14 @@
                                 <th>Process</th>
                                 <th>Status</th>
                                 <th>Assigned</th>
+                                <th>Hold TAT</th>
+                                <th>Net TAT</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="queueRows">
                             <tr>
-                                <td colspan="7" class="olt-empty">Loading queue...</td>
+                                <td colspan="9" class="olt-empty">Loading queue...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -175,6 +177,8 @@
                                 <th>Assigned</th>
                                 <th>Started</th>
                                 <th>Completed</th>
+                                <th>Hold TAT</th>
+                                <th>Total TAT</th>
                                 <th>Remark</th>
                             </tr>
                         </thead>
@@ -256,8 +260,9 @@ function loadProject(){if(!project.value)return;process.disabled=true;loan.inner
 function selectDeal(){process.disabled=!deal.value;process.value='';if(process.options.length)process.options[0].text=deal.value?'Select process':'Select deal first';loan.innerHTML='<option value="">Select process</option>';}
 function tryLoadLoan(){if(!project.value||!process.value||!deal.value)return;var selected=process.options[process.selectedIndex];loan.innerHTML='<option value="">Checking eligibility...</option>';OLT.call(page,'GetAvailableLoan',{projectId:+project.value,dealNumber:deal.value,processId:+process.value,processName:selected.text}).then(function(r){if(typeof r==='string'){try{r=JSON.parse(r);}catch(e){r={LoanNumber:r};}}var number=r&&r.LoanNumber?String(r.LoanNumber):'';loan.innerHTML='';var option=document.createElement('option');option.value=number;option.textContent=number||'No eligible loan available';loan.appendChild(option);}).catch(showError);}
 function allocateLoan(){if(!loan.value){OLT.alert('No eligible loan is available for the selected process and deal.',true);return;}OLT.call(page,'Allocate',{projectId:+project.value,processId:+process.value,loanNumber:loan.value,dealNumber:deal.value}).then(function(r){if(!actionSucceeded(r))return;OLT.alert(r.Message||'Loan allocated successfully.');tryLoadLoan();loadQueue();}).catch(showError);}
-function loadQueue(){OLT.call(page,'GetQueue').then(function(r){queue=r;queueRows.innerHTML=r.length?r.map(function(x){return'<tr><td>'+OLT.esc(x.ProjectName||x.ProjectID)+'</td><td>'+OLT.esc(x.DealNumber)+'</td><td>'+OLT.esc(x.LoanNumber)+'</td><td>'+OLT.esc(x.ProcessName)+'</td><td><span class="ots-status">'+x.AssignmentStatus+'</span></td><td>'+fmt(x.AssignedDate)+'</td><td>'+(x.AssignmentStatus==='Pending'?'<button type="button" class="olt-btn secondary" onclick="startLoan('+x.AssignmentID+')">Start Work</button> ':'')+'<button type="button" class="olt-btn" onclick="openComplete('+x.AssignmentID+')">Update Status</button></td></tr>';}).join(''):'<tr><td colspan="7" class="olt-empty">No Pending/In Process loans.</td></tr>';}).catch(showError);}
+function loadQueue(){OLT.call(page,'GetQueue').then(function(r){queue=r;queueRows.innerHTML=r.length?r.map(function(x){var action=x.AssignmentStatus==='Hold'?'<button type="button" class="olt-btn" onclick="resumeLoan('+x.AssignmentID+')">Resume</button>':(x.AssignmentStatus==='Pending'?'<button type="button" class="olt-btn secondary" onclick="startLoan('+x.AssignmentID+')">Start Work</button> ':'')+'<button type="button" class="olt-btn" onclick="openComplete('+x.AssignmentID+')">Update Status</button>';return'<tr><td>'+OLT.esc(x.ProjectName||x.ProjectID)+'</td><td>'+OLT.esc(x.DealNumber)+'</td><td>'+OLT.esc(x.LoanNumber)+'</td><td>'+OLT.esc(x.ProcessName)+'</td><td><span class="ots-status">'+x.AssignmentStatus+'</span></td><td>'+fmt(x.AssignedDate)+'</td><td>'+duration(x.HoldTATSeconds)+'</td><td>'+duration(x.TotalTATSeconds)+'</td><td>'+action+'</td></tr>';}).join(''):'<tr><td colspan="9" class="olt-empty">No active or held loans.</td></tr>';}).catch(showError);}
 function startLoan(id){OLT.call(page,'StartLoan',{assignmentId:id}).then(function(r){if(!actionSucceeded(r))return;OLT.alert(r.Message||'Loan marked In Process.');loadQueue();}).catch(showError);}
+function resumeLoan(id){OLT.call(page,'ResumeLoan',{assignmentId:id}).then(function(r){if(!actionSucceeded(r))return;OLT.alert(r.Message||'Loan resumed successfully.');loadQueue();loadDaily();}).catch(showError);}
 var activeAssignment=null,feedbackRequired=false,savedFeedbacks=0,feedbackOwners=[];
 function openComplete(id){activeAssignment=queue.filter(function(q){return q.AssignmentID===id;})[0]||null;feedbackRequired=!!(activeAssignment&&activeAssignment.FeedbackRequiredOnComplete);savedFeedbacks=0;assignmentId.value=id;completeRemark.value='';updateStatus.value='';holdReason.value='';changeCompletionStatus();savedFeedbackList.innerHTML='';savedFeedbackCount.textContent='0 feedback added';continueAfterFeedback.disabled=true;[statusStep,feedbackStep,completeStep].forEach(function(s){s.classList.remove('active');});statusStep.classList.add('active');completeModal.classList.add('open');}
 function closeComplete(){completeModal.classList.remove('open');activeAssignment=null;}
@@ -277,6 +282,6 @@ function updateFeedbackState(){savedFeedbackCount.textContent=savedFeedbacks+' f
 function continueToComplete(){if(feedbackRequired&&savedFeedbacks<1){OLT.alert('At least one feedback entry is required.',true);return;}feedbackStep.classList.remove('active');completeStep.classList.add('active');}
 function submitCompletion(){if(!completeRemark.value.trim()){OLT.alert('Remark is required.',true);return;}OLT.call(page,'CompleteLoan',{assignmentId:+assignmentId.value,remark:completeRemark.value,feedbacks:[]}).then(function(r){if(!actionSucceeded(r))return;closeComplete();OLT.alert(r.Message||'Loan completed.');loadQueue();loadDaily();}).catch(showError);}
 function setToday(){var d=new Date().toISOString().slice(0,10);fromDate.value=toDate.value=d;}function applyMonth(){if(!monthFilter.value)return;var p=monthFilter.value.split('-'),start=new Date(+p[0],+p[1]-1,1),end=new Date(+p[0],+p[1],0);fromDate.value=localIso(start);toDate.value=localIso(end);}function localIso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function loadDaily(){OLT.call(page,'GetDailyStatus',{processId:+dailyProcess.value||0,fromDate:fromDate.value,toDate:toDate.value}).then(function(r){if(window.jQuery&&$.fn.DataTable&&$.fn.DataTable.isDataTable('#dailyTable'))$('#dailyTable').DataTable().destroy();dailyRows.innerHTML=r.length?r.map(function(x){return'<tr><td>'+OLT.esc(x.ProjectName||x.ProjectID)+'</td><td>'+OLT.esc(x.DealNumber)+'</td><td>'+OLT.esc(x.LoanNumber)+'</td><td>'+OLT.esc(x.ProcessName)+'</td><td>'+x.AssignmentStatus+'</td><td>'+fmt(x.AssignedDate)+'</td><td>'+fmt(x.StartedDate)+'</td><td>'+fmt(x.CompletedDate)+'</td><td>'+OLT.esc(x.LastRemark)+'</td></tr>';}).join(''):'<tr><td colspan="9" class="olt-empty">No loans found.</td></tr>';if(r.length&&window.jQuery&&$.fn.DataTable)$('#dailyTable').DataTable({pageLength:25,order:[]});}).catch(showError);}function actionSucceeded(r){if(typeof r==='string'){try{r=JSON.parse(r);}catch(e){r={Success:false,Message:'The requested action could not be completed.'};}}if(!r||r.Success!==true){OLT.alert(r&&r.Message?r.Message:'The requested action could not be completed.',true);return false;}return true;}function fmt(v){var n=parseInt(String(v||'').replace(/\D/g,''),10);return n?new Date(n).toLocaleString():'';}function showError(e){OLT.alert('The requested action could not be completed. Please refresh the page and try again.',true);}
+function loadDaily(){OLT.call(page,'GetDailyStatus',{processId:+dailyProcess.value||0,fromDate:fromDate.value,toDate:toDate.value}).then(function(r){if(window.jQuery&&$.fn.DataTable&&$.fn.DataTable.isDataTable('#dailyTable'))$('#dailyTable').DataTable().destroy();dailyRows.innerHTML=r.length?r.map(function(x){return'<tr><td>'+OLT.esc(x.ProjectName||x.ProjectID)+'</td><td>'+OLT.esc(x.DealNumber)+'</td><td>'+OLT.esc(x.LoanNumber)+'</td><td>'+OLT.esc(x.ProcessName)+'</td><td>'+x.AssignmentStatus+'</td><td>'+fmt(x.AssignedDate)+'</td><td>'+fmt(x.StartedDate)+'</td><td>'+fmt(x.CompletedDate)+'</td><td>'+duration(x.HoldTATSeconds)+'</td><td>'+duration(x.TotalTATSeconds)+'</td><td>'+OLT.esc(x.LastRemark)+'</td></tr>';}).join(''):'<tr><td colspan="11" class="olt-empty">No loans found.</td></tr>';if(r.length&&window.jQuery&&$.fn.DataTable)$('#dailyTable').DataTable({pageLength:25,order:[]});}).catch(showError);}function actionSucceeded(r){if(typeof r==='string'){try{r=JSON.parse(r);}catch(e){r={Success:false,Message:'The requested action could not be completed.'};}}if(!r||r.Success!==true){OLT.alert(r&&r.Message?r.Message:'The requested action could not be completed.',true);return false;}return true;}function duration(value){var s=Math.max(0,+value||0),d=Math.floor(s/86400);s%=86400;var h=Math.floor(s/3600);s%=3600;var m=Math.floor(s/60);return(d?d+'d ':'')+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}function fmt(v){var n=parseInt(String(v||'').replace(/\D/g,''),10);return n?new Date(n).toLocaleString():'';}function showError(e){OLT.alert('The requested action could not be completed. Please refresh the page and try again.',true);}
 </script>
 </asp:Content>

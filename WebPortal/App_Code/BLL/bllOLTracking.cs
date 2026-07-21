@@ -44,6 +44,7 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetTrackingQueue(int userId) { return dal.GetTrackingQueue(userId); }
         public void StartLoan(long assignmentId, int userId) { dal.StartLoan(assignmentId, userId); }
         public void HoldLoan(long assignmentId, string holdReason, int userId) { dal.HoldLoan(assignmentId, holdReason, userId); }
+        public void ResumeLoan(long assignmentId, int userId) { dal.ResumeLoan(assignmentId, userId); }
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId) { dal.CompleteLoan(assignmentId, remark, feedbacks, userId); }
         public DataSet GetFeedbackDefaults(long assignmentId, int userId, string feedbackBy) { return dal.GetFeedbackDefaults(assignmentId, userId, feedbackBy); }
         public DataTable SaveFeedback(long assignmentId, string markedTo, string errorBy, string feedbackBy, string errorType,
@@ -55,6 +56,20 @@ namespace WebPortal.App_Code.BLL
         }
         public DataTable GetUserDailyStatus(int userId, int processId, DateTime? from, DateTime? to) { return dal.GetUserDailyStatus(userId, processId, from, to); }
         public DataTable GetUserDailyProcesses(int userId) { return dal.GetUserDailyProcesses(userId); }
+        public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
+        public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId) { return dal.GetEligibleLoans(projectId, dealNumber, processId); }
+        public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId)
+        { return dal.ManagerAllocate(projectId, dealNumber, processId, targetUserId, loanNumbers, managerId); }
+        public DataTable GetManagerDetail(int projectId, int processId, int userId, string status, DateTime? fromDate, DateTime? toDate)
+        { return dal.GetManagerDetail(projectId, processId, userId, status, fromDate, toDate); }
+        public DataTable GetManagerSummary(int projectId, int processId, int userId, DateTime? fromDate, DateTime? toDate)
+        { return dal.GetManagerSummary(projectId, processId, userId, fromDate, toDate); }
+        public DataTable GetDealDashboard(int projectId, string dealNumber) { return dal.GetDealDashboard(projectId, dealNumber); }
+        public DataTable GetHourlyProduction(int projectId, DateTime reportDate, string dealNumber) { return dal.GetHourlyProduction(projectId, reportDate, dealNumber); }
+        public DataTable GetReallocationUsers(int projectId, string dealNumber, int processId) { return dal.GetReallocationUsers(projectId, dealNumber, processId); }
+        public DataTable GetReallocationOrders(int projectId, string dealNumber, int processId, int fromUserId) { return dal.GetReallocationOrders(projectId, dealNumber, processId, fromUserId); }
+        public int ReallocateOrders(int projectId, int fromUserId, int toUserId, long[] assignmentIds, string remark, int managerId)
+        { return dal.ReallocateOrders(projectId, fromUserId, toUserId, assignmentIds, remark, managerId); }
 
         private static string FirstValue(DataRow row, params string[] names)
         {
