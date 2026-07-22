@@ -592,10 +592,10 @@
                 <h4 class="ts-config-title"><i class="fas fa-sliders-h"></i>Tracking Sheet Configuration</h4>
                 <div class="ts-config-subtitle">Domain, project and column mapping setup</div>
             </div>
-            <div class="ts-config-meta">
+           <%-- <div class="ts-config-meta">
                 <i class="fas fa-layer-group"></i>
                 Production Utility
-            </div>
+            </div>--%>
         </div>
 
         <div class="card card-tabs ts-config-card">

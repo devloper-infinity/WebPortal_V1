@@ -2,24 +2,124 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-        .ol-import { padding: 18px; color: #17324d; }
-        .ol-import-header { background:#fff; border:1px solid #d7e3ef; border-left:6px solid #117a9b; border-radius:10px; padding:20px 26px; margin-bottom:20px; }
-        .ol-import-header h2 { margin:0 0 6px; font-weight:700; }
-        .ol-import-card { background:#fff; border:1px solid #d7e3ef; border-radius:10px; margin-bottom:20px; overflow:hidden; }
-        .ol-import-card h4 { margin:0; padding:14px 20px; background:#f3f7fb; border-bottom:1px solid #d7e3ef; font-weight:700; }
-        .ol-import-body { padding:20px; }
-        .ol-import-grid { display:grid; grid-template-columns:minmax(260px, 1fr) auto; gap:16px; align-items:end; }
-        .ol-import-upload { display:grid; grid-template-columns:minmax(320px, 1fr) auto; gap:16px; align-items:end; }
-        .ol-help { color:#5d7287; margin-top:8px; }
-        .ol-message { display:block; margin:0 0 18px; padding:12px 16px; border-radius:6px; font-weight:600; }
-        .ol-success { background:#e8f7ef; color:#176b41; border:1px solid #a8dfc1; }
-        .ol-error { background:#fff0f0; color:#9f2424; border:1px solid #efb8b8; white-space:pre-line; }
-        .ol-field-summary { margin-top:12px; padding:10px 12px; background:#f7fafc; border-radius:6px; }
-        .ol-destination { display:block; margin:0 0 16px; padding:14px 16px; background:#eaf5fb; border:1px solid #a9d4e7; border-left:5px solid #117a9b; border-radius:6px; font-size:16px; font-weight:700; }
-        .ol-history { width:100%; border-collapse:collapse; }
-        .ol-history th, .ol-history td { padding:10px; border-bottom:1px solid #e2eaf2; text-align:left; }
-        .ol-history th { background:#f6f9fc; }
-        @media (max-width:760px) { .ol-import-grid, .ol-import-upload { grid-template-columns:1fr; } }
+        .ol-import {
+            padding: 18px;
+            color: #17324d;
+        }
+
+        .ol-import-header {
+            background: #fff;
+            border: 1px solid #d7e3ef;
+            border-left: 6px solid #117a9b;
+            border-radius: 10px;
+            padding: 20px 26px;
+            margin-bottom: 20px;
+        }
+
+            .ol-import-header h2 {
+                margin: 0 0 6px;
+                font-weight: 700;
+            }
+
+        .ol-import-card {
+            background: #fff;
+            border: 1px solid #d7e3ef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+            .ol-import-card h4 {
+                margin: 0;
+                padding: 14px 20px;
+                background: #f3f7fb;
+                border-bottom: 1px solid #d7e3ef;
+                font-weight: 700;
+            }
+
+        .ol-import-body {
+            padding: 20px;
+        }
+
+        .ol-import-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .ol-import-upload {
+            display: grid;
+            grid-template-columns: minmax(320px, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .ol-help {
+            color: #5d7287;
+            margin-top: 8px;
+        }
+
+        .ol-message {
+            display: block;
+            margin: 0 0 18px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .ol-success {
+            background: #e8f7ef;
+            color: #176b41;
+            border: 1px solid #a8dfc1;
+        }
+
+        .ol-error {
+            background: #fff0f0;
+            color: #9f2424;
+            border: 1px solid #efb8b8;
+            white-space: pre-line;
+        }
+
+        .ol-field-summary {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+        }
+
+        .ol-destination {
+            display: block;
+            margin: 0 0 16px;
+            padding: 14px 16px;
+            background: #eaf5fb;
+            border: 1px solid #a9d4e7;
+            border-left: 5px solid #117a9b;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .ol-history {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .ol-history th, .ol-history td {
+                padding: 10px;
+                border-bottom: 1px solid #e2eaf2;
+                text-align: left;
+            }
+
+            .ol-history th {
+                background: #f6f9fc;
+            }
+
+        @media (max-width:760px) {
+            .ol-import-grid, .ol-import-upload {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </asp:Content>
 

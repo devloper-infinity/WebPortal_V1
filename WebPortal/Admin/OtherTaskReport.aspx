@@ -373,19 +373,19 @@
                     <div class="col-lg-4 col-md-6">
                         <div class="otr-field">
                             <label for="othertaskreport_fromDate">From Date</label>
-                            <input type="date" id="othertaskreport_fromDate" class="form-control" />
+                            <input type="date" id="pmothertaskreport_fromDate" class="form-control" />
                         </div>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
                         <div class="otr-field">
                             <label for="othertaskreport_toDate">To Date</label>
-                            <input type="date" id="othertaskreport_toDate" class="form-control" />
+                            <input type="date" id="pmothertaskreport_toDate" class="form-control" />
                         </div>
                     </div>
 
                     <div class="col-lg-4 col-md-12">
-                        <button type="button" class="btn otr-btn-primary" onclick="loadOtherTaskReport();">
+                        <button type="button" class="btn otr-btn-primary" onclick="pm_loadOtherTaskReport();">
                             <i class="bi bi-bar-chart-line"></i>&nbsp; Get Report
                        
                         </button>
@@ -400,7 +400,7 @@
             </div>
             <div class="otr-card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="table_otherTaskReport" style="width: 100%;">
+                    <table class="table table-hover align-middle" id="table_PMotherTaskReport" style="width: 100%;">
                         <thead></thead>
                         <tbody></tbody>
                     </table>

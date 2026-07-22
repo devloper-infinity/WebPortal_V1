@@ -3132,6 +3132,14 @@
       <DependentUpon>ManagerDashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="TrackingSheet\ManagerDashboard.ImportData.cs">
+      <DependentUpon>ManagerDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerDashboard.Allocation.cs">
+      <DependentUpon>ManagerDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="TrackingSheet\ManagerDashboard.aspx.designer.cs">
       <DependentUpon>ManagerDashboard.aspx</DependentUpon>
     </Compile>

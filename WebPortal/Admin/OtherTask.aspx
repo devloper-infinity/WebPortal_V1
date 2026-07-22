@@ -342,6 +342,115 @@
             min-height: 120px;
         }
 
+        .other-task-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0 0;
+            padding: 6px;
+            border: 1px solid var(--ot-line);
+            border-radius: 16px;
+            background: rgba(255,255,255,.96);
+            box-shadow: 0 10px 28px rgba(16,24,40,.06);
+        }
+
+        .other-task-tab {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 12px;
+            color: #526276;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
+            .other-task-tab.active {
+                color: #fff;
+                background: linear-gradient(135deg, #2457e6, #29c6d7);
+                box-shadow: 0 9px 18px rgba(36,87,230,.20);
+            }
+
+        .other-task-panel {
+            display: none;
+        }
+
+            .other-task-panel.active {
+                display: block;
+            }
+
+        .report-filter-grid {
+            align-items: end;
+        }
+
+        .report-action .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+        #table_otherTaskReport {
+            width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0;
+            font-size: 12px;
+        }
+
+            #table_otherTaskReport thead th {
+                height: 42px;
+                padding: 10px;
+                border-bottom: 1px solid #d7e3ee !important;
+                background: #edf3f6 !important;
+                color: #263445;
+                font-weight: 800;
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            #table_otherTaskReport tbody td {
+                padding: 10px;
+                border-bottom: 1px solid #eef2f7;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            #table_otherTaskReport tbody tr:hover {
+                background: #f8fbff;
+            }
+
+        #reportTabPanel .dataTables_length label,
+        #reportTabPanel .dataTables_filter label {
+            color: var(--ot-muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #reportTabPanel .dataTables_filter input,
+        #reportTabPanel .dataTables_length select {
+            min-height: 34px;
+            border: 1px solid #dbe5f0;
+            border-radius: 10px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        #reportTabPanel .dt-buttons .btn,
+        #reportTabPanel .dt-button {
+            margin-right: 6px !important;
+            padding: 7px 13px !important;
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: linear-gradient(120deg, #2457e6 0%, #2867eb 70%, #29c6d7 100%) !important;
+            color: #fff !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+        }
+
         .alert-text {
             font-weight: 800;
             font-size: 14px;
@@ -407,6 +516,15 @@
             .task-card-body {
                 padding: 18px;
             }
+
+            .other-task-tabs {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .other-task-tab {
+                padding: 9px 10px;
+            }
         }
     </style>
 
@@ -416,7 +534,24 @@
             var userId = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
             otherTask_Project(userId);
             initOtherTaskDragDrop();
+            initOtherTaskTabs();
         });
+
+        window.otherTaskReportServiceUrl = 'OtherTask.aspx/BindOtherTaskReport';
+
+        function initOtherTaskTabs() {
+            $('.other-task-tab').on('click', function () {
+                var panelId = $(this).data('panel');
+                $('.other-task-tab').removeClass('active').attr('aria-selected', 'false');
+                $(this).addClass('active').attr('aria-selected', 'true');
+                $('.other-task-panel').removeClass('active');
+                $('#' + panelId).addClass('active');
+
+                if (panelId === 'reportTabPanel' && $.fn.DataTable.isDataTable('#table_otherTaskReport')) {
+                    $('#table_otherTaskReport').DataTable().columns.adjust();
+                }
+            });
+        }
 
         function initOtherTaskDragDrop() {
             const dropZone = document.getElementById('otherTask_dropZone');
@@ -523,12 +658,22 @@
             </div>
             <div class="modern-page-copy">
                 <h1 class="modern-page-title">Other Task</h1>
-                <p class="modern-page-subtitle">Upload, verify and submit other task data quickly.</p>
+                <p class="modern-page-subtitle">Upload, verify, submit and review other task data quickly.</p>
             </div>
             <div class="hero-chip"><i class="bi bi-lightning-charge-fill"></i>Fast Employee Operations</div>
         </div>
     </div>
 
+    <div class="other-task-tabs" role="tablist" aria-label="Other Task sections">
+        <button type="button" class="other-task-tab active" data-panel="uploadOtherTaskTabPanel" role="tab" aria-selected="true">
+            <i class="bi bi-cloud-arrow-up-fill"></i>Upload Other Task Data
+        </button>
+        <button type="button" class="other-task-tab" data-panel="reportTabPanel" role="tab" aria-selected="false">
+            <i class="bi bi-bar-chart-line-fill"></i>Report
+        </button>
+    </div>
+
+    <section id="uploadOtherTaskTabPanel" class="other-task-panel active" role="tabpanel">
     <div class="col-lg-12">
         <div class="task-card">
             <div class="task-card-header">
@@ -601,6 +746,49 @@
             </div>
         </div>
     </div>
+    </section>
+
+    <section id="reportTabPanel" class="other-task-panel" role="tabpanel">
+        <div class="col-lg-12">
+            <div class="task-card">
+                <div class="task-card-header">
+                    <h5 class="task-card-title"><i class="bi bi-funnel-fill"></i>Report Filters</h5>
+                </div>
+                <div class="task-card-body">
+                    <div class="form-grid report-filter-grid">
+                        <div class="form-field">
+                            <label for="othertaskreport_fromDate">From Date</label>
+                            <input type="date" id="othertaskreport_fromDate" class="my-input" />
+                        </div>
+                        <div class="form-field">
+                            <label for="othertaskreport_toDate">To Date</label>
+                            <input type="date" id="othertaskreport_toDate" class="my-input" />
+                        </div>
+                        <div class="form-field report-action">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn btn-gradient-primary" onclick="loadOtherTaskReport();">
+                                <i class="bi bi-bar-chart-line"></i>&nbsp; Get Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-card">
+                <div class="task-card-header">
+                    <h5 class="task-card-title"><i class="bi bi-table"></i>Report Details</h5>
+                </div>
+                <div class="task-card-body">
+                    <div class="result-panel">
+                        <table class="table table-hover align-middle" id="table_otherTaskReport" style="width: 100%;">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <div class="modal fade" id="othertask_waitingpanel" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog text-center">
