@@ -29,7 +29,7 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain)
+        public static string GetAllFeedbackByDateRange_NewFormat_OLD(string FromDate, string ToDate, string SubDomain)
         {
             FromDate = (Convert.ToDateTime(FromDate)).ToString("dd-MMM-yyyy");
             ToDate = (Convert.ToDateTime(ToDate)).ToString("dd-MMM-yyyy");
@@ -40,43 +40,155 @@ namespace WebPortal.Admin
             DataTable dt1 = null;
             DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain);
 
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+
+
             if (dt.Rows.Count > 0)
             {
                 dt_Export = dt;
-
-                dt1 = dt.AsEnumerable().Where(r => !string.Equals(Convert.ToString(r["Severity"]).Trim(), "No Error", StringComparison.OrdinalIgnoreCase)).CopyToDataTable();
-            }
-            List<Dictionary<string, object>> columns = new List<Dictionary<string, object>>();
-            Dictionary<string, object> column;
-
-            if (dt1 != null)
-            {
-                foreach (DataColumn dc in dt1.Columns)
+                try
                 {
-                    column = new Dictionary<string, object>();
-                }
-            }
+                    dt1 = dt.AsEnumerable().Where(r => !string.Equals(Convert.ToString(r["Severity"]).Trim(), "No Error", StringComparison.OrdinalIgnoreCase)).CopyToDataTable();
 
-            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            Dictionary<string, object> row;
-
-            if (dt1 != null)
-            {
-                foreach (DataRow dr in dt1.Rows)
-                {
-                    row = new Dictionary<string, object>();
-                    foreach (DataColumn col in dt1.Columns)
+                    if (dt1 != null && dt1.Rows.Count > 0)
                     {
-                        row.Add(col.ColumnName, dr[col]);
+                        foreach (DataRow dr in dt1.Rows)
+                        {
+                            row = new Dictionary<string, object>();
+                            foreach (DataColumn col in dt1.Columns)
+                            {
+                                row.Add(col.ColumnName, dr[col]);
+                            }
+                            rows.Add(row);
+                        }
+
+                        ser.MaxJsonLength = int.MaxValue;
                     }
-                    rows.Add(row);
+                }
+                catch
+                {
+
+
+
+                    if (dt1 != null && dt1.Rows.Count > 0)
+                    {
+                        foreach (DataRow dr in dt1.Rows)
+                        {
+                            row = new Dictionary<string, object>();
+                            foreach (DataColumn col in dt1.Columns)
+                            {
+                                row.Add(col.ColumnName, dr[col]);
+                            }
+                            rows.Add(row);
+                        }
+
+                        ser.MaxJsonLength = int.MaxValue;
+
+
+
+                    }
                 }
             }
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            ser.MaxJsonLength = int.MaxValue;
-
             return ser.Serialize(rows);
+        }
 
+
+        [WebMethod(EnableSession = true)]
+        public static object GetAllFeedbackByDateRange_NewFormat(
+    string FromDate,
+    string ToDate,
+    string SubDomain)
+        {
+            try
+            {
+                string formattedFromDate = Convert.ToDateTime(FromDate).ToString("dd-MMM-yyyy");
+                string formattedToDate = Convert.ToDateTime(ToDate).ToString("dd-MMM-yyyy");
+
+                From_Date = formattedFromDate;
+                To_Date = formattedToDate;
+                Sub_Domain = SubDomain;
+
+                DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(formattedFromDate,formattedToDate,SubDomain);
+
+                List<Dictionary<string, object>> gridRows = new List<Dictionary<string, object>>();
+
+                int exportRecordCount = 0;
+                int gridRecordCount = 0;
+
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    exportRecordCount = dt.Rows.Count;
+
+                    /*
+                     * This table contains all records, including No Error records.
+                     * It can be used by the server-side Excel export.
+                     */
+                    dt_Export = dt.Copy();
+
+                    DataRow[] filteredRows = dt.AsEnumerable().Where(r => !string.Equals(Convert.ToString(r["Severity"]).Trim(), "No Error", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+                    gridRecordCount = filteredRows.Length;
+
+                    foreach (DataRow dr in filteredRows)
+                    {
+                        Dictionary<string, object> row = new Dictionary<string, object>();
+
+                        foreach (DataColumn column in dt.Columns)
+                        {
+                            object value = dr[column];
+
+                            row[column.ColumnName] = value == DBNull.Value ? null : value;
+                        }
+
+                        gridRows.Add(row);
+                    }
+                }
+                else
+                {
+                    dt_Export = null;
+                }
+
+                bool hasExportData = exportRecordCount > 0;
+                bool hasGridData = gridRecordCount > 0;
+
+                string message = "";
+
+                if (!hasExportData)
+                {
+                    message = "No feedback records are available for the selected criteria.";
+                }
+                else if (!hasGridData)
+                {
+                    message = "Records are available, but they are not displayed in the grid because all records have Severity as 'No Error'. You can generate the Excel report to view those records.";
+                }
+
+                return new
+                {
+                    Success = true,
+                    GridData = gridRows,
+                    HasGridData = hasGridData,
+                    HasExportData = hasExportData,
+                    GridRecordCount = gridRecordCount,
+                    ExportRecordCount = exportRecordCount,
+                    Message = message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new
+                {
+                    Success = false,
+                    GridData = new List<object>(),
+                    HasGridData = false,
+                    HasExportData = false,
+                    GridRecordCount = 0,
+                    ExportRecordCount = 0,
+                    Message = "An error occurred while loading feedback records.",
+                    Error = ex.Message
+                };
+            }
         }
 
         [WebMethod]

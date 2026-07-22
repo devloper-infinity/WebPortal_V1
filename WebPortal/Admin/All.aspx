@@ -527,7 +527,15 @@
                                     return meta.row + 1;
                                 }
                             },
-
+                            {
+                                data: "EmployeeID",
+                                title: "EmployeeID",
+                                className: "text-nowrap",
+                                defaultContent: "",
+                                render: function (data) {
+                                    return blankForNull(data);
+                                }
+                            },
                             {
                                 data: "UserName",
                                 title: "UserName",

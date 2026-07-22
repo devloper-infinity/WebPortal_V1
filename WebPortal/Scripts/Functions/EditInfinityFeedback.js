@@ -32,7 +32,6 @@ function toggleSeverityDependentFields() {
     if (!shouldShowFeedbackStatus) {
         $feedbackStatusField.find(":input").val("");
     }
-    $("#onshoreConclusionSection").hide();
 }
 
 function BindInfinityFeedback(FeedbackID, subdomain) {
@@ -78,10 +77,9 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
                 document.getElementById("infFeedback_RCA").value = value.RCA;
                 document.getElementById("infFeedback_Finding").value = value.Finding;
 
-
                 /* Onshore Response */
-                if (value.RebuttalStatus === "Agree" || value.RebuttalStatus === "Rebuttal") {
-
+                if ((value.RebuttalStatus === "Agree" || value.RebuttalStatus === "Rebuttal") && Number(employeeId) === 10313) {
+                  
                     $("#onshoreConclusionSection").show();
                     $("#btnAddFeedback").hide(); // display
                     $("#btnFinalRemark").show();
@@ -328,6 +326,7 @@ function edit_UpdateFinalRemark() {
 
     return false;
 }
+
 
 function showValidation(message, elementId) {
 

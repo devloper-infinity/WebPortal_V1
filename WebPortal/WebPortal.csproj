@@ -2728,6 +2728,7 @@
     <Content Include="Reports\CreditConsolidatedReport.aspx" />
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\Accounts\Advance.js" />
+    <Content Include="Scripts\Accounts\CompareReportDueSalary.js" />
     <Content Include="Scripts\Accounts\SalarySlip.js" />
     <Content Include="Scripts\AI.js" />
     <Content Include="Scripts\CRM\CRM.js" />

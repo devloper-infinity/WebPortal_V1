@@ -25,87 +25,6 @@ function btnEditFeedbackShowReport() {
     }
 }
 
-function Core_BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
-
-    $('#load1').show();
-
-    InfinityFeedback_html = '';
-    $.ajax({
-        url: "InfinityFeedback.aspx/GetAllFeedbackByDateRange_NewFormat",
-        type: "POST",
-        dataType: "json",
-        data: "{FromDate:'" + FromDate + "',ToDate:'" + ToDate + "', SubDomain : '" + subdomain + "'}",
-        contentType: "application/json; charset=utf-8",
-
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);
-            $.each(dataArray, function (index, value) {
-
-                var approveddate = '';
-                InfinityFeedback_html += '<tr>';
-                InfinityFeedback_html += '<td style="text-align:center;"><a class="dropdown-item" target="_blank" href="EditInfinityFeedback.aspx?FID=' + value.FeedbackID + '&s=' + subdomain.substring(0, 1) + '" title="Edit Feedback"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-pen" style="font-size:16px;"></i></span></a></td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.FeedbackID) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LoanNumber) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Client) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.UWName) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.QCName) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.DateReviewed) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.QCDate) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Category) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Subcategory) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ErrorField) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Screen) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ErrorType) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Finding) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.FeedbackType) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Severity) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.RCA) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.OnshoreRebuttalResponse) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.OnshoreRebuttalComments) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ManagerFinalStatus) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ManagerFinalComments) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Source) + '</td>';
-                InfinityFeedback_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.FeedbackReceivedDate) + '</td>';
-                InfinityFeedback_html += '</tr>';
-            });
-
-            if ($.fn.dataTable.isDataTable('#table_InfinityFeedback')) {
-                InfinityFeedback_table.destroy();
-            }
-            $('#table_InfinityFeedback tbody').html(InfinityFeedback_html);
-            //else
-            InfinityFeedback_table = $('#table_InfinityFeedback').DataTable({
-                dom: 'ftip',
-                destroy: true,
-                scrollX: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                'select': {
-                    'style': 'single'
-                },
-                buttons: [
-                    {
-                        extend: 'excelHtml5', title: 'Feedback Details', autoFilter: true
-                    },
-                ],
-                initComplete: function () {
-
-                    $('#load1').hide();
-                },
-            });
-        },
-
-        error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
-        }
-    });
-    return false;
-}
-
 function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
 
     $('#load1').show();
@@ -123,223 +42,313 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
 
         success: function (response) {
 
+            let result = response.d || {};
             let dataArray = [];
 
-            try {
-                dataArray = typeof response.d === "string"
-                    ? JSON.parse(response.d || "[]")
-                    : (response.d || []);
+            /*
+             * Depending on the .NET configuration, response.d might occasionally
+             * be returned as a JSON string.
+             */
+            if (typeof result === "string") {
+                try {
+                    result = JSON.parse(result);
+                }
+                catch (error) {
+                    console.error("Invalid JSON response:", error);
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Invalid Response",
+                        text: "The server returned an invalid response."
+                    });
+
+                    return;
+                }
             }
-            catch (error) {
-                console.error("Invalid JSON response:", error);
-                dataArray = [];
+
+            if (!result.Success) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Unable to Load Data",
+                    text: result.Message ||
+                        "An error occurred while loading feedback records."
+                });
+
+                return;
             }
+
+            dataArray = Array.isArray(result.GridData)
+                ? result.GridData
+                : [];
 
             // Destroy existing DataTable
             if ($.fn.DataTable.isDataTable('#table_InfinityFeedback')) {
-                $('#table_InfinityFeedback').DataTable().clear().destroy();
+                $('#table_InfinityFeedback')
+                    .DataTable()
+                    .clear()
+                    .destroy();
             }
 
-            InfinityFeedback_table = $('#table_InfinityFeedback').DataTable({
+            InfinityFeedback_table =
+                $('#table_InfinityFeedback').DataTable({
 
-                data: dataArray,
+                    data: dataArray,
 
-                dom: 'Bftip',
-                destroy: true,
-                processing: true,
-                paging: true,
-                searching: true,
-                ordering: false,
-                autoWidth: false,
-                scrollX: true,
-                scrollCollapse: true,
+                    dom: 'ftip',
+                    destroy: true,
+                    processing: true,
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
 
-                select: {
-                    style: 'single'
-                },
+                    select: {
+                        style: 'single'
+                    },
 
-                columns: [
-                    {
-                        data: null,
-                        title: "Actions",
-                        orderable: false,
-                        searchable: false,
-                        className: "text-center",
-                        width: "60px",
+                    columns: [
+                        {
+                            data: null,
+                            title: "Actions",
+                            orderable: false,
+                            searchable: false,
+                            className: "text-center",
+                            width: "60px",
 
-                        render: function (data, type, row) {
+                            render: function (data, type, row) {
 
-                            if (!row.FeedbackID) {
-                                return "";
+                                if (!row.FeedbackID) {
+                                    return "";
+                                }
+
+                                const feedbackID =
+                                    encodeURIComponent(row.FeedbackID);
+
+                                const subDomainCode =
+                                    encodeURIComponent(
+                                        (subdomain || "").substring(0, 1)
+                                    );
+
+                                return `
+                            <a class="dropdown-item"
+                               target="_blank"
+                               href="EditInfinityFeedback.aspx?FID=${feedbackID}&s=${subDomainCode}"
+                               title="Edit Feedback">
+                                <span style="color:dodgerblue;">
+                                    <i class="uil uil-pen"
+                                       style="font-size:16px;"></i>
+                                </span>
+                            </a>`;
                             }
+                        },
+                        {
+                            data: "FeedbackID",
+                            title: "FeedbackID",
+                            visible: false,
+                            defaultContent: ""
+                        },
+                        {
+                            data: "LoanNumber",
+                            title: "Loan Number",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Client",
+                            title: "Client",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "UWName",
+                            title: "UW Name",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "QCName",
+                            title: "QC Name",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "DateReviewed",
+                            title: "Date Reviewed",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "QCDate",
+                            title: "QC Date",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Category",
+                            title: "Category",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Subcategory",
+                            title: "Sub Category",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorField",
+                            title: "Error Field",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Screen",
+                            title: "Screen",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType",
+                            title: "Error Type",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Finding",
+                            title: "Finding",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "FeedbackType",
+                            title: "Feedback Type",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Severity",
+                            title: "Severity",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "FeedbackStatus",
+                            title: "Feedback Status",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "RCA",
+                            title: "RCA/Rebuttal Comments",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "RebuttalStatus",
+                            title: "Onshore Rebuttal Response",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "RebuttalRemark",
+                            title: "Onshore Rebuttal Comments",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "FinalStatus",
+                            title: "Manager Final Status",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "FinalComments",
+                            title: "Manager Final Comments",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "Source",
+                            title: "Source",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "FeedbackReceivedDate",
+                            title: "Feedback Received Date",
+                            defaultContent: ""
+                        }
+                    ],
 
-                            const feedbackID = encodeURIComponent(row.FeedbackID);
-                            const subDomainCode = encodeURIComponent((subdomain || "").substring(0, 1));
+                    columnDefs: [
+                        {
+                            targets: '_all',
+                            className: 'text-nowrap'
+                        }
+                    ],
 
-                            return `<a class="dropdown-item" target="_blank" href="EditInfinityFeedback.aspx?FID=${feedbackID}&s=${subDomainCode}"
-                                   title="Edit Feedback"><span style="color:dodgerblue;"><i class="uil uil-pen"style="font-size:16px;"></i></span></a>`;
+                    createdRow: function (row, data) {
+
+                        const rebuttalStatus =
+                            (data.RebuttalStatus || "")
+                                .toString()
+                                .trim()
+                                .toLowerCase();
+
+                        if (rebuttalStatus === "rebuttal") {
+                            $(row).addClass("row-rebuttal");
+
+                            /*
+                             * RebuttalStatus is the 19th visible table cell when
+                             * FeedbackID is hidden, so index 17 is correct.
+                             */
+                            $('td:eq(17)', row)
+                                .addClass('rebuttal-status');
+                        }
+                        else if (rebuttalStatus === "agree") {
+                            $(row).addClass("row-rebuttal");
+
+                            $('td:eq(17)', row)
+                                .addClass('agree-status');
                         }
                     },
 
-                    {
-                        data: "FeedbackID",
-                        title: "FeedbackID",
-                        visible: false,
-                        defaultContent: ""
-                    },
-
-                    {
-                        data: "LoanNumber",
-                        title: "Loan Number",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Client",
-                        title: "Client",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "UWName",
-                        title: "UW Name",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "QCName",
-                        title: "QC Name",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "DateReviewed",
-                        title: "Date Reviewed",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "QCDate",
-                        title: "QC Date",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Category",
-                        title: "Category",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Subcategory",
-                        title: "Sub category",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "ErrorField",
-                        title: "Error Field",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Screen",
-                        title: "Screen",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "ErrorType",
-                        title: "Error Type",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Finding",
-                        title: "Finding",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "FeedbackType",
-                        title: "Feedback Type",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Severity",
-                        title: "Severity",
-                        defaultContent: ""
-                    },
-
-                    // This column was missing in your old row generation
-                    {
-                        data: "FeedbackStatus",
-                        title: "Feedback Status",
-                        defaultContent: ""
-                    },
-
-                    {
-                        data: "RCA",
-                        title: "RCA/Rebuttal Comments",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "RebuttalStatus",
-                        title: "Onshore Rebuttal Response",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "RebuttalRemark",
-                        title: "Onshore Rebuttal Comments",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "FinalStatus",
-                        title: "Manager Final Status",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "FinalComments",
-                        title: "Manager Final Comments",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "Source",
-                        title: "Source",
-                        defaultContent: ""
-                    },
-                    {
-                        data: "FeedbackReceivedDate",
-                        title: "Feedback Received Date",
-                        defaultContent: ""
-                    }
-                ],
-
-                columnDefs: [
-                    {
-                        targets: '_all',
-                        className: 'text-nowrap'
-                    }
-                ],
-                createdRow: function (row, data, dataIndex) {
-
-                    if ((data.OnshoreRebuttalResponse || "").toString().trim().toLowerCase() === "") {
-                        $(row).addClass("row-rebuttal");
-                    }
-
-                },
-
-                buttons: [
-                    {
-                        extend: 'excelHtml5',
-                        title: 'Feedback Details',
-                        filename: 'Feedback_Details',
-                        autoFilter: true,
-
-                        // Exclude Actions and hidden FeedbackID
-                        exportOptions: {
-                            columns: ':visible:not(:first-child)'
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            title: 'Feedback Details',
+                            filename: 'Feedback_Details',
+                            autoFilter: true,
+                            exportOptions: {
+                                columns: ':visible:not(:first-child)'
+                            }
                         }
+                    ],
+
+                    language: {
+                        emptyTable: result.HasExportData
+                            ? "No records are available for grid display. Use the Excel export option to view all records."
+                            : "No feedback records found.",
+                        processing: "Loading feedback records..."
+                    },
+
+                    initComplete: function () {
+                        $('#load1').hide();
                     }
-                ],
+                });
 
-                language: {
-                    emptyTable: "No feedback records found.",
-                    processing: "Loading feedback records..."
-                },
+            /*
+             * Case 1:
+             * dt_Export contains data, but dt1/grid data is empty.
+             */
+            if (result.HasExportData && !result.HasGridData) {
 
-                initComplete: function () {
-                    $('#load1').hide();
-                }
-            });
+                Swal.fire({
+                    icon: "info",
+                    title: "No Records for Grid Display",
+                    html:
+                        `<p>${result.Message}</p>` +
+                        `<p><strong>Excel records available:</strong> ` +
+                        `${result.ExportRecordCount}</p>`,
+                    confirmButtonText: "OK"
+                });
+            }
+
+            /*
+             * Case 2:
+             * No data is available in either the grid or Excel export.
+             */
+            else if (!result.HasExportData) {
+
+                Swal.fire({
+                    icon: "info",
+                    title: "No Data Available",
+                    text: result.Message ||
+                        "No feedback records are available for the selected criteria.",
+                    confirmButtonText: "OK"
+                });
+            }
 
             $('#load1').hide();
         },
