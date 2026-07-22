@@ -483,7 +483,7 @@
                 </div>
                 <br />
                 <div id="onshoreConclusionSection" style="display: none;">
-                    <div class="inf-section-title"><i class="fas fa-clipboard-check"></i>Onhore Response</div>
+                    <div class="inf-section-title"><i class="fas fa-clipboard-check"></i>Onshore Response</div>
                     <div class="inf-form-grid">
                         <div class="inf-field inf-severity-dependent">
                             <label for="infFeedback_Category">Onshore Rebuttal Response</label>
@@ -501,8 +501,8 @@
                             <label for="infFeedback_Category">Final Status</label>
                             <select id="infFeedback_finalStatus" name="infFeedback_finalStatus" class="form-control">
                                 <option value="">Select</option>
-                                 <option value="AgreeWithInhouse">Accept In-House Findings</option>
-    <option value="AgreeWithOnshore">Accept Onshore Findings</option>
+                                 <option value="Agree with Onshore">Agree with Onshore</option>
+    <option value="Agree with Global Team">Agree with Global Team</option>
                             </select>
                         </div>
                         <div class="inf-field inf-field-wide inf-severity-dependent">

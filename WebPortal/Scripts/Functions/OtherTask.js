@@ -76,70 +76,6 @@ function otherTask_bindProcess(el) {
 
 
 /* ================= UPLOAD ================= */
-function Core_otherTask_uploadData() {
-
-    projectId = $('#otherTask_project').val();      // ID
-    projectName = $('#otherTask_project option:selected').text(); // Text
-
-    processId = $('#otherTask_process').val();      // ID
-    processName = $('#otherTask_process option:selected').text(); // Text
-
-    var fileInput = document.getElementById("otherTask_fileUploads");
-
-    if (projectId === "") {
-
-        alert("Please select project.");
-        return false;
-    }
-
-    if (processId === null || processId === 0 || processId === "") {
-
-        alert("Please select process.");
-        return false;
-    }
-
-    if (fileInput.files.length === 0) {
-        alert("Please select file.");
-        return false;
-    }
-
-    // PageMethod Call
-    PageMethods.GetExcelDataToBindGrid(
-        function (response) {
-
-            var data = response;
-
-            if (response.length == 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Warning',
-                    text: "Error in updating data.",
-                    zIndex: 999999
-                });
-            } else {
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: "Data imported successfully.",
-                }).then(function () {
-
-                    processExcelData(data);
-                });
-            }
-        },
-
-        function (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.get_message()
-            });
-        }
-    );
-
-    return false;
-}
 
 function otherTask_uploadData() {
 
@@ -559,7 +495,7 @@ function loadOtherTaskReport() {
         alert("From Date cannot be greater than To Date");
         return;
     }
-
+   
     otherTaskReport_bindgrid(fromDate, toDate);
 }
 
@@ -593,6 +529,79 @@ function otherTaskReport_bindgrid(fromDate, toDate) {
             { data: 'DealNo', title: 'Deal #' },
             { data: 'LoanNo', title: 'Loan #' },
             { data: 'UserName', title: 'Completed By <br> (Pseudo Name)'},
+            { data: 'AssignedDate', title: 'Assigned Date' },
+            { data: 'ProcessDate', title: 'Completion Date' },
+            { data: 'Remark', title: 'Remark' },
+            { data: 'Reason', title: 'Reason' },
+            { data: 'EmpName', title: 'Added By' },
+            { data: 'AddedDate', title: 'Added Date' },
+        ],
+
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: 'Export to Excel',
+                className: 'btn btn-success',
+                filename: `OtherTask_Report_${fromDate}_to_${toDate}`,
+                title: `OtherTask Report (${fromDate} to ${toDate})`,
+            }
+        ]
+    });
+}
+
+
+
+
+/*------------ PM Other Task Report -------------*/
+
+function pm_loadOtherTaskReport() {
+
+    let fromDate = $('#pmothertaskreport_fromDate').val();
+    let toDate = $('#pmothertaskreport_toDate').val();
+
+    if (!fromDate || !toDate) {
+        alert("Please select From Date and To Date");
+        return;
+    }
+
+    if (new Date(fromDate) > new Date(toDate)) {
+        alert("From Date cannot be greater than To Date");
+        return;
+    }
+
+    PMotherTaskReport_bindgrid(fromDate, toDate);
+}
+
+function PMotherTaskReport_bindgrid(fromDate, toDate) {
+
+    if ($.fn.DataTable.isDataTable('#table_PMotherTaskReport')) {
+        $('#table_PMotherTaskReport').DataTable().clear().destroy();
+        $('#table_PMotherTaskReport').empty();
+    }
+
+    $('#table_PMotherTaskReport').DataTable({
+
+        dom: 'Bftrip', // ✅ REQUIRED
+
+        ajax: {
+            url: window.otherTaskReportServiceUrl || "OtherTaskReport.aspx/BindOtherTaskReport",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: function () {
+                return JSON.stringify({ FromDate: fromDate, ToDate: toDate });
+            },
+            dataSrc: function (response) {
+                return JSON.parse(response.d);
+            }
+        },
+
+        columns: [
+            { data: 'SrNo', title: 'Sr. #' },
+            { data: 'ProjectNo', title: 'Project' },
+            { data: 'Process', title: 'Process' },
+            { data: 'DealNo', title: 'Deal #' },
+            { data: 'LoanNo', title: 'Loan #' },
+            { data: 'UserName', title: 'Completed By <br> (Pseudo Name)' },
             { data: 'AssignedDate', title: 'Assigned Date' },
             { data: 'ProcessDate', title: 'Completion Date' },
             { data: 'Remark', title: 'Remark' },

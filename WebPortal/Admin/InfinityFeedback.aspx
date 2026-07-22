@@ -308,14 +308,26 @@
             }
         }
 
-        .row-rebuttal td {
-            background-color: #96DED1 !important;
-            /*  color: #9a3412 !important;*/
+        #table_InfinityFeedback tbody tr.row-rebuttal td {
+            background-color: #cceeff !important;
             font-weight: 600;
+        }
+
+        #table_InfinityFeedback tbody td.rebuttal-status {
+            color: red !important;
+            font-weight: 700 !important;
+            text-align: center;
+        }
+
+        #table_InfinityFeedback tbody td.agree-status {
+            color: green !important;
+            font-weight: 700 !important;
+            text-align: center;
         }
     </style>
 
-    <script>        $(document).ready(function () {
+    <script>       
+        $(document).ready(function () {
 
             infinityfeecback_bindsubdomain();
         });
@@ -401,32 +413,6 @@
             <div class="inf-table-wrap">
                 <table class="table" id="table_InfinityFeedback" style="width: 100%;">
                     <thead>
-                        <%--     <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">FeedbackID</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan Number</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Client</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">UW Name</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">QC Name</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Date Reviewed</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">QC Date</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sub category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Error Field</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Screen</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Error Type</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Finding</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Type</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Status</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA/Rebuttal Comments</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Onshore Rebuttal Response</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Onshore Rebuttal Comments</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Manager Final Status</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Manager Final Comments</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Source</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Received Date</th>
-                        </tr>--%>
                     </thead>
                     <tbody></tbody>
                 </table>
@@ -451,251 +437,3 @@
     </div>
 </asp:Content>
 
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
-    <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        .dataTables_length, .dataTables_info {
-            float: left !important;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            background: linear-gradient(to bottom, #cbd0dd, 3%, #fff) !important;
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none !important;
-            background-color: #fff !important;
-        }
-    </style>
-
-    <script>
-        $(document).ready(function () {
-           
-            infinityfeecback_bindsubdomain();
-        });
-
-    </script>
-</asp:Content>
-
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
-    <input id="filep_ap" style="display: none;" />
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Infinity Feedback</b></h6>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right" style="font-size: 12px; font-weight: bold;">
-                        <li class="breadcrumb-item"><a href="ImportFeedback.aspx" style="color: saddlebrown">Import Feedbacks</a></li>
-                        <li class="breadcrumb-item"><a href="SyncInternalFeedback.aspx" style="color: saddlebrown">Sync Internal Feedbacks</a></li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td><b>From Date :</b></td>
-                        <td>
-                            <input type="date" class="form-control" id="infFeedback_FromDate" name="infFeedback_FromDate" />
-                        </td>
-                        <td><b>To Date :</b></td>
-                        <td>
-                            <input type="date" class="form-control" id="infFeedback_ToDate" name="infFeedback_ToDate" />
-                        </td>
-                        <td id="tddomainhead"><b>Domain:</b></td>
-                        <td id="tddomainrow">
-                            <select id="inffeedback_domain" name="inffeedback_domain" class="form-control">
-                                <option value="">Select</option>
-                                <option value="Credit">Credit</option>
-                                <option value="Servicing">Servicing</option>
-                            </select>
-                        </td>
-                        <td>
-                            <button class="btn btn-primary" type="button" id="btnEditFeedbackShow" onclick="return btnEditFeedbackShowReport();">Show</button>
-                        </td>
-                    </tr>
-                </table>
-                <hr />
-                <table class="table" id="table_InfinityFeedback" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Actions</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">FeedbackID</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan Number</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Client</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">UW Name</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">QC Name</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Date Reviewed</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">QC Date</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sub category</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Error Field</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Screen</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Error Type</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Finding</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Type</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">RCA</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Comments</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Source</th>
-                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">Feedback Received Date</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="popUpAddFeedbackUser">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Edit Feedback</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                      <table class="table table-responsive">
-                        <tr>
-                            <td>
-                                <b>Category :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_Category" name="infFeedback_Category" class="form-control" style="width: 250px;" />
-                            </td>
-                            <td>
-                                <b>Sub category :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_SubCategory" name="infFeedback_SubCategory" class="form-control" style="width: 250px;" />
-                            </td>
-                            <td>
-                                <b>Error Field :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_ErrorField" name="infFeedback_Sategory" class="form-control" style="width: 250px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Screen :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_Screen" name="infFeedback_Screen" class="form-control" style="width: 250px;" />
-                            </td>
-                            <td>
-                                <b>Error Type :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_ErrorType" name="infFeedback_ErrorType" class="form-control" style="width: 250px;" />
-                            </td>
-                            <td>
-                                <b>Finding :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_Finding" name="infFeedback_Finding" class="form-control" style="width: 250px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Feedback Type :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_FeedbackType" name="infFeedback_FeedbackType" class="form-control" style="width: 250px;" />
-                            </td>
-                            <td>
-                                <b>Severity :</b>
-                            </td>
-                            <td>
-                                <select id="infFeedback_Severity" name="infFeedback_Severity" class="form-control" style="width: 250px;">
-                                    <option value="">Select</option>
-                                    <option value="Critical">Critical</option>
-                                    <option value="Non-Critical">Non-Critical</option>
-                                    <option value="No Error">No Error</option>
-                                </select>
-                            </td>
-                            <td>
-                                <b>RCA :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_RCA" name="infFeedback_RCA" class="form-control" style="width: 250px;" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Source :</b>
-                            </td>
-                            <td>
-                                <input type="text" id="infFeedback_Source" name="infFeedback_Source" class="form-control" style="width: 250px;" />
-                            </td>
-                            <td>
-                                <b>Feedback Received Date :</b>
-                            </td>
-                            <td>
-                                <input type="date" id="infFeedback_FeedbackRecDate" name="infFeedback_FeedbackRecDate" class="form-control" style="width: 250px;" />
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button class="btn btn-primary" type="button" id="btnAddFeedback" onclick="AddFeedback();">Add Feedback</button>
-                </div>
-                    
-                </div>
-                <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
-        </div>
-    </div>
-</asp:Content>--%>

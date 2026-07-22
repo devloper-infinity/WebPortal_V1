@@ -2728,6 +2728,7 @@
     <Content Include="Reports\CreditConsolidatedReport.aspx" />
     <Content Include="ResetPassword.aspx" />
     <Content Include="Scripts\Accounts\Advance.js" />
+    <Content Include="Scripts\Accounts\CompareReportDueSalary.js" />
     <Content Include="Scripts\Accounts\SalarySlip.js" />
     <Content Include="Scripts\AI.js" />
     <Content Include="Scripts\CRM\CRM.js" />
@@ -3128,6 +3129,14 @@
       <DependentUpon>TrackingSheet.aspx</DependentUpon>
     </Compile>
     <Compile Include="TrackingSheet\ManagerDashboard.aspx.cs">
+      <DependentUpon>ManagerDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerDashboard.ImportData.cs">
+      <DependentUpon>ManagerDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerDashboard.Allocation.cs">
       <DependentUpon>ManagerDashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>

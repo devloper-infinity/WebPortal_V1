@@ -40,19 +40,29 @@ namespace WebPortal.Admin
             string data = string.Empty;
             try
             {
-                DataTable dt = new bllMaster().GetOtherTaskReport(FromDate, ToDate, EmployeeID); 
+                DataTable dt = new bllMaster().GetOtherTaskReport(FromDate, ToDate, EmployeeID);
 
-                if (dt.Rows.Count > 0)
+                var rows = new List<Dictionary<string, object>>();
+
+                foreach (DataRow dataRow in dt.Rows)
                 {
-                    data = JsonConvert.SerializeObject(dt);
+                    var row = new Dictionary<string, object>();
+
+                    foreach (DataColumn column in dt.Columns)
+                    {
+                        row[column.ColumnName] = dataRow[column] == DBNull.Value ? "" : dataRow[column];
+                    }
+
+                    rows.Add(row);
                 }
+
+                return new JavaScriptSerializer().Serialize(rows);
             }
             catch (Exception ex)
             {
-                return "";
+                throw new Exception("Unable to load Other Task Report: " + ex.Message);
             }
 
-            return data;
         }
     }
 }

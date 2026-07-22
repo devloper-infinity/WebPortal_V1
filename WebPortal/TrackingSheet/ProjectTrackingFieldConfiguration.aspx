@@ -1092,14 +1092,14 @@
                     <h4 class="pt-config-title"><i class="fas fa-sliders-h"></i>&nbsp;Project Tracking Field Configuration</h4>
                     <div class="pt-config-subtitle">Configure project-wise tracking fields, process columns, sequence, and replica setup.</div>
                 </div>
-                <div>
+               <%-- <div>
                     <a href="ImportData.aspx" class="btn btn-sm btn-outline-success pt-config-quick-link">
                         <i class="fas fa-file-import"></i>&nbsp;Import Data
                     </a>
                     <a href="TrackingSheet.aspx" class="btn btn-sm btn-outline-primary pt-config-quick-link">
                         <i class="fas fa-table"></i>&nbsp;Tracking Sheet
                     </a>
-                </div>
+                </div>--%>
             </div>
 
             <input type="hidden" id="hdnFieldConfigId" value="0" />

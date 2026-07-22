@@ -107,7 +107,7 @@ namespace WebPortal
                 email = Convert.ToString(cmd.ExecuteScalar());
             }
 
-            email = "";
+           
 
             if (string.IsNullOrEmpty(email))
                 return "Email ID not available in system";

@@ -11,7 +11,7 @@ namespace WebPortal.TrackingSheet
 {
     public partial class ManagerDashboardPage : System.Web.UI.Page
     {
-        protected void Page_Load(object sender, EventArgs e) { }
+        protected void Page_Load(object sender, EventArgs e) { InitializeImportData(); }
         [WebMethod] public static string GetProjects() { return OLTrackingWeb.Json(Projects()); }
         [WebMethod] public static string GetProcesses(int projectId) { RequiredProject(projectId); return OLTrackingWeb.Json(Collect(projectId, delegate(bllOLTracking b, int id) { return b.GetProcessFlow(id); }, "ProcessID")); }
         [WebMethod] public static string GetUsers(int projectId) { RequiredProject(projectId); return OLTrackingWeb.Json(Collect(projectId, delegate(bllOLTracking b, int id) { return b.GetProjectUsers(id); }, "UserID")); }

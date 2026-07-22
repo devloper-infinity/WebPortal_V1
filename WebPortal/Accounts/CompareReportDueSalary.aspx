@@ -1,7 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Accounts/Accounts.Master" AutoEventWireup="true" CodeBehind="CompareReportDueSalary.aspx.cs" Inherits="WebPortal.Accounts.CompareReportDueSalary" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <portal:VersionedScript Src="~/Scripts/Reports/CompareReport.js" runat="server"></portal:VersionedScript>
     <style>
         .report-page {
             background: #f4f7fb;
@@ -289,58 +288,9 @@
                 display: block;
             }
     </style>
-    <script>
-        $(document).ready(function () {
-            BindMonthDropdowns();
-            BindYearDropdowns();
 
-            //$('#comparedue_btnCompare').on('click', function () {
-            //    comparedue_BindCompareDueReport();
-            //});
-            $('#comparedue_btnCompare').on('click', function () {
-                comparedue_BindCompareDueReport();
+    <portal:VersionedScript Src="~/Scripts/Accounts/CompareReportDueSalary.js" runat="server"></portal:VersionedScript>
 
-                if ($('.tab-btn[data-target="net"]').hasClass('active')) {
-                    comparedue_BindCompareNetReport();
-                }
-            });
-            $('#comparedue_btnExportExcel').on('click', function () {
-                $('.buttons-excel').click();
-            });
-
-            $(document).on('click', '.tab-btn', function () {
-                var target = $(this).data('target');
-
-                $('.tab-btn').removeClass('active');
-                $(this).addClass('active');
-
-                $('.tab-content').removeClass('active');
-
-                if (target === 'due') {
-                    $('#dueTab').addClass('active');
-
-                    setTimeout(function () {
-                        if ($.fn.DataTable.isDataTable('#comparedue_tblCompareReport')) {
-                            $('#comparedue_tblCompareReport').DataTable().columns.adjust();
-                        }
-                    }, 100);
-                }
-
-                if (target === 'net') {
-                    $('#netTab').addClass('active');
-
-                    if (!$.fn.DataTable.isDataTable('#comparenet_tblCompareReport')) {
-                        comparedue_BindCompareNetReport();
-                    } else {
-                        setTimeout(function () {
-                            $('#comparenet_tblCompareReport').DataTable().columns.adjust();
-                        }, 100);
-                    }
-                }
-            });
-        });
-
-    </script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="loading" id="load1">
@@ -363,10 +313,7 @@
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
-
                 <div class="report-page">
-
-
                     <div class="filter-panel">
                         <div class="filter-item">
                             <label>Current Month</label>
@@ -426,9 +373,7 @@
                                 <tbody></tbody>
                             </table>
                         </div>
-
                     </div>
-
                 </div>
             </div>
         </div>
