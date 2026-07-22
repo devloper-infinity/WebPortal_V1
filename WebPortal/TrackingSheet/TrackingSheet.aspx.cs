@@ -78,6 +78,19 @@ namespace WebPortal.TrackingSheet
             }
         }
         [WebMethod]
+        public static TrackingActionResult ResumeLoan(long assignmentId)
+        {
+            try
+            {
+                new bllOLTracking().ResumeLoan(assignmentId, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = true, Message = "Loan resumed successfully." };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
+        }
+        [WebMethod]
         public static TrackingActionResult CompleteLoan(long assignmentId, string remark, string[] feedbacks)
         {
             try
@@ -203,6 +216,13 @@ namespace WebPortal.TrackingSheet
                 case 50122: return "This assignment is no longer available in your queue.";
                 case 50123: return "Feedback is mandatory before completing this process.";
                 case 50124: return "Feedback cannot be added because this loan is no longer in your queue.";
+                case 50125: return "This loan is not currently on hold.";
+                case 50126: return "A hold reason is required.";
+                case 50127: return "Resume the loan before completing it.";
+                case 50128: return "One or more selected loans are no longer eligible.";
+                case 50129: return "You already have two Pending/In Process loans. Complete or hold one before resuming this loan.";
+                case 50130: return "Select one or two loans.";
+                case 50131: return "The selected user is not configured for this project.";
                 default: return "The requested action could not be completed. Please refresh the page and try again.";
             }
         }

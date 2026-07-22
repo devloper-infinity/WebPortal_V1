@@ -339,38 +339,17 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
 
         public void HoldLoan(long assignmentId, string holdReason, int userId)
         {
-            SqlCommand command = new SqlCommand(@"
-SET NOCOUNT ON;
-SET XACT_ABORT ON;
-BEGIN TRAN;
-
-DECLARE @ItemID bigint, @ProcessID int, @OldStatus varchar(20);
-SELECT @ItemID = a.ItemID, @ProcessID = a.ProcessID, @OldStatus = a.AssignmentStatus
-FROM dbo.OLTracking_Assignment a WITH (UPDLOCK, HOLDLOCK)
-WHERE a.AssignmentID = @AssignmentID AND a.UserID = @UserID AND a.IsCurrent = 1;
-
-IF @ItemID IS NULL
-BEGIN
-    ROLLBACK;
-    THROW 50122, 'Assignment was not found.', 1;
-END;
-
-UPDATE dbo.OLTracking_Assignment
-SET AssignmentStatus = 'Hold', HoldDate = GETDATE(), LastRemark = @HoldReason,
-    UpdatedBy = @UserID, UpdatedDate = GETDATE()
-WHERE AssignmentID = @AssignmentID;
-
-UPDATE dbo.OLTracking_Item
-SET ItemStatus = 'Hold', CurrentProcessID = @ProcessID,
-    UpdatedBy = @UserID, UpdatedDate = GETDATE()
-WHERE ItemID = @ItemID;
-
-INSERT dbo.OLTracking_StatusHistory (AssignmentID, OldStatus, NewStatus, Remark, ChangedBy)
-VALUES (@AssignmentID, @OldStatus, 'Hold', @HoldReason, @UserID);
-
-COMMIT;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            SqlCommand command = Command("OLTracking_HoldLoan");
             Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
             Add(command, "@HoldReason", SqlDbType.NVarChar, holdReason, 1000);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            ExecuteNonQuery(command);
+        }
+
+        public void ResumeLoan(long assignmentId, int userId)
+        {
+            SqlCommand command = Command("OLTracking_ResumeLoan");
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
             Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
         }
@@ -432,6 +411,78 @@ COMMIT;") { CommandType = CommandType.Text, CommandTimeout = 90 };
         public DataTable GetUserDailyProcesses(int userId)
         {
             SqlCommand command = Command("OLTracking_GetUserDailyProcesses"); Add(command, "@UserID", SqlDbType.Int, userId); return Table(command);
+        }
+
+        public DataTable GetProjectUsers(int projectId)
+        {
+            SqlCommand command = Command("OLTracking_GetProjectUsers"); Add(command, "@ProjectID", SqlDbType.Int, projectId); return Table(command);
+        }
+
+        public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId)
+        {
+            SqlCommand command = Command("OLTracking_GetEligibleLoans"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId); return Table(command);
+        }
+
+        public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId)
+        {
+            XElement loans = new XElement("loans");
+            if (loanNumbers != null) foreach (string loan in loanNumbers)
+                if (!string.IsNullOrWhiteSpace(loan)) loans.Add(new XElement("loan", loan.Trim()));
+            SqlCommand command = Command("OLTracking_ManagerAllocate"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@TargetUserID", SqlDbType.Int, targetUserId); Add(command, "@LoanXml", SqlDbType.Xml, loans.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@ManagerID", SqlDbType.Int, managerId); return Execute(command);
+        }
+
+        public DataTable GetManagerDetail(int projectId, int processId, int userId, string status, DateTime? fromDate, DateTime? toDate)
+        {
+            SqlCommand command = Command("OLTracking_GetManagerDetail"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@UserID", SqlDbType.Int, userId);
+            Add(command, "@Status", SqlDbType.VarChar, status, 20); Add(command, "@FromDate", SqlDbType.Date, fromDate);
+            Add(command, "@ToDate", SqlDbType.Date, toDate); return Table(command);
+        }
+
+        public DataTable GetManagerSummary(int projectId, int processId, int userId, DateTime? fromDate, DateTime? toDate)
+        {
+            SqlCommand command = Command("OLTracking_GetManagerSummary"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@UserID", SqlDbType.Int, userId);
+            Add(command, "@FromDate", SqlDbType.Date, fromDate); Add(command, "@ToDate", SqlDbType.Date, toDate); return Table(command);
+        }
+
+        public DataTable GetDealDashboard(int projectId, string dealNumber)
+        {
+            SqlCommand command = Command("OLTracking_GetDealDashboard"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); return Table(command);
+        }
+
+        public DataTable GetHourlyProduction(int projectId, DateTime reportDate, string dealNumber)
+        {
+            SqlCommand command = Command("OLTracking_GetHourlyProduction"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ReportDate", SqlDbType.Date, reportDate); Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); return Table(command);
+        }
+
+        public DataTable GetReallocationUsers(int projectId, string dealNumber, int processId)
+        {
+            SqlCommand command = Command("OLTracking_GetReallocationUsers"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId); return Table(command);
+        }
+
+        public DataTable GetReallocationOrders(int projectId, string dealNumber, int processId, int fromUserId)
+        {
+            SqlCommand command = Command("OLTracking_GetReallocationOrders"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@FromUserID", SqlDbType.Int, fromUserId); return Table(command);
+        }
+
+        public int ReallocateOrders(int projectId, int fromUserId, int toUserId, long[] assignmentIds, string remark, int managerId)
+        {
+            XElement assignments = new XElement("assignments");
+            if (assignmentIds != null) foreach (long id in assignmentIds) if (id > 0) assignments.Add(new XElement("assignment", id));
+            SqlCommand command = Command("OLTracking_ReallocateOrders"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@FromUserID", SqlDbType.Int, fromUserId); Add(command, "@ToUserID", SqlDbType.Int, toUserId);
+            Add(command, "@AssignmentXml", SqlDbType.Xml, assignments.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000); Add(command, "@ManagerID", SqlDbType.Int, managerId); return Execute(command);
         }
 
         private static void ExecuteNonQuery(SqlCommand command)

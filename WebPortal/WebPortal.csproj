@@ -2869,11 +2869,15 @@
     <Content Include="DatabaseScripts\OLTracking_004_CompleteLoan.sql" />
     <Content Include="DatabaseScripts\OLTracking_005_ParallelBranchEligibility.sql" />
     <Content Include="DatabaseScripts\OLTracking_006_FeedbackWorkflow.sql" />
+    <Content Include="DatabaseScripts\OLTracking_007_HoldTatAndManager.sql" />
+    <Content Include="DatabaseScripts\OLTracking_008_ManagerTabsAndReallocation.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />
     <Content Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx" />
     <Content Include="TrackingSheet\TrackingSheet.aspx" />
+    <Content Include="TrackingSheet\ManagerDashboard.aspx" />
+    <Content Include="TrackingSheet\ManagerAllocation.aspx" />
     <Content Include="TrackingSheet\TrackingSheetConfiguration.aspx" />
     <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
@@ -3123,6 +3127,20 @@
     </Compile>
     <Compile Include="TrackingSheet\TrackingSheet.aspx.designer.cs">
       <DependentUpon>TrackingSheet.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerDashboard.aspx.cs">
+      <DependentUpon>ManagerDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerDashboard.aspx.designer.cs">
+      <DependentUpon>ManagerDashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerAllocation.aspx.cs">
+      <DependentUpon>ManagerAllocation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ManagerAllocation.aspx.designer.cs">
+      <DependentUpon>ManagerAllocation.aspx</DependentUpon>
     </Compile>
     <Compile Include="Assets\AddAsset.aspx.cs">
       <DependentUpon>AddAsset.aspx</DependentUpon>

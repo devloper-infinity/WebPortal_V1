@@ -23,6 +23,63 @@ namespace WebPortal
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static List<MenuItem> LoadMenu()
         {
+            int userId = Convert.ToInt32(
+                HttpContext.Current.User.Identity.Name.ToString()
+            );
+
+            // Load all menus for complete parent-child hierarchy
+            DataTable dtAll = new bllMaster().GetAllMenus();
+
+            List<MenuItem> allMenus = dtAll.AsEnumerable()
+                .Select(r => new MenuItem
+                {
+                    MenuId = r.Field<int>("MenuId"),
+                    MenuName = r.Field<string>("MenuName"),
+                    ParentMenuId = r.Field<int>("ParentMenuId"),
+                    Url = r.Field<string>("Url"),
+                    SectionName = r.Field<string>("SectionName"),
+                    SortOrder = r.Field<int>("SortOrder"),
+                    Children = new List<MenuItem>()
+                })
+                .ToList();
+
+            // Load user-specific menus and dynamic URLs
+            DataTable dtRights = new bllMaster()
+                .GetMenuForUserFromGroup(userId);
+
+            List<int> allowed = dtRights.AsEnumerable()
+                .Select(r => r.Field<int>("MenuId"))
+                .ToList();
+
+            // Replace default URL with user-specific URL returned by procedure
+            Dictionary<int, string> userMenuUrls = dtRights.AsEnumerable()
+                .Where(r => !r.IsNull("Url"))
+                .GroupBy(r => r.Field<int>("MenuId"))
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.First().Field<string>("Url")
+                );
+
+            foreach (MenuItem menu in allMenus)
+            {
+                string userSpecificUrl;
+
+                if (userMenuUrls.TryGetValue(
+                    menu.MenuId,
+                    out userSpecificUrl))
+                {
+                    menu.Url = userSpecificUrl;
+                }
+            }
+
+            // Build complete tree
+            var fullTree = BuildTree(allMenus, 0);
+
+            // Filter tree based on user rights
+            return FilterTree(fullTree, allowed);
+        }
+        public static List<MenuItem> LoadMenu_OLD()
+        {
             int userId = Convert.ToInt32(HttpContext.Current.User.Identity.Name.ToString());
 
             // ✅ Load ALL menu items

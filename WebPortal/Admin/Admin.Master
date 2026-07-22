@@ -55,6 +55,7 @@
                                 dataType: "json",
                                 success: function (res) {
                                     let menuTree = res.d;
+                                    console.log(res.d);
                                     let html = "";
                                     menuTree.forEach(m => html += renderTopMenu(m));
                                     $("#dynamicMenu").html(html);
