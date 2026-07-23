@@ -71,7 +71,7 @@ namespace WebPortal.Admin
                 nav4.Style.Add("display", "");
                 nav5.Style.Add("display", "");
             }
-            else if (LogId == 12 || LogId == 216 || LogId == 285)
+            else if (LogId == 12 || LogId == 216 || LogId == 285 || LogId == 9858 || LogId == 291)
             {
                 nav2.Style.Add("display", "");
                 nav3.Style.Add("display", "none");
