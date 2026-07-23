@@ -42,7 +42,7 @@ namespace WebPortal.TrackingSheet
         }
 
         [WebMethod]
-        public static int SaveField(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, bool isForImport, int displayOrder, bool isProcessColumn, string dateFormat)
+        public static int SaveField(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, bool isForImport, int displayOrder, bool isProcessColumn, string dateFormat)
         {
             int savedFieldId = new bllProjectTracking().SaveFieldConfiguration(
                 fieldConfigId,
@@ -51,6 +51,7 @@ namespace WebPortal.TrackingSheet
                 dataType,
                 optionsText,
                 isRequired,
+                isUniqueField,
                 isVisible,
                 isEditable,
                 isForBilling,

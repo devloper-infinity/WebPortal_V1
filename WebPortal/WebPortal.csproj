@@ -848,6 +848,8 @@
     <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
+    <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
+    <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
     <Content Include="SessionKeepAlive.aspx" />
     <Content Include="MenuService.aspx" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert - Copy.jpeg" />
@@ -2871,6 +2873,10 @@
     <Content Include="DatabaseScripts\OLTracking_006_FeedbackWorkflow.sql" />
     <Content Include="DatabaseScripts\OLTracking_007_HoldTatAndManager.sql" />
     <Content Include="DatabaseScripts\OLTracking_008_ManagerTabsAndReallocation.sql" />
+    <Content Include="DatabaseScripts\OLTracking_009_FinalProcess.sql" />
+    <Content Include="DatabaseScripts\OLTracking_010_SingleInProcessLoan.sql" />
+    <Content Include="DatabaseScripts\OLTracking_011_UniqueLoanProcessAllocation.sql" />
+    <Content Include="DatabaseScripts\OLTracking_012_DynamicUniqueAllocation.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />

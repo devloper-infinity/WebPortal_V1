@@ -24,7 +24,7 @@
         }
 
         .card-body {
-            padding: 18px;
+            /*  padding: 18px;*/
         }
 
         .field-config-grid {
@@ -38,12 +38,12 @@
             background: #f8fafc;
         }
 
-        .field-config-grid label {
-            font-weight: 600 !important;
-            margin-bottom: 4px;
-            color: #334155;
-            font-size: 12px;
-        }
+            .field-config-grid label {
+                font-weight: 600 !important;
+                margin-bottom: 4px;
+                color: #334155;
+                font-size: 12px;
+            }
 
         .field-config-checks {
             display: flex;
@@ -52,13 +52,14 @@
             min-height: 38px;
         }
 
-        .field-config-checks label {
-            margin-bottom: 0;
-            font-weight: 500 !important;
-        }
+            .field-config-checks label {
+                margin-bottom: 0;
+                font-weight: 500 !important;
+            }
 
         .field-config-actions {
-            display: flex;
+            /* display: flex;*/
+            text-align: right !important;
             gap: 8px;
             align-items: center;
             flex-wrap: wrap;
@@ -75,12 +76,12 @@
             background: #ffffff;
         }
 
-        .field-config-replica label {
-            font-weight: 600 !important;
-            margin-bottom: 4px;
-            color: #334155;
-            font-size: 12px;
-        }
+            .field-config-replica label {
+                font-weight: 600 !important;
+                margin-bottom: 4px;
+                color: #334155;
+                font-size: 12px;
+            }
 
         .field-config-status {
             min-height: 24px;
@@ -94,10 +95,10 @@
             font-size: 13px;
         }
 
-        .form-control:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 0.12rem rgba(37, 99, 235, 0.18);
-        }
+            .form-control:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 0.12rem rgba(37, 99, 235, 0.18);
+            }
 
         .btn {
             border-radius: 5px;
@@ -111,26 +112,26 @@
             background: #ffffff;
         }
 
-        #table_ProjectTrackingFields th {
-            background: #eef2f7;
-            border-color: #d8e2ef;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
+            #table_ProjectTrackingFields th {
+                background: #eef2f7;
+                border-color: #d8e2ef;
+                color: #334155;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
 
-        #table_ProjectTrackingFields td {
-            border-color: #e2e8f0;
-            color: #334155;
-            vertical-align: middle;
-        }
+            #table_ProjectTrackingFields td {
+                border-color: #e2e8f0;
+                color: #334155;
+                vertical-align: middle;
+            }
 
-        #table_ProjectTrackingFields tbody tr:hover {
-            background: #f8fafc;
-        }
+            #table_ProjectTrackingFields tbody tr:hover {
+                background: #f8fafc;
+            }
 
         .project-tracking-loader-backdrop {
             display: none;
@@ -178,7 +179,6 @@
 
         .pt-config-page {
             max-width: 100%;
-            padding: 14px 18px 24px;
             background: #f4f7fb;
             min-height: calc(100vh - 120px);
         }
@@ -249,7 +249,7 @@
         .pt-config-table-wrap {
             width: 100%;
             overflow: auto;
-            padding: 0;
+            padding: 1%;
         }
 
         .pt-config-page .field-config-grid,
@@ -272,16 +272,16 @@
             border: 0;
         }
 
-        .pt-config-page #table_ProjectTrackingFields th {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            padding: 10px 8px;
-        }
+            .pt-config-page #table_ProjectTrackingFields th {
+                position: sticky;
+                top: 0;
+                z-index: 1;
+                padding: 10px 8px;
+            }
 
-        .pt-config-page #table_ProjectTrackingFields td {
-            padding: 9px 8px;
-        }
+            .pt-config-page #table_ProjectTrackingFields td {
+                padding: 9px 8px;
+            }
 
         @media (max-width: 768px) {
             .pt-config-hero {
@@ -293,7 +293,6 @@
         .pt-config-page {
             color: #172033;
             background: linear-gradient(180deg, #edf5fb 0%, #f7f9fc 48%, #f4f7fb 100%);
-            padding: 18px 22px 30px;
         }
 
         .pt-config-shell {
@@ -301,28 +300,95 @@
         }
 
         .pt-config-hero {
-            min-height: 82px;
+            position: relative;
+            overflow: hidden;
+            min-height: 94px;
             margin-bottom: 16px;
-            padding: 18px 20px;
-            border: 1px solid #cad8e6;
-            border-left: 6px solid #0f6b8f;
-            background: #ffffff;
-            box-shadow: 0 14px 34px rgba(31, 45, 61, 0.10);
+            padding: 18px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            background: linear-gradient(105deg, #284bd8 0%, #2d6fea 58%, #3bc4d3 100%);
+            box-shadow: 0 14px 30px rgba(39, 84, 205, 0.22);
+        }
+
+        .pt-config-hero::before,
+        .pt-config-hero::after {
+            position: absolute;
+            display: block;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.09);
+            content: "";
+            pointer-events: none;
+        }
+
+        .pt-config-hero::before {
+            top: -112px;
+            right: 5.5%;
+            width: 230px;
+            height: 230px;
+        }
+
+        .pt-config-hero::after {
+            right: 5.5%;
+            bottom: -152px;
+            width: 250px;
+            height: 250px;
+        }
+
+        .pt-config-hero > * {
+            position: relative;
+            z-index: 3;
+        }
+
+        .pt-config-heading {
+            position: relative;
+            display: flex;
+            width: 100%;
+            min-height: auto;
+            padding: 0;
+            align-items: center;
+            gap: 14px;
+            isolation: isolate;
+        }
+
+        .pt-config-heading::before,
+        .pt-config-heading::after {
+            display: none;
+        }
+
+        .pt-config-icon {
+            display: inline-flex;
+            flex: 0 0 50px;
+            width: 50px;
+            height: 50px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 16px;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.14);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            font-size: 21px;
         }
 
         .pt-config-title {
-            color: #102033;
+            color: #ffffff;
             font-size: 20px;
+            font-weight: 800;
             letter-spacing: 0;
+            text-transform: none;
+            text-shadow: 0 1px 2px rgba(15, 23, 42, 0.18);
         }
 
-        .pt-config-title i {
-            color: #0f6b8f;
-        }
+            .pt-config-title i {
+                color: #ffffff;
+            }
 
         .pt-config-subtitle {
-            color: #64748b;
-            font-size: 13px;
+            margin-top: 3px;
+            margin-left: 0;
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 12px;
         }
 
         .pt-config-quick-link {
@@ -332,11 +398,11 @@
             background: #f2fbfd;
         }
 
-        .pt-config-quick-link:hover {
-            color: #ffffff;
-            background: #0f6b8f;
-            border-color: #0f6b8f;
-        }
+            .pt-config-quick-link:hover {
+                color: #ffffff;
+                background: #0f6b8f;
+                border-color: #0f6b8f;
+            }
 
         .pt-config-panel {
             overflow: hidden;
@@ -412,13 +478,24 @@
             padding-top: 19px;
         }
 
-        .pt-config-page .field-config-checks label {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: #334155;
-            font-weight: 600 !important;
+        .pt-config-page .field-config-flags {
+            grid-column: 1 / span 3;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            padding-top: 0;
         }
+
+        .pt-config-page .field-config-secondary-field {
+            align-self: start;
+        }
+
+            .pt-config-page .field-config-checks label {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                color: #334155;
+                font-weight: 600 !important;
+            }
 
         .pt-config-page input[type="checkbox"] {
             width: 15px;
@@ -426,9 +503,89 @@
             accent-color: #0f6b8f;
         }
 
+        .pt-config-page .checkbox-wrapper-44.toggleButton {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin: 0;
+            cursor: pointer;
+            transform-origin: 50% 50%;
+            transform-style: preserve-3d;
+        }
+
+        .pt-config-page .checkbox-wrapper-44 input[type="checkbox"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .pt-config-page .checkbox-wrapper-44 .toggle-mark {
+            position: relative;
+            display: block;
+            flex: 0 0 24px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #94a3b8;
+            border-radius: 5%;
+            background: #ffffff;
+            transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.14s ease;
+        }
+
+        .pt-config-page .checkbox-wrapper-44 .toggle-mark svg {
+            position: absolute;
+            z-index: 1;
+            inset: -2px;
+            display: block;
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 3.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .pt-config-page .checkbox-wrapper-44 .toggle-mark path {
+            stroke-dasharray: 145;
+            stroke-dashoffset: 145;
+            transition: stroke-dashoffset 0.42s ease;
+        }
+
+        .pt-config-page .checkbox-wrapper-44 input:checked + .toggle-mark {
+            border-color: #0f6b8f;
+            background: linear-gradient(145deg, #12a7c9 0%, #0f6b8f 100%);
+            box-shadow: 0 4px 10px rgba(15, 107, 143, 0.22);
+        }
+
+        .pt-config-page .checkbox-wrapper-44 input:checked + .toggle-mark path {
+            stroke-dashoffset: 0;
+        }
+
+        .pt-config-page .checkbox-wrapper-44:active .toggle-mark {
+            transform: rotateX(28deg) scale(0.96);
+        }
+
+        .pt-config-page .checkbox-wrapper-44 input:focus-visible + .toggle-mark {
+            outline: 3px solid rgba(37, 99, 235, 0.22);
+            outline-offset: 2px;
+        }
+
+        .pt-config-page .checkbox-wrapper-44 input:disabled + .toggle-mark,
+        .pt-config-page .checkbox-wrapper-44 input:disabled ~ .toggle-text {
+            opacity: 0.48;
+        }
+
         .pt-config-page .field-config-actions {
+            grid-column: 4;
+            display: flex;
+            justify-content: flex-end;
             align-items: end;
-            padding-top: 18px;
+            flex-wrap: nowrap;
+            padding-top: 0;
         }
 
         .pt-config-page .btn {
@@ -442,10 +599,10 @@
             box-shadow: 0 8px 16px rgba(15, 107, 143, 0.20);
         }
 
-        .pt-config-page .btn-primary:hover {
-            border-color: #0b526e;
-            background: #0b526e;
-        }
+            .pt-config-page .btn-primary:hover {
+                border-color: #0b526e;
+                background: #0b526e;
+            }
 
         .pt-config-page .btn-outline-secondary {
             border-color: #b8c6d4;
@@ -459,10 +616,10 @@
             background: #f3fbf7;
         }
 
-        .pt-config-page .btn-outline-success:hover {
-            color: #ffffff;
-            background: #198754;
-        }
+            .pt-config-page .btn-outline-success:hover {
+                color: #ffffff;
+                background: #198754;
+            }
 
         .pt-config-page .field-config-status {
             min-height: 22px;
@@ -573,7 +730,33 @@
 
             .pt-config-page .field-config-checks,
             .pt-config-page .field-config-actions {
+                grid-column: 1;
                 padding-top: 0;
+            }
+
+            .pt-config-page .field-config-flags {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .pt-config-hero {
+                min-height: 94px;
+                padding: 16px 18px;
+            }
+
+            .pt-config-heading {
+                width: 100%;
+                min-height: auto;
+                padding: 0;
+            }
+
+            .pt-config-title {
+                font-size: 16px;
+            }
+
+            .pt-config-subtitle {
+                font-size: 11px;
             }
         }
     </style>
@@ -721,6 +904,7 @@
                 html += "<td>" + htmlEncode(field.DateFormat || "-") + "</td>";
                 html += "<td><span class='pt-options-text'>" + htmlEncode(field.OptionsText || "-") + "</span></td>";
                 html += "<td style='text-align:center;'>" + boolPill(field.IsRequired) + "</td>";
+                html += "<td style='text-align:center;'>" + boolPill(field.IsUniqueField) + "</td>";
                 html += "<td style='text-align:center;'>" + boolPill(field.IsVisible) + "</td>";
                 html += "<td style='text-align:center;'>" + boolPill(field.IsEditable) + "</td>";
                 html += "<td style='text-align:center;'>" + boolPill(field.IsForBilling) + "</td>";
@@ -730,7 +914,7 @@
                 html += "</tr>";
             });
 
-            $("#table_ProjectTrackingFields tbody").html(html || "<tr><td colspan='13' class='text-center'>No fields configured.</td></tr>");
+            $("#table_ProjectTrackingFields tbody").html(html || "<tr><td colspan='14' class='text-center'>No fields configured.</td></tr>");
         }
 
         function isTrue(value) {
@@ -814,6 +998,7 @@
             $("#ddlFieldDataType").val("Text");
             $("#txtFieldOptions").val("");
             $("#chkFieldRequired").prop("checked", false);
+            $("#chkUniqueField").prop("checked", false);
             $("#chkFieldVisible").prop("checked", true);
             $("#chkFieldEditable").prop("checked", true);
             $("#chkForBilling").prop("checked", false);
@@ -864,6 +1049,7 @@
             $("#ddlFieldDataType").val(field.DataType);
             $("#txtFieldOptions").val(field.OptionsText || "");
             $("#chkFieldRequired").prop("checked", yesNo(field.IsRequired) === "Yes");
+            $("#chkUniqueField").prop("checked", yesNo(field.IsUniqueField) === "Yes");
             $("#chkFieldVisible").prop("checked", yesNo(field.IsVisible) === "Yes");
             $("#chkFieldEditable").prop("checked", yesNo(field.IsEditable) === "Yes");
             $("#chkForBilling").prop("checked", yesNo(field.IsForBilling) === "Yes");
@@ -872,6 +1058,7 @@
             $("#txtDisplayOrder").val(field.DisplayOrder);
             setStatusOptionsMode(false);
             showConfigStatus("Editing selected field.", false);
+            $("#ddlFieldConfigProject").trigger("focus");
         }
 
         function editStatusOptions(index) {
@@ -889,6 +1076,7 @@
             $("#ddlFieldDataType").val("Dropdown");
             $("#txtFieldOptions").val(field.OptionsText || "");
             $("#chkFieldRequired").prop("checked", false);
+            $("#chkUniqueField").prop("checked", false);
             $("#chkFieldVisible").prop("checked", true);
             $("#chkFieldEditable").prop("checked", true);
             $("#chkForBilling").prop("checked", false);
@@ -897,17 +1085,18 @@
             $("#txtDisplayOrder").val(field.DisplayOrder);
             setStatusOptionsMode(true);
             showConfigStatus("Editing Status dropdown values only.", false);
+            $("#ddlFieldConfigProject").trigger("focus");
         }
 
         function setStatusOptionsMode(isStatusOptionsMode) {
             if (isStatusOptionsMode) {
-                $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkForImport, #ddlDateFormat").prop("disabled", true);
+                $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkUniqueField, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkForImport, #ddlDateFormat").prop("disabled", true);
                 $("#txtFieldOptions").prop("disabled", false).focus();
                 $("#btnSaveFieldConfig").html("<i class='fas fa-save'></i>&nbsp;Save Status Options");
                 return;
             }
 
-            $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkForImport").prop("disabled", false);
+            $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkUniqueField, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkForImport").prop("disabled", false);
             $("#btnSaveFieldConfig").html("<i class='fas fa-save'></i>&nbsp;Save Field");
             toggleProcessOptions();
         }
@@ -943,6 +1132,7 @@
                 dataType: isProcess ? "Process" : dataType,
                 optionsText: $("#txtFieldOptions").val(),
                 isRequired: $("#chkFieldRequired").is(":checked"),
+                isUniqueField: $("#chkUniqueField").is(":checked"),
                 isVisible: $("#chkFieldVisible").is(":checked"),
                 isEditable: $("#chkFieldEditable").is(":checked"),
                 isForBilling: $("#chkForBilling").is(":checked"),
@@ -1088,11 +1278,14 @@
     <div class="pt-config-page">
         <div class="pt-config-shell">
             <div class="pt-config-hero">
-                <div>
-                    <h4 class="pt-config-title"><i class="fas fa-sliders-h"></i>&nbsp;Project Tracking Field Configuration</h4>
-                    <div class="pt-config-subtitle">Configure project-wise tracking fields, process columns, sequence, and replica setup.</div>
+                <div class="pt-config-heading">
+                    <span class="pt-config-icon"><i class="fas fa-sliders-h"></i></span>
+                    <div>
+                        <h4 class="pt-config-title">Project Tracking Field Configuration</h4>
+                        <div class="pt-config-subtitle">Configure project-wise tracking fields, process columns, sequence, and replica setup.</div>
+                    </div>
                 </div>
-               <%-- <div>
+                <%-- <div>
                     <a href="ImportData.aspx" class="btn btn-sm btn-outline-success pt-config-quick-link">
                         <i class="fas fa-file-import"></i>&nbsp;Import Data
                     </a>
@@ -1135,13 +1328,19 @@
                             </select>
                         </div>
                         <div class="field-config-checks">
-                            <label><input type="checkbox" id="chkActualProcess" /> Actual Process</label>
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkActualProcess" />
+                                <span class="toggle-mark">
+                                    <svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg>
+                                </span>
+                                <span class="toggle-text">Actual Process</span>
+                            </label>
                         </div>
-                        <div>
+                        <div class="field-config-secondary-field">
                             <label for="txtDisplayOrder">Display Order</label>
                             <input type="number" id="txtDisplayOrder" class="form-control" min="0" />
                         </div>
-                        <div>
+                        <div class="field-config-secondary-field">
                             <label for="ddlDateFormat">Date Format</label>
                             <select id="ddlDateFormat" class="form-control" disabled>
                                 <option value="dd/MM/yyyy">dd/MM/yyyy</option>
@@ -1151,16 +1350,41 @@
                                 <option value="MMM dd yyyy">MMM dd yyyy</option>
                             </select>
                         </div>
-                        <div style="grid-column: span 2;">
+                        <div class="field-config-secondary-field" style="grid-column: span 2;">
                             <label for="txtFieldOptions">Dropdown Options</label>
                             <textarea id="txtFieldOptions" class="form-control" rows="2" placeholder="One option per line"></textarea>
                         </div>
-                        <div class="field-config-checks">
-                            <label><input type="checkbox" id="chkFieldRequired" /> Required</label>
-                            <label><input type="checkbox" id="chkFieldVisible" checked /> Visible</label>
-                            <label><input type="checkbox" id="chkFieldEditable" checked /> Editable</label>
-                            <label><input type="checkbox" id="chkForBilling" /> For Billing</label>
-                            <label><input type="checkbox" id="chkForImport" /> For Import</label>
+                        <div class="field-config-checks field-config-flags">
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkFieldRequired" />
+                                <span class="toggle-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">Required</span>
+                            </label>
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkUniqueField" />
+                                <span class="toggle-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">Unique Field</span>
+                            </label>
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkFieldVisible" checked />
+                                <span class="toggle-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">Visible</span>
+                            </label>
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkFieldEditable" checked />
+                                <span class="toggle-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">Editable</span>
+                            </label>
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkForBilling" />
+                                <span class="toggle-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">For Billing</span>
+                            </label>
+                            <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkForImport" />
+                                <span class="toggle-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">For Import</span>
+                            </label>
                         </div>
                         <div class="field-config-actions">
                             <button type="button" id="btnSaveFieldConfig" class="btn btn-primary">
@@ -1209,24 +1433,25 @@
                     <table class="table table-bordered table-sm pt-config-table" id="table_ProjectTrackingFields">
                         <thead>
                             <tr>
-                                <th style="width:190px; text-align:center;">Action</th>
-                                <th style="width:80px; text-align:center;">Order</th>
+                                <th style="width: 190px; text-align: center;">Action</th>
+                                <th style="width: 80px; text-align: center;">Order</th>
                                 <th>Field</th>
                                 <th>Type</th>
-                                <th style="width:120px;">Date Format</th>
+                                <th style="width: 120px;">Date Format</th>
                                 <th>Options</th>
-                                <th style="width:90px; text-align:center;">Required</th>
-                                <th style="width:90px; text-align:center;">Visible</th>
-                                <th style="width:90px; text-align:center;">Editable</th>
-                                <th style="width:100px; text-align:center;">For Billing</th>
-                                <th style="width:100px; text-align:center;">For Import</th>
-                                <th style="width:90px; text-align:center;">Process</th>
-                                <th style="width:100px; text-align:center;">Generated</th>
+                                <th style="width: 90px; text-align: center;">Required</th>
+                                <th style="width: 100px; text-align: center;">Unique Field</th>
+                                <th style="width: 90px; text-align: center;">Visible</th>
+                                <th style="width: 90px; text-align: center;">Editable</th>
+                                <th style="width: 100px; text-align: center;">For Billing</th>
+                                <th style="width: 100px; text-align: center;">For Import</th>
+                                <th style="width: 90px; text-align: center;">Process</th>
+                                <th style="width: 100px; text-align: center;">Generated</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="13" class="text-center">Select a project.</td>
+                                <td colspan="14" class="text-center">Select a project.</td>
                             </tr>
                         </tbody>
                     </table>

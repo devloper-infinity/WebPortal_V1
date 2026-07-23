@@ -30,7 +30,7 @@ function New_BindLogGrid(date, PMCode) {
             let dataArray = JSON.parse(data.d);
             let html = "";
 
-            const allowedUsers = [12, 7036, 216, 8082, 285, 255, 291, 8535, 277, 9738, 99];
+            const allowedUsers = [12, 7036, 216, 8082, 285, 255, 291, 8535, 277, 9738, 99, 9858];
 
             let pm_Code = Number(PMCode);
 

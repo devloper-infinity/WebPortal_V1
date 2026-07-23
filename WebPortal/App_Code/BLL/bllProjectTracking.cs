@@ -22,11 +22,16 @@ namespace WebPortal.App_Code.BLL
             dalProjectTracking.EnsureProjectBillingFields(projectId, userId);
         }
 
-        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
-            return dalProjectTracking.SaveFieldConfiguration(fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
+            return dalProjectTracking.SaveFieldConfiguration(fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
         }
 
+
+        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        {
+            return SaveFieldConfiguration(fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, false, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
+        }
         public int MoveFieldSequence(int projectId, int fieldConfigId, string direction, int userId)
         {
             return dalProjectTracking.MoveFieldSequence(projectId, fieldConfigId, direction, userId);

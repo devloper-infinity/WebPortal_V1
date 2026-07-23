@@ -10,23 +10,155 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
     <!-- Font Awesome Icons -->
-       <script src="../plugins/jquery/jquery.min.js"></script>
+    <script src="../plugins/jquery/jquery.min.js"></script>
     <link rel="stylesheet" href="../plugins/fontawesome-free/css/all.min.css">
     <link rel="stylesheet" href="../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
     <!-- Theme style -->
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
+
+
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
-    <script>
+    <%--    <script>
         $(document).ready(function () {
             getPendingTaskNotifications_Sidebar();
 
         });
 
+    </script>--%>
+
+    <script>
+        $(document).ready(function () {
+
+        });
+
+        $(document).ready(function () {
+
+            $.ajax({
+                type: "POST",
+                url: '<%= ResolveUrl("~/Admin/DashboardEmployee.aspx") %>/BindInformation',
+                contentType: "application/json",
+                dataType: "json",
+                success: function (data) {
+                    var dataArray = JSON.parse(data.d);
+                    var i = 0;
+                    $.each(dataArray, function (index, value) {
+
+                        var Posh_Status = value.PoshStatus;
+
+                        if (Posh_Status && Posh_Status.toLowerCase() === "completed") {
+
+                            $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
+                            $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
+                            if (typeof getPendingTaskNotifications_Sidebar === "function") {
+                                getPendingTaskNotifications_Sidebar();
+                            }
+
+                            $.ajax({
+                                type: "POST",
+                                url: '<%= ResolveUrl("~/MenuService.aspx") %>/LoadMenu',
+                                contentType: "application/json",
+                                dataType: "json",
+                                success: function (res) {
+                                    let menuTree = res.d;
+                                    console.log(res.d);
+                                    let html = "";
+                                    menuTree.forEach(m => html += renderTopMenu(m));
+                                    $("#dynamicMenu").html(html);
+                                }
+                            });
+                        }
+                        else {
+                            $("#aLogo").css({ "pointer-events": "none", "opacity": "0.5" });
+                            $("#lipendingTask").css({ "pointer-events": "none", "opacity": "0.5" });
+                        }
+                    });
+                },
+            });
+        });
+
+        // ----------------- Top Level Menu --------------------
+        function renderTopMenu(menu) {
+            let hasChildren = menu.Children.length > 0;
+
+            if (!hasChildren) {
+                return `
+          <li class="nav-item">
+              <a href="${menu.Url || '#'}" class="nav-link">${menu.MenuName}</a>
+          </li>`;
+            }
+
+            // Mega-menu detection: if children have SectionName
+            let isMega = menu.Children.some(x => x.SectionName);
+
+            if (!isMega) {
+                // Simple dropdown
+                return `
+          <li class="nav-item dropdown">
+              <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">${menu.MenuName}</a>
+              <ul class="dropdown-menu border-0 shadow">
+                  ${menu.Children.map(renderSimpleItem).join("")}
+              </ul>
+          </li>`;
+            }
+            // --------------- MEGA MENU ----------------
+            return `
+      <li class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">${menu.MenuName}</a>
+          <ul class="dropdown-menu border-0 shadow" style="width:700px; left:50%;">
+              <div class="col-sm-12">
+                  <div class="row">
+                      ${renderMegaSections(menu.Children)}
+                  </div>
+              </div>
+          </ul>
+      </li>`;
+
+        }
+
+        // ------------------ Simple Dropdown Items ----------------------
+        function renderSimpleItem(item) {
+            if (item.Children.length === 0) {
+                return `<li><a class="dropdown-item" href="${item.Url || '#'}">${item.MenuName}</a></li>`;
+            }
+            return ""; // no nesting for simple menus
+        }
+
+        // ------------------ Mega Menu Sections & Items -----------------
+        function renderMegaSections(children) {
+
+            let html = "";
+
+            children.forEach(section => {
+
+                // ✅ If this is a SECTION (has children)
+                if (section.Children && section.Children.length > 0) {
+
+                    html += `
+              <div class="col-sm-4">
+                  <div class="callout callout-info" style="margin-bottom:10px; padding:0 5px;">
+                      <h6 class="m-0"><b>${section.MenuName}</b></h6>
+                  </div>
+
+                  ${section.Children.map(item => `
+                      <a href="${item.Url || '#'}" class="dropdown-item">${item.MenuName}</a>
+                  `).join("")}
+              </div>`;
+                }
+
+            });
+
+            return html;
+        }
+
+        // const appVersion = '@DateTime.Now.Ticks';
+        // console.log('App Version:', appVersion);
+
     </script>
 </head>
+
 <body class="hold-transition sidebar-collapse layout-top-nav">
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
@@ -39,7 +171,7 @@
             <!-- Navbar -->
             <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
                 <div class="container">
-                    <a href="DashboardEmployee.aspx" class="navbar-brand">
+                    <a href="../Admin/DashboardEmployee.aspx" class="navbar-brand">
                         <img src="../images/logo-login.png" style="height: 50px;" />
                         <%--<span class="brand-text font-weight-light">INFINITY IPS</span>--%>
                     </a>
@@ -50,7 +182,9 @@
 
                     <div class="collapse navbar-collapse order-3" id="navbarCollapse">
                         <!-- Left navbar links -->
-                        <ul class="navbar-nav">
+                        <ul id="dynamicMenu" class="navbar-nav"></ul>
+
+                        <ul class="navbar-nav" style="display: none;">
                             <li class="nav-item" style="display: none;">
                                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
                             </li>
@@ -428,9 +562,10 @@
         <!-- AdminLTE App -->
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../dist/js/adminlte.min.js"></script>
-    <%--    <script src="../Scripts/AI.js?v=1"></script>--%>
+        <%--    <script src="../Scripts/AI.js?v=1"></script>--%>
         <!-- AdminLTE for demo purposes -->
-    <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
-</form>
+        <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
+    </form>
 </body>
+
 </html>

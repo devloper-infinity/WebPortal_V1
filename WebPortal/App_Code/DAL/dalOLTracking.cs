@@ -197,16 +197,63 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetProcessFlow(int projectId)
         {
-            SqlCommand command = Command("OLTracking_GetProcessFlow"); Add(command, "@ProjectID", SqlDbType.Int, projectId); return Table(command);
+            EnsureFinalProcessColumn();
+            SqlCommand command = new SqlCommand(@"
+SELECT FlowID,ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,
+       CAST(CASE WHEN IsMandatory=1 THEN 0 ELSE 1 END AS bit) CanSkip,
+       FeedbackRequiredOnComplete,IsFinalProcess,IsActive
+FROM dbo.OLTracking_ProcessFlow
+WHERE ProjectID=@ProjectID AND IsActive=1
+ORDER BY StageNo,ProcessName;") { CommandType = CommandType.Text };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            return Table(command);
         }
 
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, int userId)
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, int userId)
         {
-            SqlCommand command = Command("OLTracking_SaveProcessFlow"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            EnsureFinalProcessColumn();
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+IF @ProjectID<=0 OR @ProcessID<=0 THROW 50100,'Project and process are required.',1;
+IF @StageNo<=0 THROW 50101,'Sequence must be greater than zero.',1;
+IF NULLIF(LTRIM(RTRIM(@ProcessName)),'') IS NULL THROW 50102,'Process name is required.',1;
+BEGIN TRANSACTION;
+IF @IsFinalProcess=1
+    UPDATE dbo.OLTracking_ProcessFlow
+       SET IsFinalProcess=0,UpdatedBy=@UserID,UpdatedDate=GETDATE()
+     WHERE ProjectID=@ProjectID AND ProcessID<>@ProcessID AND IsActive=1 AND IsFinalProcess=1;
+MERGE dbo.OLTracking_ProcessFlow AS T
+USING(SELECT @ProjectID ProjectID,@ProcessID ProcessID) S
+ON T.ProjectID=S.ProjectID AND T.ProcessID=S.ProcessID
+WHEN MATCHED THEN UPDATE SET ProcessName=LTRIM(RTRIM(@ProcessName)),StageNo=@StageNo,IsMandatory=@IsMandatory,
+ FeedbackRequiredOnComplete=@FeedbackRequiredOnComplete,IsFinalProcess=@IsFinalProcess,IsActive=1,UpdatedBy=@UserID,UpdatedDate=GETDATE()
+WHEN NOT MATCHED THEN INSERT(ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,FeedbackRequiredOnComplete,IsFinalProcess,AddedBy)
+ VALUES(@ProjectID,@ProcessID,LTRIM(RTRIM(@ProcessName)),@StageNo,@IsMandatory,@FeedbackRequiredOnComplete,@IsFinalProcess,@UserID);
+COMMIT TRANSACTION;") { CommandType = CommandType.Text };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@ProcessName", SqlDbType.NVarChar, processName, 200);
             Add(command, "@StageNo", SqlDbType.Int, stageNo); Add(command, "@IsMandatory", SqlDbType.Bit, isMandatory);
-            Add(command, "@FeedbackRequiredOnComplete", SqlDbType.Bit, feedbackRequired); Add(command, "@UserID", SqlDbType.Int, userId);
+            Add(command, "@FeedbackRequiredOnComplete", SqlDbType.Bit, feedbackRequired); Add(command, "@IsFinalProcess", SqlDbType.Bit, isFinalProcess);
+            Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
+        }
+
+        private static void EnsureFinalProcessColumn()
+        {
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand(@"
+IF COL_LENGTH('dbo.OLTracking_ProcessFlow','IsFinalProcess') IS NULL
+    ALTER TABLE dbo.OLTracking_ProcessFlow ADD IsFinalProcess bit NOT NULL
+        CONSTRAINT DF_OLTracking_ProcessFlow_Final DEFAULT(0) WITH VALUES;
+IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_ProcessFlow') AND name='UX_OLTracking_ProcessFlow_Final')
+    EXEC(N'CREATE UNIQUE INDEX UX_OLTracking_ProcessFlow_Final
+        ON dbo.OLTracking_ProcessFlow(ProjectID)
+        WHERE IsFinalProcess=1 AND IsActive=1;');", connection))
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
         }
 
         public int RemoveProcessFlow(int projectId, int processId, int userId)
@@ -270,6 +317,15 @@ WHERE @StageNo IS NOT NULL
       WHERE a.ItemID = i.ItemID AND a.ProcessID = @ProcessID
         AND (a.IsCurrent = 1 OR a.AssignmentStatus IN ('Completed', 'Skipped'))
   )
+  AND NOT EXISTS
+  (
+      SELECT 1
+      FROM dbo.OLTracking_Assignment duplicateAssignment
+      INNER JOIN dbo.OLTracking_Item duplicateItem ON duplicateItem.ItemID = duplicateAssignment.ItemID
+      WHERE duplicateAssignment.ProcessID = @ProcessID
+        AND duplicateAssignment.IsCurrent = 1
+        AND LTRIM(RTRIM(duplicateItem.ItemNumber)) = LTRIM(RTRIM(i.ItemNumber))
+  )
   AND
   (
       @PreviousStage IS NULL
@@ -321,9 +377,58 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
 
         public int AllocateLoan(int projectId, int processId, string loanNumber, string dealNumber, int userId)
         {
-            SqlCommand command = Command("OLTracking_AllocateLoan"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
-            Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@LoanNumber", SqlDbType.NVarChar, loanNumber, 150);
-            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@UserID", SqlDbType.Int, userId); return Execute(command);
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON; SET XACT_ABORT ON;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    DECLARE @LockResult int,
+            @LockResource nvarchar(255)=N'OLTracking_Allocate_Global';
+    EXEC @LockResult=sys.sp_getapplock @Resource=@LockResource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+    IF @LockResult<0 THROW 50112,'Unable to verify whether this loan is already allocated. Please try again.',1;
+    IF EXISTS
+    (
+        SELECT 1
+        FROM dbo.OLTracking_Assignment a WITH(UPDLOCK,HOLDLOCK)
+        INNER JOIN dbo.OLTracking_Item i ON i.ItemID=a.ItemID
+        WHERE a.ProcessID=@ProcessID AND a.IsCurrent=1
+          AND LTRIM(RTRIM(i.ItemNumber))=LTRIM(RTRIM(@LoanNumber))
+    )
+        THROW 50112,'This loan and process combination is already allocated to another user.',1;
+
+    DECLARE @Allocated table(AssignmentID bigint);
+    INSERT @Allocated(AssignmentID)
+    EXEC dbo.OLTracking_AllocateLoan @ProjectID=@ProjectID,@ProcessID=@ProcessID,@LoanNumber=@LoanNumber,
+                                     @DealNumber=@DealNumber,@UserID=@UserID;
+    COMMIT TRANSACTION;
+    SELECT TOP(1) AssignmentID FROM @Allocated;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@LoanNumber", SqlDbType.NVarChar, loanNumber, 150);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Execute(command);
+        }
+
+        public bool IsLoanProcessCurrentlyAllocated(string loanNumber, int processId)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT CAST(CASE WHEN EXISTS
+(
+    SELECT 1
+    FROM dbo.OLTracking_Assignment a
+    INNER JOIN dbo.OLTracking_Item i ON i.ItemID=a.ItemID
+    WHERE a.ProcessID=@ProcessID AND a.IsCurrent=1
+      AND LTRIM(RTRIM(i.ItemNumber))=LTRIM(RTRIM(@LoanNumber))
+) THEN 1 ELSE 0 END AS bit);") { CommandType = CommandType.Text };
+            Add(command, "@LoanNumber", SqlDbType.NVarChar, loanNumber, 150);
+            Add(command, "@ProcessID", SqlDbType.Int, processId);
+            DataTable result = Table(command);
+            return result.Rows.Count > 0 && Convert.ToBoolean(result.Rows[0][0]);
         }
 
         public DataTable GetTrackingQueue(int userId)
@@ -333,8 +438,27 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
 
         public void StartLoan(long assignmentId, int userId)
         {
-            SqlCommand command = Command("OLTracking_StartLoan"); Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
-            Add(command, "@UserID", SqlDbType.Int, userId); ExecuteNonQuery(command);
+            EnsureSingleInProcessIndex();
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON; SET XACT_ABORT ON;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    DECLARE @LockResult int,@LockResource nvarchar(255)=N'OLTracking_InProcess_User_'+CONVERT(nvarchar(20),@UserID);
+    EXEC @LockResult=sys.sp_getapplock @Resource=@LockResource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+    IF @LockResult<0 THROW 50132,'Unable to verify the active loan. Please try again.',1;
+    IF EXISTS(SELECT 1 FROM dbo.OLTracking_Assignment WITH(UPDLOCK,HOLDLOCK)
+              WHERE UserID=@UserID AND IsCurrent=1 AND AssignmentStatus='In Process')
+        THROW 50132,'Another loan is already in process.',1;
+    EXEC dbo.OLTracking_StartLoan @AssignmentID=@AssignmentID,@UserID=@UserID;
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            ExecuteNonQuery(command);
         }
 
         public void HoldLoan(long assignmentId, string holdReason, int userId)
@@ -348,10 +472,57 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
 
         public void ResumeLoan(long assignmentId, int userId)
         {
-            SqlCommand command = Command("OLTracking_ResumeLoan");
+            EnsureSingleInProcessIndex();
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON; SET XACT_ABORT ON;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    DECLARE @LockResult int,@LockResource nvarchar(255)=N'OLTracking_InProcess_User_'+CONVERT(nvarchar(20),@UserID);
+    EXEC @LockResult=sys.sp_getapplock @Resource=@LockResource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+    IF @LockResult<0 THROW 50132,'Unable to verify the active loan. Please try again.',1;
+    IF EXISTS(SELECT 1 FROM dbo.OLTracking_Assignment WITH(UPDLOCK,HOLDLOCK)
+              WHERE UserID=@UserID AND IsCurrent=1 AND AssignmentStatus='In Process')
+        THROW 50132,'Another loan is already in process.',1;
+    EXEC dbo.OLTracking_ResumeLoan @AssignmentID=@AssignmentID,@UserID=@UserID;
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH") { CommandType = CommandType.Text, CommandTimeout = 90 };
             Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
             Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
+        }
+
+        private static void EnsureSingleInProcessIndex()
+        {
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand(@"
+DECLARE @LockResult int;
+EXEC @LockResult=sys.sp_getapplock @Resource=N'OLTracking_SingleInProcess_Index',@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=10000;
+IF @LockResult<0 THROW 50132,'Unable to verify the active-loan rule. Please try again.',1;
+BEGIN TRY
+    IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_Assignment') AND name='UX_OLTracking_Assignment_OneInProcessPerUser')
+       AND NOT EXISTS
+       (
+           SELECT UserID FROM dbo.OLTracking_Assignment
+           WHERE IsCurrent=1 AND AssignmentStatus='In Process'
+           GROUP BY UserID HAVING COUNT(1)>1
+       )
+        EXEC(N'CREATE UNIQUE INDEX UX_OLTracking_Assignment_OneInProcessPerUser
+               ON dbo.OLTracking_Assignment(UserID)
+               WHERE IsCurrent=1 AND AssignmentStatus=''In Process'';');
+    EXEC sys.sp_releaseapplock @Resource=N'OLTracking_SingleInProcess_Index',@LockOwner='Session';
+END TRY
+BEGIN CATCH
+    EXEC sys.sp_releaseapplock @Resource=N'OLTracking_SingleInProcess_Index',@LockOwner='Session';
+    THROW;
+END CATCH", connection) { CommandTimeout = 90 })
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
         }
 
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId)
@@ -435,6 +606,18 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
             Add(command, "@ManagerID", SqlDbType.Int, managerId); return Execute(command);
         }
 
+        public void ValidateManagerAllocation(int projectId, int processId, string[] loanNumbers)
+        {
+            XElement loans = new XElement("loans");
+            if (loanNumbers != null) foreach (string loan in loanNumbers)
+                if (!string.IsNullOrWhiteSpace(loan)) loans.Add(new XElement("loan", loan.Trim()));
+            SqlCommand command = Command("OLTracking_ValidateManagerAllocation");
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@LoanXml", SqlDbType.Xml, loans.ToString(SaveOptions.DisableFormatting));
+            ExecuteNonQuery(command);
+        }
+
         public DataTable GetManagerDetail(int projectId, int processId, int userId, string status, DateTime? fromDate, DateTime? toDate)
         {
             SqlCommand command = Command("OLTracking_GetManagerDetail"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -475,14 +658,15 @@ IF COL_LENGTH('dbo.OLTracking_Item', 'RecordSource') IS NULL
             Add(command, "@FromUserID", SqlDbType.Int, fromUserId); return Table(command);
         }
 
-        public int ReallocateOrders(int projectId, int fromUserId, int toUserId, long[] assignmentIds, string remark, int managerId)
+        public int ReallocateOrders(int projectId, int fromUserId, int toUserId, long[] assignmentIds, string remark, bool confirmInProcess, int managerId)
         {
             XElement assignments = new XElement("assignments");
             if (assignmentIds != null) foreach (long id in assignmentIds) if (id > 0) assignments.Add(new XElement("assignment", id));
             SqlCommand command = Command("OLTracking_ReallocateOrders"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@FromUserID", SqlDbType.Int, fromUserId); Add(command, "@ToUserID", SqlDbType.Int, toUserId);
             Add(command, "@AssignmentXml", SqlDbType.Xml, assignments.ToString(SaveOptions.DisableFormatting));
-            Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000); Add(command, "@ManagerID", SqlDbType.Int, managerId); return Execute(command);
+            Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000); Add(command, "@ConfirmInProcess", SqlDbType.Bit, confirmInProcess);
+            Add(command, "@ManagerID", SqlDbType.Int, managerId); return Execute(command);
         }
 
         private static void ExecuteNonQuery(SqlCommand command)
