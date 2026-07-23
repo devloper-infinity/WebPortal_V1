@@ -24,8 +24,12 @@ namespace WebPortal.Admin
     public partial class OtherTask : System.Web.UI.Page
     {
         static DataTable dtImport = new DataTable();
+        static DataTable dtCore = new DataTable();
+        static DataTable dtCheck = new DataTable();
+
         static string Project_Name;
         static string Assigned_Date;
+        static string All_Loans;
 
         static string NewFileName = "";
         static string FileName = "";
@@ -168,7 +172,9 @@ namespace WebPortal.Admin
         {
             DataTable dt1 = ReadExcelFile(NewFileName);
 
-            dtImport = dt1;
+            dtCore = dtImport = dt1;
+
+            All_Loans = string.Join(",", dt1.AsEnumerable().Select(r => r["LoanNo"].ToString()).Distinct());
 
             Assigned_Date = Convert.ToString(dt1.Rows[0]["AssignedDate"]);
 
@@ -205,14 +211,71 @@ namespace WebPortal.Admin
             Hashtable htParam = new Hashtable();
             htParam["Project"] = Project;
             htParam["Process"] = Process;
+            htParam["Loans"] = All_Loans;
             htParam["AssignedDate"] = Assigned_Date;
             htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
 
             DataTable dt = new bllMaster().CheckOtherTaskExistsOrNot(htParam);
+            dtCheck = dt;
+
             if (dt.Rows.Count > 0)
-                return "Exists";
+                return $"{dt.Rows.Count} duplicate loan(s) were found in the uploaded Excel file. These loan(s) already exist in the system. Please remove the duplicate entries and upload the file again.";
             else
                 return "Process";
+        }
+
+        [WebMethod]
+        public static string CheckDuplicate()
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer
+            {
+                MaxJsonLength = int.MaxValue
+            };
+
+            if (dtCore == null || dtCore.Rows.Count == 0)
+            {
+                return serializer.Serialize(new List<Dictionary<string, object>>());
+            }
+
+            if (!dtCore.Columns.Contains("LoanNo"))
+            {
+                throw new Exception("LoanNo column is not available in dtCore.");
+            }
+
+            if (!dtCore.Columns.Contains("DuplicateStatus"))
+            {
+                dtCore.Columns.Add("DuplicateStatus", typeof(string));
+            }
+
+            HashSet<string> existingLoans = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (dtCheck != null && dtCheck.Columns.Contains("LoanNo"))
+            {
+                existingLoans = new HashSet<string>(dtCheck.AsEnumerable().Select(row => Convert.ToString(row["LoanNo"]).Trim()).Where(loanNo => !string.IsNullOrWhiteSpace(loanNo)),StringComparer.OrdinalIgnoreCase);
+            }
+
+            foreach (DataRow dataRow in dtCore.Rows)
+            {
+                string loanNo = Convert.ToString(dataRow["LoanNo"]).Trim();
+
+                dataRow["DuplicateStatus"] = !string.IsNullOrWhiteSpace(loanNo) &&existingLoans.Contains(loanNo)? "Duplicate": string.Empty;
+            }
+
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>(dtCore.Rows.Count);
+
+            foreach (DataRow dataRow in dtCore.Rows)
+            {
+                Dictionary<string, object> item = new Dictionary<string, object>(dtCore.Columns.Count);
+
+                foreach (DataColumn column in dtCore.Columns)
+                {
+                    item[column.ColumnName] = dataRow[column] == DBNull.Value? null: dataRow[column];
+                }
+
+                result.Add(item);
+            }
+
+            return serializer.Serialize(result);
         }
 
         [WebMethod]
@@ -221,6 +284,7 @@ namespace WebPortal.Admin
             Hashtable htParam = new Hashtable();
             htParam["Project"] = Project;
             htParam["Process"] = Process;
+            htParam["Loans"] = All_Loans;
             htParam["AssignedDate"] = Assigned_Date;
             htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
 

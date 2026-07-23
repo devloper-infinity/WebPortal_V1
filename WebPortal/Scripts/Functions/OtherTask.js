@@ -134,54 +134,15 @@ function otherTask_uploadData() {
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Records Already Exist',
-                        text: 'Records already exist in the system. Do you want to delete and upload new records?',
+                        title: 'Duplicate Loans',
+                        text: existsResponse,
                         showCancelButton: true,
-                        confirmButtonText: 'Yes, Delete',
-                        cancelButtonText: 'Cancel'
+                        confirmButtonText: 'OK'
                     }).then(function (result) {
 
                         if (!result.isConfirmed) {
                             return;
                         }
-
-                        $('#load1').show();
-
-                        PageMethods.DeleteExistingOthertaskRecords(
-                            projectName,
-                            processName,
-
-                            function (deleteResponse) {
-
-                                $('#load1').hide();
-
-                                if (deleteResponse > 0) {
-                                    processExcelData(data);
-
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Success',
-                                        text: 'Existing records deleted and new records uploaded successfully.'
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: 'Existing records could not be deleted.'
-                                    });
-                                }
-                            },
-
-                            function (error) {
-                                $('#load1').hide();
-
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: error.get_message()
-                                });
-                            }
-                        );
                     });
                 },
 
@@ -495,7 +456,7 @@ function loadOtherTaskReport() {
         alert("From Date cannot be greater than To Date");
         return;
     }
-   
+
     otherTaskReport_bindgrid(fromDate, toDate);
 }
 
@@ -528,7 +489,7 @@ function otherTaskReport_bindgrid(fromDate, toDate) {
             { data: 'Process', title: 'Process' },
             { data: 'DealNo', title: 'Deal #' },
             { data: 'LoanNo', title: 'Loan #' },
-            { data: 'UserName', title: 'Completed By <br> (Pseudo Name)'},
+            { data: 'UserName', title: 'Completed By <br> (Pseudo Name)' },
             { data: 'AssignedDate', title: 'Assigned Date' },
             { data: 'ProcessDate', title: 'Completion Date' },
             { data: 'Remark', title: 'Remark' },
@@ -620,4 +581,30 @@ function PMotherTaskReport_bindgrid(fromDate, toDate) {
             }
         ]
     });
+}
+
+function bindDuplicateLoans_Grid() {
+
+    $('#load1').show();
+
+    PageMethods.CheckDuplicate(
+        function (response) {
+
+            $('#load1').hide();
+
+            var data = response ? JSON.parse(response) : [];
+
+            processExcelData(data);
+        },
+        function (error) {
+
+            $('#load1').hide();
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error.get_message()
+            });
+        }
+    );
 }
