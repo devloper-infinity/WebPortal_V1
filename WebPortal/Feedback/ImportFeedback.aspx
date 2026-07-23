@@ -1,11 +1,37 @@
 <%@ Page Title="" Language="C#" MasterPageFile="~/Feedback/Feedback.Master" AutoEventWireup="true" CodeBehind="ImportFeedback.aspx.cs" Inherits="WebPortal.Feedback.ImportFeedback" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 170px;
+            min-height: 155px;
+            z-index: 99999;
+            background: rgba(255,255,255,.96);
+            border-radius: 22px;
+            box-shadow: 0 18px 50px rgba(15,23,42,.18);
+            text-align: center;
+            padding: 22px 14px;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+            .loading img {
+                max-width: 78px;
+                display: block;
+                margin: 0 auto 10px;
+            }
+
         .fb-page {
             color: #172737;
             font-size: 13px;
-            padding: 18px 0 28px;
+            padding: 0px 0 28px;
         }
 
         .fb-hero {
@@ -240,9 +266,11 @@
         }
 
         function uploadImport(mode) {
+            $('#load1').show();
+
             var fileInput = mode === 'UW' ? $('#importUWFile')[0] : $('#importSearchFile')[0];
-            if (!fileInput.files || !fileInput.files.length) { showMessage('error', 'Please select Excel file.'); return; }
-            if (!/\.(xls|xlsx)$/i.test(fileInput.files[0].name)) { showMessage('error', 'Please select only .xls or .xlsx file.'); return; }
+            if (!fileInput.files || !fileInput.files.length) { showMessage('error', 'Please select Excel file.'); $('#load1').hide(); return; }
+            if (!/\.(xls|xlsx)$/i.test(fileInput.files[0].name)) { showMessage('error', 'Please select only .xls or .xlsx file.'); $('#load1').hide(); return; }
 
             var formData = new FormData();
             formData.append('FeedbackFile', fileInput.files[0]);
@@ -261,8 +289,10 @@
                     if (typeof result === 'string') result = JSON.parse(result);
                     showMessage(result.Success ? 'success' : 'error', result.Message);
                     bindImportResult(result);
+                    $('#load1').hide();
+
                 },
-                error: function (xhr) { showMessage('error', ajaxError(xhr)); }
+                error: function (xhr) { showMessage('error', ajaxError(xhr)); $('#load1').hide(); }
             });
         }
 
@@ -274,35 +304,191 @@
             bindDynamicTable('#importRejectedTable', result.RejectedRows || [], false);
         }
 
+        var addedTable = null;
+        var rejectedTable = null;
+
         function bindDynamicTable(selector, rows, added) {
-            var table = added ? addedTable : rejectedTable;
-            if (table) table.destroy();
+
+            rows = Array.isArray(rows) ? rows : [];
+
+            // Destroy existing DataTable
+            if ($.fn.DataTable.isDataTable(selector)) {
+                $(selector).DataTable().clear().destroy();
+            }
+
+            // Rebuild table structure completely
+            var $table = $(selector);
+            $table.empty();
+
+            $table.append('<thead><tr></tr></thead>');
+            $table.append('<tbody></tbody>');
+
             var columns = [];
+
+            // Collect all unique column names
             $.each(rows, function (_, row) {
-                $.each(row, function (key) { if ($.inArray(key, columns) === -1) columns.push(key); });
+                if (row && typeof row === 'object') {
+                    $.each(row, function (key) {
+                        if ($.inArray(key, columns) === -1) {
+                            columns.push(key);
+                        }
+                    });
+                }
             });
-            var head = $(selector + ' thead tr').empty();
-            $.each(columns, function (_, col) { head.append($('<th/>').text(col)); });
-            var body = $(selector + ' tbody').empty();
+
+            var $headerRow = $table.find('thead tr');
+            var $tbody = $table.find('tbody');
+
+            // Do not initialize DataTable when there are no columns
+            if (columns.length === 0) {
+                $tbody.append(
+                    '<tr>' +
+                    '<td class="text-center">No records found.</td>' +
+                    '</tr>'
+                );
+
+                if (added) {
+                    addedTable = null;
+                } else {
+                    rejectedTable = null;
+                }
+
+                return;
+            }
+
+            // Create headers
+            $.each(columns, function (_, columnName) {
+                $('<th/>', {
+                    text: columnName
+                }).appendTo($headerRow);
+            });
+
+            // Create rows
             $.each(rows, function (_, row) {
-                var tr = $('<tr/>');
-                $.each(columns, function (_, col) { tr.append($('<td/>').text(row[col] == null ? '' : row[col])); });
-                tr.appendTo(body);
+
+                var $tr = $('<tr/>');
+
+                $.each(columns, function (_, columnName) {
+
+                    var value = row[columnName];
+
+                    $('<td/>', {
+                        text: value == null ? '' : value
+                    }).appendTo($tr);
+                });
+
+                $tr.appendTo($tbody);
             });
-            var newTable = $(selector).DataTable({ responsive: false, scrollX: true, pageLength: 10, dom: 'Bfrtip', buttons: ['excelHtml5', 'print'] });
-            if (added) addedTable = newTable; else rejectedTable = newTable;
+
+            // Initialize DataTable only after table construction is complete
+            var newTable = $table.DataTable({
+                destroy: true,
+                responsive: false,
+                scrollX: true,
+                pageLength: 10,
+                autoWidth: false,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: added
+                            ? 'Added Feedback Records'
+                            : 'Rejected Feedback Records'
+                    },
+                    {
+                        extend: 'print',
+                        title: added
+                            ? 'Added Feedback Records'
+                            : 'Rejected Feedback Records'
+                    }
+                ]
+            });
+
+            if (added) {
+                addedTable = newTable;
+            } else {
+                rejectedTable = newTable;
+            }
         }
 
+        // function bindDynamicTable(selector, rows, added) {
+        //     var table = added ? addedTable : rejectedTable;
+        //     if (table) table.destroy();
+        //     var columns = [];
+        //     $.each(rows, function (_, row) {
+        //         $.each(row, function (key) { if ($.inArray(key, columns) === -1) columns.push(key); });
+        //     });
+        //     var head = $(selector + ' thead tr').empty();
+        //     $.each(columns, function (_, col) { head.append($('<th/>').text(col)); });
+        //     var body = $(selector + ' tbody').empty();
+        //     $.each(rows, function (_, row) {
+        //         var tr = $('<tr/>');
+        //         $.each(columns, function (_, col) { tr.append($('<td/>').text(row[col] == null ? '' : row[col])); });
+        //         tr.appendTo(body);
+        //     });
+        //     var newTable = $(selector).DataTable({ responsive: false, scrollX: true, pageLength: 10, dom: 'Bfrtip', buttons: ['excelHtml5', 'print'] });
+        //     if (added) addedTable = newTable; else rejectedTable = newTable;
+        // }
+
         function downloadFormat() {
-            var headers = ['Deal No', 'Order #', 'Order Date', 'Project #', 'Process', 'Error Done By', 'Feedback given By', 'Error Field', 'Section', 'Field', 'Error', 'Should be', 'Error Type', 'Fatal/Non-Fatal', 'Feedback Type', 'Feedback Received Date', 'Remark'];
-            var csv = headers.join(',') + '\n';
-            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // var headers = ['Order #','Order Date','Project #','Process','Error Done By','Feedback given By','Error Field','Section','Field',
+            //     'Error', 'Should be', 'Error Type', 'Fatal/Non-Fatal', 'Feedback Type', 'Feedback Received Date', 'Remark'];
+            // var csv = headers.join(',') + '\n';
+            // var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            // var link = document.createElement('a');
+            // link.href = URL.createObjectURL(blob);
+            // link.download = 'FeedbackImportFormat.csv';
+            // document.body.appendChild(link);
+            // link.click();
+            // document.body.removeChild(link);
+            var headers = [
+                'Order #',
+                'Order Date',
+                'Project #',
+                'Process',
+                'Error Done By',
+                'Feedback given By',
+                'Error Field',
+                'Section',
+                'Field',
+                'Error',
+                'Should be',
+                'Error Type',
+                'Fatal/Non-Fatal',
+                'Feedback Type',
+                'Feedback Received Date',
+                'Remark'
+            ];
+
+            // Create workbook
+            var wb = XLSX.utils.book_new();
+            var ws = XLSX.utils.aoa_to_sheet([headers]);
+            XLSX.utils.book_append_sheet(wb, ws, "Feedback Import");
+
+            // Generate workbook as ArrayBuffer
+            var wbout = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+
+            // Create Blob
+            var blob = new Blob(
+                [wbout],
+                {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                }
+            );
+
+            // Download
             var link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'FeedbackImportFormat.csv';
+            link.download = 'FeedbackImportFormat.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
+            // Optional: Release memory
+            URL.revokeObjectURL(link.href);
         }
 
         function fillSelect(selector, rows, valueKeys, textKeys, firstText) {
@@ -330,6 +516,10 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <div class="loading" id="load1">
+        <img src="../images/Load_1.gif" />
+        <div>One moment, please . . . .</div>
+    </div>
     <div class="fb-page">
         <div class="fb-hero">
             <div>
@@ -343,7 +533,7 @@
 
         <div class="fb-panel">
             <div class="fb-panel-body">
-                <div class="fb-tabs">
+                <div class="fb-tabs" style="display:none;">
                     <button type="button" class="fb-tab active" data-tab="searchImportPanel">Import Feedback</button>
                     <button type="button" class="fb-tab" data-tab="uwImportPanel">Import Feedback For UW</button>
                 </div>

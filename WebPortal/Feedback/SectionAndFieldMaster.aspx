@@ -2,7 +2,31 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-        .fb-page { color: #172737; font-size: 13px; padding: 18px 0 28px; }
+          .loading {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 170px;
+      min-height: 155px;
+      z-index: 99999;
+      background: rgba(255,255,255,.96);
+      border-radius: 22px;
+      box-shadow: 0 18px 50px rgba(15,23,42,.18);
+      text-align: center;
+      padding: 22px 14px;
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 800;
+  }
+
+      .loading img {
+          max-width: 78px;
+          display: block;
+          margin: 0 auto 10px;
+      }
+        .fb-page { color: #172737; font-size: 13px; padding: 0px 0 28px; }
         .fb-hero { align-items: center; background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%); border-radius: 8px; color: #fff; display: flex; justify-content: space-between; margin-bottom: 16px; padding: 20px 22px; }
         .fb-title { font-size: 22px; font-weight: 800; margin: 0; }
         .fb-subtitle { color: rgba(255,255,255,.9); font-size: 12px; margin: 6px 0 0; }
@@ -71,7 +95,17 @@
                 var tbody = $('#sfTable tbody').empty();
                 $.each(rows, function (i, row) {
                     $('<tr/>')
-                        .append('<td><button type="button" class="fb-btn fb-btn-light" onclick="editRow(' + i + ')">Edit</button> <button type="button" class="fb-btn fb-btn-danger" onclick="deleteRow(' + valueOf(row, ['SectionFieldID', 'ID']) + ')">Delete</button></td>')
+                        //.append('<td><button type="button" class="fb-btn fb-btn-light" onclick="editRow(' + i + ')">Edit</button> <button type="button" class="fb-btn fb-btn-danger" onclick="deleteRow(' + valueOf(row, ['SectionFieldID', 'ID']) + ')">Delete</button></td>')
+                        .append(
+                            '<td class="text-center">' +
+                            '<a href="javascript:void(0);" onclick="editRow(' + i + ')" title="Edit">' +
+                            '<i class="fa fa-edit text-primary" style="font-size:16px;margin-right:10px;cursor:pointer;"></i>' +
+                            '</a>' +
+                            '<a href="javascript:void(0);" onclick="deleteRow(' + valueOf(row, ['SectionFieldID', 'ID']) + ')" title="Delete">' +
+                            '<i class="fa fa-trash text-danger" style="font-size:16px;cursor:pointer;"></i>' +
+                            '</a>' +
+                            '</td>'
+                        )
                         .append($('<td/>').text(i + 1))
                         .append($('<td/>').text(valueOf(row, ['Domain', 'DomainName'])))
                         .append($('<td/>').text(valueOf(row, ['Project', 'ProjectName'])))
@@ -83,11 +117,13 @@
                         .data('row', row)
                         .appendTo(tbody);
                 });
-                sectionFieldTable = $('#sfTable').DataTable({ responsive: true, pageLength: 25, dom: 'Bfrtip', buttons: ['excelHtml5', 'pdfHtml5', 'print'] });
+                sectionFieldTable = $('#sfTable').DataTable({ responsive: true, pageLength: 10, dom: 'Bfrtip', buttons: ['excelHtml5', 'pdfHtml5', 'print'] });
             });
         }
 
         function saveSectionField() {
+            $('#load1').show();
+
             var model = {
                 SectionFieldID: parseInt($('#sfId').val() || '0', 10),
                 DomainID: parseInt($('#sfDomain').val() || '0', 10),
@@ -104,7 +140,8 @@
 
             sfPageMethod('SaveSectionField', { model: model }, function (result) {
                 showMessage(result.Success ? 'success' : 'error', result.Message);
-                if (result.Success) { clearForm(); loadSectionFields(); }
+                
+                if (result.Success) { clearForm(); loadSectionFields(); $('#load1').hide(); }
             });
         }
 
@@ -160,6 +197,10 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+           <div class="loading" id="load1">
+    <img src="../images/Load_1.gif" />
+    <div>One moment, please . . . .</div>
+</div>
     <div class="fb-page">
         <div class="fb-hero">
             <div>

@@ -2,7 +2,31 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-        .fb-page { color: #172737; font-size: 13px; padding: 18px 0 28px; }
+            .loading {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 170px;
+      min-height: 155px;
+      z-index: 99999;
+      background: rgba(255,255,255,.96);
+      border-radius: 22px;
+      box-shadow: 0 18px 50px rgba(15,23,42,.18);
+      text-align: center;
+      padding: 22px 14px;
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 800;
+  }
+
+  .loading img {
+      max-width: 78px;
+      display: block;
+      margin: 0 auto 10px;
+  }
+        .fb-page { color: #172737; font-size: 13px; padding: 0px 0 28px; }
         .fb-hero { background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%); border-radius: 8px; color: #fff; margin-bottom: 16px; padding: 20px 22px; }
         .fb-title { font-size: 22px; font-weight: 800; margin: 0; }
         .fb-subtitle { color: rgba(255,255,255,.9); font-size: 12px; margin: 6px 0 0; }
@@ -41,7 +65,7 @@
             $('#userShow').on('click', loadUserFeedback);
             $('#userFatal').on('click', function () { openUserAcceptance('Fatal'); });
             $('#userNonFatal').on('click', function () { openUserAcceptance('Non-Fatal'); });
-            loadUserFeedback();
+            //loadUserFeedback();
         });
 
         function userPageMethod(method, data, done) {
@@ -57,6 +81,7 @@
         }
 
         function loadUserFeedback() {
+            $('#load1').show();
             userPageMethod('GetFeedbacks', {
                 feedbackSource: $('input[name="feedbackSource"]:checked').val(),
                 fromDate: $('#userFrom').val(),
@@ -78,13 +103,28 @@
             $.each(rows, function (i, row) {
                 var orderNo = valueOf(row, ['OrderNo']);
                 var tr = $('<tr/>');
-                tr.append('<td><button type="button" class="fb-btn fb-btn-light" onclick="viewUserFeedback(\'' + escapeAttr(orderNo) + '\')">View</button></td>');
+//                tr.append('<td><button type="button" class="fb-btn fb-btn-light" onclick="viewUserFeedback(\'' + escapeAttr(orderNo) + '\')">View</button></td>');
+                tr.append('<td><a href = "javascript:void(0);" onclick = "viewUserFeedback(' + escapeAttr(orderNo) + ')" title = "View" > ' +
+                    '<i class="fa fa-eye text-primary" style="font-size:16px;margin-right:10px;"></i>' +
+                    '</a></td > ');
                 tr.append($('<td/>').text(i + 1));
-                $.each(userColumns, function (_, col) { tr.append($('<td/>').text(valueOf(row, [col[0]]))); });
+                $.each(userColumns, function (_, col) {
+                    var td = $('<td/>').text(valueOf(row, [col[0]]));
+                    if (col[0] === "Error" || col[0] === "ShouldBe" || col[0] === "Remark" || col[0] === "EDBRemark" || col[0] === "ProcessName") {
+                        td.css("white-space", "nowrap");
+                    }
+                    tr.append(td);
+                    //tr.append($('<td/>').text(valueOf(row, [col[0]])));
+                });
                 tr.appendTo(body);
             });
 
-            userFeedbackTable = $('#userTable').DataTable({ responsive: false, scrollX: true, pageLength: 25, dom: 'Bfrtip', buttons: ['excelHtml5', 'pdfHtml5', 'print'] });
+            userFeedbackTable = $('#userTable').DataTable({
+                responsive: false, scrollX: true, pageLength: 25, dom: 'Bfrtip', buttons: ['excelHtml5', 'pdfHtml5', 'print'],
+                initComplete: function () {
+                    $('#load1').hide();
+                }
+            });
         }
 
         function viewUserFeedback(orderNo) {
@@ -119,6 +159,10 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+     <div class="loading" id="load1">
+      <img src="../images/Load_1.gif" />
+      <div>One moment, please . . . .</div>
+  </div>
     <div class="fb-page">
         <div class="fb-hero">
             <h1 class="fb-title">View All Feedback</h1>

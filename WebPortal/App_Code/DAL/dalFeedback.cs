@@ -15,7 +15,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetAllProjectByDomainWise(int domainId, int employeeId)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "WBT_usp_GetAllProjectByDomainWise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllProjectByDomainWise");
             AddInt(cmd, "@DomainID", domainId);
             AddInt(cmd, "@EmployeeId", employeeId);
             return SQLHelper.ExecuteDataTableCmd(cmd);
@@ -43,7 +43,7 @@ namespace WebPortal.App_Code.DAL
 
         public int InsertSectionAndField(Hashtable values)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertSectionAndField");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertFeedback_SectionField");
             AddFromTable(cmd, "@DomainID", SqlDbType.BigInt, values, "DomainID", 10);
             AddFromTable(cmd, "@ProjectID", SqlDbType.BigInt, values, "ProjectID", 10);
             AddFromTable(cmd, "@Section", SqlDbType.NVarChar, values, "Section", 500);
@@ -55,7 +55,7 @@ namespace WebPortal.App_Code.DAL
 
         public int UpdateSectionAndField(Hashtable values)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateSectionAndField");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateFeedback_SectionField");
             AddFromTable(cmd, "@ID", SqlDbType.BigInt, values, "ID", 10);
             AddFromTable(cmd, "@Domain", SqlDbType.BigInt, values, "Domain", 10);
             AddFromTable(cmd, "@Project", SqlDbType.BigInt, values, "Project", 10);
@@ -68,7 +68,7 @@ namespace WebPortal.App_Code.DAL
 
         public int DeleteSectionAndField(int id, int deletedBy)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_DeleteSectionAndField");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_DeleteFeedback_SectionField");
             AddInt(cmd, "@ID", id);
             AddInt(cmd, "@DeletedBy", deletedBy);
             return ExecuteReturnValue(cmd);
@@ -229,7 +229,7 @@ namespace WebPortal.App_Code.DAL
 
         public int DeleteFeedback(int feedDetailsId, int deletedBy)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_DeleteFeedbak");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_DeleteFeedback");
             AddInt(cmd, "@FeedDetailsId", feedDetailsId);
             AddInt(cmd, "@DeletedBy", deletedBy);
             return ExecuteReturnValue(cmd);
@@ -280,7 +280,7 @@ namespace WebPortal.App_Code.DAL
 
         public int AddPMStatusByOrderWise(Hashtable values)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_AddPMStatusbyOrderWise");
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_internal_UpdatePMStatusbyOrederwise_1");
             AddFromTable(cmd, "@FeedDetailsId", SqlDbType.BigInt, values, "FeedDetailsId", 10);
             AddFromTable(cmd, "@PMStatus", SqlDbType.NVarChar, values, "PMStatus", 100);
             AddFromTable(cmd, "@PMExplanation", SqlDbType.NVarChar, values, "PMExplanation", 4000);

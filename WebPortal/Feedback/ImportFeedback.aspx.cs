@@ -221,7 +221,11 @@ namespace WebPortal.Feedback
                     if (header)
                     {
                         foreach (IXLCell cell in row.Cells())
-                            table.Columns.Add(UniqueColumnName(table, Convert.ToString(cell.Value).Trim()));
+                        {
+                            string columnName = cell.GetString().Trim();
+                            table.Columns.Add(UniqueColumnName(table, columnName));
+                            //table.Columns.Add(UniqueColumnName(table, Convert.ToString(cell.Value).Trim()));
+                        }
                         header = false;
                     }
                     else
