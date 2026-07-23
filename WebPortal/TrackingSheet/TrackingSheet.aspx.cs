@@ -34,7 +34,10 @@ namespace WebPortal.TrackingSheet
         {
             try
             {
-                int assignmentId = new bllOLTracking().AllocateLoan(projectId, processId, loanNumber, dealNumber, OLTrackingWeb.UserId);
+                bllOLTracking tracking = new bllOLTracking();
+                if (tracking.IsLoanProcessCurrentlyAllocated(loanNumber, processId))
+                    return new TrackingActionResult { Success = false, Message = "This Loan Number + Process combination is already allocated to another user." };
+                int assignmentId = tracking.AllocateLoan(projectId, processId, loanNumber, dealNumber, OLTrackingWeb.UserId);
                 return new TrackingActionResult { Success = assignmentId > 0, Message = assignmentId > 0 ? "Loan allocated successfully." : "Unable to allocate the selected loan." };
             }
             catch (Exception exception)
@@ -209,7 +212,7 @@ namespace WebPortal.TrackingSheet
                 case 2812: return "The completion service is not installed. Please contact the administrator.";
                 case 50110: return "You already have two Pending/In Process loans. Complete or place one on hold before allocating another.";
                 case 50111: return "The selected process is no longer available in this project's process flow.";
-                case 50112: return "This loan is already allocated or completed for the selected process.";
+                case 50112: return "This Loan Number + Process combination is already allocated to another user or has already been completed.";
                 case 50113: return "The required previous process has not been completed for this loan.";
                 case 50120: return "This loan is no longer available in your Pending queue.";
                 case 50121: return "A completion remark is required.";
@@ -223,6 +226,14 @@ namespace WebPortal.TrackingSheet
                 case 50129: return "You already have two Pending/In Process loans. Complete or hold one before resuming this loan.";
                 case 50130: return "Select one or two loans.";
                 case 50131: return "The selected user is not configured for this project.";
+                case 50132: return "Another loan is already In Process. Place it on Hold or complete it before starting another loan.";
+                case 2601:
+                case 2627:
+                    if (sqlException.Message.IndexOf("UX_OLTracking_Assignment_LoanProcess", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return "This Loan Number + Process combination is already allocated to another user.";
+                    if (sqlException.Message.IndexOf("UX_OLTracking_Assignment_OneInProcessPerUser", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return "Another loan is already In Process. Place it on Hold or complete it before starting another loan.";
+                    return "The selected record already exists and cannot be added again.";
                 default: return "The requested action could not be completed. Please refresh the page and try again.";
             }
         }

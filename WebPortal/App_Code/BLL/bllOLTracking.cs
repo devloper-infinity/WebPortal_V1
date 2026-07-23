@@ -33,14 +33,15 @@ namespace WebPortal.App_Code.BLL
             return dal.GetImportedDeals(projectId);
         }
         public DataTable GetProcessFlow(int projectId) { return dal.GetProcessFlow(projectId); }
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, int userId)
-        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, userId); }
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, int userId)
+        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, userId); }
         public int RemoveProcessFlow(int projectId, int processId, int userId) { return dal.RemoveProcessFlow(projectId, processId, userId); }
         public DataTable GetAvailableLoan(int projectId, string dealNumber, int processId, string processName, int userId)
         {
             return dal.GetNextEligibleImportedLoan(projectId, dealNumber, processId);
         }
         public int AllocateLoan(int projectId, int processId, string loanNumber, string dealNumber, int userId) { return dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId); }
+        public bool IsLoanProcessCurrentlyAllocated(string loanNumber, int processId) { return dal.IsLoanProcessCurrentlyAllocated(loanNumber, processId); }
         public DataTable GetTrackingQueue(int userId) { return dal.GetTrackingQueue(userId); }
         public void StartLoan(long assignmentId, int userId) { dal.StartLoan(assignmentId, userId); }
         public void HoldLoan(long assignmentId, string holdReason, int userId) { dal.HoldLoan(assignmentId, holdReason, userId); }
@@ -58,8 +59,14 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetUserDailyProcesses(int userId) { return dal.GetUserDailyProcesses(userId); }
         public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
         public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId) { return dal.GetEligibleLoans(projectId, dealNumber, processId); }
+       
         public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId)
-        { return dal.ManagerAllocate(projectId, dealNumber, processId, targetUserId, loanNumbers, managerId); }
+        {
+            return dal.ManagerAllocate(projectId, dealNumber, processId, targetUserId, loanNumbers, managerId);
+        }
+        public void ValidateManagerAllocation(int projectId, int processId, string[] loanNumbers)
+        { dal.ValidateManagerAllocation(projectId, processId, loanNumbers); }
+
         public DataTable GetManagerDetail(int projectId, int processId, int userId, string status, DateTime? fromDate, DateTime? toDate)
         { return dal.GetManagerDetail(projectId, processId, userId, status, fromDate, toDate); }
         public DataTable GetManagerSummary(int projectId, int processId, int userId, DateTime? fromDate, DateTime? toDate)
@@ -68,8 +75,8 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetHourlyProduction(int projectId, DateTime reportDate, string dealNumber) { return dal.GetHourlyProduction(projectId, reportDate, dealNumber); }
         public DataTable GetReallocationUsers(int projectId, string dealNumber, int processId) { return dal.GetReallocationUsers(projectId, dealNumber, processId); }
         public DataTable GetReallocationOrders(int projectId, string dealNumber, int processId, int fromUserId) { return dal.GetReallocationOrders(projectId, dealNumber, processId, fromUserId); }
-        public int ReallocateOrders(int projectId, int fromUserId, int toUserId, long[] assignmentIds, string remark, int managerId)
-        { return dal.ReallocateOrders(projectId, fromUserId, toUserId, assignmentIds, remark, managerId); }
+        public int ReallocateOrders(int projectId, int fromUserId, int toUserId, long[] assignmentIds, string remark, bool confirmInProcess, int managerId)
+        { return dal.ReallocateOrders(projectId, fromUserId, toUserId, assignmentIds, remark, confirmInProcess, managerId); }
 
         private static string FirstValue(DataRow row, params string[] names)
         {

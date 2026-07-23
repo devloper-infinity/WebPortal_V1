@@ -70,7 +70,7 @@ namespace WebPortal.App_Code.DAL
             }
         }
 
-        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             EnsureTables();
 
@@ -112,8 +112,8 @@ namespace WebPortal.App_Code.DAL
                         }
 
                         int savedFieldConfigId = fieldConfigId > 0
-                            ? UpdateFieldConfiguration(connection, transaction, fieldConfigId, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId)
-                            : InsertFieldConfiguration(connection, transaction, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId);
+                            ? UpdateFieldConfiguration(connection, transaction, fieldConfigId, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, isUniqueField, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId)
+                            : InsertFieldConfiguration(connection, transaction, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, isUniqueField, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId);
 
                         if (savedFieldConfigId <= 0)
                         {
@@ -130,6 +130,14 @@ namespace WebPortal.App_Code.DAL
                             DeleteProcessChildFields(connection, transaction, savedFieldConfigId, userId);
                         }
 
+                        using (SqlCommand refreshCommand = new SqlCommand(
+                            @"IF OBJECT_ID('dbo.OLTracking_RefreshProjectUniqueCombinations','P') IS NOT NULL
+                                  EXEC dbo.OLTracking_RefreshProjectUniqueCombinations @ProjectID;",
+                            connection, transaction))
+                        {
+                            refreshCommand.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                            refreshCommand.ExecuteNonQuery();
+                        }
                         transaction.Commit();
                         return savedFieldConfigId;
                     }
@@ -488,6 +496,7 @@ SELECT
     DataType,
     OptionsText,
     IsRequired,
+    IsUniqueField,
     IsVisible,
     IsEditable,
     IsForBilling,
@@ -556,7 +565,7 @@ WHERE ProjectID = @ProjectID
             return false;
         }
 
-        private static int InsertFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        private static int InsertFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             using (SqlCommand cmd = new SqlCommand(@"
 INSERT INTO dbo.WBT_ProjectTrackingFieldConfig
@@ -566,6 +575,7 @@ INSERT INTO dbo.WBT_ProjectTrackingFieldConfig
     DataType,
     OptionsText,
     IsRequired,
+    IsUniqueField,
     IsVisible,
     IsEditable,
     IsForBilling,
@@ -586,6 +596,7 @@ VALUES
     @DataType,
     @OptionsText,
     @IsRequired,
+    @IsUniqueField,
     @IsVisible,
     @IsEditable,
     @IsForBilling,
@@ -599,12 +610,12 @@ VALUES
     0
 );", connection, transaction))
             {
-                AddFieldParameters(cmd, 0, projectId, fieldName, dataType, optionsText, isRequired, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
+                AddFieldParameters(cmd, 0, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
 
-        private static int UpdateFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        private static int UpdateFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             using (SqlCommand cmd = new SqlCommand(@"
 UPDATE dbo.WBT_ProjectTrackingFieldConfig
@@ -612,6 +623,7 @@ SET FieldName = @FieldName,
     DataType = @DataType,
     OptionsText = @OptionsText,
     IsRequired = @IsRequired,
+    IsUniqueField = @IsUniqueField,
     IsVisible = @IsVisible,
     IsEditable = @IsEditable,
     IsForBilling = @IsForBilling,
@@ -630,12 +642,12 @@ WHERE FieldConfigId = @FieldConfigId
 
 SELECT CASE WHEN @@ROWCOUNT > 0 THEN @FieldConfigId ELSE 0 END;", connection, transaction))
             {
-                AddFieldParameters(cmd, fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
+                AddFieldParameters(cmd, fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
 
-        private static void AddFieldParameters(SqlCommand cmd, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        private static void AddFieldParameters(SqlCommand cmd, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             cmd.Parameters.Add("@FieldConfigId", SqlDbType.Int).Value = fieldConfigId;
             cmd.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
@@ -643,6 +655,7 @@ SELECT CASE WHEN @@ROWCOUNT > 0 THEN @FieldConfigId ELSE 0 END;", connection, tr
             cmd.Parameters.Add("@DataType", SqlDbType.NVarChar, 30).Value = dataType;
             cmd.Parameters.Add("@OptionsText", SqlDbType.NVarChar, -1).Value = string.IsNullOrEmpty(optionsText) ? (object)DBNull.Value : optionsText;
             cmd.Parameters.Add("@IsRequired", SqlDbType.Bit).Value = isRequired;
+            cmd.Parameters.Add("@IsUniqueField", SqlDbType.Bit).Value = isUniqueField;
             cmd.Parameters.Add("@IsVisible", SqlDbType.Bit).Value = isVisible;
             cmd.Parameters.Add("@IsEditable", SqlDbType.Bit).Value = isEditable;
             cmd.Parameters.Add("@IsForBilling", SqlDbType.Bit).Value = isForBilling;
@@ -675,6 +688,7 @@ SELECT
     DataType,
     OptionsText,
     IsRequired,
+    IsUniqueField,
     IsVisible,
     IsEditable,
     IsForBilling,
@@ -711,6 +725,7 @@ INSERT INTO dbo.WBT_ProjectTrackingFieldConfig
     DataType,
     OptionsText,
     IsRequired,
+    IsUniqueField,
     IsVisible,
     IsEditable,
     DisplayOrder,
@@ -733,6 +748,7 @@ VALUES
     @DataType,
     @OptionsText,
     @IsRequired,
+    @IsUniqueField,
     @IsVisible,
     @IsEditable,
     @DisplayOrder,
@@ -753,6 +769,7 @@ VALUES
                 cmd.Parameters.Add("@DataType", SqlDbType.NVarChar, 30).Value = Convert.ToString(sourceRow["DataType"]);
                 cmd.Parameters.Add("@OptionsText", SqlDbType.NVarChar, -1).Value = sourceRow["OptionsText"] == DBNull.Value ? (object)DBNull.Value : Convert.ToString(sourceRow["OptionsText"]);
                 cmd.Parameters.Add("@IsRequired", SqlDbType.Bit).Value = Convert.ToBoolean(sourceRow["IsRequired"]);
+                cmd.Parameters.Add("@IsUniqueField", SqlDbType.Bit).Value = sourceRow.Table.Columns.Contains("IsUniqueField") && sourceRow["IsUniqueField"] != DBNull.Value && Convert.ToBoolean(sourceRow["IsUniqueField"]);
                 cmd.Parameters.Add("@IsVisible", SqlDbType.Bit).Value = Convert.ToBoolean(sourceRow["IsVisible"]);
                 cmd.Parameters.Add("@IsEditable", SqlDbType.Bit).Value = Convert.ToBoolean(sourceRow["IsEditable"]);
                 cmd.Parameters.Add("@DisplayOrder", SqlDbType.Int).Value = Convert.ToInt32(sourceRow["DisplayOrder"]);
@@ -1215,6 +1232,7 @@ BEGIN
         DataType nvarchar(30) NOT NULL,
         OptionsText nvarchar(max) NULL,
         IsRequired bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsRequired DEFAULT (0),
+        IsUniqueField bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsUniqueField DEFAULT (0),
         IsVisible bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsVisible DEFAULT (1),
         IsEditable bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsEditable DEFAULT (1),
         IsForBilling bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsForBilling DEFAULT (0),
@@ -1236,6 +1254,11 @@ END;
 IF OBJECT_ID('dbo.WBT_ProjectTrackingFieldConfig', 'U') IS NOT NULL AND COL_LENGTH('dbo.WBT_ProjectTrackingFieldConfig', 'IsProcessColumn') IS NULL
 BEGIN
     ALTER TABLE dbo.WBT_ProjectTrackingFieldConfig ADD IsProcessColumn bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsProcessColumn DEFAULT (0) WITH VALUES;
+END;
+
+IF OBJECT_ID('dbo.WBT_ProjectTrackingFieldConfig', 'U') IS NOT NULL AND COL_LENGTH('dbo.WBT_ProjectTrackingFieldConfig', 'IsUniqueField') IS NULL
+BEGIN
+    ALTER TABLE dbo.WBT_ProjectTrackingFieldConfig ADD IsUniqueField bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsUniqueField DEFAULT (0) WITH VALUES;
 END;
 
 IF OBJECT_ID('dbo.WBT_ProjectTrackingFieldConfig', 'U') IS NOT NULL AND COL_LENGTH('dbo.WBT_ProjectTrackingFieldConfig', 'ParentProcessFieldConfigId') IS NULL
