@@ -244,6 +244,7 @@
     <Content Include="Admin\EKYC.aspx" />
     <Content Include="Admin\EmployeeComments.aspx" />
     <Content Include="Admin\ESIPFInformation.aspx" />
+    <Content Include="Admin\DashboardAlert.aspx" />
     <Content Include="Admin\FestivalWishesMaster.aspx" />
     <Content Include="Admin\HealthInsurancePolicy.aspx" />
     <Content Include="Admin\HoursSpent.aspx" />
@@ -3764,6 +3765,13 @@
     </Compile>
     <Compile Include="Admin\ESIPFInformation.aspx.designer.cs">
       <DependentUpon>ESIPFInformation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\DashboardAlert.aspx.cs">
+      <DependentUpon>DashboardAlert.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\DashboardAlert.aspx.designer.cs">
+      <DependentUpon>DashboardAlert.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\FestivalWishesMaster.aspx.cs">
       <DependentUpon>FestivalWishesMaster.aspx</DependentUpon>
