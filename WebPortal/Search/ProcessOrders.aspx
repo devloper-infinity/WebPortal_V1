@@ -472,7 +472,6 @@
         .ost-modal .modal-body {
             padding: 20px;
             background: #fbfcfd;
-            
         }
 
         .ost-modal .modal-footer {
@@ -496,7 +495,7 @@
                 margin: 0;
                 color: var(--ost-text);
                 font-size: 12px;
-                color:dodgerblue;
+                color: dodgerblue;
             }
 
         .ost-modal-grid {
@@ -622,7 +621,6 @@
 
         <div class="ost-shell">
             <div id="processOrderAlert" class="alert" role="alert"></div>
-
             <div class="ost-grid-panel">
                 <div class="ost-grid-header">
                     <div>
@@ -632,7 +630,6 @@
                         </h2>
                         <p class="ost-grid-subtitle">
                             View order status, assignment details, process information, and available actions
-                           
                         </p>
                     </div>
                 </div>
@@ -655,67 +652,6 @@
                             </thead>
                             <tbody></tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade ost-modal" id="OrderCosting" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title"><i class="fas fa-file-invoice-dollar"></i><span>Order Costing</span></h1>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="ost-modal-summary">
-                            <label id="costingProject"></label>
-                            <label id="costingOrderDate"></label>
-                            <label id="costingOrderNo"></label>
-                            <label id="costingOnline"></label>
-                            <label id="costingProcess"></label>
-                        </div>
-
-                        <div class="ost-modal-grid">
-                            <div class="ost-field">
-                                <label for="ProcessOrders_SearchEType">Search Engine Type</label>
-                                <select id="ProcessOrders_SearchEType" name="ProcessOrders_SearchEType" class="form-control">
-                                    <option value="">Select</option>
-                                    <option value="Paid">Paid</option>
-                                    <option value="Free">Free</option>
-                                </select>
-                            </div>
-                            <div class="ost-field">
-                                <label for="ProcessOrders_SearchEnginelink">Search Engine Link</label>
-                                <input type="text" id="ProcessOrders_SearchEnginelink" name="ProcessOrders_SearchEnginelink" class="form-control" />
-                            </div>
-                            <div class="ost-field">
-                                <label for="ProcessOrders_txtNoOfSearchesMade">No Of Searches Made</label>
-                                <input type="number" min="0" step="1" id="ProcessOrders_txtNoOfSearchesMade" name="ProcessOrders_txtNoOfSearchesMade" class="form-control" />
-                            </div>
-                            <div class="ost-field">
-                                <label for="ProcessOrders_txtCostSearches">Cost/Search</label>
-                                <input type="number" min="0" step="0.01" id="ProcessOrders_txtCostSearches" name="ProcessOrders_txtCostSearches" class="form-control" />
-                            </div>
-                            <div class="ost-field">
-                                <label for="ProcessOrders_Total">Total</label>
-                                <input type="number" min="0" step="0.01" id="ProcessOrders_Total" name="ProcessOrders_Total" class="form-control" />
-                            </div>
-                            <div class="ost-field full">
-                                <label for="ProcessOrders_CostRemark">Remark</label>
-                                <textarea id="ProcessOrders_CostRemark" name="ProcessOrders_CostRemark" class="form-control" rows="3"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-between">
-                        <button type="button" class="btn btn-ost-secondary" data-dismiss="modal">
-                            <i class="fas fa-times"></i><span>Close</span>
-                        </button>
-                        <button class="btn btn-ost-primary" type="button" id="btnStep51" onclick="return OrderCosting();">
-                            <i class="fas fa-save"></i><span>Submit</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -789,6 +725,67 @@
                 </div>
             </div>
         </div>
+
+        <%--        <div class="modal fade ost-modal" id="OrderCosting" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title"><i class="fas fa-file-invoice-dollar"></i><span>Order Costing</span></h1>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="ost-modal-summary">
+                            <label id="costingProject"></label>
+                            <label id="costingOrderDate"></label>
+                            <label id="costingOrderNo"></label>
+                            <label id="costingOnline"></label>
+                            <label id="costingProcess"></label>
+                        </div>
+
+                        <div class="ost-modal-grid">
+                            <div class="ost-field">
+                                <label for="ProcessOrders_SearchEType">Search Engine Type</label>
+                                <select id="ProcessOrders_SearchEType" name="ProcessOrders_SearchEType" class="form-control">
+                                    <option value="">Select</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Free">Free</option>
+                                </select>
+                            </div>
+                            <div class="ost-field">
+                                <label for="ProcessOrders_SearchEnginelink">Search Engine Link</label>
+                                <input type="text" id="ProcessOrders_SearchEnginelink" name="ProcessOrders_SearchEnginelink" class="form-control" />
+                            </div>
+                            <div class="ost-field">
+                                <label for="ProcessOrders_txtNoOfSearchesMade">No Of Searches Made</label>
+                                <input type="number" min="0" step="1" id="ProcessOrders_txtNoOfSearchesMade" name="ProcessOrders_txtNoOfSearchesMade" class="form-control" />
+                            </div>
+                            <div class="ost-field">
+                                <label for="ProcessOrders_txtCostSearches">Cost/Search</label>
+                                <input type="number" min="0" step="0.01" id="ProcessOrders_txtCostSearches" name="ProcessOrders_txtCostSearches" class="form-control" />
+                            </div>
+                            <div class="ost-field">
+                                <label for="ProcessOrders_Total">Total</label>
+                                <input type="number" min="0" step="0.01" id="ProcessOrders_Total" name="ProcessOrders_Total" class="form-control" />
+                            </div>
+                            <div class="ost-field full">
+                                <label for="ProcessOrders_CostRemark">Remark</label>
+                                <textarea id="ProcessOrders_CostRemark" name="ProcessOrders_CostRemark" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-ost-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i><span>Close</span>
+                        </button>
+                        <button class="btn btn-ost-primary" type="button" id="btnStep51" onclick="return OrderCosting();">
+                            <i class="fas fa-save"></i><span>Submit</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>--%>
     </div>
 </asp:Content>
 

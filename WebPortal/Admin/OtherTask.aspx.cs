@@ -200,13 +200,13 @@ namespace WebPortal.Admin
         [WebMethod]
         public static int ClearData()
         {
-            dtImport = null;
+            dtImport = dtCheck = dtCore = null;
             NewFileName = null;
             return 1;
         }
 
         [WebMethod]
-        public static string CheckOtherTaskExistsOrNot(string Project, string Process)
+        public static string Core_CheckOtherTaskExistsOrNot(string Project, string Process)
         {
             Hashtable htParam = new Hashtable();
             htParam["Project"] = Project;
@@ -217,11 +217,42 @@ namespace WebPortal.Admin
 
             DataTable dt = new bllMaster().CheckOtherTaskExistsOrNot(htParam);
             dtCheck = dt;
+            int cnt = dtImport.Rows.Count;
 
             if (dt.Rows.Count > 0)
                 return $"{dt.Rows.Count} duplicate loan(s) were found in the uploaded Excel file. These loan(s) already exist in the system. Please remove the duplicate entries and upload the file again.";
             else
                 return "Process";
+        }
+
+        [WebMethod]
+        public static string CheckOtherTaskExistsOrNot(string Project, string Process)
+        {
+            Hashtable htParam = new Hashtable();
+            htParam["Project"] = Project;
+            htParam["Process"] = Process;
+            htParam["Loans"] = All_Loans;
+            htParam["AssignedDate"] = Assigned_Date;
+            htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name);
+
+            DataTable dt = new bllMaster().CheckOtherTaskExistsOrNot(htParam);
+            dtCheck = dt;
+
+            if (dt == null || dt.Rows.Count == 0)
+                return "Process";
+
+            // Loan numbers already existing in the system
+            HashSet<string> existingLoans = new HashSet<string>(dt.AsEnumerable().Select(r => Convert.ToString(r["LoanNo"]).Trim()).Where(x => !string.IsNullOrWhiteSpace(x)),StringComparer.OrdinalIgnoreCase);
+
+            // Count distinct duplicate loans from uploaded Excel
+            int duplicateCount = dtImport.AsEnumerable().Select(r => Convert.ToString(r["LoanNo"]).Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).Count(x => existingLoans.Contains(x));
+
+            if (duplicateCount > 0)
+            {
+                return $"{duplicateCount} duplicate loan(s) were found in the uploaded Excel file. These loan(s) already exist in the system. Please remove the duplicate loan(s) and upload the file again.";
+            }
+
+            return "Process";
         }
 
         [WebMethod]

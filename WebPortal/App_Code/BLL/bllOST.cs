@@ -371,5 +371,16 @@ namespace WebPortal.App_Code.BLL
             return dalOst.HoldOrder(htParam);
         }
 
+        public DataTable GetAllInfinityOrderStatus_UserWiseAllocatoin() { return dalOst.GetAllInfinityOrderStatus_UserWiseAllocatoin(); }
+        public DataTable GetOrdersOnProject(int employeeId, string projectNumber) { return dalOst.GetOrdersOnProject(employeeId, projectNumber); }
+        public DataTable GetAllInfinityOrderbyEmpAndProject_UploadDoc(int employeeId, string projectNumber, string orderDate) { return dalOst.GetAllInfinityOrderbyEmpAndProject_UploadDoc(employeeId, projectNumber, orderDate); }
+        public DataTable GetCurrentProcessOfUserPM(int orderId) { return dalOst.GetCurrentProcessOfUserPM(orderId); }
+        public DataTable GetOrdersOnProcess(int orderId, int processId) { return dalOst.GetOrdersOnProcess(orderId, processId); }
+        public DataTable GetDetailsFromTask(int taskId) { return dalOst.GetDetailsFromTask(taskId); }
+        public DataTable GetAllInfinityCaller() { return dalOst.GetAllInfinityCaller(); }
+        public DataTable GetCurrentProcessOfUser_ForUploadDoc(int orderId, int taskAssignedId) { return dalOst.GetCurrentProcessOfUser_ForUploadDoc(orderId, taskAssignedId); }
+        public DataTable GetAllUploadAndDownloadSearch(string orderNo) { return dalOst.GetAllUploadAndDownloadSearch(orderNo); }
+        public DataTable TMMGetProjectWiseOrderDetailsForBilling_EditCosting(string project, string fromDate, string toDate) { return dalOst.TMMGetProjectWiseOrderDetailsForBilling_EditCosting(project, fromDate, toDate); }
+
     }
 }

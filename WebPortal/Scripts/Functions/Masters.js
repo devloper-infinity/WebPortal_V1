@@ -11,6 +11,12 @@ var posh_ans_html;
 var poshtestSummary_table;
 var poshtestSummary_html;
 var doc_appDate = '';
+var action_Count = 0;
+var pip_Count = 0;
+var login_Pm;
+var Login_DHead;
+var LoginEmp;
+
 
 function roam_bindbranches() {
     var select = document.getElementById("roam_branch");
@@ -616,6 +622,10 @@ function setappr_getEmpInfo(ddlemp) {
                 document.getElementById("setappr_department").value = blankForNull(value.DepartmentName);
                 document.getElementById("setappr_designation").value = blankForNull(value.DesignationName);
                 document.getElementById("setappr_repotingmanager").value = blankForNull(value.ReportingManager);
+
+                action_Count = blankForNull(value.ActionCount);
+                pip_Count = blankForNull(value.PIPCount);
+                login_Pm = blankForNull(value.RMID);
             })
         }
 
@@ -632,67 +642,110 @@ function setappr_getApprTitle(ddltype) {
         select.removeChild(options[i]);
     }
     $("#setappr_title").append($("<option></option>").val("").html("Select"));
-    $.ajax({
-        type: "POST", url: "SetAppreciationDisciplinaryAction.aspx/GetTypewiseTitle", dataType: "json", contentType: "application/json",
-        data: "{Type:'" + type + "'}",
-        success: function (res) {
-            var dataArray = JSON.parse(res.d);
-            $.each(dataArray, function (data, value) {
-                $("#setappr_title").append($("<option></option>").val(value.Title).html(value.Title));
-            })
-        }
 
-    });
 
-    document.getElementById("setappr_apprid").innerHTML = "";
-    if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances['setappr_description']) {
-        CKEDITOR.instances['setappr_description'].setData("");
+    LoginEmp = String($("[id$='hdnLoginEmpID']").val() || "");
+    var reportingManagerId = String(login_Pm == null ? "" : login_Pm);
+
+    if (type === 'DisciplinaryAction' && action_Count === 0 && LoginEmp !== reportingManagerId) {
+
+
+        Swal.fire({
+            icon: "warning",
+            title: "Warning",
+            html: `
+        <p style="margin-bottom:8px;">
+            This is the <strong>first warning letter</strong> under the Disciplinary Action.
+        </p>
+        <p>
+            The  Disciplinary Actio process must be <strong>initiated by the Project Manager (PM)</strong> before you can proceed.
+        </p>`,
+            confirmButtonText: "OK",
+            allowOutsideClick: false
+        });
+        return;
     }
 
-    if (type == "Appreciation" || type == "") {
-        document.getElementById("setappr_trother").style.display = "none";
-        $("#setappr_period").html('<option value="">Select</option>');
-        document.getElementById("setappr_effectivedate").value = "";
+    else if (type === 'PerformanceImprovementPlan' && pip_Count === 0 && LoginEmp !== reportingManagerId) {
+        Swal.fire({
+            icon: "warning",
+            title: "Warning",
+            html: `
+        <p style="margin-bottom:8px;">
+            This is the <strong>first warning letter</strong> under the Performance Improvement Plan (PIP).
+        </p>
+        <p>
+            The PIP process must be <strong>initiated by the Project Manager (PM)</strong> before you can proceed.
+        </p>`,
+            confirmButtonText: "OK",
+            allowOutsideClick: false
+        });
+        return;
     }
-    else if (type == "DisciplinaryAction") {
-        document.getElementById("setappr_trother").style.display = "";
-        document.getElementById("setappr_tdperiodheader").style.display = "";
-        document.getElementById("setappr_tdperiodrow").style.display = "";
-        document.getElementById("setappr_tdeffectivedateheader").style.display = "none";
-        document.getElementById("setappr_tdeffectivedaterow").style.display = "none";
 
-        var select = document.getElementById("setappr_period");
-        let options = select.getElementsByTagName('option');
+    else {
+        $.ajax({
+            type: "POST", url: "SetAppreciationDisciplinaryAction.aspx/GetTypewiseTitle", dataType: "json", contentType: "application/json",
+            data: "{Type:'" + type + "'}",
+            success: function (res) {
+                var dataArray = JSON.parse(res.d);
+                $.each(dataArray, function (data, value) {
+                    $("#setappr_title").append($("<option></option>").val(value.Title).html(value.Title));
+                })
+            }
 
-        for (var i = options.length; i--;) {
-            select.removeChild(options[i]);
+        });
+
+        document.getElementById("setappr_apprid").innerHTML = "";
+        if (window.CKEDITOR && CKEDITOR.instances && CKEDITOR.instances['setappr_description']) {
+            CKEDITOR.instances['setappr_description'].setData("");
         }
-        $("#setappr_period").append($("<option></option>").val("").html("Select"));
-        $("#setappr_period").append($("<option></option>").val("5").html("5 Days"));
-        $("#setappr_period").append($("<option></option>").val("10").html("10 Days"));
-        $("#setappr_period").append($("<option></option>").val("15").html("15 Days"));
-        $("#setappr_period").append($("<option></option>").val("20").html("20 Days"));
-        $("#setappr_period").append($("<option></option>").val("25").html("25 Days"));
-        $("#setappr_period").append($("<option></option>").val("30").html("30 Days"));
-    }
-    else if (type == "PerformanceImprovementPlan") {
-        document.getElementById("setappr_trother").style.display = "";
-        document.getElementById("setappr_tdperiodheader").style.display = "";
-        document.getElementById("setappr_tdperiodrow").style.display = "";
-        document.getElementById("setappr_tdeffectivedateheader").style.display = "";
-        document.getElementById("setappr_tdeffectivedaterow").style.display = "";
 
-        var select = document.getElementById("setappr_period");
-        let options = select.getElementsByTagName('option');
-
-        for (var i = options.length; i--;) {
-            select.removeChild(options[i]);
+        if (type == "Appreciation" || type == "") {
+            document.getElementById("setappr_trother").style.display = "none";
+            $("#setappr_period").html('<option value="">Select</option>');
+            document.getElementById("setappr_effectivedate").value = "";
         }
-        $("#setappr_period").append($("<option></option>").val("").html("Select"));
-        $("#setappr_period").append($("<option></option>").val("1 Week").html("1 Week"));
-        $("#setappr_period").append($("<option></option>").val("2 Weeks").html("2 Weeks"));
-        $("#setappr_period").append($("<option></option>").val("3 Weeks").html("3 Weeks"));
-        $("#setappr_period").append($("<option></option>").val("4 Weeks").html("4 Weeks"));
+        else if (type == "DisciplinaryAction") {
+            document.getElementById("setappr_trother").style.display = "";
+            document.getElementById("setappr_tdperiodheader").style.display = "";
+            document.getElementById("setappr_tdperiodrow").style.display = "";
+            document.getElementById("setappr_tdeffectivedateheader").style.display = "none";
+            document.getElementById("setappr_tdeffectivedaterow").style.display = "none";
+
+            var select = document.getElementById("setappr_period");
+            let options = select.getElementsByTagName('option');
+
+            for (var i = options.length; i--;) {
+                select.removeChild(options[i]);
+            }
+            $("#setappr_period").append($("<option></option>").val("").html("Select"));
+            $("#setappr_period").append($("<option></option>").val("5").html("5 Days"));
+            $("#setappr_period").append($("<option></option>").val("10").html("10 Days"));
+            $("#setappr_period").append($("<option></option>").val("15").html("15 Days"));
+            $("#setappr_period").append($("<option></option>").val("20").html("20 Days"));
+            $("#setappr_period").append($("<option></option>").val("25").html("25 Days"));
+            $("#setappr_period").append($("<option></option>").val("30").html("30 Days"));
+        }
+        else if (type == "PerformanceImprovementPlan") {
+            document.getElementById("setappr_trother").style.display = "";
+            document.getElementById("setappr_tdperiodheader").style.display = "";
+            document.getElementById("setappr_tdperiodrow").style.display = "";
+            document.getElementById("setappr_tdeffectivedateheader").style.display = "";
+            document.getElementById("setappr_tdeffectivedaterow").style.display = "";
+
+            var select = document.getElementById("setappr_period");
+            let options = select.getElementsByTagName('option');
+
+            for (var i = options.length; i--;) {
+                select.removeChild(options[i]);
+            }
+            $("#setappr_period").append($("<option></option>").val("").html("Select"));
+            $("#setappr_period").append($("<option></option>").val("1 Week").html("1 Week"));
+            $("#setappr_period").append($("<option></option>").val("2 Weeks").html("2 Weeks"));
+            $("#setappr_period").append($("<option></option>").val("3 Weeks").html("3 Weeks"));
+            $("#setappr_period").append($("<option></option>").val("4 Weeks").html("4 Weeks"));
+        }
     }
 }
 
@@ -963,6 +1016,7 @@ function setappr_renderGridRows(dataArray, includeMonthYear) {
     var html = '';
 
     $.each(dataArray, function (index, value) {
+
         html += '<tr>';
         html += '<td>' + blankForNull(value.Code) + '</td>';
         html += '<td>' + blankForNull(value.Name) + '</td>';

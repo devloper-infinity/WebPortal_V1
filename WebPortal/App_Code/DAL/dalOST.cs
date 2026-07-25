@@ -816,5 +816,71 @@ namespace WebPortal.App_Code.DAL
             cmd.Dispose();
             return ReturnValue;
         }
+
+        public DataTable GetAllInfinityOrderStatus_UserWiseAllocatoin()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_UserWiseAllocatoin_WebPortal");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOrdersOnProject(int employeeId, string projectNumber)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetOrdersByProject");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmpId", SqlDbType.BigInt, 0, ParameterDirection.Input, employeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", SqlDbType.NVarChar, 1000, ParameterDirection.Input, projectNumber);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetCurrentProcessOfUserPM(int orderId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetCurrentProcessOfUserPM");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", SqlDbType.BigInt, 0, ParameterDirection.Input, orderId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOrdersOnProcess(int orderId, int processId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetOrdersOnProcess");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", SqlDbType.BigInt, 0, ParameterDirection.Input, orderId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessId", SqlDbType.Int, 0, ParameterDirection.Input, processId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetDetailsFromTask(int taskId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetDetailsFromTask");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Taskid", SqlDbType.BigInt, 0, ParameterDirection.Input, taskId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetAllInfinityCaller()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityCaller");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetCurrentProcessOfUser_ForUploadDoc(int orderId, int taskAssignedId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetCurrentProcessOfUser_ForUploadDoc");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", SqlDbType.BigInt, 0, ParameterDirection.Input, orderId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskAssignedId", SqlDbType.BigInt, 0, ParameterDirection.Input, taskAssignedId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetAllUploadAndDownloadSearch(string orderNo)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllUploadAndDownloadSearch");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderNo", SqlDbType.NVarChar, 1000, ParameterDirection.Input, orderNo);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable TMMGetProjectWiseOrderDetailsForBilling_EditCosting(string project, string fromDate, string toDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_EditCosting");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", SqlDbType.NVarChar, 100, ParameterDirection.Input, project);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, fromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, toDate);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
     }
 }

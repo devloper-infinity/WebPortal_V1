@@ -15,6 +15,7 @@ using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
 using DataTable = System.Data.DataTable;
 using MailMessage = System.Net.Mail.MailMessage;
+using WebPortal.App_Code;
 
 namespace WebPortal.Admin
 {
@@ -22,8 +23,10 @@ namespace WebPortal.Admin
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            lbl_loginEmpID.InnerText = EmployeeInfo.Current.EmployeeID.ToString();
+            hdnLoginEmpID.Value = EmployeeInfo.Current.EmployeeID.ToString();
         }
+
         [WebMethod]
         public static string GetAllUsers()
         {
@@ -70,6 +73,8 @@ namespace WebPortal.Admin
         public static string GetAllAppreciationWarningsByType(int EmployeeID, string Type)
         {
             DataTable dt1 = new bllMaster().GetAllApprerciationandWarningByType(EmployeeID, Type);
+
+
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -89,8 +94,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetUserInformation(string Code)
         {
-            int EmployeeID = new bllMaster().GetEmployeeIdFromCode(Code);
-            DataTable dt1 = new bllLogin().GetUserInformation(EmployeeID);
+            DataTable dt1 = new bllLogin().GetUserInformation_ByCode(Code);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -268,7 +272,7 @@ namespace WebPortal.Admin
 
                         try
                         {
-                           // client.Send(mail);
+                            // client.Send(mail);
                         }
                         catch { }
                     }

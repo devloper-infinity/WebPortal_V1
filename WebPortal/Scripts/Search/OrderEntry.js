@@ -617,9 +617,9 @@ function orderEntryValidateOrder(order) {
         { id: "orderentry_producttype", value: order.producttype, message: "Please select Product Type." },
         { id: "orderentry_expectedtat", value: order.expectedtat, message: "Please select expected TAT." },
         { id: "orderentry_onoffline", value: order.onoffline, message: "Please select On/Offline." },
-        { id: "orderentry_transaction", value: order.transaction, message: "Please select Transaction." },
-        { id: "orderentry_clientid", value: order.clientid, message: "Please enter Client ID." },
-        { id: "orderentry_customertype", value: order.customertype, message: "Please select Customer Type." }
+        // { id: "orderentry_transaction", value: order.transaction, message: "Please select Transaction." },
+        { id: "orderentry_clientid", value: order.clientid, message: "Please enter Client ID." }
+        // { id: "orderentry_customertype", value: order.customertype, message: "Please select Customer Type." }
     ];
 
     for (var i = 0; i < requiredFields.length; i++) {

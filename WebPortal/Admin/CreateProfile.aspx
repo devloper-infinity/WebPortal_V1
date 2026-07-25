@@ -8,37 +8,168 @@
         }
 
         .dashboard-header {
-            background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%);
-            border-radius: 15px;
-            padding: 12px;
-            color: white;
+            min-height: 94px;
+            display: flex;
+            align-items: center;
             position: relative;
             overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            margin-bottom: 20px;
+            padding: 20px 28px;
+            color: #fff;
+            background: linear-gradient(105deg, #244edb 0%, #2879ed 61%, #37c3d3 100%);
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 22px;
+            box-shadow: 0 14px 30px rgba(31,78,166,.18);
         }
 
+            .dashboard-header::before,
             .dashboard-header::after {
-                content: '';
+                content: "";
                 position: absolute;
-                right: -70px;
-                top: -50px;
-                width: 220px;
-                height: 220px;
-                background: rgba(255,255,255,0.12);
                 border-radius: 50%;
+                pointer-events: none;
             }
 
+            .dashboard-header::before {
+                width: 240px;
+                height: 240px;
+                right: 72px;
+                top: -145px;
+                background: rgba(255,255,255,.11);
+            }
+
+            .dashboard-header::after {
+                width: 185px;
+                height: 185px;
+                right: -18px;
+                bottom: -120px;
+                background: rgba(255,255,255,.10);
+            }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .dashboard-heading {
+            min-width: 0;
+        }
+
+        .dashboard-actions {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            padding-left: 18px;
+        }
+
+        .btn-back {
+            min-width: 92px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 17px;
+            color: #fff !important;
+            background: rgba(255,255,255,.14) !important;
+            border: 1px solid rgba(255,255,255,.34) !important;
+            border-radius: 12px;
+            box-shadow: 0 7px 18px rgba(16,54,130,.16);
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none !important;
+            backdrop-filter: blur(5px);
+            transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
+        .btn-back:hover,
+        .btn-back:focus {
+            color: #174d9c !important;
+            background: #fff !important;
+            box-shadow: 0 9px 22px rgba(15,48,112,.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-back:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255,255,255,.24), 0 9px 22px rgba(15,48,112,.2);
+        }
+
+        .dashboard-icon {
+            width: 54px;
+            height: 54px;
+            flex: 0 0 54px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #fff;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 16px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+        }
+
         .dashboard-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 5px;
+            margin: 0 0 5px;
+            font-size: 21px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -.2px;
         }
 
         .dashboard-subtitle {
+            margin: 0;
+            max-width: 760px;
+            color: rgba(255,255,255,.88);
             font-size: 12px;
-            opacity: 0.9;
-            /*text-transform: uppercase;*/
+            line-height: 1.55;
+            font-weight: 500;
+        }
+
+        @media (max-width: 575.98px) {
+            .dashboard-header {
+                padding: 16px;
+            }
+
+            .dashboard-header-content {
+                gap: 12px;
+            }
+
+            .dashboard-icon {
+                width: 46px;
+                height: 46px;
+                flex-basis: 46px;
+            }
+
+            .dashboard-title {
+                font-size: 17px;
+            }
+
+            .dashboard-subtitle {
+                display: none;
+            }
+
+            .dashboard-actions {
+                padding-left: 4px;
+            }
+
+            .btn-back {
+                min-width: 42px;
+                width: 42px;
+                height: 38px;
+                padding: 0;
+                font-size: 0;
+            }
+
+            .btn-back i {
+                font-size: 13px;
+            }
         }
     </style>
 
@@ -390,18 +521,18 @@
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
 
-    <div class="empdoc-header">
-        <div class="d-flex justify-content-between align-items-start mb-1">
-            <div>
-                <div class="dashboard-title">
-                    <i class="fas fa-user-edit mr-2"></i>
-                    Create/View/Update Employee Profile
-                </div>
-                <div class="dashboard-subtitle">
-                    Create new employee records, update existing information, and maintain employee profiles.
-                </div>
+    <div class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="fas fa-user-edit mr-2"></i>
             </div>
-            <div>
+            <div class="dashboard-heading">
+                <h1 class="dashboard-title">Create/View/Update Employee Profile</h1>
+                <p class="dashboard-subtitle">
+                    Create new employee records, update existing information, and maintain employee profiles.
+                </p>
+            </div>
+            <div class="dashboard-actions">
                 <a href="#" id="aBack" runat="server" class="btn btn-light btn-back" onclick="window.history.go(-1); return false;">
                     <i class="fas fa-arrow-left"></i>
                     Back
@@ -409,6 +540,9 @@
             </div>
         </div>
     </div>
+
+
+
 
     <div class="col-lg-12">
         <div id="crp_personal" class="modern-card">
