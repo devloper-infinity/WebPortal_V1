@@ -885,5 +885,16 @@ ORDER BY ExistingOrder.SourcePriority, ExistingOrder.ProcessDate DESC, ExistingO
 
             return value;
         }
+        public int CodeExists(string Code)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[Usp_WBT_GetAllCheckCode_Vendor]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, Code);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
     }
 }

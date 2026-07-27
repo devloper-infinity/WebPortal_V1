@@ -73,7 +73,8 @@ namespace WebPortal.Reports
                     DataTable yearSummary = ds.Tables.Count > 0 ? ds.Tables[0] : new DataTable();
                     DataTable monthSummary = ds.Tables.Count > 1 ? ds.Tables[1] : new DataTable();
                     DataTable employeeDetails = ds.Tables.Count > 2 ? ds.Tables[2] : new DataTable();
-                    CreateGrossYearSummarySheet(workbook, yearSummary, employeeDetails);
+                    CreateDashboardDataSheet(workbook, monthSummary, employeeDetails);
+                    CreateHorizontalMonthlySheet(workbook, monthSummary, employeeDetails);
                     CreateYearSummarySheet(workbook, yearSummary, employeeDetails);
                     CreateMonthSummarySheet(workbook, monthSummary, employeeDetails);
                     CreateEmployeeDetailsSheet(workbook, employeeDetails);
@@ -308,6 +309,144 @@ namespace WebPortal.Reports
 
         private sealed class SalaryPeriod { public int Key { get; set; } public string Label { get; set; } }
         private sealed class SalaryAmount { public decimal Gross { get; set; } }
+
+        private static void CreateDashboardDataSheet(XLWorkbook workbook, DataTable source, DataTable employeeDetails)
+        {
+            IXLWorksheet ws = workbook.Worksheets.Add("Dashboard Data");
+            ws.Cell(1, 1).Value = "Month";
+            ws.Cell(1, 2).Value = "Total Headcount";
+            ws.Cell(1, 3).Value = "Total Gross Salary";
+            ws.Cell(1, 4).Value = "Total Net Salary";
+
+            Dictionary<string, HashSet<string>> counts = BuildEmployeeCountMap(employeeDetails, true);
+            SortedDictionary<int, SalaryDashboardTotal> totals = new SortedDictionary<int, SalaryDashboardTotal>();
+            foreach (DataRow row in source.Rows)
+            {
+                int year = Convert.ToInt32(row["Year"]);
+                string monthYear = Convert.ToString(row["MonthYear"]);
+                int month = GetMonthNumber(row, monthYear);
+                int key = year * 100 + month;
+                SalaryDashboardTotal total;
+                if (!totals.TryGetValue(key, out total))
+                {
+                    total = new SalaryDashboardTotal { Label = monthYear };
+                    totals[key] = total;
+                }
+                total.Gross += ToDecimal(row["GrossSalary"]);
+                if (source.Columns.Contains("NetSalary")) total.Net += ToDecimal(row["NetSalary"]);
+            }
+
+            int outputRow = 2;
+            foreach (KeyValuePair<int, SalaryDashboardTotal> item in totals)
+            {
+                int headcount = 0;
+                string prefix = item.Key.ToString(CultureInfo.InvariantCulture) + "||";
+                foreach (KeyValuePair<string, HashSet<string>> count in counts)
+                    if (count.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) headcount += count.Value.Count;
+
+                ws.Cell(outputRow, 1).Value = item.Value.Label;
+                ws.Cell(outputRow, 2).Value = headcount;
+                ws.Cell(outputRow, 3).Value = item.Value.Gross;
+                ws.Cell(outputRow, 4).Value = item.Value.Net;
+                outputRow++;
+            }
+
+            int lastRow = Math.Max(outputRow - 1, 1);
+            ws.Range(1, 1, 1, 4).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            ws.Range(1, 1, 1, 4).Style.Font.FontColor = XLColor.White;
+            ws.Range(1, 1, 1, 4).Style.Font.Bold = true;
+            ws.Range(2, 3, lastRow, 4).Style.NumberFormat.Format = "#,##0.00";
+            ws.Range(1, 1, lastRow, 4).SetAutoFilter();
+            ws.SheetView.FreezeRows(1);
+            ws.Columns().AdjustToContents(1, 24);
+        }
+
+        private static void CreateHorizontalMonthlySheet(XLWorkbook workbook, DataTable source, DataTable employeeDetails)
+        {
+            IXLWorksheet ws = workbook.Worksheets.Add("Monthly Horizontal");
+            if (source.Rows.Count == 0)
+            {
+                ws.Cell(1, 1).Value = "No data available";
+                return;
+            }
+
+            Dictionary<string, HashSet<string>> counts = BuildEmployeeCountMap(employeeDetails, true);
+            SortedDictionary<int, string> periods = new SortedDictionary<int, string>();
+            SortedSet<string> departments = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, SalaryHorizontalAmount> values = new Dictionary<string, SalaryHorizontalAmount>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (DataRow row in source.Rows)
+            {
+                int year = Convert.ToInt32(row["Year"]);
+                string monthYear = Convert.ToString(row["MonthYear"]);
+                int month = GetMonthNumber(row, monthYear);
+                int periodKey = year * 100 + month;
+                string department = Convert.ToString(row["Department"]);
+                periods[periodKey] = monthYear;
+                departments.Add(department);
+                values[periodKey.ToString(CultureInfo.InvariantCulture) + "||" + department] = new SalaryHorizontalAmount
+                {
+                    Gross = ToDecimal(row["GrossSalary"]),
+                    Net = source.Columns.Contains("NetSalary") ? ToDecimal(row["NetSalary"]) : 0M
+                };
+            }
+
+            ws.Range(1, 1, 2, 1).Merge();
+            ws.Cell(1, 1).Value = "Department";
+            int column = 2;
+            foreach (KeyValuePair<int, string> period in periods)
+            {
+                ws.Range(1, column, 1, column + 2).Merge();
+                ws.Cell(1, column).Value = period.Value;
+                ws.Cell(2, column).Value = "Headcount";
+                ws.Cell(2, column + 1).Value = "Gross Salary";
+                ws.Cell(2, column + 2).Value = "Deviation %";
+                column += 3;
+            }
+
+            int rowNo = 3;
+            foreach (string department in departments)
+            {
+                ws.Cell(rowNo, 1).Value = department;
+                column = 2;
+                decimal previousGross = 0M;
+                bool hasPrevious = false;
+                foreach (KeyValuePair<int, string> period in periods)
+                {
+                    string key = period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department;
+                    SalaryHorizontalAmount amount;
+                    if (!values.TryGetValue(key, out amount)) amount = new SalaryHorizontalAmount();
+                    ws.Cell(rowNo, column).Value = GetEmployeeCount(counts, period.Key.ToString(CultureInfo.InvariantCulture), department);
+                    ws.Cell(rowNo, column + 1).Value = amount.Gross;
+                    if (hasPrevious && previousGross != 0M) ws.Cell(rowNo, column + 2).Value = (amount.Gross - previousGross) / previousGross;
+                    previousGross = amount.Gross;
+                    hasPrevious = true;
+                    column += 3;
+                }
+                rowNo++;
+            }
+
+            int lastColumn = column - 1;
+            int lastRow = rowNo - 1;
+            ws.Range(1, 1, 2, lastColumn).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            ws.Range(1, 1, 2, lastColumn).Style.Font.FontColor = XLColor.White;
+            ws.Range(1, 1, 2, lastColumn).Style.Font.Bold = true;
+            ws.Range(1, 1, 2, lastColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(1, 1, lastRow, lastColumn).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(1, 1, lastRow, lastColumn).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            for (int c = 2; c <= lastColumn; c += 3)
+            {
+                ws.Range(3, c, lastRow, c).Style.NumberFormat.Format = "0";
+                ws.Range(3, c + 1, lastRow, c + 1).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(3, c + 2, lastRow, c + 2).Style.NumberFormat.Format = "0.00%";
+            }
+            ws.SheetView.FreezeRows(2);
+            ws.SheetView.FreezeColumns(1);
+            ws.Columns().AdjustToContents(1, 24);
+        }
+
+        private sealed class SalaryDashboardTotal { public string Label { get; set; } public decimal Gross { get; set; } public decimal Net { get; set; } }
+        private sealed class SalaryHorizontalAmount { public decimal Gross { get; set; } public decimal Net { get; set; } }
 
         private static void CreateEmployeeDetailsSheet(XLWorkbook workbook, DataTable table)
         {
