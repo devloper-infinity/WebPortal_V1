@@ -345,5 +345,9 @@ namespace WebPortal.App_Code.BLL
         {
             return dalTracking.InsertImportedFeedback_Servicing(htParam);
         }
+        public int CodeExists(string Code)
+        {
+            return dalTracking.CodeExists(Code);
+        }
     }
 }

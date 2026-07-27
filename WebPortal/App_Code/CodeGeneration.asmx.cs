@@ -950,7 +950,388 @@ namespace WebPortal.App_Code
                         yield return $"{i}{x}{y}";
         }
 
+        [WebMethod]
+        public string genrateCode_Vendor(string FirstName, string MiddleName, string lastName, string EmployeeType)
+        {
+
+            string functionReturnValue = null;
+            string txtLName = lastName;
+            string txtMName = MiddleName;
+            string txtFName = FirstName;
+            string FirstGlobal = "abcdefghijklmnopqrstuvwxyz";
+
+            string code = null;
+            int i = 0;
+            int j = 0;
+            int k = 0;
+            int l = 0;
+
+            //FirstName For Each Char
+            for (i = 0; i < txtFName.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(txtMName))
+                {
+                    //MiddleName For Each Char
+                    for (j = 0; j < txtMName.Length; j++)
+                    {
+                        //LastName For Each Char
+                        for (k = 0; k < txtLName.Length; k++)
+                        {
+                            if (EmployeeType == "Admin")
+                            {
+                                for (l = 1; l <= 1; l++)
+                                {
+                                    //code = txtFName.Substring(i, 1) + txtMName.Substring(j, 1) + txtLName.Substring(k, 1) + l;
+                                    code = txtFName.Substring(j, 1) + txtLName.Substring(k, 1) + l;
+                                    if (new bllTracking().CodeExists(code) != 1)
+                                    {
+                                        l = 1 + 1;
+                                        //i = txtFName.Length + 1;
+                                        j = txtMName.Length + 1;
+                                        k = txtLName.Length + 1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (l = 2; l < 9; l++)
+                                {
+                                    //code = txtFName.Substring(i, 1) + txtMName.Substring(j, 1) + txtLName.Substring(k, 1) + l;
+                                    code = txtFName.Substring(j, 1) + txtLName.Substring(k, 1) + l;
+                                    if (new bllTracking().CodeExists(code) != 1)
+                                    {
+                                        l = 9 + 1;
+                                        //i = txtFName.Length + 1;
+                                        j = txtMName.Length + 1;
+                                        k = txtLName.Length + 1;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+                else
+                {
+                    //LastName For Each Char
+                    for (k = 0; k < txtLName.Length; k++)
+                    {
+                        //Repeat FirstName Character Twice
+                        // code = txtLName.Substring(k, 1) + txtLName.Substring(k, 1) + txtLName.Substring(k, 1);
+                        code = txtLName.Substring(k, 1) + txtLName.Substring(k, 1);
+                        if (new bllTracking().CodeExists(code) != 1)
+                        {
+                            //i = txtFName.Length + 1;
+                            //j = txtMName.Length + 1;
+                            k = txtLName.Length + 1;
+                        }
+                    }
+                }
+            }
+            if (new bllTracking().CodeExists(code) == 1)
+            {
+                //FirstName For Each Char
+                for (i = 0; i < txtFName.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(txtMName))
+                    {
+                        //MiddleName For Each Char
+                        for (j = 0; j < txtMName.Length; j++)
+                        {
+                            //LastName For Each Char
+                            for (k = 0; k < txtLName.Length; k++)
+                            {
+                                if (EmployeeType == "Admin")
+                                {
+                                    for (l = 1; l <= 1; l++)
+                                    {
+                                        /// code = txtMName.Substring(j, 1) + txtFName.Substring(i, 1) + txtLName.Substring(k, 1) + l;
+                                        code = txtFName.Substring(i, 1) + txtLName.Substring(k, 1) + l;
+                                        if (new bllTracking().CodeExists(code) != 1)
+                                        {
+                                            l = 1 + 1;
+                                            i = txtFName.Length + 1;
+                                            //  j = txtMName.Length + 1;
+                                            k = txtLName.Length + 1;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    for (l = 2; l < 9; l++)
+                                    {
+                                        //code = txtMName.Substring(j, 1) + txtFName.Substring(i, 1) + txtLName.Substring(k, 1) + l;
+                                        code = txtFName.Substring(i, 1) + txtLName.Substring(k, 1) + l;
+                                        if (new bllTracking().CodeExists(code) != 1)
+                                        {
+                                            l = 9 + 1;
+                                            i = txtFName.Length + 1;
+                                            // j = txtMName.Length + 1;
+                                            k = txtLName.Length + 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //LastName For Each Char
+                        for (k = 0; k < txtMName.Length; k++)
+                        {
+                            //Repeat LastName Character Twice
+                            //code = txtMName.Substring(k, 1) + txtMName.Substring(k, 1) + txtMName.Substring(k, 1);
+                            code = txtMName.Substring(k, 1) + txtMName.Substring(k, 1);
+                            if (new bllTracking().CodeExists(code) != 1)
+                            {
+                                //i = txtFName.Length + 1;
+                                //j = txtMName.Length + 1;
+                                k = txtMName.Length + 1;
+                            }
+                        }
+                    }
+                }
+            }
+            if (new bllTracking().CodeExists(code) == 1)
+            {
+                //LastName For Each Char
+                for (i = 0; i < txtLName.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(txtMName))
+                    {
+                        //MiddleName For Each Char
+                        for (j = 0; j < txtMName.Length; j++)
+                        {
+                            //FirstName For Each Char
+                            for (k = 0; k < txtFName.Length; k++)
+                            {
+                                if (EmployeeType == "Admin")
+                                {
+                                    for (l = 1; l <= 1; l++)
+                                    {
+                                        // code = txtLName.Substring(i, 1) + txtMName.Substring(j, 1) + txtFName.Substring(k, 1) + l;
+                                        code = txtLName.Substring(i, 1) + txtFName.Substring(k, 1) + l;
+                                        if (new bllTracking().CodeExists(code) != 1)
+                                        {
+                                            l = 1 + 1;
+                                            i = txtLName.Length + 1;
+                                            //j = txtMName.Length + 1;
+                                            k = txtFName.Length + 1;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    for (l = 2; l < 9; l++)
+                                    {
+                                        // code = txtLName.Substring(i, 1) + txtMName.Substring(j, 1) + txtFName.Substring(k, 1) + l;
+                                        code = txtLName.Substring(i, 1) + txtFName.Substring(k, 1) + l;
+                                        if (new bllTracking().CodeExists(code) != 1)
+                                        {
+                                            l = 9 + 1;
+                                            i = txtLName.Length + 1;
+                                            // j = txtMName.Length + 1;
+                                            k = txtFName.Length + 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (k = 0; k < txtFName.Length; k++)
+                        {
+                            //Repeat LastName Character Twice
+                            //code = txtFName.Substring(k, 1) + txtFName.Substring(k, 1) + txtFName.Substring(k, 1);
+
+                            code = txtFName.Substring(k, 1) + txtFName.Substring(k, 1);
+
+                            if (new bllTracking().CodeExists(code) != 1)
+                            {
+                                //i = txtFName.Length + 1;
+                                //j = txtMName.Length + 1;
+                                k = txtFName.Length + 1;
+                            }
+                        }
+                    }
+                }
+            }
+            if (new bllTracking().CodeExists(code) == 1)
+            {
+                //LastName For Each Char
+                for (i = 0; i < txtLName.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(txtMName))
+                    {
+                        //MiddleName For Each Char
+                        for (j = 0; j < txtMName.Length; j++)
+                        {
+                            //FirstName For Each Char
+                            for (k = 0; k < txtFName.Length; k++)
+                            {
+                                if (EmployeeType == "Admin")
+                                {
+                                    for (l = 1; l <= 1; l++)
+                                    {
+                                        //code = txtMName.Substring(j, 1) + txtLName.Substring(i, 1) + txtFName.Substring(k, 1) + l;
+                                        code = txtLName.Substring(j, 1) + txtFName.Substring(k, 1) + l;
+
+                                        if (new bllTracking().CodeExists(code) != 1)
+                                        {
+                                            l = 1 + 1;
+                                            // i = txtLName.Length + 1;
+                                            j = txtMName.Length + 1;
+                                            k = txtFName.Length + 1;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    for (l = 2; l < 9; l++)
+                                    {
+                                        // code = txtMName.Substring(j, 1) + txtLName.Substring(i, 1) + txtFName.Substring(k, 1) + l;
+                                        code = txtLName.Substring(j, 1) + txtFName.Substring(k, 1) + l;
+                                        if (new bllTracking().CodeExists(code) != 1)
+                                        {
+                                            l = 9 + 1;
+                                            // i = txtLName.Length + 1;
+                                            j = txtMName.Length + 1;
+                                            k = txtFName.Length + 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (k = 0; k < txtLName.Length; k++)
+                        {
+                            //Repeat FirstName Character Twice
+                            code = txtLName.Substring(k, 1) + txtLName.Substring(k, 1);
+                            if (new bllTracking().CodeExists(code) != 1)
+                            {
+                                //i = txtFName.Length + 1;
+                                //j = txtMName.Length + 1;
+                                k = txtLName.Length + 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (new bllTracking().CodeExists(code) == 1)
+            {
+                //LastName For Each Char
+                for (i = 0; i < FirstGlobal.Length; i++)
+                {
+                    //MiddleName For Each Char
+                    for (j = 0; j < FirstGlobal.Length; j++)
+                    {
+                        //FirstName For Each Char
+                        for (k = 0; k < FirstGlobal.Length; k++)
+                        {
+                            if (EmployeeType == "Admin")
+                            {
+                                for (l = 1; l <= 1; l++)
+                                {
+                                    //code = FirstGlobal.Substring(j, 1) + FirstGlobal.Substring(i, 1) + FirstGlobal.Substring(k, 1) + l;
+                                    code = FirstGlobal.Substring(j, 1) + FirstGlobal.Substring(k, 1) + l;
+                                    if (new bllTracking().CodeExists(code) != 1)
+                                    {
+                                        l = 1 + 1;
+                                        i = FirstGlobal.Length + 1;
+                                        // j = FirstGlobal.Length + 1;
+                                        k = FirstGlobal.Length + 1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (l = 2; l < 9; l++)
+                                {
+                                    // code = FirstGlobal.Substring(j, 1) + FirstGlobal.Substring(i, 1) + FirstGlobal.Substring(k, 1) + l;
+
+                                    code = FirstGlobal.Substring(j, 1) + FirstGlobal.Substring(k, 1) + l;
+                                    if (new bllTracking().CodeExists(code) != 1)
+                                    {
+                                        l = 9 + 1;
+                                        i = FirstGlobal.Length + 1;
+                                        // j = FirstGlobal.Length + 1;
+                                        k = FirstGlobal.Length + 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (new bllTracking().CodeExists(code) == 1)
+            {
+                //LastName For Each Char
+                for (i = 0; i < FirstGlobal.Length; i++)
+                {
+                    //MiddleName For Each Char
+                    for (j = FirstGlobal.Length - 1; j > 0; j--)
+                    {
+                        //FirstName For Each Char
+                        for (k = 0; k < FirstGlobal.Length; k++)
+                        {
+                            if (EmployeeType == "Admin")
+                            {
+                                for (l = 1; l <= 1; l++)
+                                {
+                                    // code = FirstGlobal.Substring(j, 1) + FirstGlobal.Substring(i, 1) + FirstGlobal.Substring(k, 1) + l;
+                                    code = FirstGlobal.Substring(i, 1) + FirstGlobal.Substring(k, 1) + l;
+
+                                    if (new bllTracking().CodeExists(code) != 1)
+                                    {
+                                        l = 1 + 1;
+                                        i = FirstGlobal.Length + 1;
+                                        //j = 0;
+                                        k = FirstGlobal.Length + 1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (l = 2; l < 9; l++)
+                                {
+                                    // code = FirstGlobal.Substring(j, 1) + FirstGlobal.Substring(i, 1) + FirstGlobal.Substring(k, 1) + l;
+                                    code = FirstGlobal.Substring(i, 1) + FirstGlobal.Substring(k, 1) + l;
+
+                                    if (new bllTracking().CodeExists(code) != 1)
+                                    {
+                                        l = 9 + 1;
+                                        i = FirstGlobal.Length + 1;
+                                        // j = 0;
+                                        k = FirstGlobal.Length + 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (new bllTracking().CodeExists(code) != 1)
+            {
+                functionReturnValue = code;
+            }
+            else
+            {
+                functionReturnValue = "";
+            }
+            return functionReturnValue;
+        }
+
         #endregion
+
+        public string CheckUserExist(string Code)
+        {
+            int ReturnValue = new bllVendors().CheckUserExist(Code);
+            return Convert.ToString(ReturnValue);
+        }
 
     }
 }
