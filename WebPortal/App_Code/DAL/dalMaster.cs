@@ -6000,6 +6000,7 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_CheckOtherTaskExistsOrNot");
             SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Project"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Loans", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Loans"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AssignedDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["AssignedDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
@@ -6012,6 +6013,7 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteExistingOthertaskRecords");
             SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Project"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Process"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Loans", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Loans"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AssignedDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["AssignedDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);

@@ -456,6 +456,16 @@ namespace WebPortal.Search
                 return "Please select order.";
             }
 
+            if (!request.AbstractorSearchCostSpecified)
+            {
+                return "Please enter abstractor search cost.";
+            }
+
+            if (!request.AbstractorCopyCostPagesSpecified)
+            {
+                return "Please enter copy cost.";
+            }
+
             if (request.AbstractorSearchCost < 0 || request.AbstractorCopyCostPages < 0 || request.AbstractorCopyCostCostTotal < 0 || request.OtherCost < 0)
             {
                 return "Abstractor cost values cannot be negative.";
@@ -798,7 +808,9 @@ namespace WebPortal.Search
             public string SearchEngineType { get; set; }
             public string SearchEngineLink { get; set; }
             public decimal AbstractorSearchCost { get; set; }
+            public bool AbstractorSearchCostSpecified { get; set; }
             public int AbstractorCopyCostPages { get; set; }
+            public bool AbstractorCopyCostPagesSpecified { get; set; }
             public decimal AbstractorCopyCostCost { get; set; }
             public decimal AbstractorCopyCostCostTotal { get; set; }
             public string OtherCostDescription { get; set; }

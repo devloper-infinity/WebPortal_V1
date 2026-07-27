@@ -775,8 +775,13 @@
         });
     </script>
     <script src="../ckeditor/ckeditor.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <label id="lbl_loginEmpID" runat="server"   ClientIDMode="Static" hidden></label>
+    <asp:HiddenField ID="hdnLoginEmpID" runat="server" />
+
     <div class="setappr-loading" id="load1" aria-hidden="true">
         <div class="setappr-loading-card">
             <img src="../images/Load_1.gif" alt="Loading" />
@@ -809,93 +814,14 @@
                 </div>
                 <div class="setappr-panel-body">
                     <label id="setappr_apprid" style="display: none;"></label>
-                    <%--     <div class="setappr-form-grid">
-                        <div class="setappr-field">
-                            <label for="setappr_employee">Employee</label>
-                            <select id="setappr_employee" name="setappr_employee" class="form-control" onchange="setappr_getEmpInfo(this);"></select>
-                        </div>
-                        <div class="setappr-field">
-                            <label>Name</label>
-                            <label id="setappr_empname" class="setappr-readonly"></label>
-                        </div>
-                        <div class="setappr-field">
-                            <label>Joining Date</label>
-                            <label id="setappr_joiningdate" class="setappr-readonly"></label>
-                        </div>
-                        <div class="setappr-field">
-                            <label>Department</label>
-                            <label id="setappr_department" class="setappr-readonly"></label>
-                        </div>
-                        <div class="setappr-field">
-                            <label>Designation</label>
-                            <label id="setappr_designation" class="setappr-readonly"></label>
-                        </div>
-                        <div class="setappr-field">
-                            <label>Reporting Manager</label>
-                            <label id="setappr_repotingmanager" class="setappr-readonly"></label>
-                        </div>
-                    </div>--%>
-                    <%--    <div class="setappr-form-grid">
-
-                        <div class="setappr-field">
-                            <label for="setappr_employee">Employee</label>
-                            <select id="setappr_employee"
-                                name="setappr_employee"
-                                class="form-control"
-                                onchange="setappr_getEmpInfo(this);">
-                            </select>
-                        </div>
-                        <div class="setappr-field">
-                            <label for="setappr_joiningdate">Joining Date</label>
-                            <input type="text"
-                                id="setappr_joiningdate"
-                                class="form-control setappr-readonly"
-                                readonly />
-                        </div>
-
-                        <div class="setappr-field">
-                            <label for="setappr_department">Department</label>
-                            <input type="text"
-                                id="setappr_department"
-                                class="form-control setappr-readonly"
-                                readonly />
-                        </div>
-
-                        <div class="setappr-field">
-                            <label for="setappr_designation">Designation</label>
-                            <input type="text"
-                                id="setappr_designation"
-                                class="form-control setappr-readonly"
-                                readonly />
-                        </div>
-
-                        <div class="setappr-field">
-                            <label for="setappr_repotingmanager">Reporting Manager</label>
-                            <input type="text"
-                                id="setappr_repotingmanager"
-                                class="form-control setappr-readonly"
-                                readonly />
-                        </div>
-
-                    </div>--%>
-
                     <div class="setappr-profile-card">
                         <div class="setappr-form-grid">
 
                             <div class="setappr-field setappr-employee-field">
                                 <label><i class="fas fa-user-check"></i>Employee</label>
-                                <select id="setappr_employee"
-                                    name="setappr_employee"
-                                    class="form-control"
-                                    onchange="setappr_getEmpInfo(this);">
+                                <select id="setappr_employee" name="setappr_employee" class="form-control" onchange="setappr_getEmpInfo(this);">
                                 </select>
                             </div>
-
-                            <%--  <div class="setappr-field">
-                                <label><i class="fas fa-id-card"></i>Name</label>
-                                <input type="text" id="setappr_empname" class="form-control setappr-readonly" readonly />
-                            </div>--%>
-
                             <div class="setappr-field">
                                 <label><i class="fas fa-calendar-check"></i>Joining Date</label>
                                 <input type="text" id="setappr_joiningdate" class="form-control setappr-readonly" readonly />
@@ -1146,8 +1072,8 @@
         .setappr-slider-top {
             display: flex;
             justify-content: space-between;
-            align-items: center;carousel-control-prev
-            margin-bottom: 18px;
+            align-items: center;
+            carousel-control-prev margin-bottom: 18px;
         }
 
         .setappr-slider-kicker {
@@ -1576,7 +1502,7 @@
             background: rgba(255,255,255,.14);
             font-size: 25px;
             font-weight: 900;
-            margin-right:20px;
+            margin-right: 20px;
         }
 
         .setappr-slide-type {
@@ -1646,7 +1572,7 @@
 
         .setappr-slide-hero h5 {
             margin: 0;
-            color: black!important;
+            color: black !important;
             font-size: 20px;
             line-height: 1.28;
             font-weight: 900;

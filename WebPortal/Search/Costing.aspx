@@ -17,26 +17,36 @@
             --costing-success: #15803d;
         }
 
-        .loading {
+        #load1 {
             display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            z-index: 2147483647;
             background: rgba(248, 250, 252, .74);
             backdrop-filter: blur(2px);
-            align-items: center;
-            justify-content: center;
+            align-items: center !important;
+            justify-content: center !important;
             text-align: center;
         }
 
-            .loading img {
+            #load1 > .costing-loader-content {
+                position: static !important;
+                margin: 0 !important;
+                transform: none !important;
+                text-align: center;
+            }
+
+            #load1 img {
                 width: 64px;
                 height: 64px;
                 display: block;
                 margin: 0 auto 10px;
             }
 
-            .loading div {
+            #load1 .costing-loader-message {
                 color: var(--costing-text);
                 font-size: 12px;
                 font-weight: 700;
@@ -226,7 +236,7 @@
 
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            grid-template-columns: repeat(3, minmax(180px, 1fr));
             gap: 10px;
             margin-top: 14px;
         }
@@ -402,6 +412,20 @@
                 white-space: nowrap;
             }
 
+            .costing-table thead tr:first-child th.costing-band-header {
+                color: #ffffff;
+                background: #0f766e;
+                border-right: 1px solid rgba(255, 255, 255, .28);
+                border-bottom: 1px solid #0b5f59;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .costing-table thead tr:nth-child(2) th {
+                background: #dff3f1;
+                text-align: center;
+            }
+
             .costing-table tbody td {
                 vertical-align: middle;
                 white-space: nowrap;
@@ -477,8 +501,6 @@
             const params = new URLSearchParams(window.location.search);
             const orderId = params.get('OrderID');
 
-            console.log(orderId);
-
             if (typeof Costing_InitPage === "function") {
                 Costing_InitPage(orderId);
             }
@@ -490,9 +512,9 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="costing-page">
         <div class="loading" id="load1">
-            <div>
+            <div class="costing-loader-content">
                 <img src="../images/Load_1.gif" alt="Loading" />
-                <div>One moment, please . . . .</div>
+                <div class="costing-loader-message">One moment, please . . . .</div>
             </div>
         </div>
 
@@ -501,6 +523,9 @@
                 <h1 class="costing-title"><i class="fas fa-file-invoice-dollar"></i><span>Production / Abstractor Costing</span></h1>
                 <div class="costing-context">Search Operations</div>
             </div>
+            <button type="button" id="btnCostingBack" class="btn-costing-secondary" onclick="window.history.back(); return false;">
+                <i class="fas fa-arrow-left"></i><span>Back</span>
+            </button>
         </div>
 
         <div id="costingAlert" class="alert costing-alert" role="alert"></div>
@@ -523,17 +548,17 @@
                 <input type="hidden" id="hdnCounty" />
 
                 <div class="summary-grid">
-                    <div class="summary-item"><span class="summary-label">Project Number</span><span id="lblProjectNumber" class="summary-value"></span></div>
+                    <div class="summary-item"><span class="summary-label">Project</span><span id="lblProjectNumber" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Product Type</span><span id="lblProductType" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Process</span><span id="lblProcess" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Order Received Date</span><span id="Label2" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">State</span><span id="lblState" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">County</span><span id="lblCounty" class="summary-value"></span></div>
-                    <div class="summary-item"><span class="summary-label">Plant</span><span id="lblPlant" class="summary-value"></span></div>
+               <%--     <div class="summary-item"><span class="summary-label">Plant</span><span id="lblPlant" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Judgment Link</span><span id="lblJudgment" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Average Cost</span><span id="lblAvgCost" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Plant Start Date</span><span id="lblplantSDate" class="summary-value"></span></div>
-                    <div class="summary-item"><span class="summary-label">Image Start Date</span><span id="lblImageSDate" class="summary-value"></span></div>
+                    <div class="summary-item"><span class="summary-label">Image Start Date</span><span id="lblImageSDate" class="summary-value"></span></div>--%>
                 </div>
             </section>
 
@@ -821,42 +846,54 @@
                         <table id="grdManualCostingReport" class="table table-striped table-hover costing-table">
                             <thead>
                                 <tr>
-                                    <th>Sr.#</th>
-                                    <th>Order No</th>
-                                    <th>Search Engine Type</th>
-                                    <th>Search Engine Link</th>
+                                    <th rowspan="2">Sr.#</th>
+                                    <th rowspan="2">Order No</th>
+                                    <th rowspan="2">Search Engine Type</th>
+                                    <th rowspan="2">Search Engine Link</th>
+                                    <th colspan="3" class="costing-band-header">Search Cost</th>
+                                    <th colspan="8" class="costing-band-header">Search Copy Cost</th>
+                                    <th rowspan="2">Judgement Search Link</th>
+                                    <th colspan="3" class="costing-band-header">Judgment Search Cost</th>
+                                    <th colspan="8" class="costing-band-header">Judgment Search Copy Cost</th>
+                                    <th colspan="2" class="costing-band-header">Tax Charges</th>
+                                    <th colspan="2" class="costing-band-header">Other Charges</th>
+                                    <th rowspan="2">Remark</th>
+                                    <th rowspan="2">Documents</th>
+                                    <th rowspan="2">Pages</th>
+                                    <th rowspan="2">Tax Info</th>
+                                    <th rowspan="2">Called Taxes</th>
+                                    <th rowspan="2">Snipping Tools</th>
+                                    <th rowspan="2">Pages Deliver</th>
+                                    <th rowspan="2">Attachment</th>
+                                    <th rowspan="2">Production Cost</th>
+                                </tr>
+                                <tr>
                                     <th>Searches</th>
                                     <th>Cost/Search</th>
                                     <th>Search Total</th>
-                                    <th>Search Copy Pattern</th>
-                                    <th>Search Copy Main Count</th>
-                                    <th>Search Copy Main Cost</th>
-                                    <th>Search Copy Main Total</th>
-                                    <th>Search Copy Vary Count</th>
-                                    <th>Search Copy Vary Cost</th>
-                                    <th>Search Copy Vary Total</th>
-                                    <th>Judgement Search Link</th>
-                                    <th>Judgment Searches</th>
-                                    <th>Judgment Cost/Search</th>
-                                    <th>Judgment Search Total</th>
-                                    <th>Judgment Copy Pattern</th>
-                                    <th>Judgment Copy Main Count</th>
-                                    <th>Judgment Copy Main Cost</th>
-                                    <th>Judgment Copy Main Total</th>
-                                    <th>Judgment Copy Vary Count</th>
-                                    <th>Judgment Copy Vary Cost</th>
-                                    <th>Judgment Copy Vary Total</th>
-                                    <th>Tax Amount</th>
-                                    <th>Other Amount</th>
-                                    <th>Remark</th>
-                                    <th>Documents</th>
-                                    <th>Pages</th>
-                                    <th>Tax Info</th>
-                                    <th>Called Taxes</th>
-                                    <th>Snipping Tools</th>
-                                    <th>Pages Deliver</th>
-                                    <th>Attachment</th>
-                                    <th>Production Cost</th>
+                                    <th>Pattern</th>
+                                    <th>Main Count</th>
+                                    <th>Main Cost</th>
+                                    <th>Main Total</th>
+                                    <th>Vary Count</th>
+                                    <th>Vary Cost</th>
+                                    <th>Vary Total</th>
+                                    <th>Copy Cost Total</th>
+                                    <th>Searches</th>
+                                    <th>Cost/Search</th>
+                                    <th>Search Total</th>
+                                    <th>Pattern</th>
+                                    <th>Main Count</th>
+                                    <th>Main Cost</th>
+                                    <th>Main Total</th>
+                                    <th>Vary Count</th>
+                                    <th>Vary Cost</th>
+                                    <th>Vary Total</th>
+                                    <th>Copy Cost Total</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

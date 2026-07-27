@@ -832,7 +832,7 @@
                                     </select>
                                 </div>
                                 <div class="form-group order-field">
-                                    <label for="orderentry_transaction">Transaction <span class="required">*</span></label>
+                                    <label for="orderentry_transaction">Transaction</label>
                                     <select id="orderentry_transaction" name="orderentry_transaction" class="form-control">
                                         <option value="">Select</option>
                                         <option value="Refinance">Refinance</option>
@@ -858,7 +858,7 @@
                                     <input type="text" id="orderentry_clientid" name="orderentry_clientid" class="form-control" autocomplete="off" />
                                 </div>
                                 <div class="form-group order-field">
-                                    <label for="orderentry_customertype">Customer Type <span class="required">*</span></label>
+                                    <label for="orderentry_customertype">Customer Type</label>
                                     <select id="orderentry_customertype" name="orderentry_customertype" class="form-control">
                                         <option value="">Select</option>
                                         <option value="NA">NA</option>

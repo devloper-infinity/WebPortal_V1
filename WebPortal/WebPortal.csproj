@@ -849,8 +849,11 @@
     <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
+    <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
+    <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
+    <Content Include="Search\SearchDashboard.aspx" />
     <Content Include="SessionKeepAlive.aspx" />
     <Content Include="MenuService.aspx" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert - Copy.jpeg" />
@@ -2839,6 +2842,7 @@
     <Content Include="Scripts\Search\OSTReport.js" />
     <Content Include="Scripts\Search\ProcessOrders.js" />
     <Content Include="Scripts\Search\ProjectTrackingReport.js" />
+    <Content Include="Scripts\Search\SearchDashboard.js" />
     <Content Include="Scripts\Search\VerifyBilling.js" />
     <Content Include="Scripts\Search\ViewBilling.js" />
     <Content Include="Scripts\SessionHandler.js" />
@@ -3112,6 +3116,13 @@
     <Compile Include="App_Code\DAL\dalOLTrackingImport.cs" />
     <Compile Include="App_Code\DAL\dalVendors.cs" />
     <Compile Include="App_Code\OLTrackingWeb.cs" />
+    <Compile Include="Search\SearchDashboard.aspx.cs">
+      <DependentUpon>SearchDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Search\SearchDashboard.aspx.designer.cs">
+      <DependentUpon>SearchDashboard.aspx</DependentUpon>
+    </Compile>
     <Compile Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx.cs">
       <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

@@ -526,6 +526,25 @@
                 padding: 9px 10px;
             }
         }
+
+        .row-duplicate td {
+            background-color: #ffe5e5 !important;
+            color: #b00020;
+            font-weight: 600;
+        }
+
+        /* Default: no wrapping for header and cells */
+#table_otherTask.dataTable th.dt-nowrap,
+#table_otherTask.dataTable td.dt-nowrap {
+    white-space: nowrap;
+}
+
+/* Allow wrapping only for Remark & Reason */
+#table_otherTask.dataTable th.dt-wrap,
+#table_otherTask.dataTable td.dt-wrap {
+    white-space: normal;
+    word-break: break-word;
+}
     </style>
 
     <script>
@@ -667,85 +686,87 @@
     <div class="other-task-tabs" role="tablist" aria-label="Other Task sections">
         <button type="button" class="other-task-tab active" data-panel="uploadOtherTaskTabPanel" role="tab" aria-selected="true">
             <i class="bi bi-cloud-arrow-up-fill"></i>Upload Other Task Data
+       
         </button>
         <button type="button" class="other-task-tab" data-panel="reportTabPanel" role="tab" aria-selected="false">
             <i class="bi bi-bar-chart-line-fill"></i>Report
+       
         </button>
     </div>
 
     <section id="uploadOtherTaskTabPanel" class="other-task-panel active" role="tabpanel">
-    <div class="col-lg-12">
-        <div class="task-card">
-            <div class="task-card-header">
-                <h5 class="task-card-title"><i class="bi bi-ui-checks-grid"></i>Upload Other Task Data</h5>
-            </div>
-            <div class="task-card-body">
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label for="otherTask_project">Project # <span class="req">*</span></label>
-                        <select class="my-select" id="otherTask_project" onchange="otherTask_bindProcess(this)"></select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="otherTask_process">Process <span class="req">*</span></label>
-                        <select class="my-select" id="otherTask_process"></select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="otherTask_fileUploads">Upload File <span class="req">*</span></label>
-                        <div id="otherTask_dropZone" class="drop-zone" role="button" tabindex="0">
-                            <div class="drop-zone-content">
-                                <i class="bi bi-cloud-arrow-up"></i>
-                                <div class="drop-text">
-                                    <span class="drop-title">Drag & drop Excel file here</span>
-                                    <span class="drop-subtitle">or click to browse .xlsx file</span>
-                                </div>
-                                <div id="otherTask_selectedFile" class="selected-file-name"></div>
-                            </div>
+        <div class="col-lg-12">
+            <div class="task-card">
+                <div class="task-card-header">
+                    <h5 class="task-card-title"><i class="bi bi-ui-checks-grid"></i>Upload Other Task Data</h5>
+                </div>
+                <div class="task-card-body">
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="otherTask_project">Project # <span class="req">*</span></label>
+                            <select class="my-select" id="otherTask_project" onchange="otherTask_bindProcess(this)"></select>
                         </div>
-                        <input type="file" id="otherTask_fileUploads" class="file-input d-none" accept=".xlsx" />
+
+                        <div class="form-field">
+                            <label for="otherTask_process">Process <span class="req">*</span></label>
+                            <select class="my-select" id="otherTask_process"></select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="otherTask_fileUploads">Upload File <span class="req">*</span></label>
+                            <div id="otherTask_dropZone" class="drop-zone" role="button" tabindex="0">
+                                <div class="drop-zone-content">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                    <div class="drop-text">
+                                        <span class="drop-title">Drag & drop Excel file here</span>
+                                        <span class="drop-subtitle">or click to browse .xlsx file</span>
+                                    </div>
+                                    <div id="otherTask_selectedFile" class="selected-file-name"></div>
+                                </div>
+                            </div>
+                            <input type="file" id="otherTask_fileUploads" class="file-input d-none" accept=".xlsx" />
+                        </div>
                     </div>
-                </div>
 
-                <div class="actions-grid">
-                    <button type="submit" class="btn btn-gradient-primary w-100" onclick="return otherTask_uploadData();" style="margin-right: 10px;">
-                        <i class="bi bi-cloud-upload"></i>&nbsp; Upload File
+                    <div class="actions-grid">
+                        <button type="submit" class="btn btn-gradient-primary w-100" onclick="return otherTask_uploadData();" style="margin-right: 10px;">
+                            <i class="bi bi-cloud-upload"></i>&nbsp; Upload File
                    
-                    </button>
-
-                    <button type="button" class="btn btn-outline-danger w-100" onclick="return otherTask_clearData();" style="min-height: 46px; width: 360px; margin-left: 30px; margin-left: 10px;">
-                        <i class="bi bi-x-circle"></i>&nbsp; Clear Uploaded Data
-                   
-                    </button>
-
-                    <div class="download-action">
-                        <button type="submit" id="otherTask_verify" class="btn btn-gradient-success flex-grow-1" onclick="return otherTask_VerifyData();" style="margin-left: 25px; width: 300px;">
-                            <i class="bi bi-check-circle"></i>&nbsp; Verify & Submit
-                       
                         </button>
-                        <a href="OtherTaskImportFormat.xlsx" class="icon-btn" data-bs-toggle="tooltip" title="Download Standard Format Excel">
-                            <i class="bi bi-download" style="font-size: 150%;"></i>
-                        </a>
+
+                        <button type="button" class="btn btn-outline-danger w-100" onclick="return otherTask_clearData();" style="min-height: 46px; width: 360px; margin-left: 30px; margin-left: 10px;">
+                            <i class="bi bi-x-circle"></i>&nbsp; Clear Uploaded Data
+                   
+                        </button>
+
+                        <div class="download-action">
+                            <button type="submit" id="otherTask_verify" class="btn btn-gradient-success flex-grow-1" onclick="return otherTask_VerifyData();" style="margin-left: 25px; width: 300px;">
+                                <i class="bi bi-check-circle"></i>&nbsp; Verify & Submit
+                       
+                            </button>
+                            <a href="OtherTaskImportFormat.xlsx" class="icon-btn" data-bs-toggle="tooltip" title="Download Standard Format Excel">
+                                <i class="bi bi-download" style="font-size: 150%;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-card">
+                <div class="task-card-header">
+                    <h5 class="task-card-title"><i class="bi bi-list-check"></i>Uploaded Data Preview</h5>
+                </div>
+                <div class="task-card-body">
+                    <label id="otherTask_alert" class="alert-text"></label>
+                    <div class="result-panel">
+                        <table class="table" id="table_otherTask" style="width: 100%;">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="task-card">
-            <div class="task-card-header">
-                <h5 class="task-card-title"><i class="bi bi-list-check"></i>Uploaded Data Preview</h5>
-            </div>
-            <div class="task-card-body">
-                <label id="otherTask_alert" class="alert-text"></label>
-                <div class="result-panel">
-                    <table class="table" id="table_otherTask" style="width: 100%;">
-                        <thead></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
     </section>
 
     <section id="reportTabPanel" class="other-task-panel" role="tabpanel">
@@ -768,6 +789,7 @@
                             <label>&nbsp;</label>
                             <button type="button" class="btn btn-gradient-primary" onclick="loadOtherTaskReport();">
                                 <i class="bi bi-bar-chart-line"></i>&nbsp; Get Report
+                           
                             </button>
                         </div>
                     </div>

@@ -473,7 +473,7 @@
             bindData_pwd();
         });
 
-        function bindData_pwd() {
+        function core_bindData_pwd() {
 
             $('#load1').show();
 
@@ -578,6 +578,95 @@
                 error: function (xhr) {
 
 
+                }
+            });
+
+            return false;
+        }
+
+        function bindData_pwd() {
+
+            $('#load1').show();
+
+            $.ajax({
+                url: "All.aspx/GetAllUserERPLoginDetails",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function (response) {
+
+                    let dataArray = [];
+
+                    try {
+                        dataArray = JSON.parse(response.d || "[]");
+                    }
+                    catch (e) {
+                        console.error("Invalid JSON response:", e);
+                        dataArray = [];
+                    }
+
+                    if ($.fn.DataTable.isDataTable('#table_pwdHistory')) {
+                        $('#table_pwdHistory').DataTable().clear().destroy();
+                        $('#table_pwdHistory').empty();   // Remove old headers
+                    }
+
+                    // Create columns dynamically
+                    let columns = [];
+
+                    // Sr. No.
+                    columns.push({
+                        data: null,
+                        title: "Sr. No.",
+                        className: "text-center text-nowrap",
+                        width: "70px",
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    });
+
+                    // Remaining columns
+                    if (dataArray.length > 0) {
+
+                        Object.keys(dataArray[0]).forEach(function (key) {
+
+                            columns.push({
+                                data: key,
+                                title: key,
+                                defaultContent: "",
+                                className: "text-nowrap",
+                                render: function (data) {
+                                    return blankForNull(data);
+                                }
+                            });
+
+                        });
+                    }
+
+                    $('#table_pwdHistory').DataTable({
+                        data: dataArray,
+                        columns: columns,
+
+                        dom: 'lftp',
+                        scrollX: true,
+                        destroy: true,
+                        paging: true,
+                        autoWidth: true,
+                        ordering: false,
+                        processing: true,
+                        select: {
+                            style: 'single'
+                        },
+
+                        initComplete: function () {
+                            $('#load1').hide();
+                        }
+                    });
+                },
+
+                error: function (xhr) {
+                    $('#load1').hide();
+                    console.error(xhr);
                 }
             });
 

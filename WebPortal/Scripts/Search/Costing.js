@@ -13,72 +13,15 @@ function Costing_InitPage(orderId) {
     }
 
     costingState.initialized = true;
-    bindCostingEvents(orderId);
-    initializeCostingTables();
-    resetCostingPage();
-    loadCostingOrders();
-}
-
-
-function bindCostingEvents(orderId) {
-
     costingState.selectedOrderId = parseInt(orderId, 10) || 0;
-
-    if (costingState.selectedOrderId > 0) {
-        loadOrderCosting(costingState.selectedOrderId);
-    } else {
-        resetCostingPage();
-    }
-
-    $(document)
-        .off('.costing')
-        .on('change.costing', '#ddlSearchCopyPagesDocs', function () {
-            updatePageDocLabel('#ddlSearchCopyPagesDocs', '#lblSearchCopyCostPageDoc');
-        })
-        .on('change.costing', '#ddlVarySearchCopyPagesDocs', function () {
-            updatePageDocLabel('#ddlVarySearchCopyPagesDocs', '#lblVarySearchCopyCostPageDoc');
-        })
-        .on('change.costing', '#ddlJudgementCopyPagesDocs', function () {
-            updatePageDocLabel('#ddlJudgementCopyPagesDocs', '#lblJudjementCopyPageDoc');
-        })
-        .on('change.costing', '#ddlVaryJudgementCopyPagesDocs', function () {
-            updatePageDocLabel('#ddlVaryJudgementCopyPagesDocs', '#lblVaryJudjementCopyPageDoc');
-        })
-        .on('change.costing', '#ddlSearchCopyCostPattern,#ddlJudjementCopyCostPattern', function () {
-            updateCostingVarySections();
-            calculateProductionTotals();
-        })
-        .on('input.costing', '.costing-number', function () {
-            this.value = this.value.replace(/[^\d]/g, '');
-            calculateProductionTotals();
-            calculateAbstractorTotals();
-        })
-        .on('input.costing', '.costing-money-input', function () {
-            this.value = this.value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
-            calculateProductionTotals();
-            calculateAbstractorTotals();
-        })
-        .on('blur.costing', '.costing-money-input', function () {
-            if ($.trim(this.value) !== '') {
-                this.value = formatMoney(decimalValue(this.value));
-            }
-        })
-        .on('click.costing', '#btnAddProductionCosting', function () {
-            saveProductionCosting();
-        })
-        .on('click.costing', '#btnResetProductionCosting', function () {
-            clearProductionEntryFields(true);
-            calculateProductionTotals();
-        })
-        .on('click.costing', '#btnAddAbstractor', function () {
-            saveAbstractorCosting();
-        })
-        .on('click.costing', '#btnAddManualCosting', function () {
-            saveCreditCardInfo();
-        });
+    bindCostingEvents();
+    initializeCostingTables();
+    resetCostingPage(true);
+    loadCostingOrders(costingState.selectedOrderId);
 }
 
-function core_bindCostingEvents(orderId) {
+
+function bindCostingEvents() {
     $(document)
         .off('.costing')
         .on('change.costing', '#ddlOrder', function () {
@@ -91,6 +34,10 @@ function core_bindCostingEvents(orderId) {
                 resetCostingPage();
             }
         })
+        .on('change.costing', '#ddlCostSearchEngine', function () {
+            clearProductionForSearchEngineChange();
+            calculateProductionTotals();
+        })
         .on('change.costing', '#ddlSearchCopyPagesDocs', function () {
             updatePageDocLabel('#ddlSearchCopyPagesDocs', '#lblSearchCopyCostPageDoc');
         })
@@ -119,7 +66,7 @@ function core_bindCostingEvents(orderId) {
         })
         .on('blur.costing', '.costing-money-input', function () {
             if ($.trim(this.value) !== '') {
-                this.value = formatMoney(decimalValue(this.value));
+                this.value = formatMoney(decimalRaw(this.value));
             }
         })
         .on('click.costing', '#btnAddProductionCosting', function () {
@@ -142,7 +89,8 @@ function initializeCostingTables() {
     renderAbstractorGrid([]);
 }
 
-function loadCostingOrders() {
+function loadCostingOrders(selectedOrderId) {
+    var orderIdToLoad = 0;
     showCostingLoader(true);
     clearCostingMessage();
 
@@ -156,12 +104,27 @@ function loadCostingOrders() {
 
             costingState.orders = response.Orders || [];
             fillOrderDropDown(costingState.orders);
+
+            if (selectedOrderId > 0) {
+                var selectedValue = String(selectedOrderId);
+                if ($('#ddlOrder option[value="' + selectedValue + '"]').length === 0) {
+                    costingState.selectedOrderId = 0;
+                    showCostingMessage('warning', 'The selected order is not available for the current user.');
+                    return;
+                }
+
+                $('#ddlOrder').val(selectedValue);
+                orderIdToLoad = selectedOrderId;
+            }
         })
         .fail(function (error) {
             showCostingAjaxError(error, 'Unable to load orders.');
         })
         .always(function () {
             showCostingLoader(false);
+            if (orderIdToLoad > 0) {
+                loadOrderCosting(orderIdToLoad);
+            }
         });
 }
 
@@ -433,6 +396,7 @@ function renderProductionGrid(rows) {
         html += gridCell(getValue(row, 'SearchCopyCostNo', 'SearchCopyCostPagesDocs'));
         html += gridCell(formatMoneyDisplay(getValue(row, 'SearchCopyCostCost')));
         html += gridCell(formatMoneyDisplay(getValue(row, 'SearchCopyCostTotal')));
+        html += gridCell(formatMoneyDisplay(getValue(row, 'SearchTotalCost')));
         html += gridCell(getValue(row, 'JudgementSearchLink'));
         html += gridCell(getValue(row, 'JudgmentSearchCostNoOfSeraches'));
         html += gridCell(formatMoneyDisplay(getValue(row, 'JudgmentSearchCostCost')));
@@ -444,7 +408,10 @@ function renderProductionGrid(rows) {
         html += gridCell(getValue(row, 'JudgmentCopyCostNo', 'JudgmentCopyCostPagesDocs'));
         html += gridCell(formatMoneyDisplay(getValue(row, 'JudgmentCopyCostCost')));
         html += gridCell(formatMoneyDisplay(getValue(row, 'JudgmentCopyCostTotal')));
+        html += gridCell(formatMoneyDisplay(getValue(row, 'JudgmentTotalCost')));
+        html += gridCell(getValue(row, 'TaxChargesDescription'));
         html += gridCell(formatMoneyDisplay(getValue(row, 'TaxAmount')));
+        html += gridCell(getValue(row, 'OtherChargesDescription'));
         html += gridCell(formatMoneyDisplay(getValue(row, 'OtherChargesAmount')));
         html += gridCell(getValue(row, 'CostingRemark', 'Remark'));
         html += gridCell(getValue(row, 'NoOfDocuments'));
@@ -616,6 +583,14 @@ function validateAbstractorCosting() {
         return 'Abstractor costing is only available for Offline or Online to Offline orders.';
     }
 
+    if ($.trim($('#txtAbstractorSearchCost').val()) === '') {
+        return 'Please enter abstractor search cost.';
+    }
+
+    if ($.trim($('#txtAbstractorPagesCopyCost').val()) === '') {
+        return 'Please enter copy cost.';
+    }
+
     if ($.trim($('#txtAbstractorOtherDescription').val()) === '') {
         return 'Please enter abstractor other cost description.';
     }
@@ -693,8 +668,10 @@ function buildAbstractorRequest() {
         SearchEngineType: $('#ddlCostSearchEngine').val(),
         SearchEngineLink: $.trim($('#txtCostSearchType').val()),
         AbstractorSearchCost: decimalValue('#txtAbstractorSearchCost'),
+        AbstractorSearchCostSpecified: $.trim($('#txtAbstractorSearchCost').val()) !== '',
         AbstractorCopyCostPages: intValue('#txtAbstractorPagesCopyCost'),
-        AbstractorCopyCostCost: decimalValue('#txtAbstractorPagesCopyCostTotal'),
+        AbstractorCopyCostPagesSpecified: $.trim($('#txtAbstractorPagesCopyCost').val()) !== '',
+        AbstractorCopyCostCost: decimalValue('#txtAbstractorPagesCopyCost'),
         AbstractorCopyCostCostTotal: decimalValue('#txtAbstractorPagesCopyCostTotal'),
         OtherCostDescription: $.trim($('#txtAbstractorOtherDescription').val()),
         OtherCost: decimalValue('#txtAbstractorOtherCost'),
@@ -780,6 +757,12 @@ function clearProductionEntryFields(keepCore) {
     updateAllPageDocLabels();
 }
 
+function clearProductionForSearchEngineChange() {
+    $('#txtCostSearchType,#txtNoOfSearchesMade,#txtCostSearches,#txtSearchCostTotal,#txtNoOfPagesAndDocs,#txtNoOfPagesAndDocsCost,#txtNoOfPagesAndDocsTotalCost,#txtVaryNoOfPagesAndDocs,#txtVarySearchPageCost,#txtVarySearhCopyCostTotal,#txtJudgementSearchCostLink,#txtJudgementNoOfSearches,#txtJudgementNoOfSearchesCost,#txtJudgementNoOfSearchesTotalCost,#txtJudjementCopyNoOfPages,#txtJudjementCopyNoOfPagesCost,#txtJudjementCopyNoOfPagesTotalCost,#txtVaryJudjementCopyNoOfPages,#txtVaryJudgmentPageCost,#txtVaryJudjementCopyNoOfPagesTotalCost,#txtTaxDescription,#txtTaxTotalAmount,#txtOtherCharges,#txtOtherChargesAmount,#txtCostRemark,#lblManualTotalSearchEngineCost,#txtOrderCost').val('');
+    $('#ddlSearchCopyCostPattern,#ddlJudjementCopyCostPattern').val('Similar');
+    updateCostingVarySections();
+}
+
 function clearAbstractorFields() {
     $('#txtAbstractorSearchCost,#txtAbstractorPagesCopyCost,#txtAbstractorPagesCopyCostTotal,#txtAbstractorOtherDescription,#txtAbstractorOtherCost,#txtTotalAbstractorCost').val('');
 }
@@ -860,10 +843,15 @@ function clearCostingMessage() {
 }
 
 function showCostingLoader(show) {
+    var $loader = $('#load1');
+    if ($loader.length && !$loader.parent().is('body')) {
+        $loader.appendTo(document.body);
+    }
+
     if (show) {
-        $('#load1').css('display', 'flex');
+        $loader.css('display', 'flex');
     } else {
-        $('#load1').hide();
+        $loader.hide();
     }
 }
 

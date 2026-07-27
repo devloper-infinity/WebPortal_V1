@@ -442,7 +442,7 @@
     <script>
         $(document).ready(function () {
             var currentUserName = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
-            if (currentUserName == 7036 || currentUserName == 12 || currentUserName == 216 || currentUserName == 285 || currentUserName == 8535 || currentUserName == 9738 || currentUserName == 277 || currentUserName == 99 || currentUserName == 8128 || currentUserName == 291 || currentUserName == 255 || currentUserName == 7171) {
+            if (currentUserName == 7036 || currentUserName == 12 || currentUserName == 216 || currentUserName == 285 || currentUserName == 8535 || currentUserName == 9738 || currentUserName == 277 || currentUserName == 99 || currentUserName == 8128 || currentUserName == 291 || currentUserName == 255 || currentUserName == 7171 || currentUserName == 9858) {
                 document.getElementById("mainleaveuser").style.display = "";
                 empleave_bindemployee();
                 empleave_bindgrid();
