@@ -1327,5 +1327,11 @@ namespace WebPortal.App_Code
 
         #endregion
 
+        public string CheckUserExist(string Code)
+        {
+            int ReturnValue = new bllVendors().CheckUserExist(Code);
+            return Convert.ToString(ReturnValue);
+        }
+
     }
 }

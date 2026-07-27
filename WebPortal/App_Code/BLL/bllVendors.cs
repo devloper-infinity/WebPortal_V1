@@ -224,5 +224,113 @@ namespace WebPortal.App_Code.BLL
         {
             return new dalVendors().InsertChangeOrderStatus(htParam);
         }
+        public int InsertOrderAttachment(Hashtable htParam)
+        {
+            return new dalVendors().InsertOrderAttachment(htParam);
+        }
+        public int InsertCommentOrder(Hashtable htParam)
+        {
+            return new dalVendors().InsertCommentOrder(htParam);
+        }
+        public DataTable GetAllInfinityOrderbyEmp(int EmpId)
+        {
+            return new dalVendors().GetAllInfinityOrderbyEmp(EmpId);
+        }
+        public DataTable GetAllStatus()
+        {
+            return new dalVendors().GetAllStatus();
+        }
+        public DataTable GetAllInfinityCaller()
+        {
+            return new dalVendors().GetAllInfinityCaller();
+        }
+        public DataTable GetCurrentProcessOfUser(int OrderId, int TaskAssignedId)
+        {
+            return new dalVendors().GetCurrentProcessOfUser(OrderId, TaskAssignedId);
+        }
+        public DataTable GetAllProcess()
+        {
+            return new dalVendors().GetAllProcess();
+        }
+        public DataTable GetOrdersOnProcessForUser(int OrderId, int TaskAssignedId, int ProcessId)
+        {
+            return new dalVendors().GetOrdersOnProcessForUser(OrderId, TaskAssignedId, ProcessId);
+        }
+        public DataTable GetDetailsFromTask(int TaskId)
+        {
+            return new dalVendors().GetDetailsFromTask(TaskId);
+        }
+        public int UpdateTaskStatusAndDate(Hashtable htParam)
+        {
+            return new dalVendors().UpdateTaskStatusAndDate(htParam);
+        }
+        public int DispatchOrderTask(Hashtable htParam)
+        {
+            return new dalVendors().DispatchOrderTask(htParam);
+        }
+        public string GetCodeFromEmployeeId(string EmployeeId, string OrderNo, string ProjectName)
+        {
+            return new dalVendors().GetCodeFromEmployeeId(EmployeeId, OrderNo, ProjectName);
+        }
+        public int FeedBackOrders(Hashtable htParam)
+        {
+            return new dalVendors().FeedBackOrders(htParam);
+        }
+        public DataTable GetAllVendorCompanies()
+        {
+            return new dalVendors().GetAllVendorDetails();
+        }
+        public DataTable GetAllVendorCompanies(string Type)
+        {
+            return new dalVendors().GetAllVendorCompanies(Type);
+        }
+        public DataTable GetAllState()
+        {
+            return new dalVendors().GetAllState();
+        }
+        public DataTable GetAllProductType()
+        {
+            return new dalVendors().GetAllProductType();
+        }
+        public DataTable GetAllRegistredUser(string UserType)
+        {
+            return new dalVendors().GetAllRegistredUser(UserType);
+        }
+        public DataTable GetAllVendorInfoByID(int ApplicationId)
+        {
+            return new dalVendors().GetAllVendorInfoByID(ApplicationId);
+        }
+        public DataTable GetSelectedRegUser(int RId)
+        {
+            return new dalVendors().GetSelectedRegUser(RId);
+        }
+        public int DeleteVendorDetails(int ApplicationId)
+        {
+            return new dalVendors().DeleteVendorDetails(ApplicationId);
+        }
+        public int CheckUserExist(string Code)
+        {
+            return new dalVendors().CheckUserExist(Code);
+        }
+        public int InsertInfinityUserRegistration(Hashtable htParam)
+        {
+            return new dalVendors().InsertInfinityUserRegistration(htParam);
+        }
+        public int InsertAbstractorCostInformation(Hashtable htParam)
+        {
+            return new dalVendors().InsertAbstractorCostInformation(htParam);
+        }
+        public DataTable GetAbstractorCosting(int AbstractiorID)
+        {
+            return new dalVendors().GetAbstractorCosting(AbstractiorID);
+        }
+        public int InsertAbstractorDocuments(Hashtable htParam)
+        {
+            return new dalVendors().InsertAbstractorDocuments(htParam);
+        }
+        public DataTable GetAbstractorDocuments(int AbstractiorID)
+        {
+            return new dalVendors().GetAbstractorDocuments(AbstractiorID);
+        }
     }
 }

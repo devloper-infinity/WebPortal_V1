@@ -1,12 +1,15 @@
+using ClosedXML.Excel;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Web;
 using System.Web.Services;
-using ClosedXML.Excel;
 using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Reports
@@ -73,6 +76,9 @@ namespace WebPortal.Reports
                     DataTable yearSummary = ds.Tables.Count > 0 ? ds.Tables[0] : new DataTable();
                     DataTable monthSummary = ds.Tables.Count > 1 ? ds.Tables[1] : new DataTable();
                     DataTable employeeDetails = ds.Tables.Count > 2 ? ds.Tables[2] : new DataTable();
+                    CreateHeadcountTrendSheet(workbook, monthSummary, employeeDetails);
+                    CreateGrossSalaryTrendSheet(workbook, monthSummary, employeeDetails);
+                    CreateSalaryDeviationSheet(workbook, monthSummary, employeeDetails);
                     CreateDashboardDataSheet(workbook, monthSummary, employeeDetails);
                     CreateHorizontalMonthlySheet(workbook, monthSummary, employeeDetails);
                     CreateYearSummarySheet(workbook, yearSummary, employeeDetails);
@@ -102,6 +108,469 @@ namespace WebPortal.Reports
             {
                 ShowExportError("Unable to export report: " + ex.Message);
             }
+        }
+        private void ExportSalaryReport_OLD()
+        {
+            int fromMonth;
+            int fromYear;
+            int toMonth;
+            int toYear;
+
+            if (!int.TryParse(Request.QueryString["fromMonth"], out fromMonth) ||
+                !int.TryParse(Request.QueryString["fromYear"], out fromYear) ||
+                !int.TryParse(Request.QueryString["toMonth"], out toMonth) ||
+                !int.TryParse(Request.QueryString["toYear"], out toYear))
+            {
+                ShowExportError(
+                    "Please select a valid From Month-Year and To Month-Year.");
+                return;
+            }
+
+            string validationMessage = ValidatePeriod(
+                fromMonth,
+                fromYear,
+                toMonth,
+                toYear);
+
+            if (!string.IsNullOrEmpty(validationMessage))
+            {
+                ShowExportError(validationMessage);
+                return;
+            }
+
+            try
+            {
+                DataSet ds = GetSalaryData(
+                    fromMonth,
+                    fromYear,
+                    toMonth,
+                    toYear);
+
+                DataTable yearSummary =
+                    ds.Tables.Count > 0
+                        ? ds.Tables[0]
+                        : new DataTable();
+
+                DataTable monthSummary =
+                    ds.Tables.Count > 1
+                        ? ds.Tables[1]
+                        : new DataTable();
+
+                DataTable employeeDetails =
+                    ds.Tables.Count > 2
+                        ? ds.Tables[2]
+                        : new DataTable();
+
+                string templatePath = Server.MapPath(
+                    "~/ReportTemplates/SalaryReportTemplate.xlsx");
+
+                if (!File.Exists(templatePath))
+                {
+                    ShowExportError(
+                        "Excel template was not found at: " + templatePath);
+                    return;
+                }
+
+                using (XLWorkbook workbook = new XLWorkbook(templatePath))
+                {
+                    PopulateHeadcountTrendSheet(
+                        workbook,
+                        monthSummary,
+                        employeeDetails);
+
+                    PopulateGrossSalaryTrendSheet(
+                        workbook,
+                        monthSummary,
+                        employeeDetails);
+
+                    PopulateSalaryDeviationSheet(
+                        workbook,
+                        monthSummary,
+                        employeeDetails);
+
+                    // Remove previously generated data sheets from the template,
+                    // if they exist.
+                    DeleteWorksheetIfExists(workbook, "Gross Year Summary");
+                    DeleteWorksheetIfExists(workbook, "Year Summary");
+                    DeleteWorksheetIfExists(workbook, "Month Summary");
+                    DeleteWorksheetIfExists(workbook, "Employee Details");
+
+                    CreateGrossYearSummarySheet(
+                        workbook,
+                        yearSummary,
+                        employeeDetails);
+
+                    CreateYearSummarySheet(
+                        workbook,
+                        yearSummary,
+                        employeeDetails);
+
+                    CreateMonthSummarySheet(
+                        workbook,
+                        monthSummary,
+                        employeeDetails);
+
+                    CreateEmployeeDetailsSheet(
+                        workbook,
+                        employeeDetails);
+
+                    string fileName = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "SalaryReport_{0}_{1}_to_{2}_{3}.xlsx",
+                        CultureInfo.CurrentCulture.DateTimeFormat
+                            .GetAbbreviatedMonthName(fromMonth),
+                        fromYear,
+                        CultureInfo.CurrentCulture.DateTimeFormat
+                            .GetAbbreviatedMonthName(toMonth),
+                        toYear);
+
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        workbook.SaveAs(stream);
+
+                        byte[] bytes = stream.ToArray();
+
+                        Response.Clear();
+                        Response.Buffer = true;
+                        Response.ContentType =
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+                        Response.AddHeader(
+                            "Content-Disposition",
+                            "attachment; filename=\"" + fileName + "\"");
+
+                        Response.AddHeader(
+                            "Content-Length",
+                            bytes.Length.ToString(
+                                CultureInfo.InvariantCulture));
+
+                        Response.BinaryWrite(bytes);
+                        Response.Flush();
+
+                        HttpContext.Current.ApplicationInstance
+                            .CompleteRequest();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowExportError(
+                    "Unable to export report: " + ex.Message);
+            }
+        }
+        private static void PopulateHeadcountTrendSheet(
+    XLWorkbook workbook,
+    DataTable monthSummary,
+    DataTable employeeDetails)
+        {
+            const string sheetName = "Headcount Trend";
+
+            IXLWorksheet ws = GetRequiredTemplateWorksheet(
+                workbook,
+                sheetName);
+
+            MonthlyExportModel model = BuildMonthlyExportModel(
+                monthSummary,
+                employeeDetails);
+
+            PrepareTemplateChartSheet(
+                ws,
+                "Department-wise Headcount Trend");
+
+            int chartDataRow = 4;
+
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                int totalHeadcount = 0;
+
+                foreach (string department in model.Departments)
+                {
+                    string key =
+                        period.Key.ToString(
+                            CultureInfo.InvariantCulture) +
+                        "||" +
+                        department;
+
+                    int count;
+
+                    model.HeadcountValues.TryGetValue(
+                        key,
+                        out count);
+
+                    totalHeadcount += count;
+                }
+
+                ws.Cell(chartDataRow, 1).Value =
+                    GetShortPeriodLabel(period.Key, period.Value);
+
+                ws.Cell(chartDataRow, 2).Value =
+                    totalHeadcount;
+
+                chartDataRow++;
+            }
+
+            ws.Range("B4:B63")
+                .Style.NumberFormat.Format = "0";
+
+            WriteHorizontalMetricTable(
+                ws,
+                model,
+                24,
+                ExportMetric.Headcount);
+        }
+        private static void PopulateGrossSalaryTrendSheet(
+    XLWorkbook workbook,
+    DataTable monthSummary,
+    DataTable employeeDetails)
+        {
+            const string sheetName = "Gross Salary Trend";
+
+            IXLWorksheet ws = GetRequiredTemplateWorksheet(
+                workbook,
+                sheetName);
+
+            MonthlyExportModel model = BuildMonthlyExportModel(
+                monthSummary,
+                employeeDetails);
+
+            PrepareTemplateChartSheet(
+                ws,
+                "Department-wise Gross Salary Trend");
+
+            int chartDataRow = 4;
+
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                decimal totalGross = 0M;
+
+                foreach (string department in model.Departments)
+                {
+                    string key =
+                        period.Key.ToString(
+                            CultureInfo.InvariantCulture) +
+                        "||" +
+                        department;
+
+                    decimal gross;
+
+                    model.GrossValues.TryGetValue(
+                        key,
+                        out gross);
+
+                    totalGross += gross;
+                }
+
+                ws.Cell(chartDataRow, 1).Value =
+                    GetShortPeriodLabel(period.Key, period.Value);
+
+                ws.Cell(chartDataRow, 2).Value =
+                    totalGross;
+
+                chartDataRow++;
+            }
+
+            ws.Range("B4:B63")
+                .Style.NumberFormat.Format = "#,##0.00";
+
+            WriteHorizontalMetricTable(
+                ws,
+                model,
+                24,
+                ExportMetric.Gross);
+        }
+        private static void PopulateSalaryDeviationSheet(
+    XLWorkbook workbook,
+    DataTable monthSummary,
+    DataTable employeeDetails)
+        {
+            const string sheetName = "Salary Deviation";
+
+            IXLWorksheet ws = GetRequiredTemplateWorksheet(
+                workbook,
+                sheetName);
+
+            MonthlyExportModel model = BuildMonthlyExportModel(
+                monthSummary,
+                employeeDetails);
+
+            PrepareTemplateChartSheet(
+                ws,
+                "Department-wise Gross Salary Deviation");
+
+            int chartDataRow = 4;
+            decimal previousTotal = 0M;
+            bool hasPrevious = false;
+
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                decimal currentTotal = 0M;
+
+                foreach (string department in model.Departments)
+                {
+                    string key =
+                        period.Key.ToString(
+                            CultureInfo.InvariantCulture) +
+                        "||" +
+                        department;
+
+                    decimal gross;
+
+                    model.GrossValues.TryGetValue(
+                        key,
+                        out gross);
+
+                    currentTotal += gross;
+                }
+
+                decimal deviation = 0M;
+
+                if (hasPrevious && previousTotal != 0M)
+                {
+                    deviation =
+                        (currentTotal - previousTotal) /
+                        previousTotal;
+                }
+
+                ws.Cell(chartDataRow, 1).Value =
+                    GetShortPeriodLabel(period.Key, period.Value);
+
+                /*
+                 * Store percentage as a decimal fraction:
+                 * 0.025 means 2.50%.
+                 */
+                ws.Cell(chartDataRow, 2).Value =
+                    deviation;
+
+                previousTotal = currentTotal;
+                hasPrevious = true;
+                chartDataRow++;
+            }
+
+            IXLRange chartValues = ws.Range("B4:B63");
+
+            chartValues.Style.NumberFormat.Format =
+                "0.00%";
+
+            chartValues
+                .AddConditionalFormat()
+                .WhenGreaterThan(0)
+                .Fill
+                .SetBackgroundColor(
+                    XLColor.FromHtml("#E2F0D9"))
+                .Font
+                .SetFontColor(
+                    XLColor.FromHtml("#006100"));
+
+            chartValues
+                .AddConditionalFormat()
+                .WhenLessThan(0)
+                .Fill
+                .SetBackgroundColor(
+                    XLColor.FromHtml("#FCE4D6"))
+                .Font
+                .SetFontColor(
+                    XLColor.FromHtml("#9C0006"));
+
+            WriteHorizontalMetricTable(
+                ws,
+                model,
+                24,
+                ExportMetric.Deviation);
+        }
+
+        private static IXLWorksheet GetRequiredTemplateWorksheet(
+    XLWorkbook workbook,
+    string sheetName)
+        {
+            IXLWorksheet worksheet;
+
+            if (!workbook.Worksheets.TryGetWorksheet(
+                    sheetName,
+                    out worksheet))
+            {
+                throw new InvalidOperationException(
+                    "The worksheet '" +
+                    sheetName +
+                    "' was not found in the Excel template.");
+            }
+
+            return worksheet;
+        }
+
+        private static void PrepareTemplateChartSheet(
+            IXLWorksheet ws,
+            string title)
+        {
+            /*
+             * Only clear cell values.
+             * Do not delete the worksheet, rows, columns, or chart.
+             */
+            ws.Range("A1:B63")
+                .Clear(XLClearOptions.Contents);
+
+            /*
+             * Clear the previous horizontal table.
+             * Increase AZ200 if the report may contain more columns/rows.
+             */
+            ws.Range("A24:AZ200")
+                .Clear(XLClearOptions.Contents);
+
+            ws.Cell("A1").Value = title;
+
+            ws.Cell("A1").Style.Font.Bold = true;
+            ws.Cell("A1").Style.Font.FontSize = 16;
+            ws.Cell("A1").Style.Font.FontColor = XLColor.White;
+            ws.Cell("A1").Style.Fill.BackgroundColor =
+                XLColor.FromHtml("#355A8A");
+
+            ws.Range("A1:B1").Merge();
+
+            ws.Cell("A3").Value = "Month";
+            ws.Cell("B3").Value = "Value";
+
+            IXLRange header = ws.Range("A3:B3");
+
+            header.Style.Font.Bold = true;
+            header.Style.Font.FontColor = XLColor.White;
+            header.Style.Fill.BackgroundColor =
+                XLColor.FromHtml("#5A78A8");
+
+            header.Style.Alignment.Horizontal =
+                XLAlignmentHorizontalValues.Center;
+
+            ws.Column(1).Width = 16;
+            ws.Column(2).Width = 18;
+        }
+
+        private static void DeleteWorksheetIfExists(
+            XLWorkbook workbook,
+            string worksheetName)
+        {
+            IXLWorksheet worksheet;
+
+            if (workbook.Worksheets.TryGetWorksheet(
+                    worksheetName,
+                    out worksheet))
+            {
+                worksheet.Delete();
+            }
+        }
+        private static string GetShortPeriodLabel(
+    int periodKey,
+    string fallbackLabel)
+        {
+            int year = periodKey / 100;
+            int month = periodKey % 100;
+
+            if (month >= 1 && month <= 12)
+            {
+                return new DateTime(year, month, 1)
+                    .ToString(
+                        "MMM-yy",
+                        CultureInfo.InvariantCulture);
+            }
+
+            return fallbackLabel;
         }
 
         private static DataSet GetSalaryData(int fromMonth, int fromYear, int toMonth, int toYear)
@@ -447,6 +916,415 @@ namespace WebPortal.Reports
 
         private sealed class SalaryDashboardTotal { public string Label { get; set; } public decimal Gross { get; set; } public decimal Net { get; set; } }
         private sealed class SalaryHorizontalAmount { public decimal Gross { get; set; } public decimal Net { get; set; } }
+
+        private sealed class MonthlyExportModel
+        {
+            public SortedDictionary<int, string> Periods { get; set; }
+            public List<string> Departments { get; set; }
+            public Dictionary<string, decimal> GrossValues { get; set; }
+            public Dictionary<string, int> HeadcountValues { get; set; }
+        }
+
+        private static MonthlyExportModel BuildMonthlyExportModel(DataTable monthSummary, DataTable employeeDetails)
+        {
+            MonthlyExportModel model = new MonthlyExportModel
+            {
+                Periods = new SortedDictionary<int, string>(),
+                Departments = new List<string>(),
+                GrossValues = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
+                HeadcountValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            };
+
+            SortedSet<string> departmentSet = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataRow row in monthSummary.Rows)
+            {
+                int year = Convert.ToInt32(row["Year"]);
+                string monthYear = Convert.ToString(row["MonthYear"]);
+                int month = GetMonthNumber(row, monthYear);
+                int periodKey = year * 100 + month;
+                string department = Convert.ToString(row["Department"]);
+
+                model.Periods[periodKey] = monthYear;
+                departmentSet.Add(department);
+                model.GrossValues[periodKey.ToString(CultureInfo.InvariantCulture) + "||" + department] =
+                    ToDecimal(row["GrossSalary"]);
+            }
+
+            Dictionary<string, HashSet<string>> countMap = BuildEmployeeCountMap(employeeDetails, true);
+            foreach (KeyValuePair<string, HashSet<string>> item in countMap)
+                model.HeadcountValues[item.Key] = item.Value.Count;
+
+            model.Departments.AddRange(departmentSet);
+            return model;
+        }
+
+        private static void CreateHeadcountTrendSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
+        {
+            MonthlyExportModel model = BuildMonthlyExportModel(monthSummary, employeeDetails);
+            IXLWorksheet ws = workbook.Worksheets.Add("Headcount Trend");
+            WriteSheetTitle(ws, "Department-wise Headcount Trend");
+
+            List<string> labels = new List<string>();
+            List<decimal> totals = new List<decimal>();
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                labels.Add(period.Value);
+                int total = 0;
+                foreach (string department in model.Departments)
+                {
+                    int count;
+                    model.HeadcountValues.TryGetValue(period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department, out count);
+                    total += count;
+                }
+                totals.Add(total);
+            }
+
+            AddLineChartPicture(ws, "Headcount Trend", labels, totals, false, "B3");
+            WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Headcount);
+        }
+
+        private static void CreateGrossSalaryTrendSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
+        {
+            MonthlyExportModel model = BuildMonthlyExportModel(monthSummary, employeeDetails);
+            IXLWorksheet ws = workbook.Worksheets.Add("Gross Salary Trend");
+            WriteSheetTitle(ws, "Department-wise Gross Salary Trend");
+
+            List<string> labels = new List<string>();
+            List<decimal> totals = new List<decimal>();
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                labels.Add(period.Value);
+                decimal total = 0M;
+                foreach (string department in model.Departments)
+                {
+                    decimal gross;
+                    model.GrossValues.TryGetValue(period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department, out gross);
+                    total += gross;
+                }
+                totals.Add(total);
+            }
+
+            AddLineChartPicture(ws, "Gross Salary Trend", labels, totals, true, "B3");
+            WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Gross);
+        }
+
+        private static void CreateSalaryDeviationSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
+        {
+            MonthlyExportModel model = BuildMonthlyExportModel(monthSummary, employeeDetails);
+            IXLWorksheet ws = workbook.Worksheets.Add("Salary Deviation");
+            WriteSheetTitle(ws, "Department-wise Gross Salary Deviation");
+
+            List<string> labels = new List<string>();
+            List<decimal> deviations = new List<decimal>();
+            decimal previousTotal = 0M;
+            bool hasPrevious = false;
+
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                labels.Add(period.Value);
+                decimal total = 0M;
+                foreach (string department in model.Departments)
+                {
+                    decimal gross;
+                    model.GrossValues.TryGetValue(period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department, out gross);
+                    total += gross;
+                }
+
+                deviations.Add(hasPrevious && previousTotal != 0M
+                    ? ((total - previousTotal) / previousTotal) * 100M
+                    : 0M);
+                previousTotal = total;
+                hasPrevious = true;
+            }
+
+            AddColumnChartPicture(ws, "Salary Deviation %", labels, deviations, "B3");
+            WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Deviation);
+        }
+
+        private enum ExportMetric
+        {
+            Headcount,
+            Gross,
+            Deviation
+        }
+
+        private static void WriteSheetTitle(IXLWorksheet ws, string title)
+        {
+            ws.Range(1, 1, 1, 10).Merge();
+            ws.Cell(1, 1).Value = title;
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 16;
+            ws.Cell(1, 1).Style.Font.FontColor = XLColor.White;
+            ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#355A8A");
+            ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Row(1).Height = 25;
+        }
+
+        private static void WriteHorizontalMetricTable(IXLWorksheet ws, MonthlyExportModel model, int startRow, ExportMetric metric)
+        {
+            ws.Cell(startRow, 1).Value = "Department";
+            int col = 2;
+            foreach (KeyValuePair<int, string> period in model.Periods)
+                ws.Cell(startRow, col++).Value = period.Value;
+
+            int row = startRow + 1;
+            foreach (string department in model.Departments)
+            {
+                ws.Cell(row, 1).Value = department;
+                col = 2;
+                decimal previousGross = 0M;
+                bool hasPrevious = false;
+
+                foreach (KeyValuePair<int, string> period in model.Periods)
+                {
+                    string key = period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department;
+                    decimal gross;
+                    int count;
+                    model.GrossValues.TryGetValue(key, out gross);
+                    model.HeadcountValues.TryGetValue(key, out count);
+
+                    if (metric == ExportMetric.Headcount)
+                        ws.Cell(row, col).Value = count;
+                    else if (metric == ExportMetric.Gross)
+                        ws.Cell(row, col).Value = gross;
+                    else
+                    {
+                        if (hasPrevious && previousGross != 0M)
+                            ws.Cell(row, col).Value = (gross - previousGross) / previousGross;
+                    }
+
+                    previousGross = gross;
+                    hasPrevious = true;
+                    col++;
+                }
+                row++;
+            }
+
+            int lastRow = Math.Max(row - 1, startRow);
+            int lastCol = Math.Max(col - 1, 1);
+            IXLRange header = ws.Range(startRow, 1, startRow, lastCol);
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            header.Style.Font.FontColor = XLColor.White;
+            header.Style.Font.Bold = true;
+            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            IXLRange dataRange = ws.Range(startRow, 1, lastRow, lastCol);
+            dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            ws.Column(1).Width = 24;
+            for (int c = 2; c <= lastCol; c++) ws.Column(c).Width = 15;
+
+            if (metric == ExportMetric.Headcount)
+                ws.Range(startRow + 1, 2, lastRow, lastCol).Style.NumberFormat.Format = "0";
+            else if (metric == ExportMetric.Gross)
+                ws.Range(startRow + 1, 2, lastRow, lastCol).Style.NumberFormat.Format = "#,##0.00";
+            else
+            {
+                IXLRange deviationRange = ws.Range(startRow + 1, 2, lastRow, lastCol);
+                deviationRange.Style.NumberFormat.Format = "0.00%";
+                deviationRange.AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9")).Font.SetFontColor(XLColor.FromHtml("#006100"));
+                deviationRange.AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6")).Font.SetFontColor(XLColor.FromHtml("#9C0006"));
+            }
+
+            ws.SheetView.FreezeRows(startRow);
+            ws.SheetView.FreezeColumns(1);
+            ws.Range(startRow, 1, lastRow, lastCol).SetAutoFilter();
+        }
+
+        private static void AddLineChartPicture(
+      IXLWorksheet ws,
+      string title,
+      List<string> labels,
+      List<decimal> values,
+      bool currency,
+      string cellAddress)
+        {
+            using (MemoryStream image = DrawLineChart(title, labels, values, currency))
+            {
+                string pictureName = GetExcelPictureName("Line");
+
+                ws.AddPicture(image, pictureName)
+                  .MoveTo(ws.Cell(cellAddress))
+                  .WithSize(1000, 380);
+            }
+        }
+
+        private static void AddColumnChartPicture(
+            IXLWorksheet ws,
+            string title,
+            List<string> labels,
+            List<decimal> values,
+            string cellAddress)
+        {
+            using (MemoryStream image = DrawColumnChart(title, labels, values))
+            {
+                string pictureName = GetExcelPictureName("Column");
+
+                ws.AddPicture(image, pictureName)
+                  .MoveTo(ws.Cell(cellAddress))
+                  .WithSize(1000, 380);
+            }
+        }
+
+        private static string GetExcelPictureName(string prefix)
+        {
+            // Excel picture names must not exceed 31 characters.
+            string uniquePart = Guid.NewGuid().ToString("N").Substring(0, 12);
+
+            string name = prefix + "_" + uniquePart;
+
+            return name.Length > 31
+                ? name.Substring(0, 31)
+                : name;
+        }
+
+        private static MemoryStream DrawLineChart(string title, List<string> labels, List<decimal> values, bool currency)
+        {
+            const int width = 1200;
+            const int height = 450;
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+                Rectangle plot = new Rectangle(90, 65, width - 140, height - 145);
+                DrawChartFrame(g, plot, title);
+
+                decimal max = values.Count == 0 ? 1M : Math.Max(1M, MaxDecimal(values));
+                decimal min = values.Count == 0 ? 0M : Math.Min(0M, MinDecimal(values));
+                if (max == min) max = min + 1M;
+                DrawYAxis(g, plot, min, max, currency ? "#,##0" : "0");
+                DrawXAxis(g, plot, labels);
+
+                if (values.Count > 0)
+                {
+                    PointF[] points = new PointF[values.Count];
+                    for (int i = 0; i < values.Count; i++)
+                    {
+                        float x = values.Count == 1 ? plot.Left + plot.Width / 2F : plot.Left + (plot.Width * i / (float)(values.Count - 1));
+                        float y = plot.Bottom - (float)((values[i] - min) / (max - min)) * plot.Height;
+                        points[i] = new PointF(x, y);
+                    }
+                    using (Pen linePen = new Pen(Color.FromArgb(53, 90, 138), 3F))
+                    {
+                        if (points.Length > 1) g.DrawLines(linePen, points);
+                    }
+                    foreach (PointF point in points)
+                    {
+                        using (Brush b = new SolidBrush(Color.FromArgb(53, 90, 138)))
+                            g.FillEllipse(b, point.X - 5, point.Y - 5, 10, 10);
+                    }
+                }
+            }
+
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            bitmap.Dispose();
+            stream.Position = 0;
+            return stream;
+        }
+
+        private static MemoryStream DrawColumnChart(string title, List<string> labels, List<decimal> values)
+        {
+            const int width = 1200;
+            const int height = 450;
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+                Rectangle plot = new Rectangle(90, 65, width - 140, height - 145);
+                DrawChartFrame(g, plot, title);
+
+                decimal max = values.Count == 0 ? 1M : Math.Max(1M, MaxDecimal(values));
+                decimal min = values.Count == 0 ? -1M : Math.Min(-1M, MinDecimal(values));
+                DrawYAxis(g, plot, min, max, "0.0");
+                DrawXAxis(g, plot, labels);
+
+                float zeroY = plot.Bottom - (float)((0M - min) / (max - min)) * plot.Height;
+                using (Pen zeroPen = new Pen(Color.Gray, 1.5F)) g.DrawLine(zeroPen, plot.Left, zeroY, plot.Right, zeroY);
+                float slot = values.Count == 0 ? plot.Width : plot.Width / (float)values.Count;
+                float barWidth = Math.Max(10F, slot * 0.58F);
+
+                for (int i = 0; i < values.Count; i++)
+                {
+                    float x = plot.Left + slot * i + (slot - barWidth) / 2F;
+                    float valueY = plot.Bottom - (float)((values[i] - min) / (max - min)) * plot.Height;
+                    float top = Math.Min(zeroY, valueY);
+                    float barHeight = Math.Abs(zeroY - valueY);
+                    Color color = values[i] >= 0M ? Color.FromArgb(112, 173, 71) : Color.FromArgb(192, 80, 77);
+                    using (Brush b = new SolidBrush(color)) g.FillRectangle(b, x, top, barWidth, Math.Max(1F, barHeight));
+                }
+            }
+
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            bitmap.Dispose();
+            stream.Position = 0;
+            return stream;
+        }
+
+        private static void DrawChartFrame(Graphics g, Rectangle plot, string title)
+        {
+            using (Font titleFont = new Font("Arial", 16F, FontStyle.Bold))
+            using (Brush titleBrush = new SolidBrush(Color.FromArgb(30, 55, 90)))
+                g.DrawString(title, titleFont, titleBrush, new PointF(plot.Left, 20));
+
+            using (Pen gridPen = new Pen(Color.FromArgb(225, 230, 236), 1F))
+                for (int i = 0; i <= 5; i++)
+                {
+                    float y = plot.Top + plot.Height * i / 5F;
+                    g.DrawLine(gridPen, plot.Left, y, plot.Right, y);
+                }
+            using (Pen borderPen = new Pen(Color.FromArgb(150, 160, 170), 1F))
+                g.DrawRectangle(borderPen, plot);
+        }
+
+        private static void DrawYAxis(Graphics g, Rectangle plot, decimal min, decimal max, string format)
+        {
+            using (Font font = new Font("Arial", 9F))
+            using (Brush brush = new SolidBrush(Color.DimGray))
+            {
+                for (int i = 0; i <= 5; i++)
+                {
+                    decimal value = max - ((max - min) * i / 5M);
+                    string text = value.ToString(format, CultureInfo.InvariantCulture);
+                    float y = plot.Top + plot.Height * i / 5F - 7F;
+                    SizeF size = g.MeasureString(text, font);
+                    g.DrawString(text, font, brush, plot.Left - size.Width - 8F, y);
+                }
+            }
+        }
+
+        private static void DrawXAxis(Graphics g, Rectangle plot, List<string> labels)
+        {
+            if (labels.Count == 0) return;
+            using (Font font = new Font("Arial", 8F))
+            using (Brush brush = new SolidBrush(Color.DimGray))
+            {
+                for (int i = 0; i < labels.Count; i++)
+                {
+                    float x = labels.Count == 1 ? plot.Left + plot.Width / 2F : plot.Left + plot.Width * i / (float)(labels.Count - 1);
+                    string label = labels[i];
+                    SizeF size = g.MeasureString(label, font);
+                    g.DrawString(label, font, brush, x - size.Width / 2F, plot.Bottom + 8F);
+                }
+            }
+        }
+
+        private static decimal MaxDecimal(List<decimal> values)
+        {
+            decimal max = values[0];
+            for (int i = 1; i < values.Count; i++) if (values[i] > max) max = values[i];
+            return max;
+        }
+
+        private static decimal MinDecimal(List<decimal> values)
+        {
+            decimal min = values[0];
+            for (int i = 1; i < values.Count; i++) if (values[i] < min) min = values[i];
+            return min;
+        }
 
         private static void CreateEmployeeDetailsSheet(XLWorkbook workbook, DataTable table)
         {

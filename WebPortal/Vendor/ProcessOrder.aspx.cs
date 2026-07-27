@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Web;
 using System.Web.Script.Services;
 using System.Web.Services;
@@ -17,8 +18,8 @@ namespace WebPortal.Vendor
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
         }
+
         [WebMethod(EnableSession = true)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static ApiResponse GetInitialData()
@@ -26,9 +27,9 @@ namespace WebPortal.Vendor
             try
             {
                 int userId = CurrentUserId();
-                DataTable dt = new bllTracking().GetAllInfinityOrderbyEmp(userId);
                 var orders = new List<LookupItem>();
-                foreach (DataRow row in dt.Rows)
+                DataTable dtOrders = new bllVendors().GetAllInfinityOrderbyEmp(userId);
+                foreach (DataRow row in dtOrders.Rows)
                 {
                     orders.Add(new LookupItem
                     {
@@ -36,7 +37,30 @@ namespace WebPortal.Vendor
                         Text = Convert.ToString(row["ProjectNumber"]) + " : " + Convert.ToString(row["ClientOrderNo"])
                     });
                 }
-                return ApiResponse.Ok(new { Orders = orders });
+
+                var statuses = new List<LookupItem>();
+                DataTable dtStatus = new bllVendors().GetAllStatus();
+                foreach (DataRow row in dtStatus.Rows)
+                {
+                    statuses.Add(new LookupItem
+                    {
+                        Value = Convert.ToString(row["Id"]),
+                        Text = Convert.ToString(row["StatusName"])
+                    });
+                }
+
+                var callers = new List<LookupItem>();
+                DataTable dtCallers = new bllVendors().GetAllInfinityCaller();
+                foreach (DataRow row in dtCallers.Rows)
+                {
+                    callers.Add(new LookupItem
+                    {
+                        Value = Convert.ToString(row["UserId"]),
+                        Text = Convert.ToString(row["Employee"])
+                    });
+                }
+
+                return ApiResponse.Ok(new { Orders = orders, Statuses = statuses, Callers = callers });
             }
             catch (Exception ex)
             {
@@ -51,7 +75,7 @@ namespace WebPortal.Vendor
             try
             {
                 int userId = CurrentUserId();
-                var bll = new bllOST();
+                var bll = new bllVendors();
                 DataTable current = bll.GetCurrentProcessOfUser(orderId, userId);
                 if (current.Rows.Count == 0)
                     return ApiResponse.Fail("Current process was not found for the selected order.");
@@ -69,6 +93,9 @@ namespace WebPortal.Vendor
                 DataTable history = bll.GetOrderDetailsProcesswise(orderId);
                 string remark = GetColumnValue(current.Rows[0], "Remark");
 
+                HttpContext.Current.Session["ProcessId"] = processId;
+                HttpContext.Current.Session["Orderid"] = orderId;
+
                 return ApiResponse.Ok(new
                 {
                     ProcessId = processId,
@@ -77,6 +104,133 @@ namespace WebPortal.Vendor
                     Tasks = ToRows(tasks),
                     History = ToRows(history)
                 });
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail(ex.Message);
+            }
+        }
+
+        // Replaces callbackPanel_Callback and assigns every value used by the old page.
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static ApiResponse GetTaskDetails(int taskId)
+        {
+            try
+            {
+                if (taskId <= 0) return ApiResponse.Fail("Invalid task.");
+
+                DataTable dt = new bllVendors().GetDetailsFromTask(taskId);
+                if (dt.Rows.Count == 0) return ApiResponse.Fail("Task details were not found.");
+
+                DataRow row = dt.Rows[0];
+                int orderId = Convert.ToInt32(row["Orderid"]);
+                string process = Convert.ToString(row["ProcessName"]);
+                int taskProcessId = Convert.ToInt32(row["TaskProcessid"]);
+                int docId = Convert.ToInt32(row["Docid"]);
+                string documentType = Convert.ToString(row["DocumentType"]);
+
+                HttpContext.Current.Session["TaskId"] = taskId;
+                HttpContext.Current.Session["OrderId"] = orderId;
+                HttpContext.Current.Session["Process"] = process;
+                HttpContext.Current.Session["TaskProcessId"] = taskProcessId;
+                HttpContext.Current.Session["DocId"] = docId;
+                HttpContext.Current.Session["DocumentType"] = documentType;
+
+                return ApiResponse.Ok(new
+                {
+                    TaskId = taskId,
+                    OrderId = orderId,
+                    TaskProcessId = taskProcessId,
+                    DocId = docId,
+                    TaskProcessName = process,
+                    DocumentType = documentType
+                });
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.Fail(ex.Message);
+            }
+        }
+
+        // Replaces btnSave_Click from the old Change Status popup.
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static ApiResponse UpdateTaskStatus(TaskStatusInput input)
+        {
+            try
+            {
+                if (input == null) return ApiResponse.Fail("Invalid request.");
+                if (input.TaskId <= 0) return ApiResponse.Fail("Task is not selected.");
+                if (input.StatusId <= 0) return ApiResponse.Fail("Please select status.");
+
+                HttpSessionStateBase session = new HttpSessionStateWrapper(HttpContext.Current.Session);
+                int sessionTaskId = ToInt(session["TaskId"]);
+                if (sessionTaskId <= 0 || sessionTaskId != input.TaskId)
+                    return ApiResponse.Fail("Task session has expired. Please reopen the Status window.");
+
+                int orderId = ToInt(session["OrderId"]);
+                int taskProcessId = ToInt(session["TaskProcessId"]);
+                int docId = ToInt(session["DocId"]);
+                string process = Convert.ToString(session["Process"]);
+                string documentType = Convert.ToString(session["DocumentType"]);
+                int addedBy = CurrentUserId();
+
+                bool isTransfer = String.Equals(input.StatusText, "Transfer", StringComparison.OrdinalIgnoreCase);
+                if (isTransfer && input.CallerId <= 0)
+                    return ApiResponse.Fail("Please select transfer user.");
+
+                var htparam = new Hashtable();
+                htparam["TaskId"] = input.TaskId;
+                htparam["TaskStatus"] = input.StatusId;
+                htparam["TaskAssignedId"] = isTransfer ? input.CallerId : 0;
+                htparam["Remark"] = isTransfer
+                    ? documentType + " is Transfer to " + input.CallerName + " for Calling Process"
+                    : documentType + " status changed to " + input.StatusText;
+
+                int returnValue = new bllVendors().UpdateTaskStatusAndDate(htparam);
+                if (returnValue <= 0) return ApiResponse.Fail("Unable to update task status.");
+
+                string attachment = String.Empty;
+                if (!String.IsNullOrWhiteSpace(input.FileName) && !String.IsNullOrWhiteSpace(input.FileBase64))
+                {
+                    string safeProcess = MakeSafeFolderName(process);
+                    string safeFileName = Path.GetFileName(input.FileName);
+                    string dateFolder = DateTime.Now.ToString("dd-MMM-yyyy");
+                    string root = HttpContext.Current.Server.MapPath("~/OSTAttachment/");
+                    string folder = Path.Combine(root, safeProcess, dateFolder, orderId.ToString());
+                    Directory.CreateDirectory(folder);
+                    File.WriteAllBytes(Path.Combine(folder, safeFileName), Convert.FromBase64String(input.FileBase64));
+                    attachment = "~\\OSTAttachment\\" + safeProcess + "\\" + dateFolder + "\\" + orderId + "\\" + safeFileName;
+                }
+
+                if (!String.IsNullOrWhiteSpace(attachment))
+                {
+                    Hashtable htAttach = new Hashtable();
+                    htAttach["OrderId"] = orderId;
+                    htAttach["Process"] = taskProcessId;
+                    htAttach["DocId"] = docId;
+                    htAttach["Path"] = attachment;
+                    htAttach["PathFrom"] = "Process " + input.StatusText;
+                    htAttach["AddedBy"] = addedBy;
+                    new bllVendors().InsertOrderAttachment(htAttach);
+                }
+
+                string comment = process + " Process of " + documentType + " Document has been " + input.StatusText;
+                Hashtable htComment = new Hashtable();
+                htComment["OrderId"] = orderId;
+                htComment["ProcessId"] = taskProcessId;
+                htComment["ProcessName"] = process;
+                htComment["Comment"] = comment;
+                htComment["AddedBy"] = addedBy;
+                new bllVendors().InsertCommentOrder(htComment);
+                //new bllVendors().InsertComment(orderId, taskProcessId, process, comment, addedBy);
+
+                return ApiResponse.Ok(null, "Process completed successfully.");
+            }
+            catch (FormatException)
+            {
+                return ApiResponse.Fail("The uploaded file data is invalid.");
             }
             catch (Exception ex)
             {
@@ -106,7 +260,7 @@ namespace WebPortal.Vendor
                     return ApiResponse.Fail("The selected file name does not match the Order No.");
 
                 int userId = CurrentUserId();
-                var bll = new bllOST();
+                var bll = new bllVendors();
                 int statusId = StatusFromAction(action);
                 int updated = 0;
 
@@ -133,23 +287,66 @@ namespace WebPortal.Vendor
                 if (updated == 0) return ApiResponse.Fail("Unable to complete the selected task(s).");
 
                 string safeProcess = MakeSafeFolderName(input.ProcessName);
+                string dateFolder = DateTime.Now.ToString("dd-MMM-yyyy");
                 string root = HttpContext.Current.Server.MapPath("~/OSTAttachment/");
-                string folder = Path.Combine(root, safeProcess, DateTime.Now.ToString("dd-MMM-yyyy"), input.OrderId.ToString());
+                string folder = Path.Combine(root, safeProcess, dateFolder, input.OrderId.ToString());
                 Directory.CreateDirectory(folder);
                 string safeFileName = Path.GetFileName(input.FileName);
-                string physicalPath = Path.Combine(folder, safeFileName);
-                File.WriteAllBytes(physicalPath, Convert.FromBase64String(input.FileBase64));
-                string virtualPath = "~\\OSTAttachment\\" + safeProcess + "\\" + DateTime.Now.ToString("dd-MMM-yyyy") + "\\" + input.OrderId + "\\" + safeFileName;
+                File.WriteAllBytes(Path.Combine(folder, safeFileName), Convert.FromBase64String(input.FileBase64));
+                string virtualPath = "~\\OSTAttachment\\" + safeProcess + "\\" + dateFolder + "\\" + input.OrderId + "\\" + safeFileName;
 
-                new bllVendors().InsertOSTAttachment(input.OrderId, input.ProcessId, 0, virtualPath, "Process Completed", userId);
-                new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", input.ProcessName + " Process Completed", userId);
+                // This matches the old btnSubmit_Click logic: ProcessId and DocId = 0.
+                Hashtable htAttach = new Hashtable();
+                htAttach["OrderId"] = input.OrderId;
+                htAttach["Process"] = input.ProcessId;
+                htAttach["DocId"] = 0;
+                htAttach["Path"] = virtualPath;
+                htAttach["PathFrom"] = "Process Completed";
+                htAttach["AddedBy"] = userId;
+                new bllVendors().InsertOrderAttachment(htAttach);
+                //new bllVendors().InsertOSTAttachment(input.OrderId, input.ProcessId, 0, virtualPath, "Process Completed", userId);
+                Hashtable htComment = new Hashtable();
+                htComment["OrderId"] = input.OrderId;
+                htComment["ProcessId"] = input.ProcessId;
+                htComment["ProcessName"] = "Auto";
+                htComment["Comment"] = input.ProcessName + " Process Completed";
+                htComment["AddedBy"] = userId;
+                new bllVendors().InsertCommentOrder(htComment);
+                //new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", input.ProcessName + " Process Completed", userId);
 
                 if (action == "cancel")
-                    new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", "Order is Cancelled by User", userId);
+                {
+                    htComment = new Hashtable();
+                    htComment["OrderId"] = input.OrderId;
+                    htComment["ProcessId"] = input.ProcessId;
+                    htComment["ProcessName"] = "Auto";
+                    htComment["Comment"] = "Order is Cancelled by User";
+                    htComment["AddedBy"] = userId;
+                    new bllVendors().InsertCommentOrder(htComment);
+                    //new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", "Order is Cancelled by User", userId);
+                }
                 else if (action == "hold")
-                    new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", "Order is on Hold", userId);
+                {
+                    htComment = new Hashtable();
+                    htComment["OrderId"] = input.OrderId;
+                    htComment["ProcessId"] = input.ProcessId;
+                    htComment["ProcessName"] = "Auto";
+                    htComment["Comment"] = "Order is on Hold";
+                    htComment["AddedBy"] = userId;
+                    new bllVendors().InsertCommentOrder(htComment);
+                    // new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", "Order is on Hold", userId);
+                }
                 else if (action == "partial")
-                    new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", "Order is Partial Done by User", userId);
+                {
+                    htComment = new Hashtable();
+                    htComment["OrderId"] = input.OrderId;
+                    htComment["ProcessId"] = input.ProcessId;
+                    htComment["ProcessName"] = "Auto";
+                    htComment["Comment"] = "Order is Partial Done by User";
+                    htComment["AddedBy"] = userId;
+                    new bllVendors().InsertCommentOrder(htComment);
+                    //new bllVendors().InsertComment(input.OrderId, input.ProcessId, "Auto", "Order is Partial Done by User", userId);
+                }
 
                 if (action == "dispatch")
                 {
@@ -161,7 +358,14 @@ namespace WebPortal.Vendor
                     dispatch["AdddedBy"] = userId;
                     int dispatched = bll.DispatchOrderTask(dispatch);
                     if (dispatched <= 0) return ApiResponse.Fail("Process completed, but the order was not dispatched.");
-                    new bllVendors().InsertComment(input.OrderId, 6, "Auto", "Order is Dispatched", userId);
+                    htComment = new Hashtable();
+                    htComment["OrderId"] = input.OrderId;
+                    htComment["ProcessId"] = 6;
+                    htComment["ProcessName"] = "Auto";
+                    htComment["Comment"] = "Order is Dispatched";
+                    htComment["AddedBy"] = userId;
+                    new bllVendors().InsertCommentOrder(htComment);
+                    //new bllVendors().InsertComment(input.OrderId, 6, "Auto", "Order is Dispatched", userId);
                 }
 
                 if (input.ProcessId == 2)
@@ -224,6 +428,12 @@ namespace WebPortal.Vendor
             if (!Int32.TryParse(HttpContext.Current.User.Identity.Name, out userId))
                 throw new InvalidOperationException("Unable to identify the logged-in user.");
             return userId;
+        }
+
+        private static int ToInt(object value)
+        {
+            int result;
+            return Int32.TryParse(Convert.ToString(value), out result) ? result : 0;
         }
 
         private static int StatusFromAction(string action)
@@ -291,16 +501,35 @@ namespace WebPortal.Vendor
             public string ClientOrderNo { get; set; }
         }
 
+        public sealed class TaskStatusInput
+        {
+            public int TaskId { get; set; }
+            public int StatusId { get; set; }
+            public string StatusText { get; set; }
+            public int CallerId { get; set; }
+            public string CallerName { get; set; }
+            public string FileName { get; set; }
+            public string FileBase64 { get; set; }
+        }
+
         public sealed class ApiResponse
         {
             public bool Success { get; set; }
             public string Message { get; set; }
             public object Orders { get; set; }
+            public object Statuses { get; set; }
+            public object Callers { get; set; }
             public object ProcessId { get; set; }
             public object ProcessName { get; set; }
             public object Remark { get; set; }
             public object Tasks { get; set; }
             public object History { get; set; }
+            public object TaskId { get; set; }
+            public object OrderId { get; set; }
+            public object TaskProcessId { get; set; }
+            public object DocId { get; set; }
+            public object TaskProcessName { get; set; }
+            public object DocumentType { get; set; }
             public string RedirectUrl { get; set; }
 
             public static ApiResponse Ok(object data, string message = "")

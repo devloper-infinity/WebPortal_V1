@@ -2922,9 +2922,11 @@
     <Content Include="US\ProductionSummary.aspx" />
     <Content Include="US\UserPerformanceReport.aspx" />
     <Content Include="Vendor\OrderAllocation.aspx" />
+    <Content Include="Vendor\ProcessOrder.aspx" />
     <Content Include="Vendor\ProjectTrackingReportVM.aspx" />
     <Content Include="Vendor\ProjectWiseFileList.aspx" />
     <Content Include="Vendor\ProjectWiseSummary.aspx" />
+    <Content Include="Vendor\VendorDetails.aspx" />
     <Content Include="Vendor\VendorFeedbackReport.aspx" />
     <Content Include="Vendor\VendorBillingGeneratePeriod.aspx" />
     <Content Include="Vendor\VendorRegistration.aspx" />
@@ -5385,6 +5387,13 @@
     <Compile Include="Vendor\OrderAllocation.aspx.designer.cs">
       <DependentUpon>OrderAllocation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Vendor\ProcessOrder.aspx.cs">
+      <DependentUpon>ProcessOrder.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Vendor\ProcessOrder.aspx.designer.cs">
+      <DependentUpon>ProcessOrder.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Vendor\ProjectTrackingReportVM.aspx.cs">
       <DependentUpon>ProjectTrackingReportVM.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5405,6 +5414,13 @@
     </Compile>
     <Compile Include="Vendor\ProjectWiseSummary.aspx.designer.cs">
       <DependentUpon>ProjectWiseSummary.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Vendor\VendorDetails.aspx.cs">
+      <DependentUpon>VendorDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Vendor\VendorDetails.aspx.designer.cs">
+      <DependentUpon>VendorDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="Vendor\VendorFeedbackReport.aspx.cs">
       <DependentUpon>VendorFeedbackReport.aspx</DependentUpon>
