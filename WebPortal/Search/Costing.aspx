@@ -236,7 +236,7 @@
 
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(180px, 1fr));
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
             gap: 10px;
             margin-top: 14px;
         }
@@ -363,9 +363,10 @@
         .grid-panel {
             margin-top: 14px;
             border: 1px solid var(--costing-border);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             background: #ffffff;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
         }
 
         .grid-panel-header {
@@ -373,8 +374,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            padding: 12px 14px;
-            background: #fbfcfd;
+            padding: 13px 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-bottom: 1px solid var(--costing-soft);
         }
 
@@ -386,57 +387,541 @@
             }
 
             .grid-panel-header span {
-                color: var(--costing-muted);
-                font-size: 12px;
-                font-weight: 700;
+                display: inline-flex;
+                align-items: center;
+                min-height: 26px;
+                padding: 4px 10px;
+                color: #0f766e;
+                background: #e6f5f2;
+                border: 1px solid #c8e8e2;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 800;
             }
 
         .grid-wrap {
-            padding: 12px;
+            padding: 14px;
             overflow-x: auto;
+            background: #ffffff;
         }
 
         .costing-table {
             width: 100% !important;
             margin-bottom: 0 !important;
-            border-collapse: collapse;
-            font-size: 12px;
+            border-collapse: separate !important;
+            border-spacing: 0;
+            font-size: 11px;
         }
 
             .costing-table thead th {
                 color: var(--costing-text);
                 background: #f1f5f9;
-                border-bottom: 1px solid #dce5ec;
-                font-size: 12px;
+                border-right: 1px solid rgba(148, 163, 184, .24);
+             /*   border-bottom: 1px solid #dce5ec !important;*/
+                /*padding: 10px 11px !important;*/
+                font-size: 11px;
                 font-weight: 800;
+                letter-spacing: .015em;
                 white-space: nowrap;
-            }
-
-            .costing-table thead tr:first-child th.costing-band-header {
-                color: #ffffff;
-                background: #0f766e;
-                border-right: 1px solid rgba(255, 255, 255, .28);
-                border-bottom: 1px solid #0b5f59;
-                text-align: center;
                 vertical-align: middle;
             }
 
-            .costing-table thead tr:nth-child(2) th {
-                background: #dff3f1;
+            .costing-table thead tr:first-child th.costing-band-header {
+                color: #0f172a !important;
+                border-right: 1px solid rgba(255, 255, 255, .22);
+                border-bottom: 0 !important;
                 text-align: center;
+                vertical-align: middle;
+                text-transform: uppercase;
+                letter-spacing: .055em;
+            }
+
+            .costing-table thead .band-core {
+                color: #1e3a8a !important;
+                background: #dbeafe !important;
+                box-shadow: inset 0 3px 0 #3b82f6;
+            }
+
+            .costing-table thead .band-search {
+                color: #1e3a8a !important;
+                background: #bfdbfe !important;
+                box-shadow: inset 0 3px 0 #2563eb;
+            }
+
+            .costing-table thead .band-search-copy {
+                color: #115e59 !important;
+                background: #ccfbf1 !important;
+                box-shadow: inset 0 3px 0 #0d9488;
+            }
+
+            .costing-table thead .band-judgment-link {
+                color: #5b21b6 !important;
+                background: #ede9fe !important;
+                box-shadow: inset 0 3px 0 #7c3aed;
+            }
+
+            .costing-table thead .band-judgment-search {
+                color: #6b21a8 !important;
+                background: #e9d5ff !important;
+                box-shadow: inset 0 3px 0 #9333ea;
+            }
+
+            .costing-table thead .band-judgment-copy {
+                color: #9d174d !important;
+                background: #fce7f3 !important;
+                box-shadow: inset 0 3px 0 #db2777;
+            }
+
+            .costing-table thead .band-tax {
+                color: #92400e !important;
+                background: #fef3c7 !important;
+                box-shadow: inset 0 3px 0 #d97706;
+            }
+
+            .costing-table thead .band-other {
+                color: #9a3412 !important;
+                background: #ffedd5 !important;
+                box-shadow: inset 0 3px 0 #ea580c;
+            }
+
+            .costing-table thead .band-details {
+                color: #075985 !important;
+                background: #e0f2fe !important;
+                box-shadow: inset 0 3px 0 #0284c7;
+            }
+
+            .costing-table thead .band-total {
+                color: #047857 !important;
+                background: #d1fae5 !important;
+                box-shadow: inset 0 3px 0 #059669;
+            }
+
+            .costing-table thead tr:nth-child(2) th {
+                text-align: center;
+            }
+
+            .costing-table thead tr:nth-child(2) th.band-search-sub {
+                color: #1e3a8a !important;
+                background: #eff6ff !important;
+                border-bottom-color: #60a5fa !important;
+            }
+
+            .costing-table thead tr:nth-child(2) th.band-search-copy-sub {
+                color: #115e59 !important;
+                background: #f0fdfa !important;
+                border-bottom-color: #2dd4bf !important;
+            }
+
+            .costing-table thead tr:nth-child(2) th.band-judgment-search-sub {
+                color: #6b21a8 !important;
+                background: #faf5ff !important;
+                border-bottom-color: #c084fc !important;
+            }
+
+            .costing-table thead tr:nth-child(2) th.band-judgment-copy-sub {
+                color: #9d174d !important;
+                background: #fdf2f8 !important;
+                border-bottom-color: #f472b6 !important;
+            }
+
+            .costing-table thead tr:nth-child(2) th.band-tax-sub {
+                color: #92400e !important;
+                background: #fffbeb !important;
+                border-bottom-color: #fbbf24 !important;
+            }
+
+            .costing-table thead tr:nth-child(2) th.band-other-sub {
+                color: #9a3412 !important;
+                background: #fff7ed !important;
+                border-bottom-color: #fb923c !important;
             }
 
             .costing-table tbody td {
                 vertical-align: middle;
                 white-space: nowrap;
+                padding: 9px 11px !important;
+                color: #334155;
+                border-right: 1px solid #edf2f7;
+                border-bottom: 1px solid #e8eef3;
+                transition: background-color .12s ease;
             }
 
-        .dataTables_wrapper .dataTables_filter input,
-        .dataTables_wrapper .dataTables_length select {
-            min-height: 32px;
-            border: 1px solid #ccd6df;
+            #grdManualCostingReport tbody td:nth-child(n+5):nth-child(-n+7) { background: rgba(37, 99, 235, .035); }
+            #grdManualCostingReport tbody td:nth-child(n+8):nth-child(-n+15) { background: rgba(13, 148, 136, .04); }
+            #grdManualCostingReport tbody td:nth-child(16) { background: rgba(124, 58, 237, .035); }
+            #grdManualCostingReport tbody td:nth-child(n+17):nth-child(-n+19) { background: rgba(147, 51, 234, .04); }
+            #grdManualCostingReport tbody td:nth-child(n+20):nth-child(-n+27) { background: rgba(219, 39, 119, .035); }
+            #grdManualCostingReport tbody td:nth-child(n+28):nth-child(-n+29) { background: rgba(217, 119, 6, .05); }
+            #grdManualCostingReport tbody td:nth-child(n+30):nth-child(-n+31) { background: rgba(234, 88, 12, .04); }
+            #grdManualCostingReport tbody td:nth-child(40) { color: #047857; background: #ecfdf5; font-weight: 900; }
+
+            #grdManualCostingReport tbody td:nth-child(5),
+            #grdManualCostingReport tbody td:nth-child(8),
+            #grdManualCostingReport tbody td:nth-child(16),
+            #grdManualCostingReport tbody td:nth-child(17),
+            #grdManualCostingReport tbody td:nth-child(20),
+            #grdManualCostingReport tbody td:nth-child(28),
+            #grdManualCostingReport tbody td:nth-child(30),
+            #grdManualCostingReport tbody td:nth-child(32) {
+                border-left: 2px solid rgba(100, 116, 139, .22);
+            }
+
+            .costing-table.table-hover tbody tr:hover td {
+                background: #eaf4f7 !important;
+            }
+
+            #grdAbstarctor thead th:nth-child(-n+4) { color: #1e3a8a !important; background: #dbeafe !important; box-shadow: inset 0 3px 0 #3b82f6; }
+            #grdAbstarctor thead th:nth-child(5) { color: #1e3a8a !important; background: #bfdbfe !important; box-shadow: inset 0 3px 0 #2563eb; }
+            #grdAbstarctor thead th:nth-child(n+6):nth-child(-n+7) { color: #115e59 !important; background: #ccfbf1 !important; box-shadow: inset 0 3px 0 #0d9488; }
+            #grdAbstarctor thead th:nth-child(n+8):nth-child(-n+9) { color: #9a3412 !important; background: #ffedd5 !important; box-shadow: inset 0 3px 0 #ea580c; }
+            #grdAbstarctor thead th:nth-child(10) { color: #047857 !important; background: #d1fae5 !important; box-shadow: inset 0 3px 0 #059669; }
+            #grdAbstarctor tbody td:nth-child(5) { background: rgba(37, 99, 235, .035); }
+            #grdAbstarctor tbody td:nth-child(n+6):nth-child(-n+7) { background: rgba(13, 148, 136, .04); }
+            #grdAbstarctor tbody td:nth-child(n+8):nth-child(-n+9) { background: rgba(234, 88, 12, .04); }
+            #grdAbstarctor tbody td:nth-child(10) { color: #047857; background: #ecfdf5; font-weight: 900; }
+
+        .grid-wrap .dataTables_wrapper {
+            color: #475569;
+            font-size: 11px;
+        }
+
+        .costing-dt-toolbar,
+        .costing-dt-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 0 0 12px;
+        }
+
+        .costing-dt-footer {
+            padding: 12px 0 0;
+        }
+
+        .costing-dt-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .grid-wrap .dataTables_filter,
+        .grid-wrap .dataTables_length {
+            margin: 0 !important;
+        }
+
+        .grid-wrap .dataTables_filter label,
+        .grid-wrap .dataTables_length label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin: 0;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .grid-wrap .dataTables_filter input,
+        .grid-wrap .dataTables_length select {
+            min-height: 35px;
+            margin: 0 !important;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #334155;
+            background: #fff;
+            font-size: 11px;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, .03);
+        }
+
+        .grid-wrap .dataTables_filter input {
+            min-width: 220px;
+            padding: 7px 12px;
+        }
+
+        .grid-wrap .dataTables_filter input:focus,
+        .grid-wrap .dataTables_length select:focus {
+            border-color: var(--costing-primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, .12);
+            outline: none;
+        }
+
+        .costing-dt-actions .dt-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .costing-dt-actions .btn {
+            min-height: 34px;
+            padding: 6px 10px;
+            color: #334155;
+            background: #fff;
+            border: 1px solid #cbd5e1;
             border-radius: 7px;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: none;
+        }
+
+        .costing-dt-actions .btn:hover,
+        .costing-dt-actions .btn:focus {
+            color: #fff;
+            background: var(--costing-primary);
+            border-color: var(--costing-primary);
+        }
+
+        .grid-wrap .dataTables_info {
+            padding: 7px 0 0 !important;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .grid-wrap .dataTables_paginate {
+            padding: 0 !important;
+        }
+
+        .grid-wrap .page-link {
+            margin-left: 4px;
+            border: 1px solid #d7e0e8;
+            border-radius: 7px !important;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .grid-wrap .page-item.active .page-link {
+            color: #fff;
+            background: var(--costing-primary);
+            border-color: var(--costing-primary);
+        }
+
+        .grid-wrap td.dataTables_empty {
+            height: auto !important;
+            min-height: 0 !important;
+            padding: 18px 12px !important;
+            color: #64748b;
+            background: #f8fafc !important;
+            text-align: center;
             font-size: 12px;
+            font-weight: 700;
+        }
+
+        .grid-wrap .dataTables_scrollBody {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow-x: scroll !important;
+            overflow-y: hidden !important;
+            scrollbar-gutter: stable;
+            scrollbar-color: #94a3b8 #edf2f7;
+            scrollbar-width: thin;
+        }
+
+        .grid-wrap .dataTables_scrollBody table {
+            margin-bottom: 0 !important;
+        }
+
+        /* Disabled: the later all-blue reference treatment.
+        .grid-panel {
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, .045);
+        }
+
+        .costing-table thead th {
+            padding: 8px 10px !important;
+            color: #17324a !important;
+            border-right-color: rgba(75, 118, 145, .18) !important;
+            font-size: 10px;
+        }
+
+        .costing-table thead tr:first-child th.costing-band-header {
+            color: #17324a !important;
+            letter-spacing: .025em;
+            text-transform: none;
+        }
+
+        .costing-table thead .band-core {
+            color: #17324a !important;
+            background: #dcecf5 !important;
+            box-shadow: inset 0 3px 0 #6aa7c8;
+        }
+
+        .costing-table thead .band-search {
+            color: #17324a !important;
+            background: #cfe7f4 !important;
+            box-shadow: inset 0 3px 0 #3f91bd;
+        }
+
+        .costing-table thead .band-search-copy {
+            color: #17324a !important;
+            background: #c3dfed !important;
+            box-shadow: inset 0 3px 0 #2f84ad;
+        }
+
+        .costing-table thead .band-judgment-link {
+            color: #17324a !important;
+            background: #d8e8f4 !important;
+            box-shadow: inset 0 3px 0 #668daf;
+        }
+
+        .costing-table thead .band-judgment-search {
+            color: #17324a !important;
+            background: #c9dff0 !important;
+            box-shadow: inset 0 3px 0 #527fa9;
+        }
+
+        .costing-table thead .band-judgment-copy {
+            color: #17324a !important;
+            background: #bcd7e9 !important;
+            box-shadow: inset 0 3px 0 #4b89ad;
+        }
+
+        .costing-table thead .band-tax {
+            color: #17324a !important;
+            background: #d6e9f1 !important;
+            box-shadow: inset 0 3px 0 #5b9daa;
+        }
+
+        .costing-table thead .band-other {
+            color: #17324a !important;
+            background: #cfe4ed !important;
+            box-shadow: inset 0 3px 0 #4d8c9e;
+        }
+
+        .costing-table thead .band-details {
+            color: #17324a !important;
+            background: #d9eaf2 !important;
+            box-shadow: inset 0 3px 0 #6699ad;
+        }
+
+        .costing-table thead .band-total {
+            color: #17324a !important;
+            background: #c7e1e5 !important;
+            box-shadow: inset 0 3px 0 #408993;
+        }
+
+        .costing-table thead tr:nth-child(2) th.band-search-sub {
+            color: #123b59 !important;
+            background: #b8dcec !important;
+            border-bottom-color: #4e9fc6 !important;
+        }
+
+        .costing-table thead tr:nth-child(2) th.band-search-copy-sub {
+            color: #123b59 !important;
+            background: #a8d2e5 !important;
+            border-bottom-color: #398daf !important;
+        }
+
+        .costing-table thead tr:nth-child(2) th.band-judgment-search-sub {
+            color: #243f5a !important;
+            background: #b5d2e7 !important;
+            border-bottom-color: #668fad !important;
+        }
+
+        .costing-table thead tr:nth-child(2) th.band-judgment-copy-sub {
+            color: #243f5a !important;
+            background: #a7c9df !important;
+            border-bottom-color: #5687a5 !important;
+        }
+
+        .costing-table thead tr:nth-child(2) th.band-tax-sub {
+            color: #214650 !important;
+            background: #bcdbe2 !important;
+            border-bottom-color: #6097a4 !important;
+        }
+
+        .costing-table thead tr:nth-child(2) th.band-other-sub {
+            color: #214650 !important;
+            background: #b4d3dd !important;
+            border-bottom-color: #578b99 !important;
+        }
+
+        #grdManualCostingReport tbody td,
+        #grdAbstarctor tbody td {
+            padding: 7px 10px !important;
+            color: #334155;
+            background: #ffffff !important;
+            border-bottom-color: #e4ebf0;
+        }
+
+        #grdManualCostingReport tbody tr:nth-child(even) td,
+        #grdAbstarctor tbody tr:nth-child(even) td {
+            background: #f7fafc !important;
+        }
+
+        #grdManualCostingReport.table-hover tbody tr:hover td,
+        #grdAbstarctor.table-hover tbody tr:hover td {
+            background: #eaf4f8 !important;
+        }
+
+        #grdManualCostingReport tbody td:nth-child(40),
+        #grdAbstarctor tbody td:nth-child(10) {
+            color: #0f5f65;
+            font-weight: 900;
+        }
+
+        #grdAbstarctor thead th:nth-child(-n+4) {
+            color: #17324a !important;
+            background: #dcecf5 !important;
+            box-shadow: inset 0 3px 0 #6aa7c8;
+        }
+
+        #grdAbstarctor thead th:nth-child(5) {
+            color: #17324a !important;
+            background: #cfe7f4 !important;
+            box-shadow: inset 0 3px 0 #3f91bd;
+        }
+
+        #grdAbstarctor thead th:nth-child(n+6):nth-child(-n+7) {
+            color: #17324a !important;
+            background: #c3dfed !important;
+            box-shadow: inset 0 3px 0 #2f84ad;
+        }
+
+        #grdAbstarctor thead th:nth-child(n+8):nth-child(-n+9) {
+            color: #17324a !important;
+            background: #cfe4ed !important;
+            box-shadow: inset 0 3px 0 #4d8c9e;
+        }
+
+        #grdAbstarctor thead th:nth-child(10) {
+            color: #17324a !important;
+            background: #c7e1e5 !important;
+            box-shadow: inset 0 3px 0 #408993;
+        }
+
+        */
+
+        .grid-wrap .costing-table-empty .dataTables_scrollBody tbody {
+            display: none;
+        }
+
+        .grid-wrap .costing-table-empty .dataTables_scrollBody {
+            height: 17px !important;
+            min-height: 17px !important;
+            max-height: 17px !important;
+            overflow-x: scroll !important;
+            overflow-y: hidden !important;
+        }
+
+        .grid-wrap .costing-single-page .dataTables_paginate,
+        .grid-wrap .costing-single-page .costing-dt-pagination {
+            display: none !important;
+        }
+
+        @media (max-width: 720px) {
+            .costing-dt-toolbar,
+            .costing-dt-footer,
+            .costing-dt-tools {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .grid-wrap .dataTables_filter input {
+                min-width: 0;
+                width: 100%;
+            }
         }
 
         .final-actions {
@@ -554,11 +1039,11 @@
                     <div class="summary-item"><span class="summary-label">Order Received Date</span><span id="Label2" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">State</span><span id="lblState" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">County</span><span id="lblCounty" class="summary-value"></span></div>
-               <%--     <div class="summary-item"><span class="summary-label">Plant</span><span id="lblPlant" class="summary-value"></span></div>
+                    <div class="summary-item"><span class="summary-label">Plant</span><span id="lblPlant" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Judgment Link</span><span id="lblJudgment" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Average Cost</span><span id="lblAvgCost" class="summary-value"></span></div>
                     <div class="summary-item"><span class="summary-label">Plant Start Date</span><span id="lblplantSDate" class="summary-value"></span></div>
-                    <div class="summary-item"><span class="summary-label">Image Start Date</span><span id="lblImageSDate" class="summary-value"></span></div>--%>
+                    <div class="summary-item"><span class="summary-label">Image Start Date</span><span id="lblImageSDate" class="summary-value"></span></div>
                 </div>
             </section>
 
@@ -842,58 +1327,58 @@
                         <h3>Production Costing Report</h3>
                         <span id="productionGridCount">0 records</span>
                     </div>
-                    <div class="grid-wrap">
+                    <div class="grid-wrap" style="overflow:auto;">
                         <table id="grdManualCostingReport" class="table table-striped table-hover costing-table">
                             <thead>
                                 <tr>
-                                    <th rowspan="2">Sr.#</th>
-                                    <th rowspan="2">Order No</th>
-                                    <th rowspan="2">Search Engine Type</th>
-                                    <th rowspan="2">Search Engine Link</th>
-                                    <th colspan="3" class="costing-band-header">Search Cost</th>
-                                    <th colspan="8" class="costing-band-header">Search Copy Cost</th>
-                                    <th rowspan="2">Judgement Search Link</th>
-                                    <th colspan="3" class="costing-band-header">Judgment Search Cost</th>
-                                    <th colspan="8" class="costing-band-header">Judgment Search Copy Cost</th>
-                                    <th colspan="2" class="costing-band-header">Tax Charges</th>
-                                    <th colspan="2" class="costing-band-header">Other Charges</th>
-                                    <th rowspan="2">Remark</th>
-                                    <th rowspan="2">Documents</th>
-                                    <th rowspan="2">Pages</th>
-                                    <th rowspan="2">Tax Info</th>
-                                    <th rowspan="2">Called Taxes</th>
-                                    <th rowspan="2">Snipping Tools</th>
-                                    <th rowspan="2">Pages Deliver</th>
-                                    <th rowspan="2">Attachment</th>
-                                    <th rowspan="2">Production Cost</th>
+                                    <th rowspan="2" class="band-core">Sr.#</th>
+                                    <th rowspan="2" class="band-core">Order No</th>
+                                    <th rowspan="2" class="band-core">Search Engine Type</th>
+                                    <th rowspan="2" class="band-core">Search Engine Link</th>
+                                    <th colspan="3" class="costing-band-header band-search">Search Cost</th>
+                                    <th colspan="8" class="costing-band-header band-search-copy">Search Copy Cost</th>
+                                    <th rowspan="2" class="band-judgment-link">Judgement Search Link</th>
+                                    <th colspan="3" class="costing-band-header band-judgment-search">Judgment Search Cost</th>
+                                    <th colspan="8" class="costing-band-header band-judgment-copy">Judgment Search Copy Cost</th>
+                                    <th colspan="2" class="costing-band-header band-tax">Tax Charges</th>
+                                    <th colspan="2" class="costing-band-header band-other">Other Charges</th>
+                                    <th rowspan="2" class="band-details">Remark</th>
+                                    <th rowspan="2" class="band-details">Documents</th>
+                                    <th rowspan="2" class="band-details">Pages</th>
+                                    <th rowspan="2" class="band-details">Tax Info</th>
+                                    <th rowspan="2" class="band-details">Called Taxes</th>
+                                    <th rowspan="2" class="band-details">Snipping Tools</th>
+                                    <th rowspan="2" class="band-details">Pages Deliver</th>
+                                    <th rowspan="2" class="band-details">Attachment</th>
+                                    <th rowspan="2" class="band-total">Production Cost</th>
                                 </tr>
                                 <tr>
-                                    <th>Searches</th>
-                                    <th>Cost/Search</th>
-                                    <th>Search Total</th>
-                                    <th>Pattern</th>
-                                    <th>Main Count</th>
-                                    <th>Main Cost</th>
-                                    <th>Main Total</th>
-                                    <th>Vary Count</th>
-                                    <th>Vary Cost</th>
-                                    <th>Vary Total</th>
-                                    <th>Copy Cost Total</th>
-                                    <th>Searches</th>
-                                    <th>Cost/Search</th>
-                                    <th>Search Total</th>
-                                    <th>Pattern</th>
-                                    <th>Main Count</th>
-                                    <th>Main Cost</th>
-                                    <th>Main Total</th>
-                                    <th>Vary Count</th>
-                                    <th>Vary Cost</th>
-                                    <th>Vary Total</th>
-                                    <th>Copy Cost Total</th>
-                                    <th>Description</th>
-                                    <th>Amount</th>
-                                    <th>Description</th>
-                                    <th>Amount</th>
+                                    <th class="band-search-sub">Searches</th>
+                                    <th class="band-search-sub">Cost/Search</th>
+                                    <th class="band-search-sub">Search Total</th>
+                                    <th class="band-search-copy-sub">Pattern</th>
+                                    <th class="band-search-copy-sub">Main Count</th>
+                                    <th class="band-search-copy-sub">Main Cost</th>
+                                    <th class="band-search-copy-sub">Main Total</th>
+                                    <th class="band-search-copy-sub">Vary Count</th>
+                                    <th class="band-search-copy-sub">Vary Cost</th>
+                                    <th class="band-search-copy-sub">Vary Total</th>
+                                    <th class="band-search-copy-sub">Copy Cost Total</th>
+                                    <th class="band-judgment-search-sub">Searches</th>
+                                    <th class="band-judgment-search-sub">Cost/Search</th>
+                                    <th class="band-judgment-search-sub">Search Total</th>
+                                    <th class="band-judgment-copy-sub">Pattern</th>
+                                    <th class="band-judgment-copy-sub">Main Count</th>
+                                    <th class="band-judgment-copy-sub">Main Cost</th>
+                                    <th class="band-judgment-copy-sub">Main Total</th>
+                                    <th class="band-judgment-copy-sub">Vary Count</th>
+                                    <th class="band-judgment-copy-sub">Vary Cost</th>
+                                    <th class="band-judgment-copy-sub">Vary Total</th>
+                                    <th class="band-judgment-copy-sub">Copy Cost Total</th>
+                                    <th class="band-tax-sub">Description</th>
+                                    <th class="band-tax-sub">Amount</th>
+                                    <th class="band-other-sub">Description</th>
+                                    <th class="band-other-sub">Amount</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

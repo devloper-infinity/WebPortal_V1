@@ -15,7 +15,7 @@
             --alloc-success: #16a34a;
         }
 
-        .loading {
+        /*   .loading {
             display: none;
             position: fixed;
             inset: 0;
@@ -38,11 +38,33 @@
             color: var(--alloc-text);
             font-size: 12px;
             font-weight: 700;
+        }*/
+
+        #sdLoader {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2147483647;
+            background: rgba(248,250,252,.76);
+            align-items: center;
+            justify-content: center;
+        }
+
+            #sdLoader.active {
+                display: flex;
+            }
+
+        .sd-spinner {
+            width: 54px;
+            height: 54px;
+            border: 5px solid #dbe7e5;
+            border-top-color: var(--sd-primary);
+            border-radius: 50%;
+            animation: sdSpin .75s linear infinite;
         }
 
         .allocation-page {
             min-height: calc(100vh - 72px);
-            padding: 18px;
             background: var(--alloc-bg);
         }
 
@@ -76,17 +98,17 @@
             font-weight: 700;
         }
 
-        .allocation-title i {
-            width: 36px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            background: var(--alloc-primary);
-            border-radius: 8px;
-            font-size: 15px;
-        }
+            .allocation-title i {
+                width: 36px;
+                height: 36px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                background: var(--alloc-primary);
+                border-radius: 8px;
+                font-size: 15px;
+            }
 
         .allocation-context {
             margin-top: 2px;
@@ -120,30 +142,30 @@
             margin-bottom: 0;
         }
 
-        .allocation-field label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--alloc-text);
-            font-size: 12px;
-            font-weight: 700 !important;
-            line-height: 1.25;
-            border: 0 !important;
-        }
+            .allocation-field label {
+                display: block;
+                margin-bottom: 5px;
+                color: var(--alloc-text);
+                font-size: 12px;
+                font-weight: 700 !important;
+                line-height: 1.25;
+                border: 0 !important;
+            }
 
-        .allocation-field .form-control {
-            width: 100%;
-            min-height: 38px;
-            border: 1px solid #ccd6df;
-            border-radius: 7px;
-            color: var(--alloc-text);
-            font-size: 13px;
-            box-shadow: none;
-        }
+            .allocation-field .form-control {
+                width: 100%;
+                min-height: 38px;
+                border: 1px solid #ccd6df;
+                border-radius: 7px;
+                color: var(--alloc-text);
+                font-size: 13px;
+                box-shadow: none;
+            }
 
-        .allocation-field .form-control:focus {
-            border-color: var(--alloc-primary);
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, .12);
-        }
+                .allocation-field .form-control:focus {
+                    border-color: var(--alloc-primary);
+                    box-shadow: 0 0 0 3px rgba(15, 118, 110, .12);
+                }
 
         .allocation-actions {
             display: flex;
@@ -170,12 +192,12 @@
             border-color: var(--alloc-primary);
         }
 
-        .btn-allocation-primary:hover,
-        .btn-allocation-primary:focus {
-            color: #ffffff;
-            background: var(--alloc-primary-dark);
-            border-color: var(--alloc-primary-dark);
-        }
+            .btn-allocation-primary:hover,
+            .btn-allocation-primary:focus {
+                color: #ffffff;
+                background: var(--alloc-primary-dark);
+                border-color: var(--alloc-primary-dark);
+            }
 
         .btn-allocation-secondary {
             color: var(--alloc-text);
@@ -183,12 +205,12 @@
             border-color: var(--alloc-border);
         }
 
-        .btn-allocation-secondary:hover,
-        .btn-allocation-secondary:focus {
-            color: var(--alloc-primary-dark);
-            background: #edf7f5;
-            border-color: #b7d9d4;
-        }
+            .btn-allocation-secondary:hover,
+            .btn-allocation-secondary:focus {
+                color: var(--alloc-primary-dark);
+                background: #edf7f5;
+                border-color: #b7d9d4;
+            }
 
         .btn-allocation-success {
             color: #ffffff;
@@ -208,19 +230,19 @@
             margin-bottom: 12px;
         }
 
-        .grid-panel-header h2 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-            color: var(--alloc-text);
-            font-size: 15px;
-            font-weight: 700;
-        }
+            .grid-panel-header h2 {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 0;
+                color: var(--alloc-text);
+                font-size: 15px;
+                font-weight: 700;
+            }
 
-        .grid-panel-header h2 i {
-            color: var(--alloc-accent);
-        }
+                .grid-panel-header h2 i {
+                    color: var(--alloc-accent);
+                }
 
         .grid-subtitle {
             margin: 0;
@@ -250,40 +272,40 @@
             border-spacing: 0;
         }
 
-        .allocation-table thead th,
-        #table_OrderAllocation thead th,
-        #table_viewloanDetails thead th {
-            color: var(--alloc-text);
-            background: #f3f6f9 !important;
-            background-image: none !important;
-            border-bottom: 1px solid var(--alloc-border) !important;
-            font-size: 12px;
-            font-weight: 700;
-            text-align: left;
-            white-space: nowrap;
-            vertical-align: middle;
-        }
+            .allocation-table thead th,
+            #table_OrderAllocation thead th,
+            #table_viewloanDetails thead th {
+                color: var(--alloc-text);
+                background: #f3f6f9 !important;
+                background-image: none !important;
+                border-bottom: 1px solid var(--alloc-border) !important;
+                font-size: 12px;
+                font-weight: 700;
+                text-align: left;
+                white-space: nowrap;
+                vertical-align: middle;
+            }
 
-        .allocation-table tbody td,
-        #table_OrderAllocation tbody td,
-        #table_viewloanDetails tbody td {
-            color: var(--alloc-text);
-            background: #ffffff !important;
-            font-size: 12px;
-            vertical-align: middle;
-        }
+            .allocation-table tbody td,
+            #table_OrderAllocation tbody td,
+            #table_viewloanDetails tbody td {
+                color: var(--alloc-text);
+                background: #ffffff !important;
+                font-size: 12px;
+                vertical-align: middle;
+            }
 
-        .allocation-table tbody tr:hover td,
-        #table_OrderAllocation tbody tr:hover td,
-        #table_viewloanDetails tbody tr:hover td {
-            background: #f8fbfb !important;
-        }
+            .allocation-table tbody tr:hover td,
+            #table_OrderAllocation tbody tr:hover td,
+            #table_viewloanDetails tbody tr:hover td {
+                background: #f8fbfb !important;
+            }
 
-        #table_viewloanDetails tbody tr.selected-row td {
-            background: #dff3ef !important;
-            color: var(--alloc-primary-dark);
-            font-weight: 700;
-        }
+            #table_viewloanDetails tbody tr.selected-row td {
+                background: #dff3ef !important;
+                color: var(--alloc-primary-dark);
+                font-weight: 700;
+            }
 
         .allocation-count-pill {
             display: inline-flex;
@@ -325,19 +347,19 @@
             text-align: left;
         }
 
-        .dataTables_wrapper .dataTables_filter label {
-            color: var(--alloc-muted);
-            font-size: 12px;
-            font-weight: 700 !important;
-        }
+            .dataTables_wrapper .dataTables_filter label {
+                color: var(--alloc-muted);
+                font-size: 12px;
+                font-weight: 700 !important;
+            }
 
-        .dataTables_wrapper .dataTables_filter input,
-        .dataTables_wrapper .dataTables_length select {
-            min-height: 34px;
-            border: 1px solid #ccd6df;
-            border-radius: 7px;
-            margin-left: 6px;
-        }
+            .dataTables_wrapper .dataTables_filter input,
+            .dataTables_wrapper .dataTables_length select {
+                min-height: 34px;
+                border: 1px solid #ccd6df;
+                border-radius: 7px;
+                margin-left: 6px;
+            }
 
         .dataTables_wrapper .dataTables_info {
             float: none !important;
@@ -464,10 +486,16 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="allocation-page">
-        <div class="loading" id="load1">
+        <%-- <div class="loading" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
                 <div>One moment, please . . . .</div>
+            </div>
+        </div>--%>
+        <div id="sdLoader">
+            <div>
+                <div class="sd-spinner"></div>
+                <div class="mt-2 font-weight-bold">Please wait...</div>
             </div>
         </div>
 

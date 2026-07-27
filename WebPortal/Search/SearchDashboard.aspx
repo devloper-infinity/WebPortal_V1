@@ -245,9 +245,9 @@
                 vertical-align: middle;
             }
 
-        .sd-table tbody tr.sd-selected {
-            background: #e8f5f3 !important;
-        }
+            .sd-table tbody tr.sd-selected {
+                background: #e8f5f3 !important;
+            }
 
         .sd-get-orders {
             display: inline-flex;
@@ -265,14 +265,14 @@
             transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
         }
 
-        .sd-get-orders:hover,
-        .sd-get-orders:focus {
-            color: #fff;
-            background: var(--sd-dark);
-            box-shadow: 0 7px 16px rgba(15,118,110,.28);
-            outline: none;
-            transform: translateY(-1px);
-        }
+            .sd-get-orders:hover,
+            .sd-get-orders:focus {
+                color: #fff;
+                background: var(--sd-dark);
+                box-shadow: 0 7px 16px rgba(15,118,110,.28);
+                outline: none;
+                transform: translateY(-1px);
+            }
 
         .sd-focus-target:focus {
             outline: none;
@@ -573,155 +573,156 @@
                     </div>
 
                     <div id="sdQueue" class="tab-pane fade">
-                            <div class="sd-card">
-                                <div class="sd-card-title">User-InfinityOrderStatus</div>
-                                <div class="sd-card-body sd-table-wrap">
-                                    <table id="queueTable" class="table table-bordered table-striped sd-table"></table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="sdProcess" class="tab-pane fade">
-                            <div class="sd-card">
-                                <div class="sd-card-title">Process Order</div>
-                                <div class="sd-card-body">
-                                    <div class="sd-grid">
-                                        <div class="sd-field sd-col-3">
-                                            <label class="sd-required">Project</label><select id="pmProject" class="form-control sd-project"><option value="">Select</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label class="sd-required">Order</label><select id="pmOrder" class="form-control"><option value="">Select</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label>Current Process</label><input id="pmProcess" class="form-control" readonly /><input id="pmProcessId" type="hidden" />
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label>Assigned User</label><input id="pmAssignedUser" class="form-control" readonly /><input id="pmAssignedId" type="hidden" />
-                                        </div>
-
-                                        <div class="sd-field sd-col-6">
-                                            <label>Task Remark</label><textarea id="pmRemark" class="form-control"></textarea>
-                                        </div>
-                                        <div class="sd-field sd-col-6">
-                                            <label class="sd-required">Completion Attachment</label><input id="pmFile" type="file" class="form-control sd-file-control" /><div class="sd-help">File name (without extension) must match the client order number.</div>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label>Action</label><select id="pmAction" class="form-control"><option>Complete</option>
-                                                <option>Hold</option>
-                                                <option>Cancel</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label>Cancelled By</label><select id="pmCancelledBy" class="form-control" disabled><option>Cancelled by Client</option>
-                                                <option>Cancelled by Infinity</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label>Cancel Reason</label><input id="pmCancelReason" class="form-control" disabled />
-                                        </div>
-                                        <br />
-                                        <div class="sd-checks sd-col-12">
-                                            <div class="checkbox-wrapper-24">
-                                                <input id="pmDispatch" type="checkbox" /><label for="pmDispatch"><span></span>Dispatch</label>
-                                            </div>
-                                            <div class="checkbox-wrapper-24">
-                                                <input id="pmNoFeedback" type="checkbox" /><label for="pmNoFeedback"><span></span>No Feedback</label>
-                                            </div>
-                                            <div class="checkbox-wrapper-24">
-                                                <input id="pmTax" type="checkbox" /><label for="pmTax"><span></span>Tax Calling</label>
-                                            </div>
-                                            <div class="checkbox-wrapper-24">
-                                                <input id="pmAudit" type="checkbox" /><label for="pmAudit"><span></span>Audit</label>
-                                            </div>
-                                            <div class="checkbox-wrapper-24">
-                                                <input id="pmOffline" type="checkbox" /><label for="pmOffline"><span></span>Offline</label>
-                                            </div>
-                                        </div>
-                                        <div class="sd-actions sd-col-12">
-                                            <button type="button" id="pmComplete" class="sd-btn sd-btn-primary">Submit Process</button>
-                                            <button type="button" id="pmViewDetails" class="sd-btn sd-btn-light">Order Details</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sd-card">
-                                <div class="sd-card-title">Process Tasks <span class="float-right font-weight-normal">Use Status to complete, hold, cancel or transfer an individual task</span></div>
-                                <div class="sd-card-body sd-table-wrap">
-                                    <table id="pmTaskTable" class="table table-bordered table-striped sd-table"></table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="sdUpload" class="tab-pane fade">
-                            <div class="sd-card">
-                                <div class="sd-card-title">Upload And Download</div>
-                                <div class="sd-card-body">
-                                    <div class="sd-grid">
-                                        <div class="sd-field sd-col-3">
-                                            <label class="sd-required">Date</label><input id="upDate" class="form-control" placeholder="dd-MMM-yyyy" />
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label class="sd-required">Project</label><select id="upProject" class="form-control sd-project"><option value="">Select</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label class="sd-required">Order</label><select id="upOrder" class="form-control"><option value="">Select</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-3">
-                                            <label class="sd-required">Process</label><select id="upProcess" class="form-control"><option value="">Select</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-4">
-                                            <label class="sd-required">Attachment</label><input id="upFile" type="file" class="form-control sd-file-control" /><div class="sd-help">The saved package is prefixed with RevisedPackage_.</div>
-                                        </div>  <div class="sd-field sd-col-2"></div> <div class="sd-field sd-col-2"></div>
-                                        <div class="sd-field sd-col-4">
-                                            <button type="button" id="upSubmit" class="sd-btn sd-btn-primary"><i class="fas fa-upload mr-1"></i>Upload</button>
-                                            <button type="button" id="upLoad" class="sd-btn sd-btn-light">Load Documents</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sd-card">
-                                <div class="sd-card-title">Uploaded Documents</div>
-                                <div class="sd-card-body sd-table-wrap">
-                                    <table id="upTable" class="table table-bordered table-striped sd-table"></table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="sdCosting" class="tab-pane fade">
-                            <div class="sd-card">
-                                <div class="sd-card-title">Production Costing Report</div>
-                                <div class="sd-card-body">
-                                    <div class="sd-grid">
-                                        <div class="sd-field sd-col-4">
-                                            <label class="sd-required">Project</label><select id="costProject" class="form-control sd-project"><option value="">Select</option>
-                                            </select>
-                                        </div>
-                                        <div class="sd-field sd-col-2">
-                                            <label class="sd-required">From Date</label><input id="costFrom" class="form-control" placeholder="dd-MMM-yyyy" />
-                                        </div>
-                                        <div class="sd-field sd-col-2">
-                                            <label class="sd-required">To Date</label><input id="costTo" class="form-control" placeholder="dd-MMM-yyyy" />
-                                        </div>
-                                        <div class="sd-actions sd-col-4">
-                                            <button type="button" id="costShow" class="sd-btn sd-btn-primary">Show Report</button>
-                                            <button type="button" id="costExport" class="sd-btn sd-btn-light"><i class="fas fa-file-excel mr-1"></i>Export Excel</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sd-card">
-                                <div class="sd-card-title">Costing Orders</div>
-                                <div class="sd-card-body sd-table-wrap">
-                                    <table id="costTable" class="table table-bordered table-striped sd-table"></table>
-                                </div>
+                        <div class="sd-card">
+                            <div class="sd-card-title">User-InfinityOrderStatus</div>
+                            <div class="sd-card-body sd-table-wrap">
+                                <table id="queueTable" class="table table-bordered table-striped sd-table"></table>
                             </div>
                         </div>
                     </div>
+
+                    <div id="sdProcess" class="tab-pane fade">
+                        <div class="sd-card">
+                            <div class="sd-card-title">Process Order</div>
+                            <div class="sd-card-body">
+                                <div class="sd-grid">
+                                    <div class="sd-field sd-col-3">
+                                        <label class="sd-required">Project</label><select id="pmProject" class="form-control sd-project"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label class="sd-required">Order</label><select id="pmOrder" class="form-control"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label>Current Process</label><input id="pmProcess" class="form-control" readonly /><input id="pmProcessId" type="hidden" />
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label>Assigned User</label><input id="pmAssignedUser" class="form-control" readonly /><input id="pmAssignedId" type="hidden" />
+                                    </div>
+
+                                    <div class="sd-field sd-col-6">
+                                        <label>Task Remark</label><textarea id="pmRemark" class="form-control"></textarea>
+                                    </div>
+                                    <div class="sd-field sd-col-6">
+                                        <label class="sd-required">Completion Attachment</label><input id="pmFile" type="file" class="form-control sd-file-control" /><div class="sd-help">File name (without extension) must match the client order number.</div>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label>Action</label><select id="pmAction" class="form-control"><option>Complete</option>
+                                            <option>Hold</option>
+                                            <option>Cancel</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label>Cancelled By</label><select id="pmCancelledBy" class="form-control" disabled><option>Cancelled by Client</option>
+                                            <option>Cancelled by Infinity</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label>Cancel Reason</label><input id="pmCancelReason" class="form-control" disabled />
+                                    </div>
+                                    <br />
+                                    <div class="sd-checks sd-col-12">
+                                        <div class="checkbox-wrapper-24">
+                                            <input id="pmDispatch" type="checkbox" /><label for="pmDispatch"><span></span>Dispatch</label>
+                                        </div>
+                                        <div class="checkbox-wrapper-24">
+                                            <input id="pmNoFeedback" type="checkbox" /><label for="pmNoFeedback"><span></span>No Feedback</label>
+                                        </div>
+                                        <div class="checkbox-wrapper-24">
+                                            <input id="pmTax" type="checkbox" /><label for="pmTax"><span></span>Tax Calling</label>
+                                        </div>
+                                        <div class="checkbox-wrapper-24">
+                                            <input id="pmAudit" type="checkbox" /><label for="pmAudit"><span></span>Audit</label>
+                                        </div>
+                                        <div class="checkbox-wrapper-24">
+                                            <input id="pmOffline" type="checkbox" /><label for="pmOffline"><span></span>Offline</label>
+                                        </div>
+                                    </div>
+                                    <div class="sd-actions sd-col-12">
+                                        <button type="button" id="pmComplete" class="sd-btn sd-btn-primary">Submit Process</button>
+                                        <button type="button" id="pmViewDetails" class="sd-btn sd-btn-light">Order Details</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sd-card">
+                            <div class="sd-card-title">Process Tasks <span class="float-right font-weight-normal">Use Status to complete, hold, cancel or transfer an individual task</span></div>
+                            <div class="sd-card-body sd-table-wrap">
+                                <table id="pmTaskTable" class="table table-bordered table-striped sd-table"></table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="sdUpload" class="tab-pane fade">
+                        <div class="sd-card">
+                            <div class="sd-card-title">Upload And Download</div>
+                            <div class="sd-card-body">
+                                <div class="sd-grid">
+                                    <div class="sd-field sd-col-3">
+                                        <label class="sd-required">Date</label><input id="upDate" class="form-control" placeholder="dd-MMM-yyyy" />
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label class="sd-required">Project</label><select id="upProject" class="form-control sd-project"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label class="sd-required">Order</label><select id="upOrder" class="form-control"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-3">
+                                        <label class="sd-required">Process</label><select id="upProcess" class="form-control"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-4">
+                                        <label class="sd-required">Attachment</label><input id="upFile" type="file" class="form-control sd-file-control" /><div class="sd-help">The saved package is prefixed with RevisedPackage_.</div>
+                                    </div>
+                                    <div class="sd-field sd-col-2"></div>
+                                    <div class="sd-field sd-col-2"></div>
+                                    <div class="sd-field sd-col-4">
+                                        <button type="button" id="upSubmit" class="sd-btn sd-btn-primary"><i class="fas fa-upload mr-1"></i>Upload</button>
+                                        <button type="button" id="upLoad" class="sd-btn sd-btn-light">Load Documents</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sd-card">
+                            <div class="sd-card-title">Uploaded Documents</div>
+                            <div class="sd-card-body sd-table-wrap">
+                                <table id="upTable" class="table table-bordered table-striped sd-table"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sdCosting" class="tab-pane fade">
+                        <div class="sd-card">
+                            <div class="sd-card-title">Production Costing Report</div>
+                            <div class="sd-card-body">
+                                <div class="sd-grid">
+                                    <div class="sd-field sd-col-4">
+                                        <label class="sd-required">Project</label><select id="costProject" class="form-control sd-project"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="sd-field sd-col-2">
+                                        <label class="sd-required">From Date</label><input id="costFrom" class="form-control" placeholder="dd-MMM-yyyy" />
+                                    </div>
+                                    <div class="sd-field sd-col-2">
+                                        <label class="sd-required">To Date</label><input id="costTo" class="form-control" placeholder="dd-MMM-yyyy" />
+                                    </div>
+                                    <div class="sd-actions sd-col-4">
+                                        <button type="button" id="costShow" class="sd-btn sd-btn-primary">Show Report</button>
+                                        <button type="button" id="costExport" class="sd-btn sd-btn-light"><i class="fas fa-file-excel mr-1"></i>Export Excel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sd-card">
+                            <div class="sd-card-title">Costing Orders</div>
+                            <div class="sd-card-body sd-table-wrap">
+                                <table id="costTable" class="table table-bordered table-striped sd-table"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
         </div>
     </main>

@@ -649,17 +649,10 @@ function setappr_getApprTitle(ddltype) {
 
     if (type === 'DisciplinaryAction' && action_Count === 0 && LoginEmp !== reportingManagerId) {
 
-
         Swal.fire({
-            icon: "warning",
-            title: "Warning",
-            html: `
-        <p style="margin-bottom:8px;">
-            This is the <strong>first warning letter</strong> under the Disciplinary Action.
-        </p>
-        <p>
-            The  Disciplinary Actio process must be <strong>initiated by the Project Manager (PM)</strong> before you can proceed.
-        </p>`,
+            icon: "warning", title: "Warning",
+            html: `<p style="margin-bottom:8px;">This is the <strong>first warning letter</strong> under the Disciplinary Action.</p>
+        <p>The  Disciplinary Actio process must be <strong>initiated by the Project Manager (PM)</strong> before you can proceed.</p>`,
             confirmButtonText: "OK",
             allowOutsideClick: false
         });
@@ -667,16 +660,11 @@ function setappr_getApprTitle(ddltype) {
     }
 
     else if (type === 'PerformanceImprovementPlan' && pip_Count === 0 && LoginEmp !== reportingManagerId) {
+
         Swal.fire({
-            icon: "warning",
-            title: "Warning",
-            html: `
-        <p style="margin-bottom:8px;">
-            This is the <strong>first warning letter</strong> under the Performance Improvement Plan (PIP).
-        </p>
-        <p>
-            The PIP process must be <strong>initiated by the Project Manager (PM)</strong> before you can proceed.
-        </p>`,
+            icon: "warning", title: "Warning",
+            html: `<p style="margin-bottom:8px;"> This is the <strong>first warning letter</strong> under the Performance Improvement Plan (PIP).</p>
+        <p>The PIP process must be <strong>initiated by the Project Manager (PM)</strong> before you can proceed.</p>`,
             confirmButtonText: "OK",
             allowOutsideClick: false
         });
