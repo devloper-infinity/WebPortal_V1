@@ -295,33 +295,353 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string GetProductiveEmployeeInsightDetails()
+        public static string GetProductiveEmployeeInsightDetails(string RangeType)
         {
             int employeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-            string fromDate = DateTime.Now.AddYears(-1).AddDays(1).ToString("dd-MMM-yyyy");
-            string toDate = DateTime.Now.ToString("dd-MMM-yyyy");
+            DateTime today = DateTime.Today;
+            DateTime fromDate;
+            DateTime toDate = today;
+            string rangeMessage = "";
+            string selectedRange = string.IsNullOrWhiteSpace(RangeType) ? "Last12Months" : RangeType;
+
+            switch (selectedRange)
+            {
+                case "LatestIncrement":
+                    if (!TryGetLatestIncrementEffectiveDate(employeeId, today, out fromDate))
+                    {
+                        if (!TryGetEmployeeJoiningDate(employeeId, out fromDate))
+                            fromDate = today.AddYears(-1).AddDays(1);
+
+                        rangeMessage = "No increment records found, so the report is being shown from the date of joining (" +
+                            fromDate.ToString("dd-MMM-yyyy") + ").";
+                    }
+                    break;
+
+                case "CurrentMonth":
+                    fromDate = new DateTime(today.Year, today.Month, 26).AddMonths(-1);
+                    toDate = new DateTime(today.Year, today.Month, 25);
+
+                    if (toDate > today)
+                        toDate = today;
+                    break;
+
+                default:
+                    selectedRange = "Last12Months";
+                    fromDate = today.AddYears(-1).AddDays(1);
+                    break;
+            }
+
+            if (fromDate > toDate)
+                fromDate = toDate;
+
+            string fromDateText = fromDate.ToString("dd-MMM-yyyy");
+            string toDateText = toDate.ToString("dd-MMM-yyyy");
             bllMaster master = new bllMaster();
             string code = master.GetCodeFromEmployeeId(employeeId);
 
             if (string.IsNullOrWhiteSpace(code))
                 code = Convert.ToString(employeeId);
 
-            DataTable productionDetails = master.GetProductiveEmployeePerformanceLast12Months(employeeId, fromDate, toDate);
+            DataTable productionDetails = master.GetProductiveEmployeePerformanceLast12Months(employeeId, fromDateText, toDateText);
 
             Hashtable htParam = new Hashtable();
             htParam.Add("UserCode", employeeId);
-            htParam.Add("FromDate", fromDate);
-            htParam.Add("ToDate", toDate);
+            htParam.Add("FromDate", fromDateText);
+            htParam.Add("ToDate", toDateText);
 
             DataTable attendanceDetails = master.GetDetailedAttendancePercentageForDashboard(htParam);
 
+            if (selectedRange == "CurrentMonth" && (attendanceDetails == null || attendanceDetails.Rows.Count == 0))
+            {
+                attendanceDetails = GetCurrentAttendanceFromSalaryDetail(code, fromDate, toDate);
+
+                if (attendanceDetails.Rows.Count > 0)
+                    rangeMessage = "Salary calculation is not completed. Attendance is calculated from infinityus.dbo.Salary_Detail.";
+                else
+                    rangeMessage = "Salary calculation is not completed and no Salary_Detail records were found for this period.";
+            }
+
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result.Add("production", GetLastTwelveMonthlyProductionRows(productionDetails));
+            result.Add("production", GetMonthlyProductionRows(productionDetails, 0));
             result.Add("attendance", DataTableToList(attendanceDetails));
+            result.Add("selectedRange", selectedRange);
+            result.Add("fromDate", fromDateText);
+            result.Add("toDate", toDateText);
+            result.Add("periodLabel", fromDateText + " to " + toDateText);
+            result.Add("rangeMessage", rangeMessage);
 
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(result);
+        }
+
+        private static DataTable GetCurrentAttendanceFromSalaryDetail(string code, DateTime fromDate, DateTime toDate)
+        {
+            DataSet ds = new DataSet();
+
+            using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand cmd = con.CreateCommand())
+            {
+                cmd.CommandText = @"
+SELECT WH.WorkingHours, NU.Log_Late, E.JoiningDate
+FROM dbo.EmployeeInfo E
+LEFT JOIN dbo.WorkingHours WH ON WH.WorkingHoursID = E.WorkingHours
+LEFT JOIN infinityus.dbo.New_User NU ON NU.Code = E.Code
+WHERE E.Code = @Code;
+
+SELECT DISTINCT [Date], P_Day, Let_Mark, Remark, Hours
+FROM infinityus.dbo.Salary_Detail
+WHERE User_Code = @Code
+  AND CAST([Date] AS DATETIME) BETWEEN @FromDate AND @ToDate
+ORDER BY CAST([Date] AS DATETIME);";
+                cmd.Parameters.Add("@Code", SqlDbType.NVarChar, 10).Value = code;
+                cmd.Parameters.Add("@FromDate", SqlDbType.DateTime).Value = fromDate;
+                cmd.Parameters.Add("@ToDate", SqlDbType.DateTime).Value = toDate;
+
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    con.Open();
+                    da.Fill(ds);
+                }
+            }
+
+            DataTable result = CreateAttendanceResultTable();
+
+            if (ds.Tables.Count < 2 || ds.Tables[1].Rows.Count == 0)
+                return result;
+
+            DataTable employeeConfig = ds.Tables[0];
+            DataTable salaryDetails = ds.Tables[1];
+            DateTime calculationFromDate = fromDate;
+            int requiredMinutes = 480;
+            bool deductLateMarks = false;
+
+            if (employeeConfig.Rows.Count > 0)
+            {
+                int configuredMinutes = ParseHoursToMinutes(Convert.ToString(employeeConfig.Rows[0]["WorkingHours"]));
+
+                if (configuredMinutes > 0)
+                    requiredMinutes = configuredMinutes;
+
+                deductLateMarks = string.Equals(
+                    Convert.ToString(employeeConfig.Rows[0]["Log_Late"]).Trim(),
+                    "Allow Late Mark",
+                    StringComparison.OrdinalIgnoreCase);
+
+                DateTime joiningDate;
+
+                if (DateTime.TryParse(Convert.ToString(employeeConfig.Rows[0]["JoiningDate"]), out joiningDate) &&
+                    joiningDate.Date > calculationFromDate)
+                    calculationFromDate = joiningDate.Date;
+            }
+
+            int totalCalendarDays = Math.Max(1, (toDate.Date - calculationFromDate.Date).Days + 1);
+            int workingDayRecords = 0;
+            int absentDays = 0;
+            int partialDayCount = 0;
+            int lateMarks = 0;
+            int removedLateMarks = 0;
+            decimal fullDays = 0;
+            decimal partialPresentDays = 0;
+
+            foreach (DataRow row in salaryDetails.Rows)
+            {
+                string remark = Convert.ToString(row["Remark"]).Trim();
+                string lateMark = Convert.ToString(row["Let_Mark"]).Trim();
+
+                if (lateMark == "1")
+                    lateMarks++;
+                else if (lateMark == "0")
+                    removedLateMarks++;
+
+                if (string.Equals(remark, "Holiday", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                workingDayRecords++;
+
+                if (string.Equals(remark, "Absent", StringComparison.OrdinalIgnoreCase))
+                {
+                    absentDays++;
+                    continue;
+                }
+
+                if (IsSalaryDetailFlagSet(row["P_Day"]))
+                {
+                    partialDayCount++;
+                    int workedMinutes = ParseHoursToMinutes(Convert.ToString(row["Hours"]));
+                    partialPresentDays += Math.Min(1, TruncateDecimal((decimal)workedMinutes / requiredMinutes, 2));
+                }
+                else
+                {
+                    fullDays++;
+                }
+            }
+
+            decimal partialAbsentDays = Math.Max(0, partialDayCount - partialPresentDays);
+            decimal nonWorkingDays = Math.Max(0, totalCalendarDays - workingDayRecords);
+            decimal lateMarkDays = deductLateMarks
+                ? (lateMarks / 3) + (lateMarks % 3 == 2 ? 0.5m : 0)
+                : 0;
+            decimal salaryPresentDays = Math.Max(0, Math.Min(totalCalendarDays, nonWorkingDays + fullDays + partialPresentDays - lateMarkDays));
+            decimal totalAbsentDays = absentDays + partialAbsentDays;
+            decimal attendancePercentage = TruncateDecimal((salaryPresentDays / totalCalendarDays) * 100, 2);
+            decimal workingAttendancePercentage = workingDayRecords == 0
+                ? 0
+                : TruncateDecimal(((fullDays + partialPresentDays) / workingDayRecords) * 100, 2);
+
+            DataRow resultRow = result.NewRow();
+            resultRow["Code"] = code;
+            resultRow["Month"] = toDate.ToString("MMMM", CultureInfo.InvariantCulture);
+            resultRow["Year"] = toDate.Year.ToString(CultureInfo.InvariantCulture);
+            resultRow["TotalCalenderDays"] = totalCalendarDays;
+            resultRow["AbsentDays"] = absentDays;
+            resultRow["PartialCount"] = partialDayCount;
+            resultRow["PartialDays"] = FormatDecimal(partialAbsentDays);
+            resultRow["TotalAbsentDays"] = FormatDecimal(totalAbsentDays);
+            resultRow["SalaryPresentDays"] = FormatDecimal(salaryPresentDays);
+            resultRow["AttendancePercOnTotalDays"] = FormatDecimal(attendancePercentage);
+            resultRow["Latemarks"] = lateMarks;
+            resultRow["RemovedLatemarks"] = removedLateMarks;
+            resultRow["TotalLatemarks"] = lateMarks + removedLateMarks;
+            resultRow["TotalWorkingDays"] = workingDayRecords;
+            resultRow["AbsentDaysWOWeekOff"] = absentDays;
+            resultRow["TotalPartialDays"] = FormatDecimal(partialAbsentDays);
+            resultRow["TotalAbsentDaysWOWeeoff"] = FormatDecimal(totalAbsentDays);
+            resultRow["AttendancePercOnWorkingDays"] = FormatDecimal(workingAttendancePercentage);
+            result.Rows.Add(resultRow);
+
+            return result;
+        }
+
+        private static DataTable CreateAttendanceResultTable()
+        {
+            DataTable table = new DataTable();
+            string[] columns =
+            {
+                "Code", "Month", "Year", "TotalCalenderDays", "AbsentDays", "PartialCount",
+                "PartialDays", "TotalAbsentDays", "SalaryPresentDays", "AttendancePercOnTotalDays",
+                "Latemarks", "RemovedLatemarks", "TotalLatemarks", "TotalWorkingDays",
+                "AbsentDaysWOWeekOff", "TotalPartialDays", "TotalAbsentDaysWOWeeoff",
+                "AttendancePercOnWorkingDays"
+            };
+
+            foreach (string column in columns)
+                table.Columns.Add(column);
+
+            return table;
+        }
+
+        private static bool IsSalaryDetailFlagSet(object value)
+        {
+            string flag = Convert.ToString(value).Trim();
+            return flag == "1" || flag.Equals("true", StringComparison.OrdinalIgnoreCase) || flag.Equals("yes", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static int ParseHoursToMinutes(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return 0;
+
+            string[] parts = value.Trim().Split(':');
+            int hours;
+            int minutes = 0;
+
+            if (!int.TryParse(parts[0], out hours))
+                return 0;
+
+            if (parts.Length > 1)
+                int.TryParse(parts[1], out minutes);
+
+            return (hours * 60) + minutes;
+        }
+
+        private static decimal TruncateDecimal(decimal value, int decimalPlaces)
+        {
+            decimal factor = (decimal)Math.Pow(10, decimalPlaces);
+            return Math.Truncate(value * factor) / factor;
+        }
+
+        private static bool TryGetLatestIncrementEffectiveDate(int employeeId, DateTime today, out DateTime effectiveDate)
+        {
+            effectiveDate = DateTime.MinValue;
+            DataTable incrementDetails;
+
+            try
+            {
+                incrementDetails = new bllSalary().GetEmployeeSalaryIncrementDetailsForLetter(employeeId);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (incrementDetails == null)
+                return false;
+
+            foreach (DataRow row in incrementDetails.Rows)
+            {
+                DateTime rowDate;
+
+                if (!TryGetIncrementEffectiveDate(incrementDetails, row, out rowDate))
+                    continue;
+
+                if (rowDate <= today && rowDate > effectiveDate)
+                    effectiveDate = rowDate;
+            }
+
+            return effectiveDate != DateTime.MinValue;
+        }
+
+        private static bool TryGetIncrementEffectiveDate(DataTable table, DataRow row, out DateTime effectiveDate)
+        {
+            effectiveDate = DateTime.MinValue;
+            object dateValue = GetValue(table, row, "EffectiveDate", "IncrementDate");
+            DateTime parsedDate;
+
+            if (!string.IsNullOrWhiteSpace(Convert.ToString(dateValue)) &&
+                DateTime.TryParse(Convert.ToString(dateValue), CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedDate))
+            {
+                effectiveDate = new DateTime(parsedDate.Year, parsedDate.Month, 26);
+                return true;
+            }
+
+            int month = GetMonthNumber(GetValue(table, row, "EffectiveMonth", "Month", "IncrementMonth"));
+            int year;
+
+            if (month > 0 &&
+                int.TryParse(Convert.ToString(GetValue(table, row, "EffectiveYear", "Year", "IncrementYear")), out year))
+            {
+                if (year < 100)
+                    year += 2000;
+
+                effectiveDate = new DateTime(year, month, 26);
+                return true;
+            }
+
+            object monthYearValue = GetValue(table, row, "IncrementMonthYear", "EffectiveMonthYear", "IncMonthYear", "MonthYear");
+
+            if (TryParseDashboardMonth(monthYearValue, out parsedDate))
+            {
+                effectiveDate = new DateTime(parsedDate.Year, parsedDate.Month, 26);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryGetEmployeeJoiningDate(int employeeId, out DateTime joiningDate)
+        {
+            joiningDate = DateTime.MinValue;
+            DataTable employeeDetails = new bllLogin().GetUserInformation(employeeId);
+
+            if (employeeDetails == null || employeeDetails.Rows.Count == 0 || !employeeDetails.Columns.Contains("JoiningDate"))
+                return false;
+
+            return DateTime.TryParse(
+                Convert.ToString(employeeDetails.Rows[0]["JoiningDate"]),
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces,
+                out joiningDate);
         }
 
         [WebMethod]
@@ -614,6 +934,11 @@ namespace WebPortal.Admin
 
         private static List<Dictionary<string, object>> GetLastTwelveMonthlyProductionRows(DataTable dt)
         {
+            return GetMonthlyProductionRows(dt, 12);
+        }
+
+        private static List<Dictionary<string, object>> GetMonthlyProductionRows(DataTable dt, int maximumRows)
+        {
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
 
             if (dt == null)
@@ -642,17 +967,23 @@ namespace WebPortal.Admin
 
             if (monthRows.Any(x => x.HasMonthDate))
             {
-                selectedRows = monthRows
+                IEnumerable<DashboardMonthRow> orderedRows = monthRows
                     .Where(x => x.HasMonthDate)
                     .OrderByDescending(x => x.MonthDate)
-                    .ThenByDescending(x => x.RowIndex)
-                    .Take(12)
+                    .ThenByDescending(x => x.RowIndex);
+
+                if (maximumRows > 0)
+                    orderedRows = orderedRows.Take(maximumRows);
+
+                selectedRows = orderedRows
                     .OrderBy(x => x.MonthDate)
                     .ThenBy(x => x.RowIndex);
             }
             else
             {
-                selectedRows = monthRows.Skip(Math.Max(0, monthRows.Count - 12));
+                selectedRows = maximumRows > 0
+                    ? monthRows.Skip(Math.Max(0, monthRows.Count - maximumRows))
+                    : monthRows;
             }
 
             foreach (DashboardMonthRow monthRow in selectedRows)

@@ -72,18 +72,31 @@
 
             .production-dashboard .kpi-grid {
                 display: grid;
-                grid-template-columns: repeat(6, minmax(150px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
                 gap: 14px;
                 margin-bottom: 16px;
             }
 
             .production-dashboard .kpi-card {
+                display: block;
                 background: #ffffff;
                 border: 1px solid #e7ebf2;
                 border-radius: 8px;
                 padding: 16px;
                 min-height: 132px;
                 box-shadow: 0 8px 22px rgba(35, 48, 65, 0.06);
+                color: inherit;
+                text-decoration: none;
+                transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+            }
+
+            .production-dashboard .kpi-card:hover,
+            .production-dashboard .kpi-card:focus {
+                color: inherit;
+                text-decoration: none;
+                transform: translateY(-2px);
+                border-color: #93c5fd;
+                box-shadow: 0 12px 28px rgba(35, 48, 65, 0.12);
             }
 
             .production-dashboard .kpi-top {
@@ -126,6 +139,56 @@
 
             .production-dashboard .kpi-card:nth-child(6) .kpi-icon {
                 background: #7c3aed;
+            }
+
+            .production-dashboard .kpi-card:nth-child(7) .kpi-icon {
+                background: #0891b2;
+            }
+
+            .production-dashboard .kpi-card:nth-child(8) .kpi-icon {
+                background: #db2777;
+            }
+
+            .production-dashboard .kpi-card:nth-child(9) .kpi-icon {
+                background: #ca8a04;
+            }
+
+            .production-loading-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background: rgba(15, 23, 42, .48);
+                backdrop-filter: blur(2px);
+            }
+
+            .production-loading-overlay.is-visible {
+                display: flex;
+            }
+
+            .production-loading-popup {
+                min-width: 270px;
+                padding: 24px 30px;
+                border-radius: 12px;
+                background: #fff;
+                color: #172033;
+                text-align: center;
+                box-shadow: 0 24px 60px rgba(15, 23, 42, .28);
+            }
+
+            .production-loading-popup i {
+                display: block;
+                margin-bottom: 12px;
+                color: #2563eb;
+                font-size: 30px;
+            }
+
+            .production-loading-popup p {
+                margin: 0;
+                color: #64748b;
+                font-size: 13px;
             }
 
             .production-dashboard .kpi-label {
@@ -459,11 +522,18 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <div id="productionLoadingOverlay" class="production-loading-overlay" role="status" aria-live="polite" aria-hidden="true">
+        <div class="production-loading-popup">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <strong>Loading production dashboard</strong>
+            <p>Calculating production, attendance, quality, and people metrics…</p>
+        </div>
+    </div>
     <div class="production-dashboard">
         <div class="dashboard-shell">
             <div id="productionDataAlert" class="data-alert">
                 <i class="fas fa-exclamation-triangle mr-1"></i>
-                Some live production data could not be loaded. The dashboard is showing the available sections.
+                <span id="productionDataAlertText">Some live production data could not be loaded. The dashboard is showing the available sections.</span>
            
             </div>
 
@@ -475,6 +545,9 @@
                     </div>
                     <div class="col-lg-6">
                         <div class="period-tools">
+                            <select id="productionDomain" class="form-control" title="Domain" disabled="disabled">
+                                <option value="0">Loading domain…</option>
+                            </select>
                             <input type="date" id="productionFromDate" class="form-control" title="From date" />
                             <input type="date" id="productionToDate" class="form-control" title="To date" />
                             <button type="button" id="btnProductionRefresh" class="btn btn-primary btn-dashboard" title="Refresh dashboard">
@@ -490,59 +563,86 @@
             </div>
 
             <div class="kpi-grid">
-                <div class="kpi-card">
+                <a class="kpi-card" href="#employeeDetailsSection" title="View employee details">
                     <div class="kpi-top">
                         <p class="kpi-label">Active Employees</p>
                         <span class="kpi-icon"><i class="fas fa-users-cog"></i></span>
                     </div>
                     <p id="kpiProductionEmployees" class="kpi-value">0</p>
                     <p class="kpi-note">Employees in performance report</p>
-                </div>
+                </a>
 
-                <div class="kpi-card">
+                <a class="kpi-card" href="#productionDetailsSection" title="View production details">
                     <div class="kpi-top">
                         <p class="kpi-label">Total Production</p>
                         <span class="kpi-icon"><i class="fas fa-layer-group"></i></span>
                     </div>
                     <p id="kpiTotalProduction" class="kpi-value">0</p>
                     <p id="kpiProductionDays" class="kpi-note">0 productive days</p>
-                </div>
+                </a>
 
-                <div class="kpi-card">
+                <a class="kpi-card" href="#productionDetailsSection" title="View productivity details">
+                    <div class="kpi-top">
+                        <p class="kpi-label">Expected Productivity</p>
+                        <span class="kpi-icon"><i class="fas fa-bullseye"></i></span>
+                    </div>
+                    <p id="kpiExpectedProductivity" class="kpi-value">0</p>
+                    <p class="kpi-note">Configured target for selected period</p>
+                </a>
+
+                <a class="kpi-card" href="#productionDetailsSection" title="View productivity details">
                     <div class="kpi-top">
                         <p class="kpi-label">Avg Productivity</p>
                         <span class="kpi-icon"><i class="fas fa-tachometer-alt"></i></span>
                     </div>
                     <p id="kpiAvgProductivity" class="kpi-value">0%</p>
                     <p id="kpiBestProductivity" class="kpi-note">Best day 0%</p>
-                </div>
+                </a>
 
-                <div class="kpi-card">
+                <a class="kpi-card" href="#qualityDetailsSection" title="View quality details">
                     <div class="kpi-top">
                         <p class="kpi-label">Avg Quality</p>
                         <span class="kpi-icon"><i class="fas fa-check-circle"></i></span>
                     </div>
                     <p id="kpiAvgQuality" class="kpi-value">0%</p>
                     <p id="kpiBestQuality" class="kpi-note">Best quality 0%</p>
-                </div>
+                </a>
 
-                <div class="kpi-card">
+                <a class="kpi-card" href="#qualityDetailsSection" title="View unique error details">
                     <div class="kpi-top">
                         <p class="kpi-label">Total Errors</p>
                         <span class="kpi-icon"><i class="fas fa-exclamation-circle"></i></span>
                     </div>
                     <p id="kpiTotalErrors" class="kpi-value">0</p>
                     <p id="kpiErrorRate" class="kpi-note">Error rate 0%</p>
-                </div>
+                </a>
 
-                <div class="kpi-card">
+                <a class="kpi-card" href="#attendanceDetailsSection" title="View attendance details">
                     <div class="kpi-top">
                         <p class="kpi-label">Avg Attendance</p>
                         <span class="kpi-icon"><i class="fas fa-calendar-check"></i></span>
                     </div>
                     <p id="kpiAvgAttendance" class="kpi-value">0%</p>
                     <p id="kpiProcessCount" class="kpi-note">0 process groups</p>
-                </div>
+                </a>
+
+                <a class="kpi-card" href="#attritionDetailsSection" title="View attrition details">
+                    <div class="kpi-top">
+                        <p class="kpi-label">Attrition</p>
+                        <span class="kpi-icon"><i class="fas fa-user-minus"></i></span>
+                    </div>
+                    <p id="kpiAttritionRate" class="kpi-value">0%</p>
+                    <p class="kpi-note">Attrition for selected period</p>
+                </a>
+
+                <a class="kpi-card" href="#attendanceDetailsSection" title="View absenteeism and leave details">
+                    <div class="kpi-top">
+                        <p class="kpi-label">Absenteeism</p>
+                        <span class="kpi-icon"><i class="fas fa-user-clock"></i></span>
+                    </div>
+                    <p id="kpiAbsenteeismRate" class="kpi-value">0%</p>
+                    <p id="kpiLeaveMix" class="kpi-note">Planned 0 · Unplanned 0</p>
+                </a>
             </div>
 
             <div class="row" style="display:none;">
@@ -575,7 +675,7 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div id="productionDetailsSection" class="row">
                 <div class="col-xl-6">
                     <div class="dashboard-card">
                         <div class="dashboard-card-header">
@@ -605,7 +705,76 @@
                 </div>
             </div>
 
-            <div class="report-grid">
+            <div class="row">
+                <div id="attritionDetailsSection" class="col-xl-6">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <h2 class="dashboard-card-title">Domain-wise Attrition Summary</h2>
+                                <p class="section-note">Calculated from the same date-wise source used by Attrition Report.</p>
+                            </div>
+                            <span class="status-pill"><i class="fas fa-user-minus"></i>People trend</span>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-box chart-box-small">
+                                <canvas id="attritionTrendChart"></canvas>
+                            </div>
+                            <div class="compact-table-wrap mt-3">
+                                <table class="table table-hover report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Domain</th>
+                                            <th class="text-center">Opening</th>
+                                            <th class="text-center">New Joiners</th>
+                                            <th class="text-center">Exits</th>
+                                            <th class="text-center">Remaining</th>
+                                            <th class="text-center">Attrition %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attritionDomainBody">
+                                        <tr><td colspan="6" class="text-center text-muted p-4">Loading domain summary</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="attendanceDetailsSection" class="col-xl-6">
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <div>
+                                <h2 class="dashboard-card-title">Absenteeism & Leave Details</h2>
+                                <p class="section-note">Planned requests are submitted before leave starts; same-day or later requests are unplanned.</p>
+                            </div>
+                            <span id="absenceDaysSummary" class="status-pill"><i class="fas fa-calendar-times"></i>0 absent days</span>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <div class="chart-box chart-box-small">
+                                <canvas id="absenceMixChart"></canvas>
+                            </div>
+                            <div class="compact-table-wrap mt-3">
+                                <table class="table table-hover report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Leave From</th>
+                                            <th class="text-center">Days</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="leaveDetailsBody">
+                                        <tr><td colspan="5" class="text-center text-muted p-4">Loading leave details</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="qualityDetailsSection" class="report-grid">
                 <div class="dashboard-card">
                     <div class="dashboard-card-header">
                         <div>
@@ -772,7 +941,7 @@
                 </div>
             </div>
 
-            <div class="dashboard-card">
+            <div id="employeeDetailsSection" class="dashboard-card">
                 <div class="dashboard-card-header">
                     <h2 class="dashboard-card-title">Top Performers</h2>
                     <span class="status-pill"><i class="fas fa-user-check"></i>Employee view</span>
@@ -785,6 +954,7 @@
                                     <th>Employee</th>
                                     <th class="text-center">Code</th>
                                     <th class="text-center">Production</th>
+                                    <th class="text-center">Expected</th>
                                     <th class="text-center">Productivity</th>
                                     <th class="text-center">Quality</th>
                                     <th class="text-center">Attendance</th>
@@ -794,7 +964,7 @@
                             </thead>
                             <tbody id="topEmployeeBody">
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted p-4">Loading employee ranking</td>
+                                    <td colspan="9" class="text-center text-muted p-4">Loading employee ranking</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -811,16 +981,60 @@
         var qualityProductivityChart = null;
         var weeklyGraphicalChart = null;
         var individualPerformanceChart = null;
+        var attritionTrendChart = null;
+        var absenceMixChart = null;
         var latestProductionData = {};
 
         $(document).ready(function () {
             bindProductionDefaultDates();
-            loadProductionDashboard();
+            loadProductionDomainAccess();
 
             $("#btnProductionRefresh").on("click", function () {
                 loadProductionDashboard();
             });
+
+            $("#productionDomain").on("change", function () {
+                loadProductionDashboard();
+            });
         });
+
+        function loadProductionDomainAccess() {
+            $("#productionLoadingOverlay").addClass("is-visible").attr("aria-hidden", "false");
+
+            $.ajax({
+                url: "ProductionDashboard.aspx/GetDashboardDomainAccess",
+                type: "POST",
+                data: "{}",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    var access = JSON.parse(response.d || "{}");
+                    var domains = access.Domains || [];
+                    var options = "";
+
+                    if (access.CanSelectDomain) {
+                        options += '<option value="0">All Domains</option>';
+                    }
+
+                    domains.forEach(function (domain) {
+                        options += '<option value="' + safe(domain.DomainID) + '">' + safe(domain.DomainName) + '</option>';
+                    });
+
+                    $("#productionDomain")
+                        .html(options || '<option value="0">No domain assigned</option>')
+                        .val(String(access.CurrentDomainID || 0))
+                        .prop("disabled", !access.CanSelectDomain)
+                        .attr("title", access.CanSelectDomain
+                            ? "Select a domain to refresh the dashboard"
+                            : "Your assigned domain");
+                    loadProductionDashboard();
+                },
+                error: function () {
+                    $("#productionDomain").html('<option value="0">Assigned domain</option>').prop("disabled", true);
+                    loadProductionDashboard();
+                }
+            });
+        }
 
         function bindProductionDefaultDates() {
             var today = new Date();
@@ -843,13 +1057,15 @@
         function loadProductionDashboard() {
             $("#btnProductionRefresh").prop("disabled", true).html('<i class="fas fa-circle-notch fa-spin mr-1"></i> Loading');
             $("#productionDataAlert").hide();
+            $("#productionLoadingOverlay").addClass("is-visible").attr("aria-hidden", "false");
 
             $.ajax({
                 url: "ProductionDashboard.aspx/GetDashboardSnapshot",
                 type: "POST",
                 data: JSON.stringify({
                     FromDate: $("#productionFromDate").val(),
-                    ToDate: $("#productionToDate").val()
+                    ToDate: $("#productionToDate").val(),
+                    DomainID: parseInt($("#productionDomain").val() || "0", 10)
                 }),
                 dataType: "json",
                 contentType: "application/json; charset=utf-8",
@@ -862,6 +1078,7 @@
                 },
                 complete: function () {
                     $("#btnProductionRefresh").prop("disabled", false).html('<i class="fas fa-sync-alt mr-1"></i> Refresh');
+                    $("#productionLoadingOverlay").removeClass("is-visible").attr("aria-hidden", "true");
                 }
             });
         }
@@ -869,16 +1086,22 @@
         function renderProductionDashboard(snapshot) {
             var kpis = snapshot.Kpis || {};
             var errors = snapshot.Errors || [];
+            var notice = safe(snapshot.Notice);
 
-            if (errors.length > 0) {
+            if (errors.length > 0 || notice) {
+                $("#productionDataAlertText").text(notice || "Some live production data could not be loaded. The dashboard is showing the available sections.");
                 $("#productionDataAlert").show();
             }
 
             $("#productionPeriod").html('<i class="fas fa-calendar-alt"></i> ' + safe(snapshot.FromDateText) + ' to ' + safe(snapshot.ToDateText));
             $("#productionGenerated").html('<i class="fas fa-clock"></i> ' + safe(snapshot.GeneratedOn));
+            if (snapshot.SelectedDomainID !== undefined) {
+                $("#productionDomain").val(String(snapshot.SelectedDomainID));
+            }
 
             setText("kpiProductionEmployees", formatNumber(kpis.TotalEmployees));
             setText("kpiTotalProduction", formatNumber(kpis.TotalProduction));
+            setText("kpiExpectedProductivity", formatNumber(kpis.ExpectedProductivity));
             setText("kpiAvgProductivity", formatDecimal(kpis.AvgProductivity) + "%");
             setText("kpiAvgQuality", formatDecimal(kpis.AvgQuality) + "%");
             setText("kpiAvgAttendance", formatDecimal(kpis.AvgAttendance) + "%");
@@ -888,6 +1111,9 @@
             setText("kpiBestProductivity", "Best day " + formatDecimal(kpis.BestProductivity) + "%");
             setText("kpiBestQuality", "Best quality " + formatDecimal(kpis.BestQuality) + "%");
             setText("kpiErrorRate", "Error rate " + formatDecimal(kpis.ErrorRate) + "%");
+            setText("kpiAttritionRate", formatDecimal(kpis.AttritionRate) + "%");
+            setText("kpiAbsenteeismRate", formatDecimal(kpis.AbsenteeismRate) + "%");
+            setText("kpiLeaveMix", "Planned " + formatDecimal(kpis.PlannedLeaveDays) + " · Unplanned " + formatDecimal(kpis.UnplannedLeaveDays));
 
             renderProductionTrend(snapshot.DateWise || []);
             renderProcessVolume(snapshot.ProcessWise || []);
@@ -895,6 +1121,8 @@
             renderQualityProductivity(snapshot.QualityVsProductivity || []);
             renderWeeklyGraphicalView(snapshot.WeeklyGraphicalView || []);
             renderIndividualPerformance(snapshot.IndividualPerformance || [], snapshot.IndividualPerformancePeriod);
+            renderAttritionTrend(snapshot.AttritionTrend || []);
+            renderAbsenceDetails(snapshot.AbsenceSummary || {}, snapshot.LeaveDetails || []);
             renderProjectVolumeMatrix(snapshot.ProjectMonthlyVolume || {}, "#monthlyProjectVolumeHead", "#monthlyProjectVolumeBody", "#monthlyProjectVolumePeriod", "No monthly project volume available.");
             renderProjectVolumeMatrix(snapshot.ProjectDailyVolume || {}, "#dailyProjectVolumeHead", "#dailyProjectVolumeBody", "#dailyProjectVolumePeriod", "No daily project volume available.");
             renderProductionWorkbench(snapshot.Workbench || []);
@@ -1319,6 +1547,120 @@
             $(bodySelector).html(bodyHtml);
         }
 
+        function renderAttritionTrend(rows) {
+            rows = rows || [];
+            var labels = rows.map(function (row) {
+                return safe(row.Domain);
+            });
+            var rates = rows.map(function (row) {
+                return toNumber(firstValue(row, ["Attrition %", "AttritionPercentage"]));
+            });
+
+            if (!labels.length) {
+                labels = ["No data"];
+                rates = [0];
+            }
+
+            if (attritionTrendChart) {
+                attritionTrendChart.destroy();
+            }
+
+            attritionTrendChart = new Chart(document.getElementById("attritionTrendChart").getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Attrition %",
+                        data: rates,
+                        borderColor: "#db2777",
+                        backgroundColor: "rgba(219, 39, 119, .72)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: { position: "bottom" },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function (value) { return value + "%"; }
+                            },
+                            gridLines: { color: "#eef1f6" }
+                        }],
+                        xAxes: [{ gridLines: { display: false } }]
+                    }
+                }
+            });
+
+            var html = "";
+            rows.forEach(function (row) {
+                html += '<tr>' +
+                    '<td><strong>' + safe(row.Domain) + '</strong></td>' +
+                    '<td class="text-center">' + formatNumber(firstValue(row, ["Opening Count"])) + '</td>' +
+                    '<td class="text-center">' + formatNumber(firstValue(row, ["New Joiners"])) + '</td>' +
+                    '<td class="text-center">' + formatNumber(firstValue(row, ["Exit Employees"])) + '</td>' +
+                    '<td class="text-center">' + formatNumber(firstValue(row, ["Remaining Employees"])) + '</td>' +
+                    '<td class="text-center font-weight-bold">' + formatDecimal(firstValue(row, ["Attrition %"])) + '%</td>' +
+                    '</tr>';
+            });
+            $("#attritionDomainBody").html(html || '<tr><td colspan="6" class="text-center text-muted p-4">No domain attrition data for this period.</td></tr>');
+        }
+
+        function renderAbsenceDetails(summary, rows) {
+            summary = summary || {};
+            rows = rows || [];
+            var planned = toNumber(summary.PlannedLeaveDays);
+            var unplanned = toNumber(summary.UnplannedLeaveDays);
+            var absentDays = toNumber(summary.AbsentDays);
+            setText("absenceDaysSummary", formatDecimal(absentDays) + " absent days");
+
+            if (absenceMixChart) {
+                absenceMixChart.destroy();
+            }
+
+            absenceMixChart = new Chart(document.getElementById("absenceMixChart").getContext("2d"), {
+                type: "doughnut",
+                data: {
+                    labels: ["Planned leave days", "Unplanned leave days"],
+                    datasets: [{
+                        data: planned + unplanned > 0 ? [planned, unplanned] : [0, 1],
+                        backgroundColor: ["#0f8f8c", "#f97316"],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: { position: "bottom" },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                if (planned + unplanned === 0) {
+                                    return "No leave records";
+                                }
+                                return data.labels[tooltipItem.index] + ": " + formatDecimal(data.datasets[0].data[tooltipItem.index]);
+                            }
+                        }
+                    }
+                }
+            });
+
+            var html = "";
+            rows.slice(0, 50).forEach(function (row) {
+                var type = safe(row.LeaveType);
+                html += '<tr>' +
+                    '<td><strong>' + safe(row.Name || row.Code) + '</strong><br><small class="text-muted">' + safe(row.Code) + '</small></td>' +
+                    '<td>' + safe(row.LeaveFrom) + '</td>' +
+                    '<td class="text-center">' + formatDecimal(row.ForDays) + '</td>' +
+                    '<td><span class="badge ' + (type === "Planned" ? "badge-success" : "badge-warning") + '">' + type + '</span></td>' +
+                    '<td>' + safe(row.LeaveStatus) + '</td>' +
+                    '</tr>';
+            });
+            $("#leaveDetailsBody").html(html || '<tr><td colspan="5" class="text-center text-muted p-4">No leave records for this period.</td></tr>');
+        }
+
         function renderProjectVolumeMatrix(matrix, headSelector, bodySelector, periodSelector, emptyMessage) {
             var columns = matrix.Columns || [];
             var rows = matrix.Rows || [];
@@ -1525,7 +1867,7 @@
             var topRows = rows.slice(0, 10);
 
             if (!topRows.length) {
-                $("#topEmployeeBody").html('<tr><td colspan="8" class="text-center text-muted p-4">No employee data available.</td></tr>');
+                $("#topEmployeeBody").html('<tr><td colspan="9" class="text-center text-muted p-4">No employee data available.</td></tr>');
                 return;
             }
 
@@ -1534,6 +1876,7 @@
                     '<td>' + safe(row.EmployeeName) + '</td>' +
                     '<td class="text-center">' + safe(row.Code) + '</td>' +
                     '<td class="text-center font-weight-bold">' + formatNumber(row.LoanCount) + '</td>' +
+                    '<td class="text-center">' + formatNumber(row.ExpectedProductivity) + '</td>' +
                     '<td class="text-center">' + formatDecimal(row.ProdPerc) + '%</td>' +
                     '<td class="text-center">' + formatDecimal(row.QualityPerc) + '%</td>' +
                     '<td class="text-center">' + formatDecimal(row.AttPerc) + '%</td>' +

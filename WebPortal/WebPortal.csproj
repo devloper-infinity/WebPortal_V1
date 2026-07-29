@@ -2877,6 +2877,7 @@
     <Content Include="Search\ProjectTrackingReport.aspx" />
     <Content Include="Search\VerifyBilling.aspx" />
     <Content Include="Search\ViewBilling.aspx" />
+    <Content Include="DatabaseScripts\NonProductiveHours.sql" />
     <Content Include="DatabaseScripts\OLTracking_003_ImportFacility.sql" />
     <Content Include="DatabaseScripts\OLTracking_004_CompleteLoan.sql" />
     <Content Include="DatabaseScripts\OLTracking_005_ParallelBranchEligibility.sql" />
@@ -2927,6 +2928,7 @@
     <Content Include="US\GlobalSearch.aspx" />
     <Content Include="US\LoanDetails.aspx" />
     <Content Include="US\MyQueue.aspx" />
+    <Content Include="US\NonProductiveHours.aspx" />
     <Content Include="US\ProductionReport.aspx" />
     <Content Include="US\ProductionSummary.aspx" />
     <Content Include="US\UserPerformanceReport.aspx" />
@@ -5392,6 +5394,13 @@
     </Compile>
     <Compile Include="US\MyQueue.aspx.designer.cs">
       <DependentUpon>MyQueue.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\NonProductiveHours.aspx.cs">
+      <DependentUpon>NonProductiveHours.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\NonProductiveHours.aspx.designer.cs">
+      <DependentUpon>NonProductiveHours.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\ProductionReport.aspx.cs">
       <DependentUpon>ProductionReport.aspx</DependentUpon>
