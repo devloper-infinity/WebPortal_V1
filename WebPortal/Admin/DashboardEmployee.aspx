@@ -480,6 +480,30 @@
             color: #6c757d;
         }
 
+        .productive-period-select {
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            color: #495057;
+            font-size: 12px;
+            height: 28px;
+            margin-left: 4px;
+            padding: 2px 24px 2px 8px;
+        }
+
+        .productive-period-detail {
+            color: #6c757d;
+            display: block;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        .productive-period-message {
+            color: #b26a00;
+            display: none;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
         .productive-section-actions {
             display: flex;
             align-items: center;
@@ -613,6 +637,8 @@
         var dashProductiveAttendanceChart = null;
 
         function dash_bindProductiveEmployeeInsights() {
+            var rangeType = $("#dashboard_productive_action").val() || "Last12Months";
+
             $("#prod_dashboard_employee").show();
             $("#dashboard_productive_section").show();
             $("#dashboard_productive_empty").hide();
@@ -624,6 +650,7 @@
                 type: "POST",
                 dataType: "json",
                 contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ RangeType: rangeType }),
                 global: false,
                 success: function (data) {
                     var payload = {};
@@ -635,13 +662,13 @@
                         payload = {};
                     }
 
-                    var productionRows = dashLastTwelveRows(dashSortProductionRows(payload.production || []));
-                    var attendanceRows = dashLastTwelveRows(dashSortAttendanceRows(payload.attendance || []));
+                    var productionRows = dashSortProductionRows(payload.production || []);
+                    var attendanceRows = dashSortAttendanceRows(payload.attendance || []);
                     var hasVisibleRows = dashIsTaskBasedEmployee() ? attendanceRows.length > 0 : (productionRows.length > 0 || attendanceRows.length > 0);
 
                     if (!hasVisibleRows) {
                         dashApplyProductiveEmployeeMode();
-                        dashUpdateProductivePeriod(productionRows, attendanceRows);
+                        dashUpdateProductivePeriod(payload, productionRows, attendanceRows);
                         $("#dashboard_productive_section").show();
                         $("#dashboard_productive_empty").text(dashIsTaskBasedEmployee() ? "No attendance details available." : "No productive employee details available.");
                         $("#dashboard_productive_empty").show();
@@ -654,7 +681,7 @@
                     $("#dashboard_productive_content").show();
 
                     dashApplyProductiveEmployeeMode();
-                    dashUpdateProductivePeriod(productionRows, attendanceRows);
+                    dashUpdateProductivePeriod(payload, productionRows, attendanceRows);
                     dashRenderProductiveKpis(productionRows, attendanceRows);
                     dashRenderProductiveCharts(productionRows, attendanceRows);
                     dashRenderProductiveTables(productionRows, attendanceRows);
@@ -674,6 +701,7 @@
 
         function dashSetProductiveInsightsLoading(isLoading) {
             var $loader = $("#dashboard_productive_loading");
+            $("#dashboard_productive_action").prop("disabled", isLoading);
 
             if (!$loader.length) {
                 return;
@@ -685,14 +713,6 @@
             else {
                 $loader.hide();
             }
-        }
-
-        function dashLastTwelveRows(rows) {
-            if (!rows || rows.length <= 12) {
-                return rows || [];
-            }
-
-            return rows.slice(rows.length - 12);
         }
 
         function dashSortProductionRows(rows) {
@@ -788,10 +808,17 @@
             return monthMap[text.substring(0, 3)] || 0;
         }
 
-        function dashUpdateProductivePeriod(productionRows, attendanceRows) {
+        function dashUpdateProductivePeriod(payload, productionRows, attendanceRows) {
             var labels = [];
             var firstLabel = "";
             var lastLabel = "";
+            var selectedRange = dashCleanText(payload.selectedRange);
+            var periodLabel = dashCleanText(payload.periodLabel);
+            var rangeMessage = dashCleanText(payload.rangeMessage);
+
+            if (selectedRange) {
+                $("#dashboard_productive_action").val(selectedRange);
+            }
 
             if (productionRows.length > 0) {
                 firstLabel = dashCleanText(productionRows[0].MonthYear);
@@ -810,7 +837,14 @@
                 labels.push(lastLabel);
             }
 
-            $("#dashboard_productive_period").text(labels.length > 1 ? labels.join(" to ") : (labels[0] || "Last 12 months"));
+            if (!periodLabel) {
+                periodLabel = labels.length > 1 ? labels.join(" to ") : (labels[0] || "");
+            }
+
+            $("#dashboard_productive_period").text(periodLabel ? "Period: " + periodLabel : "");
+            $("#dashboard_productive_range_message")
+                .text(rangeMessage)
+                .toggle(!!rangeMessage);
         }
 
         function dashRenderProductiveKpis(productionRows, attendanceRows) {
@@ -1079,9 +1113,7 @@
                     '<i class="far fa-calendar-check mr-1"></i>Attendance Insights'
                 );
 
-                $(".productive-section-subtitle").html(
-                    'Attendance view for <span id="dashboard_productive_period">Last 12 months</span>'
-                );
+                $("#dashboard_productive_view_label").text("Attendance view");
 
                 $(".productive-attendance-chart-col")
                     .removeClass("col-lg-4")
@@ -1100,9 +1132,7 @@
                     '<i class="far fa-chart-bar mr-1"></i>Productive Employee Insights'
                 );
 
-                $(".productive-section-subtitle").html(
-                    'Production and attendance view for <span id="dashboard_productive_period">Last 12 months</span>'
-                );
+                $("#dashboard_productive_view_label").text("Production and attendance view");
 
                 $(".productive-attendance-chart-col")
                     .removeClass("col-lg-12")
@@ -1747,7 +1777,17 @@
                     <div class="productive-section-heading">
                         <div>
                             <h5><i class="far fa-chart-bar mr-1"></i>Productive Employee Insights</h5>
-                            <span class="productive-section-subtitle">Production and attendance view for <span id="dashboard_productive_period">Last 12 months</span></span>
+                            <span class="productive-section-subtitle">
+                                <span id="dashboard_productive_view_label">Production and attendance view</span>
+                                <label for="dashboard_productive_action" class="mb-0 ml-2">Action</label>
+                                <select id="dashboard_productive_action" class="productive-period-select" onchange="return dash_bindProductiveEmployeeInsights();">
+                                    <option value="Last12Months">Last 12 months</option>
+                                    <option value="LatestIncrement">From Latest Increment till month</option>
+                                    <option value="CurrentMonth">Current Month</option>
+                                </select>
+                                <span id="dashboard_productive_period" class="productive-period-detail"></span>
+                                <span id="dashboard_productive_range_message" class="productive-period-message"></span>
+                            </span>
                         </div>
                         <div class="productive-section-actions">
                             <a class="productive-production-only" href="DasboardPerformanceDetails.aspx">Production Details</a>
