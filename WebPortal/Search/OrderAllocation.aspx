@@ -499,10 +499,13 @@
             </div>
         </div>
 
-        <div class="allocation-header">
-            <div>
-                <h1 class="allocation-title"><i class="fas fa-tasks"></i><span>Order Allocation</span></h1>
+        <div class="allocation-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-user-check"></i></span>
+                <div class="search-header-copy">
+                <h1 class="allocation-title"><span>Order Allocation</span></h1>
                 <div class="allocation-context">Search Operations</div>
+                </div>
             </div>
         </div>
 

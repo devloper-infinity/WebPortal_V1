@@ -185,7 +185,10 @@ function BindInternal_Costing_Report(ProjectNo, FromDate, ToDate) {
                     { data: "CRValidUpTo" }
                 ],
                 initComplete: function () {
-
+                    var tableApi = this.api();
+                    setTimeout(function () {
+                        tableApi.columns.adjust();
+                    }, 0);
                     $('#load1').hide();
                 },
                 buttons: [

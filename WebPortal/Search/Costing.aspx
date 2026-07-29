@@ -1003,10 +1003,13 @@
             </div>
         </div>
 
-        <div class="costing-header">
-            <div>
-                <h1 class="costing-title"><i class="fas fa-file-invoice-dollar"></i><span>Production / Abstractor Costing</span></h1>
+        <div class="costing-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-calculator"></i></span>
+                <div class="search-header-copy">
+                <h1 class="costing-title"><span>Production/Abstractor Costing</span></h1>
                 <div class="costing-context">Search Operations</div>
+                </div>
             </div>
             <button type="button" id="btnCostingBack" class="btn-costing-secondary" onclick="window.history.back(); return false;">
                 <i class="fas fa-arrow-left"></i><span>Back</span>

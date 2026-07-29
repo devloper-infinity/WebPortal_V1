@@ -18,7 +18,7 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="../dist/css/adminlte.min.css">
 
-      <asp:ContentPlaceHolder ID="head" runat="server">
+    <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
     <script>
         //$(document).ready(function () {
@@ -118,6 +118,105 @@
 
 
     </script>
+    <style>
+        /* Layout only: each page retains its own existing header colours and styling. */
+        .search-modern-header .search-header-identity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .search-modern-header .search-header-icon {
+            display: inline-flex;
+            flex: 0 0 30px;
+            align-items: center;
+            justify-content: center;
+            /* width: 30px;
+            height: 30px;
+            color: #16a34a;
+            font-size: 20px;*/
+            width: 40px;
+            height: 40px;
+            color: #16a34a;
+            font-size: 40px;
+            padding: 14px;
+            line-height: 1;
+        }
+
+        .search-modern-header .search-header-copy {
+            min-width: 0;
+        }
+
+            .search-modern-header .search-header-copy h1 {
+                margin: 0 !important;
+                line-height: 1.2;
+            }
+
+            .search-modern-header .search-header-copy .order-context,
+            .search-modern-header .search-header-copy .costing-context,
+            .search-modern-header .search-header-copy .allocation-context,
+            .search-modern-header .search-header-copy .ost-context,
+            .search-modern-header .search-header-copy .tracking-context,
+            .search-modern-header .search-header-copy .billing-context,
+            .search-modern-header .search-header-copy .sd-subtitle,
+            .search-modern-header .search-header-copy .vm-subtitle,
+            .search-modern-header .search-header-copy .vmr-subtitle {
+                margin-top: 3px;
+                margin-left: 0;
+            }
+
+        /* Full-screen loader used by the selected Search pages. */
+        .search-page-loader {
+            position: fixed !important;
+            inset: 0 !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            z-index: 99999 !important;
+            background: rgba(15, 23, 42, .24) !important;
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+            opacity: 1 !important;
+            text-align: center;
+        }
+
+        .search-page-loader[style*="display: block"],
+        .search-page-loader[style*="display:block"] {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .search-page-loader > div {
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 170px;
+            min-height: 128px;
+            padding: 18px 22px;
+            color: #1f2937 !important;
+            background: rgba(255, 255, 255, .94);
+            border: 1px solid rgba(255, 255, 255, .85);
+            border-radius: 12px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, .2);
+            transform: translate(-50%, -50%) !important;
+        }
+
+        .search-page-loader > div > img {
+            display: block;
+            margin: 0 auto 10px !important;
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-collapse layout-top-nav">
     <form id="form1" runat="server">
@@ -390,7 +489,7 @@
         <!-- AdminLTE App -->
         <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="../dist/js/adminlte.min.js"></script>
-      <%--  <script src="../Scripts/AI.js?v=1"></script>--%>
+        <%--  <script src="../Scripts/AI.js?v=1"></script>--%>
         <!-- AdminLTE for demo purposes -->
 
 

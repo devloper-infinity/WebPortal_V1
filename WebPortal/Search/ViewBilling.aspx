@@ -45,7 +45,7 @@
 
         .billing-page {
             min-height: calc(100vh - 72px);
-            padding: 18px;
+        
             background: var(--track-bg);
         }
 
@@ -229,29 +229,189 @@
             border-spacing: 0;
         }
 
-            #costingTable thead th {
+            .billing-table-frame table thead th {
                 color: var(--track-text);
                 background: #edf3f6 !important;
                 background-image: none !important;
-                border-color: #d7e2ea !important;
-                border-bottom: 1px solid #d7e2ea !important;
-                font-size: 12px;
-                font-weight: 700;
+                border-right: 1px solid rgba(148, 163, 184, .24) !important;
+                border-bottom: 1px solid #dce5ec !important;
+              /*  padding: 8px 10px !important;*/
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: .015em;
                 white-space: nowrap;
                 vertical-align: middle;
                 text-align: center;
             }
 
+            .billing-table-frame table thead th.costing-band-header {
+                border-bottom: 0 !important;
+                letter-spacing: .055em;
+                text-transform: uppercase;
+            }
+
+            .billing-table-frame table thead .band-core {
+                color: #1e3a8a !important;
+                background: #dbeafe !important;
+                box-shadow: inset 0 3px 0 #3b82f6;
+            }
+
+            .billing-table-frame table thead .band-production {
+                color: #075985 !important;
+                background: #e0f2fe !important;
+                box-shadow: inset 0 3px 0 #0284c7;
+            }
+
+            .billing-table-frame table thead .band-search {
+                color: #1e3a8a !important;
+                background: #bfdbfe !important;
+                box-shadow: inset 0 3px 0 #2563eb;
+            }
+
+            .billing-table-frame table thead .band-search-copy {
+                color: #115e59 !important;
+                background: #ccfbf1 !important;
+                box-shadow: inset 0 3px 0 #0d9488;
+            }
+
+            .billing-table-frame table thead .band-judgment-search {
+                color: #6b21a8 !important;
+                background: #e9d5ff !important;
+                box-shadow: inset 0 3px 0 #9333ea;
+            }
+
+            .billing-table-frame table thead .band-judgment-copy {
+                color: #9d174d !important;
+                background: #fce7f3 !important;
+                box-shadow: inset 0 3px 0 #db2777;
+            }
+
+            .billing-table-frame table thead .band-tax {
+                color: #92400e !important;
+                background: #fef3c7 !important;
+                box-shadow: inset 0 3px 0 #d97706;
+            }
+
+            .billing-table-frame table thead .band-other {
+                color: #9a3412 !important;
+                background: #ffedd5 !important;
+                box-shadow: inset 0 3px 0 #ea580c;
+            }
+
+            .billing-table-frame table thead .band-details {
+                color: #075985 !important;
+                background: #e0f2fe !important;
+                box-shadow: inset 0 3px 0 #0284c7;
+            }
+
+            .billing-table-frame table thead .band-abstractor {
+                color: #166534 !important;
+                background: #dcfce7 !important;
+                box-shadow: inset 0 3px 0 #16a34a;
+            }
+
+            .billing-table-frame table thead .band-total {
+                color: #047857 !important;
+                background: #d1fae5 !important;
+                box-shadow: inset 0 3px 0 #059669;
+            }
+
+            .billing-table-frame table thead .band-credit {
+                color: #3730a3 !important;
+                background: #e0e7ff !important;
+                box-shadow: inset 0 3px 0 #6366f1;
+            }
+
+            .billing-table-frame table thead .band-search-sub {
+                color: #1e3a8a !important;
+                background: #eff6ff !important;
+                border-bottom-color: #60a5fa !important;
+            }
+
+            .billing-table-frame table thead .band-search-copy-sub {
+                color: #115e59 !important;
+                background: #f0fdfa !important;
+                border-bottom-color: #2dd4bf !important;
+            }
+
+            .billing-table-frame table thead .band-judgment-search-sub {
+                color: #6b21a8 !important;
+                background: #faf5ff !important;
+                border-bottom-color: #c084fc !important;
+            }
+
+            .billing-table-frame table thead .band-judgment-copy-sub {
+                color: #9d174d !important;
+                background: #fdf2f8 !important;
+                border-bottom-color: #f472b6 !important;
+            }
+
+            .billing-table-frame table thead .band-tax-sub {
+                color: #92400e !important;
+                background: #fffbeb !important;
+                border-bottom-color: #fbbf24 !important;
+            }
+
+            .billing-table-frame table thead .band-other-sub {
+                color: #9a3412 !important;
+                background: #fff7ed !important;
+                border-bottom-color: #fb923c !important;
+            }
+
+            .billing-table-frame table thead .band-abstractor-sub {
+                color: #166534 !important;
+                background: #f0fdf4 !important;
+                border-bottom-color: #4ade80 !important;
+            }
+
+            .billing-table-frame table thead .band-credit-sub {
+                color: #3730a3 !important;
+                background: #eef2ff !important;
+                border-bottom-color: #818cf8 !important;
+            }
+
             #costingTable tbody td {
                 color: var(--track-text);
                 background: #ffffff !important;
-                font-size: 12px;
+                padding: 9px 11px !important;
+                border-right: 1px solid #edf2f7;
+                border-bottom: 1px solid #e8eef3;
+                font-size: 11px;
                 vertical-align: middle;
                 white-space: nowrap;
             }
 
+            #costingTable tbody td:nth-child(n+20):nth-child(-n+22) { background: rgba(37, 99, 235, .035) !important; }
+            #costingTable tbody td:nth-child(n+23):nth-child(-n+30) { background: rgba(13, 148, 136, .04) !important; }
+            #costingTable tbody td:nth-child(n+31):nth-child(-n+33) { background: rgba(147, 51, 234, .04) !important; }
+            #costingTable tbody td:nth-child(n+34):nth-child(-n+41) { background: rgba(219, 39, 119, .035) !important; }
+            #costingTable tbody td:nth-child(n+42):nth-child(-n+43) { background: rgba(217, 119, 6, .05) !important; }
+            #costingTable tbody td:nth-child(n+44):nth-child(-n+45) { background: rgba(234, 88, 12, .04) !important; }
+            #costingTable tbody td:nth-child(n+46):nth-child(-n+47) { background: rgba(2, 132, 199, .035) !important; }
+            #costingTable tbody td:nth-child(48) { background: rgba(37, 99, 235, .035) !important; }
+            #costingTable tbody td:nth-child(n+49):nth-child(-n+50) { background: rgba(13, 148, 136, .04) !important; }
+            #costingTable tbody td:nth-child(51) { background: rgba(234, 88, 12, .04) !important; }
+            #costingTable tbody td:nth-child(n+52):nth-child(-n+53) {
+                color: #047857;
+                background: #ecfdf5 !important;
+                font-weight: 800;
+            }
+            #costingTable tbody td:nth-child(n+54):nth-child(-n+59) { background: rgba(99, 102, 241, .04) !important; }
+
+            #costingTable tbody td:nth-child(20),
+            #costingTable tbody td:nth-child(23),
+            #costingTable tbody td:nth-child(31),
+            #costingTable tbody td:nth-child(34),
+            #costingTable tbody td:nth-child(42),
+            #costingTable tbody td:nth-child(44),
+            #costingTable tbody td:nth-child(46),
+            #costingTable tbody td:nth-child(48),
+            #costingTable tbody td:nth-child(54) {
+                border-left: 2px solid rgba(100, 116, 139, .22);
+            }
+
             #costingTable tbody tr:hover td {
-                background: #f8fbfb !important;
+                background: #eaf4f7 !important;
             }
 
         .dataTables_scrollBody {
@@ -355,17 +515,20 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="billing-page">
-        <div class="loading" id="load1">
+        <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
                 <div>One moment, please . . . .</div>
             </div>
         </div>
 
-        <div class="billing-header">
-            <div>
-                <h1 class="billing-title"><i class="fas fa-file-invoice-dollar"></i><span>Internal Costing Report</span></h1>
+        <div class="billing-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <div class="search-header-copy">
+                <h1 class="billing-title"><span>Internal Costing Report</span></h1>
                 <div class="billing-context">Billing and production costing summary</div>
+                </div>
             </div>
         </div>
 
@@ -407,82 +570,82 @@
                         <table class="table table-hover table-sm" id="costingTable">
                             <thead>
                                 <tr>
-                                    <th rowspan="3">Sr. #</th>
-                                    <th rowspan="3">Order No</th>
-                                    <th rowspan="3">Received Date</th>
-                                    <th rowspan="3">Search Engine</th>
-                                    <th rowspan="3">Search Engine Type</th>
-                                    <th rowspan="3">State</th>
-                                    <th rowspan="3">County</th>
-                                    <th rowspan="3">Dispatch Date</th>
-                                    <th rowspan="3">No of Documents</th>
-                                    <th rowspan="3">No of Pages</th>
-                                    <th rowspan="3">Tax Information</th>
-                                    <th rowspan="3">Taxes Calling (Y/N)</th>
-                                    <th rowspan="3">Borrower Name</th>
-                                    <th rowspan="3">Property Address</th>
-                                    <th rowspan="3">Online/ Offline</th>
-                                    <th rowspan="3">Property Type</th>
-                                    <th rowspan="3">Product Type</th>
-                                    <th rowspan="3">Process Done</th>
-                                    <th rowspan="3">Status</th>
-                                    <th colspan="28">Production Costing</th>
-                                    <th colspan="5">Abstractory Costing</th>
-                                    <th rowspan="3">Total Cost</th>
-                                    <th colspan="6">Credit Card Payment Information</th>
+                                    <th rowspan="3" class="band-core">Sr. #</th>
+                                    <th rowspan="3" class="band-core">Order No</th>
+                                    <th rowspan="3" class="band-core">Received Date</th>
+                                    <th rowspan="3" class="band-core">Search Engine</th>
+                                    <th rowspan="3" class="band-core">Search Engine Type</th>
+                                    <th rowspan="3" class="band-core">State</th>
+                                    <th rowspan="3" class="band-core">County</th>
+                                    <th rowspan="3" class="band-core">Dispatch Date</th>
+                                    <th rowspan="3" class="band-core">No of Documents</th>
+                                    <th rowspan="3" class="band-core">No of Pages</th>
+                                    <th rowspan="3" class="band-core">Tax Information</th>
+                                    <th rowspan="3" class="band-core">Taxes Calling (Y/N)</th>
+                                    <th rowspan="3" class="band-core">Borrower Name</th>
+                                    <th rowspan="3" class="band-core">Property Address</th>
+                                    <th rowspan="3" class="band-core">Online/ Offline</th>
+                                    <th rowspan="3" class="band-core">Property Type</th>
+                                    <th rowspan="3" class="band-core">Product Type</th>
+                                    <th rowspan="3" class="band-core">Process Done</th>
+                                    <th rowspan="3" class="band-core">Status</th>
+                                    <th colspan="28" class="costing-band-header band-production">Production Costing</th>
+                                    <th colspan="5" class="costing-band-header band-abstractor">Abstractory Costing</th>
+                                    <th rowspan="3" class="band-total">Total Cost</th>
+                                    <th colspan="6" class="costing-band-header band-credit">Credit Card Payment Information</th>
                                 </tr>
                                 <tr>
-                                    <th colspan="3">Search Cost</th>
-                                    <th colspan="8">Search Copy Cost</th>
-                                    <th colspan="3">Judgement Search Cost</th>
-                                    <th colspan="8">Judgement Search Copy Cost</th>
-                                    <th colspan="2">Tax Charges</th>
-                                    <th colspan="2">Other Charges</th>
-                                    <th rowspan="2">Remark</th>
-                                    <th rowspan="2">Production</th>
-                                    <th>Search Cost</th>
-                                    <th colspan="2">Search Copy Cost</th>
-                                    <th>Other Cost</th>
-                                    <th rowspan="2">Abstractor Cost</th>
-                                    <th colspan="6"></th>
+                                    <th colspan="3" class="costing-band-header band-search">Search Cost</th>
+                                    <th colspan="8" class="costing-band-header band-search-copy">Search Copy Cost</th>
+                                    <th colspan="3" class="costing-band-header band-judgment-search">Judgement Search Cost</th>
+                                    <th colspan="8" class="costing-band-header band-judgment-copy">Judgement Search Copy Cost</th>
+                                    <th colspan="2" class="costing-band-header band-tax">Tax Charges</th>
+                                    <th colspan="2" class="costing-band-header band-other">Other Charges</th>
+                                    <th rowspan="2" class="band-details">Remark</th>
+                                    <th rowspan="2" class="band-details">Production</th>
+                                    <th class="band-search">Search Cost</th>
+                                    <th colspan="2" class="band-search-copy">Search Copy Cost</th>
+                                    <th class="band-other">Other Cost</th>
+                                    <th rowspan="2" class="band-total">Abstractor Cost</th>
+                                    <th colspan="6" class="band-credit"></th>
                                 </tr>
                                 <tr>
-                                    <th>No of Searches Made</th>
-                                    <th>Cost/Search</th>
-                                    <th>Search Total Cost</th>
-                                    <th>Costing pattern</th>
-                                    <th>No. Of Pages/Doc</th>
-                                    <th>Cost/Page or Doc</th>
-                                    <th>Total</th>
-                                    <th>No. Of Pages/Doc</th>
-                                    <th>Cost/Page or Doc</th>
-                                    <th>Total</th>
-                                    <th>Search Copy Cost Total</th>
-                                    <th>No of Searches Made</th>
-                                    <th>Cost/Search</th>
-                                    <th>Judgement Search Total Cost</th>
-                                    <th>Costing Pattern</th>
-                                    <th>No. Of Pages/Doc</th>
-                                    <th>Cost/Page or Doc</th>
-                                    <th>Total</th>
-                                    <th>No. Of Pages/Doc</th>
-                                    <th>Cost/Page or Doc</th>
-                                    <th>Total</th>
-                                    <th>Judgement Search Copy Cost Total</th>
-                                    <th>Desription</th>
-                                    <th>Amount</th>
-                                    <th>Desription</th>
-                                    <th>Amount</th>
-                                    <th>Amount</th>
-                                    <th>No of Pages</th>
-                                    <th>Total</th>
-                                    <th>Amount</th>
-                                    <th>Name of the Card</th>
-                                    <th>Credit Card No</th>
-                                    <th>Name of the Plant</th>
-                                    <th>Searching Amount</th>
-                                    <th>Downloading Amount</th>
-                                    <th>Valid Upto</th>
+                                    <th class="band-search-sub">No of Searches Made</th>
+                                    <th class="band-search-sub">Cost/Search</th>
+                                    <th class="band-search-sub">Search Total Cost</th>
+                                    <th class="band-search-copy-sub">Costing pattern</th>
+                                    <th class="band-search-copy-sub">No. Of Pages/Doc</th>
+                                    <th class="band-search-copy-sub">Cost/Page or Doc</th>
+                                    <th class="band-search-copy-sub">Total</th>
+                                    <th class="band-search-copy-sub">No. Of Pages/Doc</th>
+                                    <th class="band-search-copy-sub">Cost/Page or Doc</th>
+                                    <th class="band-search-copy-sub">Total</th>
+                                    <th class="band-search-copy-sub">Search Copy Cost Total</th>
+                                    <th class="band-judgment-search-sub">No of Searches Made</th>
+                                    <th class="band-judgment-search-sub">Cost/Search</th>
+                                    <th class="band-judgment-search-sub">Judgement Search Total Cost</th>
+                                    <th class="band-judgment-copy-sub">Costing Pattern</th>
+                                    <th class="band-judgment-copy-sub">No. Of Pages/Doc</th>
+                                    <th class="band-judgment-copy-sub">Cost/Page or Doc</th>
+                                    <th class="band-judgment-copy-sub">Total</th>
+                                    <th class="band-judgment-copy-sub">No. Of Pages/Doc</th>
+                                    <th class="band-judgment-copy-sub">Cost/Page or Doc</th>
+                                    <th class="band-judgment-copy-sub">Total</th>
+                                    <th class="band-judgment-copy-sub">Judgement Search Copy Cost Total</th>
+                                    <th class="band-tax-sub">Desription</th>
+                                    <th class="band-tax-sub">Amount</th>
+                                    <th class="band-other-sub">Desription</th>
+                                    <th class="band-other-sub">Amount</th>
+                                    <th class="band-abstractor-sub">Amount</th>
+                                    <th class="band-abstractor-sub">No of Pages</th>
+                                    <th class="band-abstractor-sub">Total</th>
+                                    <th class="band-abstractor-sub">Amount</th>
+                                    <th class="band-credit-sub">Name of the Card</th>
+                                    <th class="band-credit-sub">Credit Card No</th>
+                                    <th class="band-credit-sub">Name of the Plant</th>
+                                    <th class="band-credit-sub">Searching Amount</th>
+                                    <th class="band-credit-sub">Downloading Amount</th>
+                                    <th class="band-credit-sub">Valid Upto</th>
                                 </tr>
                             </thead>
                         </table>

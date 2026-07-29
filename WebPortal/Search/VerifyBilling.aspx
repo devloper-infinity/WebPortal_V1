@@ -45,7 +45,6 @@
         .verify-billing-page {
             background: var(--order-bg);
             min-height: calc(100vh - 72px);
-            padding: 18px;
         }
 
         .order-page-header {
@@ -127,9 +126,34 @@
 
         .field-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            grid-template-columns: repeat(4, minmax(220px, 1fr));
             gap: 14px 16px;
         }
+
+        .filter-action-field {
+            display: flex;
+            align-items: flex-end;
+        }
+
+            .filter-action-field .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                min-height: 38px;
+                padding: 8px 18px;
+                border: 0;
+                border-radius: 7px;
+                background: var(--order-primary) !important;
+                color: #ffffff !important;
+                font-size: 13px;
+                font-weight: 700;
+                box-shadow: 0 6px 14px rgba(15, 118, 110, .16);
+            }
+
+                .filter-action-field .btn:hover {
+                    background: var(--order-primary-dark) !important;
+                }
 
         .order-field label {
             display: block;
@@ -228,6 +252,117 @@
 
         .verify-card-body {
             padding: 14px;
+        }
+
+        .summary-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .summary-period {
+            overflow: hidden;
+            border: 1px solid var(--order-border);
+            border-radius: 10px;
+            background: #ffffff;
+        }
+
+        .summary-period-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            color: var(--order-primary-dark);
+            background: linear-gradient(90deg, #ecfdf5 0%, #f8fafc 100%);
+            border-bottom: 1px solid #d9eee9;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+            .summary-period-header i {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                color: #ffffff;
+                background: var(--order-primary);
+                border-radius: 7px;
+            }
+
+        .summary-metrics {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(115px, 1fr));
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .summary-metric {
+            position: relative;
+            min-width: 0;
+            padding: 11px 12px 11px 14px;
+            border: 1px solid #e1e8ee;
+            border-radius: 9px;
+            background: #fbfcfd;
+        }
+
+            .summary-metric::before {
+                content: "";
+                position: absolute;
+                top: 10px;
+                bottom: 10px;
+                left: 0;
+                width: 3px;
+                border-radius: 0 3px 3px 0;
+                background: var(--metric-color, var(--order-primary));
+            }
+
+        .summary-metric-label {
+            display: block;
+            overflow: hidden;
+            color: var(--order-muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .035em;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .summary-metric-value {
+            display: block;
+            margin-top: 3px;
+            color: var(--order-text);
+            font-size: 21px;
+            font-weight: 800;
+            line-height: 1.15;
+        }
+
+        .summary-metric.received { --metric-color: #2563eb; }
+        .summary-metric.dispatch { --metric-color: #059669; }
+        .summary-metric.cancel { --metric-color: #dc2626; }
+        .summary-metric.hold { --metric-color: #d97706; }
+        .summary-metric.pending-search { --metric-color: #7c3aed; }
+        .summary-metric.pending-typing { --metric-color: #0891b2; }
+        .summary-metric.pending-tax { --metric-color: #db2777; }
+
+        .summary-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 72px;
+            padding: 16px;
+            color: var(--order-muted);
+            border: 1px dashed #ccd6df;
+            border-radius: 9px;
+            background: #fbfcfd;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #table_grdPending,
+        #table_grdPending_wrapper {
+            display: none !important;
         }
 
         .count-badge {
@@ -345,98 +480,158 @@
                 border-color: var(--order-primary);
             }
 
-                #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label::after {
+        #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label::after {
                     content: "\2713";
                     color: #fff;
                     font-size: 13px;
                     font-weight: 700;
                 }
 
-        /*.table {
-            margin-bottom: 0;
-            color: var(--order-text);
-            font-size: 13px;
+        .ost-table-frame {
+            overflow: hidden;
+            border: 1px solid var(--order-border);
+            border-radius: 9px;
+            background: #ffffff;
         }
 
-            .table thead th,
-            .table.dataTable th {
-                color: #263747;
-                background: #edf3f6 !important;
-                border-color: #d7e2ea !important;
-                border-bottom: 1px solid var(--order-border) !important;
-                font-size: 12px;
-                font-weight: 700;
+        #VerifyOrders_Search_Billing_wrapper {
+            padding: 12px;
+        }
+
+            #VerifyOrders_Search_Billing_wrapper .dt-buttons {
+                margin: 0 0 10px;
+                padding: 0;
+            }
+
+                #VerifyOrders_Search_Billing_wrapper .dt-buttons .dt-button {
+                    min-height: 36px;
+                    margin: 0;
+                    padding: 7px 14px !important;
+                    color: #ffffff !important;
+                    background: var(--order-primary) !important;
+                    border: 0 !important;
+                    border-radius: 7px !important;
+                    font-size: 12px;
+                    font-weight: 800 !important;
+                    box-shadow: 0 5px 12px rgba(15, 118, 110, .14);
+                }
+
+                    #VerifyOrders_Search_Billing_wrapper .dt-buttons .dt-button:hover {
+                        background: var(--order-primary-dark) !important;
+                    }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_filter {
+                float: right;
+                margin: 0 0 10px;
+            }
+
+                #VerifyOrders_Search_Billing_wrapper .dataTables_filter label {
+                    display: flex;
+                    align-items: center;
+                    gap: 7px;
+                    margin: 0;
+                    color: var(--order-muted);
+                    font-size: 12px;
+                    font-weight: 700 !important;
+                }
+
+                #VerifyOrders_Search_Billing_wrapper .dataTables_filter input {
+                    width: 220px;
+                    min-height: 36px;
+                    margin: 0;
+                    padding: 6px 11px;
+                    border: 1px solid #ccd6df;
+                    border-radius: 8px;
+                    background: #ffffff;
+                    color: var(--order-text);
+                    box-shadow: none;
+                }
+
+                    #VerifyOrders_Search_Billing_wrapper .dataTables_filter input:focus {
+                        border-color: var(--order-primary);
+                        box-shadow: 0 0 0 .16rem rgba(15, 118, 110, .12);
+                        outline: 0;
+                    }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scroll {
+                clear: both;
+                overflow: hidden;
+                border: 1px solid #dbe4ea;
+                border-radius: 8px;
+            }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollHead {
+                background: #eaf4f3;
+            }
+
+            #VerifyOrders_Search_Billing_wrapper table.dataTable {
+                margin: 0 !important;
+                border-collapse: separate !important;
+                border-spacing: 0;
+            }
+
+                #VerifyOrders_Search_Billing_wrapper table.dataTable thead th {
+                    height: 42px;
+                  /*  padding: 9px 10px !important;*/
+                    color: #17413e;
+                    background: #eaf4f3 !important;
+                    background-image: none !important;
+                    border-top: 3px solid var(--order-primary) !important;
+                    border-right: 1px solid #d6e5e3 !important;
+                    border-bottom: 1px solid #bdd6d2 !important;
+                    font-size: 11px;
+                    font-weight: 800;
+                    letter-spacing: .015em;
+                    vertical-align: middle !important;
+                    white-space: nowrap;
+                }
+
+            #VerifyOrders_Search_Billing tbody td {
+                padding: 9px 10px !important;
+                color: #334155;
+                background: #ffffff;
+                border-right: 1px solid #edf2f5;
+                border-bottom: 1px solid #e7edf1;
+                font-size: 11px;
                 vertical-align: middle;
                 white-space: nowrap;
             }
 
-            .table td,
-            .table.dataTable tr td {
-                background: #ffffff !important;
-                border-color: var(--order-border-soft) !important;
-                vertical-align: middle;
+            #VerifyOrders_Search_Billing tbody tr:nth-child(even) td {
+                background: #f8fafb;
             }
 
-            .table tbody tr:hover td {
-                background: #f8fbfb !important;
+            #VerifyOrders_Search_Billing tbody tr:hover td {
+                background: #eef8f6;
             }
 
-        #VerifyOrders_Search_Billing th:first-child,
-        #VerifyOrders_Search_Billing td:first-child {
-            text-align: center;
-            width: 44px;
-            position: relative;
-        }
-
-        VerifyOrders_Search_Billing
-
-        #VerifyOrders_Search_Billing input[type="checkbox"] {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        #VerifyOrders_Search_Billing td:first-child label,
-        #VerifyOrders_Search_Billing th:first-child label {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            border: 2px solid #94a3b8;
-            border-radius: 4px;
-            background: #EDF3F6;
-            border-color: darkcyan;
-            cursor: pointer;
-            transition: all .2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,.08);
-        }*/
-
-        /* Hover */
-        /*#VerifyOrders_Search_Billing td:first-child label:hover,
-            #VerifyOrders_Search_Billing th:first-child label:hover {
-                border-color: var(--order-primary);
+            #VerifyOrders_Search_Billing tbody tr.selected-row td {
+                background: #dff3ef !important;
             }
 
-        #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label {
-            background: var(--order-primary);
-            border-color: var(--order-primary);
-        }
-
-            #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label:after {
-                content: "\2713";
-                color: #fff;
-                font-size: 13px;
-                font-weight: 700;
-                line-height: 1;
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody {
+                min-height: 0 !important;
+                scrollbar-color: #94a3b8 #edf2f5;
+                scrollbar-width: thin;
             }
 
+                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                }
 
-        #VerifyOrders_Search_Billing tr.selected-row td {
-            background-color: #e7f1ff !important;
-        }*/
+                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
+                    background: #edf2f5;
+                }
+
+                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
+                    background: #94a3b8;
+                    border-radius: 999px;
+                }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_paginate {
+                padding-top: 10px;
+            }
 
         .modal-content {
             border: 0;
@@ -465,6 +660,26 @@
             .verify-action-group {
                 justify-content: flex-start;
             }
+
+            .summary-metrics {
+                grid-template-columns: repeat(3, minmax(110px, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .summary-metrics {
+                grid-template-columns: repeat(2, minmax(100px, 1fr));
+            }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_filter {
+                float: none;
+                width: 100%;
+            }
+
+                #VerifyOrders_Search_Billing_wrapper .dataTables_filter label,
+                #VerifyOrders_Search_Billing_wrapper .dataTables_filter input {
+                    width: 100%;
+                }
         }
     </style>
 
@@ -473,14 +688,14 @@
 
             verifyOrdres_BindProject();
 
-            Bind_SearchBilling_Grid("735", "01-Jun-2026", "15-Jun-2026");
+            // Bind_SearchBilling_Grid("735", "01-Jun-2026", "15-Jun-2026");
         });
 
     </script>
 
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="loading" id="load1">
+    <div class="loading search-page-loader" id="load1">
         <div>
             <img src="../images/Load_1.gif" />
             <div>One moment, please . . . .</div>
@@ -488,10 +703,13 @@
     </div>
 
     <div class="verify-billing-page">
-        <div class="order-page-header">
-            <div>
-                <h1 class="order-title"><i class="fas fa-copy"></i><span>Verify Billing Orders</span></h1>
-                <div class="order-context">Review billable orders, add remarks, verify, and send selected orders to accounts.</div>
+        <div class="order-page-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-clipboard-check"></i></span>
+                <div class="search-header-copy">
+                    <h1 class="order-title"><span>Verify Billing Orders</span></h1>
+                    <div class="order-context">Review billable orders, add remarks, verify, and send selected orders to accounts.</div>
+                </div>
             </div>
         </div>
 
@@ -514,18 +732,40 @@
                         <select id="VerifyOrdres_dateperild" name="VerifyOrdres_dateperild" class="form-control">
                         </select>
                     </div>
+                    <div class="order-field filter-action-field">
+                        <button type="button" id="VerifyOrdres_btnsubmit" class="btn btn-primary" onclick="return VerifyOrdres_Show();"><i class="fas fa-search"></i>Show</button>
+                    </div>
                 </div>
             </div>
-
+            <div class="verify-card">
+                <div class="verify-card-body">
+                    <div id="totalOrdersSummary" class="summary-grid" aria-live="polite">
+                        <div class="summary-empty"><i class="fas fa-info-circle"></i><span>Select the billing filters and click Show to view the order summary.</span></div>
+                    </div>
+                    <table class="table" id="table_grdPending" aria-hidden="true" style="width: 100% !important;">
+                        <thead>
+                            <tr>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">BillingPeriod</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Received</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Dispatch</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Cancel</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Hold</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Search</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Typing</th>
+                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Tax</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size: 14px;"></tbody>
+                    </table>
+                </div>
+            </div>
             <div class="order-section">
                 <h2 class="section-title"><i class="fas fa-comment-alt"></i>Verification Remark</h2>
                 <div class="remark-actions-grid">
                     <div class="order-field">
-                        <label for="VerifyOrdres_Remark">Remark</label>
                         <textarea id="VerifyOrdres_Remark" name="VerifyOrdres_Remark" class="form-control" textmode="MultiLine" rows="3"></textarea>
                     </div>
                     <div class="verify-action-group">
-                        <button type="button" id="VerifyOrdres_btnsubmit" class="btn btn-primary" onclick="return VerifyOrdres_Show();"><i class="fas fa-search"></i>Show</button>
                         <button type="button" id="VerifyOrdres_btnVerify" class="btn btn-primary" onclick="return VerifyOrdres_Verify();"><i class="fas fa-check-circle"></i>Verify</button>
                         <button type="button" id="VerifyOrdres_btnSendToAccount" class="btn btn-primary" onclick="return VerifyOrdres_SendToAccount();"><i class="fas fa-paper-plane"></i>Send To Accounts</button>
                     </div>
@@ -533,26 +773,7 @@
             </div>
 
             <div class="order-section">
-                <div class="verify-card">
-                    <div class="verify-card-header"><span><i class="fas fa-table"></i>Total Orders</span></div>
-                    <div class="verify-card-body">
-                        <table class="table" id="table_grdPending" style="width: 100% !important;">
-                            <thead>
-                                <tr>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">BillingPeriod</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Received</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Dispatch</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Cancel</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Hold</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Search</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Typing</th>
-                                    <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Tax</th>
-                                </tr>
-                            </thead>
-                            <tbody style="font-size: 14px;"></tbody>
-                        </table>
-                    </div>
-                </div>
+
 
                 <div class="verify-card">
                     <div class="verify-card-header">
@@ -677,308 +898,3 @@
 
 
 </asp:Content>
-
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
-    <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-
-        .dataTables_scrollBody {
-            min-height: 100px !important;
-            height: auto;
-        }
-
-        .dataTables_length, .dataTables_info {
-            float: left !important;
-        }
-
-        label:not(.form-check-label):not(.custom-file-label) {
-            font-weight: normal !important;
-            border: none !important;
-        }
-
-        div.dt-buttons {
-            position: static;
-            padding-left: 50px;
-            float: left;
-        }
-
-        .buttons-excel, .buttons-html5 {
-            color: #fff;
-            /*     background-color: #28a745;
-            border-color: #28a745;*/
-            box-shadow: none;
-            background: linear-gradient(to right, #ffbf96, #fe7096);
-            border: 0;
-            font-weight: bold;
-            margin: 0px 10px;
-        }
-
-        .table.dataTable th {
-            /*    background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;*/
-            color: #000;
-        }
-
-        .table.dataTable tr td {
-            background: none !important;
-            background-color: #fff !important;
-        }
-    </style>
-
-    <style>
-        Header checkbox alignment
-        #VerifyOrders_Search_Billing th:first-child {
-            vertical-align: middle;
-        }
-
-        Ensure header checkbox uses same look
-        #VerifyOrders_Search_Billing th:first-child input[type="checkbox"] {
-            position: absolute;
-            opacity: 0;
-        }
-
-        #VerifyOrders_Search_Billing th:first-child label {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: auto;
-        }
-
-        Hide default checkbox but keep it clickable
-        #VerifyOrders_Search_Billing input[type="checkbox"] {
-            position: absolute;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        Highlight selected row
-        #VerifyOrders_Search_Billing tr.selected-row {
-            background-color: #e7f1ff !important;
-            softer blue
-        }
-
-        Center the checkbox column
-        #VerifyOrders_Search_Billing td:first-child,
-        #VerifyOrders_Search_Billing th:first-child {
-            text-align: center;
-            width: 44px;
-            position: relative;
-        }
-
-            Custom checkbox box
-            #VerifyOrders_Search_Billing td:first-child label,
-            #VerifyOrders_Search_Billing th:first-child label {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 18px;
-                height: 18px;
-                border: 2px solid #2563eb;
-                modern blue border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                background-color: #fff;
-            }
-    </style>
-
-    <script>
-        $(document).ready(function () {
-
-            verifyOrdres_BindProject();
-
-            //Bind_SearchBilling_Grid("591", "15-Jan-2026", "31-Jan-2026");
-        });
-
-    </script>
-
-</asp:Content>
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
-    </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Verify Billing Orders</b></h6>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-                <table class="table">
-                    <tr>
-                        <td><b>Project #:</b></td>
-                        <td>
-                            <select id="VerifyOrdres_projectno" name="VerifyOrdres_projectno" onchange="return BindBillingCycle(this)" class="form-control" style="width: 300px;">
-                            </select>
-                        </td>
-                        <td><b>Billing Cycle:</b></td>
-                        <td>
-                            <select id="VerifyOrdres_BillingCycle" name="VerifyOrdres_BillingCycle" onchange="return BindDatePeriod(this)" class="form-control" style="width: 300px;">
-                            </select>
-                        </td>
-
-                        <td><b>Date Period:</b></td>
-                        <td>
-                            <select id="VerifyOrdres_dateperild" name="VerifyOrdres_dateperild" class="form-control" style="width: 300px;">
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Remark:</b></td>
-                        <td colspan="3">
-                            <textarea id="VerifyOrdres_Remark" name="VerifyOrdres_Remark" class="form-control" textmode="MultiLine" width="580px"></textarea>
-                        </td>
-                        <td></td>
-                        <td style="vertical-align: central;">
-                            <button type="button" id="VerifyOrdres_btnsubmit" class="btn btn-primary" onclick="return VerifyOrdres_Show();">Show</button>
-                            &nbsp;&nbsp;
-                             <button type="button" id="VerifyOrdres_btnVerify" class="btn btn-primary" onclick="return VerifyOrdres_Verify();">Verify</button>
-                            &nbsp;&nbsp;         
-                            <button type="button" id="VerifyOrdres_btnSendToAccount" class="btn btn-primary" onclick="return VerifyOrdres_SendToAccount();">Send To Accounts</button>
-                        </td>
-                    </tr>
-                </table>
-                <br />
-                <br />
-                <div class="card">
-                    <h6 class="card-header"><i class="fas fa-table"></i>&nbsp; Total Orders</h6>
-                    <br />
-                    <table class="table" id="table_grdPending" style="width: 100% !important;">
-                        <thead>
-                            <tr>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">BillingPeriod</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Received</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Dispatch</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Cancel</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Hold</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Search</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Typing</th>
-                                <th class="sort border-top" style="text-wrap: nowrap; text-align: center;">Pending Tax</th>
-                            </tr>
-                        </thead>
-                        <tbody style="font-size: 14px;"></tbody>
-                    </table>
-                </div>
-                <br />
-                <br />
-                <div class="card">
-                    <h6 class="card-header"><i class="fas fa-table"></i>&nbsp; Billable Orders (Dispatch + Cancel + Previous) :
-                    <label id="lbltotalcount" name="lbltotalcount" style="font-size: 16px; font-weight: bold!important; display: inline;"></label>
-                        &nbsp;&nbsp;
-                        <label id="lblfiltercount" name="lblfiltercount" style="font-size: 16px; font-weight: bold!important; color: brown; text-align: right;"></label>
-                    </h6>
-                    <br />
-                    <table class="table" id="VerifyOrders_Search_Billing">
-                        <thead>
-                            <tr>
-                                <th class="text-center">
-                                    <input type="checkbox" id="chkall" />
-                                    <label for="chkall"></label>
-                                </th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: left;">Remark</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: left;">Sr. #</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 150px;">Order No</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">State</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 100px;">County</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Received Date</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 150px;">Dispatch Date</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">No of Documents</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">No of Pages</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Tax Information</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; text-align: center;">Taxes Calling(Y/N)</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Name + Property Search cost in title plant</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Document Download Cost</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Total Retrieval Cost (Searching + Downloading)</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Property Type</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 100px;">Product Type</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process Done</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Status</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Online Offline</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Typing(Y/N)</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">SnippingTools(Y/N)</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Production Remark</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Abstractor Search Cost</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Abstractor Copy Cost</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Cost paid for Independent Abstractor</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 200px;">Abstractor Name</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Total Cost</th>
-                                <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">OrderID</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                      
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="waitingpanel" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
-        <div class="modal-dialog text-center">
-            <img src="../Images/Load.gif" />
-            <br />
-            <span style="color: #fff; font-size: 24px; font-weight: bold; font-style: italic;">Order verification in progress. Please wait.</span>
-            <span style="color: #fff; font-size: 48px; font-weight: bold; font-style: italic; animation: animate 1s linear infinite;">&nbsp;. . . .</span>
-        </div>
-    </div>
-
-    <div class="modal fade" id="popUp_viewBilling_addRemark">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <label id="lblupdateRemark" style="font-weight: bold!important;"></label>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table">
-                        <tr>
-                            <td>
-                                <b>Order Cost :</b>
-                            </td>
-                            <td>
-                                <input type="number" name="vrbil_orderCost" id="vrbil_orderCost" class="form-control" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Remark :</b>
-                            </td>
-                            <td>
-                                <textarea name="vrbil_remark" id="vrbil_remark" class="form-control" style="width: 360px;"></textarea>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="clearBillingFields()">Close</button>
-                    <button class="btn btn-primary" type="submit" id="btnvrfBilling" onclick="return btnverfybilling_AddRemark();">Add Remark</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</asp:Content>--%>
