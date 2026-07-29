@@ -376,6 +376,78 @@ function fillCreditCard(row) {
     setMoneyValue('#txtCostDownloadingAmount', getValue(row, 'DownloadingAmount'));
 }
 
+function costingDataTableOptions(exportTitle) {
+    var exportOptions = { columns: ':visible' };
+    return {
+        destroy: true,
+        scrollX: true,
+        scrollCollapse: true,
+        paging: true,
+        pagingType: 'simple_numbers',
+        // pageLength: 10,
+        // lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        ordering: false,
+        autoWidth: false,
+        searchDelay: 250,
+        dom: "<'costing-dt-toolbar'<'costing-dt-actions'><'costing-dt-tools'lf>>rt<'costing-dt-footer'<'costing-dt-info'i><'costing-dt-pagination'p>>",
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fas fa-file-excel"></i> Excel',
+                title: exportTitle,
+                className: 'btn btn-sm',
+                exportOptions: exportOptions
+            },
+            {
+                extend: 'csvHtml5',
+                text: '<i class="fas fa-file-csv"></i> CSV',
+                title: exportTitle,
+                className: 'btn btn-sm',
+                exportOptions: exportOptions
+            },
+            {
+                extend: 'print',
+                text: '<i class="fas fa-print"></i> Print',
+                title: exportTitle,
+                className: 'btn btn-sm',
+                exportOptions: exportOptions
+            },
+            {
+                extend: 'colvis',
+                text: '<i class="fas fa-columns"></i> Columns',
+                className: 'btn btn-sm'
+            }
+        ],
+        language: {
+            search: '',
+            searchPlaceholder: 'Search costing records...',
+            lengthMenu: 'Show _MENU_',
+            info: 'Showing _START_–_END_ of _TOTAL_ records',
+            infoEmpty: 'No records',
+            zeroRecords: '<i class="fas fa-search mr-1"></i> No matching costing records found',
+            emptyTable: '<i class="fas fa-inbox mr-1"></i> No costing records available',
+            paginate: {
+                previous: '<i class="fas fa-chevron-left"></i>',
+                next: '<i class="fas fa-chevron-right"></i>'
+            }
+        },
+        initComplete: function () {
+            $(this.api().table().container()).addClass('costing-datatable-ready');
+        },
+        drawCallback: function () {
+            var api = this.api();
+            var pageInfo = api.page.info();
+            var container = $(api.table().container());
+            var hasRows = pageInfo.recordsDisplay > 0;
+            var hasMultiplePages = pageInfo.pages > 1;
+
+            container.toggleClass('costing-table-empty', !hasRows);
+            container.toggleClass('costing-single-page', !hasMultiplePages);
+            container.find('.costing-dt-pagination, .dataTables_paginate').toggle(hasMultiplePages);
+        }
+    };
+}
+
 function renderProductionGrid(rows) {
     destroyDataTable('#grdManualCostingReport');
 
@@ -427,15 +499,9 @@ function renderProductionGrid(rows) {
 
     $('#grdManualCostingReport tbody').html(html);
     $('#productionGridCount').text((rows || []).length + ' records');
-    costingState.productionTable = $('#grdManualCostingReport').DataTable({
-        destroy: true,
-        scrollX: true,
-        paging: true,
-        pageLength: 10,
-        ordering: false,
-        autoWidth: false,
-        dom: 'lftip'
-    });
+    costingState.productionTable = $('#grdManualCostingReport').DataTable(
+        costingDataTableOptions('Production Costing Report')
+    );
 }
 
 function renderAbstractorGrid(rows) {
@@ -459,15 +525,9 @@ function renderAbstractorGrid(rows) {
 
     $('#grdAbstarctor tbody').html(html);
     $('#abstractorGridCount').text((rows || []).length + ' records');
-    costingState.abstractorTable = $('#grdAbstarctor').DataTable({
-        destroy: true,
-        scrollX: true,
-        paging: true,
-        pageLength: 10,
-        ordering: false,
-        autoWidth: false,
-        dom: 'lftip'
-    });
+    costingState.abstractorTable = $('#grdAbstarctor').DataTable(
+        costingDataTableOptions('Abstractor Costing Report')
+    );
 }
 
 function calculateProductionTotals() {
