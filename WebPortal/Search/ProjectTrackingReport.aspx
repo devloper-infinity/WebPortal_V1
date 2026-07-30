@@ -44,8 +44,7 @@
         }
 
         .tracking-page {
-            min-height: calc(100vh - 72px);
-           
+          /*  min-height: calc(100vh - 72px);*/
             background: var(--track-bg);
         }
 
@@ -630,17 +629,20 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="tracking-page">
-        <div class="loading" id="load1">
+        <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
                 <div>One moment, please . . . .</div>
             </div>
         </div>
 
-        <div class="tracking-header">
-            <div>
-                <h1 class="tracking-title"><i class="fas fa-project-diagram"></i><span>Project Tracking Report</span></h1>
+        <div class="tracking-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-route"></i></span>
+                <div class="search-header-copy">
+                <h1 class="tracking-title"><span>Project Tracking Report</span></h1>
                 <div class="tracking-context">Search Operations</div>
+                </div>
             </div>
         </div>
 

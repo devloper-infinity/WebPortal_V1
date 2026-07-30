@@ -247,6 +247,21 @@ namespace WebPortal.App_Code.BLL
         {
             return dalOst.GetOrderByID_VM(OrderID);
         }
+
+        public DataTable ViewSearchOrderForVM(int employeeId)
+        {
+            return dalOst.ViewSearchOrderForVM(employeeId);
+        }
+
+        public DataTable GetAbstractorCoverageDetails(int orderId)
+        {
+            return dalOst.GetAbstractorCoverageDetails(orderId);
+        }
+
+        public int InsertOrderTaskForAbstractor(Hashtable parameters)
+        {
+            return dalOst.InsertOrderTaskForAbstractor(parameters);
+        }
         public DataTable GetCostingDetailsProcessWise(int OrderID)
         {
             return dalOst.GetCostingDetailsProcessWise(OrderID);

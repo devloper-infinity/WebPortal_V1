@@ -497,10 +497,13 @@
     </div>
     <main class="sd-page">
         <div class="sd-shell">
-            <header class="sd-header">
-                <div>
-                    <h1 class="sd-title"><i class="fas fa-search mr-2 text-success"></i>Search Operations Dashboard</h1>
+            <header class="sd-header search-modern-header">
+                <div class="search-header-identity">
+                    <span class="search-header-icon"><i class="fas fa-tachometer-alt"></i></span>
+                    <div class="search-header-copy">
+                    <h1 class="sd-title"><span>Search Operations Dashboard</span></h1>
                     <div class="sd-subtitle">Allocation, PM processing, document exchange and costing in one workspace</div>
+                    </div>
                 </div>
                 <div class="sd-header-actions">
                     <span class="sd-auto-refresh-note">Note: Allocation tabs auto refresh every 5 minutes</span>

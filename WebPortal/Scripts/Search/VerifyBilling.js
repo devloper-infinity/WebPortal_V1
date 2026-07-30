@@ -14,52 +14,53 @@ function getFirstDayOfMonth(date) {
 function VerifyOrdres_Show() {
 
     var ddlprjNo = document.getElementById("VerifyOrdres_projectno");
+    var prjValue = ddlprjNo ? ddlprjNo.value : "";
     var prjNo = ddlprjNo.options[ddlprjNo.selectedIndex].text;
 
     var ddlBillCyc = document.getElementById("VerifyOrdres_BillingCycle");
+    var billCycValue = ddlBillCyc ? ddlBillCyc.value : "";
     var billCyc = ddlBillCyc.options[ddlBillCyc.selectedIndex].text;
 
     var ddldateprd = document.getElementById("VerifyOrdres_dateperild");
+    var dateprdValue = ddldateprd ? ddldateprd.value : "";
     var dateprd = ddldateprd.options[ddldateprd.selectedIndex].text;
 
-    title = "VerifyBilling_" + prjNo + "_" + billCyc + "_" + dateprd;
-
-    var dates = dateprd.split('~');
-
-    var date1 = dates[0].trim();
-    var date2 = dates[1].trim();
-
-    if (prjNo == "") {
+    if (!prjValue) {
 
         alert("Please select Project No.");
         return false;
     }
-    if (billCyc == "") {
+    if (!billCycValue) {
 
         alert("Please select Billing Cycle.");
         return false;
     }
 
-    if (dateprd == "") {
+    if (!dateprdValue) {
 
         alert("Please select Date Period.");
         return false;
     }
 
-    if (prjNo != null && billCyc != null && dateprd != null) {
-
-        Bind_TotalOrders_Summary(prjNo, date1, date2);
-        Bind_SearchBilling_Grid(prjNo, date1, date2);
+    var dates = dateprd.split('~');
+    if (dates.length < 2) {
+        alert("Please select a valid Date Period.");
+        return false;
     }
+
+    var date1 = dates[0].trim();
+    var date2 = dates[1].trim();
+
+    title = "VerifyBilling_" + prjNo + "_" + billCyc + "_" + dateprd;
+
+    Bind_TotalOrders_Summary(prjNo, date1, date2);
+    Bind_SearchBilling_Grid(prjNo, date1, date2);
+    return false;
 }
 
 function BindDatePeriod() {
     var select = document.getElementById("VerifyOrdres_dateperild");
-    let options = select.getElementsByTagName('VerifyOrdres_dateperild');
-
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
-    }
+    select.options.length = 0;
 
     $("#VerifyOrdres_dateperild").append($("<option></option>").val("").html("Select"));
 
@@ -82,11 +83,7 @@ function BindBillingCycle(Project) {
 
     var ProjectId = Project.options[Project.selectedIndex].value;
     var select = document.getElementById("VerifyOrdres_BillingCycle");
-    let options = select.getElementsByTagName('VerifyOrdres_BillingCycle');
-
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
-    }
+    select.options.length = 0;
 
     $("#VerifyOrdres_BillingCycle").append($("<option></option>").val("").html("Select"));
 
@@ -108,11 +105,7 @@ function BindBillingCycle(Project) {
 function verifyOrdres_BindProject() {
 
     var select = document.getElementById("VerifyOrdres_projectno");
-    let options = select.getElementsByTagName('VerifyOrdres_projectno');
-
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
-    }
+    select.options.length = 0;
 
     $("#VerifyOrdres_projectno").append($("<option></option>").val("").html("Select"));
 
@@ -284,6 +277,7 @@ function Bind_SearchBilling_Grid_1(prjno, fromdate, todate) {
         },
 
         error: function (error) {
+            $('#load1').hide();
             alert('Error: ' + error.responseText);
         }
     });
@@ -384,14 +378,9 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
                         className: "text-center",
                         render: function (data, type, row, meta) {
 
-
                             var rowIndex = meta.row; // 0-based index
 
-                            return `<a class="dropdown-item" href="#!" onclick="verifyBilling_addRemark(${row.OrderID}, ${rowIndex});"><span style="color: blue;"><i class="uil fs-0 me-2 uil-pen"></i></span>&nbsp;&nbsp;</a>`;
-
-                            /*return `<a class="dropdown-item edit-order" href="#!" data-orderid="${row.OrderID}"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span>&nbsp;&nbsp;</a>`;*/
-                            /*                            return `<a class="dropdown-item edit-order" href="#!" onclick="verifyBilling_addRemark(data-orderid="${row.OrderID} ",data-rowindex="${rowIndex});><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span>&nbsp;&nbsp;</a>`;*/
-
+                            return `<a class="dropdown-item" href="#!" onclick="verifyBilling_addRemark(${row.OrderID}, ${rowIndex});"><span style="color: #0f766e;"><i class="uil fs-0 me-2 uil-pen"></i></span>&nbsp;&nbsp;</a>`;
                         }
                     },
                     {
@@ -479,6 +468,7 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
         },
 
         error: function (error) {
+            $('#load1').hide();
             alert('Error: ' + error.responseText);
         }
     });
@@ -568,12 +558,13 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
     $.ajax({
         url: "VerifyBilling.aspx/GetDataForSummary",
         type: "POST",
-        data: "{ProjectNo:" + prjno + ", FromDate:'" + fromdate + "',ToDate:'" + todate + "'}",
+        data: JSON.stringify({ ProjectNo: prjno, FromDate: fromdate, ToDate: todate }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
         success: function (data) {
             var dataArray = JSON.parse(data.d);
+            renderTotalOrdersSummary(dataArray);
 
             if ($.fn.DataTable.isDataTable('#table_grdPending')) {
                 $('#table_grdPending').DataTable().clear().destroy();
@@ -613,11 +604,53 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
         },
 
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            $('#load1').hide();
+            $('#totalOrdersSummary').html('<div class="summary-empty"><i class="fas fa-exclamation-circle"></i><span>Unable to load the order summary.</span></div>');
+            alert('Error: ' + error.responseText);
         }
     });
     return false;
+}
+
+function renderTotalOrdersSummary(dataArray) {
+    var $summary = $('#totalOrdersSummary');
+    var rows = Array.isArray(dataArray) ? dataArray : [];
+
+    if (!rows.length) {
+        $summary.html('<div class="summary-empty"><i class="fas fa-inbox"></i><span>No order summary is available for the selected period.</span></div>');
+        return;
+    }
+
+    var metrics = [
+        { key: 'Received', label: 'Received', icon: 'fa-inbox', tone: 'received' },
+        { key: 'Dispatch', label: 'Dispatch', icon: 'fa-paper-plane', tone: 'dispatch' },
+        { key: 'Cancel', label: 'Cancel', icon: 'fa-times-circle', tone: 'cancel' },
+        { key: 'Hold', label: 'Hold', icon: 'fa-pause-circle', tone: 'hold' },
+        { key: 'Pending', label: 'Pending Search', icon: 'fa-search', tone: 'pending-search' },
+        { key: 'Typing', label: 'Pending Typing', icon: 'fa-keyboard', tone: 'pending-typing' },
+        { key: 'Tax', label: 'Pending Tax', icon: 'fa-receipt', tone: 'pending-tax' }
+    ];
+
+    function encode(value) {
+        return $('<div/>').text(blankForNull(value)).html();
+    }
+
+    var html = rows.map(function (row) {
+        var cards = metrics.map(function (metric) {
+            return '<div class="summary-metric ' + metric.tone + '">'
+                + '<span class="summary-metric-label"><i class="fas ' + metric.icon + ' mr-1"></i>' + metric.label + '</span>'
+                + '<span class="summary-metric-value">' + encode(row[metric.key]) + '</span>'
+                + '</div>';
+        }).join('');
+
+        return '<section class="summary-period">'
+            + '<div class="summary-period-header"><i class="fas fa-calendar-alt"></i>'
+            + '<span>Order Details For Billing Period : ' + encode(row.BillingPeriod) + '</span></div>'
+            + '<div class="summary-metrics">' + cards + '</div>'
+            + '</section>';
+    }).join('');
+
+    $summary.html(html);
 }
 
 function VerifyOrdres_Verify() {

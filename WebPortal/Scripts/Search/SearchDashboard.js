@@ -6,12 +6,13 @@
     var state = { projects: [], refreshTimer: null, modules: { allocation: false, queue: false, process: false, upload: false, costing: false } };
 
     function busy(show) { $("#sdLoader").toggleClass("active", !!show); }
+
     function alertUser(message, kind) {
-        $("#sdAlert").removeClass("alert-success alert-danger alert-warning alert-info")
-            .addClass("alert-" + (kind || "info")).text(message).stop(true, true).fadeIn(120);
+        $("#sdAlert").removeClass("alert-success alert-danger alert-warning alert-info").addClass("alert-" + (kind || "info")).text(message).stop(true, true).fadeIn(120);
         window.scrollTo(0, 0);
         if (kind === "success") { window.setTimeout(function () { $("#sdAlert").fadeOut(200); }, 4500); }
     }
+
     function value(row, names, fallback) {
         var i;
         for (i = 0; i < names.length; i += 1) {
@@ -19,6 +20,7 @@
         }
         return fallback === undefined ? "" : fallback;
     }
+
     function parseRows(result) {
         var payload = result && result.d !== undefined ? result.d : result;
         if (typeof payload === "string") {
@@ -26,6 +28,7 @@
         }
         return $.isArray(payload) ? payload : (payload && $.isArray(payload.Data) ? payload.Data : []);
     }
+
     function call(method, data, options) {
         options = options || {};
         if (!options.quiet) { busy(true); }
@@ -38,23 +41,29 @@
             alertUser(message, "danger");
         }).always(function () { if (!options.quiet) { busy(false); } });
     }
+
     function destroyTable(id) {
         if (tables[id]) { tables[id].destroy(); delete tables[id]; }
         $("#" + id).empty();
     }
+
     function encode(text) { return $("<div/>").text(text === null || text === undefined ? "" : text).html(); }
+
     function checkboxMarkup(id, className, labelText, checked) {
         return "<div class='checkbox-wrapper-24 compact'>" +
             "<input type='checkbox' id='" + encode(id) + "' class='" + encode(className || "") + "'" + (checked ? " checked" : "") + " />" +
             "<label for='" + encode(id) + "'><span></span>" + encode(labelText || "") + "</label></div>";
     }
+
     function label(name) {
         return String(name).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ")
             .replace(/\bId\b/g, "ID").replace(/\bNo\b/g, "No.");
     }
+
     function isHiddenKey(key) {
         return /^(OrderID|OrderId|Taskid|TaskId|ProcessId|ProcessID|TemplateId|TaskTemplateId|TransferAssignedId)$/i.test(key);
     }
+
     function bandFor(key) {
         var k = key.toLowerCase();
         if (k.indexOf("judgmentcopy") >= 0 || k.indexOf("judgementcopy") >= 0) { return "Judgment Copy Cost"; }
@@ -66,6 +75,7 @@
         if (k.indexOf("other") >= 0) { return "Other Cost"; }
         return "Order / Production";
     }
+
     function addBandHeader($table, columns, specialCount) {
         var groups = [], current = null, i, band;
         for (i = specialCount; i < columns.length; i += 1) {
@@ -80,11 +90,16 @@
         html += "</tr>";
         $table.find("thead").prepend(html);
     }
+
     function renderTable(id, rows, options) {
+
         options = options || {};
         destroyTable(id);
+
         var $table = $("#" + id), keys = [], columns = [], special = options.special || [];
+
         if (rows.length) { keys = Object.keys(rows[0]); }
+
         if (options.endAtColumn) {
             var endColumn = String(options.endAtColumn).replace(/[^a-z0-9]/gi, "").toLowerCase();
             var endIndex = keys.findIndex(function (key) {
@@ -92,21 +107,27 @@
             });
             if (endIndex >= 0) { keys = keys.slice(0, endIndex + 1); }
         }
+
         $.each(special, function (_, item) { columns.push({ title: item.title, data: null, orderable: false, searchable: false, render: item.render }); });
+
         $.each(keys, function (_, key) {
             if (!options.includeHidden && isHiddenKey(key)) { return; }
             columns.push({ title: label(key), data: key, defaultContent: "", visible: !(options.hidden || []).some(function (x) { return x.toLowerCase() === key.toLowerCase(); }) });
         });
+
         if (!columns.length) { $table.html("<tbody><tr><td class='sd-empty'>No records found.</td></tr></tbody>"); return null; }
+
         tables[id] = $table.DataTable({
             data: rows, columns: columns, scrollX: true, autoWidth: false, pageLength: options.pageLength || 10,
             lengthMenu: [10, 25, 50, 100], order: [], deferRender: true,
             dom: options.buttons ? "Bfrtip" : "lfrtip", buttons: options.buttons || [],
             language: { emptyTable: "No records found." }
         });
+
         if (options.bands) { addBandHeader($table, keys.filter(function (k) { return options.includeHidden || !isHiddenKey(k); }), special.length); }
         return tables[id];
     }
+
     function fillSelect(selector, rows, valueNames, textNames) {
         var $select = $(selector), selected = $select.val();
         $select.empty().append($("<option/>", { value: "", text: "Select" }));
@@ -116,6 +137,7 @@
         });
         if ($select.find("option[value='" + String(selected).replace(/'/g, "\\'") + "']").length) { $select.val(selected); }
     }
+
     function requireFields(items) {
         var missing = [];
         $.each(items, function (_, item) { if (!$.trim($(item.selector).val())) { missing.push(item.label); } });
@@ -150,7 +172,7 @@
                 $.each(rows, function (_, row) {
                     var code = $.trim(value(row, ["Code", "UserCode"]));
                     var name = $.trim([value(row, ["EmpName"])].join(" ").replace(/\s+/g, " "));
-                    row.DashboardUserName = code && name ?  name : (name || code || value(row, ["EmployeeName", "UserName", "Name"]));
+                    row.DashboardUserName = code && name ? name : (name || code || value(row, ["EmployeeName", "UserName", "Name"]));
                 });
                 fillSelect("#allocUser", rows, ["EmployeeID", "EmployeeId", "UserId", "ID"], ["DashboardUserName", "EmployeeName", "UserName", "Name", "Code"]);
             });
@@ -167,7 +189,7 @@
                         title: "Get Orders",
                         render: function () {
                             return "<button type='button' class='sd-get-orders alloc-get-orders' title='Get orders' aria-label='Get orders'>" +
-                                "<i class='fas fa-arrow-down'></i></button>";
+                                "<i class='fas fa-search'></i></button>";
                         }
                     }]
                 });
@@ -283,11 +305,13 @@
             .done(function (r) { alertUser(r.Message, r.Success ? "success" : "warning"); if (r.Success) { loadPmOrder(); } })
             .fail(function () { alertUser("Process completion failed.", "danger"); }).always(function () { busy(false); });
     }
+
     function showTaskStatus(button) {
         var dt = tables.pmTaskTable, row = dt.row($(button).closest("tr")).data();
         $("#statusTaskId").val(value(row, ["Taskid", "TaskId"])); $("#statusDocumentType").val(value(row, ["DocumentType", "ProductType"]));
         $("#statusValue,#statusCaller").val(""); $("#statusTransferBox").hide(); $("#pmStatusModal").modal("show");
     }
+
     function saveTaskStatus() {
         if (!$("#statusValue").val()) { alertUser("Select task status.", "warning"); return; }
         if ($("#statusValue").val() === "Transfer" && !$("#statusCaller").val()) { alertUser("Select the caller to transfer the task.", "warning"); return; }
@@ -296,6 +320,7 @@
             documentType: $("#statusDocumentType").val(), assignedToName: $("#statusCaller option:selected").text()
         }).done(function (r) { var x = r.d || {}; alertUser(x.Message, x.Success ? "success" : "warning"); if (x.Success) { $("#pmStatusModal").modal("hide"); loadPmOrder(); } });
     }
+
     function orderDetails() {
         if (!$("#pmOrder").val()) { alertUser("Select an order.", "warning"); return; }
         call("GetOrderDetails", { orderId: parseInt($("#pmOrder").val(), 10) }).done(function (r) {
@@ -324,6 +349,7 @@
             });
         });
     }
+
     function uploadDocument() {
         if (!requireFields([{ selector: "#upDate", label: "Date" }, { selector: "#upProject", label: "Project" }, { selector: "#upOrder", label: "Order" }, { selector: "#upProcess", label: "Process" }])) { return; }
         var file = $("#upFile")[0].files[0]; if (!file) { alertUser("Please choose an attachment.", "warning"); return; }
@@ -361,11 +387,39 @@
             if (module === "allocation" || module === "queue") { refreshActive(); }
         }, 300000);
     }
+    // function initializeModule(module) {
+    //     if (state.modules[module]) { return; } state.modules[module] = true;
+    //     if (module === "queue") { loadQueue(); }
+    //     if (module === "process") { call("GetCallers", {}, { quiet: true }).done(function (r) { fillSelect("#statusCaller", parseRows(r), ["EmployeeID", "EmployeeId", "UserId", "ID"], ["EmployeeName", "Name", "Code"]); }); }
+    // }
+
+
     function initializeModule(module) {
-        if (state.modules[module]) { return; } state.modules[module] = true;
-        if (module === "queue") { loadQueue(); }
-        if (module === "process") { call("GetCallers", {}, { quiet: true }).done(function (r) { fillSelect("#statusCaller", parseRows(r), ["EmployeeID", "EmployeeId", "UserId", "ID"], ["EmployeeName", "Name", "Code"]); }); }
+
+        if (state.modules[module]) {
+            return;
+        }
+
+        state.modules[module] = true;
+
+        if (module === "queue") { loadQueue(); return; }
+
+        if (module === "process") {
+
+            call("GetCallers", {}, { quiet: true }).done(function (response) {
+
+                var callers = parseRows(response);
+
+                fillSelect("#statusCaller", callers, ["UserId"], ["Employee"], "Select");
+            }).fail(function (xhr) {
+
+                state.modules[module] = false;
+
+                Swal.fire({ icon: "error", title: "Unable to Load Callers", text: "Caller records could not be retrieved from the database." });
+            });
+        }
     }
+
     function bind() {
         $(document).off(".searchDashboard");
         $(document).on("shown.bs.tab.searchDashboard", "#sdMainTabs a[data-toggle='tab']", function () { initializeModule($(this).data("module")); $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust(); });

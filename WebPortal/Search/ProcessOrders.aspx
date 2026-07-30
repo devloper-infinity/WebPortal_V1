@@ -600,21 +600,23 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
     <div class="ost-page">
-        <div class="loading" id="load1">
+        <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
                 <div>One moment, please . . . .</div>
             </div>
         </div>
 
-        <div class="ost-header">
-            <div>
+        <div class="ost-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-cogs"></i></span>
+                <div class="search-header-copy">
                 <h1 class="ost-title">
-                    <i class="fas fa-tasks"></i>
                     <span>Process Orders</span>
                 </h1>
                 <div class="ost-context">
                     Review, assign, and manage pending orders across operational processes
+                </div>
                 </div>
             </div>
         </div>

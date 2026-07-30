@@ -882,5 +882,42 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, toDate);
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
+
+        public DataTable ViewSearchOrderForVM(int employeeId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_ViewSearchOrderForVM");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmpId", SqlDbType.BigInt, 0, ParameterDirection.Input, employeeId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetAbstractorCoverageDetails(int orderId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAbstractorCoverageDetails");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", SqlDbType.BigInt, 0, ParameterDirection.Input, orderId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public int InsertOrderTaskForAbstractor(Hashtable parameters)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_InsertOrderTaskForAbstractor");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Orderid", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["Orderid"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskTemplateid", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["TaskTemplateid"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["ProductType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Docid", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["Docid"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskAssignIdAbs", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["TaskAssignedId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskProcessid", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["TaskProcessid"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OnOffLine", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["OnOffLine"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmailType", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["EmailType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ETATime", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["ETATime"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.Int, 0, ParameterDirection.Input, parameters["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SeachCost", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["SeachCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CopyCost", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["CopyCost"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Total", SqlDbType.NVarChar, 4000, ParameterDirection.Input, parameters["Total"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int result = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return result;
+        }
     }
 }

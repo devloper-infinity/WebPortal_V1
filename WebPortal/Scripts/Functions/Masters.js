@@ -626,6 +626,16 @@ function setappr_getEmpInfo(ddlemp) {
                 action_Count = blankForNull(value.ActionCount);
                 pip_Count = blankForNull(value.PIPCount);
                 login_Pm = blankForNull(value.RMID);
+
+                $('#setappr_description').val('');
+                $('#setappr_type').prop('selectedIndex', 0);
+                $('#setappr_title').prop('selectedIndex', 0);
+                document.getElementById("setappr_trother").style.display = "none";
+                document.getElementById("setappr_tdperiodheader").style.display = "none";
+                document.getElementById("setappr_tdperiodrow").style.display = "none";
+                document.getElementById("setappr_tdeffectivedateheader").style.display = "none";
+                document.getElementById("setappr_tdeffectivedaterow").style.display = "none";
+                
             })
         }
 

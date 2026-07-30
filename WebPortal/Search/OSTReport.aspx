@@ -45,7 +45,6 @@
 
         .ost-page {
             min-height: calc(100vh - 72px);
-            padding: 18px;
             background: var(--ost-bg);
         }
 
@@ -456,17 +455,20 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="ost-page">
-        <div class="loading" id="load1">
+        <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
                 <div>One moment, please . . . .</div>
             </div>
         </div>
 
-        <div class="ost-header">
-            <div>
-                <h1 class="ost-title"><i class="fas fa-file-alt"></i><span>OST Report</span></h1>
+        <div class="ost-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-chart-bar"></i></span>
+                <div class="search-header-copy">
+                <h1 class="ost-title"><span>OST Report</span></h1>
                 <div class="ost-context">Search Operations</div>
+                </div>
             </div>
         </div>
 

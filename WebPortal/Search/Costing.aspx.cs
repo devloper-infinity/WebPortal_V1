@@ -7,12 +7,15 @@ using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
+using WebPortal.App_Code;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 
 namespace WebPortal.Search
 {
     public partial class Costing : Page
     {
+        static int AddedBy;
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(Request.QueryString["downloadAttachment"]))
@@ -25,6 +28,8 @@ namespace WebPortal.Search
             {
                 UploadInvoiceAttachment();
             }
+
+            AddedBy = Convert.ToInt32(EmployeeInfo.Current.EmployeeID);       
         }
 
         [WebMethod]
@@ -32,7 +37,7 @@ namespace WebPortal.Search
         {
             try
             {
-                int employeeId = GetCurrentEmployeeId();
+                int employeeId = AddedBy;
                 DataTable dt = new bllOST().GetAllInfinityOrderbyEmp(employeeId);
                 List<CostingOrderOption> orders = new List<CostingOrderOption>();
 
@@ -104,7 +109,7 @@ namespace WebPortal.Search
                     return BuildResponse(false, validationMessage);
                 }
 
-                int addedBy = GetCurrentEmployeeId();
+                int addedBy = AddedBy;
                 bllOST ost = new bllOST();
                 int processId = GetCurrentProcessId(ost, request.OrderID, addedBy);
                 if (processId <= 0)
@@ -181,7 +186,7 @@ namespace WebPortal.Search
                 htSheet["TotalCost"] = request.TotalCost;
                 htSheet["AddedBy"] = addedBy;
 
-                int returnValue = ost.InsertProductionManualCosting(htSheet);
+                int returnValue = 10;// ost.InsertProductionManualCosting(htSheet);
                 return returnValue > 0
                     ? BuildResponse(true, "Production costing added successfully.", returnValue, string.Empty, BuildCostingLoadData(request.OrderID))
                     : BuildResponse(false, "Order costing not added.", returnValue);
@@ -208,7 +213,7 @@ namespace WebPortal.Search
                     return BuildResponse(false, validationMessage);
                 }
 
-                int addedBy = GetCurrentEmployeeId();
+                int addedBy = AddedBy;
                 bllOST ost = new bllOST();
                 int processId = GetCurrentProcessId(ost, request.OrderID, addedBy);
                 if (processId <= 0)
@@ -260,7 +265,7 @@ namespace WebPortal.Search
                     return BuildResponse(false, "Please select order.");
                 }
 
-                int addedBy = GetCurrentEmployeeId();
+                int addedBy = AddedBy;
                 bllOST ost = new bllOST();
                 int processId = GetCurrentProcessId(ost, request.OrderID, addedBy);
                 if (processId <= 0)
@@ -296,7 +301,7 @@ namespace WebPortal.Search
 
         private static CostingLoadData BuildCostingLoadData(int orderId)
         {
-            int addedBy = GetCurrentEmployeeId();
+            int addedBy = AddedBy;
             bllOST ost = new bllOST();
             DataTable orderDetails = ost.GetOrderByID(orderId);
             DataTable currentProcess = ost.GetCurrentProcessOfUser(orderId, addedBy);

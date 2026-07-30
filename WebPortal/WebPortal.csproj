@@ -141,6 +141,7 @@
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\All.aspx" />
+    <Content Include="All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
     <Content Include="Admin\BranchAndDateWiseAttendanceReport.aspx" />
@@ -849,11 +850,15 @@
     <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
+    <Content Include="Scripts\Search\VmOrders.js" />
+    <Content Include="Scripts\Search\VMReport.js" />
     <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
     <Content Include="Search\SearchDashboard.aspx" />
+    <Content Include="Search\VMOrders.aspx" />
+    <Content Include="Search\VMReport.aspx" />
     <Content Include="SessionKeepAlive.aspx" />
     <Content Include="MenuService.aspx" />
     <Content Include="OSTAttachment\30-Aug-2016\1053\Desert - Copy.jpeg" />
@@ -3106,6 +3111,13 @@
     <Compile Include="Admin\AICopilot.aspx.designer.cs">
       <DependentUpon>AICopilot.aspx</DependentUpon>
     </Compile>
+    <Compile Include="All.aspx.cs">
+      <DependentUpon>All.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="All.aspx.designer.cs">
+      <DependentUpon>All.aspx</DependentUpon>
+    </Compile>
     <Compile Include="App_Code\AIService.cs" />
     <Compile Include="App_Code\BLL\bllFeedback.cs" />
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
@@ -3124,6 +3136,24 @@
     </Compile>
     <Compile Include="Search\SearchDashboard.aspx.designer.cs">
       <DependentUpon>SearchDashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Search\VMOrders.Actions.cs">
+      <DependentUpon>VMOrders.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Search\VMOrders.aspx.cs">
+      <DependentUpon>VMOrders.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Search\VMOrders.aspx.designer.cs">
+      <DependentUpon>VMOrders.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Search\VMReport.aspx.cs">
+      <DependentUpon>VMReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Search\VMReport.aspx.designer.cs">
+      <DependentUpon>VMReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx.cs">
       <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>

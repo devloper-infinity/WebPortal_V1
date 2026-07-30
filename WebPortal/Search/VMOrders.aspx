@@ -1,902 +1,977 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="VMOrders.aspx.cs" Inherits="WebPortal.Search.VMOrders" %>
+<%@ Page Title="VM Orders" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="VMOrders.aspx.cs" Inherits="WebPortal.Search.VMOrders" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
+    <link href="../plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css" rel="stylesheet" />
     <style>
-        .sec-hero {
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            gap: 22px;
-            padding: 17px 35px;
-            margin-bottom: 25px;
-            border-radius: 18px;
-            color: #fff;
-            background: linear-gradient(115deg,#0a5fd7 0%,#1976f3 35%,#1da8ea 70%,#22d3ee 100%);
-            box-shadow: 0 12px 28px rgba(21, 98, 228, .25);
+        :root {
+            --vm-primary: #0f766e;
+            --vm-primary-dark: #115e59;
+            --vm-border: #dbe4ea;
+            --vm-muted: #64748b;
+            --vm-bg: #f4f6f8;
         }
 
-            /* Top Wave */
-            .sec-hero::before {
-                content: "";
-                position: absolute;
-                top: -90px;
-                left: -5%;
-                width: 110%;
-                height: 180px;
-                border-radius: 50%;
-                background: rgba(255,255,255,.08);
-                transform: rotate(-3deg);
-            }
-
-            /* Bottom Waves */
-            .sec-hero::after {
-                content: "";
-                position: absolute;
-                left: -10%;
-                bottom: -70px;
-                width: 130%;
-                height: 180px;
-                background: repeating-radial-gradient( ellipse at center, rgba(255,255,255,.18) 0px, rgba(255,255,255,.18) 2px, transparent 3px, transparent 10px );
-                opacity: .35;
-                transform: rotate(-6deg);
-            }
-
-            .sec-hero > * {
-                position: relative;
-                z-index: 2;
-            }
-
-        .sec-hero-icon {
-            width: 50px;
-            height: 50px;
-            min-width: 50px;
-            border-radius: 20%;
-            border: 2px solid rgba(255,255,255,.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,.10);
-            backdrop-filter: blur(4px);
+        .vm-page {
+            min-height: calc(100vh - 70px);
+            background: var(--vm-bg);
+            color: #1f2937;
         }
 
-            .sec-hero-icon i {
-                font-size: 34px;
-                color: #fff;
-            }
+        .vm-shell {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
 
-        .sec-title {
+        .vm-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 15px 18px;
+            margin-bottom: 12px;
+            background: #fff;
+            border: 1px solid var(--vm-border);
+            border-left: 4px solid var(--vm-primary);
+            border-radius: 8px;
+        }
+
+        .vm-title {
             margin: 0;
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 700;
-            color: #fff;
-            margin-bottom: -10px;
         }
 
-        .sec-subtitle {
-            margin: 10px 0 0;
-            font-size: 14px;
-            color: rgba(255,255,255,.92);
-            line-height: 1.6;
-            max-width: 900px;
+        .vm-subtitle {
+            margin-top: 3px;
+            color: var(--vm-muted);
+            font-size: 12px;
         }
 
-        .bank-form-panel {
-            border: 1px solid #e9eef5;
-            border-radius: 16px;
-            background: #f8fafc;
-            padding: 18px;
+        .vm-tabs {
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--vm-border);
+            border-radius: 8px;
         }
 
-        .bank-form-label {
+            .vm-tabs > .nav {
+                gap: 2px;
+                padding: 10px 10px 0;
+                border-bottom: 1px solid var(--vm-border);
+            }
+
+                .vm-tabs > .nav .nav-link {
+                    padding: 10px 16px;
+                    color: #475569;
+                    background: #eef2f6;
+                    border: 0;
+                    border-radius: 6px 6px 0 0;
+                    font-weight: 700;
+                }
+
+                    .vm-tabs > .nav .nav-link.active {
+                        color: #fff;
+                        background: var(--vm-primary);
+                    }
+
+            .vm-tabs .tab-pane {
+                padding: 14px;
+            }
+
+        .vm-card {
+            margin-bottom: 12px;
+            background: #fff;
+            border: 1px solid var(--vm-border);
+            border-radius: 8px;
+        }
+
+        .vm-card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 13px;
+            color: #065f5b;
+            border-bottom: 1px solid var(--vm-border);
             font-size: 13px;
             font-weight: 700;
-            color: #334155;
-            margin-bottom: 8px;
         }
 
-
-        .form-control {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            padding: 9px 9px;
-            height: 45px;
+        .vm-card-body {
+            padding: 13px;
         }
 
-        .bank-submit-btn {
-            border-radius: 10px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%) !important;
-            height: 44px !important;
-            min-width: 88px;
-            padding: 0 22px !important;
-            color: white;
-            border: none;
-        }
-
-        .alloc-feedback-modal .modal-dialog {
-            max-width: 1180px;
-        }
-
-        .alloc-status-modal .modal-dialog {
-            max-width: 760px;
-        }
-
-        .alloc-feedback-modal .modal-content {
-            border: 0;
-            border-radius: 14px;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, .24);
-            overflow: hidden;
-        }
-
-        .alloc-feedback-modal .modal-header {
-            align-items: center;
-            background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%);
-            border: 0;
-            color: #fff;
-            padding: 18px 22px;
-        }
-
-        .alloc-feedback-title {
-            align-items: center;
-            display: flex;
-            gap: 12px;
-        }
-
-        .alloc-feedback-icon {
-            align-items: center;
-            background: rgba(255,255,255,.16);
-            border: 1px solid rgba(255,255,255,.28);
-            border-radius: 8px;
-            display: inline-flex;
-            height: 46px;
-            justify-content: center;
-            width: 46px;
-        }
-
-        .alloc-feedback-title h5 {
-            font-size: 19px;
-            font-weight: 800;
-            margin: 0;
-        }
-
-        .alloc-feedback-title p {
-            color: rgba(255,255,255,.84);
-            font-size: 12px;
-            font-weight: 700;
-            margin: 4px 0 0;
-        }
-
-        .alloc-feedback-modal .close {
-            color: #fff;
-            opacity: .9;
-            text-shadow: none;
-        }
-
-        .alloc-feedback-modal .modal-body {
-            background: #f5f8fc;
-            padding: 18px;
-        }
-
-        .alloc-context-grid {
-            background: #fff;
-            border: 1px solid #dfe8f2;
-            border-radius: 12px;
+        .vm-grid {
             display: grid;
-            gap: 1px;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            margin-bottom: 14px;
-            overflow: hidden;
+            grid-template-columns: repeat(12,minmax(0,1fr));
+            gap: 11px;
+            align-items: end;
         }
 
-        .alloc-status-context-grid {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+        .vm-col-2 {
+            grid-column: span 2;
         }
 
-        .alloc-context-item {
+        .vm-col-3 {
+            grid-column: span 3;
+        }
+
+        .vm-col-4 {
+            grid-column: span 4;
+        }
+
+        .vm-col-6 {
+            grid-column: span 6;
+        }
+
+        .vm-col-8 {
+            grid-column: span 8;
+        }
+
+        .vm-col-12 {
+            grid-column: span 12;
+        }
+
+        .vm-field label {
+            display: block;
+            margin-bottom: 5px;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .vm-field .required:after {
+            content: " *";
+            color: #dc2626;
+        }
+
+        .vm-control {
+            width: 100%;
+            min-height: 38px;
+            padding: 7px 10px;
+            color: #1f2937;
             background: #fff;
-            min-width: 0;
-            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
         }
 
-            .alloc-context-item span {
-                color: #64748b;
-                display: block;
-                font-size: 11px;
-                font-weight: 800;
-                letter-spacing: 0;
-                margin-bottom: 5px;
-                text-transform: uppercase;
+            .vm-control:focus {
+                border-color: var(--vm-primary);
+                box-shadow: 0 0 0 3px rgba(15,118,110,.11);
+                outline: 0;
             }
 
-            .alloc-context-item strong {
-                color: #102033;
-                display: block;
-                font-size: 13px;
-                overflow: hidden;
-                text-overflow: ellipsis;
+        textarea.vm-control {
+            min-height: 76px;
+            resize: vertical;
+        }
+
+        .vm-radio-row, .vm-check-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            min-height: 38px;
+        }
+
+            .vm-radio-row label, .vm-check-row label {
+                margin: 0;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+        .vm-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 7px 13px;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .vm-btn-primary {
+            color: #fff;
+            background: var(--vm-primary);
+        }
+
+            .vm-btn-primary:hover {
+                color: #fff;
+                background: var(--vm-primary-dark);
+            }
+
+        .vm-btn-light {
+            color: #334155;
+            background: #f8fafc;
+            border-color: #d5dee7;
+        }
+
+        .vm-btn-success {
+            color: #fff;
+            background: #15803d;
+        }
+
+        .vm-btn-danger {
+            color: #fff;
+            background: #b91c1c;
+        }
+
+        .vm-btn-xs {
+            min-height: 29px;
+            padding: 4px 8px;
+        }
+
+        .vm-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+            .vm-actions .vm-btn {
+                width: 30px;
+                min-width: 30px;
+                padding: 4px;
+            }
+
+        #vmQueueTable thead th:first-child, #vmQueueTable tbody td:first-child {
+            width: 112px !important;
+            min-width: 112px !important;
+            max-width: 112px;
+        }
+
+        .vm-action-process {
+            color: #1d4ed8;
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .vm-action-status {
+            color: #7e22ce;
+            background: #f3e8ff;
+            border-color: #d8b4fe;
+        }
+
+        .vm-action-comments {
+            color: #0f766e;
+            background: #ccfbf1;
+            border-color: #5eead4;
+        }
+
+        .vm-actions .vm-btn:hover, .vm-actions .vm-btn:focus {
+            color: #fff;
+            filter: brightness(.84);
+        }
+
+        .vm-summary {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 8px;
+        }
+
+        .vm-summary-item {
+            padding: 9px 11px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+        }
+
+        .vm-summary-label {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .vm-summary-value {
+            margin-top: 3px;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .vm-mode-panel {
+            margin-top: 12px;
+            padding: 12px;
+            background: #fbfcfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .vm-doc-list {
+            display: grid;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+            gap: 7px 12px;
+            max-height: 170px;
+            overflow: auto;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #d8e1e9;
+            border-radius: 7px;
+        }
+
+            .vm-doc-list label {
+                margin: 0;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+        .vm-file {
+            padding: 5px;
+            border: 1px dashed #94a3b8;
+            border-radius: 7px;
+            background: #fff;
+        }
+
+        .vm-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .vm-table {
+            width: 100% !important;
+            margin: 0 !important;
+            font-size: 11px;
+        }
+
+            .vm-table thead th {
+                color: #0f3d56;
+                background: #e8f2f7;
+                border-bottom: 2px solid #58a0c4 !important;
                 white-space: nowrap;
             }
 
-        .alloc-feedback-tabs {
-            background: #eaf1fb;
-            border: 1px solid #d9e5f4;
-            border-radius: 12px;
-            display: grid !important;
-            gap: 10px !important;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            margin-bottom: 14px !important;
-            padding: 8px;
-        }
-
-            .alloc-feedback-tabs .nav-item {
-                width: 100%;
+            .vm-table tbody td {
+                vertical-align: middle;
+                white-space: nowrap;
             }
 
-            .alloc-feedback-tabs .nav-link {
-                align-items: center;
-                border: 1px solid transparent !important;
-                border-radius: 9px !important;
-                color: #17365d !important;
-                display: flex !important;
-                font-size: 12px;
-                font-weight: 800 !important;
-                gap: 8px;
-                height: 42px !important;
-                justify-content: center;
-                width: 100%;
+        .vm-row-hold td {
+            background: #fff4bf !important;
+        }
+
+        .vm-row-cancel td {
+            background: #f8d3d3 !important;
+        }
+
+        .vm-row-purple td {
+            color: #7e22ce;
+        }
+
+        .vm-remark {
+            color: #3b82b6;
+            font-weight: 600;
+        }
+
+        .vm-process-link.disabled {
+            color: #94a3b8;
+            pointer-events: none;
+            text-decoration: none;
+        }
+
+        .vm-record-count {
+            padding: 4px 10px;
+            color: #03695f;
+            background: #e8f7f4;
+            border: 1px solid #c6e9e3;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .vm-empty {
+            padding: 22px;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .vm-modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+            .vm-modal-table th, .vm-modal-table td {
+                padding: 7px;
+                border: 1px solid #dce4eb;
+                white-space: nowrap;
             }
 
-                .alloc-feedback-tabs .nav-link.active {
-                    background: #fff !important;
-                    border-color: #d7e2f0 !important;
-                    border-bottom: 3px solid #087c9a !important;
-                    color: #083344 !important;
-                    box-shadow: 0 8px 16px rgba(15,23,42,.10) !important;
-                }
-
-        .alloc-feedback-panel {
-            background: #fff;
-            border: 1px solid #e0e8f1;
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .alloc-feedback-field {
-            margin-bottom: 14px;
-        }
-
-            .alloc-feedback-field label {
+            .vm-modal-table th {
                 color: #334155;
-                display: block;
-                font-size: 12px;
-                font-weight: 800;
-                margin-bottom: 7px;
+                background: #edf3f7;
             }
 
-            .alloc-feedback-field .form-control {
-                background: #fff;
-                border: 1px solid #cfd9e7;
-                border-radius: 8px;
-                font-size: 13px;
-                min-height: 42px;
-            }
-
-            .alloc-feedback-field textarea.form-control {
-                height: auto;
-                min-height: 74px;
-                resize: vertical;
-            }
-
-        .alloc-status-modal .alloc-feedback-panel {
-            padding-bottom: 14px;
-        }
-
-        .alloc-status-modal .alloc-feedback-field textarea.form-control {
-            min-height: 96px;
-        }
-
-        .alloc-feedback-actions {
-            align-items: center;
-            border-top: 1px solid #edf2f8;
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 4px;
-            padding-top: 14px;
-        }
-
-        .alloc-outline-btn {
-            background: #eefaf8;
-            border: 1px solid #c9e5e1;
-            border-radius: 10px;
-            color: #075e57;
-            font-weight: 800;
-            height: 42px;
-            padding: 0 18px;
-        }
-
-        .alloc-dropzone {
-            align-items: center;
+        .vm-comment-summary {
+            padding: 12px;
             background: #f8fafc;
-            border: 2px dashed #b8c8dc;
-            border-radius: 12px;
-            color: #334155;
-            cursor: pointer;
-            display: flex;
-            gap: 16px;
-            min-height: 126px;
-            padding: 20px;
-            transition: border-color .18s ease, background .18s ease;
+            border: 1px solid #dce6ee;
+            border-radius: 8px;
         }
 
-            .alloc-dropzone i {
-                color: #0f766e;
-                font-size: 32px;
-            }
-
-            .alloc-dropzone strong {
-                color: #102033;
-                display: block;
-                font-size: 15px;
-                margin-bottom: 4px;
-            }
-
-            .alloc-dropzone span {
-                color: #64748b;
-                display: block;
-                font-size: 12px;
-                font-weight: 700;
-            }
-
-            .alloc-dropzone.is-dragover {
-                background: #ecfdf5;
-                border-color: #0f766e;
-            }
-
-        .alloc-import-summary {
-            display: grid;
-            gap: 10px;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin: 14px 0;
-        }
-
-        .alloc-import-pill {
+        .vm-comment-form {
+            margin-top: 12px;
+            padding: 12px;
             background: #fff;
-            border: 1px solid #dfe8f2;
-            border-left: 4px solid #1d4ed8;
-            border-radius: 10px;
-            padding: 11px 13px;
+            border: 1px solid #dce6ee;
+            border-radius: 8px;
         }
 
-            .alloc-import-pill span {
-                color: #64748b;
-                display: block;
-                font-size: 11px;
-                font-weight: 800;
-                margin-bottom: 4px;
-                text-transform: uppercase;
-            }
-
-            .alloc-import-pill strong {
-                color: #0f172a;
-                font-size: 18px;
-            }
-
-        .alloc-import-results {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+        .vm-comment-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
         }
 
-        .alloc-result-table {
-            border: 1px solid #e0e8f1;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .alloc-result-title {
-            background: #eef6ff;
-            color: #17365d;
-            font-size: 12px;
-            font-weight: 800;
-            padding: 10px 12px;
-        }
-
-        .alloc-result-scroll {
-            max-height: 220px;
+        .vm-comment-history {
+            margin-top: 12px;
+            border: 1px solid #dce6ee;
+            border-radius: 8px;
             overflow: auto;
         }
 
-            .alloc-result-scroll table {
-                margin: 0;
-                width: 100%;
+            .vm-comment-history .vm-modal-table th {
+                color: #0f4c5c;
+                background: #e6f4f6;
+                border-bottom: 2px solid #25a6b8;
             }
 
-            .alloc-result-scroll th,
-            .alloc-result-scroll td {
-                border-bottom: 1px solid #edf2f8;
-                font-size: 12px;
-                padding: 8px 10px;
-                white-space: nowrap;
-                text-align: left;
+            .vm-comment-history .vm-modal-table td {
+                white-space: normal;
             }
 
-        @media (max-width: 991px) {
-            .alloc-context-grid,
-            .alloc-import-results {
-                grid-template-columns: 1fr;
-            }
-
-            .alloc-import-summary {
-                grid-template-columns: 1fr;
-            }
+        .vm-comment-history-empty {
+            padding: 18px !important;
+            color: #64748b;
+            text-align: center;
         }
 
-        @media (max-width: 768px) {
-            .sec-hero {
-                height: auto;
-                min-height: 94px;
-                padding: 18px 18px !important;
-                border-radius: 18px !important;
-            }
-
-            .sec-hero-icon {
-                width: 46px !important;
-                height: 46px !important;
-                min-width: 46px !important;
-            }
-
-            .sec-title {
-                font-size: 16px !important;
-            }
-
-            .sec-subtitle {
-                font-size: 10px !important;
-            }
-        }
-        /* End tracking module header refresh */
-    </style>
-
-    <style>
-        /* Keep tab style */
-        .card-tabs > .card-header {
-            margin: 0 0 14px !important;
-            padding: 8px !important;
-            background: #eaf1fb !important;
-            border-radius: 14px !important;
-            box-shadow: inset 0 0 0 1px #d9e5f4 !important;
-        }
-
-        .nav-tabs {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px !important;
-            width: 100%;
-            border-bottom: 0 !important;
-        }
-
-            .nav-tabs .nav-link {
-                height: 46px !important;
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                border-radius: 10px !important;
-                color: #102a4c !important;
-                font-size: 12px;
-                font-weight: 800 !important;
-                background: transparent !important;
-                border: 1px solid transparent !important;
-            }
-
-                .nav-tabs .nav-link.active {
-                    background: #ffffff !important;
-                    color: #083344 !important;
-                    border-color: #d7e2f0 !important;
-                    border-bottom: 3px solid #087c9a !important;
-                    box-shadow: 0 9px 18px rgba(15, 23, 42, .12) !important;
-                }
-
-        /* DataTable wrapper */
-        .dataTables_wrapper {
-            width: 100%;
-        }
-
-        /* Keep DataTables' sizing header available, but visually hidden */
-        .dataTables_scrollBody thead {
-            visibility: collapse !important;
-        }
-
-            .dataTables_scrollBody thead th,
-            .dataTables_scrollBody thead td {
-                border: 0 !important;
-                height: 0 !important;
-                line-height: 0 !important;
-                padding-bottom: 0 !important;
-                padding-top: 0 !important;
-                text-align: left;
-            }
-
-        /* Main visible DataTable header */
-        .dataTables_scrollHead thead th,
-        table.dataTable thead th {
-            background: #eef6ff !important;
-            color: #17365d !important;
-            font-size: 12px !important;
-            font-weight: 800 !important;
-            padding: 13px 14px !important;
-            border-bottom: 1px solid #d9e2f1 !important;
-            white-space: nowrap !important;
-            text-align: left !important;
-            /* vertical-align: middle !important;*/
-        }
-
-        /* Body cells */
-        table.dataTable tbody td {
-            padding: 13px 14px !important;
-            border-bottom: 1px solid #edf2f8 !important;
-            white-space: nowrap !important;
-            vertical-align: middle !important;
-            text-align: left !important;
-        }
-
-        /* Remove forced duplicate table header display */
-        .tab-pane > table[id] thead,
-        .dataTables_wrapper table[id] thead,
-        table.dataTable thead {
-            display: table-header-group;
-            text-align: left !important;
-        }
-
-        /* Scroll fix */
-        .dataTables_scroll,
-        .dataTables_scrollHead,
-        .dataTables_scrollBody {
-            width: 100% !important;
-        }
-
-        .dataTables_scrollHead {
-            overflow: hidden !important;
-        }
-
-        .dataTables_scrollHeadInner,
-        .dataTables_scrollHeadInner table,
-        .dataTables_scrollBody table {
-            box-sizing: border-box !important;
-            margin: 0 !important;
-            width: 100% !important;
-        }
-
-        .dataTables_scrollBody {
-            overflow-x: auto !important;
-        }
-    </style>
-
-    <style>
-        /* allocate-rnr-datatable: RnR table treatment for Update Status */
-        .allocate-status-grid {
-            width: 100%;
-            margin-top: 18px;
-            overflow-x: visible !important;
-        }
-
-        #table_OrderComplete_wrapper {
-            width: 100% !important;
-            overflow: visible !important;
-        }
-
-            #table_OrderComplete_wrapper .row:nth-child(2) {
-                overflow-x: visible !important;
-                margin: 0 !important;
-            }
-
-        #table_OrderComplete,
-        #table_OrderComplete.dataTable {
-            width: 100% !important;
-            min-width: 1100px !important;
-            table-layout: auto !important;
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
-            border: 1px solid #d9e2f1 !important;
-            border-radius: 8px !important;
-            overflow: hidden !important;
-            background: #fff;
-        }
-
-            #table_OrderComplete thead th,
-            #table_OrderComplete.dataTable thead th {
-                background: #f8fafc !important;
-                color: #344054 !important;
-                border-bottom: 1px solid #d9e2f1 !important;
-                font-size: 12px !important;
-                font-weight: 800 !important;
-                text-transform: uppercase;
-                letter-spacing: 0;
-                white-space: nowrap !important;
-                line-height: 1.2 !important;
-                padding: 12px 10px !important;
-                text-align: left !important;
-                box-sizing: border-box !important;
-            }
-
-            #table_OrderComplete tbody td,
-            #table_OrderComplete.dataTable tbody td {
-                vertical-align: middle !important;
-                border-color: #edf2f8 !important;
-                background: #fff !important;
-                color: #344054;
-                font-size: 13px;
-                padding: 12px 10px !important;
-                white-space: nowrap !important;
-                text-align: left !important;
-                box-sizing: border-box !important;
-            }
-
-        #table_OrderComplete_wrapper .dataTables_scrollHead thead th,
-        #table_OrderComplete_wrapper .dataTables_scrollBody tbody td {
-            white-space: nowrap !important;
-        }
-
-            #table_OrderComplete_wrapper .dataTables_scrollHead thead th:nth-child(-n+2),
-            #table_OrderComplete_wrapper .dataTables_scrollBody tbody td:nth-child(-n+2),
-            #table_OrderComplete thead th:nth-child(-n+2),
-            #table_OrderComplete tbody td:nth-child(-n+2) {
-                text-align: center !important;
-            }
-
-            #table_OrderComplete_wrapper .dataTables_scrollHead thead th:nth-child(n+3),
-            #table_OrderComplete_wrapper .dataTables_scrollBody tbody td:nth-child(n+3),
-            #table_OrderComplete thead th:nth-child(n+3),
-            #table_OrderComplete tbody td:nth-child(n+3) {
-                text-align: left !important;
-            }
-
-        #table_OrderComplete_wrapper th.action-column,
-        #table_OrderComplete_wrapper td.action-column,
-        #table_OrderComplete th.action-column,
-        #table_OrderComplete td.action-column {
-            width: 65px !important;
-            min-width: 65px !important;
-            max-width: 65px !important;
-            text-align: center !important;
-        }
-
-        #table_OrderComplete tbody tr:hover td {
-            background: #f8fafc !important;
-        }
-
-        #table_OrderComplete th:nth-child(1),
-        #table_OrderComplete td:nth-child(1) {
-            width: 4% !important;
-        }
-
-        #table_OrderComplete th:nth-child(2),
-        #table_OrderComplete td:nth-child(2) {
-            width: 9% !important;
-        }
-
-        #table_OrderComplete th:nth-child(3),
-        #table_OrderComplete td:nth-child(3) {
-            width: 8% !important;
-        }
-
-        #table_OrderComplete th:nth-child(4),
-        #table_OrderComplete td:nth-child(4) {
-            width: 9% !important;
-        }
-
-        #table_OrderComplete th:nth-child(5),
-        #table_OrderComplete td:nth-child(5) {
-            width: 10% !important;
-        }
-
-        #table_OrderComplete th:nth-child(6),
-        #table_OrderComplete td:nth-child(6) {
-            width: 13% !important;
-        }
-
-        #table_OrderComplete th:nth-child(7),
-        #table_OrderComplete td:nth-child(7) {
-            width: 15% !important;
-        }
-
-        #table_OrderComplete th:nth-child(8),
-        #table_OrderComplete td:nth-child(8) {
-            width: 10% !important;
-        }
-
-        #table_OrderComplete th:nth-child(9),
-        #table_OrderComplete td:nth-child(9) {
-            width: 10% !important;
-        }
-
-        #table_OrderComplete th:nth-child(10),
-        #table_OrderComplete td:nth-child(10) {
-            width: 12% !important;
-        }
-
-        #table_OrderComplete .alloc-table-empty {
-            color: #98a2b3;
-        }
-
-        .alloc-icon-btn {
+        #vmLoader {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2147483647;
             align-items: center;
-            background: transparent;
-            border: 0;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-flex;
-            font-size: 18px;
-            height: 32px;
             justify-content: center;
-            padding: 0;
-            transition: background .2s ease, color .2s ease;
-            width: 32px;
+            background: rgba(248,250,252,.76);
         }
 
-            .alloc-icon-btn:focus {
-                box-shadow: none;
-                outline: none;
+            #vmLoader.active {
+                display: flex;
             }
 
-        .status-icon {
-            color: #0d6efd;
+        .vm-spinner {
+            width: 52px;
+            height: 52px;
+            border: 5px solid #dbe7e5;
+            border-top-color: var(--vm-primary);
+            border-radius: 50%;
+            animation: vmSpin .75s linear infinite;
         }
 
-            .status-icon:hover {
-                background: #0d6efd;
-                color: #fff;
+        @keyframes vmSpin {
+            to {
+                transform: rotate(360deg);
             }
-
-        .feedback-icon {
-            color: #16a34a;
         }
 
-            .feedback-icon:hover {
-                background: #16a34a;
-                color: #fff;
+        .dataTables_wrapper .dataTables_filter input, .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0 !important;
+            border: 0 !important;
+        }
+
+        @media(max-width:992px) {
+            .vm-col-2, .vm-col-3, .vm-col-4, .vm-col-6 {
+                grid-column: span 6;
             }
+
+            .vm-summary {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
+        }
+
+        @media(max-width:576px) {
+            .vm-col-2, .vm-col-3, .vm-col-4, .vm-col-6 {
+                grid-column: span 12;
+            }
+
+            .vm-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .vm-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
     </style>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <%-- <portal:VersionedScript Src="~/Scripts/Tracking/Allocate.js" runat="server"></portal:VersionedScript>--%>
-
-    <script>
-
-        $(document).ready(function () {
-
-
-        });
-
-    </script>
-
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
-    <div class="sec-page">
-        <div class="sec-hero">
-            <span class="sec-hero-icon">
-                <i class="fas fa-tasks"></i>
-            </span>
-            <div>
-                <h1 class="sec-title">VM Allocation And Process Order</h1>
-                <p class="sec-subtitle">
-                    Allocate loan orders, monitor workflow progress, and track processing status from assignment to completion.
-                </p>
-            </div>
-        </div>
-
-        <div class="sec-panel">
-            <div class="card card-tabs">
-                <div class="card-header p-0 pt-1">
-                    <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b>Order Allocation</b></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false"><b>Order Queue</b></a>
-                        </li>
-                    </ul>
+    <div id="vmLoader">
+        <div class="vm-spinner"></div>
+    </div>
+    <main class="vm-page">
+        <div class="vm-shell">
+            <header class="vm-header search-modern-header">
+                <div class="search-header-identity">
+                    <span class="search-header-icon"><i class="fas fa-boxes"></i></span>
+                    <div class="search-header-copy">
+                    <h1 class="vm-title"><span>VM Orders</span></h1>
+                    <div class="vm-subtitle">Abstractor allocation, VM processing and queue management in one workspace</div>
+                    </div>
                 </div>
-                <div class="tab-content" id="custom-tabs-one-tabContent">
-                    <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                        <div class="bank-form-panel mb-5">
-                            <div class="row align-items-end g-3">
+                <button type="button" id="vmRefreshActive" class="vm-btn vm-btn-light"><i class="fas fa-sync-alt"></i>Refresh active tab</button>
+            </header>
 
-                                <div class="col">
-                                    <label for="allocate_project" class="bank-form-label">Project</label>
-                                    <select id="allocate_project" name="allocate_project"
-                                        class="form-control"
-                                        onchange="return allocate_bindProcess(this);">
-                                    </select>
+            <section class="vm-tabs">
+                <ul class="nav nav-tabs" id="vmMainTabs" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" id="vmAllocationTab" data-toggle="tab" href="#vmAllocationPane" role="tab"><i class="fas fa-user-check mr-1"></i>Order Allocation</a></li>
+                    <li class="nav-item"><a class="nav-link" id="vmQueueTab" data-toggle="tab" href="#vmQueuePane" role="tab"><i class="fas fa-list-alt mr-1"></i>Order Queue</a></li>
+                </ul>
+                <div class="tab-content">
+                    <section class="tab-pane fade show active" id="vmAllocationPane" role="tabpanel">
+                        <div id="vmAllocationList">
+                            <div class="vm-card">
+                                <div class="vm-card-title">
+                                    <span>Orders Available for VM Allocation</span><div class="vm-actions">
+                                        <button type="button" id="vmOpenImport" class="vm-btn vm-btn-light"><i class="fas fa-file-import"></i>Bulk Import</button><span id="vmAllocationCount" class="vm-record-count">0 records</span>
+                                    </div>
                                 </div>
-
-                                <div class="col">
-                                    <label for="allocate_dealNo" class="bank-form-label">Deal #</label>
-                                    <select id="allocate_dealNo" name="allocate_dealno"
-                                        class="form-control">
-                                    </select>
+                                <div class="vm-card-body vm-table-wrap">
+                                    <table id="vmAllocationTable" class="table table-striped table-hover vm-table">
+                                        <thead>
+                                            <tr></tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
-
-                                <div class="col">
-                                    <label for="allocate_process" class="bank-form-label">Process</label>
-                                    <select id="allocate_process" name="allocate_process"
-                                        class="form-control">
-                                    </select>
-                                </div>
-
-                                <div class="col-auto">
-                                    <button id="allocate_btnShow"
-                                        type="button"
-                                        class="btn btn-primary"
-                                        onclick="return GetLoansToAllocate_bindGrid();">
-                                        <i class="fas fa-search me-1"></i>&nbsp;Show Loans
-                                    </button>
-                                </div>
-
-                                <div class="col-auto">
-                                    <button id="allocate_btnSubmit"
-                                        type="button"
-                                        class="bank-submit-btn"
-                                        onclick="return AllocateOrders();">
-                                        <i class="fas fa-tasks me-1"></i>&nbsp;Allocate Loans
-                                    </button>
-                                </div>
-
                             </div>
                         </div>
-                        <hr />
-                        <table class="table" id="table_OrderAllocate" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Action</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Project</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Deal</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan1 #</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Process</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Current Status</th>
-                                    <th class="sort border-top ps-3" style="text-wrap: nowrap;">Remark</th>
-                                </tr>
-                            </thead>
-                            <tbody style="text-align: left;"></tbody>
-                        </table>
-                    </div>
 
-                    <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
-
-                        <div class="allocate-status-grid">
-                            <table class="table" id="table_OrderComplete">
-                                <thead>
-                                    <tr>
-                                        <th>Update Status</th>
-                                        <th>Add Feedback</th>
-                                        <th>Project</th>
-                                        <th>Deal #</th>
-                                        <th>Loan #</th>
-                                        <th>Status</th>
-                                        <th>Hold Reason</th>
-                                        <th>Remark</th>
-                                        <th>Allocated Date</th>
-                                        <th>Completion Date</th>
-                                        <th>PrevID</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                        <div id="vmAllocationEditor" style="display: none">
+                            <div class="vm-card">
+                                <div class="vm-card-title">
+                                    <span>Selected Order</span>
+                                    <button type="button" id="vmBackToAllocation" class="vm-btn vm-btn-light vm-btn-xs"><i class="fas fa-arrow-left"></i>Back to orders</button>
+                                </div>
+                                <div class="vm-card-body">
+                                    <div id="vmOrderSummary" class="vm-summary"></div>
+                                </div>
+                            </div>
+                            <div class="vm-card">
+                                <div class="vm-card-title">
+                                    <span>Assign To Abstractor</span>
+                                    <button type="button" id="vmViewCoverage" class="vm-btn vm-btn-light vm-btn-xs"><i class="fas fa-map-marked-alt"></i>Abstractor coverage</button>
+                                </div>
+                                <div class="vm-card-body">
+                                    <div class="vm-field">
+                                        <label>Allocation Mode</label><div class="vm-radio-row">
+                                            <label>
+                                                <input type="radio" name="vmAllocationMode" value="Offline" checked />
+                                                Full Offline</label><label><input type="radio" name="vmAllocationMode" value="Partial" />
+                                                    Partial</label>
+                                        </div>
+                                    </div>
+                                    <div id="vmFullOfflinePanel" class="vm-mode-panel">
+                                        <div class="vm-grid">
+                                            <div class="vm-col-4 vm-field">
+                                                <label class="required">Company Name</label><select id="vmFullAbstractor" class="vm-control"><option value="">Select</option>
+                                                </select>
+                                            </div>
+                                            <div class="vm-col-2 vm-field">
+                                                <label>ETA (Hours)</label><input id="vmFullEta" class="vm-control vm-number" inputmode="numeric" />
+                                            </div>
+                                            <div class="vm-col-3 vm-field">
+                                                <label>Delivery Method</label><div class="vm-radio-row">
+                                                    <label>
+                                                        <input type="radio" name="vmDeliveryMethod" value="Email" />
+                                                        Email</label><label><input type="radio" name="vmDeliveryMethod" value="Fax" />
+                                                            Fax</label>
+                                                </div>
+                                            </div>
+                                            <div class="vm-col-3 vm-field">
+                                                <label>Attachment</label><input id="vmFullAttachment" type="file" class="vm-file" />
+                                            </div>
+                                            <div class="vm-col-12 vm-field">
+                                                <label>Product Type</label><div class="vm-check-row">
+                                                    <label>
+                                                        <input type="checkbox" value="Current Owner" />
+                                                        Current Owner</label><label><input type="checkbox" value="Two Owner" />
+                                                            Two Owner</label><label><input type="checkbox" value="L&V" />
+                                                                L&amp;V</label><label><input type="checkbox" value="Full Search" />
+                                                                    Full Search</label><label><input type="checkbox" value="Document Request" />
+                                                                        Document Request</label><label><input type="checkbox" value="Other" />
+                                                                            Other</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="vmPartialPanel" class="vm-mode-panel" style="display: none">
+                                        <div class="vm-grid">
+                                            <div class="vm-col-4">
+                                                <div class="vm-field">
+                                                    <label class="required">Searcher 1</label><select id="vmPartialAbstractor1" class="vm-control"><option value="">Select</option>
+                                                    </select>
+                                                </div>
+                                                <div class="vm-field mt-2">
+                                                    <label>ETA (Hours)</label><input id="vmPartialEta1" class="vm-control vm-number" />
+                                                </div>
+                                                <div id="vmPartialDocs1" class="vm-doc-list mt-2"></div>
+                                            </div>
+                                            <div class="vm-col-4">
+                                                <div class="vm-field">
+                                                    <label class="required">Searcher 2</label><select id="vmPartialAbstractor2" class="vm-control"><option value="">Select</option>
+                                                    </select>
+                                                </div>
+                                                <div class="vm-field mt-2">
+                                                    <label>ETA (Hours)</label><input id="vmPartialEta2" class="vm-control vm-number" />
+                                                </div>
+                                                <div id="vmPartialDocs2" class="vm-doc-list mt-2"></div>
+                                            </div>
+                                            <div class="vm-col-4">
+                                                <div class="vm-field">
+                                                    <label>Return to PM</label><input class="vm-control" value="VM / PM" readonly />
+                                                </div>
+                                                <div class="vm-field mt-2">
+                                                    <label>Attachment</label><input id="vmPartialAttachment" type="file" class="vm-file" />
+                                                </div>
+                                                <div id="vmPartialDocs3" class="vm-doc-list mt-2"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="vm-mode-panel">
+                                        <div class="vm-grid">
+                                            <div class="vm-col-3 vm-field">
+                                                <label>Search Cost</label><input id="vmSearchCost" class="vm-control vm-money" value="0.00" />
+                                            </div>
+                                            <div class="vm-col-3 vm-field">
+                                                <label>Copy Cost</label><input id="vmCopyCost" class="vm-control vm-money" value="0.00" />
+                                            </div>
+                                            <div class="vm-col-3 vm-field">
+                                                <label>Total</label><input id="vmTotalCost" class="vm-control" value="0.00" readonly />
+                                            </div>
+                                            <div class="vm-col-3">
+                                                <button type="button" id="vmAllocateOrder" class="vm-btn vm-btn-primary w-100"><i class="fas fa-user-check"></i>Allocate</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
+                    <section class="tab-pane fade" id="vmQueuePane" role="tabpanel">
+                        <div class="vm-card">
+                            <div class="vm-card-title">Queue Filters</div>
+                            <div class="vm-card-body">
+                                <div class="vm-grid">
+                                    <div class="vm-col-2 vm-field">
+                                        <label class="required">From Date</label><input id="vmQueueFromDate" type="date" class="vm-control" />
+                                    </div>
+                                    <div class="vm-col-2 vm-field">
+                                        <label class="required">To Date</label><input id="vmQueueToDate" type="date" class="vm-control" />
+                                    </div>
+                                    <div class="vm-col-3 vm-field">
+                                        <label>Order View</label><div class="vm-radio-row">
+                                            <label id="vmAllOrdersOption">
+                                                <input type="radio" name="vmQueueView" value="all" />
+                                                All Orders</label><label><input type="radio" name="vmQueueView" value="mine" checked />
+                                                    My Orders</label><label id="vmAllProjectsOption"><input type="radio" name="vmQueueView" value="allProjects" />
+                                                        All Projects</label>
+                                        </div>
+                                    </div>
+                                    <div class="vm-col-3 vm-field">
+                                        <label>Project</label><select id="vmQueueProject" class="vm-control"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="vm-col-2">
+                                        <button type="button" id="vmShowQueue" class="vm-btn vm-btn-primary w-100"><i class="fas fa-search"></i>Show Orders</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="vm-card">
+                            <div class="vm-card-title">
+                                <span>VM Order Queue</span><div class="vm-actions">
+                                    <button type="button" id="vmExportQueue" class="vm-btn vm-btn-success vm-btn-xs"><i class="fas fa-file-excel"></i>Export Excel</button><span id="vmQueueCount" class="vm-record-count">0 records</span>
+                                </div>
+                            </div>
+                            <div class="vm-card-body vm-table-wrap">
+                                <table id="vmQueueTable" class="table table-striped table-hover vm-table">
+                                    <thead>
+                                        <tr></tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="modal fade" id="vmCoverageModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Abstractor Coverage</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body vm-table-wrap">
+                    <table id="vmCoverageTable" class="table table-striped table-bordered vm-table">
+                        <thead>
+                            <tr></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>
-
     </div>
+
+    <div class="modal fade" id="vmImportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Bulk VM Orders</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="vm-grid">
+                        <div class="vm-col-6 vm-field">
+                            <label class="required">Excel File</label><input id="vmImportFile" type="file" accept=".xls,.xlsx" class="vm-file w-100" />
+                        </div>
+                        <div class="vm-col-3">
+                            <button type="button" id="vmImportOrders" class="vm-btn vm-btn-primary w-100"><i class="fas fa-upload"></i>Import Excel</button>
+                        </div>
+                        <div class="vm-col-3"><a href="../VMExcel.xlsx" class="vm-btn vm-btn-light w-100"><i class="fas fa-download"></i>Download Format</a></div>
+                    </div>
+                    <div id="vmImportMessage" class="mt-3"></div>
+                    <div class="vm-table-wrap mt-3">
+                        <table id="vmImportResultTable" class="table table-bordered vm-table">
+                            <thead>
+                                <tr></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vmDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="vmDetailTitle" class="modal-title">Order Details</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div id="vmDetailContent" class="modal-body vm-table-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vmCommentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-comment-dots mr-2"></i>FollowUp</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input id="vmCommentOrderId" type="hidden" />
+                    <div class="vm-comment-summary">
+                        <div class="vm-grid">
+                            <div class="vm-col-3 vm-field">
+                                <label>Order #</label><input id="vmCommentOrderNo" class="vm-control" readonly /></div>
+                            <div class="vm-col-3 vm-field">
+                                <label>Order Date</label><input id="vmCommentOrderDate" class="vm-control" readonly /></div>
+                            <div class="vm-col-3 vm-field">
+                                <label>VM</label><input id="vmCommentVm" class="vm-control" readonly /></div>
+                            <div class="vm-col-3 vm-field">
+                                <label>Abstractor</label><input id="vmCommentAbstractor" class="vm-control" readonly /></div>
+                        </div>
+                    </div>
+                    <div class="vm-comment-form">
+                        <div class="vm-grid">
+                            <div class="vm-col-4 vm-field">
+                                <label class="required">Type</label>
+                                <select id="vmCommentType" class="vm-control">
+                                    <option value="Select">Select</option>
+                                    <option value="Connect With Abstractor">Connect With Abstractor</option>
+                                    <option value="Disconnect With Abstractor">Disconnect With Abstractor</option>
+                                </select>
+                            </div>
+                            <div class="vm-col-8 vm-field">
+                                <label class="required">Remark</label><textarea id="vmCommentText" class="vm-control"></textarea>
+                            </div>
+                            <div class="vm-col-12 vm-comment-actions" style="text-align:right:!important">
+                                <button id="vmSaveComment" type="button" class="vm-btn vm-btn-primary"><i class="fas fa-paper-plane"></i>Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="vmCommentsContent" class="vm-comment-history"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vmOrderProcessModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Process Order</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="vm-grid">
+                        <div class="vm-col-4 vm-field">
+                            <label>TaskId</label><input id="vmOrderProcessTaskId" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>Project #</label><input id="vmOrderProcessProject" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>Client Order #</label><input id="vmOrderProcessOrderNo" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>Order Date</label><input id="vmOrderProcessDate" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>Process</label><input id="vmOrderProcessName" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>VM</label><input id="vmOrderProcessVm" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-12 vm-field">
+                            <label>Abstractor</label><input id="vmOrderProcessAbstractor" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-12 vm-field">
+                            <label class="required">Attachment</label><input id="vmOrderProcessFile" type="file" class="vm-file w-100" />
+                        </div>
+                        <div class="vm-col-12 vm-field">
+                            <label class="required">Remark</label><textarea id="vmOrderProcessRemark" class="vm-control" maxlength="4000"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="vmCompleteOrder" class="vm-btn vm-btn-primary"><i class="fas fa-check"></i>Complete Process</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vmOrderStatusModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Status</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="vm-grid">
+                        <div class="vm-col-2 vm-field">
+                            <label>TaskId</label><input id="vmOrderStatusTaskId" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-2 vm-field">
+                            <label>Project #</label><input id="vmOrderStatusProject" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>Order #</label><input id="vmOrderStatusOrderNo" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-4 vm-field">
+                            <label>OrderDate</label><input id="vmOrderStatusDate" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-12 vm-field">
+                            <label>Abstractor</label><input id="vmOrderStatusAbstractor" class="vm-control" readonly />
+                        </div>
+                        <div class="vm-col-6 vm-field">
+                            <label>Select</label><select id="vmOrderStatusAction" class="vm-control"><option>Re-Allocate</option>
+                            </select>
+                        </div>
+                        <div class="vm-col-6 vm-field">
+                            <label class="required">Reallocate To</label><select id="vmOrderStatusVendor" class="vm-control"><option value="">Select</option>
+                            </select>
+                        </div>
+                        <div class="vm-col-12 vm-field">
+                            <label class="required">Remark</label><textarea id="vmOrderStatusRemark" class="vm-control" maxlength="4000"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="vmAllocateStatusOrder" class="vm-btn vm-btn-primary"><i class="fas fa-user-check"></i>Allocate Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vmProcessModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Process VM Order</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input id="vmProcessOrderId" type="hidden" /><input id="vmProcessId" type="hidden" /><input id="vmProcessAssignedId" type="hidden" /><div id="vmProcessSummary" class="vm-summary mb-3"></div>
+                    <div id="vmProcessTasks" class="vm-table-wrap mb-3"></div>
+                    <div class="vm-grid">
+                        <div class="vm-col-3 vm-field">
+                            <label class="required">Action</label><select id="vmProcessAction" class="vm-control"><option>Complete</option>
+                                <option>Hold</option>
+                                <option>Cancel</option>
+                            </select>
+                        </div>
+                        <div class="vm-col-3 vm-field">
+                            <label>Completion Attachment</label><input id="vmProcessFile" type="file" class="vm-file w-100" />
+                        </div>
+                        <div class="vm-col-6 vm-field">
+                            <label>Remark</label><textarea id="vmProcessRemark" class="vm-control"></textarea>
+                        </div>
+                        <div id="vmCancelFields" class="vm-col-12" style="display: none">
+                            <div class="vm-grid">
+                                <div class="vm-col-4 vm-field">
+                                    <label class="required">Cancelled By</label><input id="vmCancelledBy" class="vm-control" />
+                                </div>
+                                <div class="vm-col-8 vm-field">
+                                    <label class="required">Cancel Reason</label><input id="vmCancelReason" class="vm-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="vm-col-12 vm-check-row">
+                            <label>
+                                <input id="vmTaxCalling" type="checkbox" />
+                                Tax Calling</label><label><input id="vmAudit" type="checkbox" />
+                                    Audit</label><label><input id="vmOffline" type="checkbox" />
+                                        Offline</label><label><input id="vmDispatch" type="checkbox" />
+                                            Dispatch</label><label><input id="vmNoFeedback" type="checkbox" />
+                                                No Feedback</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="vm-btn vm-btn-light" data-dismiss="modal">Close</button>
+                    <button type="button" id="vmSubmitProcess" class="vm-btn vm-btn-primary"><i class="fas fa-check"></i>Submit Process</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="../Scripts/Search/VmOrders.js?v=5"></script>
 </asp:Content>

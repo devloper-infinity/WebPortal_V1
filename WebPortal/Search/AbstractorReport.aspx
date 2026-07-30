@@ -42,7 +42,6 @@
         .abstractor-report-page {
             background: var(--order-bg);
             min-height: calc(100vh - 72px);
-            padding: 18px;
         }
 
         .order-page-header {
@@ -286,7 +285,7 @@
     </script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="loading" id="load1">
+    <div class="loading search-page-loader" id="load1">
         <div>
             <img src="../images/Load_1.gif" />
             <div>One moment, please . . . .</div>
@@ -294,10 +293,13 @@
     </div>
 
     <div class="abstractor-report-page">
-        <div class="order-page-header">
-            <div>
-                <h1 class="order-title"><i class="fas fa-copy"></i><span>Abstractor Report</span></h1>
+        <div class="order-page-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-user-tie"></i></span>
+                <div class="search-header-copy">
+                <h1 class="order-title"><span>Abstractor Report</span></h1>
                 <div class="order-context">View abstractor details, coverage costing, and uploaded attachments</div>
+                </div>
             </div>
         </div>
 

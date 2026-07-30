@@ -693,17 +693,20 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="order-entry-page">
-        <div class="loading" id="load1">
+        <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
                 <div>One moment, please . . . .</div>
             </div>
         </div>
 
-        <div class="order-page-header">
-            <div>
-                <h1 class="order-title"><i class="fas fa-clipboard-list"></i><span>Order Entry</span></h1>
+        <div class="order-page-header search-modern-header">
+            <div class="search-header-identity">
+                <span class="search-header-icon"><i class="fas fa-file-signature"></i></span>
+                <div class="search-header-copy">
+                <h1 class="order-title"><span>Order Entry</span></h1>
                 <div class="order-context">Search Operations</div>
+                </div>
             </div>
         </div>
 

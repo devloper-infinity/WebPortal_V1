@@ -867,7 +867,7 @@
                         </div>
                         <div class="setappr-field">
                             <label for="setappr_title">Title</label>
-                            <select id="setappr_title" name="setappr_title" class="form-control" onchange="setappr_getApprDesc(this);"></select>
+                            <select id="setappr_title" name="setappr_title" class="form-control" onchange="setappr_getApprDesc(this);"> <option value="">Select</option></select>
                         </div>
                     </div>
 
