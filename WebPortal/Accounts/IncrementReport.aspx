@@ -71,14 +71,17 @@
    TABLE
 =================================== */
 
-#tblIncrementApproval {
+#incapr_tblIncrementApproval,
+#inchist_tblIncrementHistory {
     width: 100% !important;
 }
 
-#tblIncrementApproval thead th,
-#tblIncrementApproval tbody td,
-#tblIncrementApproval tfoot th,
-#tblIncrementApproval tfoot td {
+#incapr_tblIncrementApproval thead th,
+#incapr_tblIncrementApproval tbody td,
+#incapr_tblIncrementApproval tfoot th,
+#incapr_tblIncrementApproval tfoot td,
+#inchist_tblIncrementHistory thead th,
+#inchist_tblIncrementHistory tbody td {
 
     white-space: nowrap;
     vertical-align: middle;
@@ -86,8 +89,8 @@
 
 /* FOOTER */
 
-#tblIncrementApproval tfoot th,
-#tblIncrementApproval tfoot td {
+#incapr_tblIncrementApproval tfoot th,
+#incapr_tblIncrementApproval tfoot td {
 
     background: #f8fafc !important;
     font-weight: 600;
@@ -116,6 +119,16 @@
 
     overflow: hidden !important;
 }
+
+.inchist-column-filter {
+    display: block;
+    width: 100%;
+    min-width: 110px;
+    margin-top: 6px;
+    padding: 4px 6px;
+    font-size: 12px;
+    font-weight: normal;
+}
         /*.form-control {
             font-size: 11px !important;
         }*/
@@ -133,6 +146,7 @@
             incentry_bindretentionperiod();
             incentry_bindretentionyear();
             bindincrementapproval();
+            inchist_bindfilters();
         });
 
         window.onload = function () {
@@ -190,6 +204,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="custom-tabs-one-profile-tab-approval" data-toggle="pill" href="#custom-tabs-one-profile-approval" role="tab" aria-controls="custom-tabs-one-profile-approval" aria-selected="false">Increment Approval</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="custom-tabs-one-history-tab" data-toggle="pill" href="#custom-tabs-one-history" role="tab" aria-controls="custom-tabs-one-history" aria-selected="false">Increment History</a>
                             </li>
 
                         </ul>
@@ -599,6 +616,145 @@
 
                                     </div>
 
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="custom-tabs-one-history" role="tabpanel" aria-labelledby="custom-tabs-one-history-tab">
+                                <div class="erp-card">
+                                    <div class="erp-card-header">
+                                        <div class="erp-card-title">Increment History Filters</div>
+                                    </div>
+                                    <div class="erp-card-body">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-3">
+                                                <label for="inchist_code">Employee Code</label>
+                                                <select id="inchist_code" class="form-control">
+                                                    <option value="">All Employees</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_fromdate">Added From Date</label>
+                                                <input type="date" id="inchist_fromdate" class="form-control" />
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_todate">Added To Date</label>
+                                                <input type="date" id="inchist_todate" class="form-control" />
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_status">Status</label>
+                                                <select id="inchist_status" class="form-control">
+                                                    <option value="">All</option>
+                                                    <option value="Pending">Pending</option>
+                                                    <option value="Approved">Approved</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_frommonth">Effective From Month</label>
+                                                <select id="inchist_frommonth" class="form-control">
+                                                    <option value="0">All</option>
+                                                    <option value="1">January</option>
+                                                    <option value="2">February</option>
+                                                    <option value="3">March</option>
+                                                    <option value="4">April</option>
+                                                    <option value="5">May</option>
+                                                    <option value="6">June</option>
+                                                    <option value="7">July</option>
+                                                    <option value="8">August</option>
+                                                    <option value="9">September</option>
+                                                    <option value="10">October</option>
+                                                    <option value="11">November</option>
+                                                    <option value="12">December</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_fromyear">Effective From Year</label>
+                                                <select id="inchist_fromyear" class="form-control">
+                                                    <option value="0">All</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_tomonth">Effective To Month</label>
+                                                <select id="inchist_tomonth" class="form-control">
+                                                    <option value="0">All</option>
+                                                    <option value="1">January</option>
+                                                    <option value="2">February</option>
+                                                    <option value="3">March</option>
+                                                    <option value="4">April</option>
+                                                    <option value="5">May</option>
+                                                    <option value="6">June</option>
+                                                    <option value="7">July</option>
+                                                    <option value="8">August</option>
+                                                    <option value="9">September</option>
+                                                    <option value="10">October</option>
+                                                    <option value="11">November</option>
+                                                    <option value="12">December</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inchist_toyear">Effective To Year</label>
+                                                <select id="inchist_toyear" class="form-control">
+                                                    <option value="0">All</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-4">
+                                                <button type="button" id="inchist_btnShow" class="btn btn-primary" onclick="return inchist_bindgrid();">
+                                                    <i class="fa fa-search"></i> Show
+                                                </button>
+                                                <button type="button" id="inchist_btnReset" class="btn btn-secondary ml-2" onclick="return inchist_resetfilters();">
+                                                    <i class="fa fa-undo"></i> Reset
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="erp-card mt-3">
+                                    <div class="erp-card-header">
+                                        <div class="erp-card-title">Increment History</div>
+                                    </div>
+                                    <div class="erp-card-body">
+                                        <div class="table-responsive">
+                                            <table id="inchist_tblIncrementHistory" class="table table-bordered table-hover align-middle w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sr#</th>
+                                                        <th>
+                                                            Code
+                                                            <input type="text" class="form-control inchist-column-filter inchist-code-column-filter" placeholder="Filter code" />
+                                                        </th>
+                                                        <th>
+                                                            Employee Name
+                                                            <input type="text" class="form-control inchist-column-filter inchist-name-column-filter" placeholder="Filter name" />
+                                                        </th>
+                                                        <th>Before Salary</th>
+                                                        <th>Current Salary</th>
+                                                        <th>Difference</th>
+                                                        <th>Attendance Bonus</th>
+                                                        <th>Quality Bonus</th>
+                                                        <th>Month</th>
+                                                        <th>Year</th>
+                                                        <th>%</th>
+                                                        <th>Remark</th>
+                                                        <th>Next Due Month</th>
+                                                        <th>Next Due Year</th>
+                                                        <th>Retention Bonus</th>
+                                                        <th>Period</th>
+                                                        <th>Effective Month</th>
+                                                        <th>Effective Year</th>
+                                                        <th>Added By</th>
+                                                        <th>Added Date</th>
+                                                        <th>Status</th>
+                                                        <th>Approved By</th>
+                                                        <th>Approved Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

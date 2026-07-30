@@ -75,9 +75,8 @@ function LoadProjects() {
 
             $("#ddlProject").empty();
 
-            $("#ddlProject").append(
-                '<option value="">Select Project</option>'
-            );
+            $("#ddlProject").append('<option value="">Select Project</option>');
+            $("#ddlProject").append('<option value="0">All</option>');
 
             $.each(data, function (i, item) {
 

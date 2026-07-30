@@ -292,6 +292,11 @@ namespace WebPortal.App_Code.BLL
             return dalSalary.GetAllIncrementForApproval(ApprovalId);
         }
 
+        public DataTable GetIncrementHistory(string code, DateTime? fromDate, DateTime? toDate, int? fromMonth, int? fromYear, int? toMonth, int? toYear, string status)
+        {
+            return dalSalary.GetIncrementHistory(code, fromDate, toDate, fromMonth, fromYear, toMonth, toYear, status);
+        }
+
         public int approveIncrement_New(int IncrementID, int ApprovedBy, string ApprovedIP, string CurrentSalary)
         {
             return dalSalary.approveIncrement_New(IncrementID, ApprovedBy, ApprovedIP, CurrentSalary);
