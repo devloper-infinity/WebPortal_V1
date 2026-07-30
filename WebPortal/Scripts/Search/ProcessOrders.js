@@ -1,6 +1,7 @@
 var ProcessOrders_html;
 var InvoiceID;
 var invrec_SearchProcess;
+var processOrderDetailsTable;
 var processOrdersData = [];
 var selectedProcessOrder = null;
 
@@ -33,6 +34,18 @@ function getOrderValue(order, primaryName, fallbackName) {
 }
 
 function showProcessOrderMessage(type, message) {
+    if ($('.modal.show').length && window.Swal && typeof window.Swal.fire === 'function') {
+        clearProcessOrderMessage();
+        window.Swal.fire({
+            icon: type === 'success' ? 'success' : (type === 'warning' ? 'warning' : (type === 'info' ? 'info' : 'error')),
+            title: type === 'success' ? 'Success' : (type === 'warning' ? 'Validation' : (type === 'info' ? 'Information' : 'Error')),
+            text: message,
+            confirmButtonColor: '#0f766e',
+            allowOutsideClick: false
+        });
+        return;
+    }
+
     var $alert = $('#processOrderAlert');
     if (!$alert.length) {
         alert(message);
@@ -111,6 +124,7 @@ function BindGrid_PendingOrders() {
                 ProcessOrders_html += '<div class="dropdown-menu" role="menu">';
                 ProcessOrders_html += '<a class="dropdown-item" href="#!" onclick="return CompleteOrderProcess(\'' + htmlEncode(value.OrderID) + '\',' + index + ');"><i class="fas fa-check-circle text-success"></i><span>Complete Order</span></a>';
                 ProcessOrders_html += '<a class="dropdown-item" href="#!" onclick="return CompleteOrderProcessCosting(\'' + htmlEncode(value.OrderID) + '\',' + index + ');"><i class="fas fa-file-invoice-dollar text-primary"></i><span>Order Costing</span></a>';
+                ProcessOrders_html += '<a class="dropdown-item" href="#!" onclick="return CompleteOrderTaxDetails(\'' + htmlEncode(value.OrderID) + '\',' + index + ');"><i class="fas fa-receipt text-warning"></i><span>Tax Details</span></a>';
                 ProcessOrders_html += '</div></div></td>';
                 ProcessOrders_html += '<td style="text-wrap: nowrap;text-align:center;">' + htmlEncode(index + 1) + '</td>';
                 ProcessOrders_html += '<td style="text-wrap: nowrap;">' + htmlEncode(value.OrderID) + '</td>';
@@ -156,17 +170,138 @@ function BindGrid_PendingOrders() {
 function fillOrderSummary(prefix, order) {
     $('#' + prefix + 'Project').html('<b>Project No : </b>' + htmlEncode(getOrderValue(order, 'ProjectNumber', 'Project')));
     $('#' + prefix + 'OrderDate').html('<b>Order Date : </b>' + htmlEncode(getOrderValue(order, 'OrderDate')));
-    $('#' + prefix + 'OrderNo').html('<b>OrderNo # Production Cost Information Detail: </b>' + htmlEncode(getOrderValue(order, 'ClientOrderNo')));
+    $('#' + prefix + 'OrderNo').html('<b>OrderNo # : </b>' + htmlEncode(getOrderValue(order, 'ClientOrderNo')));
     $('#' + prefix + 'Process').html('<b>Process : </b>' + htmlEncode(getOrderValue(order, 'Process', 'ProcessName')));
     $('#' + prefix + 'Online').html('<b>OnOffline : </b>' + htmlEncode(getOrderValue(order, 'OnOffLine')));
 }
 
 function resetCompleteOrderModal() {
-    $('#Approval_Status').val('Complete');
+    $('#Approval_Status').val('');
     $('#Approval_remark').val('');
     $('#dashboard_attachment_upload').val('');
-    $('#ProcessOrders_DispatchOrder,#ProcessOrders_NoFeedback,#ProcessOrders_TaxCalling,#ProcessOrders_Audit,#ProcessOrders_Offline').prop('checked', false);
+    $('#ProcessOrders_DispatchOrder,#ProcessOrders_NoFeedback,#ProcessOrders_TaxCalling,#ProcessOrders_Audit,#ProcessOrders_SPQA,#ProcessOrders_Offline')
+        .prop('checked', false)
+        .prop('disabled', true);
+    resetOrderDetailsReport();
 }
+
+function applyCompleteOrderOptions(options) {
+    var checkboxRules = {
+        ProcessOrders_DispatchOrder: 'DispatchEnabled',
+        ProcessOrders_NoFeedback: 'NoFeedbackEnabled',
+        ProcessOrders_TaxCalling: 'TaxCallingEnabled',
+        ProcessOrders_Audit: 'AuditEnabled',
+        ProcessOrders_SPQA: 'SpqaEnabled',
+        ProcessOrders_Offline: 'OfflineEnabled'
+    };
+
+    $.each(checkboxRules, function (checkboxId, optionName) {
+        var enabled = options && options[optionName] === true;
+        var $checkbox = $('#' + checkboxId);
+        $checkbox.prop('disabled', !enabled);
+        if (!enabled) {
+            $checkbox.prop('checked', false);
+        }
+    });
+}
+
+function resetOrderDetailsReport() {
+    if ($.fn.dataTable.isDataTable('#ProcessOrders_OrderDetails')) {
+        $('#ProcessOrders_OrderDetails').DataTable().clear().destroy();
+    }
+
+    processOrderDetailsTable = null;
+    $('#ProcessOrders_OrderDetails tbody').html(
+        '<tr><td colspan="13" class="text-center text-muted">Loading order details...</td></tr>'
+    );
+}
+
+function orderDetailFileName(path) {
+    var parts = String(path || '').replace(/\\/g, '/').split('/');
+    return parts.length ? parts[parts.length - 1] : '';
+}
+
+function orderDetailDownloadLink(orderId, columnName, path) {
+    if (!path) {
+        return '';
+    }
+
+    var url = 'ProcessOrders.aspx?action=downloadOrderDetail' +
+        '&amp;orderId=' + encodeURIComponent(orderId) +
+        '&amp;column=' + encodeURIComponent(columnName) +
+        '&amp;path=' + encodeURIComponent(path);
+
+    return '<a class="ost-document-link" href="' + url + '">' +
+        '<i class="fas fa-download"></i><span>' +
+        htmlEncode(orderDetailFileName(path) || 'Download') +
+        '</span></a>';
+}
+
+function loadOrderDetailsReport(orderId) {
+    $.ajax({
+        url: 'ProcessOrders.aspx/GetOrderDetailsReport',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ OrderID: parseInt(orderId, 10) }),
+        success: function (result) {
+            var rows = JSON.parse((result && result.d) || '[]');
+            var html = '';
+
+            $.each(rows, function (index, row) {
+                var attachmentPath = getOrderValue(row, 'Path');
+                var orderSheetPath = getOrderValue(row, 'OrdersheetPath');
+                html += '<tr>' +
+                    '<td class="text-center">' + (index + 1) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'Process')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'OrderPriority')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'ClientOrderNo')) + '</td>' +
+                    '<td class="ost-detail-text">' +
+                        htmlEncode(getOrderValue(row, 'Remark')) + '</td>' +
+                    '<td>' + orderDetailDownloadLink(orderId, 'Path', attachmentPath) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'ClientIdNew')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'CustomerType')) + '</td>' +
+                    '<td class="ost-detail-text">' +
+                        htmlEncode(getOrderValue(row, 'LegalDescription')) + '</td>' +
+                    '<td class="ost-detail-text">' +
+                        htmlEncode(getOrderValue(row, 'Instruction')) + '</td>' +
+                    '<td>' + orderDetailDownloadLink(orderId, 'OrdersheetPath', orderSheetPath) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'AddedBy')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'AddedDate')) + '</td>' +
+                    '</tr>';
+            });
+
+            $('#ProcessOrders_OrderDetails tbody').html(html);
+            processOrderDetailsTable = $('#ProcessOrders_OrderDetails').DataTable({
+                dom: 't',
+                destroy: true,
+                paging: true,
+                pageLength: 5,
+                lengthChange: false,
+                autoWidth: false,
+                ordering: false,
+                processing: false,
+                language: {
+                    emptyTable: 'No order process details found.'
+                }
+            });
+
+            processOrderDetailsTable.columns.adjust();
+        },
+        error: function (error) {
+            $('#ProcessOrders_OrderDetails tbody').html(
+                '<tr><td colspan="13" class="text-center text-danger">Unable to load order details.</td></tr>'
+            );
+            processOrdersAjaxError(error, 'Unable to load order process details.');
+        }
+    });
+}
+
+$(document).on('shown.bs.modal', '#CompleteOrder', function () {
+    if (processOrderDetailsTable) {
+        processOrderDetailsTable.columns.adjust();
+    }
+});
 
 function resetCostingModal() {
     $('#ProcessOrders_SearchEType').val('');
@@ -176,6 +311,268 @@ function resetCostingModal() {
     $('#ProcessOrders_Total').val('');
     $('#ProcessOrders_CostRemark').val('');
 }
+
+var taxInstallments = ['First', 'Second', 'Third', 'Fourth'];
+var taxAmountFields = ['BaseAmount', 'PaidAmount', 'DueAmount', 'Penalty'];
+var taxDateFields = ['PaidDate', 'DueDate'];
+var taxMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function taxDateToInput(value) {
+    var text = $.trim(blankForNull(value));
+    if (!text) {
+        return '';
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+        return taxDateForServer(text);
+    }
+
+    var match = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(text);
+    if (match) {
+        var monthIndex = taxMonthNames.map(function (month) {
+            return month.toLowerCase();
+        }).indexOf(match[2].toLowerCase());
+
+        if (monthIndex >= 0) {
+            return String(parseInt(match[1], 10)).padStart(2, '0') + '-' +
+                taxMonthNames[monthIndex] + '-' + match[3];
+        }
+    }
+
+    return '';
+}
+
+function taxDateForServer(value) {
+    var text = $.trim(value || '');
+    var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+    if (!match) {
+        return text;
+    }
+
+    var monthIndex = parseInt(match[2], 10) - 1;
+    if (monthIndex < 0 || monthIndex > 11) {
+        return text;
+    }
+
+    return match[3] + '-' + taxMonthNames[monthIndex] + '-' + match[1];
+}
+
+function initializeTaxDatePickers() {
+    if (!$.fn.datepicker) {
+        return;
+    }
+
+    $('.tax-date-picker').each(function () {
+        var $input = $(this);
+        if ($input.hasClass('hasDatepicker')) {
+            return;
+        }
+
+        $input.datepicker({
+            dateFormat: 'dd-M-yy',
+            changeMonth: true,
+            changeYear: true,
+            yearRange: '1900:+20',
+            showOn: 'both',
+            buttonText: 'Select date'
+        });
+
+        $input.next('.ui-datepicker-trigger')
+            .attr({
+                title: 'Select date',
+                'aria-label': 'Select date'
+            })
+            .html('<i class="fas fa-calendar-alt" aria-hidden="true"></i>');
+    });
+}
+
+function showTaxDetailsMessage(icon, title, message) {
+    if (window.Swal && typeof window.Swal.fire === 'function') {
+        return window.Swal.fire({
+            icon: icon,
+            title: title,
+            text: message,
+            confirmButtonColor: '#0f766e'
+        });
+    }
+
+    showProcessOrderMessage(
+        icon === 'success' ? 'success' : (icon === 'warning' ? 'warning' : 'danger'),
+        message
+    );
+    return $.Deferred().resolve().promise();
+}
+
+function resetTaxDetailsModal() {
+    taxInstallments.forEach(function (installment) {
+        taxAmountFields.concat(taxDateFields).forEach(function (field) {
+            $('#ProcessOrders_Tax' + installment + field).val('');
+        });
+        $('#ProcessOrders_Tax' + installment + 'Delinquency').val('Select');
+    });
+
+    $('#ProcessOrders_TaxRemark').val('');
+    $('#ProcessOrders_TaxOrderID').val('');
+    $('#ProcessOrders_TaxSave').prop('disabled', false);
+}
+
+function setTaxDetailsValues(row) {
+    if (!row) {
+        return;
+    }
+
+    taxInstallments.forEach(function (installment) {
+        taxAmountFields.concat(taxDateFields).forEach(function (field) {
+            var value = blankForNull(row[installment + field]);
+            if (taxDateFields.indexOf(field) >= 0) {
+                value = taxDateToInput(value);
+            }
+
+            $('#ProcessOrders_Tax' + installment + field)
+                .val(value);
+        });
+
+        var delinquency = blankForNull(row[installment + 'Delinquency']) || 'Select';
+        $('#ProcessOrders_Tax' + installment + 'Delinquency').val(delinquency);
+    });
+
+    $('#ProcessOrders_TaxRemark').val(blankForNull(row.Remark));
+}
+
+function CompleteOrderTaxDetails(orderId, selected) {
+    selectedProcessOrder = processOrdersData[selected] || null;
+    if (!selectedProcessOrder) {
+        showTaxDetailsMessage('error', 'Unable to Open', 'Unable to find selected order details.');
+        return false;
+    }
+
+    resetTaxDetailsModal();
+    InvoiceID = orderId;
+    $('#ProcessOrders_TaxOrderID').val(orderId);
+    $('#TaxDetails').modal('show');
+    $('#ProcessOrders_TaxSave').prop('disabled', true);
+    $('#load1').css('display', 'flex');
+
+    $.ajax({
+        url: 'ProcessOrders.aspx/GetTaxDetails',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ OrderID: parseInt(orderId, 10) }),
+        success: function (result) {
+            var rows = JSON.parse((result && result.d) || '[]');
+            if (rows.length) {
+                setTaxDetailsValues(rows[0]);
+            }
+        },
+        error: function () {
+            showTaxDetailsMessage('error', 'Unable to Load', 'Tax details could not be loaded.');
+        },
+        complete: function () {
+            $('#load1').hide();
+            $('#ProcessOrders_TaxSave').prop('disabled', false);
+        }
+    });
+
+    return false;
+}
+
+function getTaxDetailsRequest() {
+    var request = {
+        OrderID: parseInt($('#ProcessOrders_TaxOrderID').val(), 10) || 0,
+        Remark: $.trim($('#ProcessOrders_TaxRemark').val())
+    };
+
+    taxInstallments.forEach(function (installment) {
+        taxAmountFields.concat(taxDateFields).forEach(function (field) {
+            var value = $.trim($('#ProcessOrders_Tax' + installment + field).val());
+            request[installment + field] =
+                taxDateFields.indexOf(field) >= 0 ? taxDateForServer(value) : value;
+        });
+        request[installment + 'Delinquency'] =
+            $('#ProcessOrders_Tax' + installment + 'Delinquency').val();
+    });
+
+    return request;
+}
+
+function validateTaxDetails(request) {
+    if (!request.OrderID) {
+        return 'Please select a valid order.';
+    }
+
+    if (!request.Remark) {
+        $('#ProcessOrders_TaxRemark').trigger('focus');
+        return 'Please enter remark.';
+    }
+
+    var datePattern = /^(0[1-9]|[12][0-9]|3[01])-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/;
+    var error = '';
+
+    taxInstallments.some(function (installment) {
+        return taxDateFields.some(function (field) {
+            var value = request[installment + field];
+            if (value && !datePattern.test(value)) {
+                $('#ProcessOrders_Tax' + installment + field).trigger('focus');
+                error = 'Please enter ' + installment.toLowerCase() + ' ' +
+                    (field === 'PaidDate' ? 'paid date' : 'due date') +
+                    ' in DD-MMM-YYYY format.';
+                return true;
+            }
+            return false;
+        });
+    });
+
+    return error;
+}
+
+function SaveTaxDetails() {
+    var request = getTaxDetailsRequest();
+    var validationMessage = validateTaxDetails(request);
+    if (validationMessage) {
+        showTaxDetailsMessage('warning', 'Validation', validationMessage);
+        return false;
+    }
+
+    $('#load1').css('display', 'flex');
+    setProcessOrderButtonBusy('#ProcessOrders_TaxSave', true, '<i class="fas fa-spinner fa-spin"></i><span>Saving...</span>');
+
+    $.ajax({
+        url: 'ProcessOrders.aspx/SaveTaxDetails',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ request: request }),
+        success: function (result) {
+            var response = parseServerResponse(result);
+            if (!response.Success) {
+                showTaxDetailsMessage('error', 'Not Saved', response.Message || 'Tax details were not saved.');
+                return;
+            }
+
+            $('#TaxDetails').modal('hide');
+            resetTaxDetailsModal();
+            showTaxDetailsMessage('success', 'Saved', response.Message || 'Tax details saved successfully.');
+        },
+        error: function () {
+            showTaxDetailsMessage('error', 'Not Saved', 'An error occurred while saving tax details.');
+        },
+        complete: function () {
+            $('#load1').hide();
+            setProcessOrderButtonBusy('#ProcessOrders_TaxSave', false);
+        }
+    });
+
+    return false;
+}
+
+$(document).on('hidden.bs.modal', '#TaxDetails', function () {
+    resetTaxDetailsModal();
+});
+
+$(document).on('shown.bs.modal', '#TaxDetails', function () {
+    initializeTaxDatePickers();
+});
 
 function CompleteOrderProcessCosting(InvoiceId, selected) {
 
@@ -190,8 +587,6 @@ function CompleteOrderProcessCosting(InvoiceId, selected) {
     // resetCostingModal();
     // $('#OrderCosting').modal('show');
 
-
-
     return false;
 }
 
@@ -205,7 +600,35 @@ function CompleteOrderProcess(InvoiceId, selected) {
     InvoiceID = InvoiceId;
     fillOrderSummary('complete', selectedProcessOrder);
     resetCompleteOrderModal();
-    $('#CompleteOrder').modal('show');
+    $('#load1').show();
+
+    $.ajax({
+        url: 'ProcessOrders.aspx/GetCompleteOrderOptions',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({
+            OrderID: parseInt(getOrderValue(selectedProcessOrder, 'OrderID'), 10)
+        }),
+        success: function (result) {
+            var response = parseServerResponse(result);
+            if (!response.Success) {
+                showProcessOrderMessage('warning', response.Message || 'Unable to identify current process for selected order.');
+                return;
+            }
+
+            applyCompleteOrderOptions(response);
+            loadOrderDetailsReport(getOrderValue(selectedProcessOrder, 'OrderID'));
+            $('#CompleteOrder').modal('show');
+        },
+        error: function (error) {
+            processOrdersAjaxError(error, 'Unable to load process options.');
+        },
+        complete: function () {
+            $('#load1').hide();
+        }
+    });
+
     return false;
 }
 

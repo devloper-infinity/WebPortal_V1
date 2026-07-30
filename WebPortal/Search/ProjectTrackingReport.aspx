@@ -236,14 +236,15 @@
         }
 
         .tracking-table-frame {
-            border: 1px solid var(--track-soft);
-            border-radius: 8px;
+            border: 1px solid #d7e2ea;
+            border-radius: 12px;
             overflow: hidden;
             background: #ffffff;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .07);
         }
 
         .tracking-table-wrap {
-            padding: 12px;
+            padding: 14px;
             overflow-x: auto;
         }
 
@@ -267,13 +268,14 @@
         .tracking-table thead th,
         #Search_ProjectTracking thead th,
         #table_track_attachment thead th {
-            color: var(--track-text);
-            background: #edf3f6 !important;
-            background-image: none !important;
-            border-color: #d7e2ea !important;
-            border-bottom: 1px solid #d7e2ea !important;
+            height: 42px;
+            color: #164e4a;
+            background: linear-gradient(180deg, #edf7f6 0%, #dcefeb 100%) !important;
+            border-color: #c7dfdb !important;
+            border-bottom: 2px solid #5da9a1 !important;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: .01em;
             white-space: nowrap;
             vertical-align: middle;
         }
@@ -281,34 +283,97 @@
         .tracking-table tbody td,
         #Search_ProjectTracking tbody td,
         #table_track_attachment tbody td {
+            padding: 9px 10px !important;
             color: var(--track-text);
             background: #ffffff !important;
+            border-color: #e2e8f0 !important;
             font-size: 12px;
             vertical-align: middle;
+            transition: background-color .15s ease, color .15s ease;
+        }
+
+        #Search_ProjectTracking tbody tr:nth-child(even) td {
+            background: #f8fafc !important;
         }
 
         .tracking-table tbody tr:hover td,
         #Search_ProjectTracking tbody tr:hover td,
         #table_track_attachment tbody tr:hover td {
-            background: #f8fbfb !important;
+            background: #eaf8f6 !important;
         }
 
         #Search_ProjectTracking tbody tr.tracking-row-hold td {
-            background: #fff7cc !important;
+            background:  #fcf86f!important;/*#fff7cc*/
         }
 
         #Search_ProjectTracking tbody tr.tracking-row-dispatch td {
-            background: #e5f8ed !important;
+            background:  #affc9f!important;/*#e5f8ed*/
         }
 
-        .tracking-icon-btn {
-            width: 34px;
-            height: 34px;
+        .tracking-action-column {
+            position: sticky !important;
+            left: 0;
+            z-index: 4;
+            min-width: 132px !important;
+            width: 132px !important;
+            text-align: center !important;
+            box-shadow: 6px 0 12px rgba(15, 23, 42, .08);
+        }
+
+        thead .tracking-action-column {
+            z-index: 7;
+        }
+
+        .tracking-actions-disabled .tracking-action-column {
+            display: none !important;
+        }
+
+        .tracking-action-buttons {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .tracking-action-btn {
+            width: 32px;
+            height: 32px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 0;
-            border-radius: 7px;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            font-size: 12px;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, .12);
+            transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+        }
+
+        .tracking-action-btn:hover,
+        .tracking-action-btn:focus {
+            color: #ffffff;
+            transform: translateY(-1px);
+            filter: brightness(.95);
+            box-shadow: 0 7px 14px rgba(15, 23, 42, .18);
+        }
+
+        .tracking-action-edit {
+            color: #ffffff;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            border-color: #15803d;
+        }
+
+        .tracking-action-status {
+            color: #ffffff;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            border-color: #1d4ed8;
+        }
+
+        .tracking-action-attachment {
+            color: #ffffff;
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            border-color: #b45309;
         }
 
         .tracking-chip {
@@ -364,8 +429,12 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
         }
 
         .dataTables_wrapper .dataTables_filter {
@@ -383,8 +452,11 @@
         .dataTables_wrapper .dataTables_length select {
             min-height: 34px;
             border: 1px solid #ccd6df;
-            border-radius: 7px;
+            border-radius: 999px;
             margin-left: 6px;
+            padding: 5px 12px;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, .04);
         }
 
         .dataTables_wrapper .dataTables_info {
@@ -399,7 +471,18 @@
         }
 
         .dataTables_wrapper .paginate_button {
-            border-radius: 7px !important;
+            min-width: 34px;
+            margin: 0 2px !important;
+            border: 1px solid #d7e2ea !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+        }
+
+        .dataTables_wrapper .paginate_button.current,
+        .dataTables_wrapper .paginate_button.current:hover {
+            color: #ffffff !important;
+            border-color: var(--track-primary) !important;
+            background: var(--track-primary) !important;
         }
 
         .dataTables_wrapper .dt-buttons {
@@ -412,9 +495,9 @@
             color: #ffffff !important;
             background: var(--track-accent) !important;
             border: 0 !important;
-            border-radius: 7px !important;
+            border-radius: 9px !important;
             font-weight: 700 !important;
-            box-shadow: none !important;
+            box-shadow: 0 6px 14px rgba(37, 99, 235, .18) !important;
         }
 
         .tracking-modal .modal-dialog {
@@ -608,6 +691,9 @@
     </style>
 
     <script>
+        window.ProjectTracking_CurrentEmployeeId =
+            parseInt('<%= HttpContext.Current.User.Identity.Name %>', 10) || 0;
+
         $(document).ready(function () {
 
             var today = new Date();
@@ -628,7 +714,7 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="tracking-page">
+    <div class="tracking-page tracking-actions-disabled">
         <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />
@@ -685,7 +771,7 @@
                         <table class="table table-hover table-sm tracking-table" id="Search_ProjectTracking">
                             <thead>
                                 <tr>
-                                    <th>Actions</th>
+                                    <th class="tracking-action-column">Actions</th>
                                     <th>Sr. #</th>
                                     <th>OrderID</th>
                                     <th>Project</th>

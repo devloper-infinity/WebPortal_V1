@@ -352,9 +352,9 @@ function OSTReport_BindEmptyTable() {
 function OSTReport_TableColumns() {
     return [
         { data: "_SrNo", className: "text-center", width: "56px" },
-        { data: "ProjectNumber", render: OSTReport_TextRenderer },
-        { data: "ClientOrderNo", render: OSTReport_TextRenderer },
-        { data: "OrderDate", render: OSTReport_TextRenderer },
+        { data: "ProjectNumber", render: OSTReport_TextRenderer, className: "text-nowrap" },
+        { data: "ClientOrderNo", render: OSTReport_TextRenderer, className: "text-nowrap" },
+        { data: "OrderDate", render: OSTReport_TextRenderer, className: "text-nowrap" },
         {
             data: "OnOffLine",
             render: function (data, type, row) {
@@ -447,7 +447,7 @@ function OSTReport_BindTable(rows, title) {
         autoWidth: false,
         ordering: false,
         paging: true,
-        pageLength: 25,
+        pageLength: 10,
         lengthChange: false,
         processing: true,
         orderCellsTop: true,

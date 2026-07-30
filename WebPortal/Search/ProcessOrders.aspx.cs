@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -20,6 +21,15 @@ namespace WebPortal.Search
             try
             {
                 HttpContext postedContext = HttpContext.Current;
+                if (string.Equals(
+                    postedContext.Request.QueryString["action"],
+                    "downloadOrderDetail",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    DownloadOrderDetailFile();
+                    return;
+                }
+
                 if (postedContext.Request.Files.Count == 0)
                 {
                     return;
@@ -50,11 +60,162 @@ namespace WebPortal.Search
             }
         }
 
+        protected override void Render(HtmlTextWriter writer)
+        {
+            if (string.Equals(
+                Request.QueryString["action"],
+                "downloadOrderDetail",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            base.Render(writer);
+        }
+
         [WebMethod]
         public static string GetAllPendingOrders()
         {
             DataTable dt1 = new bllOST().GetAllPendingOrders(int.Parse(HttpContext.Current.User.Identity.Name));
             return SerializeDataTable(dt1);
+        }
+
+        [WebMethod]
+        public static string GetOrderDetailsReport(int OrderID)
+        {
+            if (OrderID <= 0)
+            {
+                return "[]";
+            }
+
+            DataTable details = new bllOST().GetOrderDetailsProcesswise(OrderID);
+            return SerializeDataTable(details);
+        }
+
+        [WebMethod]
+        public static string GetTaxDetails(int OrderID)
+        {
+            if (OrderID <= 0)
+            {
+                return "[]";
+            }
+
+            DataTable details = new bllVendors().BindTaxDetails(OrderID);
+            return SerializeDataTable(details);
+        }
+
+        [WebMethod]
+        public static ProcessOrderResponse SaveTaxDetails(TaxDetailsRequest request)
+        {
+            try
+            {
+                if (request == null || request.OrderID <= 0)
+                {
+                    return BuildResponse(false, "Please select a valid order.");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Remark))
+                {
+                    return BuildResponse(false, "Please enter remark.");
+                }
+
+                string validationMessage = ValidateTaxDetails(request);
+                if (!string.IsNullOrEmpty(validationMessage))
+                {
+                    return BuildResponse(false, validationMessage);
+                }
+
+                Hashtable taxDetails = new Hashtable();
+                taxDetails["OrderID"] = request.OrderID;
+                taxDetails["FirstBaseAmount"] = CleanTaxValue(request.FirstBaseAmount);
+                taxDetails["SecondBaseAmount"] = CleanTaxValue(request.SecondBaseAmount);
+                taxDetails["ThirdBaseAmount"] = CleanTaxValue(request.ThirdBaseAmount);
+                taxDetails["FourthBaseAmount"] = CleanTaxValue(request.FourthBaseAmount);
+                taxDetails["FirstPaidAmount"] = CleanTaxValue(request.FirstPaidAmount);
+                taxDetails["SecondPaidAmount"] = CleanTaxValue(request.SecondPaidAmount);
+                taxDetails["ThirdPaidAmount"] = CleanTaxValue(request.ThirdPaidAmount);
+                taxDetails["FourthPaidAmount"] = CleanTaxValue(request.FourthPaidAmount);
+                taxDetails["FirstPaidDate"] = CleanTaxValue(request.FirstPaidDate);
+                taxDetails["SecondPaidDate"] = CleanTaxValue(request.SecondPaidDate);
+                taxDetails["ThirdPaidDate"] = CleanTaxValue(request.ThirdPaidDate);
+                taxDetails["FourthPaidDate"] = CleanTaxValue(request.FourthPaidDate);
+                taxDetails["FirstDueAmount"] = CleanTaxValue(request.FirstDueAmount);
+                taxDetails["SecondDueAmount"] = CleanTaxValue(request.SecondDueAmount);
+                taxDetails["ThirdDueAmount"] = CleanTaxValue(request.ThirdDueAmount);
+                taxDetails["FourthDueAmount"] = CleanTaxValue(request.FourthDueAmount);
+                taxDetails["FirstDueDate"] = CleanTaxValue(request.FirstDueDate);
+                taxDetails["SecondDueDate"] = CleanTaxValue(request.SecondDueDate);
+                taxDetails["ThirdDueDate"] = CleanTaxValue(request.ThirdDueDate);
+                taxDetails["FourthDueDate"] = CleanTaxValue(request.FourthDueDate);
+                taxDetails["FirstPenalty"] = CleanTaxValue(request.FirstPenalty);
+                taxDetails["SecondPenalty"] = CleanTaxValue(request.SecondPenalty);
+                taxDetails["ThirdPenalty"] = CleanTaxValue(request.ThirdPenalty);
+                taxDetails["FourthPenalty"] = CleanTaxValue(request.FourthPenalty);
+                taxDetails["FirstDelinquency"] = NormalizeDelinquency(request.FirstDelinquency);
+                taxDetails["SecondDelinquency"] = NormalizeDelinquency(request.SecondDelinquency);
+                taxDetails["ThirdDelinquency"] = NormalizeDelinquency(request.ThirdDelinquency);
+                taxDetails["FourthDelinquency"] = NormalizeDelinquency(request.FourthDelinquency);
+                taxDetails["Remark"] = request.Remark.Trim();
+                taxDetails["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name);
+
+                int returnValue = new bllOST().InsertInfinity_OST_TaxDetails(taxDetails);
+                return returnValue > 0
+                    ? BuildResponse(true, "Tax details saved successfully.", returnValue)
+                    : BuildResponse(false, "Tax details were not saved.", returnValue);
+            }
+            catch (Exception ex)
+            {
+                return BuildResponse(false, "Tax details were not saved. " + ex.Message);
+            }
+        }
+
+        [WebMethod]
+        public static CompleteOrderOptions GetCompleteOrderOptions(int OrderID)
+        {
+            if (OrderID <= 0)
+            {
+                return new CompleteOrderOptions
+                {
+                    Success = false,
+                    Message = "Please select a valid order."
+                };
+            }
+
+            try
+            {
+                int userId = int.Parse(HttpContext.Current.User.Identity.Name);
+                DataTable currentProcess = new bllOST().GetCurrentProcessOfUser(OrderID, userId);
+                if (currentProcess == null || currentProcess.Rows.Count == 0)
+                {
+                    return new CompleteOrderOptions
+                    {
+                        Success = false,
+                        Message = "Unable to identify current process for selected order."
+                    };
+                }
+
+                int processId = GetInt(
+                    currentProcess.Rows[0],
+                    "Processid",
+                    "ProcessId",
+                    "TaskProcessid",
+                    "TaskProcessID");
+
+                CompleteOrderOptions options = BuildCompleteOrderOptions(processId);
+                options.Success = processId > 0;
+                options.Message = processId > 0
+                    ? string.Empty
+                    : "Unable to identify current process for selected order.";
+                return options;
+            }
+            catch (Exception ex)
+            {
+                return new CompleteOrderOptions
+                {
+                    Success = false,
+                    Message = "Unable to load process options. " + ex.Message
+                };
+            }
         }
 
         [WebMethod]
@@ -230,6 +391,78 @@ namespace WebPortal.Search
             }
         }
 
+        private static string ValidateTaxDetails(TaxDetailsRequest request)
+        {
+            string[] amountValues =
+            {
+                request.FirstBaseAmount, request.SecondBaseAmount, request.ThirdBaseAmount, request.FourthBaseAmount,
+                request.FirstPaidAmount, request.SecondPaidAmount, request.ThirdPaidAmount, request.FourthPaidAmount,
+                request.FirstDueAmount, request.SecondDueAmount, request.ThirdDueAmount, request.FourthDueAmount,
+                request.FirstPenalty, request.SecondPenalty, request.ThirdPenalty, request.FourthPenalty
+            };
+
+            foreach (string amountValue in amountValues)
+            {
+                string value = CleanTaxValue(amountValue);
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                decimal amount;
+                bool validAmount =
+                    decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out amount) ||
+                    decimal.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out amount);
+                if (!validAmount || amount < 0)
+                {
+                    return "Please enter valid non-negative tax amounts.";
+                }
+            }
+
+            string[] dateValues =
+            {
+                request.FirstPaidDate, request.SecondPaidDate, request.ThirdPaidDate, request.FourthPaidDate,
+                request.FirstDueDate, request.SecondDueDate, request.ThirdDueDate, request.FourthDueDate
+            };
+
+            foreach (string dateValue in dateValues)
+            {
+                string value = CleanTaxValue(dateValue);
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                DateTime parsedDate;
+                if (!DateTime.TryParseExact(
+                    value,
+                    "dd-MMM-yyyy",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out parsedDate))
+                {
+                    return "Please enter tax dates in DD-MMM-YYYY format.";
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static string CleanTaxValue(string value)
+        {
+            return (value ?? string.Empty).Trim();
+        }
+
+        private static string NormalizeDelinquency(string value)
+        {
+            string normalized = CleanTaxValue(value);
+            return string.Equals(normalized, "Yes", StringComparison.OrdinalIgnoreCase)
+                ? "Yes"
+                : string.Equals(normalized, "No", StringComparison.OrdinalIgnoreCase)
+                    ? "No"
+                    : "Select";
+        }
+
         private static string SerializeDataTable(DataTable dt)
         {
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
@@ -250,6 +483,73 @@ namespace WebPortal.Search
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        private void DownloadOrderDetailFile()
+        {
+            int orderId;
+            if (!int.TryParse(Request.QueryString["orderId"], out orderId) || orderId <= 0)
+            {
+                throw new InvalidOperationException("Invalid order.");
+            }
+
+            string columnName = Request.QueryString["column"];
+            if (columnName != "Path" && columnName != "OrdersheetPath")
+            {
+                throw new InvalidOperationException("Invalid document type.");
+            }
+
+            string requestedPath = Request.QueryString["path"] ?? string.Empty;
+            DataTable details = new bllOST().GetOrderDetailsProcesswise(orderId);
+            bool pathBelongsToOrder = false;
+            if (details != null && details.Columns.Contains(columnName))
+            {
+                foreach (DataRow row in details.Rows)
+                {
+                    if (string.Equals(
+                        Convert.ToString(row[columnName]),
+                        requestedPath,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        pathBelongsToOrder = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!pathBelongsToOrder || string.IsNullOrWhiteSpace(requestedPath))
+            {
+                throw new FileNotFoundException("Document was not found for the selected order.");
+            }
+
+            string physicalPath;
+            if (requestedPath.StartsWith("~"))
+            {
+                physicalPath = Server.MapPath(requestedPath.Replace('\\', '/'));
+            }
+            else if (Path.IsPathRooted(requestedPath))
+            {
+                physicalPath = requestedPath;
+            }
+            else
+            {
+                physicalPath = Server.MapPath(
+                    "~/" + requestedPath.TrimStart('/', '\\').Replace('\\', '/'));
+            }
+
+            if (!File.Exists(physicalPath))
+            {
+                throw new FileNotFoundException("Document was not found on the server.");
+            }
+
+            Response.Clear();
+            Response.ContentType = MimeMapping.GetMimeMapping(physicalPath);
+            Response.AddHeader(
+                "Content-Disposition",
+                "attachment; filename=\"" + Path.GetFileName(physicalPath).Replace("\"", string.Empty) + "\"");
+            Response.TransmitFile(physicalPath);
+            Response.Flush();
+            Context.ApplicationInstance.CompleteRequest();
         }
 
         private static ProcessOrderResponse BuildResponse(bool success, string message, int returnValue = 0, string redirectUrl = "")
@@ -340,6 +640,52 @@ namespace WebPortal.Search
         private static bool ShouldSendTaxProcess(int processId, bool taxCalling)
         {
             return taxCalling && (processId == 1 || processId == 2 || processId == 11);
+        }
+
+        private static CompleteOrderOptions BuildCompleteOrderOptions(int processId)
+        {
+            CompleteOrderOptions options = new CompleteOrderOptions
+            {
+                ProcessId = processId,
+                SpqaEnabled = false
+            };
+
+            switch (processId)
+            {
+                case 1: // Search
+                    options.TaxCallingEnabled = true;
+                    break;
+
+                case 2: // Re-search
+                    options.DispatchEnabled = true;
+                    options.NoFeedbackEnabled = true;
+                    options.TaxCallingEnabled = true;
+                    options.AuditEnabled = true;
+                    options.OfflineEnabled = true;
+                    break;
+
+                case 11: // Audit
+                    options.DispatchEnabled = true;
+                    options.NoFeedbackEnabled = true;
+                    options.TaxCallingEnabled = true;
+                    options.OfflineEnabled = true;
+                    break;
+
+                case 5: // QA
+                    options.DispatchEnabled = true;
+                    options.NoFeedbackEnabled = true;
+                    break;
+
+                case 6: // Dispatch
+                    options.DispatchEnabled = true;
+                    options.NoFeedbackEnabled = true;
+                    options.TaxCallingEnabled = true;
+                    options.AuditEnabled = true;
+                    options.OfflineEnabled = true;
+                    break;
+            }
+
+            return options;
         }
 
         private static bool IsCostingExempt(string projectNumber)
@@ -532,6 +878,53 @@ namespace WebPortal.Search
             public string Message { get; set; }
             public int ReturnValue { get; set; }
             public string RedirectUrl { get; set; }
+        }
+
+        public class CompleteOrderOptions
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public int ProcessId { get; set; }
+            public bool DispatchEnabled { get; set; }
+            public bool NoFeedbackEnabled { get; set; }
+            public bool TaxCallingEnabled { get; set; }
+            public bool AuditEnabled { get; set; }
+            public bool SpqaEnabled { get; set; }
+            public bool OfflineEnabled { get; set; }
+        }
+
+        public class TaxDetailsRequest
+        {
+            public int OrderID { get; set; }
+            public string FirstBaseAmount { get; set; }
+            public string SecondBaseAmount { get; set; }
+            public string ThirdBaseAmount { get; set; }
+            public string FourthBaseAmount { get; set; }
+            public string FirstPaidAmount { get; set; }
+            public string SecondPaidAmount { get; set; }
+            public string ThirdPaidAmount { get; set; }
+            public string FourthPaidAmount { get; set; }
+            public string FirstPaidDate { get; set; }
+            public string SecondPaidDate { get; set; }
+            public string ThirdPaidDate { get; set; }
+            public string FourthPaidDate { get; set; }
+            public string FirstDueAmount { get; set; }
+            public string SecondDueAmount { get; set; }
+            public string ThirdDueAmount { get; set; }
+            public string FourthDueAmount { get; set; }
+            public string FirstDueDate { get; set; }
+            public string SecondDueDate { get; set; }
+            public string ThirdDueDate { get; set; }
+            public string FourthDueDate { get; set; }
+            public string FirstPenalty { get; set; }
+            public string SecondPenalty { get; set; }
+            public string ThirdPenalty { get; set; }
+            public string FourthPenalty { get; set; }
+            public string FirstDelinquency { get; set; }
+            public string SecondDelinquency { get; set; }
+            public string ThirdDelinquency { get; set; }
+            public string FourthDelinquency { get; set; }
+            public string Remark { get; set; }
         }
     }
 }

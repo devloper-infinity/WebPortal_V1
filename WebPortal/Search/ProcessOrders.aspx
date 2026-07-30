@@ -2,6 +2,9 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
+    <link href="../plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css" rel="stylesheet" />
+    <link href="../plugins/jquery-ui/jquery-ui.min.css" rel="stylesheet" />
+
     <style>
         :root {
             --ost-bg: #f4f6f8;
@@ -508,26 +511,292 @@
                 grid-column: 1 / -1;
             }
 
+        .ost-modal.tax-modal .modal-dialog {
+            max-width: 1180px;
+        }
+
+        .tax-installment-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .tax-installment-card {
+            min-width: 0;
+            padding: 16px;
+            border: 1px solid #d8e1e8;
+            border-top: 3px solid #0f766e;
+            border-radius: 10px;
+            background: #f8fafc;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, .05);
+        }
+
+        .tax-installment-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            color: #0f766e;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+            .tax-installment-title i {
+                font-size: 7px;
+            }
+
+        .tax-installment-card .ost-field {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+            .tax-installment-card .ost-field:last-child {
+                margin-bottom: 0;
+            }
+
+        .tax-currency-control {
+            position: relative;
+        }
+
+            .tax-currency-control > span {
+                position: absolute;
+                z-index: 2;
+                top: 50%;
+                left: 12px;
+                color: #64748b;
+                transform: translateY(-50%);
+            }
+
+            .tax-currency-control .form-control {
+                padding-left: 28px;
+            }
+
+        .tax-date-picker {
+            padding-right: 38px !important;
+        }
+
+        .tax-installment-card .ui-datepicker-trigger {
+            position: absolute;
+            right: 7px;
+            bottom: 5px;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            color: #0f766e;
+            background: transparent;
+            border: 0;
+            border-radius: 6px;
+        }
+
+            .tax-installment-card .ui-datepicker-trigger:hover,
+            .tax-installment-card .ui-datepicker-trigger:focus {
+                color: #ffffff;
+                background: #0f766e;
+                outline: 0;
+            }
+
+        .ui-datepicker {
+            z-index: 100000 !important;
+        }
+
+        .swal2-container {
+            z-index: 200000 !important;
+        }
+
+        .tax-remark-panel {
+            margin-top: 16px;
+            padding: 16px;
+            border: 1px solid #d8e1e8;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .tax-required {
+            color: #dc2626;
+        }
+
         .ost-choice-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 18px;
+            gap: 12px 20px;
             padding-top: 4px;
         }
 
-            .ost-choice-row label {
-                display: inline-flex;
-                align-items: center;
-                gap: 7px;
-                margin: 0;
-                color: var(--ost-text);
-                font-size: 12px;
-                font-weight: 700;
+        .ost-order-details-panel {
+            margin-top: 2px;
+            padding: 12px;
+            background: #ffffff;
+            border: 1px solid var(--ost-border);
+            border-radius: 8px;
+        }
+
+        .ost-order-details-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin: 0 0 10px;
+            color: var(--ost-text);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+            .ost-order-details-title i {
+                color: var(--ost-primary);
             }
 
-            .ost-choice-row input {
-                margin: 0;
+        #ProcessOrders_OrderDetails {
+            width: 100% !important;
+            min-width: 1580px;
+        }
+
+            #ProcessOrders_OrderDetails th,
+            #ProcessOrders_OrderDetails td {
+                font-size: 11px !important;
+                vertical-align: middle;
+                white-space: nowrap;
             }
+
+                #ProcessOrders_OrderDetails td.ost-detail-text {
+                    max-width: 240px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+        .ost-order-details-panel .dataTables_wrapper {
+            width: 100%;
+        }
+
+        .ost-order-details-panel .dataTables_filter,
+        .ost-order-details-panel .dataTables_info,
+        .ost-order-details-panel .dataTables_paginate {
+            margin: 4px 0;
+            font-size: 11px;
+        }
+
+        .ost-document-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--ost-accent);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+            .ost-document-link:hover,
+            .ost-document-link:focus {
+                color: #1d4ed8;
+                text-decoration: underline;
+            }
+
+        .ost-choice-row .checkbox-wrapper-24 {
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .ost-choice-row .checkbox-wrapper-24 label {
+                display: inline-flex;
+                align-items: center;
+                margin: 0;
+                color: var(--ost-text);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 25px;
+                position: relative;
+            }
+
+                .ost-choice-row .checkbox-wrapper-24 label span {
+                    display: inline-block;
+                    position: relative;
+                    width: 25px;
+                    height: 25px;
+                    margin-right: 9px;
+                    background-color: transparent;
+                    border: 2px solid var(--ost-primary);
+                    border-radius: 50%;
+                    transform-origin: center;
+                    transition: background-color 150ms 200ms, transform 350ms cubic-bezier(.78, -1.22, .17, 1.89);
+                }
+
+                    .ost-choice-row .checkbox-wrapper-24 label span::before {
+                        content: "";
+                        width: 0;
+                        height: 2px;
+                        border-radius: 2px;
+                        background: var(--ost-primary);
+                        position: absolute;
+                        transform: rotate(45deg);
+                        top: 11px;
+                        left: 7px;
+                        transform-origin: 0 0;
+                        transition: width 50ms ease 50ms;
+                    }
+
+                    .ost-choice-row .checkbox-wrapper-24 label span::after {
+                        content: "";
+                        width: 0;
+                        height: 2px;
+                        border-radius: 2px;
+                        background: var(--ost-primary);
+                        position: absolute;
+                        transform: rotate(305deg);
+                        top: 14px;
+                        left: 8px;
+                        transform-origin: 0 0;
+                        transition: width 50ms ease;
+                    }
+
+                .ost-choice-row .checkbox-wrapper-24 label:hover span::before {
+                    width: 5px;
+                    transition: width 100ms ease;
+                }
+
+                .ost-choice-row .checkbox-wrapper-24 label:hover span::after {
+                    width: 10px;
+                    transition: width 150ms ease 100ms;
+                }
+
+            .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"] {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+                .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:focus + label span {
+                    box-shadow: 0 0 0 3px rgba(15, 118, 110, .18);
+                }
+
+                .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:checked + label span {
+                    background-color: var(--ost-primary);
+                    transform: scale(1.12);
+                }
+
+                    .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:checked + label span::before {
+                        width: 5px;
+                        background: #ffffff;
+                        transition: width 150ms ease 100ms;
+                    }
+
+                    .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:checked + label span::after {
+                        width: 10px;
+                        background: #ffffff;
+                        transition: width 150ms ease 100ms;
+                    }
+
+                .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:disabled + label {
+                    cursor: not-allowed;
+                    opacity: .55;
+                }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ost-choice-row .checkbox-wrapper-24 label span,
+            .ost-choice-row .checkbox-wrapper-24 label span::before,
+            .ost-choice-row .checkbox-wrapper-24 label span::after {
+                transition: none;
+            }
+        }
 
         #processOrderAlert {
             display: none;
@@ -550,6 +819,10 @@
         @media (max-width: 991px) {
             .ost-filter-grid {
                 grid-template-columns: repeat(2, minmax(180px, 1fr));
+            }
+
+            .tax-installment-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
@@ -583,6 +856,10 @@
             .ost-modal-grid {
                 grid-template-columns: 1fr;
             }
+
+            .tax-installment-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 
@@ -591,8 +868,8 @@
             BindGrid_PendingOrders();
         });
     </script>
-
-
+    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="../plugins/jquery-ui/jquery-ui.min.js"></script>
     <portal:VersionedScript Src="~/Scripts/Search/ProcessOrders.js" runat="server"></portal:VersionedScript>
 
 </asp:Content>
@@ -611,12 +888,13 @@
             <div class="search-header-identity">
                 <span class="search-header-icon"><i class="fas fa-cogs"></i></span>
                 <div class="search-header-copy">
-                <h1 class="ost-title">
-                    <span>Process Orders</span>
-                </h1>
-                <div class="ost-context">
-                    Review, assign, and manage pending orders across operational processes
-                </div>
+                    <h1 class="ost-title">
+                        <span>Process Orders</span>
+                    </h1>
+                    <div class="ost-context">
+                        Review, assign, and manage pending orders across operational processes
+               
+                    </div>
                 </div>
             </div>
         </div>
@@ -632,6 +910,7 @@
                         </h2>
                         <p class="ost-grid-subtitle">
                             View order status, assignment details, process information, and available actions
+                       
                         </p>
                     </div>
                 </div>
@@ -671,16 +950,18 @@
                     <div class="modal-body">
                         <div class="ost-modal-summary">
                             <label id="completeProject"></label>
-                            <label id="completeOrderDate"></label>
-                            <label id="completeOrderNo"></label>
-                            <label id="completeOnline"></label>
                             <label id="completeProcess"></label>
+                            <label id="completeOrderNo" style="text-wrap: nowrap;"></label>
+                            <label id="completeOrderDate"></label>
+                            <label id="completeOnline"></label>
+
                         </div>
 
                         <div class="ost-modal-grid">
                             <div class="ost-field">
                                 <label for="Approval_Status">Status</label>
                                 <select id="Approval_Status" name="Approval_Status" class="form-control">
+                                    <option value="">Select</option>
                                     <option value="Complete">Complete Process</option>
                                     <option value="Hold">Hold Order</option>
                                     <option value="Cancel">Cancel Order</option>
@@ -693,26 +974,63 @@
                             <div class="ost-field full">
                                 <label>Additional Action</label>
                                 <div class="ost-choice-row">
-                                    <label>
+                                    <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_DispatchOrder" />
-                                        Dispatch Order</label>
-                                    <label>
+                                        <label for="ProcessOrders_DispatchOrder"><span></span>Dispatch Order</label>
+                                    </div>
+                                    <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_NoFeedback" />
-                                        No Feedback</label>
-                                    <label>
+                                        <label for="ProcessOrders_NoFeedback"><span></span>No Feedback</label>
+                                    </div>
+                                    <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_TaxCalling" />
-                                        Tax Calling</label>
-                                    <label>
+                                        <label for="ProcessOrders_TaxCalling"><span></span>Tax Calling</label>
+                                    </div>
+                                    <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_Audit" />
-                                        Audit</label>
-                                    <label>
+                                        <label for="ProcessOrders_Audit"><span></span>Audit</label>
+                                    </div>
+                                    <div class="checkbox-wrapper-24">
+                                        <input type="checkbox" id="ProcessOrders_SPQA" />
+                                        <label for="ProcessOrders_SPQA"><span></span>SPQA</label>
+                                    </div>
+                                    <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_Offline" />
-                                        Offline</label>
+                                        <label for="ProcessOrders_Offline"><span></span>Offline</label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="ost-field full">
                                 <label for="Approval_remark">Remark</label>
                                 <textarea id="Approval_remark" name="Approval_remark" class="form-control" rows="4"></textarea>
+                            </div>
+                            <div class="ost-field full ost-order-details-panel">
+                                <h2 class="ost-order-details-title">
+                                    <i class="fas fa-list-alt"></i>
+                                    <span>Order Process Details</span>
+                                </h2>
+                                <div class="ost-table-wrap">
+                                    <table id="ProcessOrders_OrderDetails" class="table table-bordered table-hover ost-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Sr. #</th>
+                                                <th>Process Name</th>
+                                                <th>OrderPriority</th>
+                                                <th>Order No</th>
+                                                <th>Remark</th>
+                                                <th>AttachedDocument</th>
+                                                <th>ClientId</th>
+                                                <th>CustomerType</th>
+                                                <th>LegalDescription</th>
+                                                <th>Instruction</th>
+                                                <th>OrderSheet</th>
+                                                <th>AddedBy</th>
+                                                <th>AddedDate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -723,6 +1041,126 @@
                         <button class="btn btn-ost-primary" type="button" id="btnStep5" onclick="return CompleteOrder();">
                             <i class="fas fa-paper-plane"></i><span>Submit</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade ost-modal tax-modal" id="TaxDetails" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="TaxDetailsTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title" id="TaxDetailsTitle"><i class="fas fa-receipt"></i><span>Tax Details</span></h1>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="ProcessOrders_TaxOrderID" />
+                        <div class="tax-installment-grid">
+                            <div class="tax-installment-card">
+                                <h2 class="tax-installment-title"><i class="fas fa-circle"></i><span>1st Installment</span></h2>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstBaseAmount">Base Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFirstBaseAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstPaidAmount">Paid Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFirstPaidAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstPaidDate">Paid Date</label><input type="text" id="ProcessOrders_TaxFirstPaidDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstDueAmount">Due Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFirstDueAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstDueDate">Due Date</label><input type="text" id="ProcessOrders_TaxFirstDueDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstPenalty">Penalty and Interest</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFirstPenalty" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFirstDelinquency">Delinquency</label><select id="ProcessOrders_TaxFirstDelinquency" class="form-control"><option value="Select">Select</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select></div>
+                            </div>
+                            <div class="tax-installment-card">
+                                <h2 class="tax-installment-title"><i class="fas fa-circle"></i><span>2nd Installment</span></h2>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondBaseAmount">Base Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxSecondBaseAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondPaidAmount">Paid Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxSecondPaidAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondPaidDate">Paid Date</label><input type="text" id="ProcessOrders_TaxSecondPaidDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondDueAmount">Due Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxSecondDueAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondDueDate">Due Date</label><input type="text" id="ProcessOrders_TaxSecondDueDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondPenalty">Penalty and Interest</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxSecondPenalty" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxSecondDelinquency">Delinquency</label><select id="ProcessOrders_TaxSecondDelinquency" class="form-control"><option value="Select">Select</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select></div>
+                            </div>
+                            <div class="tax-installment-card">
+                                <h2 class="tax-installment-title"><i class="fas fa-circle"></i><span>3rd Installment</span></h2>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdBaseAmount">Base Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxThirdBaseAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdPaidAmount">Paid Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxThirdPaidAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdPaidDate">Paid Date</label><input type="text" id="ProcessOrders_TaxThirdPaidDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdDueAmount">Due Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxThirdDueAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdDueDate">Due Date</label><input type="text" id="ProcessOrders_TaxThirdDueDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdPenalty">Penalty and Interest</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxThirdPenalty" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxThirdDelinquency">Delinquency</label><select id="ProcessOrders_TaxThirdDelinquency" class="form-control"><option value="Select">Select</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select></div>
+                            </div>
+                            <div class="tax-installment-card">
+                                <h2 class="tax-installment-title"><i class="fas fa-circle"></i><span>4th Installment</span></h2>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthBaseAmount">Base Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFourthBaseAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthPaidAmount">Paid Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFourthPaidAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthPaidDate">Paid Date</label><input type="text" id="ProcessOrders_TaxFourthPaidDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthDueAmount">Due Amount</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFourthDueAmount" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthDueDate">Due Date</label><input type="text" id="ProcessOrders_TaxFourthDueDate" class="form-control tax-date-picker" placeholder="dd-MMM-yyyy" autocomplete="off" readonly="readonly" /></div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthPenalty">Penalty and Interest</label><div class="tax-currency-control"><span>$</span><input type="number" min="0" step="0.01" id="ProcessOrders_TaxFourthPenalty" class="form-control" /></div>
+                                </div>
+                                <div class="ost-field">
+                                    <label for="ProcessOrders_TaxFourthDelinquency">Delinquency</label><select id="ProcessOrders_TaxFourthDelinquency" class="form-control"><option value="Select">Select</option>
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select></div>
+                            </div>
+                        </div>
+                        <div class="tax-remark-panel ost-field">
+                            <label for="ProcessOrders_TaxRemark">Remark <span class="tax-required">*</span></label>
+                            <textarea id="ProcessOrders_TaxRemark" class="form-control" rows="4" maxlength="5000"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-ost-secondary" data-dismiss="modal"><i class="fas fa-times"></i><span>Close</span></button>
+                        <button type="button" class="btn btn-ost-primary" id="ProcessOrders_TaxSave" onclick="return SaveTaxDetails();"><i class="fas fa-save"></i><span>Submit</span></button>
                     </div>
                 </div>
             </div>

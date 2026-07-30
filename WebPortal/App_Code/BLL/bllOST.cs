@@ -118,6 +118,11 @@ namespace WebPortal.App_Code.BLL
             return dalOst.InsertProductionManualCosting(htParam);
         }
 
+        public int InsertInfinity_OST_TaxDetails(Hashtable htParam)
+        {
+            return dalOst.InsertInfinity_OST_TaxDetails(htParam);
+        }
+
         public DataTable GetOrderCostingForUpdate(int OrderId)
         {
             return dalOst.GetOrderCostingForUpdate(OrderId);
