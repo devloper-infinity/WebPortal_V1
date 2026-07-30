@@ -412,3 +412,476 @@ function incentry_submit_OnSuccess(result) {
 function incentry_submit_OnError(error) {
     alert(error.get_message());
 }
+
+// Increment Approval
+function bindincrementapproval() {
+    $('#load1').show();
+
+    $.ajax({
+        url: "IncrementReport.aspx/GetIncrementApprovalList",
+        type: "POST",
+        data: "{}",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            var approvalData = JSON.parse(response.d || "[]");
+
+            $('#incapr_tblIncrementApproval').DataTable({
+                destroy: true,
+                data: approvalData,
+                paging: false,
+                searching: true,
+                ordering: false,
+                processing: true,
+                autoWidth: false,
+                scrollX: true,
+                columns: [
+                    {
+                        data: 'IncrementID',
+                        searchable: false,
+                        render: function (data, type) {
+                            if (type !== 'display') {
+                                return data;
+                            }
+
+                            return '<input type="checkbox" class="incapr_rowCheck" value="' + data + '" />';
+                        }
+                    },
+                    {
+                        data: null,
+                        searchable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: 'Code', defaultContent: '' },
+                    { data: 'FullName', defaultContent: '' },
+                    { data: 'BeforeSalary', defaultContent: '' },
+                    { data: 'CurrentSalary', defaultContent: '' },
+                    { data: 'Difference', defaultContent: '' },
+                    { data: 'AttendanceBonus', defaultContent: '' },
+                    { data: 'QualityBonus', defaultContent: '' },
+                    { data: 'Month', defaultContent: '' },
+                    { data: 'Year', defaultContent: '' },
+                    { data: 'Percentage', defaultContent: '' },
+                    { data: 'Remark', defaultContent: '' },
+                    { data: 'NextDueMonth', defaultContent: '' },
+                    { data: 'NextDueYear', defaultContent: '' },
+                    { data: 'RetentionBonus', defaultContent: '' },
+                    { data: 'RetentionBonusPeriod1', defaultContent: '' },
+                    { data: 'RetentionBonusMonth1', defaultContent: '' },
+                    { data: 'RetentionBonusYear1', defaultContent: '' },
+                    { data: 'AddedByName', defaultContent: '' },
+                    {
+                        data: 'AddedDate',
+                        defaultContent: '',
+                        render: function (data, type) {
+                            if (!data || type !== 'display') {
+                                return data || '';
+                            }
+
+                            var match = /\/Date\((\d+)\)\//.exec(data);
+                            return match ? new Date(parseInt(match[1], 10)).toLocaleString() : data;
+                        }
+                    }
+                ],
+                fnCreatedRow: function (row) {
+                    $(row).children("td").css("white-space", "nowrap");
+                },
+                drawCallback: function () {
+                    $('#incapr_chkAll').prop('checked', false);
+                }
+            });
+
+            $('#incapr_chkAll').prop('checked', false);
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Unable to load increments',
+                text: xhr.responseJSON && xhr.responseJSON.Message
+                    ? xhr.responseJSON.Message
+                    : 'Please try again or contact the administrator.'
+            });
+        },
+        complete: function () {
+            $('#load1').hide();
+        }
+    });
+}
+
+$(document)
+    .off('change.incrementApproval', '#incapr_chkAll')
+    .on('change.incrementApproval', '#incapr_chkAll', function () {
+        $('.incapr_rowCheck').prop('checked', this.checked);
+    })
+    .off('change.incrementApproval', '.incapr_rowCheck')
+    .on('change.incrementApproval', '.incapr_rowCheck', function () {
+        var rowCheckboxes = $('.incapr_rowCheck');
+        var checkedRows = rowCheckboxes.filter(':checked');
+
+        $('#incapr_chkAll').prop(
+            'checked',
+            rowCheckboxes.length > 0 && rowCheckboxes.length === checkedRows.length
+        );
+    })
+    .off('shown.bs.tab.incrementApproval', '#custom-tabs-one-profile-tab-approval')
+    .on('shown.bs.tab.incrementApproval', '#custom-tabs-one-profile-tab-approval', function () {
+        if ($.fn.DataTable.isDataTable('#incapr_tblIncrementApproval')) {
+            $('#incapr_tblIncrementApproval').DataTable().columns.adjust().draw(false);
+        }
+    });
+
+function approveincrements() {
+    var table = $('#incapr_tblIncrementApproval').DataTable();
+    var increments = [];
+
+    $('.incapr_rowCheck:checked').each(function () {
+        var rowData = table.row($(this).closest('tr')).data();
+
+        if (rowData) {
+            increments.push({
+                IncrementID: parseInt(rowData.IncrementID, 10),
+                CurrentSalary: String(rowData.CurrentSalary == null ? '' : rowData.CurrentSalary)
+            });
+        }
+    });
+
+    if (increments.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No employee selected',
+            text: 'Please select at least one increment to approve.'
+        });
+        return false;
+    }
+
+    Swal.fire({
+        icon: 'question',
+        title: 'Approve selected increments?',
+        text: increments.length + ' increment(s) will be approved.',
+        showCancelButton: true,
+        confirmButtonText: 'Approve',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#28a745'
+    }).then(function (result) {
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        $('#load1').show();
+        $('#incapr_btnSubmit').prop('disabled', true);
+
+        $.ajax({
+            url: "IncrementReport.aspx/ApproveIncrements",
+            type: "POST",
+            data: JSON.stringify({ increments: increments }),
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            success: function (response) {
+                var resultData = response.d;
+
+                if (resultData && resultData.Status === 1) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Approved',
+                        text: resultData.Message
+                    }).then(function () {
+                        bindincrementapproval();
+                    });
+                }
+                else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Approval failed',
+                        text: resultData && resultData.Message
+                            ? resultData.Message
+                            : 'The selected increments could not be approved.'
+                    });
+                }
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Approval failed',
+                    text: xhr.responseJSON && xhr.responseJSON.Message
+                        ? xhr.responseJSON.Message
+                        : 'Please try again or contact the administrator.'
+                });
+            },
+            complete: function () {
+                $('#load1').hide();
+                $('#incapr_btnSubmit').prop('disabled', false);
+            }
+        });
+    });
+
+    return false;
+}
+
+var inchistLoaded = false;
+
+function inchist_bindfilters() {
+    var currentYear = new Date().getFullYear();
+    var fromYear = $('#inchist_fromyear');
+    var toYear = $('#inchist_toyear');
+
+    fromYear.empty().append($('<option></option>').val(0).text('All'));
+    toYear.empty().append($('<option></option>').val(0).text('All'));
+
+    for (var year = currentYear + 1; year >= 2000; year--) {
+        fromYear.append($('<option></option>').val(year).text(year));
+        toYear.append($('<option></option>').val(year).text(year));
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "IncrementReport.aspx/GetAllCodes",
+        data: "{}",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            var employees = JSON.parse(response.d || "[]");
+            var codeSelect = $('#inchist_code');
+
+            codeSelect.empty().append($('<option></option>').val('').text('All Employees'));
+
+            $.each(employees, function (index, employee) {
+                codeSelect.append(
+                    $('<option></option>')
+                        .val(employee.Code)
+                        .text(employee.Code + ' : ' + employee.Name)
+                );
+            });
+        }
+    });
+}
+
+function inchist_formatdate(value) {
+    if (!value) {
+        return '';
+    }
+
+    var aspNetDate = /\/Date\((\d+)\)\//.exec(value);
+    var dateValue = aspNetDate ? new Date(parseInt(aspNetDate[1], 10)) : new Date(value);
+
+    return isNaN(dateValue.getTime()) ? value : dateValue.toLocaleString();
+}
+
+function inchist_validatefilters() {
+    var fromDate = $('#inchist_fromdate').val();
+    var toDate = $('#inchist_todate').val();
+    var fromMonth = parseInt($('#inchist_frommonth').val(), 10) || 0;
+    var fromYear = parseInt($('#inchist_fromyear').val(), 10) || 0;
+    var toMonth = parseInt($('#inchist_tomonth').val(), 10) || 0;
+    var toYear = parseInt($('#inchist_toyear').val(), 10) || 0;
+    var message = '';
+
+    if (fromDate && toDate && fromDate > toDate) {
+        message = 'Added From Date cannot be later than Added To Date.';
+    }
+    else if (fromMonth > 0 && fromYear === 0) {
+        message = 'Please select an Effective From Year.';
+    }
+    else if (toMonth > 0 && toYear === 0) {
+        message = 'Please select an Effective To Year.';
+    }
+    else if (fromYear > 0 && toYear > 0) {
+        var fromKey = (fromYear * 100) + (fromMonth || 1);
+        var toKey = (toYear * 100) + (toMonth || 12);
+
+        if (fromKey > toKey) {
+            message = 'Effective From Month-Year cannot be later than Effective To Month-Year.';
+        }
+    }
+
+    if (message) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid filter range',
+            text: message
+        });
+        return false;
+    }
+
+    return true;
+}
+
+function inchist_bindgrid() {
+    if (!inchist_validatefilters()) {
+        return false;
+    }
+
+    var filters = {
+        Code: $('#inchist_code').val() || '',
+        FromDate: $('#inchist_fromdate').val() || '',
+        ToDate: $('#inchist_todate').val() || '',
+        FromMonth: parseInt($('#inchist_frommonth').val(), 10) || 0,
+        FromYear: parseInt($('#inchist_fromyear').val(), 10) || 0,
+        ToMonth: parseInt($('#inchist_tomonth').val(), 10) || 0,
+        ToYear: parseInt($('#inchist_toyear').val(), 10) || 0,
+        Status: $('#inchist_status').val() || ''
+    };
+
+    $('#load1').show();
+    $('#inchist_btnShow').prop('disabled', true);
+
+    $.ajax({
+        url: "IncrementReport.aspx/GetIncrementHistory",
+        type: "POST",
+        data: JSON.stringify(filters),
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            var historyData = JSON.parse(response.d || "[]");
+
+            $('#inchist_tblIncrementHistory').DataTable({
+                destroy: true,
+                data: historyData,
+                dom: 'lBfrtip',
+                paging: true,
+                pageLength: 25,
+                searching: true,
+                ordering: false,
+                processing: true,
+                autoWidth: false,
+                scrollX: true,
+                columns: [
+                    {
+                        data: null,
+                        searchable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    { data: 'Code', defaultContent: '' },
+                    { data: 'FullName', defaultContent: '' },
+                    { data: 'BeforeSalary', defaultContent: '' },
+                    { data: 'CurrentSalary', defaultContent: '' },
+                    { data: 'Difference', defaultContent: '' },
+                    { data: 'AttendanceBonus', defaultContent: '' },
+                    { data: 'QualityBonus', defaultContent: '' },
+                    { data: 'Month', defaultContent: '' },
+                    { data: 'Year', defaultContent: '' },
+                    { data: 'Percentage', defaultContent: '' },
+                    { data: 'Remark', defaultContent: '' },
+                    { data: 'NextDueMonth', defaultContent: '' },
+                    { data: 'NextDueYear', defaultContent: '' },
+                    { data: 'RetentionBonus', defaultContent: '' },
+                    { data: 'RetentionBonusPeriod1', defaultContent: '' },
+                    { data: 'RetentionBonusMonth1', defaultContent: '' },
+                    { data: 'RetentionBonusYear1', defaultContent: '' },
+                    { data: 'AddedByName', defaultContent: '' },
+                    {
+                        data: 'AddedDate',
+                        defaultContent: '',
+                        render: function (data, type) {
+                            return type === 'display' ? inchist_formatdate(data) : (data || '');
+                        }
+                    },
+                    { data: 'ApprovalStatus', defaultContent: '' },
+                    { data: 'ApprovedByName', defaultContent: '' },
+                    {
+                        data: 'ApprovedDate',
+                        defaultContent: '',
+                        render: function (data, type) {
+                            return type === 'display' ? inchist_formatdate(data) : (data || '');
+                        }
+                    }
+                ],
+                fnCreatedRow: function (row) {
+                    $(row).children('td').css('white-space', 'nowrap');
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Increment History',
+                        autoFilter: true
+                    }
+                ],
+                initComplete: function () {
+                    var historyTable = this.api();
+
+                    $('.inchist-code-column-filter')
+                        .off('.incrementHistoryColumn')
+                        .on('click.incrementHistoryColumn', function (event) {
+                            event.stopPropagation();
+                        })
+                        .on('keyup.incrementHistoryColumn change.incrementHistoryColumn', function () {
+                            var filterValue = this.value;
+                            $('.inchist-code-column-filter').not(this).val(filterValue);
+
+                            if (historyTable.column(1).search() !== filterValue) {
+                                historyTable.column(1).search(filterValue).draw();
+                            }
+                        });
+
+                    $('.inchist-name-column-filter')
+                        .off('.incrementHistoryColumn')
+                        .on('click.incrementHistoryColumn', function (event) {
+                            event.stopPropagation();
+                        })
+                        .on('keyup.incrementHistoryColumn change.incrementHistoryColumn', function () {
+                            var filterValue = this.value;
+                            $('.inchist-name-column-filter').not(this).val(filterValue);
+
+                            if (historyTable.column(2).search() !== filterValue) {
+                                historyTable.column(2).search(filterValue).draw();
+                            }
+                        });
+
+                    historyTable.columns.adjust();
+                }
+            });
+
+            inchistLoaded = true;
+        },
+        error: function (xhr) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Unable to load increment history',
+                text: xhr.responseJSON && xhr.responseJSON.Message
+                    ? xhr.responseJSON.Message
+                    : 'Please try again or contact the administrator.'
+            });
+        },
+        complete: function () {
+            $('#load1').hide();
+            $('#inchist_btnShow').prop('disabled', false);
+        }
+    });
+
+    return false;
+}
+
+function inchist_resetfilters() {
+    $('#inchist_code').val('');
+    $('#inchist_fromdate').val('');
+    $('#inchist_todate').val('');
+    $('#inchist_frommonth').val('0');
+    $('#inchist_fromyear').val('0');
+    $('#inchist_tomonth').val('0');
+    $('#inchist_toyear').val('0');
+    $('#inchist_status').val('');
+    $('.inchist-code-column-filter').val('');
+    $('.inchist-name-column-filter').val('');
+
+    if ($.fn.DataTable.isDataTable('#inchist_tblIncrementHistory')) {
+        $('#inchist_tblIncrementHistory').DataTable()
+            .column(1).search('')
+            .column(2).search('');
+    }
+
+    return inchist_bindgrid();
+}
+
+$(document)
+    .off('shown.bs.tab.incrementHistory', '#custom-tabs-one-history-tab')
+    .on('shown.bs.tab.incrementHistory', '#custom-tabs-one-history-tab', function () {
+        if (!inchistLoaded) {
+            inchist_bindgrid();
+        }
+        else if ($.fn.DataTable.isDataTable('#inchist_tblIncrementHistory')) {
+            $('#inchist_tblIncrementHistory').DataTable().columns.adjust().draw(false);
+        }
+    });

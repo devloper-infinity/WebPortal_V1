@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -308,6 +309,49 @@ namespace WebPortal.Accounts
                 return "[]";
             }
         }
+
+        [WebMethod]
+        public static string GetIncrementHistory(string Code, string FromDate, string ToDate, int FromMonth, int FromYear, int ToMonth, int ToYear, string Status)
+        {
+            try
+            {
+                DateTime parsedDate;
+                DateTime? fromDateValue = DateTime.TryParseExact(
+                    FromDate,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out parsedDate)
+                    ? parsedDate
+                    : (DateTime?)null;
+
+                DateTime? toDateValue = DateTime.TryParseExact(
+                    ToDate,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out parsedDate)
+                    ? parsedDate
+                    : (DateTime?)null;
+
+                DataTable dt = new bllSalary().GetIncrementHistory(
+                    Code ?? string.Empty,
+                    fromDateValue,
+                    toDateValue,
+                    FromMonth > 0 ? (int?)FromMonth : null,
+                    FromYear > 0 ? (int?)FromYear : null,
+                    ToMonth > 0 ? (int?)ToMonth : null,
+                    ToYear > 0 ? (int?)ToYear : null,
+                    Status ?? string.Empty);
+
+                return Newtonsoft.Json.JsonConvert.SerializeObject(dt);
+            }
+            catch
+            {
+                return "[]";
+            }
+        }
+
         [WebMethod]
         public static ResponseMessage ApproveIncrements(List<IncrementApprovalModel> increments)
         {

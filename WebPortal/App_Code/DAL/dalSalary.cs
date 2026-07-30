@@ -640,6 +640,88 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetIncrementHistory(string code, DateTime? fromDate, DateTime? toDate, int? fromMonth, int? fromYear, int? toMonth, int? toYear, string status)
+        {
+            const string query = @"
+                WITH IncrementHistory AS
+                (
+                    SELECT
+                        im.IncrementID,
+                        employee.Code,
+                        LTRIM(RTRIM(ISNULL(employee.FirstName, '') + ' ' + ISNULL(employee.LastName, ''))) AS FullName,
+                        im.BeforeSalary,
+                        im.CurrentSalary,
+                        im.Difference,
+                        ISNULL(im.AttendanceBonus, 0) AS AttendanceBonus,
+                        ISNULL(im.QualityBonus, 0) AS QualityBonus,
+                        im.Month,
+                        im.Year,
+                        CAST((CAST(im.Difference AS DECIMAL(18, 2)) /
+                            NULLIF(CAST(im.BeforeSalary AS DECIMAL(18, 2)), 0)) * 100 AS DECIMAL(18, 2)) AS Percentage,
+                        im.Remark,
+                        im.NextDueMonth,
+                        im.NextDueYear,
+                        ISNULL(im.RetentionBonus, 0) AS RetentionBonus,
+                        CASE WHEN im.RetentionBonusPeriod = 'Select' THEN '' ELSE ISNULL(im.RetentionBonusPeriod, '') END AS RetentionBonusPeriod1,
+                        CASE WHEN im.RetentionBonusMonth = 'Select' THEN '' ELSE ISNULL(im.RetentionBonusMonth, '') END AS RetentionBonusMonth1,
+                        CASE WHEN im.RetentionBonusYear = 'Select' THEN '' ELSE ISNULL(im.RetentionBonusYear, '') END AS RetentionBonusYear1,
+                        LTRIM(RTRIM(ISNULL(addedBy.FirstName, '') + ' ' + ISNULL(addedBy.LastName, ''))) AS AddedByName,
+                        im.AddedDate,
+                        CASE WHEN ISNULL(im.IsApproved, 0) = 1 THEN 'Approved' ELSE 'Pending' END AS ApprovalStatus,
+                        LTRIM(RTRIM(ISNULL(approvedBy.FirstName, '') + ' ' + ISNULL(approvedBy.LastName, ''))) AS ApprovedByName,
+                        im.ApprovedDate,
+                        CASE LOWER(LTRIM(RTRIM(im.Month)))
+                            WHEN 'january' THEN 1
+                            WHEN 'february' THEN 2
+                            WHEN 'march' THEN 3
+                            WHEN 'april' THEN 4
+                            WHEN 'may' THEN 5
+                            WHEN 'june' THEN 6
+                            WHEN 'july' THEN 7
+                            WHEN 'august' THEN 8
+                            WHEN 'september' THEN 9
+                            WHEN 'october' THEN 10
+                            WHEN 'november' THEN 11
+                            WHEN 'december' THEN 12
+                            ELSE 0
+                        END AS EffectiveMonthNumber
+                    FROM dbo.IncrementMaster im
+                    INNER JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = im.EmployeeID
+                    LEFT JOIN dbo.EmployeeInfo addedBy ON addedBy.EmployeeID = im.AddedBy
+                    LEFT JOIN dbo.EmployeeInfo approvedBy ON approvedBy.EmployeeID = im.ApprovedBy
+                )
+                SELECT
+                    IncrementID, Code, FullName, BeforeSalary, CurrentSalary, Difference,
+                    AttendanceBonus, QualityBonus, Month, Year, Percentage, Remark,
+                    NextDueMonth, NextDueYear, RetentionBonus, RetentionBonusPeriod1,
+                    RetentionBonusMonth1, RetentionBonusYear1, AddedByName, AddedDate,
+                    ApprovalStatus, ApprovedByName, ApprovedDate
+                FROM IncrementHistory
+                WHERE (@Code = '' OR Code = @Code)
+                  AND (@FromDate IS NULL OR AddedDate >= @FromDate)
+                  AND (@ToDate IS NULL OR AddedDate < DATEADD(DAY, 1, @ToDate))
+                  AND (@FromYear IS NULL OR
+                       ((Year * 100) + EffectiveMonthNumber) >=
+                       ((@FromYear * 100) + ISNULL(@FromMonth, 1)))
+                  AND (@ToYear IS NULL OR
+                       ((Year * 100) + EffectiveMonthNumber) <=
+                       ((@ToYear * 100) + ISNULL(@ToMonth, 12)))
+                  AND (@Status = '' OR ApprovalStatus = @Status)
+                ORDER BY AddedDate DESC, IncrementID DESC";
+
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, query);
+            cmd.Parameters.Add("@Code", SqlDbType.NVarChar, 50).Value = code ?? string.Empty;
+            cmd.Parameters.Add("@FromDate", SqlDbType.DateTime).Value = (object)fromDate ?? DBNull.Value;
+            cmd.Parameters.Add("@ToDate", SqlDbType.DateTime).Value = (object)toDate ?? DBNull.Value;
+            cmd.Parameters.Add("@FromMonth", SqlDbType.Int).Value = (object)fromMonth ?? DBNull.Value;
+            cmd.Parameters.Add("@FromYear", SqlDbType.Int).Value = (object)fromYear ?? DBNull.Value;
+            cmd.Parameters.Add("@ToMonth", SqlDbType.Int).Value = (object)toMonth ?? DBNull.Value;
+            cmd.Parameters.Add("@ToYear", SqlDbType.Int).Value = (object)toYear ?? DBNull.Value;
+            cmd.Parameters.Add("@Status", SqlDbType.NVarChar, 20).Value = status ?? string.Empty;
+
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public int approveIncrement_New(int IncrementID, int ApprovedBy, string ApprovedIP, string currentSalary)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_approveIncrement_New");
