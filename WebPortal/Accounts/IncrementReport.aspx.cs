@@ -308,6 +308,7 @@ namespace WebPortal.Accounts
                 return "[]";
             }
         }
+
         [WebMethod]
         public static ResponseMessage ApproveIncrements(List<IncrementApprovalModel> increments)
         {
@@ -345,6 +346,7 @@ namespace WebPortal.Accounts
 
             return response;
         }
+
         public static string GetIPAddress()
         {
             string ipAddress = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
@@ -356,6 +358,7 @@ namespace WebPortal.Accounts
 
             return ipAddress;
         }
+
         public class IncrementApprovalModel
         {
             public int IncrementID { get; set; }
@@ -369,6 +372,5 @@ namespace WebPortal.Accounts
 
             public string Message { get; set; }
         }
-
     }
 }

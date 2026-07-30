@@ -441,46 +441,6 @@
             busy(true);
             pageMethod('CompleteOrder', {
                 request: {
-                    OrderId: state.processOrder.OrderId,
-                    OrderNo: state.processOrder.OrderNo,
-                    ProjectNumber: state.processOrder.ProjectNumber,
-                    OrderDate: state.processOrder.OrderDate,
-                    Process: state.processOrder.Process,
-                    VendorName: state.processOrder.Vendor,
-                    Remark: remark,
-                    FileName: file.name,
-                    FileBase64: String(event.target.result).split(',')[1]
-                }
-            }).done(function (result) {
-                notify(result.Message, result.Success ? 'success' : 'error', result.Success ? 'Success' : 'Error');
-                if (result.Success) {
-                    $('#vmOrderProcessModal').modal('hide');
-                    loadQueue();
-                }
-            }).fail(showAjaxError).always(function () { busy(false); });
-        };
-        reader.onerror = function () { notify('Unable to read the selected file.', 'error', 'Error'); };
-        reader.readAsDataURL(file);
-    }
-
-    function completeVendorOrder() {
-
-        if (!state.processOrder) return notify('Order details are not loaded.', 'warning', 'Validation');
-        var fileInput = $('#vmOrderProcessFile')[0];
-        var remark = $.trim($('#vmOrderProcessRemark').val());
-        if (!fileInput.files || !fileInput.files.length)
-            return notify('Please select the completed file.', 'warning', 'Validation');
-        if (!remark) return notify('Please enter remark.', 'warning', 'Validation');
-
-        var file = fileInput.files[0];
-        if (file.name.toLowerCase().indexOf(String(state.processOrder.OrderNo).toLowerCase()) < 0)
-            return notify('Order number and attachment filename must match.', 'warning', 'Validation');
-
-        var reader = new FileReader();
-        reader.onload = function (event) {
-            busy(true);
-            pageMethod('CompleteOrder', {
-                request: {
                     OrderId: $('#vmOrderProcessTaskId').val(),
                     OrderNo: state.processOrder.OrderNo,
                     ProjectNumber: state.processOrder.ProjectNumber,

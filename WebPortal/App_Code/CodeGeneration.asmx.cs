@@ -839,11 +839,13 @@ namespace WebPortal.App_Code
                 foreach (var code in Combine(last, middle, first)) yield return code;
                 foreach (var code in Combine(middle, last, first)) yield return code;
             }
+
             else
             {
                 foreach (char c in last) yield return $"{c}{c}{c}";
                 foreach (char c in first) yield return $"{c}{c}{c}";
             }
+
             foreach (var code in Combine(letters, letters, letters)) yield return code;
             for
                 (int i = 0; i < letters.Length; i++)

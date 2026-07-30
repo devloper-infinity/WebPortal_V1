@@ -472,10 +472,10 @@
 
                 <div class="tab-content">
                     <section class="tab-pane fade show active" id="vmrBillingPane" role="tabpanel">
-                        <div class="vmr-subtabs">
+                       <%-- <div class="vmr-subtabs">
                             <button type="button" class="vmr-subtab active" data-billing-view="summary">VM Billing Report</button>
                             <button type="button" class="vmr-subtab" data-billing-view="details">VM Billing Report (Details)</button>
-                        </div>
+                        </div>--%>
 
                         <div id="vmrBillingSummaryView">
                             <div class="vmr-card">
