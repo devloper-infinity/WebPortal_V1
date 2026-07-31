@@ -365,3 +365,6 @@ FodyWeavers.xsd
 FodyWeavers.xsd
 /WebPortal/Admin/Admin.Master
 /WebPortal/Admin/GenerateEmpDocs.aspx
+/WebPortal/Accounts/IncrementReport.aspx
+/WebPortal/Accounts/IncrementReport.aspx.cs
+/WebPortal/Scripts/Reports/MonthlyIncrements.js

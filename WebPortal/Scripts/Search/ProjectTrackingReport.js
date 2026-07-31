@@ -5,7 +5,19 @@ var Search_ProjectTracking;
 var table_track_attachment;
 var ProjectTracking_ChangeStatusInfo = null;
 
+function ProjectTracking_CanShowActions() {
+    var employeeId = parseInt(window.ProjectTracking_CurrentEmployeeId, 10) || 0;
+    return employeeId === 369 || employeeId === 375;
+}
+
+function ProjectTracking_ApplyActionVisibility() {
+    $(".tracking-page")
+        .toggleClass("tracking-actions-enabled", ProjectTracking_CanShowActions())
+        .toggleClass("tracking-actions-disabled", !ProjectTracking_CanShowActions());
+}
+
 function ProjectTracking_InitPage() {
+    ProjectTracking_ApplyActionVisibility();
     ProjectTracking_BindProject();
     ProjectTracking_BindReportTable([], "Project Tracking Report");
     ProjectTracking_BindAttachmentTable([], 0);
@@ -298,7 +310,7 @@ function BindProjectTracking_Report(FromDateNew, ToDateNew, ProjectNoNew) {
 }
 
 function ProjectTracking_ActionRenderer(data, type, row, meta) {
-    if (type !== "display") {
+    if (type !== "display" || !ProjectTracking_CanShowActions()) {
         return "";
     }
 
@@ -306,27 +318,30 @@ function ProjectTracking_ActionRenderer(data, type, row, meta) {
     var rowIndex = meta && typeof meta.row !== "undefined" ? meta.row : "";
 
     return '' +
-        '<div class="btn-group">' +
-        '<button type="button" class="btn btn-sm btn-outline-primary tracking-icon-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Actions">' +
-        '<i class="fas fa-ellipsis-h"></i>' +
+        '<div class="tracking-action-buttons" role="group" aria-label="Order actions">' +
+        '<button type="button" class="tracking-action-btn tracking-action-edit tracking-edit-order" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Edit Order" aria-label="Edit Order">' +
+        '<i class="fas fa-pen" aria-hidden="true"></i>' +
         '</button>' +
-        '<div class="dropdown-menu">' +
-        '<button type="button" class="dropdown-item tracking-edit-order" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '">' +
-        '<i class="fas fa-edit text-success mr-2"></i>Edit Order' +
+        '<button type="button" class="tracking-action-btn tracking-action-status tracking-change-status" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Change Order Status" aria-label="Change Order Status">' +
+        '<i class="fas fa-exchange-alt" aria-hidden="true"></i>' +
         '</button>' +
-        '<button type="button" class="dropdown-item tracking-change-status" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '">' +
-        '<i class="fas fa-exchange-alt text-info mr-2"></i>Change Order Status' +
+        '<button type="button" class="tracking-action-btn tracking-action-attachment tracking-show-attachment" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" title="Show Attachment" aria-label="Show Attachment">' +
+        '<i class="fas fa-paperclip" aria-hidden="true"></i>' +
         '</button>' +
-        '<button type="button" class="dropdown-item tracking-show-attachment" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '">' +
-        '<i class="fas fa-paperclip text-warning mr-2"></i>Show Attachment' +
-        '</button>' +
-        '</div>' +
         '</div>';
 }
 
 function ProjectTracking_ReportColumns() {
     return [
-        { data: null, render: ProjectTracking_ActionRenderer, orderable: false, width: "72px", className: "text-center" },
+        {
+            data: null,
+            render: ProjectTracking_ActionRenderer,
+            orderable: false,
+            searchable: false,
+            visible: ProjectTracking_CanShowActions(),
+            width: "132px",
+            className: "tracking-action-column"
+        },
         { data: "_SrNo", width: "58px", className: "text-center" },
         { data: "_OrderId", visible: false },
         { data: "ProjectNumber", render: ProjectTracking_TextRenderer },
@@ -411,7 +426,7 @@ function ProjectTracking_BindReportTable(rows, title) {
         autoWidth: false,
         ordering: false,
         paging: true,
-        pageLength: 25,
+        pageLength: 10,
         lengthChange: false,
         processing: true,
         language: {

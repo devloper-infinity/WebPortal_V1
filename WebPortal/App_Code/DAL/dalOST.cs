@@ -290,6 +290,47 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
+        public int InsertInfinity_OST_TaxDetails(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertInfinity_OST_TaxDetails");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstBaseAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstBaseAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondBaseAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondBaseAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdBaseAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdBaseAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthBaseAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthBaseAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstPaidAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstPaidAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondPaidAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondPaidAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdPaidAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdPaidAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthPaidAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthPaidAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstPaidDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstPaidDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondPaidDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondPaidDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdPaidDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdPaidDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthPaidDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthPaidDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstDueAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstDueAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondDueAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondDueAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdDueAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdDueAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthDueAmount", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthDueAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstDueDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstDueDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondDueDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondDueDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdDueDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdDueDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthDueDate", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthDueDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstPenalty", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstPenalty"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondPenalty", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondPenalty"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdPenalty", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdPenalty"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthPenalty", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthPenalty"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstDelinquency", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FirstDelinquency"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SecondDelinquency", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["SecondDelinquency"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ThirdDelinquency", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["ThirdDelinquency"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FourthDelinquency", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["FourthDelinquency"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Addedby", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
+        }
+
         public DataTable GetOrderCostingForUpdate(int OrderId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetOrderCostingForBindFields");

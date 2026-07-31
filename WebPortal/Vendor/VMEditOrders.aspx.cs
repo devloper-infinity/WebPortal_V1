@@ -199,6 +199,7 @@ namespace WebPortal.Vendor
                 attachment["Remark"] = request.Remark ?? string.Empty;
                 attachment["File"] = file;
                 attachment["AddedBy"] = addedBy;
+
                 if (tracking.InsertFileForOrder(attachment, file.Length) <= 0)
                     return ApiResult.Fail("Order was completed, but the attachment entry could not be saved.");
 

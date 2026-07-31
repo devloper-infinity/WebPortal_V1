@@ -457,6 +457,292 @@
             font-weight: 800 !important;
         }
 
+        /* ViewBilling-compatible styling scoped to the Edit Costing DataTable. */
+        .cost-table-frame {
+            overflow: hidden;
+            padding: 12px !important;
+            background: #ffffff;
+        }
+
+        #costTable {
+            width: 100% !important;
+            margin-bottom: 0 !important;
+            border-collapse: separate !important;
+            border-spacing: 0;
+        }
+
+        #costTable_wrapper .dataTables_scroll {
+            clear: both;
+            overflow: hidden;
+            border: 1px solid #dbe4ea;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        #costTable_wrapper .dataTables_scrollHead {
+            background: #edf3f6;
+        }
+
+        #costTable_wrapper table.dataTable {
+            margin: 0 !important;
+            border-collapse: separate !important;
+            border-spacing: 0;
+        }
+
+            #costTable_wrapper table.dataTable thead th {
+                padding: 8px 10px !important;
+                color: #263747;
+                background: #edf3f6 !important;
+                background-image: none !important;
+                border-top: 0 !important;
+                border-right: 1px solid rgba(148, 163, 184, .24) !important;
+                border-bottom: 1px solid #dce5ec !important;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: .015em;
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+                #costTable_wrapper table.dataTable thead th.costing-band-header {
+                    border-bottom: 0 !important;
+                    letter-spacing: .055em;
+                    text-transform: uppercase;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-core {
+                    color: #1e3a8a !important;
+                    background: #dbeafe !important;
+                    box-shadow: inset 0 3px 0 #3b82f6;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-search {
+                    color: #1e3a8a !important;
+                    background: #bfdbfe !important;
+                    box-shadow: inset 0 3px 0 #2563eb;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-search-copy {
+                    color: #115e59 !important;
+                    background: #ccfbf1 !important;
+                    box-shadow: inset 0 3px 0 #0d9488;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-judgment-search {
+                    color: #6b21a8 !important;
+                    background: #e9d5ff !important;
+                    box-shadow: inset 0 3px 0 #9333ea;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-judgment-copy {
+                    color: #9d174d !important;
+                    background: #fce7f3 !important;
+                    box-shadow: inset 0 3px 0 #db2777;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-abstractor {
+                    color: #166534 !important;
+                    background: #dcfce7 !important;
+                    box-shadow: inset 0 3px 0 #16a34a;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-tax {
+                    color: #92400e !important;
+                    background: #fef3c7 !important;
+                    box-shadow: inset 0 3px 0 #d97706;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-other {
+                    color: #9a3412 !important;
+                    background: #ffedd5 !important;
+                    box-shadow: inset 0 3px 0 #ea580c;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-core-sub {
+                    color: #1e3a8a !important;
+                    background: #eff6ff !important;
+                    border-bottom-color: #60a5fa !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-search-sub {
+                    color: #1e3a8a !important;
+                    background: #eff6ff !important;
+                    border-bottom-color: #60a5fa !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-search-copy-sub {
+                    color: #115e59 !important;
+                    background: #f0fdfa !important;
+                    border-bottom-color: #2dd4bf !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-judgment-search-sub {
+                    color: #6b21a8 !important;
+                    background: #faf5ff !important;
+                    border-bottom-color: #c084fc !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-judgment-copy-sub {
+                    color: #9d174d !important;
+                    background: #fdf2f8 !important;
+                    border-bottom-color: #f472b6 !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-abstractor-sub {
+                    color: #166534 !important;
+                    background: #f0fdf4 !important;
+                    border-bottom-color: #4ade80 !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-tax-sub {
+                    color: #92400e !important;
+                    background: #fffbeb !important;
+                    border-bottom-color: #fbbf24 !important;
+                }
+
+                #costTable_wrapper table.dataTable thead .band-other-sub {
+                    color: #9a3412 !important;
+                    background: #fff7ed !important;
+                    border-bottom-color: #fb923c !important;
+                }
+
+        #costTable tbody td {
+            padding: 9px 11px !important;
+            color: #263747;
+            background: #ffffff !important;
+            border-right: 1px solid #edf2f7 !important;
+            border-bottom: 1px solid #e8eef3 !important;
+            font-size: 11px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+            #costTable tbody td.band-core-sub,
+            #costTable tbody td.band-search-sub {
+                background: rgba(37, 99, 235, .035) !important;
+            }
+
+            #costTable tbody td.band-search-copy-sub {
+                background: rgba(13, 148, 136, .04) !important;
+            }
+
+            #costTable tbody td.band-judgment-search-sub {
+                background: rgba(147, 51, 234, .04) !important;
+            }
+
+            #costTable tbody td.band-judgment-copy-sub {
+                background: rgba(219, 39, 119, .035) !important;
+            }
+
+            #costTable tbody td.band-abstractor-sub {
+                background: rgba(22, 163, 74, .04) !important;
+            }
+
+            #costTable tbody td.band-tax-sub {
+                background: rgba(217, 119, 6, .05) !important;
+            }
+
+            #costTable tbody td.band-other-sub {
+                background: rgba(234, 88, 12, .04) !important;
+            }
+
+        #costTable tbody tr:nth-child(even) td {
+            box-shadow: inset 0 0 0 999px rgba(248, 250, 252, .3);
+        }
+
+        #costTable tbody tr:hover td {
+            background: #eaf4f7 !important;
+            box-shadow: none;
+        }
+
+        #costTable_wrapper .dataTables_filter {
+            float: right;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        #costTable_wrapper .dataTables_filter label,
+        #costTable_wrapper .dataTables_length label,
+        #costTable_wrapper .dataTables_info {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700 !important;
+        }
+
+        #costTable_wrapper .dataTables_filter input,
+        #costTable_wrapper .dataTables_length select {
+            min-height: 34px;
+            margin-left: 6px;
+            padding: 5px 10px;
+            border: 1px solid #ccd6df;
+            border-radius: 7px;
+            background: #ffffff;
+            box-shadow: none;
+        }
+
+            #costTable_wrapper .dataTables_filter input:focus,
+            #costTable_wrapper .dataTables_length select:focus {
+                border-color: var(--sd-primary);
+                box-shadow: 0 0 0 .16rem rgba(15, 118, 110, .12);
+                outline: 0;
+            }
+
+        #costTable_wrapper .dataTables_scrollBody {
+            min-height: 0 !important;
+            height: auto;
+            scrollbar-color: #94a3b8 #edf2f5;
+            scrollbar-width: thin;
+        }
+
+            #costTable_wrapper .dataTables_scrollBody::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            #costTable_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
+                background: #edf2f5;
+            }
+
+            #costTable_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
+                background: #94a3b8;
+                border-radius: 999px;
+            }
+
+        #costTable_wrapper .dataTables_info,
+        #costTable_wrapper .dataTables_paginate {
+            padding-top: 10px;
+        }
+
+        #costTable_wrapper .dataTables_paginate .paginate_button {
+            min-width: 34px;
+            margin: 0 2px;
+            padding: 6px 10px !important;
+            color: #475569 !important;
+            background: #ffffff !important;
+            border: 1px solid #dbe4ea !important;
+            border-radius: 7px !important;
+        }
+
+            #costTable_wrapper .dataTables_paginate .paginate_button.current,
+            #costTable_wrapper .dataTables_paginate .paginate_button.current:hover {
+                color: #ffffff !important;
+                background: var(--sd-primary) !important;
+                border-color: var(--sd-primary) !important;
+            }
+
+        @media(max-width:576px) {
+            #costTable_wrapper .dataTables_filter {
+                float: none;
+                width: 100%;
+            }
+
+                #costTable_wrapper .dataTables_filter label,
+                #costTable_wrapper .dataTables_filter input {
+                    width: 100%;
+                }
+        }
+
         .sd-help {
             font-size: 11px;
             color: var(--sd-muted);
@@ -720,7 +1006,7 @@
                         </div>
                         <div class="sd-card">
                             <div class="sd-card-title">Costing Orders</div>
-                            <div class="sd-card-body sd-table-wrap">
+                            <div class="sd-card-body sd-table-wrap cost-table-frame">
                                 <table id="costTable" class="table table-bordered table-striped sd-table"></table>
                             </div>
                         </div>
@@ -781,5 +1067,5 @@
     <script src="../plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
     <script src="../plugins/jszip/jszip.min.js"></script>
     <script src="../plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-    <script src="../Scripts/Search/SearchDashboard.js?v=6"></script>
+    <script src="../Scripts/Search/SearchDashboard.js?v=8"></script>
 </asp:Content>

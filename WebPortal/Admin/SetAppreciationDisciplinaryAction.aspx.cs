@@ -21,8 +21,10 @@ namespace WebPortal.Admin
 {
     public partial class SetAppreciationDisciplinaryAction : System.Web.UI.Page
     {
+        static string CurrentUserName;
         protected void Page_Load(object sender, EventArgs e)
         {
+            CurrentUserName = EmployeeInfo.Current.FirstName + " " + EmployeeInfo.Current.lastName;
             lbl_loginEmpID.InnerText = EmployeeInfo.Current.EmployeeID.ToString();
             hdnLoginEmpID.Value = EmployeeInfo.Current.EmployeeID.ToString();
         }
@@ -110,6 +112,7 @@ namespace WebPortal.Admin
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
         }
+
         [WebMethod]
         public static string GetTypewiseTitle(string Type)
         {
@@ -129,6 +132,7 @@ namespace WebPortal.Admin
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
         }
+
         [WebMethod]
         public static string GetTypeandTitlewiseDescription(string Type, string Title)
         {
@@ -246,10 +250,11 @@ namespace WebPortal.Admin
                             "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear " + Convert.ToString(dt.Rows[0]["FirstName"]) + "<br /></b></td></tr></table>");
                         body.Append("<table border=\"0\" style=\"width:800px;font-family:biome; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">");
                         body.Append("<tr><td style= colspan=\"2\">" + Convert.ToString(Description) + "</td></tr>");
-                        body.Append("<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><br /><br />Thanks,<br />" + Convert.ToString(dt.Rows[0]["DomainHeadName"]) + "  <br />" + Convert.ToString(dt.Rows[0]["CompanyName"]) + "</td></tr>" +
+                        body.Append("<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><br /><br />Thanks,<br />" + CurrentUserName + "  <br />" + Convert.ToString(dt.Rows[0]["CompanyName"]) + "</td></tr>" +
                             "<tr><td style=\"text-align:left; font-size:10px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
                             "</table>");
                         footer.Append("</body></html>");
+
                         string Pass = new bllMaster().GetPassword("ackdata");
 
                         MailMessage mail = new MailMessage();

@@ -350,7 +350,19 @@ function viewEmployee_Grid(currentUserName) {
                             columns: [
                                 1, 2, 3, 4, 5, 6, 7, 8,
                                 9, 10, 11, 12, 13, 14, 15, 16
-                            ]
+                            ],
+                            format: {
+                                header: function (data, columnIdx) {
+                                    var settings = $('#viewemployee').DataTable().settings()[0];
+                                    var column = settings && settings.aoColumns
+                                        ? settings.aoColumns[columnIdx]
+                                        : null;
+
+                                    return column && column.sTitle
+                                        ? $('<div>').html(column.sTitle).text().trim()
+                                        : $('<div>').html(data).text().trim();
+                                }
+                            }
                         }
                     }
                 ],

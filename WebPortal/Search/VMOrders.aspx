@@ -235,7 +235,7 @@
         }
 
             .vm-actions .vm-btn {
-                width: 30px;
+               /* width: 30px;*/
                 min-width: 30px;
                 padding: 4px;
             }
@@ -547,7 +547,7 @@
                             <div class="vm-card">
                                 <div class="vm-card-title">
                                     <span>Orders Available for VM Allocation</span><div class="vm-actions">
-                                        <button type="button" id="vmOpenImport" class="vm-btn vm-btn-light"><i class="fas fa-file-import"></i>Bulk Import</button><span id="vmAllocationCount" class="vm-record-count">0 records</span>
+                                        <button type="button" id="vmOpenImport" class="vm-btn vm-btn-success"><i class="fas fa-file-import"></i>Bulk Import</button><span id="vmAllocationCount" class="vm-record-count">0 records</span>
                                     </div>
                                 </div>
                                 <div class="vm-card-body vm-table-wrap">
@@ -820,7 +820,7 @@
                             <div class="vm-col-8 vm-field">
                                 <label class="required">Remark</label><textarea id="vmCommentText" class="vm-control"></textarea>
                             </div>
-                            <div class="vm-col-12 vm-comment-actions" style="text-align:right:!important">
+                            <div class="vm-col-12 vm-comment-actions" style="text-align: right !important;">
                                 <button id="vmSaveComment" type="button" class="vm-btn vm-btn-primary"><i class="fas fa-paper-plane"></i>Submit</button>
                             </div>
                         </div>

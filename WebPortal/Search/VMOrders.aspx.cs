@@ -227,6 +227,326 @@ namespace WebPortal.Search
             return new { Context = context, Tasks = Rows(tasks) };
         }
 
+        public class OrderDetailsDto
+        {
+            public string OrderId { get; set; }
+            public string TaskId { get; set; }
+            public string ProjectNumber { get; set; }
+            public string OrderNo { get; set; }
+            public string OrderDate { get; set; }
+            public string Process { get; set; }
+            public string VM { get; set; }
+            public string Vendor { get; set; }
+            public bool HasInputFile { get; set; }
+            public string InputFileName { get; set; }
+        }
+
+        public class VendorDto
+        {
+            public string EmployeeID { get; set; }
+            public string FullName { get; set; }
+        }
+
+        public class CompleteOrderRequest
+        {
+            public string OrderId { get; set; }
+            public string OrderNo { get; set; }
+            public string ProjectNumber { get; set; }
+            public string OrderDate { get; set; }
+            public string Process { get; set; }
+            public string VendorName { get; set; }
+            public string Remark { get; set; }
+            public string FileName { get; set; }
+            public string FileBase64 { get; set; }
+        }
+
+        public class ChangeStatusRequest
+        {
+            public string ProjectNumber { get; set; }
+            public string OrderNumber { get; set; }
+            public string OrderDate { get; set; }
+            public string Process { get; set; }
+            public string VM { get; set; }
+            public string CurrentVendor { get; set; }
+            public string NewVendorId { get; set; }
+            public string NewVendorName { get; set; }
+            public string Remark { get; set; }
+        }
+
+        public class ApiResult
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public string FileName { get; set; }
+            public string ContentType { get; set; }
+            public string FileBase64 { get; set; }
+
+            public static ApiResult Ok(string message)
+            {
+                return new ApiResult { Success = true, Message = message };
+            }
+
+            public static ApiResult Fail(string message)
+            {
+                return new ApiResult { Success = false, Message = message };
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static OrderDetailsDto GetOrderDetails(string orderId)
+        {
+            int parsedOrderId;
+            if (!int.TryParse(orderId, out parsedOrderId) || parsedOrderId <= 0)
+                return null;
+
+            DataTable table = new bllOST().GetOrderByID_VM(parsedOrderId);
+            if (table == null || table.Rows.Count == 0) return null;
+
+            DataRow row = table.Rows[0];
+            string inputPath = GetColumnValue(row, "UploadedFile", "InputFile", "FilePath", "Attachment");
+            return new OrderDetailsDto
+            {
+                OrderId = orderId,
+                TaskId = GetColumnValue(row, "VMTaskId", "TaskId"),
+                ProjectNumber = GetColumnValue(row, "ProjectNumber"),
+                OrderNo = GetColumnValue(row, "ClientOrderNo", "OrderNo"),
+                OrderDate = GetColumnValue(row, "Orderdate", "OrderDate"),
+                Process = GetColumnValue(row, "Process"),
+                VM = GetColumnValue(row, "VM"),
+                Vendor = GetColumnValue(row, "Abstractor", "Vendor"),
+                HasInputFile = !string.IsNullOrWhiteSpace(inputPath),
+                InputFileName = string.IsNullOrWhiteSpace(inputPath) ? string.Empty : Path.GetFileName(inputPath)
+            };
+        }
+
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static List<VendorDto> GetVendors()
+        {
+            DataTable table = new bllVendors().BindChangeOrderStatus("Vendor");
+            List<VendorDto> result = new List<VendorDto>();
+            if (table == null) return result;
+
+            foreach (DataRow row in table.Rows)
+            {
+                result.Add(new VendorDto
+                {
+                    EmployeeID = Convert.ToString(row["EmployeeID"]),
+                    FullName = Convert.ToString(row["FullName"])
+                });
+            }
+            return result;
+        }
+
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static ApiResult GetInputFile(string orderId)
+        {
+            int parsedOrderId;
+            if (!int.TryParse(orderId, out parsedOrderId) || parsedOrderId <= 0)
+                return ApiResult.Fail("Select a valid order.");
+
+            try
+            {
+                DataTable table = new bllVendors().GetOrderByID_VM(parsedOrderId);
+                if (table == null || table.Rows.Count == 0)
+                    return ApiResult.Fail("Order details were not found.");
+
+                string path = GetColumnValue(table.Rows[0], "UploadedFile", "InputFile", "FilePath", "Attachment");
+                if (string.IsNullOrWhiteSpace(path))
+                    return ApiResult.Fail("Input file is not available.");
+
+                string physicalPath = path;
+                if (path.StartsWith("~") || path.StartsWith("/"))
+                    physicalPath = HttpContext.Current.Server.MapPath(path.Replace("\\", "/"));
+
+                if (!File.Exists(physicalPath))
+                    return ApiResult.Fail("Input file was not found on the server.");
+
+                return new ApiResult
+                {
+                    Success = true,
+                    Message = "File prepared successfully.",
+                    FileName = Path.GetFileName(physicalPath),
+                    ContentType = MimeMapping.GetMimeMapping(physicalPath),
+                    FileBase64 = Convert.ToBase64String(File.ReadAllBytes(physicalPath))
+                };
+            }
+            catch (Exception ex)
+            {
+                return ApiResult.Fail("Unable to download input file. " + ex.Message);
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static ApiResult CompleteOrder(CompleteOrderRequest request)
+        {
+            if (request == null) return ApiResult.Fail("Invalid request.");
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.OrderNo))
+                    return ApiResult.Fail("Order number is required.");
+                if (string.IsNullOrWhiteSpace(request.FileName) || string.IsNullOrWhiteSpace(request.FileBase64))
+                    return ApiResult.Fail("Please select the completed file.");
+                if (Path.GetFileName(request.FileName).IndexOf(request.OrderNo, StringComparison.OrdinalIgnoreCase) < 0)
+                    return ApiResult.Fail("Order number and attachment filename must match.");
+
+                int addedBy = CurrentUserId();
+                byte[] file = Convert.FromBase64String(request.FileBase64);
+                string safeFileName = Path.GetFileName(request.FileName);
+                string folder = HttpContext.Current.Server.MapPath(
+                    "~/Vendor/VM/" + DateTime.Now.ToString("dd-MMM-yyyy") + "/" + SafeName(request.OrderNo) + "/");
+                Directory.CreateDirectory(folder);
+                File.WriteAllBytes(Path.Combine(folder, safeFileName), file);
+
+                bllVendors tracking = new bllVendors();
+                Hashtable status = new Hashtable();
+                status["OrderID"] = request.OrderNo;
+                status["Remark"] = request.Remark ?? string.Empty;
+                status["AddedBy"] = addedBy;
+
+                int statusResult = request.ProjectNumber == "736-002"
+                    ? UpdateTaskStatusDateForAbstractor(request.OrderId, request.Remark, addedBy)
+                    : tracking.UpdateTaskStatusDateForAbstractor(status);
+                if (statusResult <= 0)
+                    return ApiResult.Fail("Unable to update the order status.");
+
+                Hashtable fileUpdate = new Hashtable();
+                fileUpdate["OrderID"] = request.OrderNo;
+                fileUpdate["CompleteFile"] = file;
+                if (tracking.UpdateTaskStatusAbstractorFile(fileUpdate, file.Length) <= 0)
+                    return ApiResult.Fail("Unable to save the completed file.");
+
+                int completeResult = request.ProjectNumber == "736-002"
+                    ? CompleteAllocateOrderToVendorInTrackingSheet(
+                        request.ProjectNumber, request.OrderNo, request.OrderDate, addedBy, request.Process)
+                    : tracking.CompleteAllocateOrderToVendorInTrackingSheet(
+                        request.ProjectNumber, request.OrderNo, request.OrderDate, addedBy);
+                if (completeResult <= 0)
+                    return ApiResult.Fail("Unable to complete the order in the tracking sheet.");
+
+                Hashtable attachment = new Hashtable();
+                attachment["ProjectNumber"] = request.ProjectNumber;
+                attachment["Process"] = request.Process;
+                attachment["OrderNumber"] = request.OrderNo;
+                attachment["OrderDate"] = request.OrderDate;
+                attachment["UserName"] = request.VendorName;
+                attachment["FileExtension"] = Path.GetExtension(safeFileName);
+                attachment["Remark"] = request.Remark ?? string.Empty;
+                attachment["File"] = file;
+                attachment["AddedBy"] = addedBy;
+                if (tracking.InsertFileForOrder(attachment, file.Length) <= 0)
+                    return ApiResult.Fail("Order was completed, but the attachment entry could not be saved.");
+
+                return ApiResult.Ok("Order completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                return ApiResult.Fail("Unable to complete the order. " + ex.Message);
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static ApiResult ChangeOrderStatus(ChangeStatusRequest request)
+        {
+            if (request == null) return ApiResult.Fail("Invalid request.");
+            if (string.IsNullOrWhiteSpace(request.NewVendorId))
+                return ApiResult.Fail("Please select the new vendor.");
+
+            try
+            {
+                int addedBy = CurrentUserId();
+                bllVendors tracking = new bllVendors();
+                Hashtable values = new Hashtable();
+                values["ProjectNumber"] = request.ProjectNumber;
+                values["OrderNumber"] = request.OrderNumber;
+                values["TaskAssignIdAbs"] = request.NewVendorId;
+                values["Remark"] = request.Remark ?? string.Empty;
+                values["AddedBy"] = addedBy;
+
+                int inserted = tracking.InsertChangeOrderStatus(values);
+                if (inserted <= 0)
+                    return ApiResult.Fail("Unable to change the order status.");
+
+                values["OrderDate"] = request.OrderDate;
+                values["Process"] = request.Process;
+                values["VM"] = request.VM;
+                values["Vendor"] = request.CurrentVendor;
+                values["NewVendor"] = request.NewVendorName;
+
+                int completed = tracking.CompleteAllocateOrderToVendorInTrackingSheet(
+                    request.ProjectNumber, request.OrderNumber, request.OrderDate, addedBy);
+                if (completed <= 0)
+                    return ApiResult.Fail("Status was saved, but the existing allocation could not be completed.");
+
+                return ApiResult.Ok("Order status updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return ApiResult.Fail("Unable to update order status. " + ex.Message);
+            }
+        }
+
+        private static int CompleteAllocateOrderToVendorInTrackingSheet(
+            string project, string orderNo, string orderDate, int updatedBy, string process)
+        {
+            using (SqlCommand command = SQLHelper.GetCommand(
+                CommandType.StoredProcedure, "WBT_usp_CompleteAllocateOrderToVendorInTrackingSheet_1"))
+            {
+                SQLHelper.AddParamToSQLCmd(command, "@ProjectNumber", SqlDbType.NVarChar, 200,
+                    ParameterDirection.Input, project);
+                SQLHelper.AddParamToSQLCmd(command, "@OrderNumber", SqlDbType.NVarChar, 4000,
+                    ParameterDirection.Input, orderNo);
+                SQLHelper.AddParamToSQLCmd(command, "@OrderDate", SqlDbType.NVarChar, 200,
+                    ParameterDirection.Input, orderDate);
+                SQLHelper.AddParamToSQLCmd(command, "@UpdatedBy", SqlDbType.BigInt, 0,
+                    ParameterDirection.Input, updatedBy);
+                SQLHelper.AddParamToSQLCmd(command, "@Process", SqlDbType.NVarChar, 4000,
+                    ParameterDirection.Input, process);
+                SQLHelper.AddParamToSQLCmd(command, "@ReturnValue", SqlDbType.BigInt, 0,
+                    ParameterDirection.ReturnValue, null);
+                SQLHelper.ExecuteNonQueryCmd(command);
+                return Convert.ToInt32(command.Parameters["@ReturnValue"].Value);
+            }
+        }
+
+        private static int UpdateTaskStatusDateForAbstractor(string orderId, string remark, int addedBy)
+        {
+            using (SqlCommand command = SQLHelper.GetCommand(
+                CommandType.StoredProcedure, "usp_Vendor_UpdateTaskStatusDateForAbstractor_1"))
+            {
+                SQLHelper.AddParamToSQLCmd(command, "@OrderID", SqlDbType.NVarChar, 4000,
+                    ParameterDirection.Input, orderId);
+                SQLHelper.AddParamToSQLCmd(command, "@Remark", SqlDbType.NVarChar, 4000,
+                    ParameterDirection.Input, remark ?? string.Empty);
+                SQLHelper.AddParamToSQLCmd(command, "@AddedBy", SqlDbType.Int, 0,
+                    ParameterDirection.Input, addedBy);
+                SQLHelper.AddParamToSQLCmd(command, "@ReturnValue", SqlDbType.BigInt, 0,
+                    ParameterDirection.ReturnValue, null);
+                SQLHelper.ExecuteNonQueryCmd(command);
+                return Convert.ToInt32(command.Parameters["@ReturnValue"].Value);
+            }
+        }
+
+        private static string GetColumnValue(DataRow row, params string[] names)
+        {
+            foreach (string name in names)
+                if (row.Table.Columns.Contains(name) && row[name] != DBNull.Value)
+                    return Convert.ToString(row[name]);
+            return string.Empty;
+        }
+
+        private static string SafeName(string value)
+        {
+            foreach (char character in Path.GetInvalidFileNameChars())
+                value = value.Replace(character, '_');
+            return value;
+        }
+
         private VmResult AllocateOrder()
         {
             int orderId = FormInt("orderId");

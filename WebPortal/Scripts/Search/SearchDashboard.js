@@ -76,19 +76,38 @@
         return "Order / Production";
     }
 
+    function bandClass(name) {
+        switch (name) {
+            case "Search Cost": return "band-search";
+            case "Search Copy Cost": return "band-search-copy";
+            case "Judgment Search Cost": return "band-judgment-search";
+            case "Judgment Copy Cost": return "band-judgment-copy";
+            case "Abstractor Cost": return "band-abstractor";
+            case "Tax": return "band-tax";
+            case "Other Cost": return "band-other";
+            default: return "band-core";
+        }
+    }
+
     function addBandHeader($table, columns, specialCount) {
         var groups = [], current = null, i, band;
-        for (i = specialCount; i < columns.length; i += 1) {
+        for (i = 0; i < columns.length; i += 1) {
             band = bandFor(columns[i]);
             if (!current || current.name !== band) {
                 current = { name: band, count: 1 }; groups.push(current);
             } else { current.count += 1; }
         }
-        var html = "<tr>";
-        if (specialCount) { html += "<th class='sd-band' colspan='" + specialCount + "'>Action</th>"; }
-        $.each(groups, function (_, group) { html += "<th class='sd-band' colspan='" + group.count + "'>" + encode(group.name) + "</th>"; });
+        var html = "<tr class='sd-cost-band-row'>";
+        if (specialCount) { html += "<th class='sd-band costing-band-header band-core' colspan='" + specialCount + "'>Action</th>"; }
+        $.each(groups, function (_, group) {
+            html += "<th class='sd-band costing-band-header " + bandClass(group.name) + "' colspan='" + group.count + "'>" + encode(group.name) + "</th>";
+        });
         html += "</tr>";
-        $table.find("thead").prepend(html);
+
+        var $header = $table.closest(".dataTables_wrapper").find(".dataTables_scrollHead thead").first();
+        if (!$header.length) { $header = $table.find("thead").first(); }
+        $header.find(".sd-cost-band-row").remove();
+        $header.prepend(html);
     }
 
     function renderTable(id, rows, options) {
@@ -108,11 +127,26 @@
             if (endIndex >= 0) { keys = keys.slice(0, endIndex + 1); }
         }
 
-        $.each(special, function (_, item) { columns.push({ title: item.title, data: null, orderable: false, searchable: false, render: item.render }); });
+        $.each(special, function (_, item) {
+            columns.push({
+                title: item.title,
+                data: null,
+                orderable: false,
+                searchable: false,
+                render: item.render,
+                className: options.bands ? "band-core-sub" : (item.className || "")
+            });
+        });
 
         $.each(keys, function (_, key) {
             if (!options.includeHidden && isHiddenKey(key)) { return; }
-            columns.push({ title: label(key), data: key, defaultContent: "", visible: !(options.hidden || []).some(function (x) { return x.toLowerCase() === key.toLowerCase(); }) });
+            columns.push({
+                title: label(key),
+                data: key,
+                defaultContent: "",
+                visible: !(options.hidden || []).some(function (x) { return x.toLowerCase() === key.toLowerCase(); }),
+                className: options.bands ? bandClass(bandFor(key)) + "-sub" : ""
+            });
         });
 
         if (!columns.length) { $table.html("<tbody><tr><td class='sd-empty'>No records found.</td></tr></tbody>"); return null; }
@@ -370,7 +404,7 @@
                             var id = value(row, ["OrderID", "OrderId"]);
                             return "<a class='btn btn-xs btn-outline-success' href='Costing.aspx?OrderID=" + encodeURIComponent(id) + "&ddl=" + encodeURIComponent($("#costProject option:selected").text()) + "&fd=" + encodeURIComponent($("#costFrom").val()) + "&td=" + encodeURIComponent($("#costTo").val()) + "'><i class='fas fa-edit'></i> Edit</a>";
                         }
-                    }], buttons: [{ extend: "excelHtml5", title: "Production Costing Report", className: "d-none sd-excel-button" }], pageLength: 25
+                    }], buttons: [{ extend: "excelHtml5", title: "Production Costing Report", className: "d-none sd-excel-button" }], pageLength: 10
                 });
             });
     }
