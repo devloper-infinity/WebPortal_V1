@@ -70,7 +70,7 @@ namespace WebPortal.App_Code.DAL
             }
         }
 
-        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        public int SaveFieldConfiguration(int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, bool isBillingParameter, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             EnsureTables();
 
@@ -85,6 +85,7 @@ namespace WebPortal.App_Code.DAL
             bool effectiveVisible = saveAsProcess ? true : isVisible;
             bool effectiveEditable = saveAsProcess ? true : isEditable;
             bool effectiveForBilling = isForBilling;
+            bool effectiveBillingParameter = isBillingParameter;
             string effectiveOptions = saveAsProcess ? string.Empty : optionsText;
             string effectiveDateFormat = saveAsProcess ? string.Empty : NormalizeDateFormat(effectiveDataType, dateFormat);
 
@@ -112,8 +113,8 @@ namespace WebPortal.App_Code.DAL
                         }
 
                         int savedFieldConfigId = fieldConfigId > 0
-                            ? UpdateFieldConfiguration(connection, transaction, fieldConfigId, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, isUniqueField, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId)
-                            : InsertFieldConfiguration(connection, transaction, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, isUniqueField, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId);
+                            ? UpdateFieldConfiguration(connection, transaction, fieldConfigId, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, isUniqueField, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveBillingParameter, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId)
+                            : InsertFieldConfiguration(connection, transaction, projectId, fieldName, effectiveDataType, effectiveOptions, effectiveRequired, isUniqueField, effectiveVisible, effectiveEditable, effectiveForBilling, effectiveBillingParameter, effectiveDisplayOrder, saveAsProcess, effectiveDateFormat, userId);
 
                         if (savedFieldConfigId <= 0)
                         {
@@ -500,6 +501,7 @@ SELECT
     IsVisible,
     IsEditable,
     IsForBilling,
+    IsBillingParameter,
     DateFormat,
     DisplayOrder,
     IsProcessColumn,
@@ -565,7 +567,7 @@ WHERE ProjectID = @ProjectID
             return false;
         }
 
-        private static int InsertFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        private static int InsertFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, bool isBillingParameter, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             using (SqlCommand cmd = new SqlCommand(@"
 INSERT INTO dbo.WBT_ProjectTrackingFieldConfig
@@ -579,6 +581,7 @@ INSERT INTO dbo.WBT_ProjectTrackingFieldConfig
     IsVisible,
     IsEditable,
     IsForBilling,
+    IsBillingParameter,
     DateFormat,
     DisplayOrder,
     IsProcessColumn,
@@ -600,6 +603,7 @@ VALUES
     @IsVisible,
     @IsEditable,
     @IsForBilling,
+    @IsBillingParameter,
     @DateFormat,
     @DisplayOrder,
     @IsProcessColumn,
@@ -610,12 +614,12 @@ VALUES
     0
 );", connection, transaction))
             {
-                AddFieldParameters(cmd, 0, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
+                AddFieldParameters(cmd, 0, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, isBillingParameter, displayOrder, isProcessColumn, dateFormat, userId);
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
 
-        private static int UpdateFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        private static int UpdateFieldConfiguration(SqlConnection connection, SqlTransaction transaction, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, bool isBillingParameter, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             using (SqlCommand cmd = new SqlCommand(@"
 UPDATE dbo.WBT_ProjectTrackingFieldConfig
@@ -627,6 +631,7 @@ SET FieldName = @FieldName,
     IsVisible = @IsVisible,
     IsEditable = @IsEditable,
     IsForBilling = @IsForBilling,
+    IsBillingParameter = @IsBillingParameter,
     DateFormat = @DateFormat,
     DisplayOrder = @DisplayOrder,
     IsProcessColumn = @IsProcessColumn,
@@ -642,12 +647,12 @@ WHERE FieldConfigId = @FieldConfigId
 
 SELECT CASE WHEN @@ROWCOUNT > 0 THEN @FieldConfigId ELSE 0 END;", connection, transaction))
             {
-                AddFieldParameters(cmd, fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, displayOrder, isProcessColumn, dateFormat, userId);
+                AddFieldParameters(cmd, fieldConfigId, projectId, fieldName, dataType, optionsText, isRequired, isUniqueField, isVisible, isEditable, isForBilling, isBillingParameter, displayOrder, isProcessColumn, dateFormat, userId);
                 return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
 
-        private static void AddFieldParameters(SqlCommand cmd, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
+        private static void AddFieldParameters(SqlCommand cmd, int fieldConfigId, int projectId, string fieldName, string dataType, string optionsText, bool isRequired, bool isUniqueField, bool isVisible, bool isEditable, bool isForBilling, bool isBillingParameter, int displayOrder, bool isProcessColumn, string dateFormat, int userId)
         {
             cmd.Parameters.Add("@FieldConfigId", SqlDbType.Int).Value = fieldConfigId;
             cmd.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
@@ -659,6 +664,7 @@ SELECT CASE WHEN @@ROWCOUNT > 0 THEN @FieldConfigId ELSE 0 END;", connection, tr
             cmd.Parameters.Add("@IsVisible", SqlDbType.Bit).Value = isVisible;
             cmd.Parameters.Add("@IsEditable", SqlDbType.Bit).Value = isEditable;
             cmd.Parameters.Add("@IsForBilling", SqlDbType.Bit).Value = isForBilling;
+            cmd.Parameters.Add("@IsBillingParameter", SqlDbType.Bit).Value = isBillingParameter;
             cmd.Parameters.Add("@DateFormat", SqlDbType.NVarChar, 30).Value = string.IsNullOrEmpty(dateFormat) ? (object)DBNull.Value : dateFormat;
             cmd.Parameters.Add("@DisplayOrder", SqlDbType.Int).Value = displayOrder;
             cmd.Parameters.Add("@IsProcessColumn", SqlDbType.Bit).Value = isProcessColumn;
@@ -692,6 +698,7 @@ SELECT
     IsVisible,
     IsEditable,
     IsForBilling,
+    IsBillingParameter,
     DateFormat,
     DisplayOrder,
     IsProcessColumn,
@@ -734,6 +741,7 @@ INSERT INTO dbo.WBT_ProjectTrackingFieldConfig
     ProcessChildType,
     IsSystemGenerated,
     IsForBilling,
+    IsBillingParameter,
     DateFormat,
     IsBillingField,
     AddedBy,
@@ -757,6 +765,7 @@ VALUES
     @ProcessChildType,
     @IsSystemGenerated,
     @IsForBilling,
+    @IsBillingParameter,
     @DateFormat,
     0,
     @UserID,
@@ -778,6 +787,7 @@ VALUES
                 cmd.Parameters.Add("@ProcessChildType", SqlDbType.NVarChar, 30).Value = sourceRow["ProcessChildType"] == DBNull.Value ? (object)DBNull.Value : Convert.ToString(sourceRow["ProcessChildType"]);
                 cmd.Parameters.Add("@IsSystemGenerated", SqlDbType.Bit).Value = Convert.ToBoolean(sourceRow["IsSystemGenerated"]);
                 cmd.Parameters.Add("@IsForBilling", SqlDbType.Bit).Value = sourceRow.Table.Columns.Contains("IsForBilling") && sourceRow["IsForBilling"] != DBNull.Value ? Convert.ToBoolean(sourceRow["IsForBilling"]) : false;
+                cmd.Parameters.Add("@IsBillingParameter", SqlDbType.Bit).Value = sourceRow.Table.Columns.Contains("IsBillingParameter") && sourceRow["IsBillingParameter"] != DBNull.Value ? Convert.ToBoolean(sourceRow["IsBillingParameter"]) : false;
                 cmd.Parameters.Add("@DateFormat", SqlDbType.NVarChar, 30).Value = sourceRow.Table.Columns.Contains("DateFormat") && sourceRow["DateFormat"] != DBNull.Value ? (object)Convert.ToString(sourceRow["DateFormat"]) : DBNull.Value;
                 cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
                 return Convert.ToInt32(cmd.ExecuteScalar());
@@ -805,6 +815,7 @@ BEGIN
         IsVisible = 0,
         IsEditable = 0,
         IsForBilling = 0,
+        IsBillingParameter = 0,
         DateFormat = NULL,
         DisplayOrder = @DisplayOrder,
         IsProcessColumn = 0,
@@ -830,6 +841,7 @@ BEGIN
         IsVisible,
         IsEditable,
         IsForBilling,
+        IsBillingParameter,
         DateFormat,
         DisplayOrder,
         IsProcessColumn,
@@ -847,6 +859,7 @@ BEGIN
         @FieldName,
         @DataType,
         NULL,
+        0,
         0,
         0,
         0,
@@ -929,6 +942,7 @@ BEGIN
         IsVisible = 1,
         IsEditable = 1,
         IsForBilling = 0,
+        IsBillingParameter = 0,
         DateFormat = NULL,
         IsProcessColumn = 0,
         IsSystemGenerated = 1,
@@ -952,6 +966,7 @@ BEGIN
         IsVisible,
         IsEditable,
         IsForBilling,
+        IsBillingParameter,
         DateFormat,
         DisplayOrder,
         IsProcessColumn,
@@ -972,6 +987,7 @@ BEGIN
         0,
         1,
         1,
+        0,
         0,
         NULL,
         @DisplayOrder,
@@ -1236,6 +1252,7 @@ BEGIN
         IsVisible bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsVisible DEFAULT (1),
         IsEditable bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsEditable DEFAULT (1),
         IsForBilling bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsForBilling DEFAULT (0),
+        IsBillingParameter bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsBillingParameter DEFAULT (0),
         DateFormat nvarchar(30) NULL,
         DisplayOrder int NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_DisplayOrder DEFAULT (0),
         IsProcessColumn bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsProcessColumn DEFAULT (0),
@@ -1284,6 +1301,11 @@ END;
 IF OBJECT_ID('dbo.WBT_ProjectTrackingFieldConfig', 'U') IS NOT NULL AND COL_LENGTH('dbo.WBT_ProjectTrackingFieldConfig', 'IsForBilling') IS NULL
 BEGIN
     ALTER TABLE dbo.WBT_ProjectTrackingFieldConfig ADD IsForBilling bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsForBilling DEFAULT (0) WITH VALUES;
+END;
+
+IF OBJECT_ID('dbo.WBT_ProjectTrackingFieldConfig', 'U') IS NOT NULL AND COL_LENGTH('dbo.WBT_ProjectTrackingFieldConfig', 'IsBillingParameter') IS NULL
+BEGIN
+    ALTER TABLE dbo.WBT_ProjectTrackingFieldConfig ADD IsBillingParameter bit NOT NULL CONSTRAINT DF_WBT_ProjectTrackingFieldConfig_IsBillingParameter DEFAULT (0) WITH VALUES;
 END;
 
 IF OBJECT_ID('dbo.WBT_ProjectTrackingFieldConfig', 'U') IS NOT NULL AND COL_LENGTH('dbo.WBT_ProjectTrackingFieldConfig', 'DateFormat') IS NULL

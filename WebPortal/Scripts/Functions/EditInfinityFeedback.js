@@ -384,7 +384,7 @@ function BindFeedbackHistory_Grid(feedbackId, subdomain) {
                 deferRender: true,
                 destroy: true,
                 autoWidth: false,
-                scrollX: true,
+                // scrollX: true,
 
                 columns: [
                     {

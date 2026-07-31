@@ -158,33 +158,6 @@ namespace WebPortal.Search
             return returnValue;
         }
 
-
-        [WebMethod]
-        public static int SendToAccounts(int ProjectID, string Project, string BillingCycle, string BillingPeriod)
-        {
-            int returnValue = 0;
-
-            string[] dates = BillingPeriod.Split('~');
-            string FromDate = dates[0].Trim();
-            string ToDate = dates[1].Trim();
-
-            string ProductionBillingDate = Convert.ToDateTime(DateTime.Now.Date).ToString("dd-MMM-yyyy");
-
-            returnValue = new bllOST().UpdateBillingInBillingDB(ProjectID, BillingPeriod, BillingCycle, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), ProductionBillingDate, ProductionBillingDate, true, "", "Pending");
-
-            DataTable dt = new bllOST().GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(Project, FromDate, ToDate);
-
-            DataTable dt2 = null;// (DataTable)Session["dtReport"];
-
-            if (dt.Rows.Count > 0)
-            {
-                SendClientBillingOrdersTyping(dt, dt2, Project, "Search-Typing", "0", "0", "0", "0", "0", "0", "0", "0", "0", BillingPeriod, 0, "");
-            }
-
-            returnValue = new bllOST().HoldOrdersPending(Project, FromDate, ToDate);
-            return returnValue;
-        }
-
         [WebMethod]
         public static int AddRemark_VerifyBilling(int OrderID, string OrderCost, string Remark)
         {
@@ -194,6 +167,12 @@ namespace WebPortal.Search
         }
 
 
+        [WebMethod]
+        public static int SendToAccounts(string ProjectNo, string FromDate, string ToDate, string EmailTo, string EmailCC, string EmailSubject, string EmailBody)
+        {
+            int returnValue = 0;
+        }
+
         public static void SendClientBillingOrdersTyping(DataTable dt, DataTable dt2, string ProjectName, string ProjectType, string TotalCount, string Dispatched_Count, string NotToBilledCount, string Cancelled_Count, string Pending_Count, string Weekday_Count, string WeekendCount, string Infinity_ChecklistCount, string ClientCount, string BillingDatePeriod, int domainID, string EmailNote)
         {
             StringBuilder htmlBody = new StringBuilder();
@@ -201,9 +180,9 @@ namespace WebPortal.Search
             DateTime dtime = DateTime.Today;
             string day = dtime.DayOfWeek.ToString();
             string Path = "";
-            string ToAddress = "a.phillip@infinityinternationals.us,e.mike@infinityinternationals.us,C.Eva@infinityinternationals.us";
-            string ToCC = "n.prasad@infinityinternationals.us";
-            string ToBcc = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
+            string ToAddress = "b.shubhangi@infinityinternationals.us";// "a.phillip@infinityinternationals.us,e.mike@infinityinternationals.us,C.Eva@infinityinternationals.us";
+            string ToCC = "b.shubhangi@infinityinternationals.us";// "n.prasad@infinityinternationals.us";
+            string ToBcc = "b.shubhangi@infinityinternationals.us";// "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
 
             #region dtmain Datatable
 
@@ -313,7 +292,7 @@ namespace WebPortal.Search
             #endregion
         }
 
-        public bool sendMailForOnlineTracking(string ToAddress, string ToCC, string ToBCC, string Subject, string Path, StringBuilder htmlBody, string PWD)
+        public bool sendMailForOnlineTracking(string ToAddress, string ToCC, string ToBCC, string Subject, string Path, StringBuilder htmlBody, string Pwd)
         {
             try
             {
@@ -346,7 +325,7 @@ namespace WebPortal.Search
 
                 mail.Priority = System.Net.Mail.MailPriority.High;
                 SmtpClient client = new SmtpClient();
-                client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", PWD);
+                client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", Pwd);
 
                 client.Host = "smtp.office365.com";  //Gmail works on Server Secured Layer
                 client.Port = 587;

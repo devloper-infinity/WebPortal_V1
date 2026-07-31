@@ -710,58 +710,99 @@ function VerifyOrdres_Verify() {
 }
 
 function VerifyOrdres_SendToAccount() {
+    var ddlProject = document.getElementById("VerifyOrdres_projectno");
+    var ddlBillingCycle = document.getElementById("VerifyOrdres_BillingCycle");
+    var ddlBillingPeriod = document.getElementById("VerifyOrdres_dateperild");
+    var projectID = ddlProject ? ddlProject.value : "";
+    var project = ddlProject && ddlProject.selectedIndex >= 0 ? ddlProject.options[ddlProject.selectedIndex].text : "";
+    var billingCycle = ddlBillingCycle ? ddlBillingCycle.value : "";
+    var billingPeriod = ddlBillingPeriod && ddlBillingPeriod.selectedIndex >= 0
+        ? ddlBillingPeriod.options[ddlBillingPeriod.selectedIndex].text
+        : "";
 
-    var ddlprj1 = document.getElementById("VerifyOrdres_projectno"); alert(ddlprj1);
-    var projectID = ddlprj1.options[ddlprj1.selectedIndex].value;
-    var project = ddlprj1.options[ddlprj1.selectedIndex].text;
+    if (!projectID) {
+        verifyBillingAlert("warning", "Selection Required", "Please select a project.");
+        return false;
+    }
+    if (!billingCycle) {
+        verifyBillingAlert("warning", "Selection Required", "Please select a billing cycle.");
+        return false;
+    }
+    if (!ddlBillingPeriod || !ddlBillingPeriod.value) {
+        verifyBillingAlert("warning", "Selection Required", "Please select a billing period.");
+        return false;
+    }
+    if (!$.fn.DataTable.isDataTable('#VerifyOrders_Search_Billing')) {
+        verifyBillingAlert("warning", "No Billing Records", "Please load the billing records before sending them to Accounts.");
+        return false;
+    }
 
-    var ddlbillCycle = document.getElementById("VerifyOrdres_BillingCycle");
-    var billCycle = ddlbillCycle.options[ddlbillCycle.selectedIndex].text;
+    var table = $('#VerifyOrders_Search_Billing').DataTable();
+    var selectedOrderIDs = [];
+    table.$('input.row-checkbox:checked').each(function () {
+        var orderID = parseInt($(this).val(), 10);
+        if (orderID > 0 && selectedOrderIDs.indexOf(orderID) === -1) {
+            selectedOrderIDs.push(orderID);
+        }
+    });
 
-    var ddldatePeriod = document.getElementById("VerifyOrdres_dateperild");
-    var datePeriod = ddldatePeriod.options[ddldatePeriod.selectedIndex].text;
+    if (selectedOrderIDs.length === 0) {
+        verifyBillingAlert("warning", "No Records Selected", "Please select at least one billing record.");
+        return false;
+    }
 
-    if (projectID != "" && billCycle != "" && datePeriod != "") {
+    var $sendButton = $('#VerifyOrdres_btnSendToAccount');
+    $sendButton.prop('disabled', true);
+    $('#waitingpanel').modal('show');
 
-        $.ajax({
-            url: "VerifyBilling.aspx/SendToAccounts",
-            type: "POST",
-            data: "{ProjectID:'" + projectID + "',Project:'" + project + "',BillingCycle:'" + billCycle + "',BillingPeriod:'" + datePeriod + "'}",
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
+    $.ajax({
+        url: "VerifyBilling.aspx/SendToAccounts",
+        type: "POST",
+        data: JSON.stringify({
+            ProjectID: parseInt(projectID, 10),
+            Project: project,
+            BillingCycle: billingCycle,
+            BillingPeriod: billingPeriod,
+            OrderIDs: selectedOrderIDs.join(',')
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json"
+    }).done(function (response) {
+        var result = response && response.d ? response.d : null;
+        if (result && result.Success) {
+            verifyBillingAlert("success", "Email Sent", result.Message || "The selected billing records were sent to Accounts successfully.");
+        } else {
+            verifyBillingAlert("error", "Unable to Send Email", result && result.Message
+                ? result.Message
+                : "The billing email could not be sent. Please contact the administrator.");
+        }
+    }).fail(function (xhr) {
+        var message = "The billing email or Excel attachment could not be generated.";
+        if (xhr.responseJSON && xhr.responseJSON.Message) {
+            message = xhr.responseJSON.Message;
+        }
+        verifyBillingAlert("error", "Unable to Send Email", message);
+    }).always(function () {
+        $('#waitingpanel').modal('hide');
+        $sendButton.prop('disabled', false);
+    });
 
-            success: function (response) {
+    return false;
+}
 
-                $('#waitingpanel').modal('hide');
-
-                if (response.d > 0)
-                    alert("Orders send to account successfully!");
-                else
-                    alert("Oops! Error occured while sending orders. Please contact administrator!");
-            },
-
-            error: function (err) {
-
-                $('#waitingpanel').modal('hide');
-                alert(err.responseText);
-            }
+function verifyBillingAlert(icon, title, message) {
+    if (window.Swal && typeof window.Swal.fire === 'function') {
+        return window.Swal.fire({
+            icon: icon,
+            title: title,
+            text: message,
+            confirmButtonColor: '#0f766e',
+            allowOutsideClick: false
         });
     }
-    else {
 
-        if (projectID == "") {
-
-            alert("Please select Project.");
-        }
-        if (billCycle == "") {
-
-            alert("Please select Billing Cycle!");
-        }
-        if (datePeriod == "") {
-
-            alert("Please select Billing Period!");
-        }
-    }
+    window.alert(message);
+    return null;
 }
 
 

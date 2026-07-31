@@ -215,6 +215,7 @@
             border-spacing: 0;
             margin: 0 !important;
             width: 100% !important;
+            height:auto!important;
         }
 
             #table_productionData thead th,

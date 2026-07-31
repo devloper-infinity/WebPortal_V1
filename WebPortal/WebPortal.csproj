@@ -2897,6 +2897,7 @@
     <Content Include="DatabaseScripts\OLTracking_010_SingleInProcessLoan.sql" />
     <Content Include="DatabaseScripts\OLTracking_011_UniqueLoanProcessAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_012_DynamicUniqueAllocation.sql" />
+    <Content Include="DatabaseScripts\OLTracking_013_BillingParameter.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />
@@ -5231,6 +5232,10 @@
     </Compile>
     <Compile Include="Search\Search.Master.designer.cs">
       <DependentUpon>Search.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Search\VerifyBilling.Email.cs">
+      <DependentUpon>VerifyBilling.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Search\VerifyBilling.aspx.cs">
       <DependentUpon>VerifyBilling.aspx</DependentUpon>
