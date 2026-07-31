@@ -3,6 +3,7 @@
 
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
         :root {
             --order-bg: #f4f6f8;

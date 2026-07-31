@@ -881,6 +881,13 @@
                                 <span class="toggle-text">For Billing</span>
                             </label>
                             <label class="checkbox-wrapper-44 toggleButton">
+                                <input type="checkbox" id="chkBillingParameter" />
+                                <span class="toggle-mark">
+                                    <svg viewBox="0 0 44 44" aria-hidden="true">
+                                        <path d="M14,24 L21,31 L39.7428882,11.5937758 C35.2809627,6.53125861 30.0333333,4 24,4 C12.95,4 4,12.95 4,24 C4,35.05 12.95,44 24,44 C35.05,44 44,35.05 44,24 C44,19.3 42.5809627,15.1645919 39.7428882,11.5937758" transform="translate(-2,-2)"></path></svg></span>
+                                <span class="toggle-text">Is Billing Parameter</span>
+                            </label>
+                            <label class="checkbox-wrapper-44 toggleButton">
                                 <input type="checkbox" id="chkForImport" />
                                 <span class="toggle-mark">
                                     <svg viewBox="0 0 44 44" aria-hidden="true">
@@ -946,6 +953,7 @@
                                 <th style="width: 90px; text-align: center;">Visible</th>
                                 <th style="width: 90px; text-align: center;">Editable</th>
                                 <th style="width: 100px; text-align: center;">For Billing</th>
+                                <th style="width: 130px; text-align: center;">Billing Parameter</th>
                                 <th style="width: 100px; text-align: center;">For Import</th>
                                 <th style="width: 90px; text-align: center;">Process</th>
                                 <th style="width: 100px; text-align: center;">Generated</th>
@@ -953,7 +961,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="14" class="text-center">Select a project.</td>
+                                <td colspan="15" class="text-center">Select a project.</td>
                             </tr>
                         </tbody>
                     </table>

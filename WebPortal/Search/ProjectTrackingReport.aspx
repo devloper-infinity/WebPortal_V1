@@ -1,4 +1,4 @@
-<%@ Page Title="" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="ProjectTrackingReport.aspx.cs" Inherits="WebPortal.Search.ProjectTrackingReport" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="ProjectTrackingReport.aspx.cs" Inherits="WebPortal.Search.ProjectTrackingReport" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
@@ -346,34 +346,51 @@
             border: 1px solid transparent;
             border-radius: 9px;
             font-size: 12px;
-            box-shadow: 0 4px 10px rgba(15, 23, 42, .12);
-            transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, .08);
+            transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
         }
 
         .tracking-action-btn:hover,
         .tracking-action-btn:focus {
-            color: #ffffff;
             transform: translateY(-1px);
-            filter: brightness(.95);
-            box-shadow: 0 7px 14px rgba(15, 23, 42, .18);
+            box-shadow: 0 5px 10px rgba(15, 23, 42, .14);
+            outline: 0;
         }
 
         .tracking-action-edit {
-            color: #ffffff;
-            background: linear-gradient(135deg, #16a34a, #22c55e);
-            border-color: #15803d;
+            color: #7e22ce;
+            background: #f3e8ff;
+            border-color: #d8b4fe;
+        }
+
+        .tracking-action-edit:hover,
+        .tracking-action-edit:focus {
+            color: #6b21a8;
+            background: #e9d5ff;
         }
 
         .tracking-action-status {
-            color: #ffffff;
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
-            border-color: #1d4ed8;
+            color: #0f766e;
+            background: #ccfbf1;
+            border-color: #5eead4;
+        }
+
+        .tracking-action-status:hover,
+        .tracking-action-status:focus {
+            color: #115e59;
+            background: #99f6e4;
         }
 
         .tracking-action-attachment {
-            color: #ffffff;
-            background: linear-gradient(135deg, #d97706, #f59e0b);
-            border-color: #b45309;
+            color: #0369a1;
+            background: #cffafe;
+            border-color: #67e8f9;
+        }
+
+        .tracking-action-attachment:hover,
+        .tracking-action-attachment:focus {
+            color: #075985;
+            background: #a5f3fc;
         }
 
         .tracking-chip {
@@ -1123,3 +1140,4 @@
         </div>
     </div>
 </asp:Content>
+

@@ -490,7 +490,6 @@
         }
 
             #costTable_wrapper table.dataTable thead th {
-                padding: 8px 10px !important;
                 color: #263747;
                 background: #edf3f6 !important;
                 background-image: none !important;
