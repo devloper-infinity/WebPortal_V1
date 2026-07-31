@@ -722,6 +722,147 @@ namespace WebPortal.App_Code.DAL
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
+        public DataTable GetIncrementSummaryFilters()
+        {
+            const string query = @"
+                SELECT DISTINCT
+                    COALESCE(NULLIF(branch.BranchName, ''), 'Unassigned') AS Location,
+                    COALESCE(NULLIF(domain.DomainName, ''), 'Unassigned') AS Domain,
+                    COALESCE(NULLIF(NULLIF(LTRIM(RTRIM(employee.SubDomain)), 'Select'), ''), 'Unassigned') AS SubDomain
+                FROM dbo.IncrementMaster increment
+                INNER JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = increment.EmployeeID
+                LEFT JOIN dbo.Branch branch ON branch.BranchID = employee.WorkingBranch
+                OUTER APPLY
+                (
+                    SELECT TOP 1 userDomain.DomainID
+                    FROM dbo.UserDomain userDomain
+                    WHERE userDomain.EmployeeID = employee.EmployeeID
+                    ORDER BY userDomain.AddedDate DESC, userDomain.UserDomainID DESC
+                ) latestDomain
+                LEFT JOIN dbo.Domain domain ON domain.DomainId = ISNULL(latestDomain.DomainID, employee.Domain)
+                ORDER BY Location, Domain, SubDomain";
+
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, query);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetIncrementSummary(int? fromMonth, int? fromYear, int? toMonth, int? toYear, string location, string domain, string subDomain, string status)
+        {
+            const string query = @"
+                WITH IncrementBase AS
+                (
+                    SELECT
+                        increment.IncrementID,
+                        increment.EmployeeID,
+                        CAST(ISNULL(increment.BeforeSalary, 0) AS DECIMAL(18, 2)) AS BeforeSalary,
+                        CAST(ISNULL(increment.CurrentSalary, 0) AS DECIMAL(18, 2)) AS CurrentSalary,
+                        CAST(ISNULL(increment.Difference, 0) AS DECIMAL(18, 2)) AS Difference,
+                        increment.Month,
+                        increment.Year,
+                        CASE LOWER(LTRIM(RTRIM(increment.Month)))
+                            WHEN 'january' THEN 1
+                            WHEN 'february' THEN 2
+                            WHEN 'march' THEN 3
+                            WHEN 'april' THEN 4
+                            WHEN 'may' THEN 5
+                            WHEN 'june' THEN 6
+                            WHEN 'july' THEN 7
+                            WHEN 'august' THEN 8
+                            WHEN 'september' THEN 9
+                            WHEN 'october' THEN 10
+                            WHEN 'november' THEN 11
+                            WHEN 'december' THEN 12
+                            ELSE 0
+                        END AS MonthNumber,
+                        COALESCE(NULLIF(branch.BranchName, ''), 'Unassigned') AS Location,
+                        COALESCE(NULLIF(domain.DomainName, ''), 'Unassigned') AS Domain,
+                        COALESCE(NULLIF(NULLIF(LTRIM(RTRIM(employee.SubDomain)), 'Select'), ''), 'Unassigned') AS SubDomain,
+                        CASE WHEN ISNULL(increment.IsApproved, 0) = 1 THEN 'Approved' ELSE 'Pending' END AS ApprovalStatus
+                    FROM dbo.IncrementMaster increment
+                    INNER JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = increment.EmployeeID
+                    LEFT JOIN dbo.Branch branch ON branch.BranchID = employee.WorkingBranch
+                    OUTER APPLY
+                    (
+                        SELECT TOP 1 userDomain.DomainID
+                        FROM dbo.UserDomain userDomain
+                        WHERE userDomain.EmployeeID = employee.EmployeeID
+                        ORDER BY userDomain.AddedDate DESC, userDomain.UserDomainID DESC
+                    ) latestDomain
+                    LEFT JOIN dbo.Domain domain ON domain.DomainId = ISNULL(latestDomain.DomainID, employee.Domain)
+                ),
+                FilteredIncrements AS
+                (
+                    SELECT *
+                    FROM IncrementBase
+                    WHERE (@FromYear IS NULL OR
+                           ((Year * 100) + MonthNumber) >=
+                           ((@FromYear * 100) + ISNULL(@FromMonth, 1)))
+                      AND (@ToYear IS NULL OR
+                           ((Year * 100) + MonthNumber) <=
+                           ((@ToYear * 100) + ISNULL(@ToMonth, 12)))
+                      AND (@Location = '' OR Location = @Location)
+                      AND (@Domain = '' OR Domain = @Domain)
+                      AND (@SubDomain = '' OR SubDomain = @SubDomain)
+                      AND (@Status = '' OR ApprovalStatus = @Status)
+                ),
+                SummaryRows AS
+                (
+                    SELECT
+                        Year,
+                        Month,
+                        MonthNumber,
+                        Location,
+                        Domain,
+                        SubDomain,
+                        COUNT(DISTINCT EmployeeID) AS EmployeeCount,
+                        COUNT(*) AS IncrementCount,
+                        SUM(BeforeSalary) AS SalaryBefore,
+                        SUM(CurrentSalary) AS SalaryAfter,
+                        SUM(Difference) AS IncreaseAmount,
+                        CAST((SUM(Difference) / NULLIF(SUM(BeforeSalary), 0)) * 100 AS DECIMAL(18, 2)) AS IncreasePercentage,
+                        CAST(SUM(Difference) / NULLIF(COUNT(DISTINCT EmployeeID), 0) AS DECIMAL(18, 2)) AS AverageIncreasePerEmployee,
+                        SUM(CASE WHEN ApprovalStatus = 'Approved' THEN 1 ELSE 0 END) AS ApprovedCount,
+                        SUM(CASE WHEN ApprovalStatus = 'Pending' THEN 1 ELSE 0 END) AS PendingCount
+                    FROM FilteredIncrements
+                    GROUP BY Year, Month, MonthNumber, Location, Domain, SubDomain
+                )
+                SELECT
+                    CAST(Month AS NVARCHAR(20)) + '-' + CAST(Year AS NVARCHAR(10)) AS MonthYear,
+                    Location,
+                    Domain,
+                    SubDomain,
+                    EmployeeCount,
+                    IncrementCount,
+                    SalaryBefore,
+                    SalaryAfter,
+                    IncreaseAmount,
+                    IncreasePercentage,
+                    AverageIncreasePerEmployee,
+                    ApprovedCount,
+                    PendingCount,
+                    (SELECT COUNT(DISTINCT EmployeeID) FROM FilteredIncrements) AS TotalEmployees,
+                    (SELECT COUNT(*) FROM FilteredIncrements) AS TotalIncrements,
+                    (SELECT ISNULL(SUM(BeforeSalary), 0) FROM FilteredIncrements) AS TotalSalaryBefore,
+                    (SELECT ISNULL(SUM(CurrentSalary), 0) FROM FilteredIncrements) AS TotalSalaryAfter,
+                    (SELECT ISNULL(SUM(Difference), 0) FROM FilteredIncrements) AS TotalIncreaseAmount,
+                    (SELECT CAST((SUM(Difference) / NULLIF(SUM(BeforeSalary), 0)) * 100 AS DECIMAL(18, 2))
+                     FROM FilteredIncrements) AS TotalIncreasePercentage
+                FROM SummaryRows
+                ORDER BY Year DESC, MonthNumber DESC, Location, Domain, SubDomain";
+
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, query);
+            cmd.Parameters.Add("@FromMonth", SqlDbType.Int).Value = (object)fromMonth ?? DBNull.Value;
+            cmd.Parameters.Add("@FromYear", SqlDbType.Int).Value = (object)fromYear ?? DBNull.Value;
+            cmd.Parameters.Add("@ToMonth", SqlDbType.Int).Value = (object)toMonth ?? DBNull.Value;
+            cmd.Parameters.Add("@ToYear", SqlDbType.Int).Value = (object)toYear ?? DBNull.Value;
+            cmd.Parameters.Add("@Location", SqlDbType.NVarChar, 200).Value = location ?? string.Empty;
+            cmd.Parameters.Add("@Domain", SqlDbType.NVarChar, 200).Value = domain ?? string.Empty;
+            cmd.Parameters.Add("@SubDomain", SqlDbType.NVarChar, 200).Value = subDomain ?? string.Empty;
+            cmd.Parameters.Add("@Status", SqlDbType.NVarChar, 20).Value = status ?? string.Empty;
+
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public int approveIncrement_New(int IncrementID, int ApprovedBy, string ApprovedIP, string currentSalary)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_approveIncrement_New");

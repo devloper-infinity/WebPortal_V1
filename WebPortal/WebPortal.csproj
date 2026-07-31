@@ -141,6 +141,7 @@
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\All.aspx" />
+    <Content Include="Admin\FeedbackPerformanceReport.aspx" />
     <Content Include="All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
@@ -698,6 +699,13 @@
     <Content Include="FTE\FTEMaster.aspx" />
     <Content Include="FTE\ProjectHolidaysMaster.aspx" />
     <Content Include="FTE\ProjectMonthlyOperatorHours.aspx" />
+    <Content Include="Helpdesk\Administration.aspx" />
+    <Content Include="Content\Helpdesk.css" />
+    <Content Include="DatabaseScripts\Helpdesk_001_StandardWorkflow.sql" />
+    <Content Include="DatabaseScripts\Helpdesk_002_MasterData.sql" />
+    <Content Include="Helpdesk\Home.aspx" />
+    <Content Include="Helpdesk\Ticket.aspx" />
+    <Content Include="Helpdesk\Workbench.aspx" />
     <Content Include="images\InfinityWatermark.JPG" />
     <Content Include="images\logo-login.png" />
     <Content Include="images\Welcome to POSH Awareness Training.mp4" />
@@ -709,6 +717,7 @@
     <Content Include="IT\StockReport.aspx" />
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
+    <Content Include="Scripts\Functions\HelpdeskModule.js" />
     <Content Include="IT\AddTicket.aspx" />
     <Content Include="IT\AddTicketRemark.aspx" />
     <Content Include="IT\AssetGroup.aspx" />
@@ -3076,6 +3085,11 @@
       <DependentUpon>BranchAndDateWiseAttendanceReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\EditInfinityFeedbackHelpers.cs" />
+    <Compile Include="Admin\FeedbackPerformanceExcelExporter.cs" />
+    <Compile Include="Admin\FeedbackPerformanceReport.aspx.cs">
+      <DependentUpon>FeedbackPerformanceReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Admin\FileDownload.aspx.cs">
       <DependentUpon>FileDownload.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3124,12 +3138,29 @@
     <Compile Include="App_Code\BLL\bllOLTracking.cs" />
     <Compile Include="App_Code\BLL\bllOLTrackingImport.cs" />
     <Compile Include="App_Code\BLL\bllVendors.cs" />
+    <Compile Include="App_Code\Class\HelpdeskJson.cs" />
     <Compile Include="App_Code\DAL\dalFeedback.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="App_Code\DAL\dalOLTracking.cs" />
     <Compile Include="App_Code\DAL\dalOLTrackingImport.cs" />
     <Compile Include="App_Code\DAL\dalVendors.cs" />
     <Compile Include="App_Code\OLTrackingWeb.cs" />
+    <Compile Include="Helpdesk\Administration.aspx.cs">
+      <DependentUpon>Administration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\Home.aspx.cs">
+      <DependentUpon>Home.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\Ticket.aspx.cs">
+      <DependentUpon>Ticket.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\Workbench.aspx.cs">
+      <DependentUpon>Workbench.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Search\SearchDashboard.aspx.cs">
       <DependentUpon>SearchDashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4543,6 +4574,8 @@
     <Compile Include="Admin\WorkedHolidays.aspx.designer.cs">
       <DependentUpon>WorkedHolidays.aspx</DependentUpon>
     </Compile>
+    <Compile Include="App_Code\BLL\bllHelpdesk.cs" />
+    <Compile Include="App_Code\DAL\dalHelpdesk.cs" />
     <Compile Include="App_Code\BLL\bllAsset.cs" />
     <Compile Include="App_Code\BLL\bllCRM.cs" />
     <Compile Include="App_Code\BLL\bllReport.cs" />
@@ -5659,6 +5692,8 @@
     <Content Include="Feedback\Feedback.Master" />
     <Content Include="Assets\Templates\AssetImportTemplate.csv" />
     <Content Include="Assets\Admin.Master" />
+    <Content Include="Helpdesk\PROCESS-FLOW.md" />
+    <Content Include="ReportTemplates\Feedback_Performance_Template.xlsx" />
     <None Include="packages.config" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.css.map" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.min.css.map" />

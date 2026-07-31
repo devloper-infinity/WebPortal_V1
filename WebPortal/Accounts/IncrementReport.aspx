@@ -72,7 +72,8 @@
 =================================== */
 
 #incapr_tblIncrementApproval,
-#inchist_tblIncrementHistory {
+#inchist_tblIncrementHistory,
+#incsum_tblIncrementSummary {
     width: 100% !important;
 }
 
@@ -81,7 +82,9 @@
 #incapr_tblIncrementApproval tfoot th,
 #incapr_tblIncrementApproval tfoot td,
 #inchist_tblIncrementHistory thead th,
-#inchist_tblIncrementHistory tbody td {
+#inchist_tblIncrementHistory tbody td,
+#incsum_tblIncrementSummary thead th,
+#incsum_tblIncrementSummary tbody td {
 
     white-space: nowrap;
     vertical-align: middle;
@@ -129,6 +132,39 @@
     font-size: 12px;
     font-weight: normal;
 }
+
+.incsum-kpi-card {
+    height: 100%;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.incsum-kpi-label {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.incsum-kpi-value {
+    margin-top: 4px;
+    color: #0f172a;
+    font-size: 23px;
+    font-weight: 700;
+}
+
+.incsum-kpi-note {
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.incsum-positive {
+    color: #15803d;
+}
         /*.form-control {
             font-size: 11px !important;
         }*/
@@ -147,6 +183,7 @@
             incentry_bindretentionyear();
             bindincrementapproval();
             inchist_bindfilters();
+            incsum_bindfilters();
         });
 
         window.onload = function () {
@@ -207,6 +244,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="custom-tabs-one-history-tab" data-toggle="pill" href="#custom-tabs-one-history" role="tab" aria-controls="custom-tabs-one-history" aria-selected="false">Increment History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="custom-tabs-one-summary-tab" data-toggle="pill" href="#custom-tabs-one-summary" role="tab" aria-controls="custom-tabs-one-summary" aria-selected="false">Increment Summary Report</a>
                             </li>
 
                         </ul>
@@ -748,6 +788,170 @@
                                                         <th>Status</th>
                                                         <th>Approved By</th>
                                                         <th>Approved Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="custom-tabs-one-summary" role="tabpanel" aria-labelledby="custom-tabs-one-summary-tab">
+                                <div class="erp-card">
+                                    <div class="erp-card-header">
+                                        <div class="erp-card-title">Increment Summary Filters</div>
+                                    </div>
+                                    <div class="erp-card-body">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-2">
+                                                <label for="incsum_frommonth">From Month</label>
+                                                <select id="incsum_frommonth" class="form-control">
+                                                    <option value="0">All</option>
+                                                    <option value="1">January</option>
+                                                    <option value="2">February</option>
+                                                    <option value="3">March</option>
+                                                    <option value="4">April</option>
+                                                    <option value="5">May</option>
+                                                    <option value="6">June</option>
+                                                    <option value="7">July</option>
+                                                    <option value="8">August</option>
+                                                    <option value="9">September</option>
+                                                    <option value="10">October</option>
+                                                    <option value="11">November</option>
+                                                    <option value="12">December</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="incsum_fromyear">From Year</label>
+                                                <select id="incsum_fromyear" class="form-control">
+                                                    <option value="0">All</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="incsum_tomonth">To Month</label>
+                                                <select id="incsum_tomonth" class="form-control">
+                                                    <option value="0">All</option>
+                                                    <option value="1">January</option>
+                                                    <option value="2">February</option>
+                                                    <option value="3">March</option>
+                                                    <option value="4">April</option>
+                                                    <option value="5">May</option>
+                                                    <option value="6">June</option>
+                                                    <option value="7">July</option>
+                                                    <option value="8">August</option>
+                                                    <option value="9">September</option>
+                                                    <option value="10">October</option>
+                                                    <option value="11">November</option>
+                                                    <option value="12">December</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="incsum_toyear">To Year</label>
+                                                <select id="incsum_toyear" class="form-control">
+                                                    <option value="0">All</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="incsum_status">Approval Status</label>
+                                                <select id="incsum_status" class="form-control">
+                                                    <option value="">All</option>
+                                                    <option value="Approved">Approved</option>
+                                                    <option value="Pending">Pending</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row align-items-end">
+                                            <div class="form-group col-md-3">
+                                                <label for="incsum_location">Location</label>
+                                                <select id="incsum_location" class="form-control">
+                                                    <option value="">All Locations</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <label for="incsum_domain">Domain</label>
+                                                <select id="incsum_domain" class="form-control">
+                                                    <option value="">All Domains</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <label for="incsum_subdomain">Subdomain</label>
+                                                <select id="incsum_subdomain" class="form-control">
+                                                    <option value="">All Subdomains</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <button type="button" id="incsum_btnShow" class="btn btn-primary" onclick="return incsum_bindgrid();">
+                                                    <i class="fa fa-search"></i> Show
+                                                </button>
+                                                <button type="button" class="btn btn-secondary ml-2" onclick="return incsum_resetfilters();">
+                                                    <i class="fa fa-undo"></i> Reset
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-3 mb-3">
+                                        <div class="incsum-kpi-card">
+                                            <div class="incsum-kpi-label">Employees Impacted</div>
+                                            <div class="incsum-kpi-value" id="incsum_totalEmployees">0</div>
+                                            <div class="incsum-kpi-note"><span id="incsum_totalIncrements">0</span> increment records</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="incsum-kpi-card">
+                                            <div class="incsum-kpi-label">Salary Before</div>
+                                            <div class="incsum-kpi-value" id="incsum_salaryBefore">₹0</div>
+                                            <div class="incsum-kpi-note">Total baseline payroll</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="incsum-kpi-card">
+                                            <div class="incsum-kpi-label">Salary After</div>
+                                            <div class="incsum-kpi-value" id="incsum_salaryAfter">₹0</div>
+                                            <div class="incsum-kpi-note">Payroll after increments</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="incsum-kpi-card">
+                                            <div class="incsum-kpi-label">Total Increase</div>
+                                            <div class="incsum-kpi-value incsum-positive" id="incsum_totalIncrease">₹0</div>
+                                            <div class="incsum-kpi-note"><span id="incsum_increasePercentage">0.00%</span> weighted payroll increase</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info py-2">
+                                    <i class="fa fa-info-circle"></i>
+                                    The overall increase percentage is weighted by payroll:
+                                    total increase divided by total salary before. This gives management a more accurate cost impact than averaging individual percentages.
+                                </div>
+
+                                <div class="erp-card">
+                                    <div class="erp-card-header">
+                                        <div class="erp-card-title">Month, Location, Domain and Subdomain Summary</div>
+                                    </div>
+                                    <div class="erp-card-body">
+                                        <div class="table-responsive">
+                                            <table id="incsum_tblIncrementSummary" class="table table-bordered table-hover align-middle w-100">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Month-Year</th>
+                                                        <th>Location</th>
+                                                        <th>Domain</th>
+                                                        <th>Subdomain</th>
+                                                        <th>Employees</th>
+                                                        <th>Increment Records</th>
+                                                        <th>Salary Before</th>
+                                                        <th>Salary After</th>
+                                                        <th>Increase Amount</th>
+                                                        <th>Increase %</th>
+                                                        <th>Avg Increase / Employee</th>
+                                                        <th>Approved</th>
+                                                        <th>Pending</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>

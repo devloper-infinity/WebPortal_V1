@@ -353,6 +353,43 @@ namespace WebPortal.Accounts
         }
 
         [WebMethod]
+        public static string GetIncrementSummaryFilters()
+        {
+            try
+            {
+                DataTable dt = new bllSalary().GetIncrementSummaryFilters();
+                return Newtonsoft.Json.JsonConvert.SerializeObject(dt);
+            }
+            catch
+            {
+                return "[]";
+            }
+        }
+
+        [WebMethod]
+        public static string GetIncrementSummary(int FromMonth, int FromYear, int ToMonth, int ToYear, string Location, string Domain, string SubDomain, string Status)
+        {
+            try
+            {
+                DataTable dt = new bllSalary().GetIncrementSummary(
+                    FromMonth > 0 ? (int?)FromMonth : null,
+                    FromYear > 0 ? (int?)FromYear : null,
+                    ToMonth > 0 ? (int?)ToMonth : null,
+                    ToYear > 0 ? (int?)ToYear : null,
+                    Location ?? string.Empty,
+                    Domain ?? string.Empty,
+                    SubDomain ?? string.Empty,
+                    Status ?? string.Empty);
+
+                return Newtonsoft.Json.JsonConvert.SerializeObject(dt);
+            }
+            catch
+            {
+                return "[]";
+            }
+        }
+
+        [WebMethod]
         public static ResponseMessage ApproveIncrements(List<IncrementApprovalModel> increments)
         {
             ResponseMessage response = new ResponseMessage();

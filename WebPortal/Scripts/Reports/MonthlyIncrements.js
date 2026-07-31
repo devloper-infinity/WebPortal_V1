@@ -885,3 +885,319 @@ $(document)
             $('#inchist_tblIncrementHistory').DataTable().columns.adjust().draw(false);
         }
     });
+
+var incsumLoaded = false;
+var incsumFilterOptions = [];
+
+function incsum_uniquevalues(items, propertyName) {
+    var values = {};
+
+    $.each(items, function (index, item) {
+        var value = item[propertyName];
+        if (value) {
+            values[value] = true;
+        }
+    });
+
+    return Object.keys(values).sort(function (first, second) {
+        return first.localeCompare(second);
+    });
+}
+
+function incsum_setselectoptions(selector, defaultText, values, selectedValue) {
+    var select = $(selector);
+    select.empty().append($('<option></option>').val('').text(defaultText));
+
+    $.each(values, function (index, value) {
+        select.append($('<option></option>').val(value).text(value));
+    });
+
+    if (selectedValue && values.indexOf(selectedValue) >= 0) {
+        select.val(selectedValue);
+    }
+}
+
+function incsum_updatesubdomains() {
+    var location = $('#incsum_location').val();
+    var domain = $('#incsum_domain').val();
+    var currentSubDomain = $('#incsum_subdomain').val();
+    var matchingOptions = $.grep(incsumFilterOptions, function (item) {
+        return (!location || item.Location === location) &&
+            (!domain || item.Domain === domain);
+    });
+
+    incsum_setselectoptions(
+        '#incsum_subdomain',
+        'All Subdomains',
+        incsum_uniquevalues(matchingOptions, 'SubDomain'),
+        currentSubDomain
+    );
+}
+
+function incsum_updatedomains() {
+    var location = $('#incsum_location').val();
+    var currentDomain = $('#incsum_domain').val();
+    var matchingOptions = $.grep(incsumFilterOptions, function (item) {
+        return !location || item.Location === location;
+    });
+
+    incsum_setselectoptions(
+        '#incsum_domain',
+        'All Domains',
+        incsum_uniquevalues(matchingOptions, 'Domain'),
+        currentDomain
+    );
+    incsum_updatesubdomains();
+}
+
+function incsum_bindfilters() {
+    var currentYear = new Date().getFullYear();
+    var fromYear = $('#incsum_fromyear');
+    var toYear = $('#incsum_toyear');
+
+    fromYear.empty().append($('<option></option>').val(0).text('All'));
+    toYear.empty().append($('<option></option>').val(0).text('All'));
+
+    for (var year = currentYear + 1; year >= 2000; year--) {
+        fromYear.append($('<option></option>').val(year).text(year));
+        toYear.append($('<option></option>').val(year).text(year));
+    }
+
+    $.ajax({
+        url: "IncrementReport.aspx/GetIncrementSummaryFilters",
+        type: "POST",
+        data: "{}",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            incsumFilterOptions = JSON.parse(response.d || "[]");
+
+            incsum_setselectoptions(
+                '#incsum_location',
+                'All Locations',
+                incsum_uniquevalues(incsumFilterOptions, 'Location'),
+                ''
+            );
+            incsum_updatedomains();
+        }
+    });
+}
+
+function incsum_validatefilters() {
+    var fromMonth = parseInt($('#incsum_frommonth').val(), 10) || 0;
+    var fromYear = parseInt($('#incsum_fromyear').val(), 10) || 0;
+    var toMonth = parseInt($('#incsum_tomonth').val(), 10) || 0;
+    var toYear = parseInt($('#incsum_toyear').val(), 10) || 0;
+    var message = '';
+
+    if (fromMonth > 0 && fromYear === 0) {
+        message = 'Please select a From Year.';
+    }
+    else if (toMonth > 0 && toYear === 0) {
+        message = 'Please select a To Year.';
+    }
+    else if (fromYear > 0 && toYear > 0) {
+        var fromKey = (fromYear * 100) + (fromMonth || 1);
+        var toKey = (toYear * 100) + (toMonth || 12);
+
+        if (fromKey > toKey) {
+            message = 'From Month-Year cannot be later than To Month-Year.';
+        }
+    }
+
+    if (message) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid report period',
+            text: message
+        });
+        return false;
+    }
+
+    return true;
+}
+
+function incsum_formatnumber(value, decimals) {
+    var numericValue = parseFloat(value);
+
+    if (isNaN(numericValue)) {
+        numericValue = 0;
+    }
+
+    return numericValue.toLocaleString('en-IN', {
+        minimumFractionDigits: decimals || 0,
+        maximumFractionDigits: decimals || 0
+    });
+}
+
+function incsum_formatcurrency(value) {
+    return '₹' + incsum_formatnumber(value, 2);
+}
+
+function incsum_updatekpis(summaryData) {
+    var totals = summaryData.length > 0 ? summaryData[0] : {};
+    var percentage = parseFloat(totals.TotalIncreasePercentage) || 0;
+
+    $('#incsum_totalEmployees').text(incsum_formatnumber(totals.TotalEmployees, 0));
+    $('#incsum_totalIncrements').text(incsum_formatnumber(totals.TotalIncrements, 0));
+    $('#incsum_salaryBefore').text(incsum_formatcurrency(totals.TotalSalaryBefore));
+    $('#incsum_salaryAfter').text(incsum_formatcurrency(totals.TotalSalaryAfter));
+    $('#incsum_totalIncrease').text(incsum_formatcurrency(totals.TotalIncreaseAmount));
+    $('#incsum_increasePercentage').text(incsum_formatnumber(percentage, 2) + '%');
+}
+
+function incsum_bindgrid() {
+    if (!incsum_validatefilters()) {
+        return false;
+    }
+
+    var filters = {
+        FromMonth: parseInt($('#incsum_frommonth').val(), 10) || 0,
+        FromYear: parseInt($('#incsum_fromyear').val(), 10) || 0,
+        ToMonth: parseInt($('#incsum_tomonth').val(), 10) || 0,
+        ToYear: parseInt($('#incsum_toyear').val(), 10) || 0,
+        Location: $('#incsum_location').val() || '',
+        Domain: $('#incsum_domain').val() || '',
+        SubDomain: $('#incsum_subdomain').val() || '',
+        Status: $('#incsum_status').val() || ''
+    };
+
+    $('#load1').show();
+    $('#incsum_btnShow').prop('disabled', true);
+
+    $.ajax({
+        url: "IncrementReport.aspx/GetIncrementSummary",
+        type: "POST",
+        data: JSON.stringify(filters),
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            var summaryData = JSON.parse(response.d || "[]");
+            incsum_updatekpis(summaryData);
+
+            $('#incsum_tblIncrementSummary').DataTable({
+                destroy: true,
+                data: summaryData,
+                dom: 'lBfrtip',
+                paging: true,
+                pageLength: 25,
+                searching: true,
+                ordering: false,
+                processing: true,
+                autoWidth: false,
+                scrollX: true,
+                columns: [
+                    { data: 'MonthYear', defaultContent: '' },
+                    { data: 'Location', defaultContent: '' },
+                    { data: 'Domain', defaultContent: '' },
+                    { data: 'SubDomain', defaultContent: '' },
+                    { data: 'EmployeeCount', defaultContent: 0 },
+                    { data: 'IncrementCount', defaultContent: 0 },
+                    {
+                        data: 'SalaryBefore',
+                        defaultContent: 0,
+                        render: function (data, type) {
+                            return type === 'display' ? incsum_formatcurrency(data) : data;
+                        }
+                    },
+                    {
+                        data: 'SalaryAfter',
+                        defaultContent: 0,
+                        render: function (data, type) {
+                            return type === 'display' ? incsum_formatcurrency(data) : data;
+                        }
+                    },
+                    {
+                        data: 'IncreaseAmount',
+                        defaultContent: 0,
+                        render: function (data, type) {
+                            return type === 'display' ? incsum_formatcurrency(data) : data;
+                        }
+                    },
+                    {
+                        data: 'IncreasePercentage',
+                        defaultContent: 0,
+                        render: function (data, type) {
+                            return type === 'display' ? incsum_formatnumber(data, 2) + '%' : data;
+                        }
+                    },
+                    {
+                        data: 'AverageIncreasePerEmployee',
+                        defaultContent: 0,
+                        render: function (data, type) {
+                            return type === 'display' ? incsum_formatcurrency(data) : data;
+                        }
+                    },
+                    { data: 'ApprovedCount', defaultContent: 0 },
+                    { data: 'PendingCount', defaultContent: 0 }
+                ],
+                createdRow: function (row, rowData) {
+                    $(row).children('td').css('white-space', 'nowrap');
+
+                    if (parseInt(rowData.PendingCount, 10) > 0) {
+                        $(row).addClass('table-warning');
+                    }
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Increment Summary Report',
+                        autoFilter: true
+                    }
+                ],
+                initComplete: function () {
+                    this.api().columns.adjust();
+                }
+            });
+
+            incsumLoaded = true;
+        },
+        error: function (xhr) {
+            incsum_updatekpis([]);
+            Swal.fire({
+                icon: 'error',
+                title: 'Unable to load increment summary',
+                text: xhr.responseJSON && xhr.responseJSON.Message
+                    ? xhr.responseJSON.Message
+                    : 'Please try again or contact the administrator.'
+            });
+        },
+        complete: function () {
+            $('#load1').hide();
+            $('#incsum_btnShow').prop('disabled', false);
+        }
+    });
+
+    return false;
+}
+
+function incsum_resetfilters() {
+    $('#incsum_frommonth').val('0');
+    $('#incsum_fromyear').val('0');
+    $('#incsum_tomonth').val('0');
+    $('#incsum_toyear').val('0');
+    $('#incsum_status').val('');
+    $('#incsum_location').val('');
+    incsum_updatedomains();
+
+    return incsum_bindgrid();
+}
+
+$(document)
+    .off('change.incrementSummary', '#incsum_location')
+    .on('change.incrementSummary', '#incsum_location', function () {
+        incsum_updatedomains();
+    })
+    .off('change.incrementSummary', '#incsum_domain')
+    .on('change.incrementSummary', '#incsum_domain', function () {
+        incsum_updatesubdomains();
+    })
+    .off('shown.bs.tab.incrementSummary', '#custom-tabs-one-summary-tab')
+    .on('shown.bs.tab.incrementSummary', '#custom-tabs-one-summary-tab', function () {
+        if (!incsumLoaded) {
+            incsum_bindgrid();
+        }
+        else if ($.fn.DataTable.isDataTable('#incsum_tblIncrementSummary')) {
+            $('#incsum_tblIncrementSummary').DataTable().columns.adjust().draw(false);
+        }
+    });

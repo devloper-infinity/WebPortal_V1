@@ -297,6 +297,16 @@ namespace WebPortal.App_Code.BLL
             return dalSalary.GetIncrementHistory(code, fromDate, toDate, fromMonth, fromYear, toMonth, toYear, status);
         }
 
+        public DataTable GetIncrementSummaryFilters()
+        {
+            return dalSalary.GetIncrementSummaryFilters();
+        }
+
+        public DataTable GetIncrementSummary(int? fromMonth, int? fromYear, int? toMonth, int? toYear, string location, string domain, string subDomain, string status)
+        {
+            return dalSalary.GetIncrementSummary(fromMonth, fromYear, toMonth, toYear, location, domain, subDomain, status);
+        }
+
         public int approveIncrement_New(int IncrementID, int ApprovedBy, string ApprovedIP, string CurrentSalary)
         {
             return dalSalary.approveIncrement_New(IncrementID, ApprovedBy, ApprovedIP, CurrentSalary);
