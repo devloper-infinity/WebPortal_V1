@@ -133,6 +133,14 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetOrderDetailsProcesswiseAttachment(int OrderID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetOrderDetailsAdditionalOrders");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, OrderID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetCurrentProcessOfUser(int OrderId, int TaskAssignedId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetCurrentProcessOfUser");

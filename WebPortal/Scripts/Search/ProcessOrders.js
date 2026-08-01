@@ -2,6 +2,7 @@ var ProcessOrders_html;
 var InvoiceID;
 var invrec_SearchProcess;
 var processOrderDetailsTable;
+var currentProcessTasksTable;
 var processOrdersData = [];
 var selectedProcessOrder = null;
 
@@ -181,28 +182,9 @@ function resetCompleteOrderModal() {
     $('#dashboard_attachment_upload').val('');
     $('#ProcessOrders_DispatchOrder,#ProcessOrders_NoFeedback,#ProcessOrders_TaxCalling,#ProcessOrders_Audit,#ProcessOrders_SPQA,#ProcessOrders_Offline')
         .prop('checked', false)
-        .prop('disabled', true);
+        .prop('disabled', false);
     resetOrderDetailsReport();
-}
-
-function applyCompleteOrderOptions(options) {
-    var checkboxRules = {
-        ProcessOrders_DispatchOrder: 'DispatchEnabled',
-        ProcessOrders_NoFeedback: 'NoFeedbackEnabled',
-        ProcessOrders_TaxCalling: 'TaxCallingEnabled',
-        ProcessOrders_Audit: 'AuditEnabled',
-        ProcessOrders_SPQA: 'SpqaEnabled',
-        ProcessOrders_Offline: 'OfflineEnabled'
-    };
-
-    $.each(checkboxRules, function (checkboxId, optionName) {
-        var enabled = options && options[optionName] === true;
-        var $checkbox = $('#' + checkboxId);
-        $checkbox.prop('disabled', !enabled);
-        if (!enabled) {
-            $checkbox.prop('checked', false);
-        }
-    });
+    resetCurrentProcessTasksTable();
 }
 
 function resetOrderDetailsReport() {
@@ -297,9 +279,216 @@ function loadOrderDetailsReport(orderId) {
     });
 }
 
+function resetCurrentProcessTasksTable() {
+    if ($.fn.dataTable.isDataTable('#ProcessOrders_CurrentProcessTasks')) {
+        $('#ProcessOrders_CurrentProcessTasks').DataTable().clear().destroy();
+    }
+
+    currentProcessTasksTable = null;
+    $('#ProcessOrders_SelectAllTasks').prop({ checked: true, indeterminate: false });
+    $('#ProcessOrders_CurrentProcessTasks tbody').html(
+        '<tr><td colspan="19" class="text-center text-muted">Loading current process orders...</td></tr>'
+    );
+}
+
+function loadOrdersOnCurrentProcess(orderId) {
+    $.ajax({
+        url: 'ProcessOrders.aspx/GetOrdersOnProcessForUser',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ OrderID: parseInt(orderId, 10) }),
+        success: function (result) {
+            var rows = JSON.parse((result && result.d) || '[]');
+            var html = '';
+
+            $.each(rows, function (index, row) {
+                var taskId = parseInt(getOrderValue(row, 'Taskid', 'TaskId'), 10) || 0;
+                html += '<tr>' +
+                    '<td class="text-center"><input type="checkbox" class="ost-task-select" value="' + taskId + '" checked aria-label="Select task ' + taskId + '" /></td>' +
+                    '<td class="text-center">' + (index + 1) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'OrderDate')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'Project', 'ProjectNumber')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'ClientOrderNo')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'ProductType')) + '</td>' +
+                    '<td class="ost-task-text">' + htmlEncode(getOrderValue(row, 'BName', 'BorrowerName')) + '</td>' +
+                    '<td class="ost-task-text">' + htmlEncode(getOrderValue(row, 'PropertyAddress')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'State')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'County')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'ProcessName', 'Process')) + '</td>' +
+                    '<td class="ost-task-text">' + htmlEncode(getOrderValue(row, 'LegalDescription')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'ClientIdNew', 'ClientId')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'CustomerType')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'TransactionType')) + '</td>' +
+                    '<td class="ost-task-text">' + htmlEncode(getOrderValue(row, 'Instruction')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'SellerName')) + '</td>' +
+                    '<td>' + htmlEncode(getOrderValue(row, 'APNNo')) + '</td>' +
+                    '<td class="text-center"><button type="button" class="ost-attachment-action" data-task-id="' + taskId + '">' +
+                    '<i class="fas fa-paperclip"></i><span>Attachment</span></button></td>' +
+                    '</tr>';
+            });
+
+            $('#ProcessOrders_CurrentProcessTasks tbody').html(html);
+            currentProcessTasksTable = $('#ProcessOrders_CurrentProcessTasks').DataTable({
+                dom: 't',
+                destroy: true,
+                paging: false,
+                autoWidth: false,
+                ordering: false,
+                processing: false,
+                language: {
+                    emptyTable: 'No orders found for the current process.'
+                }
+            });
+
+            $('#ProcessOrders_SelectAllTasks').prop({
+                checked: rows.length > 0,
+                indeterminate: false
+            });
+            currentProcessTasksTable.columns.adjust();
+        },
+        error: function (error) {
+            $('#ProcessOrders_CurrentProcessTasks tbody').html(
+                '<tr><td colspan="19" class="text-center text-danger">Unable to load current process orders.</td></tr>'
+            );
+            $('#ProcessOrders_SelectAllTasks').prop({ checked: false, indeterminate: false });
+            processOrdersAjaxError(error, 'Unable to load orders for the current process.');
+        }
+    });
+}
+
+function processAttachmentDownloadLink(taskId, path) {
+    if (!path) {
+        return '<span class="text-muted">-</span>';
+    }
+
+    var url = 'ProcessOrders.aspx?action=downloadProcessAttachment' +
+        '&amp;taskId=' + encodeURIComponent(taskId) +
+        '&amp;path=' + encodeURIComponent(path);
+
+    return '<a class="attachment-download-btn" href="' + url + '" title="Download ' +
+        htmlEncode(orderDetailFileName(path) || 'attachment') + '">' +
+        '<i class="fas fa-download"></i><span>Download file</span></a>';
+}
+
+function processAttachmentFileIcon(path) {
+    var extension = (orderDetailFileName(path).split('.').pop() || '').toLowerCase();
+    if (extension === 'pdf') {
+        return 'fa-file-pdf';
+    }
+    if (['doc', 'docx'].indexOf(extension) >= 0) {
+        return 'fa-file-word';
+    }
+    if (['xls', 'xlsx', 'csv'].indexOf(extension) >= 0) {
+        return 'fa-file-excel';
+    }
+    if (['zip', 'rar', '7z'].indexOf(extension) >= 0) {
+        return 'fa-file-archive';
+    }
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].indexOf(extension) >= 0) {
+        return 'fa-file-image';
+    }
+    return 'fa-file-alt';
+}
+
+function openProcessOrderAttachments(taskId) {
+    if (!taskId) {
+        showProcessOrderMessage('warning', 'Invalid task selected.');
+        return;
+    }
+
+    $('#ProcessOrders_AttachmentCount').text('0 files');
+    $('#ProcessOrders_TaskAttachments').html(
+        '<div class="attachment-loading-state"><i class="fas fa-circle-notch fa-spin"></i>Loading attachments...</div>'
+    );
+    $('#ProcessOrderAttachments').modal('show');
+
+    $.ajax({
+        url: 'ProcessOrders.aspx/GetProcessOrderAttachments',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ TaskID: parseInt(taskId, 10) }),
+        success: function (result) {
+            var rows = JSON.parse((result && result.d) || '[]');
+            var html = '';
+
+            $.each(rows, function (index, row) {
+                var path = getOrderValue(row, 'Path');
+                var fileName = orderDetailFileName(path) || 'No attachment available';
+                var status = getOrderValue(row, 'Status') || 'Unknown';
+                var remark = getOrderValue(row, 'Remark') || 'No remark added.';
+                html += '<article class="attachment-file-card">' +
+                    '<div class="attachment-card-top">' +
+                    '<span class="attachment-file-icon"><i class="fas ' + processAttachmentFileIcon(path) + '"></i></span>' +
+                    '<div class="attachment-file-main">' +
+                    '<div class="attachment-file-name" title="' + htmlEncode(fileName) + '">' + htmlEncode(fileName) + '</div>' +
+                    '<div class="attachment-order-no">Attachment ' + String(index + 1).padStart(2, '0') +
+                    ' &bull; Order ' + htmlEncode(getOrderValue(row, 'ClientOrderNo') || '-') + '</div>' +
+                    '</div>' +
+                    '<span class="attachment-status">' + htmlEncode(status) + '</span>' +
+                    '</div>' +
+                    '<div class="attachment-meta-grid">' +
+                    '<div class="attachment-meta-item"><small>Process</small><span>' + htmlEncode(getOrderValue(row, 'Process') || '-') + '</span></div>' +
+                    '<div class="attachment-meta-item"><small>Added By</small><span>' + htmlEncode(getOrderValue(row, 'AddedBy') || '-') + '</span></div>' +
+                    '<div class="attachment-meta-item"><small>Added Date</small><span>' + htmlEncode(getOrderValue(row, 'AddedDate') || '-') + '</span></div>' +
+                    '</div>' +
+                    '<div class="attachment-remark"><small>Remark</small>' + htmlEncode(remark) + '</div>' +
+                    '<div class="attachment-card-actions">' + processAttachmentDownloadLink(taskId, path) + '</div>' +
+                    '</article>';
+            });
+
+            $('#ProcessOrders_AttachmentCount').text(rows.length + (rows.length === 1 ? ' file' : ' files'));
+            $('#ProcessOrders_TaskAttachments').html(html ||
+                '<div class="attachment-empty-state"><i class="far fa-folder-open"></i>No attachments found for this order.</div>');
+        },
+        error: function (error) {
+            $('#ProcessOrders_AttachmentCount').text('0 files');
+            $('#ProcessOrders_TaskAttachments').html(
+                '<div class="attachment-empty-state text-danger"><i class="fas fa-exclamation-circle"></i>Unable to load attachments.</div>');
+            processOrdersAjaxError(error, 'Unable to load order attachments.');
+        }
+    });
+}
+
+$(document).on('click', '#ProcessOrders_CurrentProcessTasks .ost-attachment-action', function () {
+    openProcessOrderAttachments(parseInt($(this).attr('data-task-id'), 10));
+});
+
+$(document).on('hidden.bs.modal', '#ProcessOrderAttachments', function () {
+    if ($('#CompleteOrder').hasClass('show')) {
+        $('body').addClass('modal-open');
+    }
+});
+
+function getSelectedProcessTaskIds() {
+    return $('#ProcessOrders_CurrentProcessTasks tbody .ost-task-select:checked').map(function () {
+        return parseInt(this.value, 10);
+    }).get().filter(function (taskId) {
+        return taskId > 0;
+    });
+}
+
+$(document).on('change', '#ProcessOrders_SelectAllTasks', function () {
+    $('#ProcessOrders_CurrentProcessTasks tbody .ost-task-select').prop('checked', this.checked);
+    this.indeterminate = false;
+});
+
+$(document).on('change', '#ProcessOrders_CurrentProcessTasks tbody .ost-task-select', function () {
+    var total = $('#ProcessOrders_CurrentProcessTasks tbody .ost-task-select').length;
+    var selected = $('#ProcessOrders_CurrentProcessTasks tbody .ost-task-select:checked').length;
+    $('#ProcessOrders_SelectAllTasks').prop({
+        checked: total > 0 && selected === total,
+        indeterminate: selected > 0 && selected < total
+    });
+});
+
 $(document).on('shown.bs.modal', '#CompleteOrder', function () {
     if (processOrderDetailsTable) {
         processOrderDetailsTable.columns.adjust();
+    }
+    if (currentProcessTasksTable) {
+        currentProcessTasksTable.columns.adjust();
     }
 });
 
@@ -600,34 +789,9 @@ function CompleteOrderProcess(InvoiceId, selected) {
     InvoiceID = InvoiceId;
     fillOrderSummary('complete', selectedProcessOrder);
     resetCompleteOrderModal();
-    $('#load1').show();
-
-    $.ajax({
-        url: 'ProcessOrders.aspx/GetCompleteOrderOptions',
-        type: 'POST',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify({
-            OrderID: parseInt(getOrderValue(selectedProcessOrder, 'OrderID'), 10)
-        }),
-        success: function (result) {
-            var response = parseServerResponse(result);
-            if (!response.Success) {
-                showProcessOrderMessage('warning', response.Message || 'Unable to identify current process for selected order.');
-                return;
-            }
-
-            applyCompleteOrderOptions(response);
-            loadOrderDetailsReport(getOrderValue(selectedProcessOrder, 'OrderID'));
-            $('#CompleteOrder').modal('show');
-        },
-        error: function (error) {
-            processOrdersAjaxError(error, 'Unable to load process options.');
-        },
-        complete: function () {
-            $('#load1').hide();
-        }
-    });
+    loadOrderDetailsReport(getOrderValue(selectedProcessOrder, 'OrderID'));
+    loadOrdersOnCurrentProcess(getOrderValue(selectedProcessOrder, 'OrderID'));
+    $('#CompleteOrder').modal('show');
 
     return false;
 }
@@ -744,6 +908,12 @@ function CompleteOrder() {
         return false;
     }
 
+    var selectedTaskIds = getSelectedProcessTaskIds();
+    if (!selectedTaskIds.length) {
+        showProcessOrderMessage('warning', 'Please select at least one current process order.');
+        return false;
+    }
+
     var input = document.getElementById('dashboard_attachment_upload');
     var file = input && input.files && input.files.length ? input.files[0] : null;
     if (!file) {
@@ -762,6 +932,7 @@ function CompleteOrder() {
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify({
                 OrderID: parseInt(getOrderValue(selectedProcessOrder, 'OrderID'), 10),
+                TaskIDs: selectedTaskIds,
                 ClientOrderNo: String(getOrderValue(selectedProcessOrder, 'ClientOrderNo')),
                 ProjectNumber: String(getOrderValue(selectedProcessOrder, 'ProjectNumber', 'Project')),
                 ProcessName: String(getOrderValue(selectedProcessOrder, 'Process', 'ProcessName')),
