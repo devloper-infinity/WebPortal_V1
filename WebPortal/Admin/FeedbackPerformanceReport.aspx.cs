@@ -9,9 +9,15 @@ namespace WebPortal.Admin
 {
     public partial class FeedbackPerformanceReport : System.Web.UI.Page
     {
+        private bool _isDownloadRequest;
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!string.Equals(Request.QueryString["action"], "download", StringComparison.OrdinalIgnoreCase))
+            _isDownloadRequest = string.Equals(
+                Request.QueryString["action"],
+                "download",
+                StringComparison.OrdinalIgnoreCase);
+
+            if (!_isDownloadRequest)
                 return;
 
             try
@@ -25,10 +31,21 @@ namespace WebPortal.Admin
             {
                 Response.Clear();
                 Response.StatusCode = 400;
+                Response.TrySkipIisCustomErrors = true;
                 Response.ContentType = "text/plain";
                 Response.Write(ex.Message);
                 Context.ApplicationInstance.CompleteRequest();
             }
+        }
+
+        protected override void Render(System.Web.UI.HtmlTextWriter writer)
+        {
+            // Download requests write either the XLSX bytes or a plain-text error directly
+            // to the response. Do not append the ASPX page HTML afterward.
+            if (_isDownloadRequest)
+                return;
+
+            base.Render(writer);
         }
 
         [WebMethod]

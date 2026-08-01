@@ -91,7 +91,7 @@ public static class FeedbackPerformanceExcelExporter
             SetCellValue(ws.Cell(row, 3), dr["LoanCount"]);
             SetCellValue(ws.Cell(row, 4), dr["CriticalErrors"]);
             SetCellValue(ws.Cell(row, 5), dr["NonCriticalErrors"]);
-          
+
             ws.Cell(row, 6).Value = ToDecimal(dr["CriticalPerLoan"]);
             ws.Cell(row, 7).Value = ToDecimal(dr["NonCriticalPerLoan"]);
             ws.Cell(row, 8).Value = ToDecimal(dr["TotalErrorPerLoan"]);
@@ -136,7 +136,14 @@ public static class FeedbackPerformanceExcelExporter
         }
         else
         {
-            cell.SetValue(Convert.ToString(value, CultureInfo.InvariantCulture));
+            string text = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+
+            // Excel cells support a maximum of 32,767 characters.
+            // Truncate oversized feedback summaries instead of failing the entire export.
+            if (text.Length > 32767)
+                text = text.Substring(0, 32767);
+
+            cell.SetValue(text);
         }
     }
 
@@ -191,7 +198,7 @@ public static class FeedbackPerformanceExcelExporter
             SetCellValue(ws.Cell(row, 5), dr["ExceptionDowngraded"]);
             SetCellValue(ws.Cell(row, 6), dr["ExceptionElevated"]);
             SetCellValue(ws.Cell(row, 7), dr["OtherNonException"]);
-            ws.Cell(row, 8).Value = Convert.ToString(dr["FeedbackSummary"]);
+            SetCellValue(ws.Cell(row, 8), dr["FeedbackSummary"]);
             row++;
         }
 
@@ -231,14 +238,14 @@ public static class FeedbackPerformanceExcelExporter
             SetCellValue(ws.Cell(row, 4), dr["ReviewerErrors"]);
 
             ws.Cell(row, 5).Value = reviewer;
-            ws.Cell(row, 6).Value = TrendText(priorReviewer, reviewer);
+            SetTrendCell(ws.Cell(row, 6), TrendText(priorReviewer, reviewer));
 
             SetCellValue(ws.Cell(row, 7), dr["QCMisses"]);
 
             ws.Cell(row, 8).Value = qc;
-            ws.Cell(row, 9).Value = TrendText(priorQc, qc);
+            SetTrendCell(ws.Cell(row, 9), TrendText(priorQc, qc));
             ws.Cell(row, 10).Value = combined;
-            ws.Cell(row, 11).Value = TrendText(priorCombined, combined);
+            SetTrendCell(ws.Cell(row, 11), TrendText(priorCombined, combined));
             priorReviewer = reviewer; priorQc = qc; priorCombined = combined;
             row++;
         }
@@ -273,13 +280,22 @@ public static class FeedbackPerformanceExcelExporter
                 weeks.Add(value);
                 if (value.HasValue) ws.Cell(row, i + 2).Value = value.Value;
             }
-            ws.Cell(row, 8).Value = PersonTrendText(weeks);
+            SetTrendCell(ws.Cell(row, 8), PersonTrendText(weeks));
             row++;
         }
     }
 
     private static void ResetSheet(IXLWorksheet ws)
     {
+        // Clear template-level objects before rebuilding the worksheet.
+        // Leaving old merged ranges or an old AutoFilter in place can create
+        // overlapping/invalid worksheet XML and Excel will repair the file.
+        foreach (var mergedRange in ws.MergedRanges.ToList())
+            mergedRange.Unmerge();
+
+        if (ws.AutoFilter.IsEnabled)
+            ws.AutoFilter.Clear();
+
         ws.Cells().Clear(XLClearOptions.All);
         ws.SheetView.FreezeRows(2);
         ws.Style.Font.FontName = "Calibri";
@@ -367,21 +383,50 @@ public static class FeedbackPerformanceExcelExporter
     private static string TrendText(decimal? prior, decimal current)
     {
         if (!prior.HasValue) return "—";
-        if (prior.Value == 0) return current == 0 ? "— stable" : "▲ new errors";
+        if (prior.Value == 0) return current == 0 ? "— stable" : "▼ new errors";
+
         decimal pct = ((current - prior.Value) / prior.Value) * 100M;
         if (Math.Abs(pct) < 0.5M) return "— stable";
-        return (pct > 0 ? "▲ " : "▼ ") + Math.Abs(pct).ToString("0.0") + "%";
+
+        // This is a quality/error report: an increase in errors is negative.
+        // Therefore increase = red down arrow, decrease = green up arrow.
+        return (pct > 0 ? "▼ " : "▲ ") + Math.Abs(pct).ToString("0.0") + "%";
     }
 
     private static string PersonTrendText(IEnumerable<decimal?> values)
     {
         var active = values.Where(x => x.HasValue).Select(x => x.Value).ToList();
         if (active.Count <= 1) return "single week";
+
         decimal first = active.First(), last = active.Last();
         if (first == 0 && last == 0) return "— stable";
-        if (first == 0) return "▲ new errors";
+        if (first == 0) return "▼ new errors";
+
         decimal pct = ((last - first) / first) * 100M;
         if (Math.Abs(pct) < 0.5M) return "— stable";
-        return (pct > 0 ? "▲ " : "▼ ") + Math.Abs(pct).ToString("0") + "%";
+
+        return (pct > 0 ? "▼ " : "▲ ") + Math.Abs(pct).ToString("0") + "%";
+    }
+
+    private static void SetTrendCell(IXLCell cell, string text)
+    {
+        cell.Value = text;
+        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+        if (text.StartsWith("▼", StringComparison.Ordinal))
+        {
+            cell.Style.Font.FontColor = XLColor.FromHtml("#C00000");
+            cell.Style.Font.Bold = true;
+        }
+        else if (text.StartsWith("▲", StringComparison.Ordinal))
+        {
+            cell.Style.Font.FontColor = XLColor.FromHtml("#008000");
+            cell.Style.Font.Bold = true;
+        }
+        else
+        {
+            cell.Style.Font.FontColor = XLColor.FromHtml("#7F7F7F");
+            cell.Style.Font.Bold = false;
+        }
     }
 }
