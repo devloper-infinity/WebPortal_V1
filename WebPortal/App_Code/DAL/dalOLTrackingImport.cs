@@ -52,6 +52,90 @@ ORDER BY f.DisplayOrder, f.FieldConfigId;"))
             }
         }
 
+        public DataTable GetBillingParameterFields(int projectId)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+SELECT f.FieldConfigId, f.ProjectID, f.FieldName, f.DataType, f.OptionsText,
+       f.IsRequired, f.DateFormat, f.DisplayOrder
+FROM dbo.WBT_ProjectTrackingFieldConfig f
+WHERE f.ProjectID = @ProjectID
+  AND f.IsDeleted = 0
+  AND ISNULL(f.IsBillingField, 0) = 0
+  AND ISNULL(f.IsBillingParameter, 0) = 1
+ORDER BY f.DisplayOrder, f.FieldConfigId;"))
+            {
+                command.Connection = new SqlConnection(SQLHelper.ConnectionString);
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                {
+                    DataTable result = new DataTable();
+                    adapter.Fill(result);
+                    return result;
+                }
+            }
+        }
+
+        public DataTable GetTrackingReportFields(int projectId)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+SELECT f.FieldConfigId, f.ProjectID, f.FieldName, f.DataType, f.DateFormat, f.DisplayOrder
+FROM dbo.WBT_ProjectTrackingFieldConfig f
+WHERE f.ProjectID = @ProjectID
+  AND f.IsDeleted = 0
+  AND ISNULL(f.IsBillingField, 0) = 0
+ORDER BY f.DisplayOrder, f.FieldConfigId;"))
+            {
+                command.Connection = new SqlConnection(SQLHelper.ConnectionString);
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                {
+                    DataTable result = new DataTable();
+                    adapter.Fill(result);
+                    return result;
+                }
+            }
+        }
+
+        public DataTable GetTrackingReportRows(int projectId, DateTime fromDate, DateTime toDate)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+SELECT i.ItemID,
+       i.DealNumber,
+       i.ItemNumber,
+       d.EntryDate,
+       f.FieldConfigId,
+       v.FieldValue
+FROM dbo.OLTracking_Item i
+INNER JOIN
+(
+    SELECT DISTINCT ItemID, EntryDate
+    FROM dbo.OLTracking_ImportBatchItem
+) d ON d.ItemID = i.ItemID
+LEFT JOIN dbo.OLTracking_ImportItemValue v ON v.ItemID = i.ItemID
+LEFT JOIN dbo.WBT_ProjectTrackingFieldConfig f
+    ON f.FieldConfigId = v.FieldConfigId
+   AND f.ProjectID = @ProjectID
+   AND f.IsDeleted = 0
+   AND ISNULL(f.IsBillingField, 0) = 0
+WHERE i.ProjectID = @ProjectID
+  AND i.IsDeleted = 0
+  AND d.EntryDate >= @FromDate
+  AND d.EntryDate <= @ToDate
+ORDER BY d.EntryDate, i.ItemID, f.DisplayOrder, f.FieldConfigId;"))
+            {
+                command.Connection = new SqlConnection(SQLHelper.ConnectionString);
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                command.Parameters.Add("@FromDate", SqlDbType.Date).Value = fromDate.Date;
+                command.Parameters.Add("@ToDate", SqlDbType.Date).Value = toDate.Date;
+                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                {
+                    DataTable result = new DataTable();
+                    adapter.Fill(result);
+                    return result;
+                }
+            }
+        }
+
         public void SaveImportFlag(int fieldConfigId, int projectId, bool isForImport, int userId)
         {
             EnsureSchema();
@@ -341,5 +425,193 @@ END;", connection))
                 command.ExecuteNonQuery();
             }
         }
+
+        public DataTable UpdateExistingBillingRows(int projectId, string originalFileName, DataTable values, int userId)
+        {
+            ValidateBillingUpdateInput(projectId, values, userId);
+
+            DataTable result = new DataTable();
+            result.Columns.Add("ImportRowNumber", typeof(int));
+            result.Columns.Add("Status", typeof(string));
+            result.Columns.Add("Message", typeof(string));
+
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            {
+                connection.Open();
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        int dispatchFieldId = GetDispatchFieldId(connection, transaction, projectId);
+                        if (dispatchFieldId <= 0)
+                            throw new InvalidOperationException("Dispatch Date is not configured for the selected project.");
+
+                        DataTable importRows = values.DefaultView.ToTable(true, "ImportRowNumber");
+                        foreach (DataRow importRow in importRows.Rows)
+                        {
+                            int rowNumber = Convert.ToInt32(importRow["ImportRowNumber"]);
+                            DataRow[] rowValues = values.Select("ImportRowNumber = " + rowNumber);
+                            DataRow first = rowValues[0];
+                            long[] itemIds = FindExistingItems(
+                                connection,
+                                transaction,
+                                projectId,
+                                Convert.ToString(first["DealNo"]),
+                                Convert.ToString(first["LoanNo"]),
+                                Convert.ToDateTime(first["OrderDate"]));
+
+                            if (itemIds.Length == 0)
+                            {
+                                AddBillingUpdateResult(result, rowNumber, "NotFound", "Record not found.");
+                                continue;
+                            }
+                            if (itemIds.Length > 1)
+                            {
+                                AddBillingUpdateResult(result, rowNumber, "Duplicate", "Duplicate database records match the supplied key fields.");
+                                continue;
+                            }
+
+                            long itemId = itemIds[0];
+                            UpsertItemValue(connection, transaction, itemId, dispatchFieldId,
+                                Convert.ToDateTime(first["DispatchDate"]).ToString("yyyy-MM-dd"), userId);
+
+                            foreach (DataRow value in rowValues)
+                            {
+                                int fieldConfigId = Convert.ToInt32(value["FieldConfigId"]);
+                                if (fieldConfigId <= 0)
+                                    continue;
+
+                                EnsureActiveBillingParameter(connection, transaction, projectId, fieldConfigId);
+                                UpsertItemValue(connection, transaction, itemId, fieldConfigId,
+                                    Convert.ToString(value["FieldValue"]), userId);
+                            }
+
+                            AddBillingUpdateResult(result, rowNumber, "Updated", "Record updated successfully.");
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static long[] FindExistingItems(SqlConnection connection, SqlTransaction transaction, int projectId,
+            string dealNumber, string loanNumber, DateTime orderDate)
+        {
+            System.Collections.Generic.List<long> itemIds = new System.Collections.Generic.List<long>();
+            using (SqlCommand command = new SqlCommand(@"
+SELECT DISTINCT i.ItemID
+FROM dbo.OLTracking_Item i WITH (UPDLOCK, HOLDLOCK)
+INNER JOIN dbo.OLTracking_ImportBatchItem bi ON bi.ItemID = i.ItemID
+WHERE i.ProjectID = @ProjectID
+  AND i.IsDeleted = 0
+  AND LTRIM(RTRIM(i.DealNumber)) = @DealNumber
+  AND LTRIM(RTRIM(i.ItemNumber)) = @LoanNumber
+  AND bi.EntryDate = @OrderDate;", connection, transaction))
+            {
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                command.Parameters.Add("@DealNumber", SqlDbType.NVarChar, 150).Value = dealNumber.Trim();
+                command.Parameters.Add("@LoanNumber", SqlDbType.NVarChar, 150).Value = loanNumber.Trim();
+                command.Parameters.Add("@OrderDate", SqlDbType.Date).Value = orderDate.Date;
+                using (SqlDataReader reader = command.ExecuteReader())
+                    while (reader.Read()) itemIds.Add(reader.GetInt64(0));
+            }
+            return itemIds.ToArray();
+        }
+
+        private static int GetDispatchFieldId(SqlConnection connection, SqlTransaction transaction, int projectId)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+SELECT TOP (2) FieldConfigId
+FROM dbo.WBT_ProjectTrackingFieldConfig
+WHERE ProjectID = @ProjectID
+  AND IsDeleted = 0
+  AND ISNULL(IsBillingField, 0) = 0
+  AND LOWER(REPLACE(REPLACE(REPLACE(REPLACE(FieldName, ' ', ''), '#', ''), '-', ''), '_', '')) = 'dispatchdate'
+ORDER BY FieldConfigId;", connection, transaction))
+            {
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                System.Collections.Generic.List<int> ids = new System.Collections.Generic.List<int>();
+                using (SqlDataReader reader = command.ExecuteReader())
+                    while (reader.Read()) ids.Add(reader.GetInt32(0));
+                if (ids.Count > 1)
+                    throw new InvalidOperationException("Duplicate Dispatch Date field configurations were found for the selected project.");
+                return ids.Count == 0 ? 0 : ids[0];
+            }
+        }
+
+        private static void EnsureActiveBillingParameter(SqlConnection connection, SqlTransaction transaction,
+            int projectId, int fieldConfigId)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+SELECT COUNT(1)
+FROM dbo.WBT_ProjectTrackingFieldConfig
+WHERE FieldConfigId = @FieldConfigId
+  AND ProjectID = @ProjectID
+  AND IsDeleted = 0
+  AND ISNULL(IsBillingField, 0) = 0
+  AND ISNULL(IsBillingParameter, 0) = 1;", connection, transaction))
+            {
+                command.Parameters.Add("@FieldConfigId", SqlDbType.Int).Value = fieldConfigId;
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                if (Convert.ToInt32(command.ExecuteScalar()) != 1)
+                    throw new InvalidOperationException("Billing parameter configuration changed. Please download a new template.");
+            }
+        }
+
+        private static void UpsertItemValue(SqlConnection connection, SqlTransaction transaction, long itemId,
+            int fieldConfigId, string fieldValue, int userId)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+IF EXISTS (SELECT 1 FROM dbo.OLTracking_ImportItemValue WHERE ItemID = @ItemID AND FieldConfigId = @FieldConfigId)
+BEGIN
+    UPDATE dbo.OLTracking_ImportItemValue
+    SET FieldValue = @FieldValue, UpdatedBy = @UserID, UpdatedDate = GETDATE()
+    WHERE ItemID = @ItemID AND FieldConfigId = @FieldConfigId;
+END
+ELSE
+BEGIN
+    INSERT dbo.OLTracking_ImportItemValue (ItemID, FieldConfigId, FieldValue, AddedBy, AddedDate)
+    VALUES (@ItemID, @FieldConfigId, @FieldValue, @UserID, GETDATE());
+END;", connection, transaction))
+            {
+                command.Parameters.Add("@ItemID", SqlDbType.BigInt).Value = itemId;
+                command.Parameters.Add("@FieldConfigId", SqlDbType.Int).Value = fieldConfigId;
+                command.Parameters.Add("@FieldValue", SqlDbType.NVarChar, -1).Value = fieldValue ?? string.Empty;
+                command.Parameters.Add("@UserID", SqlDbType.Int).Value = userId;
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private static void AddBillingUpdateResult(DataTable result, int rowNumber, string status, string message)
+        {
+            DataRow row = result.NewRow();
+            row["ImportRowNumber"] = rowNumber;
+            row["Status"] = status;
+            row["Message"] = message;
+            result.Rows.Add(row);
+        }
+
+        private static void ValidateBillingUpdateInput(int projectId, DataTable values, int userId)
+        {
+            if (projectId <= 0) throw new ArgumentException("A valid project ID is required.");
+            if (userId <= 0) throw new ArgumentException("A valid user ID is required.");
+            if (values == null || values.Rows.Count == 0) throw new ArgumentException("No import data was provided.");
+
+            string[] requiredColumns = { "ImportRowNumber", "ProjectID", "Project", "DealNo", "LoanNo",
+                "OrderDate", "DispatchDate", "FieldConfigId", "FieldName", "FieldValue" };
+            foreach (string column in requiredColumns)
+                if (!values.Columns.Contains(column))
+                    throw new ArgumentException("Import DataTable does not contain required column: " + column);
+        }
     }
+
+
 }

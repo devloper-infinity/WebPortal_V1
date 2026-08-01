@@ -865,6 +865,8 @@
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
+    <Content Include="Scripts\TrackingSheet\UpdateBillingParameters.js" />
+    <Content Include="Scripts\TrackingSheet\TrackingSheetReport.js" />
     <Content Include="Search\SearchDashboard.aspx" />
     <Content Include="Search\VMOrders.aspx" />
     <Content Include="Search\VMReport.aspx" />
@@ -2906,6 +2908,8 @@
     <Content Include="TrackingSheet\ManagerDashboard.aspx" />
     <Content Include="TrackingSheet\ManagerAllocation.aspx" />
     <Content Include="TrackingSheet\TrackingSheetConfiguration.aspx" />
+    <Content Include="TrackingSheet\UpdateBillingParameters.aspx" />
+    <Content Include="TrackingSheet\TrackingSheetReport.aspx" />
     <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
     <Content Include="Tracking\OrderAllocation.aspx" />
@@ -5250,6 +5254,20 @@
     </Compile>
     <Compile Include="Search\ViewBilling.aspx.designer.cs">
       <DependentUpon>ViewBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\UpdateBillingParameters.aspx.cs">
+      <DependentUpon>UpdateBillingParameters.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\UpdateBillingParameters.aspx.designer.cs">
+      <DependentUpon>UpdateBillingParameters.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetReport.aspx.cs">
+      <DependentUpon>TrackingSheetReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetReport.aspx.designer.cs">
+      <DependentUpon>TrackingSheetReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tracking\AddFeedback.aspx.cs">
       <DependentUpon>AddFeedback.aspx</DependentUpon>
