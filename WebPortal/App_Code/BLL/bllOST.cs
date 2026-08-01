@@ -52,6 +52,11 @@ namespace WebPortal.App_Code.BLL
             return dalOst.GetOrderDetailsProcesswise(OrderID);
         }
 
+        public DataTable GetOrderDetailsProcesswiseAttachment(int OrderID)
+        {
+            return dalOst.GetOrderDetailsProcesswiseAttachment(OrderID);
+        }
+
         public int InsertOrderTask(Hashtable htParam)
         {
             return dalOst.InsertOrderTask(htParam);

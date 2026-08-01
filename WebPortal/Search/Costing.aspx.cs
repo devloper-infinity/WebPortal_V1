@@ -186,7 +186,7 @@ namespace WebPortal.Search
                 htSheet["TotalCost"] = request.TotalCost;
                 htSheet["AddedBy"] = addedBy;
 
-                int returnValue = 10;// ost.InsertProductionManualCosting(htSheet);
+                int returnValue =  ost.InsertProductionManualCosting(htSheet);
                 return returnValue > 0
                     ? BuildResponse(true, "Production costing added successfully.", returnValue, string.Empty, BuildCostingLoadData(request.OrderID))
                     : BuildResponse(false, "Order costing not added.", returnValue);

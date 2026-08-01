@@ -30,6 +30,15 @@ namespace WebPortal.Search
                     return;
                 }
 
+                if (string.Equals(
+                    postedContext.Request.QueryString["action"],
+                    "downloadProcessAttachment",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    DownloadProcessAttachmentFile();
+                    return;
+                }
+
                 if (postedContext.Request.Files.Count == 0)
                 {
                     return;
@@ -65,7 +74,11 @@ namespace WebPortal.Search
             if (string.Equals(
                 Request.QueryString["action"],
                 "downloadOrderDetail",
-                StringComparison.OrdinalIgnoreCase))
+                StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(
+                    Request.QueryString["action"],
+                    "downloadProcessAttachment",
+                    StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -90,6 +103,38 @@ namespace WebPortal.Search
 
             DataTable details = new bllOST().GetOrderDetailsProcesswise(OrderID);
             return SerializeDataTable(details);
+        }
+
+        [WebMethod]
+        public static string GetOrdersOnProcessForUser(int OrderID)
+        {
+            if (OrderID <= 0)
+            {
+                return "[]";
+            }
+
+            int userId = int.Parse(HttpContext.Current.User.Identity.Name);
+            bllOST ost = new bllOST();
+            int processId = GetCurrentProcessId(ost, OrderID, userId);
+            if (processId <= 0)
+            {
+                return "[]";
+            }
+
+            DataTable orders = ost.GetOrdersOnProcessForUser(OrderID, userId, processId);
+            return SerializeDataTable(orders);
+        }
+
+        [WebMethod]
+        public static string GetProcessOrderAttachments(int TaskID)
+        {
+            if (TaskID <= 0)
+            {
+                return "[]";
+            }
+
+            DataTable attachments = new bllOST().GetOrderDetailsProcesswiseAttachment(TaskID);
+            return SerializeDataTable(attachments);
         }
 
         [WebMethod]
@@ -170,55 +215,6 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static CompleteOrderOptions GetCompleteOrderOptions(int OrderID)
-        {
-            if (OrderID <= 0)
-            {
-                return new CompleteOrderOptions
-                {
-                    Success = false,
-                    Message = "Please select a valid order."
-                };
-            }
-
-            try
-            {
-                int userId = int.Parse(HttpContext.Current.User.Identity.Name);
-                DataTable currentProcess = new bllOST().GetCurrentProcessOfUser(OrderID, userId);
-                if (currentProcess == null || currentProcess.Rows.Count == 0)
-                {
-                    return new CompleteOrderOptions
-                    {
-                        Success = false,
-                        Message = "Unable to identify current process for selected order."
-                    };
-                }
-
-                int processId = GetInt(
-                    currentProcess.Rows[0],
-                    "Processid",
-                    "ProcessId",
-                    "TaskProcessid",
-                    "TaskProcessID");
-
-                CompleteOrderOptions options = BuildCompleteOrderOptions(processId);
-                options.Success = processId > 0;
-                options.Message = processId > 0
-                    ? string.Empty
-                    : "Unable to identify current process for selected order.";
-                return options;
-            }
-            catch (Exception ex)
-            {
-                return new CompleteOrderOptions
-                {
-                    Success = false,
-                    Message = "Unable to load process options. " + ex.Message
-                };
-            }
-        }
-
-        [WebMethod]
         public static ProcessOrderResponse AddOrderCosting(int OrderID, string SearchEngineType, string SearchEngineLink, int NoOfSearches, decimal CostPerSearch, decimal TotalCost, string Remark)
         {
             try
@@ -272,13 +268,18 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static ProcessOrderResponse CompleteOrder(int OrderID, string ClientOrderNo, string ProjectNumber, string ProcessName, string ActionStatus, string Remark, string AttachmentOriginalName, bool DispatchOrder, bool NoFeedback, bool TaxCalling, bool Audit, bool Offline)
+        public static ProcessOrderResponse CompleteOrder(int OrderID, List<int> TaskIDs, string ClientOrderNo, string ProjectNumber, string ProcessName, string ActionStatus, string Remark, string AttachmentOriginalName, bool DispatchOrder, bool NoFeedback, bool TaxCalling, bool Audit, bool Offline)
         {
             try
             {
                 if (OrderID <= 0)
                 {
                     return BuildResponse(false, "Please select a valid order.");
+                }
+
+                if (TaskIDs == null || TaskIDs.Count == 0)
+                {
+                    return BuildResponse(false, "Please select at least one current process order.");
                 }
 
                 if (string.IsNullOrWhiteSpace(Remark))
@@ -329,6 +330,8 @@ namespace WebPortal.Search
                     return BuildResponse(false, "No task rows found for the selected order/process.");
                 }
 
+                HashSet<int> selectedTaskIds = new HashSet<int>(TaskIDs);
+
                 int taskStatus = GetTaskStatus(ActionStatus);
                 ValidateUploadedAttachment(ClientOrderNo, AttachmentOriginalName);
                 int returnValue = -1;
@@ -336,6 +339,12 @@ namespace WebPortal.Search
 
                 foreach (DataRow task in tasks.Rows)
                 {
+                    int taskId = GetInt(task, "Taskid", "TaskId");
+                    if (taskId <= 0 || !selectedTaskIds.Contains(taskId))
+                    {
+                        continue;
+                    }
+
                     string projectName = FirstNotEmpty(GetString(task, "Project", "ProjectNumber"), ProjectNumber);
                     string projectId = master.ValidateProject(projectName);
                     if (projectId == "0")
@@ -351,7 +360,7 @@ namespace WebPortal.Search
                     }
 
                     Hashtable htParam = new Hashtable();
-                    htParam["TaskId"] = GetInt(task, "Taskid", "TaskId");
+                    htParam["TaskId"] = taskId;
                     htParam["TaskStatus"] = taskStatus;
                     htParam["TaskAssignedId"] = 0;
                     htParam["Remark"] = Remark.Trim();
@@ -552,6 +561,67 @@ namespace WebPortal.Search
             Context.ApplicationInstance.CompleteRequest();
         }
 
+        private void DownloadProcessAttachmentFile()
+        {
+            int taskId;
+            if (!int.TryParse(Request.QueryString["taskId"], out taskId) || taskId <= 0)
+            {
+                throw new InvalidOperationException("Invalid task.");
+            }
+
+            string requestedPath = Request.QueryString["path"] ?? string.Empty;
+            DataTable attachments = new bllOST().GetOrderDetailsProcesswiseAttachment(taskId);
+            bool pathBelongsToTask = false;
+            if (attachments != null && attachments.Columns.Contains("Path"))
+            {
+                foreach (DataRow row in attachments.Rows)
+                {
+                    if (string.Equals(
+                        Convert.ToString(row["Path"]),
+                        requestedPath,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        pathBelongsToTask = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!pathBelongsToTask || string.IsNullOrWhiteSpace(requestedPath))
+            {
+                throw new FileNotFoundException("Attachment was not found for the selected task.");
+            }
+
+            string physicalPath;
+            if (requestedPath.StartsWith("~"))
+            {
+                physicalPath = Server.MapPath(requestedPath.Replace('\\', '/'));
+            }
+            else if (Path.IsPathRooted(requestedPath))
+            {
+                physicalPath = requestedPath;
+            }
+            else
+            {
+                physicalPath = Server.MapPath(
+                    "~/" + requestedPath.TrimStart('/', '\\').Replace('\\', '/'));
+            }
+
+            if (!File.Exists(physicalPath))
+            {
+                throw new FileNotFoundException("Attachment was not found on the server.");
+            }
+
+            Response.Clear();
+            Response.ContentType = MimeMapping.GetMimeMapping(physicalPath);
+            Response.AddHeader(
+                "Content-Disposition",
+                "attachment; filename=\"" + Path.GetFileName(physicalPath).Replace("\"", string.Empty) + "\"");
+            Response.TransmitFile(physicalPath);
+            Response.Flush();
+            Context.ApplicationInstance.CompleteRequest();
+        }
+
         private static ProcessOrderResponse BuildResponse(bool success, string message, int returnValue = 0, string redirectUrl = "")
         {
             return new ProcessOrderResponse
@@ -640,52 +710,6 @@ namespace WebPortal.Search
         private static bool ShouldSendTaxProcess(int processId, bool taxCalling)
         {
             return taxCalling && (processId == 1 || processId == 2 || processId == 11);
-        }
-
-        private static CompleteOrderOptions BuildCompleteOrderOptions(int processId)
-        {
-            CompleteOrderOptions options = new CompleteOrderOptions
-            {
-                ProcessId = processId,
-                SpqaEnabled = false
-            };
-
-            switch (processId)
-            {
-                case 1: // Search
-                    options.TaxCallingEnabled = true;
-                    break;
-
-                case 2: // Re-search
-                    options.DispatchEnabled = true;
-                    options.NoFeedbackEnabled = true;
-                    options.TaxCallingEnabled = true;
-                    options.AuditEnabled = true;
-                    options.OfflineEnabled = true;
-                    break;
-
-                case 11: // Audit
-                    options.DispatchEnabled = true;
-                    options.NoFeedbackEnabled = true;
-                    options.TaxCallingEnabled = true;
-                    options.OfflineEnabled = true;
-                    break;
-
-                case 5: // QA
-                    options.DispatchEnabled = true;
-                    options.NoFeedbackEnabled = true;
-                    break;
-
-                case 6: // Dispatch
-                    options.DispatchEnabled = true;
-                    options.NoFeedbackEnabled = true;
-                    options.TaxCallingEnabled = true;
-                    options.AuditEnabled = true;
-                    options.OfflineEnabled = true;
-                    break;
-            }
-
-            return options;
         }
 
         private static bool IsCostingExempt(string projectNumber)
@@ -878,19 +902,6 @@ namespace WebPortal.Search
             public string Message { get; set; }
             public int ReturnValue { get; set; }
             public string RedirectUrl { get; set; }
-        }
-
-        public class CompleteOrderOptions
-        {
-            public bool Success { get; set; }
-            public string Message { get; set; }
-            public int ProcessId { get; set; }
-            public bool DispatchEnabled { get; set; }
-            public bool NoFeedbackEnabled { get; set; }
-            public bool TaxCallingEnabled { get; set; }
-            public bool AuditEnabled { get; set; }
-            public bool SpqaEnabled { get; set; }
-            public bool OfflineEnabled { get; set; }
         }
 
         public class TaxDetailsRequest

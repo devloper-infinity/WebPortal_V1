@@ -497,7 +497,7 @@
             .ost-modal-summary label {
                 margin: 0;
                 color: var(--ost-text);
-                font-size: 12px;
+                font-size: 14px;
                 color: dodgerblue;
             }
 
@@ -649,8 +649,15 @@
             min-width: 1580px;
         }
 
+        #ProcessOrders_CurrentProcessTasks {
+            width: 100% !important;
+            min-width: 2000px;
+        }
+
             #ProcessOrders_OrderDetails th,
-            #ProcessOrders_OrderDetails td {
+            #ProcessOrders_OrderDetails td,
+            #ProcessOrders_CurrentProcessTasks th,
+            #ProcessOrders_CurrentProcessTasks td {
                 font-size: 11px !important;
                 vertical-align: middle;
                 white-space: nowrap;
@@ -661,6 +668,21 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
+
+        #ProcessOrders_CurrentProcessTasks td.ost-task-text {
+            min-width: 150px;
+            max-width: 260px;
+            white-space: normal;
+        }
+
+        .ost-task-select,
+        #ProcessOrders_SelectAllTasks {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: var(--ost-primary);
+            cursor: pointer;
+        }
 
         .ost-order-details-panel .dataTables_wrapper {
             width: 100%;
@@ -687,6 +709,304 @@
                 color: #1d4ed8;
                 text-decoration: underline;
             }
+
+        .ost-attachment-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border: 1px solid #c4b5fd;
+            border-radius: 6px;
+            background: #f5f3ff;
+            color: #6d28d9;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+            .ost-attachment-action:hover,
+            .ost-attachment-action:focus {
+                background: #ede9fe;
+                color: #5b21b6;
+                text-decoration: none;
+            }
+
+        #ProcessOrderAttachments {
+            z-index: 1080;
+            padding-right: 0 !important;
+        }
+
+            #ProcessOrderAttachments .modal-dialog {
+                width: min(680px, 100%);
+                max-width: 680px;
+                height: 100%;
+                min-height: 100%;
+                margin: 0 0 0 auto;
+                transform: translateX(100%);
+            }
+
+            #ProcessOrderAttachments.show .modal-dialog {
+                transform: translateX(0);
+            }
+
+            #ProcessOrderAttachments .modal-content {
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
+                border: 0;
+                border-radius: 18px 0 0 18px;
+                box-shadow: -18px 0 55px rgba(15, 23, 42, .24);
+            }
+
+            #ProcessOrderAttachments .modal-header {
+                padding: 20px 22px;
+                background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+                border-bottom: 1px solid #dbe5f0;
+            }
+
+            #ProcessOrderAttachments .modal-body {
+                padding: 18px 20px 24px;
+                overflow-y: auto;
+                background: #f6f8fb;
+            }
+
+            #ProcessOrderAttachments .modal-footer {
+                padding: 13px 20px;
+                background: #fff;
+                border-top: 1px solid #e2e8f0;
+            }
+
+        .attachment-drawer-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .attachment-drawer-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            box-shadow: 0 7px 18px rgba(79, 70, 229, .25);
+        }
+
+        .attachment-drawer-title {
+            margin: 0;
+            color: #172033;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .attachment-drawer-subtitle {
+            margin: 3px 0 0;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .attachment-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding: 10px 13px;
+            border: 1px solid #dbe5f0;
+            border-radius: 10px;
+            background: #fff;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .attachment-count {
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .attachment-card-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .attachment-file-card {
+            padding: 15px;
+            border: 1px solid #dde5ef;
+            border-left: 4px solid #7c3aed;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 5px 16px rgba(15, 23, 42, .055);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+            .attachment-file-card:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 9px 24px rgba(15, 23, 42, .09);
+            }
+
+        .attachment-card-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .attachment-file-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border-radius: 10px;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 17px;
+        }
+
+        .attachment-file-main {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .attachment-file-name {
+            overflow: hidden;
+            color: #172033;
+            font-size: 12px;
+            font-weight: 800;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .attachment-order-no {
+            margin-top: 3px;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .attachment-status {
+            flex: 0 0 auto;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #e8f7f2;
+            color: #047857;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .attachment-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 9px;
+            margin-top: 13px;
+        }
+
+        .attachment-meta-item {
+            min-width: 0;
+            padding: 8px 9px;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+            .attachment-meta-item small,
+            .attachment-remark small {
+                display: block;
+                margin-bottom: 3px;
+                color: #768eb0;
+                font-size: 10px;
+                font-weight: 800;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+
+            .attachment-meta-item span {
+                display: block;
+                overflow: hidden;
+                color: #334155;
+                font-size: 10px;
+                font-weight: 700;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+        .attachment-remark {
+            margin-top: 10px;
+            padding: 9px 10px;
+            border-radius: 8px;
+            background: #fffbeb;
+            color: #475569;
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        .attachment-card-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        .attachment-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            background: #0f766e;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 5px 12px rgba(15, 118, 110, .18);
+        }
+
+            .attachment-download-btn:hover,
+            .attachment-download-btn:focus {
+                background: #0b5f59;
+                color: #fff;
+                text-decoration: none;
+            }
+
+        .attachment-empty-state,
+        .attachment-loading-state {
+            padding: 42px 20px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            background: #fff;
+            color: #64748b;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+            .attachment-empty-state i,
+            .attachment-loading-state i {
+                display: block;
+                margin-bottom: 10px;
+                color: #7c3aed;
+                font-size: 25px;
+            }
+
+        @media (max-width: 575.98px) {
+            #ProcessOrderAttachments .modal-dialog {
+                width: 100%;
+            }
+
+            #ProcessOrderAttachments .modal-content {
+                border-radius: 0;
+            }
+
+            .attachment-meta-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .ost-choice-row .checkbox-wrapper-24 {
             display: inline-flex;
@@ -790,10 +1110,91 @@
                     opacity: .55;
                 }
 
+        /* Match the checkbox-pill presentation used by Search/VMOrders.aspx. */
+        .ost-choice-row {
+            gap: 8px;
+        }
+
+            .ost-choice-row .checkbox-wrapper-24 label {
+                position: relative;
+                min-height: 36px;
+                margin: 0;
+                padding: 7px 13px 7px 9px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                color: #475569;
+                background: rgba(255, 255, 255, .96);
+                border: 1px solid #cbd5e1;
+                border-radius: 20px;
+                box-shadow: 0 2px 6px rgba(15, 23, 42, .06);
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 1.2;
+                cursor: pointer;
+                user-select: none;
+                transition: border-color .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+            }
+
+                .ost-choice-row .checkbox-wrapper-24 label span {
+                    display: none;
+                }
+
+                .ost-choice-row .checkbox-wrapper-24 label::before {
+                    content: "+";
+                    width: 18px;
+                    height: 18px;
+                    flex: 0 0 18px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #0f8578;
+                    background: #ecfdf5;
+                    border: 1px solid #99f6e4;
+                    border-radius: 50%;
+                    font-size: 14px;
+                    font-weight: 800;
+                    line-height: 1;
+                    transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .3s ease;
+                }
+
+                .ost-choice-row .checkbox-wrapper-24 label:hover {
+                    color: #0f766e;
+                    border-color: #5eead4;
+                    background: #f0fdfa;
+                    box-shadow: 0 4px 10px rgba(15, 118, 110, .12);
+                    transform: translateY(-1px);
+                }
+
+            .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:checked + label {
+                color: #ffffff;
+                border-color: #0f8578;
+                background: #0f8578;
+                box-shadow: 0 0 0 3px rgba(15, 133, 120, .13), 0 4px 10px rgba(15, 118, 110, .15);
+            }
+
+                .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:checked + label::before {
+                    content: "\2713";
+                    color: #0f8578;
+                    background: #ffffff;
+                    border-color: #ffffff;
+                    transform: rotate(-360deg);
+                }
+
+            .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:focus-visible + label {
+                outline: 2px solid #2563eb;
+                outline-offset: 2px;
+            }
+
+            .ost-choice-row .checkbox-wrapper-24 input[type="checkbox"]:disabled + label {
+                cursor: not-allowed;
+                opacity: .55;
+                transform: none;
+            }
+
         @media (prefers-reduced-motion: reduce) {
-            .ost-choice-row .checkbox-wrapper-24 label span,
-            .ost-choice-row .checkbox-wrapper-24 label span::before,
-            .ost-choice-row .checkbox-wrapper-24 label span::after {
+            .ost-choice-row .checkbox-wrapper-24 label,
+            .ost-choice-row .checkbox-wrapper-24 label::before {
                 transition: none;
             }
         }
@@ -976,27 +1377,27 @@
                                 <div class="ost-choice-row">
                                     <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_DispatchOrder" />
-                                        <label for="ProcessOrders_DispatchOrder"><span></span>Dispatch Order</label>
+                                        <label for="ProcessOrders_DispatchOrder"><span></span><b>Dispatch Order</b></label>
                                     </div>
                                     <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_NoFeedback" />
-                                        <label for="ProcessOrders_NoFeedback"><span></span>No Feedback</label>
+                                        <label for="ProcessOrders_NoFeedback"><span></span><b>No Feedback</b></label>
                                     </div>
                                     <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_TaxCalling" />
-                                        <label for="ProcessOrders_TaxCalling"><span></span>Tax Calling</label>
+                                        <label for="ProcessOrders_TaxCalling"><span></span><b>Tax Calling</b></label>
                                     </div>
                                     <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_Audit" />
-                                        <label for="ProcessOrders_Audit"><span></span>Audit</label>
+                                        <label for="ProcessOrders_Audit"><span></span><b>Audit</b></label>
                                     </div>
                                     <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_SPQA" />
-                                        <label for="ProcessOrders_SPQA"><span></span>SPQA</label>
+                                        <label for="ProcessOrders_SPQA"><span></span><b>SPQA</b></label>
                                     </div>
                                     <div class="checkbox-wrapper-24">
                                         <input type="checkbox" id="ProcessOrders_Offline" />
-                                        <label for="ProcessOrders_Offline"><span></span>Offline</label>
+                                        <label for="ProcessOrders_Offline"><span></span><b>Offline</b></label>
                                     </div>
                                 </div>
                             </div>
@@ -1032,6 +1433,40 @@
                                     </table>
                                 </div>
                             </div>
+                            <div class="ost-field full ost-order-details-panel">
+                                <h2 class="ost-order-details-title">
+                                    <i class="fas fa-tasks"></i>
+                                    <span>Orders On Current Process</span>
+                                </h2>
+                                <div class="ost-table-wrap">
+                                    <table id="ProcessOrders_CurrentProcessTasks" class="table table-bordered table-hover ost-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center"><input type="checkbox" id="ProcessOrders_SelectAllTasks" checked aria-label="Select all task rows" /></th>
+                                                <th>Sr. #</th>
+                                                <th>Order Date</th>
+                                                <th>Project</th>
+                                                <th>Order No</th>
+                                                <th>Product Type</th>
+                                                <th>Borrower Name</th>
+                                                <th>Property Address</th>
+                                                <th>State</th>
+                                                <th>County</th>
+                                                <th>Process</th>
+                                                <th>Legal Description</th>
+                                                <th>Client ID</th>
+                                                <th>Customer Type</th>
+                                                <th>Transaction Type</th>
+                                                <th>Instruction</th>
+                                                <th>Seller Name</th>
+                                                <th>APN No</th>
+                                                <th>Attachments</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer justify-content-between">
@@ -1041,6 +1476,33 @@
                         <button class="btn btn-ost-primary" type="button" id="btnStep5" onclick="return CompleteOrder();">
                             <i class="fas fa-paper-plane"></i><span>Submit</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade ost-modal attachment-drawer-modal" id="ProcessOrderAttachments" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="ProcessOrderAttachmentsTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="attachment-drawer-heading">
+                            <span class="attachment-drawer-icon"><i class="fas fa-paperclip"></i></span>
+                            <div>
+                                <h1 class="attachment-drawer-title" id="ProcessOrderAttachmentsTitle">Order Attachments</h1>
+                                <p class="attachment-drawer-subtitle">Review file details and download the required document.</p>
+                            </div>
+                        </div>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="attachment-summary">
+                            <span><i class="fas fa-folder-open mr-1"></i> Available files</span>
+                            <span id="ProcessOrders_AttachmentCount" class="attachment-count">0 files</span>
+                        </div>
+                        <div id="ProcessOrders_TaskAttachments" class="attachment-card-list" aria-live="polite"></div>
+                    </div>
+                    <div class="modal-footer justify-content-end">
+                        <button type="button" class="btn btn-ost-secondary" data-dismiss="modal"><i class="fas fa-times"></i><span>Close</span></button>
                     </div>
                 </div>
             </div>
