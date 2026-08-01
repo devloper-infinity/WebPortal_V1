@@ -472,6 +472,11 @@ END;", connection))
                             }
 
                             long itemId = itemIds[0];
+                            if (IsBillingLocked(connection, transaction, projectId, itemId, Convert.ToDateTime(first["OrderDate"])))
+                            {
+                                AddBillingUpdateResult(result, rowNumber, "Locked", "The record is verified or sent to Accounts and is locked.");
+                                continue;
+                            }
                             UpsertItemValue(connection, transaction, itemId, dispatchFieldId,
                                 Convert.ToDateTime(first["DispatchDate"]).ToString("yyyy-MM-dd"), userId);
 
@@ -524,6 +529,26 @@ WHERE i.ProjectID = @ProjectID
                     while (reader.Read()) itemIds.Add(reader.GetInt64(0));
             }
             return itemIds.ToArray();
+        }
+
+        private static bool IsBillingLocked(SqlConnection connection, SqlTransaction transaction, int projectId, long itemId, DateTime orderDate)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+IF OBJECT_ID('dbo.OLTracking_MonthlyBilling','U') IS NULL
+    SELECT CONVERT(bit,0);
+ELSE
+    SELECT CONVERT(bit,CASE WHEN EXISTS
+    (
+        SELECT 1 FROM dbo.OLTracking_MonthlyBilling
+        WHERE ProjectID=@ProjectID AND ItemID=@ItemID AND OrderDate=@OrderDate
+          AND (IsVerified=1 OR IsSentToAccounts=1)
+    ) THEN 1 ELSE 0 END);", connection, transaction))
+            {
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                command.Parameters.Add("@ItemID", SqlDbType.BigInt).Value = itemId;
+                command.Parameters.Add("@OrderDate", SqlDbType.Date).Value = orderDate.Date;
+                return Convert.ToBoolean(command.ExecuteScalar());
+            }
         }
 
         private static int GetDispatchFieldId(SqlConnection connection, SqlTransaction transaction, int projectId)

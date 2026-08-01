@@ -409,6 +409,8 @@
             font-weight: 700 !important;
         }
 
+        .reqc-legend{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:0 0 14px;color:#64748b;font-size:12px}.reqc-legend-title{font-weight:700;color:#334155;margin-right:2px}.reqc-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}.reqc-pill i{font-size:10px}.reqc-not-assigned{background:#f1f5f9;color:#64748b;border-color:#e2e8f0}.reqc-assigned{background:#fff7ed;color:#b45309;border-color:#fed7aa}.reqc-completed{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.reqc-cell{min-width:190px}.reqc-detail{display:block;margin-top:5px;color:#64748b;font-size:11px;line-height:1.35;white-space:normal;max-width:240px}.reqc-detail strong{color:#334155;font-weight:700}
+
         @media (max-width: 768px) {
             .content-header {
                 padding: 12px 10px 0 !important;
@@ -465,6 +467,12 @@
     <div class="col-lg-12">
         <div class="card">
             <div class="card-body">
+                <div class="reqc-legend" aria-label="Re-QC status legend">
+                    <span class="reqc-legend-title">Re-QC status:</span>
+                    <span class="reqc-pill reqc-not-assigned"><i class="far fa-circle"></i> Not Assigned</span>
+                    <span class="reqc-pill reqc-assigned"><i class="fas fa-user-clock"></i> Assigned</span>
+                    <span class="reqc-pill reqc-completed"><i class="fas fa-check-circle"></i> Completed</span>
+                </div>
                 <table class="table table-bordered" style="width: 100%;" id="usglobalsearch_table"></table>
 
             </div>

@@ -867,6 +867,8 @@
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\UpdateBillingParameters.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetReport.js" />
+    <Content Include="Scripts\TrackingSheet\MonthlyBilling.js" />
+    <Content Include="Scripts\TrackingSheet\ImportBilling.js" />
     <Content Include="Search\SearchDashboard.aspx" />
     <Content Include="Search\VMOrders.aspx" />
     <Content Include="Search\VMReport.aspx" />
@@ -2910,6 +2912,8 @@
     <Content Include="TrackingSheet\TrackingSheetConfiguration.aspx" />
     <Content Include="TrackingSheet\UpdateBillingParameters.aspx" />
     <Content Include="TrackingSheet\TrackingSheetReport.aspx" />
+    <Content Include="TrackingSheet\MonthlyBilling.aspx" />
+    <Content Include="TrackingSheet\ImportBilling.aspx" />
     <Content Include="Tracking\AddFeedback.aspx" />
     <Content Include="Tracking\Allocate.aspx" />
     <Content Include="Tracking\OrderAllocation.aspx" />
@@ -3142,12 +3146,16 @@
     <Compile Include="App_Code\BLL\bllProjectTracking.cs" />
     <Compile Include="App_Code\BLL\bllOLTracking.cs" />
     <Compile Include="App_Code\BLL\bllOLTrackingImport.cs" />
+    <Compile Include="App_Code\BLL\bllOLMonthlyBilling.cs" />
+    <Compile Include="App_Code\BLL\bllLegacyImportBilling.cs" />
     <Compile Include="App_Code\BLL\bllVendors.cs" />
     <Compile Include="App_Code\Class\HelpdeskJson.cs" />
     <Compile Include="App_Code\DAL\dalFeedback.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="App_Code\DAL\dalOLTracking.cs" />
     <Compile Include="App_Code\DAL\dalOLTrackingImport.cs" />
+    <Compile Include="App_Code\DAL\dalOLMonthlyBilling.cs" />
+    <Compile Include="App_Code\DAL\dalLegacyImportBilling.cs" />
     <Compile Include="App_Code\DAL\dalVendors.cs" />
     <Compile Include="App_Code\OLTrackingWeb.cs" />
     <Compile Include="Helpdesk\Administration.aspx.cs">
@@ -5268,6 +5276,20 @@
     </Compile>
     <Compile Include="TrackingSheet\TrackingSheetReport.aspx.designer.cs">
       <DependentUpon>TrackingSheetReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\MonthlyBilling.aspx.cs">
+      <DependentUpon>MonthlyBilling.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\MonthlyBilling.aspx.designer.cs">
+      <DependentUpon>MonthlyBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\ImportBilling.aspx.cs">
+      <DependentUpon>ImportBilling.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\ImportBilling.aspx.designer.cs">
+      <DependentUpon>ImportBilling.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tracking\AddFeedback.aspx.cs">
       <DependentUpon>AddFeedback.aspx</DependentUpon>

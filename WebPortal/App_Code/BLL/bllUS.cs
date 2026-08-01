@@ -92,6 +92,11 @@ namespace WebPortal.App_Code.BLL
             return dalUS.getLoansForGlobalSearch(EmployeeID);
         }
 
+        public DataTable GetGlobalSearchReQcStatuses(IEnumerable<string> loanNumbers)
+        {
+            return dalUS.GetGlobalSearchReQcStatuses(loanNumbers);
+        }
+
         public DataTable GetLoanDetailsbyLoanNo(string DealNo, string LoanNo)
         {
             return dalUS.GetLoanDetailsbyLoanNo(DealNo, LoanNo);
