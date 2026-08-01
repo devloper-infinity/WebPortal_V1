@@ -171,6 +171,7 @@ namespace WebPortal.Search
         public static int SendToAccounts(string ProjectNo, string FromDate, string ToDate, string EmailTo, string EmailCC, string EmailSubject, string EmailBody)
         {
             int returnValue = 0;
+            return returnValue;
         }
 
         public static void SendClientBillingOrdersTyping(DataTable dt, DataTable dt2, string ProjectName, string ProjectType, string TotalCount, string Dispatched_Count, string NotToBilledCount, string Cancelled_Count, string Pending_Count, string Weekday_Count, string WeekendCount, string Infinity_ChecklistCount, string ClientCount, string BillingDatePeriod, int domainID, string EmailNote)

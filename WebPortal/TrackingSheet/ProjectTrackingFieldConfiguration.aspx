@@ -481,7 +481,7 @@
         .pt-config-page .field-config-flags {
             grid-column: 1 / span 3;
             justify-content: flex-start;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             padding-top: 0;
         }
 
@@ -506,12 +506,19 @@
         .pt-config-page .checkbox-wrapper-44.toggleButton {
             position: relative;
             display: inline-flex;
+            min-height: 36px;
             align-items: center;
-            gap: 7px;
+            gap: 8px;
             margin: 0;
+            padding: 7px 13px 7px 9px;
+            color: #475569;
+            background: rgba(255, 255, 255, .96);
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, .06);
             cursor: pointer;
-            transform-origin: 50% 50%;
-            transform-style: preserve-3d;
+            user-select: none;
+            transition: border-color .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
         }
 
         .pt-config-page .checkbox-wrapper-44 input[type="checkbox"] {
@@ -525,58 +532,75 @@
 
         .pt-config-page .checkbox-wrapper-44 .toggle-mark {
             position: relative;
-            display: block;
-            flex: 0 0 24px;
-            width: 24px;
-            height: 24px;
-            border: 2px solid #94a3b8;
-            border-radius: 5%;
-            background: #ffffff;
-            transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.14s ease;
+            display: inline-flex;
+            flex: 0 0 18px;
+            width: 18px;
+            height: 18px;
+            align-items: center;
+            justify-content: center;
+            color: #0f6b8f;
+            border: 1px solid #99f6e4;
+            border-radius: 50%;
+            background: #ecfdf5;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1;
+            transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .3s ease;
         }
 
-            .pt-config-page .checkbox-wrapper-44 .toggle-mark svg {
-                position: absolute;
-                z-index: 1;
-                inset: -2px;
-                display: block;
-                width: 24px;
-                height: 24px;
-                fill: none;
-                stroke: #ffffff;
-                stroke-width: 3.6;
-                stroke-linecap: round;
-                stroke-linejoin: round;
+            .pt-config-page .checkbox-wrapper-44 .toggle-mark::before {
+                content: "+";
             }
 
-            .pt-config-page .checkbox-wrapper-44 .toggle-mark path {
-                stroke-dasharray: 145;
-                stroke-dashoffset: 145;
-                transition: stroke-dashoffset 0.42s ease;
+            .pt-config-page .checkbox-wrapper-44 .toggle-mark svg {
+                display: none;
+            }
+
+        .pt-config-page .checkbox-wrapper-44:hover {
+            color: #0f766e;
+            border-color: #5eead4;
+            background: #f0fdfa;
+            box-shadow: 0 4px 10px rgba(15, 118, 110, .12);
+            transform: translateY(-1px);
+        }
+
+        .pt-config-page .checkbox-wrapper-44:has(input[type="checkbox"]:checked) {
+            color: #ffffff;
+            border-color: #0f8578;
+            background: #0f8578;
+            box-shadow: 0 0 0 3px rgba(15, 133, 120, .13), 0 4px 10px rgba(15, 118, 110, .15);
+        }
+
+            .pt-config-page .checkbox-wrapper-44:has(input[type="checkbox"]:checked) .toggle-mark {
+                color: #0f8578;
+                border-color: #ffffff;
+                background: #ffffff;
+                transform: rotate(-360deg);
+            }
+
+            .pt-config-page .checkbox-wrapper-44:has(input[type="checkbox"]:checked) .toggle-mark::before {
+                content: "\2713";
             }
 
         .pt-config-page .checkbox-wrapper-44 input:checked + .toggle-mark {
-            border-color: #0f6b8f;
-            background: linear-gradient(145deg, #12a7c9 0%, #0f6b8f 100%);
-            box-shadow: 0 4px 10px rgba(15, 107, 143, 0.22);
+            color: #0f8578;
+            border-color: #ffffff;
+            background: #ffffff;
         }
 
-            .pt-config-page .checkbox-wrapper-44 input:checked + .toggle-mark path {
-                stroke-dashoffset: 0;
-            }
-
-        .pt-config-page .checkbox-wrapper-44:active .toggle-mark {
-            transform: rotateX(28deg) scale(0.96);
+        .pt-config-page .checkbox-wrapper-44:active {
+            transform: translateY(0) scale(.98);
         }
 
-        .pt-config-page .checkbox-wrapper-44 input:focus-visible + .toggle-mark {
-            outline: 3px solid rgba(37, 99, 235, 0.22);
+        .pt-config-page .checkbox-wrapper-44:has(input:focus-visible) {
+            outline: 2px solid #2563eb;
             outline-offset: 2px;
         }
 
-        .pt-config-page .checkbox-wrapper-44 input:disabled + .toggle-mark,
-        .pt-config-page .checkbox-wrapper-44 input:disabled ~ .toggle-text {
-            opacity: 0.48;
+        .pt-config-page .checkbox-wrapper-44:has(input:disabled) {
+            cursor: not-allowed;
+            opacity: .55;
+            transform: none;
         }
 
         .pt-config-page .field-config-actions {

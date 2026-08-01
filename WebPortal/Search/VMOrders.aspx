@@ -181,6 +181,181 @@
                 cursor: pointer;
             }
 
+        .vm-radio-row {
+            gap: 10px;
+        }
+
+            .vm-radio-row label {
+                min-height: 38px;
+                padding: 7px 13px 7px 9px;
+                display: inline-flex;
+                align-items: center;
+                gap: 9px;
+                font-weight: 700;
+                line-height: 1.2;
+                color: #334155;
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 20px;
+                box-shadow: 0 2px 6px rgba(15, 23, 42, .06);
+                user-select: none;
+                transition: border-color .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+            }
+
+                .vm-radio-row label:hover {
+                    color: #0f766e;
+                    border-color: #5eead4;
+                    background: #f0fdfa;
+                    box-shadow: 0 4px 10px rgba(15, 118, 110, .12);
+                    transform: translateY(-1px);
+                }
+
+                .vm-radio-row label:has(input[type="radio"]:checked) {
+                    color: #0f766e;
+                    border-color: #14b8a6;
+                    background: #ecfdf5;
+                    box-shadow: 0 0 0 3px rgba(20, 184, 166, .11), 0 4px 10px rgba(15, 118, 110, .10);
+                }
+
+            .vm-radio-row input[type="radio"] {
+                appearance: none;
+                -webkit-appearance: none;
+                width: 20px;
+                height: 20px;
+                margin: 0;
+                flex: 0 0 20px;
+                display: inline-grid;
+                place-content: center;
+                background: #ffffff;
+                border: 2px solid #94a3b8;
+                border-radius: 50%;
+                cursor: pointer;
+                transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+            }
+
+                .vm-radio-row input[type="radio"]::before {
+                    content: "";
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    background: #ffffff;
+                    transform: scale(0);
+                    transition: transform .18s ease;
+                }
+
+                .vm-radio-row input[type="radio"]:checked {
+                    background: #0f8578;
+                    border-color: #0f8578;
+                    box-shadow: 0 0 0 3px rgba(15, 133, 120, .14);
+                }
+
+                    .vm-radio-row input[type="radio"]:checked::before {
+                        transform: scale(1);
+                    }
+
+                .vm-radio-row input[type="radio"]:focus-visible {
+                    outline: 2px solid #2563eb;
+                    outline-offset: 2px;
+                }
+
+                .vm-radio-row input[type="radio"]:disabled {
+                    cursor: not-allowed;
+                    opacity: .55;
+                }
+
+        .vm-check-row {
+            gap: 8px;
+        }
+
+            .vm-check-row label,
+            .vm-doc-list label {
+                position: relative;
+                min-height: 36px;
+                margin: 0;
+                padding: 7px 13px 7px 9px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                color: #475569;
+                background: rgba(255, 255, 255, .96);
+                border: 1px solid #cbd5e1;
+                border-radius: 20px;
+                box-shadow: 0 2px 6px rgba(15, 23, 42, .06);
+                font-weight: 700;
+                line-height: 1.2;
+                cursor: pointer;
+                user-select: none;
+                transition: border-color .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+            }
+
+                .vm-check-row label::before,
+                .vm-doc-list label::before {
+                    content: "+";
+                    width: 18px;
+                    height: 18px;
+                    flex: 0 0 18px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #0f8578;
+                    background: #ecfdf5;
+                    border: 1px solid #99f6e4;
+                    border-radius: 50%;
+                    font-size: 14px;
+                    font-weight: 800;
+                    line-height: 1;
+                    transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .3s ease;
+                }
+
+                .vm-check-row label:hover,
+                .vm-doc-list label:hover {
+                    color: #0f766e;
+                    border-color: #5eead4;
+                    background: #f0fdfa;
+                    box-shadow: 0 4px 10px rgba(15, 118, 110, .12);
+                    transform: translateY(-1px);
+                }
+
+                .vm-check-row label:has(input[type="checkbox"]:checked),
+                .vm-doc-list label:has(input[type="checkbox"]:checked) {
+                    color: #ffffff;
+                    border-color: #0f8578;
+                    background: #0f8578;
+                    box-shadow: 0 0 0 3px rgba(15, 133, 120, .13), 0 4px 10px rgba(15, 118, 110, .15);
+                }
+
+                    .vm-check-row label:has(input[type="checkbox"]:checked)::before,
+                    .vm-doc-list label:has(input[type="checkbox"]:checked)::before {
+                        content: "\2713";
+                        color: #0f8578;
+                        background: #ffffff;
+                        border-color: #ffffff;
+                        transform: rotate(-360deg);
+                    }
+
+                .vm-check-row label:has(input[type="checkbox"]:focus-visible),
+                .vm-doc-list label:has(input[type="checkbox"]:focus-visible) {
+                    outline: 2px solid #2563eb;
+                    outline-offset: 2px;
+                }
+
+                .vm-check-row label:has(input[type="checkbox"]:disabled),
+                .vm-doc-list label:has(input[type="checkbox"]:disabled) {
+                    cursor: not-allowed;
+                    opacity: .55;
+                    transform: none;
+                }
+
+            .vm-check-row input[type="checkbox"],
+            .vm-doc-list input[type="checkbox"] {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                margin: 0;
+                opacity: 0;
+                pointer-events: none;
+            }
+
         .vm-btn {
             display: inline-flex;
             align-items: center;
@@ -235,7 +410,7 @@
         }
 
             .vm-actions .vm-btn {
-               /* width: 30px;*/
+                /* width: 30px;*/
                 min-width: 30px;
                 padding: 4px;
             }
@@ -529,8 +704,8 @@
                 <div class="search-header-identity">
                     <span class="search-header-icon"><i class="fas fa-boxes"></i></span>
                     <div class="search-header-copy">
-                    <h1 class="vm-title"><span>VM Orders</span></h1>
-                    <div class="vm-subtitle">Abstractor allocation, VM processing and queue management in one workspace</div>
+                        <h1 class="vm-title"><span>VM Orders</span></h1>
+                        <div class="vm-subtitle">Abstractor allocation, VM processing and queue management in one workspace</div>
                     </div>
                 </div>
                 <button type="button" id="vmRefreshActive" class="vm-btn vm-btn-light"><i class="fas fa-sync-alt"></i>Refresh active tab</button>
@@ -607,14 +782,12 @@
                                             </div>
                                             <div class="vm-col-12 vm-field">
                                                 <label>Product Type</label><div class="vm-check-row">
-                                                    <label>
-                                                        <input type="checkbox" value="Current Owner" />
-                                                        Current Owner</label><label><input type="checkbox" value="Two Owner" />
-                                                            Two Owner</label><label><input type="checkbox" value="L&V" />
-                                                                L&amp;V</label><label><input type="checkbox" value="Full Search" />
-                                                                    Full Search</label><label><input type="checkbox" value="Document Request" />
-                                                                        Document Request</label><label><input type="checkbox" value="Other" />
-                                                                            Other</label>
+                                                    <label><input type="checkbox" value="Current Owner" /><b>Current Owner</b></label>
+                                                    <label><input type="checkbox" value="Two Owner" /><b>Two Owner</b></label>
+                                                    <label><input type="checkbox" value="L&V" /><b>L&V</b></label>
+                                                    <label><input type="checkbox" value="Full Search" /><b>Full Search</b></label>
+                                                    <label><input type="checkbox" value="Document Request" /><b>Document Request</b></label>
+                                                    <label><input type="checkbox" value="Other" /><b>Other</b></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -684,7 +857,11 @@
                                     <div class="vm-col-2 vm-field">
                                         <label class="required">To Date</label><input id="vmQueueToDate" type="date" class="vm-control" />
                                     </div>
-                                    <div class="vm-col-3 vm-field">
+                                    <div class="vm-col-2 vm-field">
+                                        <label>Project</label><select id="vmQueueProject" class="vm-control"><option value="">Select</option>
+                                        </select>
+                                    </div>
+                                    <div class="vm-col-4 vm-field">
                                         <label>Order View</label><div class="vm-radio-row">
                                             <label id="vmAllOrdersOption">
                                                 <input type="radio" name="vmQueueView" value="all" />
@@ -693,10 +870,7 @@
                                                         All Projects</label>
                                         </div>
                                     </div>
-                                    <div class="vm-col-3 vm-field">
-                                        <label>Project</label><select id="vmQueueProject" class="vm-control"><option value="">Select</option>
-                                        </select>
-                                    </div>
+
                                     <div class="vm-col-2">
                                         <button type="button" id="vmShowQueue" class="vm-btn vm-btn-primary w-100"><i class="fas fa-search"></i>Show Orders</button>
                                     </div>
@@ -798,13 +972,17 @@
                     <div class="vm-comment-summary">
                         <div class="vm-grid">
                             <div class="vm-col-3 vm-field">
-                                <label>Order #</label><input id="vmCommentOrderNo" class="vm-control" readonly /></div>
+                                <label>Order #</label><input id="vmCommentOrderNo" class="vm-control" readonly />
+                            </div>
                             <div class="vm-col-3 vm-field">
-                                <label>Order Date</label><input id="vmCommentOrderDate" class="vm-control" readonly /></div>
+                                <label>Order Date</label><input id="vmCommentOrderDate" class="vm-control" readonly />
+                            </div>
                             <div class="vm-col-3 vm-field">
-                                <label>VM</label><input id="vmCommentVm" class="vm-control" readonly /></div>
+                                <label>VM</label><input id="vmCommentVm" class="vm-control" readonly />
+                            </div>
                             <div class="vm-col-3 vm-field">
-                                <label>Abstractor</label><input id="vmCommentAbstractor" class="vm-control" readonly /></div>
+                                <label>Abstractor</label><input id="vmCommentAbstractor" class="vm-control" readonly />
+                            </div>
                         </div>
                     </div>
                     <div class="vm-comment-form">
