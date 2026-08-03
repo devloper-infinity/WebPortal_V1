@@ -35,6 +35,7 @@
     .chart-summary { font-size:12px; color:#5f6f82; margin-bottom:10px; }
     .chart-summary strong { color:#2f4058; }
     .chart-box { position:relative; height:340px !important; min-height:340px; }
+    .metric-chart-wrap .chart-box { height:420px !important; min-height:420px; }
     .chart-box.tall { height:430px !important; min-height:430px; }
     .chart-note { margin-top:8px; font-size:11px; color:#7b8797; }
     .dev-up { color:#16834a; font-weight:600; }
@@ -266,14 +267,11 @@
         var labels = $.map(model.periods, function (p) { return p.label; });
         var latest = model.periods[model.periods.length - 1];
         var previous = model.periods.length > 1 ? model.periods[model.periods.length - 2] : null;
-        var headcountValues = $.map(model.periods, function (p) { return p.totalCount; });
-        var salaryValues = $.map(model.periods, function (p) { return p.totalGross; });
-
         $('#txtHeadcountInsight').html(buildTrendInsight('Headcount', latest.totalCount, previous ? previous.totalCount : null, latest.label, previous ? previous.label : null, false));
         $('#txtSalaryInsight').html(buildTrendInsight('Gross salary', latest.totalGross, previous ? previous.totalGross : null, latest.label, previous ? previous.label : null, true));
 
-        reportCharts.headcount = createTrendChart('chtHeadcountTrend', labels, headcountValues, 'Headcount', false, '#5a78a8');
-        reportCharts.salary = createTrendChart('chtSalaryTrend', labels, salaryValues, 'Gross Salary', true, '#2f8f6b');
+        reportCharts.headcount = createDepartmentBarChart('chtHeadcountTrend', labels, model, 'count', 'Headcount', false);
+        reportCharts.salary = createDepartmentBarChart('chtSalaryTrend', labels, model, 'gross', 'Gross Salary', true);
 
         var deviationValues = [], latestDeviation = null;
         $.each(model.periods, function (i, p) {
@@ -282,7 +280,7 @@
         });
         latestDeviation = deviationValues.length ? deviationValues[deviationValues.length - 1] : null;
         $('#txtDeviationInsight').html(latestDeviation === null ? '<strong>Previous month is not available for comparison.</strong>' : '<strong>' + html(latest.label) + ': ' + (latestDeviation > 0 ? '+' : '') + latestDeviation.toFixed(2) + '%</strong> change in total gross salary compared with ' + html(previous ? previous.label : '') + '.');
-        reportCharts.deviation = createDeviationTrendChart('chtDeviationTrend', labels, deviationValues);
+        reportCharts.deviation = createDepartmentBarChart('chtDeviationTrend', labels, model, 'deviation', 'Change %', false, true);
 
         var otherDepartments = $.grep(model.departments, function (d) { return d.toLowerCase() !== 'production'; });
         otherDepartments.sort(function (a, b) { return latest.rows[b].gross - latest.rows[a].gross; });
@@ -307,16 +305,66 @@
 
     }
 
-    function createTrendChart(id, labels, values, label, moneyAxis, color) {
-        return new Chart(document.getElementById(id), { type: 'line', data: { labels: labels, datasets: [{ label: label, data: values, borderColor: color, backgroundColor: color === '\#2f8f6b' ? 'rgba(47,143,107,.10)' : 'rgba(90,120,168,.10)', fill: true, lineTension: 0, pointRadius: 4, pointHoverRadius: 6, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, legend: { display: false }, tooltips: { mode: 'index', intersect: false, callbacks: { label: function (t) { return label + ': ' + (moneyAxis ? formatMoney(t.yLabel) : Number(t.yLabel).toLocaleString('en-IN')); } } }, scales: { xAxes: [{ scaleLabel: { display: true, labelString: 'Month' }, gridLines: { display: false } }], yAxes: [{ scaleLabel: { display: true, labelString: label }, ticks: { beginAtZero: false, callback: moneyAxis ? compactMoney : function (v) { return Number(v).toLocaleString('en-IN'); } } }] } } });
-    }
+    function createDepartmentBarChart(id, labels, model, metric, axisLabel, moneyAxis, percentageAxis) {
+        var datasets = $.map(model.departments, function (department, index) {
+            var color = departmentColor(index, .78);
+            return {
+                label: department,
+                data: $.map(model.periods, function (period) { return period.rows[department][metric]; }),
+                backgroundColor: color,
+                borderColor: departmentColor(index, 1),
+                borderWidth: 1,
+                maxBarThickness: 28
+            };
+        });
 
-    function createDeviationTrendChart(id, labels, values) {
         return new Chart(document.getElementById(id), {
             type: 'bar',
-            data: { labels: labels, datasets: [{ label: 'Gross Salary Change %', data: values, backgroundColor: $.map(values, function (v) { return v === null ? 'rgba(160,170,180,.45)' : v >= 0 ? 'rgba(47,143,107,.70)' : 'rgba(196,59,59,.70)'; }), borderWidth: 0 }] },
-            options: { responsive: true, maintainAspectRatio: false, legend: { display: false }, tooltips: { callbacks: { label: function (t) { var v = Number(t.yLabel || 0); return 'Change: ' + (v > 0 ? '+' : '') + v.toFixed(2) + '%'; } } }, scales: { xAxes: [{ scaleLabel: { display: true, labelString: 'Month' }, gridLines: { display: false } }], yAxes: [{ scaleLabel: { display: true, labelString: 'Change %' }, ticks: { callback: function (v) { return v + '%'; } }, gridLines: { zeroLineColor: '#65758a', zeroLineWidth: 1 } }] } }
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 12, fontSize: 10 } },
+                tooltips: {
+                    mode: 'nearest',
+                    intersect: true,
+                    callbacks: {
+                        title: function (items) { return items.length ? 'Month: ' + labels[items[0].index] : ''; },
+                        label: function (item, data) {
+                            var department = data.datasets[item.datasetIndex].label;
+                            var value = item.yLabel;
+                            var formatted = percentageAxis
+                                ? (value === null || value === undefined ? 'N/A' : ((Number(value) > 0 ? '+' : '') + Number(value).toFixed(2) + '%'))
+                                : (moneyAxis ? formatMoney(value) : Number(value || 0).toLocaleString('en-IN'));
+                            return 'Department: ' + department + ' | ' + axisLabel + ': ' + formatted;
+                        }
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        scaleLabel: { display: true, labelString: 'Month' },
+                        gridLines: { display: false },
+                        ticks: { autoSkip: false, maxRotation: 45, minRotation: labels.length > 8 ? 45 : 0 },
+                        categoryPercentage: .82,
+                        barPercentage: .9
+                    }],
+                    yAxes: [{
+                        scaleLabel: { display: true, labelString: axisLabel },
+                        ticks: {
+                            beginAtZero: !percentageAxis,
+                            precision: metric === 'count' ? 0 : undefined,
+                            callback: percentageAxis ? function (v) { return v + '%'; } : moneyAxis ? compactMoney : function (v) { return Number(v).toLocaleString('en-IN'); }
+                        },
+                        gridLines: percentageAxis ? { zeroLineColor: '#65758a', zeroLineWidth: 1 } : {}
+                    }]
+                }
+            }
         });
+    }
+
+    function departmentColor(index, alpha) {
+        var hue = Math.round((index * 137.508 + 210) % 360);
+        return 'hsla(' + hue + ',45%,52%,' + alpha + ')';
     }
 
     function createHorizontalBar(id, labels, values, label, moneyValues, color, percentageValues) {

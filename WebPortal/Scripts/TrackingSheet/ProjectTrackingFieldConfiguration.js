@@ -66,12 +66,22 @@ function callFieldConfig(methodName, payload, success) {
             success(data);
         },
         error: function (xhr) {
-            showConfigStatus(xhr.responseText || "Request failed.", true);
+            showConfigStatus(fieldConfigErrorMessage(xhr), true);
         },
         complete: function () {
             hideLoader();
         }
     });
+}
+
+function fieldConfigErrorMessage(xhr) {
+    try {
+        var response = JSON.parse(xhr.responseText || "{}");
+        return response.Message || "The requested operation could not be completed.";
+    }
+    catch (e) {
+        return "The requested operation could not be completed.";
+    }
 }
 
 function bindProjectTrackingProjects() {
@@ -144,13 +154,14 @@ function renderFieldTable(fields) {
         html += "<td style='text-align:center;'>" + boolPill(field.IsVisible) + "</td>";
         html += "<td style='text-align:center;'>" + boolPill(field.IsEditable) + "</td>";
         html += "<td style='text-align:center;'>" + boolPill(field.IsForBilling) + "</td>";
+        html += "<td style='text-align:center;'>" + boolPill(field.IsBillingParameter) + "</td>";
         html += "<td style='text-align:center;'>" + boolPill(field.IsForImport) + "</td>";
         html += "<td style='text-align:center;'>" + boolPill(field.IsProcessColumn) + "</td>";
         html += "<td style='text-align:center;'>" + boolPill(field.IsSystemGenerated) + "</td>";
         html += "</tr>";
     });
 
-    $("#table_ProjectTrackingFields tbody").html(html || "<tr><td colspan='14' class='text-center'>No fields configured.</td></tr>");
+    $("#table_ProjectTrackingFields tbody").html(html || "<tr><td colspan='15' class='text-center'>No fields configured.</td></tr>");
 }
 
 function isTrue(value) {
@@ -238,6 +249,7 @@ function clearFieldForm() {
     $("#chkFieldVisible").prop("checked", true);
     $("#chkFieldEditable").prop("checked", true);
     $("#chkForBilling").prop("checked", false);
+    $("#chkBillingParameter").prop("checked", false);
     $("#chkForImport").prop("checked", false);
     $("#ddlDateFormat").val("dd/MM/yyyy");
     $("#txtDisplayOrder").val("");
@@ -289,6 +301,7 @@ function editFieldConfig(index) {
     $("#chkFieldVisible").prop("checked", yesNo(field.IsVisible) === "Yes");
     $("#chkFieldEditable").prop("checked", yesNo(field.IsEditable) === "Yes");
     $("#chkForBilling").prop("checked", yesNo(field.IsForBilling) === "Yes");
+    $("#chkBillingParameter").prop("checked", yesNo(field.IsBillingParameter) === "Yes");
     $("#chkForImport").prop("checked", yesNo(field.IsForImport) === "Yes");
     $("#ddlDateFormat").val(field.DateFormat || "dd/MM/yyyy");
     $("#txtDisplayOrder").val(field.DisplayOrder);
@@ -316,6 +329,7 @@ function editStatusOptions(index) {
     $("#chkFieldVisible").prop("checked", true);
     $("#chkFieldEditable").prop("checked", true);
     $("#chkForBilling").prop("checked", false);
+    $("#chkBillingParameter").prop("checked", false);
     $("#chkForImport").prop("checked", false);
     $("#ddlDateFormat").val("dd/MM/yyyy");
     $("#txtDisplayOrder").val(field.DisplayOrder);
@@ -326,13 +340,13 @@ function editStatusOptions(index) {
 
 function setStatusOptionsMode(isStatusOptionsMode) {
     if (isStatusOptionsMode) {
-        $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkUniqueField, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkForImport, #ddlDateFormat").prop("disabled", true);
+        $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkUniqueField, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkBillingParameter, #chkForImport, #ddlDateFormat").prop("disabled", true);
         $("#txtFieldOptions").prop("disabled", false).focus();
         $("#btnSaveFieldConfig").html("<i class='fas fa-save'></i>&nbsp;Save Status Options");
         return;
     }
 
-    $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkUniqueField, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkForImport").prop("disabled", false);
+    $("#txtFieldName, #ddlFieldDataType, #chkActualProcess, #txtDisplayOrder, #chkFieldRequired, #chkUniqueField, #chkFieldVisible, #chkFieldEditable, #chkForBilling, #chkBillingParameter, #chkForImport").prop("disabled", false);
     $("#btnSaveFieldConfig").html("<i class='fas fa-save'></i>&nbsp;Save Field");
     toggleProcessOptions();
 }
@@ -372,6 +386,7 @@ function saveFieldConfiguration() {
         isVisible: $("#chkFieldVisible").is(":checked"),
         isEditable: $("#chkFieldEditable").is(":checked"),
         isForBilling: $("#chkForBilling").is(":checked"),
+        isBillingParameter: $("#chkBillingParameter").is(":checked"),
         isForImport: $("#chkForImport").is(":checked"),
         displayOrder: displayOrder === "" ? 0 : parseInt(displayOrder),
         isProcessColumn: isProcess,

@@ -783,51 +783,142 @@ namespace WebPortal.Reports
         {
             IXLWorksheet ws = workbook.Worksheets.Add("Dashboard Data");
             ws.Cell(1, 1).Value = "Month";
-            ws.Cell(1, 2).Value = "Total Headcount";
-            ws.Cell(1, 3).Value = "Total Gross Salary";
-            ws.Cell(1, 4).Value = "Total Net Salary";
+            ws.Cell(1, 2).Value = "Location";
+            ws.Cell(1, 3).Value = "Domain";
+            ws.Cell(1, 4).Value = "Subdomain";
+            ws.Cell(1, 5).Value = "Total Headcount";
+            ws.Cell(1, 6).Value = "Total Gross Salary";
+            ws.Cell(1, 7).Value = "Total Net Salary";
 
-            Dictionary<string, HashSet<string>> counts = BuildEmployeeCountMap(employeeDetails, true);
-            SortedDictionary<int, SalaryDashboardTotal> totals = new SortedDictionary<int, SalaryDashboardTotal>();
-            foreach (DataRow row in source.Rows)
-            {
-                int year = Convert.ToInt32(row["Year"]);
-                string monthYear = Convert.ToString(row["MonthYear"]);
-                int month = GetMonthNumber(row, monthYear);
-                int key = year * 100 + month;
-                SalaryDashboardTotal total;
-                if (!totals.TryGetValue(key, out total))
-                {
-                    total = new SalaryDashboardTotal { Label = monthYear };
-                    totals[key] = total;
-                }
-                total.Gross += ToDecimal(row["GrossSalary"]);
-                if (source.Columns.Contains("NetSalary")) total.Net += ToDecimal(row["NetSalary"]);
-            }
+            SortedDictionary<string, SalaryDashboardTotal> totals = BuildDashboardTotals(employeeDetails);
+
+            // Keep the sheet usable if the detail result is unavailable while preserving monthly report totals.
+            if (totals.Count == 0)
+                AddUnassignedDashboardTotals(totals, source);
 
             int outputRow = 2;
-            foreach (KeyValuePair<int, SalaryDashboardTotal> item in totals)
+            foreach (KeyValuePair<string, SalaryDashboardTotal> item in totals)
             {
-                int headcount = 0;
-                string prefix = item.Key.ToString(CultureInfo.InvariantCulture) + "||";
-                foreach (KeyValuePair<string, HashSet<string>> count in counts)
-                    if (count.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) headcount += count.Value.Count;
-
                 ws.Cell(outputRow, 1).Value = item.Value.Label;
-                ws.Cell(outputRow, 2).Value = headcount;
-                ws.Cell(outputRow, 3).Value = item.Value.Gross;
-                ws.Cell(outputRow, 4).Value = item.Value.Net;
+                ws.Cell(outputRow, 2).Value = item.Value.Location;
+                ws.Cell(outputRow, 3).Value = item.Value.Domain;
+                ws.Cell(outputRow, 4).Value = item.Value.Subdomain;
+                ws.Cell(outputRow, 5).Value = item.Value.Employees.Count;
+                ws.Cell(outputRow, 6).Value = item.Value.Gross;
+                ws.Cell(outputRow, 7).Value = item.Value.Net;
                 outputRow++;
             }
 
             int lastRow = Math.Max(outputRow - 1, 1);
-            ws.Range(1, 1, 1, 4).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
-            ws.Range(1, 1, 1, 4).Style.Font.FontColor = XLColor.White;
-            ws.Range(1, 1, 1, 4).Style.Font.Bold = true;
-            ws.Range(2, 3, lastRow, 4).Style.NumberFormat.Format = "#,##0.00";
-            ws.Range(1, 1, lastRow, 4).SetAutoFilter();
+            ws.Range(1, 1, 1, 7).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            ws.Range(1, 1, 1, 7).Style.Font.FontColor = XLColor.White;
+            ws.Range(1, 1, 1, 7).Style.Font.Bold = true;
+            if (lastRow > 1)
+            {
+                ws.Range(2, 5, lastRow, 5).Style.NumberFormat.Format = "0";
+                ws.Range(2, 6, lastRow, 7).Style.NumberFormat.Format = "#,##0.00";
+            }
+            ws.Range(1, 1, lastRow, 7).SetAutoFilter();
             ws.SheetView.FreezeRows(1);
             ws.Columns().AdjustToContents(1, 24);
+        }
+
+        private static SortedDictionary<string, SalaryDashboardTotal> BuildDashboardTotals(DataTable employeeDetails)
+        {
+            SortedDictionary<string, SalaryDashboardTotal> totals = new SortedDictionary<string, SalaryDashboardTotal>(StringComparer.OrdinalIgnoreCase);
+            if (employeeDetails == null || employeeDetails.Rows.Count == 0 || !employeeDetails.Columns.Contains("Year"))
+                return totals;
+
+            foreach (DataRow row in employeeDetails.Rows)
+            {
+                int year;
+                if (!int.TryParse(Convert.ToString(row["Year"]), out year)) continue;
+
+                string monthLabel = GetStringValue(row, "MonthYear", "Month");
+                int month = GetMonthNumber(row, monthLabel);
+                if (month < 1 || month > 12) continue;
+
+                int periodKey = year * 100 + month;
+                string location = GetDimensionValue(row, "Location", "Branch", "WorkingBranch", "WorkingBranchName");
+                string domain = GetDimensionValue(row, "Domain", "DomainName");
+                string subdomain = GetDimensionValue(row, "Subdomain", "SubDomain", "SubdomainName", "SubDomainName");
+                string key = periodKey.ToString("D6", CultureInfo.InvariantCulture) + "||" + location + "||" + domain + "||" + subdomain;
+
+                SalaryDashboardTotal total;
+                if (!totals.TryGetValue(key, out total))
+                {
+                    total = new SalaryDashboardTotal
+                    {
+                        Label = GetShortPeriodLabel(periodKey, monthLabel),
+                        Location = location,
+                        Domain = domain,
+                        Subdomain = subdomain,
+                        Employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    };
+                    totals[key] = total;
+                }
+
+                string employee = GetStringValue(row, "Code", "EmployeeID", "EmployeeCode", "Name");
+                if (!string.IsNullOrWhiteSpace(employee)) total.Employees.Add(employee.Trim());
+                total.Gross += GetDecimalValue(row, "GrossSalary", "Gross Salary", "Gross");
+                total.Net += GetDecimalValue(row, "NetSalary", "Net Salary", "Net");
+            }
+
+            return totals;
+        }
+
+        private static void AddUnassignedDashboardTotals(SortedDictionary<string, SalaryDashboardTotal> totals, DataTable source)
+        {
+            if (source == null || !source.Columns.Contains("Year")) return;
+
+            foreach (DataRow row in source.Rows)
+            {
+                int year;
+                if (!int.TryParse(Convert.ToString(row["Year"]), out year)) continue;
+                string monthLabel = GetStringValue(row, "MonthYear", "Month");
+                int month = GetMonthNumber(row, monthLabel);
+                if (month < 1 || month > 12) continue;
+
+                int periodKey = year * 100 + month;
+                string key = periodKey.ToString("D6", CultureInfo.InvariantCulture) + "||(Not Assigned)||(Not Assigned)||(Not Assigned)";
+                SalaryDashboardTotal total;
+                if (!totals.TryGetValue(key, out total))
+                {
+                    total = new SalaryDashboardTotal
+                    {
+                        Label = GetShortPeriodLabel(periodKey, monthLabel),
+                        Location = "(Not Assigned)",
+                        Domain = "(Not Assigned)",
+                        Subdomain = "(Not Assigned)",
+                        Employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    };
+                    totals[key] = total;
+                }
+                total.Gross += GetDecimalValue(row, "GrossSalary", "Gross Salary", "Gross");
+                total.Net += GetDecimalValue(row, "NetSalary", "Net Salary", "Net");
+            }
+        }
+
+        private static string GetDimensionValue(DataRow row, params string[] columnNames)
+        {
+            string value = GetStringValue(row, columnNames);
+            return string.IsNullOrWhiteSpace(value) ? "(Not Assigned)" : value.Trim();
+        }
+
+        private static string GetStringValue(DataRow row, params string[] columnNames)
+        {
+            foreach (string columnName in columnNames)
+                if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+                    return Convert.ToString(row[columnName]);
+            return string.Empty;
+        }
+
+        private static decimal GetDecimalValue(DataRow row, params string[] columnNames)
+        {
+            foreach (string columnName in columnNames)
+                if (row.Table.Columns.Contains(columnName))
+                    return ToDecimal(row[columnName]);
+            return 0M;
         }
 
         private static void CreateHorizontalMonthlySheet(XLWorkbook workbook, DataTable source, DataTable employeeDetails)
@@ -914,7 +1005,16 @@ namespace WebPortal.Reports
             ws.Columns().AdjustToContents(1, 24);
         }
 
-        private sealed class SalaryDashboardTotal { public string Label { get; set; } public decimal Gross { get; set; } public decimal Net { get; set; } }
+        private sealed class SalaryDashboardTotal
+        {
+            public string Label { get; set; }
+            public string Location { get; set; }
+            public string Domain { get; set; }
+            public string Subdomain { get; set; }
+            public HashSet<string> Employees { get; set; }
+            public decimal Gross { get; set; }
+            public decimal Net { get; set; }
+        }
         private sealed class SalaryHorizontalAmount { public decimal Gross { get; set; } public decimal Net { get; set; } }
 
         private sealed class MonthlyExportModel
@@ -923,6 +1023,13 @@ namespace WebPortal.Reports
             public List<string> Departments { get; set; }
             public Dictionary<string, decimal> GrossValues { get; set; }
             public Dictionary<string, int> HeadcountValues { get; set; }
+        }
+
+        private sealed class DepartmentChartSeries
+        {
+            public string Department { get; set; }
+            public List<decimal> Values { get; set; }
+            public Color Color { get; set; }
         }
 
         private static MonthlyExportModel BuildMonthlyExportModel(DataTable monthSummary, DataTable employeeDetails)
@@ -964,22 +1071,7 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Headcount Trend");
             WriteSheetTitle(ws, "Department-wise Headcount Trend");
 
-            List<string> labels = new List<string>();
-            List<decimal> totals = new List<decimal>();
-            foreach (KeyValuePair<int, string> period in model.Periods)
-            {
-                labels.Add(period.Value);
-                int total = 0;
-                foreach (string department in model.Departments)
-                {
-                    int count;
-                    model.HeadcountValues.TryGetValue(period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department, out count);
-                    total += count;
-                }
-                totals.Add(total);
-            }
-
-            AddLineChartPicture(ws, "Headcount Trend", labels, totals, false, "B3");
+            AddDepartmentBarChartPicture(ws, "Department-wise Headcount Trend", model, ExportMetric.Headcount, "B3");
             WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Headcount);
         }
 
@@ -989,22 +1081,7 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Gross Salary Trend");
             WriteSheetTitle(ws, "Department-wise Gross Salary Trend");
 
-            List<string> labels = new List<string>();
-            List<decimal> totals = new List<decimal>();
-            foreach (KeyValuePair<int, string> period in model.Periods)
-            {
-                labels.Add(period.Value);
-                decimal total = 0M;
-                foreach (string department in model.Departments)
-                {
-                    decimal gross;
-                    model.GrossValues.TryGetValue(period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department, out gross);
-                    total += gross;
-                }
-                totals.Add(total);
-            }
-
-            AddLineChartPicture(ws, "Gross Salary Trend", labels, totals, true, "B3");
+            AddDepartmentBarChartPicture(ws, "Department-wise Gross Salary Trend", model, ExportMetric.Gross, "B3");
             WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Gross);
         }
 
@@ -1014,30 +1091,7 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Salary Deviation");
             WriteSheetTitle(ws, "Department-wise Gross Salary Deviation");
 
-            List<string> labels = new List<string>();
-            List<decimal> deviations = new List<decimal>();
-            decimal previousTotal = 0M;
-            bool hasPrevious = false;
-
-            foreach (KeyValuePair<int, string> period in model.Periods)
-            {
-                labels.Add(period.Value);
-                decimal total = 0M;
-                foreach (string department in model.Departments)
-                {
-                    decimal gross;
-                    model.GrossValues.TryGetValue(period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department, out gross);
-                    total += gross;
-                }
-
-                deviations.Add(hasPrevious && previousTotal != 0M
-                    ? ((total - previousTotal) / previousTotal) * 100M
-                    : 0M);
-                previousTotal = total;
-                hasPrevious = true;
-            }
-
-            AddColumnChartPicture(ws, "Salary Deviation %", labels, deviations, "B3");
+            AddDepartmentBarChartPicture(ws, "Department-wise Salary Deviation %", model, ExportMetric.Deviation, "B3");
             WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Deviation);
         }
 
@@ -1164,6 +1218,202 @@ namespace WebPortal.Reports
                   .MoveTo(ws.Cell(cellAddress))
                   .WithSize(1000, 380);
             }
+        }
+
+        private static void AddDepartmentBarChartPicture(
+            IXLWorksheet ws,
+            string title,
+            MonthlyExportModel model,
+            ExportMetric metric,
+            string cellAddress)
+        {
+            List<string> labels = new List<string>();
+            foreach (KeyValuePair<int, string> period in model.Periods)
+                labels.Add(GetShortPeriodLabel(period.Key, period.Value));
+
+            List<DepartmentChartSeries> series = new List<DepartmentChartSeries>();
+            for (int departmentIndex = 0; departmentIndex < model.Departments.Count; departmentIndex++)
+            {
+                string department = model.Departments[departmentIndex];
+                DepartmentChartSeries chartSeries = new DepartmentChartSeries
+                {
+                    Department = string.IsNullOrWhiteSpace(department) ? "(Not Assigned)" : department,
+                    Values = new List<decimal>(),
+                    Color = GetDepartmentChartColor(departmentIndex)
+                };
+
+                decimal previousGross = 0M;
+                bool hasPrevious = false;
+                foreach (KeyValuePair<int, string> period in model.Periods)
+                {
+                    string key = period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department;
+                    decimal gross;
+                    int count;
+                    model.GrossValues.TryGetValue(key, out gross);
+                    model.HeadcountValues.TryGetValue(key, out count);
+
+                    if (metric == ExportMetric.Headcount)
+                        chartSeries.Values.Add(count);
+                    else if (metric == ExportMetric.Gross)
+                        chartSeries.Values.Add(gross);
+                    else
+                        chartSeries.Values.Add(hasPrevious && previousGross != 0M
+                            ? ((gross - previousGross) / previousGross) * 100M
+                            : 0M);
+
+                    previousGross = gross;
+                    hasPrevious = true;
+                }
+                series.Add(chartSeries);
+            }
+
+            using (MemoryStream image = DrawDepartmentBarChart(title, labels, series, metric))
+            {
+                ws.AddPicture(image, GetExcelPictureName("DeptBar"))
+                    .MoveTo(ws.Cell(cellAddress))
+                    .WithSize(1000, 380);
+            }
+        }
+
+        private static MemoryStream DrawDepartmentBarChart(
+            string title,
+            List<string> labels,
+            List<DepartmentChartSeries> series,
+            ExportMetric metric)
+        {
+            const int width = 1400;
+            const int height = 530;
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+
+                Rectangle plot = new Rectangle(100, 70, 930, 365);
+                Rectangle legend = new Rectangle(1055, 65, 325, 390);
+                DrawChartFrame(g, plot, title);
+
+                decimal minimum = 0M;
+                decimal maximum = 1M;
+                foreach (DepartmentChartSeries item in series)
+                    foreach (decimal value in item.Values)
+                    {
+                        if (value > maximum) maximum = value;
+                        if (metric == ExportMetric.Deviation && value < minimum) minimum = value;
+                    }
+
+                if (metric == ExportMetric.Deviation)
+                {
+                    maximum = Math.Max(1M, maximum);
+                    minimum = Math.Min(-1M, minimum);
+                }
+                else
+                {
+                    minimum = 0M;
+                    maximum = Math.Max(1M, maximum);
+                }
+
+                string numberFormat = metric == ExportMetric.Gross ? "#,##0" : metric == ExportMetric.Deviation ? "0.0" : "0";
+                DrawYAxis(g, plot, minimum, maximum, numberFormat);
+                DrawGroupedXAxis(g, plot, labels);
+
+                float zeroY = plot.Bottom - (float)((0M - minimum) / (maximum - minimum)) * plot.Height;
+                using (Pen zeroPen = new Pen(Color.Gray, 1.4F))
+                    g.DrawLine(zeroPen, plot.Left, zeroY, plot.Right, zeroY);
+
+                int groupCount = Math.Max(labels.Count, 1);
+                int seriesCount = Math.Max(series.Count, 1);
+                float groupWidth = plot.Width / (float)groupCount;
+                float availableWidth = groupWidth * 0.82F;
+                float barWidth = Math.Max(0.75F, Math.Min(28F, availableWidth / seriesCount));
+                float renderedGroupWidth = barWidth * seriesCount;
+
+                for (int groupIndex = 0; groupIndex < labels.Count; groupIndex++)
+                {
+                    float groupLeft = plot.Left + groupWidth * groupIndex + (groupWidth - renderedGroupWidth) / 2F;
+                    for (int seriesIndex = 0; seriesIndex < series.Count; seriesIndex++)
+                    {
+                        decimal value = groupIndex < series[seriesIndex].Values.Count ? series[seriesIndex].Values[groupIndex] : 0M;
+                        float valueY = plot.Bottom - (float)((value - minimum) / (maximum - minimum)) * plot.Height;
+                        float top = Math.Min(zeroY, valueY);
+                        float barHeight = Math.Max(1F, Math.Abs(zeroY - valueY));
+                        using (Brush brush = new SolidBrush(series[seriesIndex].Color))
+                            g.FillRectangle(brush, groupLeft + seriesIndex * barWidth, top, Math.Max(0.6F, barWidth - 0.4F), barHeight);
+                    }
+                }
+
+                DrawDepartmentLegend(g, legend, series);
+                using (Font axisTitleFont = new Font("Arial", 9F, FontStyle.Bold))
+                using (Brush axisTitleBrush = new SolidBrush(Color.DimGray))
+                {
+                    string axisTitle = metric == ExportMetric.Headcount ? "Headcount" : metric == ExportMetric.Gross ? "Gross Salary" : "Change %";
+                    g.DrawString(axisTitle, axisTitleFont, axisTitleBrush, new PointF(12F, plot.Top + plot.Height / 2F - 8F));
+                    g.DrawString("Month", axisTitleFont, axisTitleBrush, new PointF(plot.Left + plot.Width / 2F - 20F, plot.Bottom + 48F));
+                }
+            }
+
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            bitmap.Dispose();
+            stream.Position = 0;
+            return stream;
+        }
+
+        private static void DrawGroupedXAxis(Graphics g, Rectangle plot, List<string> labels)
+        {
+            if (labels.Count == 0) return;
+            using (Font font = new Font("Arial", 8F))
+            using (Brush brush = new SolidBrush(Color.DimGray))
+            {
+                float slot = plot.Width / (float)labels.Count;
+                for (int i = 0; i < labels.Count; i++)
+                {
+                    float x = plot.Left + slot * i + slot / 2F;
+                    SizeF size = g.MeasureString(labels[i], font);
+                    g.DrawString(labels[i], font, brush, x - size.Width / 2F, plot.Bottom + 8F);
+                }
+            }
+        }
+
+        private static void DrawDepartmentLegend(Graphics g, Rectangle area, List<DepartmentChartSeries> series)
+        {
+            using (Font headerFont = new Font("Arial", 9F, FontStyle.Bold))
+            using (Font itemFont = new Font("Arial", series.Count > 24 ? 7F : 8F))
+            using (Brush textBrush = new SolidBrush(Color.FromArgb(55, 65, 80)))
+            {
+                g.DrawString("Department", headerFont, textBrush, area.Left, area.Top);
+                int rowHeight = series.Count > 24 ? 15 : 18;
+                int rowsPerColumn = Math.Max(1, (area.Height - 25) / rowHeight);
+                int columnCount = Math.Max(1, (int)Math.Ceiling(series.Count / (double)rowsPerColumn));
+                float columnWidth = area.Width / (float)columnCount;
+
+                for (int i = 0; i < series.Count; i++)
+                {
+                    int column = i / rowsPerColumn;
+                    int row = i % rowsPerColumn;
+                    float x = area.Left + column * columnWidth;
+                    float y = area.Top + 24F + row * rowHeight;
+                    using (Brush swatch = new SolidBrush(series[i].Color))
+                        g.FillRectangle(swatch, x, y + 2F, 11F, 11F);
+                    g.DrawString(series[i].Department, itemFont, textBrush, new RectangleF(x + 16F, y, Math.Max(20F, columnWidth - 18F), rowHeight));
+                }
+            }
+        }
+
+        private static Color GetDepartmentChartColor(int index)
+        {
+            Color[] colors =
+            {
+                Color.FromArgb(70, 114, 169), Color.FromArgb(89, 161, 79), Color.FromArgb(242, 142, 43),
+                Color.FromArgb(225, 87, 89), Color.FromArgb(176, 122, 161), Color.FromArgb(118, 183, 178),
+                Color.FromArgb(237, 201, 72), Color.FromArgb(255, 157, 167), Color.FromArgb(156, 117, 95),
+                Color.FromArgb(186, 176, 172), Color.FromArgb(52, 152, 219), Color.FromArgb(46, 204, 113),
+                Color.FromArgb(155, 89, 182), Color.FromArgb(230, 126, 34), Color.FromArgb(22, 160, 133),
+                Color.FromArgb(192, 57, 43), Color.FromArgb(127, 140, 141), Color.FromArgb(41, 128, 185),
+                Color.FromArgb(39, 174, 96), Color.FromArgb(142, 68, 173), Color.FromArgb(211, 84, 0),
+                Color.FromArgb(44, 62, 80), Color.FromArgb(241, 196, 15), Color.FromArgb(26, 188, 156)
+            };
+            return colors[index % colors.Length];
         }
 
         private static string GetExcelPictureName(string prefix)

@@ -785,7 +785,7 @@
         }
     </style>
 
-    <script src="../Scripts/TrackingSheet/ProjectTrackingFieldConfiguration.js"></script>
+    <script src="../Scripts/TrackingSheet/ProjectTrackingFieldConfiguration.js?v=20260801.2"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
