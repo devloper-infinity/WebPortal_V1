@@ -1,4 +1,4 @@
-<%@ Page Title="PM Order Allocation" Language="C#" MasterPageFile="~/Production/Production.Master" AutoEventWireup="true" CodeBehind="ManagerAllocation.aspx.cs" Inherits="WebPortal.TrackingSheet.ManagerAllocationPage" %>
+<%@ Page Title="PM Order Allocation" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ManagerAllocation.aspx.cs" Inherits="WebPortal.TrackingSheet.ManagerAllocationPage" %>
 
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="OLTracking.css" />

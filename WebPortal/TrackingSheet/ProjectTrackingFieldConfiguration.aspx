@@ -1,4 +1,4 @@
-<%@ Page Title="" Language="C#" MasterPageFile="~/Production/Production.Master" AutoEventWireup="true" CodeBehind="ProjectTrackingFieldConfiguration.aspx.cs" Inherits="WebPortal.TrackingSheet.ProjectTrackingFieldConfiguration" %>
+<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ProjectTrackingFieldConfiguration.aspx.cs" Inherits="WebPortal.TrackingSheet.ProjectTrackingFieldConfiguration" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>

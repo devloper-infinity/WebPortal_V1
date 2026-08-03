@@ -684,6 +684,114 @@
         }
     </style>
 
+    <style>
+        .account-mail-loader {
+    padding: 8px 15px 5px;
+    text-align: center;
+}
+
+.mail-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 78px;
+    height: 78px;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #2563eb;
+    font-size: 30px;
+    overflow: hidden;
+}
+
+.mail-send-animation {
+    position: absolute;
+    right: -18px;
+    width: 22px;
+    height: 3px;
+    border-radius: 10px;
+    background: #2563eb;
+    box-shadow:
+        0 -8px 0 rgba(37, 99, 235, 0.55),
+        0 8px 0 rgba(37, 99, 235, 0.35);
+    animation: sendMailLine 1.2s infinite ease-in-out;
+}
+
+.mail-project-name {
+    margin-bottom: 6px;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.mail-status-text {
+    margin-bottom: 16px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.mail-progress {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #e5e7eb;
+}
+
+.mail-progress-bar {
+    width: 35%;
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    animation: mailProgress 1.4s infinite ease-in-out;
+}
+
+.email-success-details {
+    padding: 5px 10px;
+    text-align: left;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.success-note {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    background: #f0fdf4;
+    color: #166534;
+    line-height: 1.5;
+}
+
+@keyframes sendMailLine {
+    0% {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(35px);
+    }
+}
+
+@keyframes mailProgress {
+    0% {
+        margin-left: -35%;
+    }
+
+    100% {
+        margin-left: 100%;
+    }
+}
+    </style>
+
     <script>
         $(document).ready(function () {
 

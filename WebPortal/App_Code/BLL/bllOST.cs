@@ -319,6 +319,12 @@ namespace WebPortal.App_Code.BLL
             return dalOst.getBillingPeriod();
         }
 
+
+        public DataTable GetOrdersForSentToAccounts(string ProjectNo, string BillingPeriod, string Remark)
+        {
+            return dalOst.GetOrdersForSentToAccounts( ProjectNo,  BillingPeriod,  Remark);
+        }
+
         public int VerifyOstOrdersForBilling(int OrderID, string Project, int AddedBy, string Remark)
         {
             return dalOst.VerifyOstOrdersForBilling(OrderID, Project, AddedBy, Remark);
@@ -332,7 +338,7 @@ namespace WebPortal.App_Code.BLL
 
         public int UpdateBillingRemark(int OrderID, string Remark, string Cost)
         {
-            return dalOst.UpdateBillingRemark(OrderID,  Remark,  Cost);
+            return dalOst.UpdateBillingRemark(OrderID, Remark, Cost);
         }
 
         public DataTable GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(string Project, string FromDate, string ToDate)

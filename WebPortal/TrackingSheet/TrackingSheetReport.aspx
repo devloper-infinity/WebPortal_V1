@@ -1,4 +1,4 @@
-<%@ Page Title="Tracking Sheet Report" Language="C#" MasterPageFile="~/Production/Production.Master" AutoEventWireup="true" CodeBehind="TrackingSheetReport.aspx.cs" Inherits="WebPortal.TrackingSheet.TrackingSheetReport" %>
+<%@ Page Title="Tracking Sheet Report" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="TrackingSheetReport.aspx.cs" Inherits="WebPortal.TrackingSheet.TrackingSheetReport" %>
 
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
