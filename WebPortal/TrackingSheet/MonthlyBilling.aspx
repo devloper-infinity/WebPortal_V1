@@ -1,4 +1,4 @@
-<%@ Page Title="Monthly Billing" Language="C#" MasterPageFile="~/Production/Production.Master" AutoEventWireup="true" CodeBehind="MonthlyBilling.aspx.cs" Inherits="WebPortal.TrackingSheet.MonthlyBilling" %>
+<%@ Page Title="Monthly Billing" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="MonthlyBilling.aspx.cs" Inherits="WebPortal.TrackingSheet.MonthlyBilling" %>
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <style>

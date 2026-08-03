@@ -1,4 +1,4 @@
-<%@ Page Title="Process Flow Configuration" Language="C#" MasterPageFile="~/Production/Production.Master" AutoEventWireup="true" CodeBehind="ProcessFlowConfiguration.aspx.cs" Inherits="WebPortal.TrackingSheet.ProcessFlowConfiguration" %>
+<%@ Page Title="Process Flow Configuration" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ProcessFlowConfiguration.aspx.cs" Inherits="WebPortal.TrackingSheet.ProcessFlowConfiguration" %>
 
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="OLTracking.css" />

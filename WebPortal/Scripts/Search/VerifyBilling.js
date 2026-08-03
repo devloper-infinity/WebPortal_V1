@@ -653,7 +653,7 @@ function renderTotalOrdersSummary(dataArray) {
     $summary.html(html);
 }
 
-function VerifyOrdres_Verify() {
+function Core_VerifyOrdres_Verify() {
 
     var ddlprj_vrf = document.getElementById("VerifyOrdres_projectno");
     var project = ddlprj_vrf.options[ddlprj_vrf.selectedIndex].text;
@@ -709,61 +709,287 @@ function VerifyOrdres_Verify() {
     }
 }
 
-function VerifyOrdres_SendToAccount() {
+function VerifyOrdres_Verify() {
 
-    var ddlprj1 = document.getElementById("VerifyOrdres_projectno"); alert(ddlprj1);
-    var projectID = ddlprj1.options[ddlprj1.selectedIndex].value;
-    var project = ddlprj1.options[ddlprj1.selectedIndex].text;
+    const project = $("#VerifyOrdres_projectno option:selected").text().trim();
+    const remark = $("#VerifyOrdres_Remark").val().trim();
 
-    var ddlbillCycle = document.getElementById("VerifyOrdres_BillingCycle");
-    var billCycle = ddlbillCycle.options[ddlbillCycle.selectedIndex].text;
-
-    var ddldatePeriod = document.getElementById("VerifyOrdres_dateperild");
-    var datePeriod = ddldatePeriod.options[ddldatePeriod.selectedIndex].text;
-
-    if (projectID != "" && billCycle != "" && datePeriod != "") {
-
-        $.ajax({
-            url: "VerifyBilling.aspx/SendToAccounts",
-            type: "POST",
-            data: "{ProjectID:'" + projectID + "',Project:'" + project + "',BillingCycle:'" + billCycle + "',BillingPeriod:'" + datePeriod + "'}",
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-
-            success: function (response) {
-
-                $('#waitingpanel').modal('hide');
-
-                if (response.d > 0)
-                    alert("Orders send to account successfully!");
-                else
-                    alert("Oops! Error occured while sending orders. Please contact administrator!");
-            },
-
-            error: function (err) {
-
-                $('#waitingpanel').modal('hide');
-                alert(err.responseText);
-            }
+    if (!project) {
+        Swal.fire({
+            icon: "warning",
+            title: "Project Required",
+            text: "Please select a project."
         });
+        return;
     }
-    else {
 
-        if (projectID == "") {
-
-            alert("Please select Project.");
-        }
-        if (billCycle == "") {
-
-            alert("Please select Billing Cycle!");
-        }
-        if (datePeriod == "") {
-
-            alert("Please select Billing Period!");
-        }
+    if (!remark) {
+        Swal.fire({
+            icon: "warning",
+            title: "Remark Required",
+            text: "Please enter a remark."
+        });
+        $("#VerifyOrdres_Remark").focus();
+        return;
     }
+
+    const table = $("#VerifyOrders_Search_Billing").DataTable();
+    const selectedOrderIDs = [];
+
+    table.$("input.row-checkbox:checked").each(function () {
+        selectedOrderIDs.push($(this).val());
+    });
+
+    if (selectedOrderIDs.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "No Orders Selected",
+            text: "Please select at least one order."
+        });
+        return;
+    }
+
+    // Modern processing dialog
+    Swal.fire({
+        title: "Verifying Orders...",
+        text: "Please wait while the selected orders are being verified.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    $.ajax({
+        url: "VerifyBilling.aspx/VerifyOrders",
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        data: JSON.stringify({
+            OrderIDs: selectedOrderIDs.join(","),
+            Project: project,
+            Remark: remark
+        }),
+
+        success: function (response) {
+
+            Swal.close();
+
+            if (response.d > 0) {
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Verification Complete",
+                    text: "Selected orders have been verified successfully.",
+                    confirmButtonText: "OK"
+                }).then(() => {
+                    // Refresh grid if required
+                    // VerifyOrders_Search();
+                });
+
+            } else {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Verification Failed",
+                    text: "Unable to verify the selected orders. Please contact the administrator."
+                });
+            }
+        },
+
+        error: function () {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: "An unexpected error occurred while verifying the orders. Please try again or contact the administrator."
+            });
+        }
+    });
 }
 
+function VerifyOrdres_SendToAccount() {
+
+    var $project = $('#VerifyOrdres_projectno');
+    var $billingCycle = $('#VerifyOrdres_BillingCycle');
+    var $billingPeriod = $('#VerifyOrdres_dateperild');
+    var $remark = $('#VerifyOrdres_Remark');
+    var $sendButton = $('#btnSendToAccount');
+
+    var projectNo = $.trim($project.val());
+    var projectName = $.trim($project.find('option:selected').text());
+    var billingCycle = $.trim($billingCycle.val());
+    var billingPeriod = $.trim($billingPeriod.val());
+    var billingPeriodText = $.trim($billingPeriod.find('option:selected').text());
+    var remark = $.trim($remark.val());
+
+    if (!projectNo) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Project Required',
+            text: 'Please select a project.',
+            confirmButtonText: 'OK'
+        }).then(function () {
+            $project.focus();
+        });
+
+        return;
+    }
+
+    if (!billingCycle) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Billing Cycle Required',
+            text: 'Please select a billing cycle.',
+            confirmButtonText: 'OK'
+        }).then(function () {
+            $billingCycle.focus();
+        });
+
+        return;
+    }
+
+    if (!billingPeriod) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Billing Period Required',
+            text: 'Please select a billing period.',
+            confirmButtonText: 'OK'
+        }).then(function () {
+            $billingPeriod.focus();
+        });
+
+        return;
+    }
+
+    // Prevent duplicate clicks.
+    $sendButton.prop('disabled', true);
+
+    Swal.fire({
+        title: 'Sending to Accounts',
+        html:
+            '<div class="account-mail-loader">' +
+            '<div class="mail-icon-wrapper">' +
+            '<i class="fa fa-envelope"></i>' +
+            '<span class="mail-send-animation"></span>' +
+            '</div>' +
+            '<div class="mail-project-name">' + escapeHtml(projectName) + '</div>' +
+            '<div class="mail-status-text" id="accountMailStatus">' +
+            'Preparing billing summary and attachments...' +
+            '</div>' +
+            '<div class="mail-progress">' +
+            '<div class="mail-progress-bar"></div>' +
+            '</div>' +
+            '</div>',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: function () {
+            Swal.showLoading();
+
+            setTimeout(function () {
+                $('#accountMailStatus').text(
+                    'Sending email to the Accounting Team...'
+                );
+            }, 800);
+        }
+    });
+
+    $.ajax({
+        url: 'VerifyBilling.aspx/SendToAccounts',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+
+        data: JSON.stringify({
+            ProjectNo: projectNo,
+            BillingPeriod: billingPeriod,
+            Remark: remark
+        }),
+
+        success: function (response) {
+
+            var result = parseInt(response.d, 10) || 0;
+
+            if (result > 0) {
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Email Sent Successfully',
+                    html:
+                        '<div class="email-success-details">' +
+                        '<div><strong>Project:</strong> ' +
+                        escapeHtml(projectName) +
+                        '</div>' +
+                        '<div><strong>Billing Cycle:</strong> ' +
+                        escapeHtml(billingCycle) +
+                        '</div>' +
+                        '<div><strong>Billing Period:</strong> ' +
+                        escapeHtml(billingPeriodText) +
+                        '</div>' +
+                        '<div class="success-note">' +
+                        'The billing details and selected orders have been sent to the Accounting Team.' +
+                        '</div>' +
+                        '</div>',
+                    confirmButtonText: 'Done',
+                    confirmButtonColor: '#2563eb'
+                });
+
+            } else {
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'No Email Sent',
+                    text: 'No eligible orders were found for the selected project and billing period.',
+                    confirmButtonText: 'Review Details'
+                });
+            }
+        },
+
+        error: function (xhr) {
+
+            var errorMessage =
+                'An error occurred while sending the email to the Accounting Team.';
+
+            if (
+                xhr.responseJSON &&
+                xhr.responseJSON.Message
+            ) {
+                errorMessage = xhr.responseJSON.Message;
+            } else if (xhr.responseText) {
+                try {
+                    var errorResponse = JSON.parse(xhr.responseText);
+
+                    if (errorResponse.Message) {
+                        errorMessage = errorResponse.Message;
+                    }
+                } catch (e) {
+                    // Keep default message.
+                }
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Email Sending Failed',
+                text: errorMessage,
+                confirmButtonText: 'Close'
+            });
+        },
+
+        complete: function () {
+            $sendButton.prop('disabled', false);
+        }
+    });
+}
+
+function escapeHtml(value) {
+
+    return $('<div>')
+        .text(value || '')
+        .html();
+}
 
 
 

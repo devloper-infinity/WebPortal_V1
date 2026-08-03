@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Office.Word;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -6,6 +7,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 
 namespace WebPortal.App_Code.DAL
 {
@@ -717,6 +719,16 @@ namespace WebPortal.App_Code.DAL
         public DataTable getBillingPeriod()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_getBillingPeriod_SearchAll");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetOrdersForSentToAccounts(string ProjectNo, string BillingPeriod, string Remark)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOrdersForSentToAccounts");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, BillingPeriod);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Remark);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
