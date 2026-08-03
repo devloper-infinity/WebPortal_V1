@@ -1747,7 +1747,7 @@
             </div>
             <% } %>
 
-            <% if (HttpContext.Current.User.Identity.Name.ToString() == "12")
+            <% if (HttpContext.Current.User.Identity.Name.ToString() == "12" || HttpContext.Current.User.Identity.Name.ToString() == "7036")
                 { %>
             <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                 <a href="ProductionDashboard.aspx"

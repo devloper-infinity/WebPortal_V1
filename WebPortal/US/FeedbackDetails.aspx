@@ -607,8 +607,8 @@
 
                     <div id="trOther" class="my-row" style="display: none;">
                         <div class="my-col-6">
-                            <label><b>Severity</b></label>
-                            <select id="usfeedback_severity" name="usfeedback_severity" class="my-select form-control">
+                            <label><b>Severity <span class="req">*</span></b></label>
+                            <select id="usfeedback_severity" name="usfeedback_severity" class="my-select form-control" required="required" aria-required="true">
                                 <option value="">Select</option>
                                 <option value="Critical">Critical</option>
                                 <option value="Non-Critical">Non-Critical</option>
@@ -616,8 +616,8 @@
                             </select>
                         </div>
                         <div class="my-col-6">
-                            <label><b>Findings</b></label>
-                            <textarea id="usfeedback_finding" name="usfeedback_finding" class="my-textarea form-control"></textarea>
+                            <label><b>Findings <span class="req">*</span></b></label>
+                            <textarea id="usfeedback_finding" name="usfeedback_finding" class="my-textarea form-control" required="required" aria-required="true"></textarea>
                         </div>
                     </div>
 

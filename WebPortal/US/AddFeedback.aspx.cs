@@ -96,6 +96,18 @@ namespace WebPortal.US
         {
             int ReturnValue = 0;
 
+            Severity = (Severity ?? string.Empty).Trim();
+            Finding = (Finding ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(Severity) || (Severity != "No Error" && string.IsNullOrEmpty(Finding)))
+            {
+                return -1;
+            }
+
+            if (Severity == "No Error")
+            {
+                Finding = "No Error";
+            }
+
             string QCName = "";
 
             Hashtable htParam = new Hashtable();
@@ -119,6 +131,18 @@ namespace WebPortal.US
         [WebMethod]
         public static int UpdateUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client, string Finding, string Severity)
         {
+            Severity = (Severity ?? string.Empty).Trim();
+            Finding = (Finding ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(Severity) || (Severity != "No Error" && string.IsNullOrEmpty(Finding)))
+            {
+                return -1;
+            }
+
+            if (Severity == "No Error")
+            {
+                Finding = "No Error";
+            }
+
             Hashtable htParam = new Hashtable();
             htParam.Add("FeedbackID", FeedbackID);
             htParam.Add("LoanNo", LoanNo);
@@ -155,9 +179,19 @@ namespace WebPortal.US
             DataRow row = dt.Rows[0];
             DateTime endDateTime = DateTime.Now;
 
+            string loanNumber = GetRowValue(row, "LoanNo", "OrderNumber");
+            DataTable feedback = new bllUS().GetUSImportedFeedback_ByUser_NewERP(
+                loanNumber,
+                int.Parse(HttpContext.Current.User.Identity.Name.ToString())
+            );
+            if (feedback == null || feedback.Rows.Count == 0)
+            {
+                return -2;
+            }
+
             string ProjectNumber = GetRowValue(row, "ProjectNo", "ProjectNumber", "Client");
             string DealNo = GetRowValue(row, "DealNo");
-            string LoanNo = GetRowValue(row, "LoanNo", "OrderNumber");
+            string LoanNo = loanNumber;
             string Process = GetRowValue(row, "Process");
             string Review = GetRowValue(row, "RemoteUW", "Review", "UWName");
             string StartDatetime = NormalizeDateTime(GetRowValue(row, "ReviewStartTime", "StartTime", "StartDateTime", "StartDate", "HStartDate"));

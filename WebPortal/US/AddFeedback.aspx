@@ -462,7 +462,7 @@
 
                     <div class="feedback-field">
                         <label for="USLoanDetails_Severity">Severity</label>
-                        <select id="USLoanDetails_Severity" name="USLoanDetails_Severity" class="form-control">
+                        <select id="USLoanDetails_Severity" name="USLoanDetails_Severity" class="form-control" required="required" aria-required="true" onchange="return syncAddFeedbackFindingRequirement();">
                             <option value="">Select</option>
                             <option value="Critical">Critical</option>
                             <option value="Non-Critical">Non-Critical</option>
