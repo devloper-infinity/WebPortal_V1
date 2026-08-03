@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 using System.Web;
 using WebPortal.App_Code.Class;
 
@@ -116,6 +117,46 @@ ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
             SQLHelper.AddParamToSQLCmd(cmd, "@UserID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, EmployeeID);
             DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
             return dt;
+        }
+
+        public DataTable GetGlobalSearchReQcStatuses(IEnumerable<string> loanNumbers)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("ProjectNumber", typeof(string)); result.Columns.Add("DealNo", typeof(string)); result.Columns.Add("LoanNo", typeof(string));
+            result.Columns.Add("ReQCStatus", typeof(string)); result.Columns.Add("ReQCProcess", typeof(string)); result.Columns.Add("ReQCEmployeeName", typeof(string)); result.Columns.Add("ReQCDate", typeof(string));
+            List<string> loans = (loanNumbers ?? Enumerable.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            const int batchSize = 1000;
+            for (int offset = 0; offset < loans.Count; offset += batchSize)
+            {
+                List<string> batch = loans.Skip(offset).Take(batchSize).ToList(); StringBuilder parameters = new StringBuilder();
+                for (int i = 0; i < batch.Count; i++) { if (i > 0) parameters.Append(','); parameters.Append("@Loan").Append(i); }
+                SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+;WITH ReQcRanked AS
+(
+    SELECT ISNULL(track.ProjectNumber, '') AS ProjectNumber, ISNULL(track.DealNo, '') AS DealNo, ISNULL(track.LoanNo, '') AS LoanNo,
+           CASE WHEN track.EndDatetime IS NULL THEN 'Assigned' ELSE 'Completed' END AS ReQCStatus,
+           ISNULL(track.[Process], '') AS ReQCProcess,
+           LTRIM(RTRIM(ISNULL(employee.FirstName, '') + ' ' + ISNULL(employee.LastName, ''))) AS ReQCEmployeeName,
+           ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) AS ReQCDate,
+           ROW_NUMBER() OVER
+           (
+               PARTITION BY ISNULL(track.ProjectNumber, ''), ISNULL(track.DealNo, ''), ISNULL(track.LoanNo, '')
+               ORDER BY CASE WHEN track.EndDatetime IS NULL THEN 0 ELSE 1 END,
+                        ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) DESC,
+                        track.ProductionTrackID DESC
+           ) AS RowNumber
+    FROM dbo.USLoanProductionTrack track
+    LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = track.EmployeeID
+    WHERE UPPER(REPLACE(REPLACE(ISNULL(track.[Process], ''), '-', ''), ' ', '')) IN ('DATAFIELDSREQC', 'PHREQC', 'REQC')
+      AND track.LoanNo IN (" + parameters + @")
+)
+SELECT ProjectNumber, DealNo, LoanNo, ReQCStatus, ReQCProcess, ReQCEmployeeName,
+       CONVERT(varchar(19), ReQCDate, 120) AS ReQCDate
+FROM ReQcRanked WHERE RowNumber = 1;");
+                for (int i = 0; i < batch.Count; i++) cmd.Parameters.Add("@Loan" + i, SqlDbType.NVarChar, 200).Value = batch[i];
+                DataTable current = SQLHelper.ExecuteDataTableCmd(cmd); foreach (DataRow row in current.Rows) result.ImportRow(row);
+            }
+            return result;
         }
 
         public DataTable GetOverAllUserPerformance_credit_Greg(int EmployeeID, string FromDate, string ToDate)

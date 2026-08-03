@@ -596,6 +596,32 @@ function showFeedbackRequestError(error) {
 
 /* ---- Global Search -- */
 
+function us_globalSearchEscape(value) {
+    return $('<div/>').text(value == null ? '' : String(value)).html();
+}
+
+function us_globalSearchReQcDate(value) {
+    var match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value || '');
+    if (!match) return value || '';
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return match[3] + '-' + months[parseInt(match[2], 10) - 1] + '-' + match[1];
+}
+
+function us_globalSearchReQcColumn() {
+    return {
+        data: null,
+        title: 'Re-QC Status',
+        className: 'reqc-cell',
+        render: function (data, type, row) {
+            var status = row._ReQCStatus || 'Not Assigned', process = row._ReQCProcess || '', employee = row._ReQCEmployeeName || '', date = us_globalSearchReQcDate(row._ReQCDate || '');
+            if (type !== 'display') return status + (process ? ' - ' + process : '') + (employee ? ' - ' + employee : '') + (date ? ' - ' + date : '');
+            if (status === 'Completed') return '<span class="reqc-pill reqc-completed" title="This loan has completed a Re-QC process"><i class="fas fa-check-circle"></i> Completed</span>' + (process || employee || date ? '<span class="reqc-detail">' + (process ? '<strong>' + us_globalSearchEscape(process) + '</strong><br>' : '') + (employee ? 'Completed by ' + us_globalSearchEscape(employee) : 'Completed') + (date ? ' &bull; ' + us_globalSearchEscape(date) : '') + '</span>' : '');
+            if (status === 'Assigned') return '<span class="reqc-pill reqc-assigned" title="This loan is assigned to a Re-QC process"><i class="fas fa-user-clock"></i> Assigned</span>' + (process || employee || date ? '<span class="reqc-detail">' + (process ? '<strong>' + us_globalSearchEscape(process) + '</strong><br>' : '') + (employee ? 'Assigned to ' + us_globalSearchEscape(employee) : 'Re-QC assigned') + (date ? ' &bull; ' + us_globalSearchEscape(date) : '') + '</span>' : '');
+            return '<span class="reqc-pill reqc-not-assigned" title="No Re-QC assignment or completion was found"><i class="far fa-circle"></i> Not Assigned</span>';
+        }
+    };
+}
+
 function us_getloansforglobalsearch() {
     $('#load1').show();
     var columns = [];
@@ -616,12 +642,18 @@ function us_getloansforglobalsearch() {
                 return false;
             }
 
+            var reQcColumnAdded = false;
             $.each(dataArray[0], function (key, value) {
+                if (key.indexOf('_ReQC') === 0) return;
                 var my_item = {};
                 my_item.data = key;
                 my_item.title = key;
                 columns.push(my_item);
+                var normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (!reQcColumnAdded && (normalizedKey === 'loanno' || normalizedKey === 'loannumber' || normalizedKey === 'ordernumber')) { columns.push(us_globalSearchReQcColumn()); reQcColumnAdded = true; }
             });
+
+            if (!reQcColumnAdded) columns.push(us_globalSearchReQcColumn());
 
             columns.push({
                 data: null,

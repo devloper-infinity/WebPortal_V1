@@ -83,11 +83,12 @@ namespace WebPortal.TrackingSheet
                 if (!info.Cell("B4").GetString().Equals(Signature(projectId, fields), StringComparison.OrdinalIgnoreCase)) throw new TemplateException("Billing parameter configuration changed. Download a fresh template.");
                 ValidateHeaders(sheet, fields); DataTable values = ReadValues(sheet, fields, projectId, projectName);
                 DataTable results = new bllOLTrackingImport().UpdateExistingBillingRows(projectId, Path.GetFileName(file.FileName), values, UserId());
-                int updated = results.Select("Status = 'Updated'").Length; DataRow[] missing = results.Select("Status = 'NotFound'"), duplicates = results.Select("Status = 'Duplicate'");
+                int updated = results.Select("Status = 'Updated'").Length; DataRow[] missing = results.Select("Status = 'NotFound'"), duplicates = results.Select("Status = 'Duplicate'"), locked = results.Select("Status = 'Locked'");
                 List<string> parts = new List<string> { updated + " record(s) updated successfully." };
                 if (missing.Length > 0) parts.Add("Record not found for Excel row(s): " + string.Join(", ", missing.Select(x => Convert.ToString(x["ImportRowNumber"]))));
                 if (duplicates.Length > 0) parts.Add("Duplicate database records for Excel row(s): " + string.Join(", ", duplicates.Select(x => Convert.ToString(x["ImportRowNumber"]))));
-                return new ImportResult { Success = updated > 0, HasWarnings = missing.Length + duplicates.Length > 0, Message = string.Join(" ", parts) };
+                if (locked.Length > 0) parts.Add("Verified or sent records are locked for Excel row(s): " + string.Join(", ", locked.Select(x => Convert.ToString(x["ImportRowNumber"]))));
+                return new ImportResult { Success = updated > 0, HasWarnings = missing.Length + duplicates.Length + locked.Length > 0, Message = string.Join(" ", parts) };
             }
         }
 
