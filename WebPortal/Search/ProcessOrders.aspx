@@ -931,7 +931,7 @@
                 display: block;
                 overflow: hidden;
                 color: #334155;
-                font-size: 10px;
+                font-size: 11px;
                 font-weight: 700;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -1269,6 +1269,7 @@
             BindGrid_PendingOrders();
         });
     </script>
+
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="../plugins/jquery-ui/jquery-ui.min.js"></script>
     <portal:VersionedScript Src="~/Scripts/Search/ProcessOrders.js" runat="server"></portal:VersionedScript>
