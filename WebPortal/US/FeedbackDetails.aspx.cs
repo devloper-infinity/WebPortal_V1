@@ -137,6 +137,13 @@ namespace WebPortal.US
         {
             int returnvalue = 0;
 
+            Finding = (Finding ?? string.Empty).Trim();
+            Severity = (Severity ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(Finding) || string.IsNullOrEmpty(Severity))
+            {
+                return -1;
+            }
+
             Hashtable htParam = new Hashtable();
             htParam.Add("ProjectID", ProjectID);
             htParam.Add("ProcessID", ProcessID);
@@ -265,6 +272,13 @@ namespace WebPortal.US
             if (ProcessID <= 0)
             {
                 return 0;
+            }
+
+            string feedbackType = string.Equals(Process, "ATR Review", StringComparison.OrdinalIgnoreCase) ? "ATR" : "Other";
+            DataTable feedback = new bllUS().GetATRDetailsbyLoanNo(DealNo, OrderNumber, feedbackType, ProcessID);
+            if (feedback == null || feedback.Rows.Count == 0)
+            {
+                return -2;
             }
 
             string startDateTime = NormalizeDateTime(StartDatetime);

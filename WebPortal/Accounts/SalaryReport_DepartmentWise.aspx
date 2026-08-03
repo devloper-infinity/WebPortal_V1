@@ -36,6 +36,17 @@
     .chart-summary strong { color:#2f4058; }
     .chart-box { position:relative; height:340px !important; min-height:340px; }
     .metric-chart-wrap .chart-box { height:420px !important; min-height:420px; }
+    .trend-heatmap-wrap { max-height:420px; overflow:auto; border:1px solid #dfe5ec; border-radius:5px; background:#fff; }
+    .trend-heatmap { min-width:720px; }
+    .trend-heatmap table { width:100%; border-collapse:separate; border-spacing:0; font-size:11px; }
+    .trend-heatmap th, .trend-heatmap td { padding:6px 8px; border-right:1px solid #e3e8ee; border-bottom:1px solid #e3e8ee; text-align:right; white-space:nowrap; }
+    .trend-heatmap thead th { position:sticky; top:0; z-index:3; background:#eef3f8; color:#34465f; text-align:center; font-weight:600; }
+    .trend-heatmap .department-cell { position:sticky; left:0; z-index:2; min-width:150px; max-width:220px; overflow:hidden; text-overflow:ellipsis; background:#f8fafc; color:#35465d; text-align:left; font-weight:600; }
+    .trend-heatmap thead .department-cell { z-index:4; background:#e7edf5; }
+    .trend-heatmap .value-cell { min-width:78px; font-variant-numeric:tabular-nums; }
+    .trend-heatmap .spark-cell { min-width:150px; width:150px; padding:3px 8px; text-align:center; background:#fbfcfe; }
+    .trend-heatmap .spark-cell svg { display:block; width:135px; height:30px; margin:auto; }
+    .heatmap-note { margin-top:7px; color:#748195; font-size:11px; }
     .chart-box.tall { height:430px !important; min-height:430px; }
     .chart-note { margin-top:8px; font-size:11px; color:#7b8797; }
     .dev-up { color:#16834a; font-weight:600; }
@@ -92,7 +103,8 @@
             <div class="metric-section-head"><strong>1. Headcount Analysis</strong><span>Trend chart and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtHeadcountInsight" class="chart-summary"></div>
-                <div class="chart-box"><canvas id="chtHeadcountTrend"></canvas></div>
+                <div class="trend-heatmap-wrap"><div id="chtHeadcountTrend" class="trend-heatmap"></div></div>
+                <div class="heatmap-note">Darker cells indicate higher values within that department. Hover a cell for month, value and change.</div>
             </div>
             <div class="metric-table-wrap horizontal-report">
                 <div class="excel-block-title">Department-wise Headcount by Month</div>
@@ -104,7 +116,8 @@
             <div class="metric-section-head"><strong>2. Gross Salary Analysis</strong><span>Trend chart and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtSalaryInsight" class="chart-summary"></div>
-                <div class="chart-box"><canvas id="chtSalaryTrend"></canvas></div>
+                <div class="trend-heatmap-wrap"><div id="chtSalaryTrend" class="trend-heatmap"></div></div>
+                <div class="heatmap-note">Darker cells indicate higher values within that department. Hover a cell for month, value and change.</div>
             </div>
             <div class="metric-table-wrap horizontal-report">
                 <div class="excel-block-title">Department-wise Gross Salary by Month</div>
@@ -116,8 +129,8 @@
             <div class="metric-section-head"><strong>3. Salary Deviation Analysis</strong><span>Month-over-month movement and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtDeviationInsight" class="chart-summary"></div>
-                <div class="chart-box"><canvas id="chtDeviationTrend"></canvas></div>
-                <div class="chart-note">The chart shows the overall gross salary percentage change from the previous month.</div>
+                <div class="trend-heatmap-wrap"><div id="chtDeviationTrend" class="trend-heatmap"></div></div>
+                <div class="chart-note">Green indicates an increase and red indicates a decrease. Colour intensity is normalized per department.</div>
             </div>
             <div class="metric-table-wrap horizontal-report">
                 <div class="excel-block-title">Department-wise Salary Deviation % by Month</div>
@@ -270,8 +283,8 @@
         $('#txtHeadcountInsight').html(buildTrendInsight('Headcount', latest.totalCount, previous ? previous.totalCount : null, latest.label, previous ? previous.label : null, false));
         $('#txtSalaryInsight').html(buildTrendInsight('Gross salary', latest.totalGross, previous ? previous.totalGross : null, latest.label, previous ? previous.label : null, true));
 
-        reportCharts.headcount = createDepartmentBarChart('chtHeadcountTrend', labels, model, 'count', 'Headcount', false);
-        reportCharts.salary = createDepartmentBarChart('chtSalaryTrend', labels, model, 'gross', 'Gross Salary', true);
+        createTrendHeatmap('chtHeadcountTrend', labels, model, 'count', 'Headcount', false);
+        createTrendHeatmap('chtSalaryTrend', labels, model, 'gross', 'Gross Salary', true);
 
         var deviationValues = [], latestDeviation = null;
         $.each(model.periods, function (i, p) {
@@ -280,7 +293,7 @@
         });
         latestDeviation = deviationValues.length ? deviationValues[deviationValues.length - 1] : null;
         $('#txtDeviationInsight').html(latestDeviation === null ? '<strong>Previous month is not available for comparison.</strong>' : '<strong>' + html(latest.label) + ': ' + (latestDeviation > 0 ? '+' : '') + latestDeviation.toFixed(2) + '%</strong> change in total gross salary compared with ' + html(previous ? previous.label : '') + '.');
-        reportCharts.deviation = createDepartmentBarChart('chtDeviationTrend', labels, model, 'deviation', 'Change %', false, true);
+        createTrendHeatmap('chtDeviationTrend', labels, model, 'deviation', 'Change %', false, true);
 
         var otherDepartments = $.grep(model.departments, function (d) { return d.toLowerCase() !== 'production'; });
         otherDepartments.sort(function (a, b) { return latest.rows[b].gross - latest.rows[a].gross; });
@@ -305,66 +318,89 @@
 
     }
 
-    function createDepartmentBarChart(id, labels, model, metric, axisLabel, moneyAxis, percentageAxis) {
-        var datasets = $.map(model.departments, function (department, index) {
-            var color = departmentColor(index, .78);
-            return {
-                label: department,
-                data: $.map(model.periods, function (period) { return period.rows[department][metric]; }),
-                backgroundColor: color,
-                borderColor: departmentColor(index, 1),
-                borderWidth: 1,
-                maxBarThickness: 28
-            };
+    function createTrendHeatmap(id, labels, model, metric, axisLabel, moneyValues, percentageValues) {
+        var container = $('#' + id).empty();
+        var table = $('<table aria-label="' + html(axisLabel) + ' department trend heatmap"></table>');
+        var header = $('<tr></tr>').append($('<th class="department-cell">Department</th>'));
+        $.each(labels, function (_, label) { header.append($('<th></th>').text(label)); });
+        header.append($('<th>Trend</th>'));
+        table.append($('<thead></thead>').append(header));
+        var body = $('<tbody></tbody>');
+
+        $.each(model.departments, function (_, department) {
+            var values = $.map(model.periods, function (period) { return period.rows[department][metric]; });
+            var numericValues = $.grep(values, function (value) { return value !== null && value !== undefined && isFinite(Number(value)); });
+            var minimum = numericValues.length ? Math.min.apply(Math, numericValues) : 0;
+            var maximum = numericValues.length ? Math.max.apply(Math, numericValues) : 0;
+            var maximumAbsolute = numericValues.length ? Math.max(Math.abs(minimum), Math.abs(maximum)) : 0;
+            var row = $('<tr></tr>').append($('<th class="department-cell"></th>').text(department).attr('title', department));
+
+            $.each(values, function (index, value) {
+                var previous = index > 0 ? values[index - 1] : null;
+                var display = formatHeatmapValue(value, moneyValues, percentageValues);
+                var tooltip = 'Department: ' + department + '\nMonth: ' + labels[index] + '\n' + axisLabel + ': ' + display;
+                if (!percentageValues && previous !== null && previous !== undefined && Number(previous) !== 0 && value !== null && value !== undefined) {
+                    var change = ((Number(value) - Number(previous)) / Number(previous)) * 100;
+                    tooltip += '\nChange: ' + (change > 0 ? '+' : '') + change.toFixed(2) + '%';
+                }
+                var background = percentageValues
+                    ? deviationHeatColor(value, maximumAbsolute)
+                    : sequentialHeatColor(value, minimum, maximum);
+                row.append($('<td class="value-cell"></td>').text(display).attr('title', tooltip).css('background-color', background));
+            });
+
+            row.append($('<td class="spark-cell"></td>').html(buildSparkline(values, percentageValues)));
+            body.append(row);
         });
 
-        return new Chart(document.getElementById(id), {
-            type: 'bar',
-            data: { labels: labels, datasets: datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 12, fontSize: 10 } },
-                tooltips: {
-                    mode: 'nearest',
-                    intersect: true,
-                    callbacks: {
-                        title: function (items) { return items.length ? 'Month: ' + labels[items[0].index] : ''; },
-                        label: function (item, data) {
-                            var department = data.datasets[item.datasetIndex].label;
-                            var value = item.yLabel;
-                            var formatted = percentageAxis
-                                ? (value === null || value === undefined ? 'N/A' : ((Number(value) > 0 ? '+' : '') + Number(value).toFixed(2) + '%'))
-                                : (moneyAxis ? formatMoney(value) : Number(value || 0).toLocaleString('en-IN'));
-                            return 'Department: ' + department + ' | ' + axisLabel + ': ' + formatted;
-                        }
-                    }
-                },
-                scales: {
-                    xAxes: [{
-                        scaleLabel: { display: true, labelString: 'Month' },
-                        gridLines: { display: false },
-                        ticks: { autoSkip: false, maxRotation: 45, minRotation: labels.length > 8 ? 45 : 0 },
-                        categoryPercentage: .82,
-                        barPercentage: .9
-                    }],
-                    yAxes: [{
-                        scaleLabel: { display: true, labelString: axisLabel },
-                        ticks: {
-                            beginAtZero: !percentageAxis,
-                            precision: metric === 'count' ? 0 : undefined,
-                            callback: percentageAxis ? function (v) { return v + '%'; } : moneyAxis ? compactMoney : function (v) { return Number(v).toLocaleString('en-IN'); }
-                        },
-                        gridLines: percentageAxis ? { zeroLineColor: '#65758a', zeroLineWidth: 1 } : {}
-                    }]
-                }
-            }
-        });
+        table.append(body);
+        container.append(table);
     }
 
-    function departmentColor(index, alpha) {
-        var hue = Math.round((index * 137.508 + 210) % 360);
-        return 'hsla(' + hue + ',45%,52%,' + alpha + ')';
+    function formatHeatmapValue(value, moneyValues, percentageValues) {
+        if (value === null || value === undefined || !isFinite(Number(value))) return '-';
+        var numeric = Number(value);
+        if (percentageValues) return (numeric > 0 ? '+' : '') + numeric.toFixed(2) + '%';
+        return moneyValues
+            ? numeric.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+            : numeric.toLocaleString('en-IN');
+    }
+
+    function sequentialHeatColor(value, minimum, maximum) {
+        if (value === null || value === undefined) return '#f5f7fa';
+        var range = maximum - minimum;
+        var intensity = range === 0 ? .45 : (Number(value) - minimum) / range;
+        return 'rgba(54,112,170,' + (.12 + Math.max(0, Math.min(1, intensity)) * .58).toFixed(2) + ')';
+    }
+
+    function deviationHeatColor(value, maximumAbsolute) {
+        if (value === null || value === undefined) return '#f5f7fa';
+        var numeric = Number(value), intensity = maximumAbsolute ? Math.min(1, Math.abs(numeric) / maximumAbsolute) : 0;
+        if (numeric > 0) return 'rgba(40,145,85,' + (.12 + intensity * .58).toFixed(2) + ')';
+        if (numeric < 0) return 'rgba(196,65,65,' + (.12 + intensity * .58).toFixed(2) + ')';
+        return 'rgba(135,145,155,.14)';
+    }
+
+    function buildSparkline(values, percentageValues) {
+        var width = 135, height = 30, pad = 3;
+        var valid = $.grep(values, function (value) { return value !== null && value !== undefined && isFinite(Number(value)); });
+        if (!valid.length) return '';
+        var minimum = Math.min.apply(Math, valid), maximum = Math.max.apply(Math, valid);
+        if (percentageValues) { minimum = Math.min(0, minimum); maximum = Math.max(0, maximum); }
+        if (maximum === minimum) maximum = minimum + 1;
+        var points = [];
+        $.each(values, function (index, value) {
+            if (value === null || value === undefined || !isFinite(Number(value))) return;
+            var x = values.length === 1 ? width / 2 : pad + index * (width - pad * 2) / (values.length - 1);
+            var y = pad + (maximum - Number(value)) * (height - pad * 2) / (maximum - minimum);
+            points.push(x.toFixed(1) + ',' + y.toFixed(1));
+        });
+        var zeroLine = '';
+        if (percentageValues && minimum <= 0 && maximum >= 0) {
+            var zeroY = pad + maximum * (height - pad * 2) / (maximum - minimum);
+            zeroLine = '<line x1="0" y1="' + zeroY.toFixed(1) + '" x2="' + width + '" y2="' + zeroY.toFixed(1) + '" stroke="#c7ced7" stroke-width="1"/>';
+        }
+        return '<svg viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Trend">' + zeroLine + '<polyline points="' + points.join(' ') + '" fill="none" stroke="#355f8c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
     }
 
     function createHorizontalBar(id, labels, values, label, moneyValues, color, percentageValues) {

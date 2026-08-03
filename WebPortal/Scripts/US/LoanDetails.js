@@ -7,6 +7,7 @@ var usfeedbackLoanStarted = false;
 var usfeedbackStartDatetime = "";
 var usfeedbackLastProcessID = "";
 var usfeedbackLastProcessName = "";
+var usfeedbackRecordCount = 0;
 
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
@@ -255,7 +256,7 @@ function OnClickAddFeedback() {
     var Client = document.getElementById("USLoanDetails_Client").value;
     var UWName = document.getElementById("USLoanDetails_UWName").value;
     var DateReviewed = document.getElementById("USLoanDetails_DateReviewed").value;
-    var Finding = document.getElementById("USLoanDetails_Finding").value;
+    var Finding = $.trim(document.getElementById("USLoanDetails_Finding").value);
     var inf_Severity = document.getElementById("USLoanDetails_Severity");
     var Severity = inf_Severity.options[inf_Severity.selectedIndex].value;
 
@@ -264,22 +265,26 @@ function OnClickAddFeedback() {
     var Source = "ReQC";
     var FeedbackID = parseInt(document.getElementById("USFeedback_EditId").value, 10) || 0;
 
-    if (Finding == "") {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Validation',
-            text: 'Please enter Finding.'
-        });
-        document.getElementById("USLoanDetails_Finding").focus();
-        return false;
-    }
-
     if (Severity == "") {
         Swal.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select Severity.'
         });
+        document.getElementById("USLoanDetails_Severity").focus();
+        return false;
+    }
+
+    if (Severity == "No Error") {
+        Finding = "No Error";
+        document.getElementById("USLoanDetails_Finding").value = Finding;
+    } else if (Finding == "") {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Validation',
+            text: 'Please enter Finding for Critical or Non-Critical severity.'
+        });
+        document.getElementById("USLoanDetails_Finding").focus();
         return false;
     }
 
@@ -366,6 +371,15 @@ function OnClickCompleteLoan() {
         return false;
     }
 
+    if (!feedbackRows || feedbackRows.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Feedback Required',
+            text: 'Please add at least one feedback record before completing the loan.'
+        });
+        return false;
+    }
+
     Swal.fire({
         title: 'Complete Loan?',
         text: 'End Date/Time will be saved as current datetime.',
@@ -395,6 +409,15 @@ function OnClickCompleteLoan() {
             ProcessFeedbackID,
 
             function (result) {
+                if (result === -2) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Feedback Required',
+                        text: 'Please add at least one feedback record before completing the loan.'
+                    });
+                    return false;
+                }
+
                 if (result > 0) {
                     Swal.fire({
                         icon: 'success',
@@ -513,10 +536,31 @@ function EditFeedback(index) {
     $('#USFeedback_EditId').val(getFeedbackId(row));
     $('#USLoanDetails_Severity').val(row.Severity || '');
     $('#USLoanDetails_Finding').val(row.Finding || '');
+    syncAddFeedbackFindingRequirement();
     $('#btnAddFeedback').html('<i class="fas fa-save"></i>&nbsp; Update Feedback');
     $('#btnCancelEdit').show();
     $('#USLoanDetails_Severity').focus();
     $('html, body').animate({ scrollTop: $('.feedback-card').first().offset().top - 15 }, 250);
+    return false;
+}
+
+function syncAddFeedbackFindingRequirement() {
+    var severityElement = document.getElementById("USLoanDetails_Severity");
+    var findingElement = document.getElementById("USLoanDetails_Finding");
+
+    if (!severityElement || !findingElement) return false;
+
+    var isNoError = severityElement.value === "No Error";
+    findingElement.disabled = isNoError;
+    findingElement.required = !isNoError;
+    findingElement.setAttribute("aria-required", isNoError ? "false" : "true");
+
+    if (isNoError) {
+        findingElement.value = "No Error";
+    } else if ($.trim(findingElement.value) === "No Error") {
+        findingElement.value = "";
+    }
+
     return false;
 }
 
@@ -571,6 +615,7 @@ function CancelFeedbackEdit() {
     $('#USFeedback_EditId').val('0');
     $('#USLoanDetails_Severity').val('');
     $('#USLoanDetails_Finding').val('');
+    syncAddFeedbackFindingRequirement();
     $('#btnAddFeedback').html('<i class="fas fa-plus"></i>&nbsp; Add Feedback');
     $('#btnCancelEdit').hide();
     return false;
@@ -995,6 +1040,7 @@ function getTaskwiseDetails(ddl) {
 
 function usfeedback_atr_bindgrid(type, processid) {
     $('#load1').show();
+    usfeedbackRecordCount = 0;
     var columns = [];
     var dealno = document.getElementById("usfeedback_dealno").value;
     var loanno = document.getElementById("usfeedback_loanno").value;
@@ -1007,6 +1053,7 @@ function usfeedback_atr_bindgrid(type, processid) {
         data: "{DealNo:'" + dealno + "', LoanNo:'" + loanno + "', Type:'" + type + "', ProcessID:" + processid + "}",
         success: function (data) {
             var dataArray = JSON.parse(data.d);//
+            usfeedbackRecordCount = dataArray ? dataArray.length : 0;
             if ($.fn.DataTable.isDataTable('#usfeedback_table')) {
                 $('#usfeedback_table').DataTable().clear().destroy();
             }
@@ -1170,6 +1217,15 @@ function usfeedback_completeLoan() {
         return false;
     }
 
+    if (usfeedbackRecordCount === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Feedback Required',
+            text: 'Please add at least one feedback record before completing the loan.'
+        });
+        return false;
+    }
+
     var loanData = usfeedback_getLoanProcessData(processid, processName);
 
     Swal.fire({
@@ -1208,6 +1264,15 @@ function usfeedback_completeLoan() {
             loanData.startDatetime,
 
             function (result) {
+                if (result === -2) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Feedback Required',
+                        text: 'Please add at least one feedback record before completing the loan.'
+                    });
+                    return false;
+                }
+
                 if (result > 0) {
                     Swal.fire({
                         icon: 'success',
@@ -1326,7 +1391,19 @@ function usfeedback_submit() {
     else {
         var ddlseverity = document.getElementById("usfeedback_severity");
         var severity = ddlseverity.options[ddlseverity.selectedIndex].value;
-        var findings = document.getElementById("usfeedback_finding").value;
+        var findings = $.trim(document.getElementById("usfeedback_finding").value);
+
+        if (severity == "") {
+            Swal.fire('Validation', 'Please select Severity.', 'warning');
+            document.getElementById("usfeedback_severity").focus();
+            return false;
+        }
+
+        if (findings == "") {
+            Swal.fire('Validation', 'Please enter Findings.', 'warning');
+            document.getElementById("usfeedback_finding").focus();
+            return false;
+        }
 
         PageMethods.InsertOtherFeedbacks(projectid, processid, dealno, loanno, findings, severity,
 

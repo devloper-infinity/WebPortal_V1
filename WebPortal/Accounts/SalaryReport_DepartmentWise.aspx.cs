@@ -1071,8 +1071,8 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Headcount Trend");
             WriteSheetTitle(ws, "Department-wise Headcount Trend");
 
-            AddDepartmentBarChartPicture(ws, "Department-wise Headcount Trend", model, ExportMetric.Headcount, "B3");
-            WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Headcount);
+            int tableStartRow = AddDepartmentHeatmapPicture(ws, "Department-wise Headcount Trend", model, ExportMetric.Headcount, "B3");
+            WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Headcount);
         }
 
         private static void CreateGrossSalaryTrendSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
@@ -1081,8 +1081,8 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Gross Salary Trend");
             WriteSheetTitle(ws, "Department-wise Gross Salary Trend");
 
-            AddDepartmentBarChartPicture(ws, "Department-wise Gross Salary Trend", model, ExportMetric.Gross, "B3");
-            WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Gross);
+            int tableStartRow = AddDepartmentHeatmapPicture(ws, "Department-wise Gross Salary Trend", model, ExportMetric.Gross, "B3");
+            WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Gross);
         }
 
         private static void CreateSalaryDeviationSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
@@ -1091,8 +1091,8 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Salary Deviation");
             WriteSheetTitle(ws, "Department-wise Gross Salary Deviation");
 
-            AddDepartmentBarChartPicture(ws, "Department-wise Salary Deviation %", model, ExportMetric.Deviation, "B3");
-            WriteHorizontalMetricTable(ws, model, 24, ExportMetric.Deviation);
+            int tableStartRow = AddDepartmentHeatmapPicture(ws, "Department-wise Salary Deviation %", model, ExportMetric.Deviation, "B3");
+            WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Deviation);
         }
 
         private enum ExportMetric
@@ -1220,7 +1220,7 @@ namespace WebPortal.Reports
             }
         }
 
-        private static void AddDepartmentBarChartPicture(
+        private static int AddDepartmentHeatmapPicture(
             IXLWorksheet ws,
             string title,
             MonthlyExportModel model,
@@ -1267,12 +1267,246 @@ namespace WebPortal.Reports
                 series.Add(chartSeries);
             }
 
-            using (MemoryStream image = DrawDepartmentBarChart(title, labels, series, metric))
+            int sourceWidth = GetDepartmentHeatmapWidth(labels.Count);
+            int sourceHeight = GetDepartmentHeatmapHeight(series.Count);
+            int displayWidth = Math.Max(1000, (int)Math.Round(sourceWidth * 0.72D));
+            int displayHeight = Math.Max(380, (int)Math.Round(sourceHeight * 0.72D));
+
+            using (MemoryStream image = DrawDepartmentHeatmap(title, labels, series, metric))
             {
-                ws.AddPicture(image, GetExcelPictureName("DeptBar"))
+                ws.AddPicture(image, GetExcelPictureName("Heatmap"))
                     .MoveTo(ws.Cell(cellAddress))
-                    .WithSize(1000, 380);
+                    .WithSize(displayWidth, displayHeight);
             }
+
+            return Math.Max(24, (int)Math.Ceiling(displayHeight / 20D) + 5);
+        }
+
+        private static int GetDepartmentHeatmapWidth(int periodCount)
+        {
+            return Math.Max(1400, 500 + Math.Max(periodCount, 1) * 82);
+        }
+
+        private static int GetDepartmentHeatmapHeight(int departmentCount)
+        {
+            return Math.Max(530, 130 + Math.Max(departmentCount, 1) * 36);
+        }
+
+        private static MemoryStream DrawDepartmentHeatmap(
+            string title,
+            List<string> labels,
+            List<DepartmentChartSeries> series,
+            ExportMetric metric)
+        {
+            int width = GetDepartmentHeatmapWidth(labels.Count);
+            int height = GetDepartmentHeatmapHeight(series.Count);
+            const int left = 35;
+            const int departmentWidth = 225;
+            const int trendWidth = 210;
+            const int headerTop = 82;
+            const int headerHeight = 34;
+            const int rowHeight = 36;
+            int valueAreaWidth = width - left - departmentWidth - trendWidth - 25;
+            float valueWidth = valueAreaWidth / (float)Math.Max(labels.Count, 1);
+
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+
+                using (Font titleFont = new Font("Arial", 16F, FontStyle.Bold))
+                using (Brush titleBrush = new SolidBrush(Color.FromArgb(30, 55, 90)))
+                    g.DrawString(title, titleFont, titleBrush, new PointF(left, 18F));
+
+                using (Font noteFont = new Font("Arial", 8F, FontStyle.Italic))
+                using (Brush noteBrush = new SolidBrush(Color.DimGray))
+                {
+                    string note = metric == ExportMetric.Deviation
+                        ? "Green = increase, red = decrease. Colour intensity is normalized per department."
+                        : "Darker cells indicate higher values within that department. Exact values and compact trends are shown.";
+                    g.DrawString(note, noteFont, noteBrush, new PointF(left, 52F));
+                }
+
+                RectangleF departmentHeader = new RectangleF(left, headerTop, departmentWidth, headerHeight);
+                DrawHeatmapHeaderCell(g, departmentHeader, "Department", 9F);
+                for (int i = 0; i < labels.Count; i++)
+                {
+                    RectangleF monthHeader = new RectangleF(left + departmentWidth + i * valueWidth, headerTop, valueWidth, headerHeight);
+                    DrawHeatmapHeaderCell(g, monthHeader, labels[i], valueWidth < 55F ? 7F : 8F);
+                }
+                RectangleF trendHeader = new RectangleF(left + departmentWidth + labels.Count * valueWidth, headerTop, trendWidth, headerHeight);
+                DrawHeatmapHeaderCell(g, trendHeader, "Trend", 9F);
+
+                for (int rowIndex = 0; rowIndex < series.Count; rowIndex++)
+                {
+                    DepartmentChartSeries item = series[rowIndex];
+                    float rowTop = headerTop + headerHeight + rowIndex * rowHeight;
+                    RectangleF departmentCell = new RectangleF(left, rowTop, departmentWidth, rowHeight);
+                    DrawHeatmapDepartmentCell(g, departmentCell, item.Department);
+
+                    decimal minimum = 0M;
+                    decimal maximum = 0M;
+                    decimal maximumAbsolute = 0M;
+                    bool hasValue = false;
+                    foreach (decimal value in item.Values)
+                    {
+                        if (!hasValue) { minimum = value; maximum = value; hasValue = true; }
+                        minimum = Math.Min(minimum, value);
+                        maximum = Math.Max(maximum, value);
+                        maximumAbsolute = Math.Max(maximumAbsolute, Math.Abs(value));
+                    }
+
+                    for (int valueIndex = 0; valueIndex < labels.Count; valueIndex++)
+                    {
+                        decimal value = valueIndex < item.Values.Count ? item.Values[valueIndex] : 0M;
+                        RectangleF valueCell = new RectangleF(left + departmentWidth + valueIndex * valueWidth, rowTop, valueWidth, rowHeight);
+                        Color background = GetHeatmapCellColor(value, minimum, maximum, maximumAbsolute, metric);
+                        string text = FormatHeatmapValue(value, metric, valueIndex == 0 && metric == ExportMetric.Deviation);
+                        DrawHeatmapValueCell(g, valueCell, text, background, valueWidth < 58F ? 7F : 8F);
+                    }
+
+                    RectangleF trendCell = new RectangleF(left + departmentWidth + labels.Count * valueWidth, rowTop, trendWidth, rowHeight);
+                    DrawHeatmapTrendCell(g, trendCell, item.Values, metric);
+                }
+            }
+
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            bitmap.Dispose();
+            stream.Position = 0;
+            return stream;
+        }
+
+        private static void DrawHeatmapHeaderCell(Graphics g, RectangleF cell, string text, float fontSize)
+        {
+            using (Brush fill = new SolidBrush(Color.FromArgb(73, 104, 143)))
+            using (Pen border = new Pen(Color.FromArgb(210, 220, 231)))
+            using (Font font = new Font("Arial", fontSize, FontStyle.Bold))
+            using (Brush textBrush = new SolidBrush(Color.White))
+            using (StringFormat format = CreateCenteredCellFormat())
+            {
+                g.FillRectangle(fill, cell);
+                g.DrawRectangle(border, cell.X, cell.Y, cell.Width, cell.Height);
+                g.DrawString(text, font, textBrush, cell, format);
+            }
+        }
+
+        private static void DrawHeatmapDepartmentCell(Graphics g, RectangleF cell, string department)
+        {
+            using (Brush fill = new SolidBrush(Color.FromArgb(246, 248, 251)))
+            using (Pen border = new Pen(Color.FromArgb(218, 225, 233)))
+            using (Font font = new Font("Arial", 8.5F, FontStyle.Bold))
+            using (Brush textBrush = new SolidBrush(Color.FromArgb(50, 68, 92)))
+            using (StringFormat format = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap })
+            {
+                g.FillRectangle(fill, cell);
+                g.DrawRectangle(border, cell.X, cell.Y, cell.Width, cell.Height);
+                RectangleF textArea = new RectangleF(cell.X + 8F, cell.Y, cell.Width - 12F, cell.Height);
+                g.DrawString(department, font, textBrush, textArea, format);
+            }
+        }
+
+        private static void DrawHeatmapValueCell(Graphics g, RectangleF cell, string text, Color background, float fontSize)
+        {
+            using (Brush fill = new SolidBrush(background))
+            using (Pen border = new Pen(Color.FromArgb(220, 226, 233)))
+            using (Font font = new Font("Arial", fontSize, FontStyle.Regular))
+            using (Brush textBrush = new SolidBrush(GetReadableTextColor(background)))
+            using (StringFormat format = CreateCenteredCellFormat())
+            {
+                g.FillRectangle(fill, cell);
+                g.DrawRectangle(border, cell.X, cell.Y, cell.Width, cell.Height);
+                g.DrawString(text, font, textBrush, cell, format);
+            }
+        }
+
+        private static void DrawHeatmapTrendCell(Graphics g, RectangleF cell, List<decimal> values, ExportMetric metric)
+        {
+            using (Brush fill = new SolidBrush(Color.FromArgb(250, 251, 253)))
+            using (Pen border = new Pen(Color.FromArgb(218, 225, 233)))
+            {
+                g.FillRectangle(fill, cell);
+                g.DrawRectangle(border, cell.X, cell.Y, cell.Width, cell.Height);
+            }
+            if (values.Count == 0) return;
+
+            decimal minimum = values[0];
+            decimal maximum = values[0];
+            foreach (decimal value in values) { minimum = Math.Min(minimum, value); maximum = Math.Max(maximum, value); }
+            if (metric == ExportMetric.Deviation) { minimum = Math.Min(0M, minimum); maximum = Math.Max(0M, maximum); }
+            if (maximum == minimum) maximum = minimum + 1M;
+
+            float padX = 8F;
+            float padY = 6F;
+            if (metric == ExportMetric.Deviation && minimum <= 0M && maximum >= 0M)
+            {
+                float zeroY = cell.Bottom - padY - (float)((0M - minimum) / (maximum - minimum)) * (cell.Height - padY * 2F);
+                using (Pen zeroPen = new Pen(Color.FromArgb(195, 203, 213), 1F))
+                    g.DrawLine(zeroPen, cell.Left + padX, zeroY, cell.Right - padX, zeroY);
+            }
+
+            PointF[] points = new PointF[values.Count];
+            for (int i = 0; i < values.Count; i++)
+            {
+                float x = values.Count == 1 ? cell.Left + cell.Width / 2F : cell.Left + padX + i * (cell.Width - padX * 2F) / (values.Count - 1F);
+                float y = cell.Bottom - padY - (float)((values[i] - minimum) / (maximum - minimum)) * (cell.Height - padY * 2F);
+                points[i] = new PointF(x, y);
+            }
+            using (Pen linePen = new Pen(Color.FromArgb(53, 95, 140), 2F))
+            using (Brush pointBrush = new SolidBrush(Color.FromArgb(53, 95, 140)))
+            {
+                if (points.Length > 1) g.DrawLines(linePen, points);
+                foreach (PointF point in points) g.FillEllipse(pointBrush, point.X - 1.7F, point.Y - 1.7F, 3.4F, 3.4F);
+            }
+        }
+
+        private static Color GetHeatmapCellColor(decimal value, decimal minimum, decimal maximum, decimal maximumAbsolute, ExportMetric metric)
+        {
+            if (metric == ExportMetric.Deviation)
+            {
+                decimal intensity = maximumAbsolute == 0M ? 0M : Math.Min(1M, Math.Abs(value) / maximumAbsolute);
+                Color baseColor = value > 0M ? Color.FromArgb(40, 145, 85) : value < 0M ? Color.FromArgb(196, 65, 65) : Color.FromArgb(145, 153, 163);
+                return BlendWithWhite(baseColor, 0.12M + intensity * 0.58M);
+            }
+
+            decimal range = maximum - minimum;
+            decimal normalized = range == 0M ? 0.45M : Math.Max(0M, Math.Min(1M, (value - minimum) / range));
+            return BlendWithWhite(Color.FromArgb(54, 112, 170), 0.12M + normalized * 0.58M);
+        }
+
+        private static Color BlendWithWhite(Color color, decimal amount)
+        {
+            amount = Math.Max(0M, Math.Min(1M, amount));
+            int red = (int)Math.Round(255M + (color.R - 255M) * amount);
+            int green = (int)Math.Round(255M + (color.G - 255M) * amount);
+            int blue = (int)Math.Round(255M + (color.B - 255M) * amount);
+            return Color.FromArgb(red, green, blue);
+        }
+
+        private static Color GetReadableTextColor(Color background)
+        {
+            double luminance = 0.299D * background.R + 0.587D * background.G + 0.114D * background.B;
+            return luminance < 150D ? Color.White : Color.FromArgb(40, 52, 68);
+        }
+
+        private static string FormatHeatmapValue(decimal value, ExportMetric metric, bool firstDeviationPeriod)
+        {
+            if (firstDeviationPeriod) return "-";
+            if (metric == ExportMetric.Deviation)
+                return (value > 0M ? "+" : string.Empty) + value.ToString("0.00", CultureInfo.InvariantCulture) + "%";
+            return value.ToString("#,##0", CultureInfo.InvariantCulture);
+        }
+
+        private static StringFormat CreateCenteredCellFormat()
+        {
+            return new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center,
+                Trimming = StringTrimming.EllipsisCharacter,
+                FormatFlags = StringFormatFlags.NoWrap
+            };
         }
 
         private static MemoryStream DrawDepartmentBarChart(
@@ -1289,67 +1523,32 @@ namespace WebPortal.Reports
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.Clear(Color.White);
 
-                Rectangle plot = new Rectangle(100, 70, 930, 365);
-                Rectangle legend = new Rectangle(1055, 65, 325, 390);
-                DrawChartFrame(g, plot, title);
+                using (Font titleFont = new Font("Arial", 16F, FontStyle.Bold))
+                using (Brush titleBrush = new SolidBrush(Color.FromArgb(30, 55, 90)))
+                    g.DrawString(title, titleFont, titleBrush, new PointF(100F, 18F));
 
-                decimal minimum = 0M;
-                decimal maximum = 1M;
-                foreach (DepartmentChartSeries item in series)
-                    foreach (decimal value in item.Values)
-                    {
-                        if (value > maximum) maximum = value;
-                        if (metric == ExportMetric.Deviation && value < minimum) minimum = value;
-                    }
+                List<DepartmentChartSeries> dominantSeries;
+                List<DepartmentChartSeries> detailedSeries;
+                SplitChartSeriesByScale(series, out dominantSeries, out detailedSeries);
 
-                if (metric == ExportMetric.Deviation)
+                if (dominantSeries.Count > 0)
                 {
-                    maximum = Math.Max(1M, maximum);
-                    minimum = Math.Min(-1M, minimum);
+                    DrawDepartmentBarPanel(g, new Rectangle(100, 82, 930, 135), labels, dominantSeries, metric,
+                        "Higher scale: " + GetDepartmentSeriesLabel(dominantSeries), false);
+                    DrawDepartmentBarPanel(g, new Rectangle(100, 278, 930, 185), labels, detailedSeries, metric,
+                        "Detailed scale: remaining departments", true);
                 }
                 else
                 {
-                    minimum = 0M;
-                    maximum = Math.Max(1M, maximum);
+                    DrawDepartmentBarPanel(g, new Rectangle(100, 72, 930, 365), labels, series, metric,
+                        "All departments", true);
                 }
 
-                string numberFormat = metric == ExportMetric.Gross ? "#,##0" : metric == ExportMetric.Deviation ? "0.0" : "0";
-                DrawYAxis(g, plot, minimum, maximum, numberFormat);
-                DrawGroupedXAxis(g, plot, labels);
-
-                float zeroY = plot.Bottom - (float)((0M - minimum) / (maximum - minimum)) * plot.Height;
-                using (Pen zeroPen = new Pen(Color.Gray, 1.4F))
-                    g.DrawLine(zeroPen, plot.Left, zeroY, plot.Right, zeroY);
-
-                int groupCount = Math.Max(labels.Count, 1);
-                int seriesCount = Math.Max(series.Count, 1);
-                float groupWidth = plot.Width / (float)groupCount;
-                float availableWidth = groupWidth * 0.82F;
-                float barWidth = Math.Max(0.75F, Math.Min(28F, availableWidth / seriesCount));
-                float renderedGroupWidth = barWidth * seriesCount;
-
-                for (int groupIndex = 0; groupIndex < labels.Count; groupIndex++)
-                {
-                    float groupLeft = plot.Left + groupWidth * groupIndex + (groupWidth - renderedGroupWidth) / 2F;
-                    for (int seriesIndex = 0; seriesIndex < series.Count; seriesIndex++)
-                    {
-                        decimal value = groupIndex < series[seriesIndex].Values.Count ? series[seriesIndex].Values[groupIndex] : 0M;
-                        float valueY = plot.Bottom - (float)((value - minimum) / (maximum - minimum)) * plot.Height;
-                        float top = Math.Min(zeroY, valueY);
-                        float barHeight = Math.Max(1F, Math.Abs(zeroY - valueY));
-                        using (Brush brush = new SolidBrush(series[seriesIndex].Color))
-                            g.FillRectangle(brush, groupLeft + seriesIndex * barWidth, top, Math.Max(0.6F, barWidth - 0.4F), barHeight);
-                    }
-                }
-
+                Rectangle legend = new Rectangle(1055, 65, 325, 410);
                 DrawDepartmentLegend(g, legend, series);
-                using (Font axisTitleFont = new Font("Arial", 9F, FontStyle.Bold))
-                using (Brush axisTitleBrush = new SolidBrush(Color.DimGray))
-                {
-                    string axisTitle = metric == ExportMetric.Headcount ? "Headcount" : metric == ExportMetric.Gross ? "Gross Salary" : "Change %";
-                    g.DrawString(axisTitle, axisTitleFont, axisTitleBrush, new PointF(12F, plot.Top + plot.Height / 2F - 8F));
-                    g.DrawString("Month", axisTitleFont, axisTitleBrush, new PointF(plot.Left + plot.Width / 2F - 20F, plot.Bottom + 48F));
-                }
+                using (Font noteFont = new Font("Arial", 8F, FontStyle.Italic))
+                using (Brush noteBrush = new SolidBrush(Color.DimGray))
+                    g.DrawString("Bars show actual values; connecting lines highlight month-to-month trends.", noteFont, noteBrush, 100F, 505F);
             }
 
             MemoryStream stream = new MemoryStream();
@@ -1357,6 +1556,151 @@ namespace WebPortal.Reports
             bitmap.Dispose();
             stream.Position = 0;
             return stream;
+        }
+
+        private static void SplitChartSeriesByScale(
+            List<DepartmentChartSeries> series,
+            out List<DepartmentChartSeries> dominantSeries,
+            out List<DepartmentChartSeries> detailedSeries)
+        {
+            dominantSeries = new List<DepartmentChartSeries>();
+            detailedSeries = new List<DepartmentChartSeries>(series);
+            if (series.Count < 2) return;
+
+            List<DepartmentChartSeries> ordered = new List<DepartmentChartSeries>(series);
+            ordered.Sort(delegate(DepartmentChartSeries left, DepartmentChartSeries right)
+            {
+                return GetSeriesMagnitude(right).CompareTo(GetSeriesMagnitude(left));
+            });
+
+            decimal largestRatio = 0M;
+            int splitAt = 0;
+            for (int i = 0; i < ordered.Count - 1; i++)
+            {
+                decimal current = GetSeriesMagnitude(ordered[i]);
+                decimal next = GetSeriesMagnitude(ordered[i + 1]);
+                if (next <= 0M) continue;
+                decimal ratio = current / next;
+                if (ratio > largestRatio)
+                {
+                    largestRatio = ratio;
+                    splitAt = i + 1;
+                }
+            }
+
+            // A four-times scale gap is large enough to flatten the smaller department trends.
+            if (largestRatio < 4M || splitAt <= 0 || splitAt >= ordered.Count) return;
+
+            dominantSeries = ordered.GetRange(0, splitAt);
+            detailedSeries = new List<DepartmentChartSeries>();
+            foreach (DepartmentChartSeries item in series)
+                if (!dominantSeries.Contains(item)) detailedSeries.Add(item);
+        }
+
+        private static decimal GetSeriesMagnitude(DepartmentChartSeries series)
+        {
+            decimal maximum = 0M;
+            foreach (decimal value in series.Values)
+                maximum = Math.Max(maximum, Math.Abs(value));
+            return maximum;
+        }
+
+        private static string GetDepartmentSeriesLabel(List<DepartmentChartSeries> series)
+        {
+            List<string> names = new List<string>();
+            int visibleCount = Math.Min(series.Count, 4);
+            for (int i = 0; i < visibleCount; i++) names.Add(series[i].Department);
+            string label = string.Join(", ", names.ToArray());
+            return series.Count > visibleCount ? label + " + " + (series.Count - visibleCount) + " more" : label;
+        }
+
+        private static void DrawDepartmentBarPanel(
+            Graphics g,
+            Rectangle plot,
+            List<string> labels,
+            List<DepartmentChartSeries> series,
+            ExportMetric metric,
+            string panelTitle,
+            bool showXAxis)
+        {
+            decimal minimum = 0M;
+            decimal maximum = 0M;
+            foreach (DepartmentChartSeries item in series)
+                foreach (decimal value in item.Values)
+                {
+                    maximum = Math.Max(maximum, value);
+                    minimum = Math.Min(minimum, value);
+                }
+
+            if (metric == ExportMetric.Deviation)
+            {
+                decimal span = Math.Max(1M, maximum - minimum);
+                maximum = Math.Max(1M, maximum + span * 0.08M);
+                minimum = Math.Min(-1M, minimum - span * 0.08M);
+            }
+            else
+            {
+                minimum = 0M;
+                maximum = Math.Max(1M, maximum * 1.08M);
+            }
+
+            DrawChartFrame(g, plot, string.Empty);
+            using (Font panelFont = new Font("Arial", 9F, FontStyle.Bold))
+            using (Brush panelBrush = new SolidBrush(Color.FromArgb(65, 80, 100)))
+                g.DrawString(panelTitle, panelFont, panelBrush, plot.Left, plot.Top - 19F);
+
+            string numberFormat = metric == ExportMetric.Gross ? "#,##0" : metric == ExportMetric.Deviation ? "0.0" : "0";
+            DrawYAxis(g, plot, minimum, maximum, numberFormat);
+            if (showXAxis) DrawGroupedXAxis(g, plot, labels);
+
+            float zeroY = plot.Bottom - (float)((0M - minimum) / (maximum - minimum)) * plot.Height;
+            using (Pen zeroPen = new Pen(Color.Gray, 1.3F))
+                g.DrawLine(zeroPen, plot.Left, zeroY, plot.Right, zeroY);
+
+            int groupCount = Math.Max(labels.Count, 1);
+            int seriesCount = Math.Max(series.Count, 1);
+            float groupWidth = plot.Width / (float)groupCount;
+            float availableWidth = groupWidth * 0.82F;
+            float barWidth = Math.Max(0.75F, Math.Min(28F, availableWidth / seriesCount));
+            float renderedGroupWidth = barWidth * seriesCount;
+            List<List<PointF>> trendPoints = new List<List<PointF>>();
+            for (int i = 0; i < series.Count; i++) trendPoints.Add(new List<PointF>());
+
+            for (int groupIndex = 0; groupIndex < labels.Count; groupIndex++)
+            {
+                float groupLeft = plot.Left + groupWidth * groupIndex + (groupWidth - renderedGroupWidth) / 2F;
+                for (int seriesIndex = 0; seriesIndex < series.Count; seriesIndex++)
+                {
+                    decimal value = groupIndex < series[seriesIndex].Values.Count ? series[seriesIndex].Values[groupIndex] : 0M;
+                    float valueY = plot.Bottom - (float)((value - minimum) / (maximum - minimum)) * plot.Height;
+                    float top = Math.Min(zeroY, valueY);
+                    float barHeight = Math.Max(1F, Math.Abs(zeroY - valueY));
+                    float barLeft = groupLeft + seriesIndex * barWidth;
+                    using (Brush brush = new SolidBrush(Color.FromArgb(165, series[seriesIndex].Color)))
+                        g.FillRectangle(brush, barLeft, top, Math.Max(0.6F, barWidth - 0.4F), barHeight);
+                    trendPoints[seriesIndex].Add(new PointF(barLeft + barWidth / 2F, valueY));
+                }
+            }
+
+            for (int seriesIndex = 0; seriesIndex < series.Count; seriesIndex++)
+            {
+                PointF[] points = trendPoints[seriesIndex].ToArray();
+                using (Pen trendPen = new Pen(series[seriesIndex].Color, 1.7F))
+                using (Brush pointBrush = new SolidBrush(series[seriesIndex].Color))
+                {
+                    if (points.Length > 1) g.DrawLines(trendPen, points);
+                    foreach (PointF point in points)
+                        g.FillEllipse(pointBrush, point.X - 2F, point.Y - 2F, 4F, 4F);
+                }
+            }
+
+            using (Font axisFont = new Font("Arial", 8F, FontStyle.Bold))
+            using (Brush axisBrush = new SolidBrush(Color.DimGray))
+            {
+                string axisTitle = metric == ExportMetric.Headcount ? "Headcount" : metric == ExportMetric.Gross ? "Gross Salary" : "Change %";
+                g.DrawString(axisTitle, axisFont, axisBrush, new PointF(13F, plot.Top + plot.Height / 2F - 7F));
+                if (showXAxis) g.DrawString("Month", axisFont, axisBrush, new PointF(plot.Left + plot.Width / 2F - 18F, plot.Bottom + 39F));
+            }
         }
 
         private static void DrawGroupedXAxis(Graphics g, Rectangle plot, List<string> labels)

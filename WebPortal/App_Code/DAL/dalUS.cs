@@ -128,37 +128,219 @@ ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
             const int batchSize = 1000;
             for (int offset = 0; offset < loans.Count; offset += batchSize)
             {
-                List<string> batch = loans.Skip(offset).Take(batchSize).ToList(); StringBuilder parameters = new StringBuilder();
-                for (int i = 0; i < batch.Count; i++) { if (i > 0) parameters.Append(','); parameters.Append("@Loan").Append(i); }
+                List<string> batch = loans.Skip(offset).Take(batchSize).ToList();
                 SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
-;WITH ReQcRanked AS
+;WITH RequestedLoans (LoanNo) AS
 (
-    SELECT ISNULL(track.ProjectNumber, '') AS ProjectNumber, ISNULL(track.DealNo, '') AS DealNo, ISNULL(track.LoanNo, '') AS LoanNo,
-           CASE WHEN track.EndDatetime IS NULL THEN 'Assigned' ELSE 'Completed' END AS ReQCStatus,
-           ISNULL(track.[Process], '') AS ReQCProcess,
-           LTRIM(RTRIM(ISNULL(employee.FirstName, '') + ' ' + ISNULL(employee.LastName, ''))) AS ReQCEmployeeName,
-           ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) AS ReQCDate,
-           ROW_NUMBER() OVER
-           (
-               PARTITION BY ISNULL(track.ProjectNumber, ''), ISNULL(track.DealNo, ''), ISNULL(track.LoanNo, '')
-               ORDER BY CASE WHEN track.EndDatetime IS NULL THEN 0 ELSE 1 END,
-                        ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) DESC,
-                        track.ProductionTrackID DESC
-           ) AS RowNumber
-    FROM dbo.USLoanProductionTrack track
-    LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = track.EmployeeID
-    WHERE UPPER(REPLACE(REPLACE(ISNULL(track.[Process], ''), '-', ''), ' ', '')) IN ('DATAFIELDSREQC', 'PHREQC', 'REQC')
-      AND track.LoanNo IN (" + parameters + @")
+    SELECT LoanNo
+    FROM (VALUES " + string.Join(",", batch.Select((loan, index) => "(@Loan" + index + ")")) + @") requested (LoanNo)
+),
+ReQcSource AS
+(
+    SELECT
+        ISNULL(track.ProjectNumber, '') AS ProjectNumber,
+        ISNULL(track.DealNo, '') AS DealNo,
+        ISNULL(track.LoanNo, '') AS LoanNo,
+        CASE WHEN track.EndDatetime IS NULL THEN 'Assigned' ELSE 'Completed' END AS ReQCStatus,
+        ISNULL(track.[Process], '') AS ReQCProcess,
+        LTRIM(RTRIM(ISNULL(employee.FirstName, '') + ' ' + ISNULL(employee.LastName, ''))) AS ReQCEmployeeName,
+        ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) AS ReQCDate,
+        track.ProductionTrackID AS RecordID,
+        0 AS SourcePriority
+    FROM RequestedLoans requested
+    INNER JOIN dbo.USLoanProductionTrack track
+        ON track.LoanNo = requested.LoanNo
+    LEFT JOIN dbo.EmployeeInfo employee
+        ON employee.EmployeeID = track.EmployeeID
+    WHERE UPPER(REPLACE(REPLACE(ISNULL(track.[Process], ''), '-', ''), ' ', ''))
+          IN ('DATAFIELDSREQC', 'PHREQC', 'REQC')
+
+    UNION ALL
+
+    SELECT
+        ISNULL(project.ProjectName, '') AS ProjectNumber,
+        ISNULL(queue.DealNo, '') AS DealNo,
+        ISNULL(queue.OrderNumber, '') AS LoanNo,
+        'Assigned' AS ReQCStatus,
+        ISNULL(queue.[Process], '') AS ReQCProcess,
+        LTRIM(RTRIM(ISNULL(employee.FirstName, '') + ' ' + ISNULL(employee.LastName, ''))) AS ReQCEmployeeName,
+        queue.AddedDate AS ReQCDate,
+        queue.ProcessID AS RecordID,
+        1 AS SourcePriority
+    FROM RequestedLoans requested
+    INNER JOIN Underwriting.dbo.WBT_TrackingsheetOrderProcessQueue queue
+        ON queue.OrderNumber = requested.LoanNo
+    LEFT JOIN dbo.Project project
+        ON project.ProjectId = queue.ProjectId
+    OUTER APPLY
+    (
+        SELECT TOP (1) configuration.EmployeeID
+        FROM dbo.EmployeeConfiguration configuration
+        WHERE configuration.Psuedoname = queue.UserCode
+          AND (configuration.isDelete = 0 OR configuration.isDelete IS NULL)
+        ORDER BY configuration.EmpConfigrationID DESC
+    ) currentConfiguration
+    LEFT JOIN dbo.EmployeeInfo employee
+        ON employee.EmployeeID = currentConfiguration.EmployeeID
+    WHERE UPPER(REPLACE(REPLACE(ISNULL(queue.[Process], ''), '-', ''), ' ', ''))
+          IN ('DATAFIELDSREQC', 'PHREQC', 'REQC')
+),
+ReQcRanked AS
+(
+    SELECT
+        ProjectNumber,
+        DealNo,
+        LoanNo,
+        ReQCStatus,
+        ReQCProcess,
+        ReQCEmployeeName,
+        ReQCDate,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY ProjectNumber, DealNo, LoanNo
+            ORDER BY
+                CASE WHEN ReQCStatus = 'Assigned' THEN 0 ELSE 1 END,
+                ReQCDate DESC,
+                SourcePriority,
+                RecordID DESC
+        ) AS RowNumber
+    FROM ReQcSource
 )
-SELECT ProjectNumber, DealNo, LoanNo, ReQCStatus, ReQCProcess, ReQCEmployeeName,
-       CONVERT(varchar(19), ReQCDate, 120) AS ReQCDate
-FROM ReQcRanked WHERE RowNumber = 1;");
+SELECT
+    ProjectNumber,
+    DealNo,
+    LoanNo,
+    ReQCStatus,
+    ReQCProcess,
+    ReQCEmployeeName,
+    CONVERT(varchar(19), ReQCDate, 120) AS ReQCDate
+FROM ReQcRanked
+WHERE RowNumber = 1
+OPTION (RECOMPILE);");
                 for (int i = 0; i < batch.Count; i++) cmd.Parameters.Add("@Loan" + i, SqlDbType.NVarChar, 200).Value = batch[i];
                 DataTable current = SQLHelper.ExecuteDataTableCmd(cmd); foreach (DataRow row in current.Rows) result.ImportRow(row);
             }
             return result;
         }
+public DataTable GetGlobalSearchReQcStatuses_OLD(IEnumerable<string> loanNumbers)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("ProjectNumber", typeof(string)); result.Columns.Add("DealNo", typeof(string)); result.Columns.Add("LoanNo", typeof(string));
+            result.Columns.Add("ReQCStatus", typeof(string)); result.Columns.Add("ReQCProcess", typeof(string)); result.Columns.Add("ReQCEmployeeName", typeof(string)); result.Columns.Add("ReQCDate", typeof(string));
+            List<string> loans = (loanNumbers ?? Enumerable.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            const int batchSize = 1000;
+            for (int offset = 0; offset < loans.Count; offset += batchSize)
+            {
+                List<string> batch = loans.Skip(offset).Take(batchSize).ToList(); StringBuilder parameters = new StringBuilder();
+                for (int i = 0; i < batch.Count; i++) { if (i > 0) parameters.Append(','); parameters.Append("@Loan").Append(i); }
+                SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+;WITH ReQcSource AS
+(
+    -- Records from USLoanProductionTrack
+    SELECT
+        ISNULL(track.ProjectNumber, '') AS ProjectNumber,
+        ISNULL(track.DealNo, '') AS DealNo,
+        ISNULL(track.LoanNo, '') AS LoanNo,
+        CASE
+            WHEN track.EndDatetime IS NULL THEN 'Assigned'
+            ELSE 'Completed'
+        END AS ReQCStatus,
+        ISNULL(track.[Process], '') AS ReQCProcess,
+        LTRIM(RTRIM(
+            ISNULL(employee.FirstName, '') + ' ' +
+            ISNULL(employee.LastName, '')
+        )) AS ReQCEmployeeName,
+        ISNULL(
+            track.EndDatetime,
+            ISNULL(track.StartDatetime, track.AddedDate)
+        ) AS ReQCDate,
+        track.ProductionTrackID AS RecordID,
+        'USLoanProductionTrack' AS RecordSource
+    FROM dbo.USLoanProductionTrack track
+    LEFT JOIN dbo.EmployeeInfo employee
+        ON employee.EmployeeID = track.EmployeeID
+    WHERE UPPER(
+              REPLACE(
+                  REPLACE(ISNULL(track.[Process], ''), '-', ''),
+                  ' ',
+                  ''
+              )
+          ) IN ('DATAFIELDSREQC', 'PHREQC', 'REQC')
+      AND track.LoanNo IN ('9750146988')
 
+    UNION ALL
+
+    -- Records from WBT_TrackingsheetOrderProcessQueue
+    SELECT
+        ISNULL(P.ProjectName, '') AS ProjectNumber, -- update if different
+        ISNULL(queue.DealNo, '') AS DealNo,               -- update if different
+        ISNULL(queue.OrderNumber, '') AS LoanNo,               -- update if different
+        'Assigned' AS ReQCStatus,
+        ISNULL(queue.[Process], '') AS ReQCProcess,        -- update if different
+        LTRIM(RTRIM(
+            ISNULL(employee.FirstName, '') + ' ' +
+            ISNULL(employee.LastName, '')
+        )) AS ReQCEmployeeName,
+        queue.AddedDate AS ReQCDate,
+        queue.ProcessID AS RecordID,                         -- update with primary key
+        'WBT_TrackingsheetOrderProcessQueue' AS RecordSource
+    FROM Underwriting.dbo.WBT_TrackingsheetOrderProcessQueue queue
+    left join Project P on P.ProjectId=queue.ProjectId
+    --select * from Underwriting.dbo.WBT_TrackingsheetOrderProcessQueue
+
+    left join EmployeeConfiguration EC on EC.Psuedoname=queue.UserCode and EC.EmpConfigrationID=(
+    select top 1 EC1.EmpConfigrationID from EmployeeConfiguration EC1 where EC1.Code=EC.Code and (EC1.isDelete=0 or EC1.isDelete is NULL))
+    LEFT JOIN dbo.EmployeeInfo employee
+        ON employee.EmployeeID = EC.EmployeeID          -- update if different
+    WHERE UPPER(
+              REPLACE(
+                  REPLACE(ISNULL(queue.[Process], ''), '-', ''),
+                  ' ',
+                  ''
+              )
+          ) IN ('DATAFIELDSREQC', 'PHREQC', 'REQC')
+      AND queue.OrderNumber IN ('9750146988')
+),
+ReQcRanked AS
+(
+    SELECT
+        ProjectNumber,
+        DealNo,
+        LoanNo,
+        ReQCStatus,
+        ReQCProcess,
+        ReQCEmployeeName,
+        ReQCDate,
+        RecordSource,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY ProjectNumber, DealNo, LoanNo
+            ORDER BY
+                CASE
+                    WHEN ReQCStatus = 'Assigned' THEN 0
+                    ELSE 1
+                END,
+                ReQCDate DESC,
+                RecordID DESC
+        ) AS RowNumber
+    FROM ReQcSource
+)
+SELECT
+    ProjectNumber,
+    DealNo,
+    LoanNo,
+    ReQCStatus,
+    ReQCProcess,
+    ReQCEmployeeName,
+    CONVERT(varchar(19), ReQCDate, 120) AS ReQCDate,
+    RecordSource
+FROM ReQcRanked
+WHERE RowNumber = 1;");
+                for (int i = 0; i < batch.Count; i++) cmd.Parameters.Add("@Loan" + i, SqlDbType.NVarChar, 200).Value = batch[i];
+                DataTable current = SQLHelper.ExecuteDataTableCmd(cmd); foreach (DataRow row in current.Rows) result.ImportRow(row);
+            }
+            return result;
+        }
         public DataTable GetOverAllUserPerformance_credit_Greg(int EmployeeID, string FromDate, string ToDate)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOverAllUserPerformance_credit_Greg");
