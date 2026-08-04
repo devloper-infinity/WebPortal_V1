@@ -151,6 +151,7 @@
     <Content Include="Admin\ProjectHealthReport.aspx" />
     <Content Include="Admin\ResponsibilityDelegation.aspx" />
     <Content Include="Admin\AICopilot.aspx" />
+    <Content Include="Admin\ProjectEmailConfiguration.aspx" />
     <Content Include="Admin\UserDomainAccess.aspx" />
     <Content Include="Assets\AddAsset.aspx" />
     <Content Include="Assets\asset-common.css" />
@@ -2902,6 +2903,8 @@
     <Content Include="DatabaseScripts\OLTracking_011_UniqueLoanProcessAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_012_DynamicUniqueAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_013_BillingParameter.sql" />
+    <Content Include="DatabaseScripts\ProjectEmailConfiguration.sql" />
+    <Content Include="Scripts\Functions\ProjectEmailConfiguration.js" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />
@@ -3126,6 +3129,13 @@
     </Compile>
     <Compile Include="Admin\UserDomainAccess.aspx.designer.cs">
       <DependentUpon>UserDomainAccess.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ProjectEmailConfiguration.aspx.cs">
+      <DependentUpon>ProjectEmailConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ProjectEmailConfiguration.aspx.designer.cs">
+      <DependentUpon>ProjectEmailConfiguration.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\AICopilot.aspx.cs">
       <DependentUpon>AICopilot.aspx</DependentUpon>
@@ -5919,6 +5929,7 @@
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />
+    <Folder Include="Scripts\Admin\" />
     <Folder Include="SearchDocuments\" />
     <Folder Include="TempFiles\" />
   </ItemGroup>

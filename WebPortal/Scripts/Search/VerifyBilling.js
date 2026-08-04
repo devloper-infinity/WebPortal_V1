@@ -1,6 +1,7 @@
 ﻿
 var title;
 var remark_orderid = 0;
+var verifyBillingSummaryRequest = null;
 
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
@@ -554,8 +555,13 @@ function clearBillingFields() {
 function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
 
     $('#load1').show();
+    $('#totalOrdersSummary').empty();
 
-    $.ajax({
+    if (verifyBillingSummaryRequest && verifyBillingSummaryRequest.readyState !== 4) {
+        verifyBillingSummaryRequest.abort();
+    }
+
+    verifyBillingSummaryRequest = $.ajax({
         url: "VerifyBilling.aspx/GetDataForSummary",
         type: "POST",
         data: JSON.stringify({ ProjectNo: prjno, FromDate: fromdate, ToDate: todate }),
@@ -564,6 +570,21 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
 
         success: function (data) {
             var dataArray = JSON.parse(data.d);
+
+            // The summary query can return cached/adjacent billing periods.
+            // Keep only the row belonging to the currently selected date range.
+            var selectedRows = dataArray.filter(function (row) {
+                var periodParts = String(row.BillingPeriod || '').split('~');
+
+                return periodParts.length === 2 &&
+                    getBillingDateKey(periodParts[0]) === getBillingDateKey(fromdate) &&
+                    getBillingDateKey(periodParts[1]) === getBillingDateKey(todate);
+            });
+
+            if (selectedRows.length) {
+                dataArray = selectedRows;
+            }
+
             renderTotalOrdersSummary(dataArray);
 
             if ($.fn.DataTable.isDataTable('#table_grdPending')) {
@@ -605,11 +626,32 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
 
         error: function (error) {
             $('#load1').hide();
+
+            if (error.statusText === 'abort') {
+                return;
+            }
+
             $('#totalOrdersSummary').html('<div class="summary-empty"><i class="fas fa-exclamation-circle"></i><span>Unable to load the order summary.</span></div>');
             alert('Error: ' + error.responseText);
+        },
+
+        complete: function () {
+            verifyBillingSummaryRequest = null;
         }
     });
     return false;
+}
+
+function getBillingDateKey(value) {
+    var parsedDate = new Date($.trim(String(value || '')));
+
+    if (isNaN(parsedDate.getTime())) {
+        return $.trim(String(value || '')).toLowerCase().replace(/\s+/g, '');
+    }
+
+    return parsedDate.getFullYear() + '-' +
+        ('0' + (parsedDate.getMonth() + 1)).slice(-2) + '-' +
+        ('0' + parsedDate.getDate()).slice(-2);
 }
 
 function renderTotalOrdersSummary(dataArray) {
