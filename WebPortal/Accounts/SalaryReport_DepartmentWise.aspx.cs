@@ -1071,7 +1071,7 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Headcount Trend");
             WriteSheetTitle(ws, "Department-wise Headcount Trend");
 
-            int tableStartRow = AddDepartmentHeatmapPicture(ws, "Department-wise Headcount Trend", model, ExportMetric.Headcount, "B3");
+            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Department-wise Headcount Trend", model, ExportMetric.Headcount, "B3");
             WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Headcount);
         }
 
@@ -1081,7 +1081,7 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Gross Salary Trend");
             WriteSheetTitle(ws, "Department-wise Gross Salary Trend");
 
-            int tableStartRow = AddDepartmentHeatmapPicture(ws, "Department-wise Gross Salary Trend", model, ExportMetric.Gross, "B3");
+            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Department-wise Gross Salary Trend", model, ExportMetric.Gross, "B3");
             WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Gross);
         }
 
@@ -1091,7 +1091,7 @@ namespace WebPortal.Reports
             IXLWorksheet ws = workbook.Worksheets.Add("Salary Deviation");
             WriteSheetTitle(ws, "Department-wise Gross Salary Deviation");
 
-            int tableStartRow = AddDepartmentHeatmapPicture(ws, "Department-wise Salary Deviation %", model, ExportMetric.Deviation, "B3");
+            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Department-wise Salary Deviation %", model, ExportMetric.Deviation, "B3");
             WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Deviation);
         }
 
@@ -1217,6 +1217,280 @@ namespace WebPortal.Reports
                 ws.AddPicture(image, pictureName)
                   .MoveTo(ws.Cell(cellAddress))
                   .WithSize(1000, 380);
+            }
+        }
+
+
+        private static int AddDepartmentAdjustedBarPicture(
+            IXLWorksheet ws,
+            string title,
+            MonthlyExportModel model,
+            ExportMetric metric,
+            string cellAddress)
+        {
+            List<string> departments = new List<string>();
+            foreach (string department in model.Departments)
+                departments.Add(string.IsNullOrWhiteSpace(department) ? "(Not Assigned)" : department);
+
+            List<DepartmentChartSeries> monthSeries = new List<DepartmentChartSeries>();
+            int monthIndex = 0;
+            foreach (KeyValuePair<int, string> period in model.Periods)
+            {
+                DepartmentChartSeries item = new DepartmentChartSeries
+                {
+                    Department = GetShortPeriodLabel(period.Key, period.Value),
+                    Values = new List<decimal>(),
+                    Color = GetDepartmentChartColor(monthIndex++)
+                };
+
+                foreach (string department in model.Departments)
+                {
+                    string key = period.Key.ToString(CultureInfo.InvariantCulture) + "||" + department;
+                    decimal gross;
+                    int count;
+                    model.GrossValues.TryGetValue(key, out gross);
+                    model.HeadcountValues.TryGetValue(key, out count);
+
+                    if (metric == ExportMetric.Headcount)
+                    {
+                        item.Values.Add(count);
+                    }
+                    else if (metric == ExportMetric.Gross)
+                    {
+                        item.Values.Add(gross);
+                    }
+                    else
+                    {
+                        decimal previousGross = 0M;
+                        bool hasPrevious = false;
+                        foreach (KeyValuePair<int, string> previousPeriod in model.Periods)
+                        {
+                            string previousKey = previousPeriod.Key.ToString(CultureInfo.InvariantCulture) + "||" + department;
+                            decimal value;
+                            model.GrossValues.TryGetValue(previousKey, out value);
+                            if (previousPeriod.Key == period.Key)
+                            {
+                                item.Values.Add(hasPrevious && previousGross != 0M
+                                    ? ((value - previousGross) / previousGross) * 100M
+                                    : 0M);
+                                break;
+                            }
+                            previousGross = value;
+                            hasPrevious = true;
+                        }
+                    }
+                }
+
+                monthSeries.Add(item);
+            }
+
+            int sourceWidth = Math.Max(1500, 560 + Math.Max(departments.Count, 1) * 92);
+            const int sourceHeight = 620;
+            int displayWidth = Math.Max(1050, (int)Math.Round(sourceWidth * 0.72D));
+            int displayHeight = 445;
+
+            using (MemoryStream image = DrawAdjustedDepartmentBarChart(title, departments, monthSeries, metric, sourceWidth, sourceHeight))
+            {
+                ws.AddPicture(image, GetExcelPictureName("AdjustedBar"))
+                    .MoveTo(ws.Cell(cellAddress))
+                    .WithSize(displayWidth, displayHeight);
+            }
+
+            return Math.Max(27, (int)Math.Ceiling(displayHeight / 20D) + 6);
+        }
+
+        private static MemoryStream DrawAdjustedDepartmentBarChart(
+            string title,
+            List<string> labels,
+            List<DepartmentChartSeries> series,
+            ExportMetric metric,
+            int width,
+            int height)
+        {
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+
+                using (Font titleFont = new Font("Arial", 16F, FontStyle.Bold))
+                using (Brush titleBrush = new SolidBrush(Color.FromArgb(30, 55, 90)))
+                    g.DrawString(title, titleFont, titleBrush, new PointF(95F, 18F));
+
+                Rectangle plot = new Rectangle(95, 72, width - 390, height - 205);
+                DrawChartFrame(g, plot, string.Empty);
+
+                decimal transformedMin = 0M;
+                decimal transformedMax = 0M;
+                foreach (DepartmentChartSeries item in series)
+                {
+                    foreach (decimal actual in item.Values)
+                    {
+                        decimal transformed = TransformAdjustedChartValue(actual, metric);
+                        transformedMin = Math.Min(transformedMin, transformed);
+                        transformedMax = Math.Max(transformedMax, transformed);
+                    }
+                }
+
+                if (metric == ExportMetric.Deviation)
+                {
+                    decimal maxAbs = Math.Max(Math.Abs(transformedMin), Math.Abs(transformedMax));
+                    maxAbs = Math.Max(1M, maxAbs * 1.10M);
+                    transformedMin = -maxAbs;
+                    transformedMax = maxAbs;
+                }
+                else
+                {
+                    transformedMin = 0M;
+                    transformedMax = Math.Max(1M, transformedMax * 1.05M);
+                }
+
+                DrawAdjustedYAxis(g, plot, transformedMin, transformedMax, metric);
+                DrawRotatedDepartmentXAxis(g, plot, labels);
+
+                float zeroY = plot.Bottom - (float)((0M - transformedMin) / (transformedMax - transformedMin)) * plot.Height;
+                using (Pen zeroPen = new Pen(Color.Gray, 1.2F))
+                    g.DrawLine(zeroPen, plot.Left, zeroY, plot.Right, zeroY);
+
+                int groupCount = Math.Max(labels.Count, 1);
+                int seriesCount = Math.Max(series.Count, 1);
+                float groupWidth = plot.Width / (float)groupCount;
+                float availableWidth = groupWidth * 0.84F;
+                float barWidth = Math.Max(0.8F, Math.Min(26F, availableWidth / seriesCount));
+                float renderedGroupWidth = barWidth * seriesCount;
+
+                for (int groupIndex = 0; groupIndex < labels.Count; groupIndex++)
+                {
+                    float groupLeft = plot.Left + groupWidth * groupIndex + (groupWidth - renderedGroupWidth) / 2F;
+                    for (int seriesIndex = 0; seriesIndex < series.Count; seriesIndex++)
+                    {
+                        decimal actual = groupIndex < series[seriesIndex].Values.Count ? series[seriesIndex].Values[groupIndex] : 0M;
+                        decimal transformed = TransformAdjustedChartValue(actual, metric);
+                        float valueY = plot.Bottom - (float)((transformed - transformedMin) / (transformedMax - transformedMin)) * plot.Height;
+                        float top = Math.Min(zeroY, valueY);
+                        float barHeight = Math.Max(1F, Math.Abs(zeroY - valueY));
+                        float barLeft = groupLeft + seriesIndex * barWidth;
+                        using (Brush brush = new SolidBrush(series[seriesIndex].Color))
+                            g.FillRectangle(brush, barLeft, top, Math.Max(0.7F, barWidth - 0.6F), barHeight);
+                    }
+                }
+
+                Rectangle legend = new Rectangle(width - 275, 72, 245, height - 145);
+                DrawDepartmentLegend(g, legend, series);
+
+                using (Font axisFont = new Font("Arial", 8F, FontStyle.Bold))
+                using (Brush axisBrush = new SolidBrush(Color.DimGray))
+                {
+                    string axisTitle = metric == ExportMetric.Headcount
+                        ? "Headcount (Logarithmic Scale)"
+                        : metric == ExportMetric.Gross
+                            ? "Gross Salary (Logarithmic Scale)"
+                            : "Change % (Adjusted Scale)";
+                    g.DrawString(axisTitle, axisFont, axisBrush, new PointF(8F, plot.Top + plot.Height / 2F - 7F));
+                    g.DrawString("Department", axisFont, axisBrush, new PointF(plot.Left + plot.Width / 2F - 28F, height - 22F));
+                }
+
+                using (Font noteFont = new Font("Arial", 8F, FontStyle.Italic))
+                using (Brush noteBrush = new SolidBrush(Color.DimGray))
+                {
+                    string note = metric == ExportMetric.Deviation
+                        ? "Signed adjusted scale improves visibility of both positive and negative deviations."
+                        : "Logarithmic scale improves visibility of departments with smaller values. Bar labels and table values remain actual values.";
+                    g.DrawString(note, noteFont, noteBrush, plot.Left, height - 42F);
+                }
+            }
+
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            bitmap.Dispose();
+            stream.Position = 0;
+            return stream;
+        }
+
+        private static decimal TransformAdjustedChartValue(decimal value, ExportMetric metric)
+        {
+            if (metric == ExportMetric.Deviation)
+            {
+                if (value == 0M) return 0M;
+                decimal sign = value < 0M ? -1M : 1M;
+                return sign * (decimal)Math.Log10(1D + (double)Math.Abs(value));
+            }
+
+            if (value <= 0M) return 0M;
+            return (decimal)Math.Log10((double)value);
+        }
+
+        private static decimal RestoreAdjustedChartValue(decimal transformed, ExportMetric metric)
+        {
+            if (metric == ExportMetric.Deviation)
+            {
+                if (transformed == 0M) return 0M;
+                decimal sign = transformed < 0M ? -1M : 1M;
+                return sign * ((decimal)Math.Pow(10D, (double)Math.Abs(transformed)) - 1M);
+            }
+
+            return transformed <= 0M ? 1M : (decimal)Math.Pow(10D, (double)transformed);
+        }
+
+        private static void DrawAdjustedYAxis(
+            Graphics g,
+            Rectangle plot,
+            decimal minimum,
+            decimal maximum,
+            ExportMetric metric)
+        {
+            using (Font font = new Font("Arial", 8F))
+            using (Brush brush = new SolidBrush(Color.DimGray))
+            using (Pen gridPen = new Pen(Color.FromArgb(225, 230, 236), 1F))
+            {
+                for (int i = 0; i <= 6; i++)
+                {
+                    decimal transformed = maximum - ((maximum - minimum) * i / 6M);
+                    decimal actual = RestoreAdjustedChartValue(transformed, metric);
+                    string text;
+                    if (metric == ExportMetric.Deviation)
+                        text = (actual > 0M ? "+" : string.Empty) + actual.ToString(Math.Abs(actual) < 10M ? "0.0" : "0", CultureInfo.InvariantCulture) + "%";
+                    else if (metric == ExportMetric.Gross)
+                        text = FormatCompactAxisValue(actual, true);
+                    else
+                        text = FormatCompactAxisValue(actual, false);
+
+                    float y = plot.Top + plot.Height * i / 6F;
+                    g.DrawLine(gridPen, plot.Left, y, plot.Right, y);
+                    SizeF size = g.MeasureString(text, font);
+                    g.DrawString(text, font, brush, plot.Left - size.Width - 8F, y - 7F);
+                }
+            }
+        }
+
+        private static string FormatCompactAxisValue(decimal value, bool currency)
+        {
+            decimal absolute = Math.Abs(value);
+            string suffix = string.Empty;
+            decimal display = value;
+            if (absolute >= 10000000M) { display = value / 10000000M; suffix = "Cr"; }
+            else if (absolute >= 100000M) { display = value / 100000M; suffix = "L"; }
+            else if (absolute >= 1000M) { display = value / 1000M; suffix = "K"; }
+            string prefix = currency ? "Rs. " : string.Empty;
+            return prefix + display.ToString(Math.Abs(display) < 10M ? "0.0" : "0", CultureInfo.InvariantCulture) + suffix;
+        }
+
+        private static void DrawRotatedDepartmentXAxis(Graphics g, Rectangle plot, List<string> labels)
+        {
+            if (labels.Count == 0) return;
+            using (Font font = new Font("Arial", labels.Count > 18 ? 6.5F : 7.5F))
+            using (Brush brush = new SolidBrush(Color.DimGray))
+            {
+                float slot = plot.Width / (float)labels.Count;
+                for (int i = 0; i < labels.Count; i++)
+                {
+                    float x = plot.Left + slot * i + slot / 2F;
+                    GraphicsState state = g.Save();
+                    g.TranslateTransform(x, plot.Bottom + 9F);
+                    g.RotateTransform(-45F);
+                    g.DrawString(labels[i], font, brush, new RectangleF(-8F, 0F, 145F, 18F));
+                    g.Restore(state);
+                }
             }
         }
 
@@ -1568,7 +1842,7 @@ namespace WebPortal.Reports
             if (series.Count < 2) return;
 
             List<DepartmentChartSeries> ordered = new List<DepartmentChartSeries>(series);
-            ordered.Sort(delegate(DepartmentChartSeries left, DepartmentChartSeries right)
+            ordered.Sort(delegate (DepartmentChartSeries left, DepartmentChartSeries right)
             {
                 return GetSeriesMagnitude(right).CompareTo(GetSeriesMagnitude(left));
             });

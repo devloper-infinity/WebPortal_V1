@@ -36,17 +36,9 @@
     .chart-summary strong { color:#2f4058; }
     .chart-box { position:relative; height:340px !important; min-height:340px; }
     .metric-chart-wrap .chart-box { height:420px !important; min-height:420px; }
-    .trend-heatmap-wrap { max-height:420px; overflow:auto; border:1px solid #dfe5ec; border-radius:5px; background:#fff; }
-    .trend-heatmap { min-width:720px; }
-    .trend-heatmap table { width:100%; border-collapse:separate; border-spacing:0; font-size:11px; }
-    .trend-heatmap th, .trend-heatmap td { padding:6px 8px; border-right:1px solid #e3e8ee; border-bottom:1px solid #e3e8ee; text-align:right; white-space:nowrap; }
-    .trend-heatmap thead th { position:sticky; top:0; z-index:3; background:#eef3f8; color:#34465f; text-align:center; font-weight:600; }
-    .trend-heatmap .department-cell { position:sticky; left:0; z-index:2; min-width:150px; max-width:220px; overflow:hidden; text-overflow:ellipsis; background:#f8fafc; color:#35465d; text-align:left; font-weight:600; }
-    .trend-heatmap thead .department-cell { z-index:4; background:#e7edf5; }
-    .trend-heatmap .value-cell { min-width:78px; font-variant-numeric:tabular-nums; }
-    .trend-heatmap .spark-cell { min-width:150px; width:150px; padding:3px 8px; text-align:center; background:#fbfcfe; }
-    .trend-heatmap .spark-cell svg { display:block; width:135px; height:30px; margin:auto; }
-    .heatmap-note { margin-top:7px; color:#748195; font-size:11px; }
+    .excel-chart-box { position:relative; height:480px; min-height:480px; border:1px solid #dfe5ec; border-radius:5px; background:#fff; padding:12px; }
+    .excel-chart-box canvas { width:100% !important; height:100% !important; }
+    .excel-chart-note { margin-top:7px; color:#748195; font-size:11px; }
     .chart-box.tall { height:430px !important; min-height:430px; }
     .chart-note { margin-top:8px; font-size:11px; color:#7b8797; }
     .dev-up { color:#16834a; font-weight:600; }
@@ -103,8 +95,8 @@
             <div class="metric-section-head"><strong>1. Headcount Analysis</strong><span>Trend chart and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtHeadcountInsight" class="chart-summary"></div>
-                <div class="trend-heatmap-wrap"><div id="chtHeadcountTrend" class="trend-heatmap"></div></div>
-                <div class="heatmap-note">Darker cells indicate higher values within that department. Hover a cell for month, value and change.</div>
+                <div class="excel-chart-box"><canvas id="chtHeadcountTrend"></canvas></div>
+                <div class="excel-chart-note">Departments are displayed on the horizontal axis and each selected month is shown as a separate bar series, matching the Excel report.</div>
             </div>
             <div class="metric-table-wrap horizontal-report">
                 <div class="excel-block-title">Department-wise Headcount by Month</div>
@@ -116,8 +108,8 @@
             <div class="metric-section-head"><strong>2. Gross Salary Analysis</strong><span>Trend chart and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtSalaryInsight" class="chart-summary"></div>
-                <div class="trend-heatmap-wrap"><div id="chtSalaryTrend" class="trend-heatmap"></div></div>
-                <div class="heatmap-note">Darker cells indicate higher values within that department. Hover a cell for month, value and change.</div>
+                <div class="excel-chart-box"><canvas id="chtSalaryTrend"></canvas></div>
+                <div class="excel-chart-note">Departments are displayed on the horizontal axis and each selected month is shown as a separate bar series, matching the Excel report.</div>
             </div>
             <div class="metric-table-wrap horizontal-report">
                 <div class="excel-block-title">Department-wise Gross Salary by Month</div>
@@ -129,8 +121,8 @@
             <div class="metric-section-head"><strong>3. Salary Deviation Analysis</strong><span>Month-over-month movement and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtDeviationInsight" class="chart-summary"></div>
-                <div class="trend-heatmap-wrap"><div id="chtDeviationTrend" class="trend-heatmap"></div></div>
-                <div class="chart-note">Green indicates an increase and red indicates a decrease. Colour intensity is normalized per department.</div>
+                <div class="excel-chart-box"><canvas id="chtDeviationTrend"></canvas></div>
+                <div class="chart-note">Each month is displayed as a separate department-wise series. Positive values indicate an increase and negative values indicate a decrease from the previous month.</div>
             </div>
             <div class="metric-table-wrap horizontal-report">
                 <div class="excel-block-title">Department-wise Salary Deviation % by Month</div>
@@ -283,8 +275,8 @@
         $('#txtHeadcountInsight').html(buildTrendInsight('Headcount', latest.totalCount, previous ? previous.totalCount : null, latest.label, previous ? previous.label : null, false));
         $('#txtSalaryInsight').html(buildTrendInsight('Gross salary', latest.totalGross, previous ? previous.totalGross : null, latest.label, previous ? previous.label : null, true));
 
-        createTrendHeatmap('chtHeadcountTrend', labels, model, 'count', 'Headcount', false);
-        createTrendHeatmap('chtSalaryTrend', labels, model, 'gross', 'Gross Salary', true);
+        reportCharts.headcountTrend = createDepartmentClusteredBar('chtHeadcountTrend', model, 'count', 'Headcount', false, false, true);
+        reportCharts.salaryTrend = createDepartmentClusteredBar('chtSalaryTrend', model, 'gross', 'Gross Salary', true, false, true);
 
         var deviationValues = [], latestDeviation = null;
         $.each(model.periods, function (i, p) {
@@ -293,7 +285,7 @@
         });
         latestDeviation = deviationValues.length ? deviationValues[deviationValues.length - 1] : null;
         $('#txtDeviationInsight').html(latestDeviation === null ? '<strong>Previous month is not available for comparison.</strong>' : '<strong>' + html(latest.label) + ': ' + (latestDeviation > 0 ? '+' : '') + latestDeviation.toFixed(2) + '%</strong> change in total gross salary compared with ' + html(previous ? previous.label : '') + '.');
-        createTrendHeatmap('chtDeviationTrend', labels, model, 'deviation', 'Change %', false, true);
+        reportCharts.deviationTrend = createDepartmentClusteredBar('chtDeviationTrend', model, 'deviation', 'Salary Deviation %', false, true, true);
 
         var otherDepartments = $.grep(model.departments, function (d) { return d.toLowerCase() !== 'production'; });
         otherDepartments.sort(function (a, b) { return latest.rows[b].gross - latest.rows[a].gross; });
@@ -316,6 +308,102 @@
             options: { responsive: true, maintainAspectRatio: false, legend: { display: true, position: 'bottom' }, tooltips: { mode: 'index', intersect: false, callbacks: { label: function (t, d) { return d.datasets[t.datasetIndex].label + ': ' + (t.datasetIndex === 0 ? formatMoney(t.yLabel) : Number(t.yLabel).toLocaleString('en-IN')); } } }, scales: { xAxes: [{ scaleLabel: { display: true, labelString: 'Month' }, gridLines: { display: false } }], yAxes: [{ id: 'salary', position: 'left', scaleLabel: { display: true, labelString: 'Gross Salary' }, ticks: { beginAtZero: false, callback: compactMoney } }, { id: 'count', position: 'right', scaleLabel: { display: true, labelString: 'Headcount' }, gridLines: { drawOnChartArea: false }, ticks: { beginAtZero: false, precision: 0, callback: function (v) { return Number(v).toLocaleString('en-IN'); } } }] } }
         });
 
+    }
+
+    function createDepartmentClusteredBar(id, model, metric, axisLabel, moneyValues, percentageValues, useLogarithmicScale) {
+        var canvas = document.getElementById(id);
+        if (!canvas) return null;
+
+        var palette = [
+            '#5b9bd5', '#ed7d31', '#a5a5a5', '#ffc000', '#4472c4', '#70ad47',
+            '#264478', '#9e480e', '#636363', '#997300', '#255e91', '#43682b'
+        ];
+        var datasets = [];
+
+        $.each(model.periods, function (periodIndex, period) {
+            var actualValues = $.map(model.departments, function (department) {
+                var value = period.rows[department] ? period.rows[department][metric] : null;
+                return value === null || value === undefined || !isFinite(Number(value)) ? null : Number(value);
+            });
+            var chartValues = actualValues;
+
+            if (useLogarithmicScale && percentageValues) {
+                chartValues = $.map(actualValues, function (value) {
+                    if (value === null) return null;
+                    if (value === 0) return 0;
+                    return (value < 0 ? -1 : 1) * (Math.log(1 + Math.abs(value)) / Math.LN10);
+                });
+            }
+
+            datasets.push({
+                label: period.label,
+                data: chartValues,
+                actualValues: actualValues,
+                backgroundColor: palette[periodIndex % palette.length],
+                borderColor: palette[periodIndex % palette.length],
+                borderWidth: 0,
+                maxBarThickness: 28
+            });
+        });
+
+        return new Chart(canvas, {
+            type: 'bar',
+            data: { labels: model.departments, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 16 } },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function (tooltipItem, data) {
+                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                            var value = dataset.actualValues ? Number(dataset.actualValues[tooltipItem.index] || 0) : Number(tooltipItem.yLabel || 0);
+                            var text = percentageValues
+                                ? (value > 0 ? '+' : '') + value.toFixed(2) + '%'
+                                : moneyValues ? formatMoney(value) : value.toLocaleString('en-IN');
+                            return dataset.label + ': ' + text;
+                        }
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        stacked: false,
+                        gridLines: { display: false },
+                        scaleLabel: { display: true, labelString: 'Department' },
+                        ticks: { autoSkip: false, maxRotation: 55, minRotation: 35, fontSize: 10 }
+                    }],
+                    yAxes: [{
+                        type: useLogarithmicScale && !percentageValues ? 'logarithmic' : 'linear',
+                        stacked: false,
+                        scaleLabel: {
+                            display: true,
+                            labelString: useLogarithmicScale ? axisLabel + (percentageValues ? ' (Adjusted Scale)' : ' (Logarithmic Scale)') : axisLabel
+                        },
+                        ticks: {
+                            beginAtZero: !useLogarithmicScale || percentageValues,
+                            min: useLogarithmicScale && !percentageValues ? 1 : undefined,
+                            callback: function (value) {
+                                if (useLogarithmicScale && percentageValues) {
+                                    var actual = Number(value) === 0 ? 0 : (Number(value) < 0 ? -1 : 1) * (Math.pow(10, Math.abs(Number(value))) - 1);
+                                    if (Math.abs(actual) < 0.05) actual = 0;
+                                    return (actual > 0 ? '+' : '') + actual.toFixed(Math.abs(actual) < 10 ? 1 : 0) + '%';
+                                }
+                                if (useLogarithmicScale) {
+                                    var allowedTicks = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000, 5000000, 10000000];
+                                    return allowedTicks.indexOf(Number(value)) >= 0
+                                        ? (moneyValues ? compactMoney(value) : Number(value).toLocaleString('en-IN'))
+                                        : '';
+                                }
+                                if (percentageValues) return Number(value).toFixed(0) + '%';
+                                return moneyValues ? compactMoney(value) : Number(value).toLocaleString('en-IN');
+                            }
+                        }
+                    }]
+                }
+            }
+        });
     }
 
     function createTrendHeatmap(id, labels, model, metric, axisLabel, moneyValues, percentageValues) {
