@@ -372,9 +372,6 @@
             var month = $("#bda_month").val();
             var year = $("#bda_year").val();
 
-            month = 'June';
-            year = '2026';
-
             if (month === "") {
                 bdaNotify("Please select month.");
                 $("#bda_month").focus();

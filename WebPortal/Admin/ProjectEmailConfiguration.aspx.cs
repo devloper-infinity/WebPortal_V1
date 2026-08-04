@@ -124,6 +124,39 @@ namespace WebPortal.Admin
             return SerializeTable(SQLHelper.ExecuteDataTableCmd(command));
         }
 
+        [WebMethod]
+        public static ProjectEmailConfigurationResponse DeactivateProjectEmail(int configurationId, int projectId)
+        {
+            if (configurationId <= 0)
+            {
+                throw new ArgumentException("Invalid email configuration record.");
+            }
+
+            EnsureProjectAccess(projectId);
+            SqlCommand lookupCommand = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ProjectEmailConfiguration_GetByID");
+            AddIntParameter(lookupCommand, "@ConfigurationID", configurationId);
+            DataTable configuration = SQLHelper.ExecuteDataTableCmd(lookupCommand);
+
+            if (configuration == null || configuration.Rows.Count == 0 ||
+                Convert.ToInt32(configuration.Rows[0]["ProjectID"]) != projectId)
+            {
+                throw new ArgumentException("The selected email configuration was not found for this project.");
+            }
+
+            if (configuration.Columns.Contains("IsActive") &&
+                !Convert.ToBoolean(configuration.Rows[0]["IsActive"]))
+            {
+                return SuccessResponse("The email address is already inactive.", 0);
+            }
+
+            SqlCommand command = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ProjectEmailConfiguration_Deactivate");
+            AddIntParameter(command, "@ConfigurationID", configurationId);
+            AddIntParameter(command, "@UserID", CurrentEmployeeId());
+            SQLHelper.ExecuteNonQueryCmd(command);
+
+            return SuccessResponse("The email address was deactivated successfully.", 0);
+        }
+
         private static void EnsureOriginalConfigurationAccess(int configurationId)
         {
             SqlCommand command = SQLHelper.GetCommand(
@@ -142,10 +175,7 @@ namespace WebPortal.Admin
 
         private static XElement CreateEmailElement(ProjectEmailItem item)
         {
-            return new XElement(
-                "Email",
-                new XAttribute("ID", item.ConfigurationId),
-                new XAttribute("Type", item.EmailType),
+            return new XElement("Email", new XAttribute("ID", item.ConfigurationId), new XAttribute("Type", item.EmailType),
                 new XAttribute("Value", item.EmailAddress));
         }
 

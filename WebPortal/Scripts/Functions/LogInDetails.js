@@ -36,6 +36,9 @@ function New_BindLogGrid(date, PMCode) {
 
             $.each(dataArray, function (index, value) {
 
+                if (value.code === 'ZCM')
+                    alert(value.ACTIVE)
+
                 /* =========================
                    SAFE VALUES
                 ========================= */
@@ -102,7 +105,7 @@ function New_BindLogGrid(date, PMCode) {
 
                 if (allowedUsers.includes(pm_Code)) {
 
-                    if (activeValue === "Block") {
+                    if (activeValue === "Block" || activeValue === "Abscond") {
 
                         actionHtml += `
                             <a class="dropdown-item"

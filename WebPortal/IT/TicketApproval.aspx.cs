@@ -307,7 +307,7 @@ namespace WebPortal.IT
                 }
 
                 string Pass = new bllMaster().GetPassword("ackdata");
-                string BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                string BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                 MailMessage mail = new MailMessage();
                 mail.From = new MailAddress("ack@infinity-data.com", "Helpdesk Notifications", System.Text.Encoding.UTF8);
                 //mail.To.Add("b.shubhangi@infinityinternationals.us");

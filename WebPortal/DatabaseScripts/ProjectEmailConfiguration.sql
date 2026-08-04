@@ -171,6 +171,60 @@ BEGIN
 END;
 GO
 
+IF OBJECT_ID('dbo.usp_ProjectEmailConfiguration_Deactivate', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_ProjectEmailConfiguration_Deactivate;
+GO
+CREATE PROCEDURE dbo.usp_ProjectEmailConfiguration_Deactivate
+    @ConfigurationID int,
+    @UserID int
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @ProjectID int,
+            @EmailType nvarchar(2),
+            @EmailID nvarchar(254),
+            @ChangedDate datetime = GETDATE();
+
+    SELECT @ProjectID = ProjectID,
+           @EmailType = EmailType,
+           @EmailID = EmailID
+    FROM dbo.ProjectEmailConfiguration
+    WHERE ProjectEmailConfigurationID = @ConfigurationID
+      AND IsActive = 1;
+
+    IF @ProjectID IS NULL
+        THROW 50010, 'The selected email configuration is not active or was not found.', 1;
+
+    IF @EmailType = 'TO'
+       AND (SELECT COUNT(1)
+            FROM dbo.ProjectEmailConfiguration
+            WHERE ProjectID = @ProjectID AND EmailType = 'TO' AND IsActive = 1) <= 1
+        THROW 50011, 'At least one To email address must remain active for the project.', 1;
+
+    BEGIN TRANSACTION;
+
+    INSERT INTO dbo.ProjectEmailConfigurationHistory
+        (ProjectID, ProjectEmailConfigurationID, EmailType, PreviousEmailAddress,
+         NewEmailAddress, ActionType, ChangedBy, ChangedDateTime, PreviousStatus, NewStatus)
+    VALUES
+        (@ProjectID, @ConfigurationID, @EmailType, @EmailID,
+         NULL, 'Deactivate', @UserID, @ChangedDate, 1, 0);
+
+    UPDATE dbo.ProjectEmailConfiguration
+       SET IsActive = 0,
+           UpdatedBy = @UserID,
+           UpdatedDate = @ChangedDate
+    WHERE ProjectEmailConfigurationID = @ConfigurationID
+      AND IsActive = 1;
+
+    IF @@ROWCOUNT = 0
+        THROW 50012, 'The selected email configuration could not be deactivated.', 1;
+
+    COMMIT TRANSACTION;
+END;
+GO
+
 IF OBJECT_ID('dbo.usp_ProjectEmailConfiguration_Save', 'P') IS NOT NULL DROP PROCEDURE dbo.usp_ProjectEmailConfiguration_Save;
 GO
 CREATE PROCEDURE dbo.usp_ProjectEmailConfiguration_Save

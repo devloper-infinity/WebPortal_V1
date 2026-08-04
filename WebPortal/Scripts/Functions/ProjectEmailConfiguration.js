@@ -48,13 +48,35 @@
             Swal.fire({
                 icon: 'warning',
                 title: 'Deactivate Email?',
-                text: 'This email will be marked inactive when you save the configuration.',
+                text: 'This email will be marked inactive immediately.',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, remove it',
                 cancelButtonText: 'Keep Email',
                 confirmButtonColor: '#dc3545'
             }).then(function (result) {
-                if (result.isConfirmed) { removeRow(); }
+                if (!result.isConfirmed) { return; }
+
+                var projectId = getProjectIdForList($list);
+                showSaving('Deactivating Email', 'Please wait while the selected email is removed...');
+                callPageMethod('DeactivateProjectEmail', {
+                    configurationId: configurationId,
+                    projectId: projectId
+                })
+                    .done(function (response) {
+                        var resultData = response.d || {};
+                        if (!resultData.Success) {
+                            showMessage('error', 'Unable to Remove', resultData.Message || 'The email could not be removed.');
+                            return;
+                        }
+
+                        removeRow();
+                        loadConfigurations();
+                        if ($('#pecProject').val() === String(projectId)) {
+                            loadProjectEmails(projectId);
+                        }
+                        showMessage('success', 'Email Removed', resultData.Message || 'The email address was deactivated successfully.');
+                    })
+                    .fail(handleRequestError);
             });
         });
 
@@ -181,15 +203,18 @@
     }
 
     function loadConfigurations() {
-        callPageMethod('GetConfigurations', {})
-            .done(function (response) {
+        callPageMethod('GetConfigurations', {}).done(function (response) {
                 bindConfigurationTable(parseRows(response.d));
-            })
-            .fail(handleRequestError);
+            }).fail(handleRequestError);
     }
 
     function bindConfigurationTable(rows) {
+
+        console.log(rows);
+
         var groupedRows = groupConfigurationsByProject(rows);
+
+        console.log(groupedRows);
 
         if ($.fn.DataTable.isDataTable('#pecConfigurationTable')) {
             $('#pecConfigurationTable').DataTable().clear().destroy();
@@ -205,14 +230,15 @@
             order: [[0, 'asc']],
             language: { emptyTable: 'No email configurations found.', search: 'Search:' },
             columns: [
+                { data: null, orderable: false, searchable: false, className: 'text-center', render: renderProjectActions },
                 { data: 'ProjectID', render: function (value) { return encode(projectNames[String(value)] || value); } },
                 { data: 'ToEmails', orderable: false, render: function (records) { return renderEmailChips(records, 'TO'); } },
                 { data: 'CcEmails', orderable: false, render: function (records) { return renderEmailChips(records, 'CC'); } },
                 { data: 'AddedByDisplay', className: 'text-center', render: renderAuditValue },
                 { data: 'AddedDateDisplay', render: formatDateTime },
                 { data: 'UpdatedByDisplay', className: 'text-center', render: renderAuditValue },
-                { data: 'UpdatedDateDisplay', render: formatDateTime },
-                { data: null, orderable: false, searchable: false, className: 'text-center', render: renderProjectActions }
+                { data: 'UpdatedDateDisplay', render: formatDateTime }
+               
             ],
             columnDefs: [
                 { targets: 0, width: '135px' },
@@ -470,9 +496,22 @@
         if ($list.attr('id') === 'pecEditCcEmailList') { return 'edit-cc'; }
         return 'main';
     }
-    function callPageMethod(method, data) { return $.ajax({ type: 'POST', url: pageUrl + method, data: JSON.stringify(data || {}), contentType: 'application/json; charset=utf-8', dataType: 'json' }); }
+
+    function getProjectIdForList($list) {
+        var context = getListContext($list);
+        if (context === 'edit-to') { return parseInt($('#pecEditToProjectId').val(), 10); }
+        if (context === 'edit-cc') { return parseInt($('#pecEditCcProjectId').val(), 10); }
+        return parseInt($('#pecProject').val(), 10);
+    }
+    function callPageMethod(method, data)
+    {
+        return $.ajax({ type: 'POST', url: pageUrl + method, data: JSON.stringify(data || {}), contentType: 'application/json; charset=utf-8', dataType: 'json' });
+    }
+
     function parseRows(json) { return !json ? [] : (typeof json === 'string' ? JSON.parse(json) : json); }
+
     function isValidEmail(email) { return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email); }
+
     function renderAuditValue(value) { return value === null || value === undefined || value === '' ? '-' : encode(value); }
 
     function renderHistoryAction(value) {
@@ -499,13 +538,20 @@
         return match ? new Date(parseInt(match[1], 10)) : new Date(value);
     }
 
-    function getMonthName(index) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][index]; }
+    function getMonthName(index) { return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][index]; }
+
     function encode(value) { return $('<div>').text(value === null || value === undefined ? '' : String(value)).html(); }
+
     function setLoading(value) { $('#pecConfigurationCard').toggleClass('pec-loading', value); }
+
     function showStatus(message) { $('#pecStatus').css('display', 'inline-flex').find('span').text(message); }
+
     function clearStatus() { $('#pecStatus').hide().find('span').text(''); }
+
     function showSaving(title, text) { Swal.fire({ title: title, text: text, allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false, didOpen: function () { Swal.showLoading(); } }); }
+
     function showValidation(title, message, $focus) { showMessage('warning', title, message).then(function () { if ($focus && $focus.length) { $focus.focus(); } }); }
+
     function showMessage(icon, title, message) { return Swal.fire({ icon: icon, title: title, text: message, confirmButtonColor: '#0f8a7d' }); }
 
     function handleRequestError(xhr) {

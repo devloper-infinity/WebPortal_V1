@@ -41,7 +41,6 @@ function otherTask_Project(empID) {
 
 }
 
-
 function otherTask_bindProcess(el) {
 
     var projectId = $(el).val(); // get selected value
@@ -50,7 +49,7 @@ function otherTask_bindProcess(el) {
 
     $.ajax({
         type: "POST",
-        url: "DailyProductivity.aspx/GetProcess",
+        url: "OtherTask.aspx/GetProcessForOtherTask",
         data: JSON.stringify({ ProjectID: projectId }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -58,6 +57,9 @@ function otherTask_bindProcess(el) {
         success: function (response) {
 
             var data = response.d;
+
+            alert(data);
+
             var ddl = $('#otherTask_process');
 
             ddl.empty();
