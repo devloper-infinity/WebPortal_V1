@@ -18,6 +18,9 @@ namespace WebPortal.Search
         static int AddedBy;
         protected void Page_Load(object sender, EventArgs e)
         {
+            lbl_LoginPM.InnerText = EmployeeInfo.Current.IsPM.ToString();
+            hdnLoginPM.Value = EmployeeInfo.Current.IsPM.ToString();
+
             if (!string.IsNullOrWhiteSpace(Request.QueryString["downloadAttachment"]))
             {
                 DownloadCostingAttachment(Request.QueryString["downloadAttachment"]);

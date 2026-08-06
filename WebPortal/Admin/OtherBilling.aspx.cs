@@ -175,7 +175,7 @@ namespace WebPortal.Admin
                     {
                         ReturnValue = 1;
                         dtImport = null;
-                        ReturnValue = 10;// new bllMaster().InsertResearchBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        ReturnValue =  new bllMaster().InsertResearchBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                     }
                     else
                         ReturnValue = 0;
@@ -238,7 +238,7 @@ namespace WebPortal.Admin
                         ReturnValue = 1;
                         dtImport = null;
 
-                        ReturnValue = 10;//  new bllMaster().InsertRebuttalBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        ReturnValue = new bllMaster().InsertRebuttalBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                     }
                     else
                         ReturnValue = 0;

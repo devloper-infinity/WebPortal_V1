@@ -1733,16 +1733,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        //foreach (string snapshot in Snaps)
-                        //{
-                        //    if (snapshot != "")
-                        //    {
-                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                        //        picture.Height = 350;
-                        //        picture.Width = 350;
-                        //        ColCountPic = ColCountPic + 6;
-                        //    }
-                        //}
+                        foreach (string snapshot in Snaps)
+                        {
+                            if (snapshot != "")
+                            {
+                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                                picture.Height = 350;
+                                picture.Width = 350;
+                                ColCountPic = ColCountPic + 6;
+                            }
+                        }
 
                         rowCount = rowCount + 24;
                     }
@@ -2194,16 +2194,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        //foreach (string snapshot in Snaps)
-                        //{
-                        //    if (snapshot != "")
-                        //    {
-                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                        //        picture.Height = 350;
-                        //        picture.Width = 350;
-                        //        ColCountPic = ColCountPic + 6;
-                        //    }
-                        //}
+                        foreach (string snapshot in Snaps)
+                        {
+                            if (snapshot != "")
+                            {
+                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                                picture.Height = 350;
+                                picture.Width = 350;
+                                ColCountPic = ColCountPic + 6;
+                            }
+                        }
 
                         rowCount = rowCount + 24;
                     }

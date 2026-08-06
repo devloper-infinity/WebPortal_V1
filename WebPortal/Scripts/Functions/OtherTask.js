@@ -41,7 +41,7 @@ function otherTask_Project(empID) {
 
 }
 
-function otherTask_bindProcess(el) {
+function core_otherTask_bindProcess(el) {
 
     var projectId = $(el).val(); // get selected value
 
@@ -58,14 +58,16 @@ function otherTask_bindProcess(el) {
 
             var data = response.d;
 
-            alert(data);
-
             var ddl = $('#otherTask_process');
 
             ddl.empty();
             ddl.append('<option value="">-- Select Process --</option>');
 
+            alert(data);
+
             $.each(data, function (i, item) {
+
+                alert('message');
 
                 ddl.append('<option value="' + item.ProcessID + '">' + item.ProcessName + '</option>');
             });
@@ -76,6 +78,61 @@ function otherTask_bindProcess(el) {
     });
 }
 
+function otherTask_bindProcess(el) {
+    const projectId = $(el).val();
+    const $processDropdown = $('#otherTask_process');
+
+    $processDropdown
+        .empty()
+        .append('<option value="">-- Select Process --</option>');
+
+    if (!projectId) {
+        return;
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: 'OtherTask.aspx/GetProcessForOtherTask',
+        data: JSON.stringify({
+            ProjectID: parseInt(projectId, 10)
+        }),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+
+        success: function (response) {
+            let processes = response.d;
+
+            // ASP.NET may return serialized JSON inside response.d
+            if (typeof processes === 'string') {
+                try {
+                    processes = JSON.parse(processes);
+                } catch (error) {
+                    console.error('Invalid JSON returned:', processes);
+                    return;
+                }
+            }
+
+            if (!Array.isArray(processes)) {
+                console.error('Expected an array but received:', processes);
+                return;
+            }
+
+            const options = processes.map(function (item) {
+                return $('<option>', {
+                    value: item.ProcessID,
+                    text: item.ProcessName
+                });
+            });
+
+            $processDropdown.append(options);
+        },
+
+        error: function (xhr, status, error) {
+            console.error('Request failed:', status, error);
+            console.error(xhr.responseText);
+        }
+    });
+}
 
 /* ================= UPLOAD ================= */
 

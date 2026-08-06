@@ -496,15 +496,10 @@ function verifyBilling_addRemark(orderid, index) {
     $('#popUp_viewBilling_addRemark').modal('show');
 }
 
-function btnverfybilling_AddRemark() {
+function core_btnverfybilling_AddRemark() {
 
     var orderCost = $('#vrbil_orderCost').val();
     var remark = $('#vrbil_remark').val();
-
-    if (orderCost === "" || orderCost <= 0) {
-        alert("Please enter valid order cost");
-        return false;
-    }
 
     if (remark === "") {
         alert("Please enter remark");
@@ -540,6 +535,86 @@ function btnverfybilling_AddRemark() {
     });
 
     return false; // 🔥 VERY IMPORTANT: stops form submit
+}
+
+function btnverfybilling_AddRemark() {
+
+    var orderCost = $('#vrbil_orderCost').val();
+    var remark = $('#vrbil_remark').val().trim();
+
+    if (remark === "") {
+        Swal.fire({
+            icon: "warning",
+            title: "Remark Required",
+            text: "Please enter a remark.",
+            confirmButtonText: "OK"
+        });
+
+        $('#vrbil_remark').focus();
+        return false;
+    }
+
+    Swal.fire({
+        title: "Saving...",
+        text: "Please wait while the remark is being saved.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: "VerifyBilling.aspx/AddRemark_VerifyBilling",
+        data: JSON.stringify({
+            OrderID: remark_orderid,
+            OrderCost: orderCost,
+            Remark: remark
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (res) {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Remark added successfully!",
+                confirmButtonText: "OK"
+            }).then(() => {
+
+                // Clear fields
+                $('#vrbil_orderCost').val('');
+                $('#vrbil_remark').val('');
+
+                // Reset row formatting
+                $('#VerifyOrders_Search_Billing tr')
+                    .css({
+                        'background-color': '',
+                        'font-weight': 'normal'
+                    });
+
+                // Close modal
+                $('#popUp_viewBilling_addRemark').modal('hide');
+            });
+        },
+        error: function (xhr) {
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: xhr.responseJSON?.Message || xhr.responseText || "An error occurred while adding the remark.",
+                confirmButtonText: "OK"
+            });
+        }
+    });
+
+    return false;
 }
 
 function clearBillingFields() {

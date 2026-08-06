@@ -995,6 +995,11 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+
+    <label id="lbl_LoginPM" runat="server"   ClientIDMode="Static" hidden></label>
+      <asp:HiddenField ID="hdnLoginPM" runat="server" />
+
+
     <div class="costing-page">
         <div class="loading" id="load1">
             <div class="costing-loader-content">

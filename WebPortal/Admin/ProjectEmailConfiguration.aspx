@@ -5,7 +5,6 @@
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <style>
         .pec-page {
-            padding: 18px;
             color: #172033;
         }
 

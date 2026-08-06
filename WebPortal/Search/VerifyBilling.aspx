@@ -338,13 +338,33 @@
             line-height: 1.15;
         }
 
-        .summary-metric.received { --metric-color: #2563eb; }
-        .summary-metric.dispatch { --metric-color: #059669; }
-        .summary-metric.cancel { --metric-color: #dc2626; }
-        .summary-metric.hold { --metric-color: #d97706; }
-        .summary-metric.pending-search { --metric-color: #7c3aed; }
-        .summary-metric.pending-typing { --metric-color: #0891b2; }
-        .summary-metric.pending-tax { --metric-color: #db2777; }
+        .summary-metric.received {
+            --metric-color: #2563eb;
+        }
+
+        .summary-metric.dispatch {
+            --metric-color: #059669;
+        }
+
+        .summary-metric.cancel {
+            --metric-color: #dc2626;
+        }
+
+        .summary-metric.hold {
+            --metric-color: #d97706;
+        }
+
+        .summary-metric.pending-search {
+            --metric-color: #7c3aed;
+        }
+
+        .summary-metric.pending-typing {
+            --metric-color: #0891b2;
+        }
+
+        .summary-metric.pending-tax {
+            --metric-color: #db2777;
+        }
 
         .summary-empty {
             display: flex;
@@ -481,7 +501,7 @@
                 border-color: var(--order-primary);
             }
 
-        #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label::after {
+                #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label::after {
                     content: "\2713";
                     color: #fff;
                     font-size: 13px;
@@ -573,7 +593,7 @@
 
                 #VerifyOrders_Search_Billing_wrapper table.dataTable thead th {
                     height: 42px;
-                  /*  padding: 9px 10px !important;*/
+                    /*  padding: 9px 10px !important;*/
                     color: #17413e;
                     background: #eaf4f3 !important;
                     background-image: none !important;
@@ -587,52 +607,52 @@
                     white-space: nowrap;
                 }
 
-            #VerifyOrders_Search_Billing tbody td {
-                padding: 9px 10px !important;
-                color: #334155;
-                background: #ffffff;
-                border-right: 1px solid #edf2f5;
-                border-bottom: 1px solid #e7edf1;
-                font-size: 11px;
-                vertical-align: middle;
-                white-space: nowrap;
+        #VerifyOrders_Search_Billing tbody td {
+            padding: 9px 10px !important;
+            color: #334155;
+            background: #ffffff;
+            border-right: 1px solid #edf2f5;
+            border-bottom: 1px solid #e7edf1;
+            font-size: 11px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        #VerifyOrders_Search_Billing tbody tr:nth-child(even) td {
+            background: #f8fafb;
+        }
+
+        #VerifyOrders_Search_Billing tbody tr:hover td {
+            background: #eef8f6;
+        }
+
+        #VerifyOrders_Search_Billing tbody tr.selected-row td {
+            background: #dff3ef !important;
+        }
+
+        #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody {
+            min-height: 0 !important;
+            scrollbar-color: #94a3b8 #edf2f5;
+            scrollbar-width: thin;
+        }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
             }
 
-            #VerifyOrders_Search_Billing tbody tr:nth-child(even) td {
-                background: #f8fafb;
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
+                background: #edf2f5;
             }
 
-            #VerifyOrders_Search_Billing tbody tr:hover td {
-                background: #eef8f6;
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
+                background: #94a3b8;
+                border-radius: 999px;
             }
 
-            #VerifyOrders_Search_Billing tbody tr.selected-row td {
-                background: #dff3ef !important;
-            }
-
-            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody {
-                min-height: 0 !important;
-                scrollbar-color: #94a3b8 #edf2f5;
-                scrollbar-width: thin;
-            }
-
-                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar {
-                    width: 8px;
-                    height: 8px;
-                }
-
-                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
-                    background: #edf2f5;
-                }
-
-                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
-                    background: #94a3b8;
-                    border-radius: 999px;
-                }
-
-            #VerifyOrders_Search_Billing_wrapper .dataTables_paginate {
-                padding-top: 10px;
-            }
+        #VerifyOrders_Search_Billing_wrapper .dataTables_paginate {
+            padding-top: 10px;
+        }
 
         .modal-content {
             border: 0;
@@ -686,110 +706,108 @@
 
     <style>
         .account-mail-loader {
-    padding: 8px 15px 5px;
-    text-align: center;
-}
+            padding: 8px 15px 5px;
+            text-align: center;
+        }
 
-.mail-icon-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 78px;
-    height: 78px;
-    margin-bottom: 14px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    color: #2563eb;
-    font-size: 30px;
-    overflow: hidden;
-}
+        .mail-icon-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 78px;
+            height: 78px;
+            margin-bottom: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            color: #2563eb;
+            font-size: 30px;
+            overflow: hidden;
+        }
 
-.mail-send-animation {
-    position: absolute;
-    right: -18px;
-    width: 22px;
-    height: 3px;
-    border-radius: 10px;
-    background: #2563eb;
-    box-shadow:
-        0 -8px 0 rgba(37, 99, 235, 0.55),
-        0 8px 0 rgba(37, 99, 235, 0.35);
-    animation: sendMailLine 1.2s infinite ease-in-out;
-}
+        .mail-send-animation {
+            position: absolute;
+            right: -18px;
+            width: 22px;
+            height: 3px;
+            border-radius: 10px;
+            background: #2563eb;
+            box-shadow: 0 -8px 0 rgba(37, 99, 235, 0.55), 0 8px 0 rgba(37, 99, 235, 0.35);
+            animation: sendMailLine 1.2s infinite ease-in-out;
+        }
 
-.mail-project-name {
-    margin-bottom: 6px;
-    color: #111827;
-    font-size: 15px;
-    font-weight: 700;
-}
+        .mail-project-name {
+            margin-bottom: 6px;
+            color: #111827;
+            font-size: 15px;
+            font-weight: 700;
+        }
 
-.mail-status-text {
-    margin-bottom: 16px;
-    color: #6b7280;
-    font-size: 13px;
-}
+        .mail-status-text {
+            margin-bottom: 16px;
+            color: #6b7280;
+            font-size: 13px;
+        }
 
-.mail-progress {
-    width: 100%;
-    height: 6px;
-    overflow: hidden;
-    border-radius: 20px;
-    background: #e5e7eb;
-}
+        .mail-progress {
+            width: 100%;
+            height: 6px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #e5e7eb;
+        }
 
-.mail-progress-bar {
-    width: 35%;
-    height: 100%;
-    border-radius: 20px;
-    background: linear-gradient(90deg, #2563eb, #60a5fa);
-    animation: mailProgress 1.4s infinite ease-in-out;
-}
+        .mail-progress-bar {
+            width: 35%;
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #2563eb, #60a5fa);
+            animation: mailProgress 1.4s infinite ease-in-out;
+        }
 
-.email-success-details {
-    padding: 5px 10px;
-    text-align: left;
-    color: #374151;
-    font-size: 14px;
-    line-height: 1.8;
-}
+        .email-success-details {
+            padding: 5px 10px;
+            text-align: left;
+            color: #374151;
+            font-size: 14px;
+            line-height: 1.8;
+        }
 
-.success-note {
-    margin-top: 12px;
-    padding: 12px;
-    border: 1px solid #bbf7d0;
-    border-radius: 8px;
-    background: #f0fdf4;
-    color: #166534;
-    line-height: 1.5;
-}
+        .success-note {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            background: #f0fdf4;
+            color: #166534;
+            line-height: 1.5;
+        }
 
-@keyframes sendMailLine {
-    0% {
-        opacity: 0;
-        transform: translateX(-15px);
-    }
+        @keyframes sendMailLine {
+            0% {
+                opacity: 0;
+                transform: translateX(-15px);
+            }
 
-    50% {
-        opacity: 1;
-    }
+            50% {
+                opacity: 1;
+            }
 
-    100% {
-        opacity: 0;
-        transform: translateX(35px);
-    }
-}
+            100% {
+                opacity: 0;
+                transform: translateX(35px);
+            }
+        }
 
-@keyframes mailProgress {
-    0% {
-        margin-left: -35%;
-    }
+        @keyframes mailProgress {
+            0% {
+                margin-left: -35%;
+            }
 
-    100% {
-        margin-left: 100%;
-    }
-}
+            100% {
+                margin-left: 100%;
+            }
+        }
     </style>
 
     <script>
@@ -931,25 +949,7 @@
                                 </tr>
                             </thead>
                             <tbody></tbody>
-                            <%--<tfoot>
-                            <tr>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                            </tr>
-                        </tfoot>--%>
                         </table>
-
                     </div>
                 </div>
             </div>

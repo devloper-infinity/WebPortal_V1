@@ -36,9 +36,6 @@ function New_BindLogGrid(date, PMCode) {
 
             $.each(dataArray, function (index, value) {
 
-                if (value.code === 'ZCM')
-                    alert(value.ACTIVE)
-
                 /* =========================
                    SAFE VALUES
                 ========================= */

@@ -4,7 +4,7 @@ var costingState = {
     selectedData: null,
     productionTable: null,
     abstractorTable: null,
-    initialized: false
+    initialized: false,
 };
 
 function Costing_InitPage(orderId) {
@@ -17,6 +17,9 @@ function Costing_InitPage(orderId) {
     bindCostingEvents();
     initializeCostingTables();
     resetCostingPage(true);
+
+    alert(costingState.selectedOrderId);
+
     loadCostingOrders(costingState.selectedOrderId);
 }
 
@@ -94,41 +97,133 @@ function loadCostingOrders(selectedOrderId) {
     showCostingLoader(true);
     clearCostingMessage();
 
-    costingAjax('GetOrders', {})
-        .done(function (result) {
+    IsPM_loginID = String($("[id$='hdnLoginPM']").val() || "");
+    console.log(IsPM_loginID);
+
+    if (IsPM_loginID === "False") {
+        alert('1');
+
+        costingAjax('GetOrders', {}).done(function (result) {
+
             var response = parseCostingResponse(result);
+
             if (!response.Success) {
                 showCostingMessage('danger', response.Message || 'Unable to load orders.');
                 return;
             }
 
             costingState.orders = response.Orders || [];
+
+            alert(costingState.orders);
+
             fillOrderDropDown(costingState.orders);
 
             if (selectedOrderId > 0) {
+
                 var selectedValue = String(selectedOrderId);
+
                 if ($('#ddlOrder option[value="' + selectedValue + '"]').length === 0) {
                     costingState.selectedOrderId = 0;
                     showCostingMessage('warning', 'The selected order is not available for the current user.');
                     return;
                 }
-
                 $('#ddlOrder').val(selectedValue);
                 orderIdToLoad = selectedOrderId;
             }
         })
+            .fail(function (error) {
+                showCostingAjaxError(error, 'Unable to load orders.');
+            })
+            .always(function () {
+                showCostingLoader(false);
+                if (orderIdToLoad > 0) {
+                    loadOrderCosting(orderIdToLoad);
+                }
+            });
+    }
+    else if (IsPM_loginID === "True") {
+        alert('2');
+        alert($('#ddlOrder').val(selectedValue));
+        $('#ddlOrder').val(selectedValue);
+        orderIdToLoad = selectedOrderId;
+
+    }
+    else {
+        alert('3');
+        showCostingAjaxError(error, 'Unable to load orders.');
+    }
+
+}
+
+function loadCostingOrders(selectedOrderId) {
+    var orderId = parseInt(selectedOrderId, 10) || 0;
+
+    clearCostingMessage();
+
+    if (orderId <= 0) {
+        costingState.selectedOrderId = 0;
+        resetCostingPage(false);
+        showCostingMessage('warning', 'Invalid order ID.');
+        return;
+    }
+
+    costingState.selectedOrderId = orderId;
+
+    // Directly bind the redirected Order ID to the dropdown.
+    // Temporary text is used until the order details are loaded.
+    $('#ddlOrder').html(
+        '<option value="' + htmlEncode(orderId) + '" selected>' +
+        htmlEncode(orderId) +
+        '</option>'
+    );
+
+    showCostingLoader(true);
+
+    costingAjax('LoadOrderCosting', { OrderID: orderId })
+        .done(function (result) {
+            var response = parseCostingResponse(result);
+
+            if (!response.Success) {
+                showCostingMessage(
+                    'danger',
+                    response.Message || 'Unable to load costing details.'
+                );
+                resetCostingPage(true);
+                return;
+            }
+
+            var data = response.Data || {};
+            var order = data.Order || {};
+
+            // Use the returned order information as the dropdown text.
+            var orderText =
+                getValue(
+                    order,
+                    'ClientOrderNo',
+                    'OrderNumber',
+                    'ProjectNumber',
+                    'Project'
+                ) || String(orderId);
+
+            $('#ddlOrder').html(
+                '<option value="' + htmlEncode(orderId) + '" selected>' +
+                htmlEncode(orderText) +
+                '</option>'
+            );
+
+            // This binds the summary-grid and all costing information.
+            applyCostingData(data);
+        })
         .fail(function (error) {
-            showCostingAjaxError(error, 'Unable to load orders.');
+            showCostingAjaxError(error, 'Unable to load costing details.');
+            resetCostingPage(true);
         })
         .always(function () {
             showCostingLoader(false);
-            if (orderIdToLoad > 0) {
-                loadOrderCosting(orderIdToLoad);
-            }
         });
 }
 
-function loadOrderCosting(orderId) {
+function Core_loadOrderCosting(orderId) {
     showCostingLoader(true);
     clearCostingMessage();
 
