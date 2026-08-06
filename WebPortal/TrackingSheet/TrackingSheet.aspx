@@ -81,6 +81,8 @@
         }
     </style>
 
+   <%-- <script src="OLTracking.js"></script>--%>
+   <%-- <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>--%>
     <script src="OLTracking.js"></script>
     <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>
 </asp:Content>
@@ -157,10 +159,10 @@
                 <div class="olt-card-body">
                     <div class="olt-form">
                         <div class="olt-field">
-                            <label>From date</label><input id="fromDate" type="date" />
+                            <label>From date</label><input id="trackNew_fromDate" type="date" />
                         </div>
                         <div class="olt-field">
-                            <label>To date</label><input id="toDate" type="date" />
+                            <label>To date</label><input id="trackNew_toDate" type="date" />
                         </div>
                         <div class="olt-field">
                             <label>Month</label><input id="monthFilter" type="month" onchange="applyMonth()" />
