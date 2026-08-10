@@ -782,12 +782,18 @@
                                             </div>
                                             <div class="vm-col-12 vm-field">
                                                 <label>Product Type</label><div class="vm-check-row">
-                                                    <label><input type="checkbox" value="Current Owner" /><b>Current Owner</b></label>
-                                                    <label><input type="checkbox" value="Two Owner" /><b>Two Owner</b></label>
-                                                    <label><input type="checkbox" value="L&V" /><b>L&V</b></label>
-                                                    <label><input type="checkbox" value="Full Search" /><b>Full Search</b></label>
-                                                    <label><input type="checkbox" value="Document Request" /><b>Document Request</b></label>
-                                                    <label><input type="checkbox" value="Other" /><b>Other</b></label>
+                                                    <label>
+                                                        <input type="checkbox" value="Current Owner" /><b>Current Owner</b></label>
+                                                    <label>
+                                                        <input type="checkbox" value="Two Owner" /><b>Two Owner</b></label>
+                                                    <label>
+                                                        <input type="checkbox" value="L&V" /><b>L&V</b></label>
+                                                    <label>
+                                                        <input type="checkbox" value="Full Search" /><b>Full Search</b></label>
+                                                    <label>
+                                                        <input type="checkbox" value="Document Request" /><b>Document Request</b></label>
+                                                    <label>
+                                                        <input type="checkbox" value="Other" /><b>Other</b></label>
                                                 </div>
                                             </div>
                                         </div>

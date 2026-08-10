@@ -1161,7 +1161,7 @@
                                 <span>Current Status</span>
                                 <strong id="ChangeStatus_CurrentStatus">-</strong>
                             </div>
-                        </div>
+                        </div>        
 
                         <div class="tracking-status-grid">
                             <div class="form-group tracking-edit-field tracking-status-field-wide">
