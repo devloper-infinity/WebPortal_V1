@@ -157,20 +157,21 @@ namespace WebPortal.Search
 
             string[] arr_OrderiDS = OrderIDs.Split(',');
 
-            foreach (string orderId in arr_OrderiDS)
-            {
-                string id = orderId.Trim(); // remove spaces if any
+            //foreach (string orderId in arr_OrderiDS)
+            //{
+            //    string id = orderId.Trim(); // remove spaces if any
 
-                returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark);
-            }
+            //    returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark);
+            //}
 
+            returnValue = 10;
             return returnValue;
         }
 
         [WebMethod]
-        public static int AddRemark_VerifyBilling(int OrderID, string OrderCost, string Remark, bool IsMailInput, decimal CostDiff, string EmailInput)
+        public static int AddRemark_VerifyBilling(int OrderID, string OrderCost, string Remark)
         {
-            int returnValue = 10;// new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
+            int returnValue = new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
 
             return returnValue;
         }
@@ -182,6 +183,8 @@ namespace WebPortal.Search
             int returnValue = 0;
 
             DataTable dt = new bllOST().GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
+
+            //SendClientBillingOrdersTyping(dtRecords, dtSummary, ProjectNo, "Search Typing");
 
             // returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, "735", "Search Typing", "26-Jul-2026 ~ 31-Jul-2026");
 

@@ -205,28 +205,6 @@ namespace WebPortal.Admin
             return 1;
         }
 
-
-        [WebMethod]
-        public static string GetProcessForOtherTask(int ProjectID)
-        {
-            DataTable dt1 = new bllMaster().GetProcessForOtherTask(ProjectID);
-            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            Dictionary<string, object> row;
-            foreach (DataRow dr in dt1.Rows)
-            {
-                row = new Dictionary<string, object>();
-                foreach (DataColumn col in dt1.Columns)
-                {
-                    row.Add(col.ColumnName, dr[col]);
-                }
-                rows.Add(row);
-            }
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            ser.MaxJsonLength = int.MaxValue;
-            return ser.Serialize(rows);
-        }
-
-
         [WebMethod]
         public static string Core_CheckOtherTaskExistsOrNot(string Project, string Process)
         {

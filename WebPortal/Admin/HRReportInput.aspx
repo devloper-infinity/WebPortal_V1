@@ -974,8 +974,6 @@
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -1078,29 +1076,44 @@
                                     </div>
 
                                     <div class="col-md-4">
-                                     
-                                        <label class="form-label" for="socialsite_attachment">
-                                            <b>Attachment:</b>
-                                        </label>
+                                        <label class="form-label"><b>Attachment:</b></label>
+                                        <input type="file" id="socialsite_attachment" name="socialsite_attachment" class="form-control" />
 
-                                        <div class="upload-box" id="dropzone">
-                                            <input type="file"
-                                                id="socialsite_attachment"
-                                                name="socialsite_attachment"
-                                                class="upload-input"
-                                                multiple />
+                                        <div class="dropzone dropzone-multiple p-0 dz-clickable dz-file-processing dz-file-complete mt-2" id="dropzone">
+                                            <div class="dz-preview dz-preview-multiple m-0 d-flex flex-column"
+                                                id="conentdiv"
+                                                style="display: none!important;">
+                                                <div class="flex-1 d-flex flex-between-center">
+                                                    <div id="filesdiv" style="margin-top: 10px; margin-bottom: 10px;"></div>
 
-                                            <div class="upload-placeholder">
-                                                <div class="upload-icon">⇧</div>
-                                                <div class="fw-semibold">Drag and drop files here</div>
-                                                <div class="text-muted small">
-                                                    or click to browse
+                                                    <div class="dropdown font-sans-serif">
+                                                        <button class="btn btn-link text-600 btn-sm dropdown-toggle btn-reveal dropdown-caret-none"
+                                                            type="button"
+                                                            data-bs-toggle="dropdown"
+                                                            aria-haspopup="true"
+                                                            aria-expanded="false">
+                                                            <svg class="svg-inline--fa fa-ellipsis"
+                                                                style="display: none!important"
+                                                                aria-hidden="true"
+                                                                focusable="false"
+                                                                data-prefix="fas"
+                                                                data-icon="ellipsis"
+                                                                role="img"
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                viewBox="0 0 448 512">
+                                                                <path fill="currentColor"
+                                                                    d="M120 256C120 286.9 94.93 312 64 312C33.07 312 8 286.9 8 256C8 225.1 33.07 200 64 200C94.93 200 120 225.1 120 256zM280 256C280 286.9 254.9 312 224 312C193.1 312 168 286.9 168 256C168 225.1 193.1 200 224 200C254.9 200 280 225.1 280 256zM328 256C328 225.1 353.1 200 384 200C414.9 200 440 225.1 440 256C440 286.9 414.9 312 384 312C353.1 312 328 286.9 328 256z">
+                                                                </path>
+                                                            </svg>
+                                                        </button>
+
+                                                        <div class="dropdown-menu dropdown-menu-end border py-2">
+                                                            <a class="dropdown-item" href="#!" data-dz-remove="data-dz-remove">Remove File
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div id="conentdiv" class="mt-3" style="display: none;">
-                                            <div id="filesdiv"></div>
                                         </div>
                                     </div>
                                     <div class="col-md-12 text-center mt-3">
@@ -1115,8 +1128,6 @@
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 20%;">Name</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 20%;">Site Visited</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 20%;">Date Visited</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 20%;">Month</th>
-                                            <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 20%;">Year</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap; width: 20%;">Attachment</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Attachment</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">FileName</th>
@@ -1357,97 +1368,6 @@
         </div>
         <!-- /.modal-dialog -->
     </div>
-
-    <style>
-        .upload-box {
-            position: relative;
-           /* min-height: 150px;*/
-            padding: 30px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            background: #f8fafc;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-            .upload-box:hover,
-            .upload-box.drag-over {
-                border-color: #0d6efd;
-                background: #eef6ff;
-            }
-
-        .upload-input {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .upload-placeholder {
-            pointer-events: none;
-        }
-
-        .upload-icon {
-            width: 48px;
-            height: 48px;
-            margin: 0 auto 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: #e7f1ff;
-            color: #0d6efd;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .upload-file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            background: #fff;
-        }
-
-        .upload-file-info {
-            min-width: 0;
-            text-align: left;
-        }
-
-        .upload-file-name {
-            max-width: 500px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-weight: 600;
-        }
-
-        .upload-file-size {
-            color: #6c757d;
-            font-size: 12px;
-        }
-
-        .upload-remove {
-            border: 0;
-            border-radius: 7px;
-            padding: 5px 10px;
-            color: #dc3545;
-            background: #fff0f1;
-            cursor: pointer;
-        }
-
-            .upload-remove:hover {
-                background: #dc3545;
-                color: #fff;
-            }
-    </style>
 </asp:Content>
 
 

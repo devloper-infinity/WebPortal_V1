@@ -368,3 +368,6 @@ FodyWeavers.xsd
 /WebPortal/Accounts/IncrementReport.aspx
 /WebPortal/Accounts/IncrementReport.aspx.cs
 /WebPortal/Scripts/Reports/MonthlyIncrements.js
+/WebPortal
+/WebPortal/Admin/BranchAndDateWiseAttendanceReport.aspx
+/WebPortal/Admin/HRReportInput.aspx

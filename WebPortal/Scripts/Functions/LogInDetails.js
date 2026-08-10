@@ -102,7 +102,7 @@ function New_BindLogGrid(date, PMCode) {
 
                 if (allowedUsers.includes(pm_Code)) {
 
-                    if (activeValue === "Block" || activeValue === "Abscond") {
+                    if (activeValue === "Block") {
 
                         actionHtml += `
                             <a class="dropdown-item"

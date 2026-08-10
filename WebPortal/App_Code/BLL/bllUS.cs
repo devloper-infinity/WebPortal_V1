@@ -91,6 +91,20 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.getLoansForGlobalSearch(EmployeeID);
         }
+        public DataSet getLoansForGlobalSearch_Canopy(int EmployeeID)
+        {
+            return dalUS.getLoansForGlobalSearch_Canopy(EmployeeID);
+        }
+
+        public DataTable GetCanopySearchProcessStatuses()
+        {
+            return dalUS.GetCanopySearchProcessStatuses();
+        }
+
+        public bool CanStartCanopyLoan(string DealNo, string LoanNo, string Script, int EmployeeID)
+        {
+            return dalUS.CanStartCanopyLoan(DealNo, LoanNo, Script, EmployeeID);
+        }
 
         public DataTable GetGlobalSearchReQcStatuses(IEnumerable<string> loanNumbers)
         {
@@ -101,10 +115,19 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.GetLoanDetailsbyLoanNo(DealNo, LoanNo);
         }
+        public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script)
+        {
+            return dalUS.GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script);
+        }
 
         public DataTable GetATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID)
         {
             return dalUS.GetATRDetailsbyLoanNo(DealNo, LoanNo, Type, ProcessID);
+        }
+
+        public DataTable GetCanopyATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID, string Script)
+        {
+            return dalUS.GetCanopyATRDetailsbyLoanNo(DealNo, LoanNo, Type, ProcessID, Script);
         }
 
         public DataTable GetAllProjectByUserRights(string EmployeeID)
@@ -166,9 +189,19 @@ namespace WebPortal.App_Code.BLL
             return dalUS.InsertOnShoreUSFeedbacks(htParam);
         }
 
+        public int InsertOnShoreUSFeedbacksCanopy(Hashtable htParam)
+        {
+            return dalUS.InsertOnShoreUSFeedbacksCanopy(htParam);
+        }
+
         public int InsertOnShoreUSATRFeedbacks(Hashtable htParam)
         {
             return dalUS.InsertOnShoreUSATRFeedbacks(htParam);
+        }
+
+        public int InsertOnShoreUSATRFeedbacksCanopy(Hashtable htParam)
+        {
+            return dalUS.InsertOnShoreUSATRFeedbacksCanopy(htParam);
         }
         public int InsertOnShoreProduction(Hashtable htParam)
         {

@@ -46,6 +46,10 @@ function us_getFeedbackReturnUrl(defaultUrl) {
         return "GlobalSearch.aspx";
     }
 
+    if (payload && payload.src == "CanopySearch") {
+        return "CanopySearch.aspx";
+    }
+
     if (payload && payload.src == "MyQueue") {
         return "MyQueue.aspx";
     }
@@ -55,6 +59,57 @@ function us_getFeedbackReturnUrl(defaultUrl) {
     }
 
     return defaultUrl;
+}
+
+function us_getFeedbackDetailsEndpoint(methodName) {
+    var currentPage = window.location.pathname.split('/').pop();
+    var detailsPage = currentPage === "FeedbackCanopyDetails.aspx"
+        ? "FeedbackCanopyDetails.aspx"
+        : "FeedbackDetails.aspx";
+
+    return detailsPage + "/" + methodName;
+}
+
+function usfeedback_isCanopyPage() {
+    return window.location.pathname.split('/').pop() === "FeedbackCanopyDetails.aspx";
+}
+
+function usfeedback_pageId(id) {
+    if (!usfeedback_isCanopyPage()) return id;
+
+    if (id.indexOf("usfeedback_") === 0) {
+        return id.replace("usfeedback_", "canopyfeedback_");
+    }
+
+    return "canopyfeedback_" + id;
+}
+
+function usfeedback_getElement(id) {
+    return document.getElementById(usfeedback_pageId(id));
+}
+
+function usfeedback_select(id) {
+    return $("#" + usfeedback_pageId(id));
+}
+
+function canopyfeedback_getLoggedInUserDetails() {
+    return GetLoggedInUserDetails();
+}
+
+function canopyfeedback_bindLoanDetails() {
+    return bindloanDetails_feedback();
+}
+
+function canopyfeedback_getTaskwiseDetails(ddl) {
+    return getTaskwiseDetails(ddl);
+}
+
+function canopyfeedback_submit() {
+    return usfeedback_submit();
+}
+
+function canopyfeedback_completeLoan() {
+    return usfeedback_completeLoan();
 }
 
 function BindUSLoanDetails_Grid() {
@@ -667,6 +722,24 @@ function us_globalSearchReQcColumn() {
     };
 }
 
+function us_canopyProcessStatusColumn() {
+    return {
+        data: null,
+        title: 'Process Status',
+        className: 'reqc-cell',
+        render: function (data, type, row) {
+            var status = row._ProcessStatus || 'Not Started';
+            var process = row._ProcessName || row.Process || '';
+            var employee = row._ProcessEmployeeName || '';
+            var date = us_globalSearchReQcDate(row._ProcessStatusDate || '');
+            if (type !== 'display') return status + (process ? ' - ' + process : '') + (employee ? ' - ' + employee : '') + (date ? ' - ' + date : '');
+            if (status === 'Completed') return '<span class="reqc-pill reqc-completed" title="This process has been completed"><i class="fas fa-check-circle"></i> Completed</span>' + (process || employee || date ? '<span class="reqc-detail">' + (process ? '<strong>' + us_globalSearchEscape(process) + '</strong><br>' : '') + (employee ? 'Completed by ' + us_globalSearchEscape(employee) : 'Completed') + (date ? ' &bull; ' + us_globalSearchEscape(date) : '') + '</span>' : '');
+            if (status === 'Started') return '<span class="reqc-pill reqc-assigned" title="This process has been started"><i class="fas fa-user-clock"></i> Started</span>' + (process || employee || date ? '<span class="reqc-detail">' + (process ? '<strong>' + us_globalSearchEscape(process) + '</strong><br>' : '') + (employee ? 'Started by ' + us_globalSearchEscape(employee) : 'In progress') + (date ? ' &bull; ' + us_globalSearchEscape(date) : '') + '</span>' : '');
+            return '<span class="reqc-pill reqc-not-assigned" title="No production tracking record was found"><i class="far fa-circle"></i> Not Started</span>';
+        }
+    };
+}
+
 function us_getloansforglobalsearch() {
     $('#load1').show();
     var columns = [];
@@ -761,6 +834,292 @@ function us_getloansforglobalsearch() {
     return false;
 }
 
+function us_getloansforglobalsearchCanopy_OLD() {
+    $('#load1').show();
+    var columns = [];
+    $.ajax({
+        url: "CanopySearch.aspx/getLoansForGlobalSearch",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);
+
+            if (!dataArray || dataArray.length === 0) {
+                if ($.fn.DataTable.isDataTable('#usglobalsearchcanopy_table')) {
+                    $('#usglobalsearchcanopy_table').DataTable().clear().destroy();
+                }
+
+                $('#load1').hide();
+                return false;
+            }
+
+            var reQcColumnAdded = false;
+            $.each(dataArray[0], function (key, value) {
+                if (key.indexOf('_ReQC') === 0) return;
+                var my_item = {};
+                my_item.data = key;
+                my_item.title = key;
+                console.log(my_item.title);
+                columns.push(my_item);
+                var normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                //  if (!reQcColumnAdded && (normalizedKey === 'loanno' || normalizedKey === 'loannumber' || normalizedKey === 'ordernumber')) { columns.push(us_globalSearchReQcColumn()); reQcColumnAdded = true; }
+            });
+
+            //if (!reQcColumnAdded) columns.push(us_globalSearchReQcColumn());
+
+            columns.push({
+                data: null,
+                title: "Action",
+                orderable: false,
+                searchable: false,
+                render: function () {
+                    return '<button type="button" class="btn btn-sm btn-primary view-btn">Start</button>';
+                }
+            });
+
+            $('#usglobalsearchcanopy_table').DataTable({
+                dom: 'lBftip',
+                destroy: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: true,
+                "paging": true,
+                "autoWidth": true,
+                select: true,
+                "ordering": false,
+                processing: true,
+                filter: true,
+                'select': {
+                    'style': 'single'
+                },
+                "serverSide": false,
+                "data": dataArray,
+                columns: columns,
+                fnCreatedRow: function (nRow, aData, iDataIndex) {
+                    $(nRow).children("td").css("text-wrap", "nowrap");
+                },
+
+                initComplete: function () {
+                    $('#load1').hide();
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5', title: 'Summary Report', autoFilter: true,
+                    },
+                ],
+            });
+
+            $('#usglobalsearchcanopy_table tbody')
+                .off('click', '.view-btn')
+                .on('click', '.view-btn', function () {
+                    var table = $('#usglobalsearchcanopy_table').DataTable();
+                    var rowData = table.row($(this).closest('tr')).data();
+
+                    return us_startGlobalSearchLoan(this, rowData, "FeedbackCanopyDetails.aspx", "CanopySearch");
+                });
+        },
+
+        error: function (error) {
+            alert('error; ' + eval(error));
+            alert('error; ' + error.responseText);
+        }
+    });
+
+    return false;
+}
+
+function us_getloansforglobalsearchCanopy() {
+
+    $('#load1').show();
+
+    console.time('TotalLoad');
+
+    $.ajax({
+        url: "CanopySearch.aspx/getLoansForGlobalSearch",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+
+        success: function (data) {
+
+
+            var dataArray = typeof data.d === "string"
+                ? JSON.parse(data.d)
+                : data.d;
+
+
+            if (!dataArray || dataArray.length === 0) {
+
+                if ($.fn.DataTable.isDataTable('#usglobalsearchcanopy_table')) {
+                    $('#usglobalsearchcanopy_table')
+                        .DataTable()
+                        .clear()
+                        .destroy();
+                }
+
+                $('#load1').hide();
+
+
+                return false;
+            }
+
+
+            if ($.fn.DataTable.isDataTable('#usglobalsearchcanopy_table')) {
+                $('#usglobalsearchcanopy_table')
+                    .DataTable()
+                    .clear()
+                    .destroy();
+            }
+
+            $('#usglobalsearchcanopy_table').empty();
+
+            $('#usglobalsearchcanopy_table').DataTable({
+
+                data: dataArray,
+
+                /*
+                 * Define ONLY required columns.
+                 */
+                columns: [
+                    {
+                        data: 'Client',
+                        title: 'Project'
+                    },
+                    {
+                        data: 'ClientName',
+                        title: 'Client'
+                    },
+                    {
+                        data: 'Loan #',
+                        title: 'Loan #'
+                    },
+                    {
+                        data: 'Order Date',
+                        title: 'Order Date'
+                    },
+                    {
+                        data: 'Script',
+                        title: 'Script'
+                    },
+                    us_canopyProcessStatusColumn(),
+                    {
+                        data: null,
+                        title: 'Action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            var isCompleted = String(row._ProcessStatus || '').toLowerCase() === 'completed';
+                            var ownershipAllowsStart = row._CanStart === true || row._CanStart === 1 || String(row._CanStart).toLowerCase() === 'true';
+                            var canStart = !isCompleted || ownershipAllowsStart;
+                            var disabled = canStart ? '' : ' disabled="disabled"';
+                            var title = canStart ? 'Start this loan' : 'This process was completed by another user';
+                            return `
+                                <button type="button"
+                                        class="btn btn-sm btn-primary view-btn"${disabled}
+                                        title="${title}">
+                                    Start
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+
+                destroy: true,
+
+                processing: true,
+
+                serverSide: false,
+
+                paging: true,
+
+                pageLength: 25,
+
+                lengthMenu: [
+                    [25, 50, 100],
+                    [25, 50, 100]
+                ],
+
+                /*
+                 * Very important for large client-side datasets.
+                 */
+                deferRender: true,
+
+                ordering: false,
+
+                searching: true,
+
+                autoWidth: false,
+
+                scrollX: true,
+
+                select: {
+                    style: 'single'
+                },
+
+                dom: 'lBftip',
+
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Canopy Global Search',
+                        autoFilter: true
+                    }
+                ],
+
+                createdRow: function (row, data, dataIndex) {
+                    $('td', row).css('white-space', 'nowrap');
+                },
+
+                initComplete: function () {
+
+                    console.timeEnd('TotalLoad');
+
+                    $('#load1').hide();
+                }
+            });
+
+
+            /*
+             * Use delegated event once.
+             */
+            $('#usglobalsearchcanopy_table tbody')
+                .off('click', '.view-btn')
+                .on('click', '.view-btn', function () {
+
+                    if (this.disabled) return false;
+
+                    var table =
+                        $('#usglobalsearchcanopy_table').DataTable();
+
+                    var rowData =
+                        table.row($(this).closest('tr')).data();
+
+                    return us_startGlobalSearchLoan(
+                        this,
+                        rowData,
+                        "FeedbackCanopyDetails.aspx",
+                        "CanopySearch"
+                    );
+                });
+        },
+
+        error: function (xhr, status, error) {
+
+            $('#load1').hide();
+
+            console.error('Status:', status);
+            console.error('Error:', error);
+            console.error('Response:', xhr.responseText);
+
+            alert('Unable to load Canopy loans.');
+        }
+    });
+
+    return false;
+}
+
 function us_getGlobalSearchLoanData(rowData) {
     return {
         processID: us_getValueByKeys(rowData, ["ProcessID", "ProcessID1", "Process ID", "Process Id"]),
@@ -768,12 +1127,45 @@ function us_getGlobalSearchLoanData(rowData) {
         dealNo: us_getValueByKeys(rowData, ["Deal #", "DealNo", "Deal No"]),
         loanNo: us_getValueByKeys(rowData, ["Loan #", "LoanNo", "Loan No", "OrderNumber", "Order Number"]),
         orderDate: us_getValueByKeys(rowData, ["Order Date", "OrderDate", "Received Date", "RecDate"]),
+        script: us_getValueByKeys(rowData, ["Script", "ScriptName", "Script Name"]),
         process: us_getValueByKeys(rowData, ["Process", "ProcessName", "Process Name"]),
         review: us_getValueByKeys(rowData, ["RemoteUW", "Reviewer", "Review", "UW Name"])
     };
 }
 
-function us_startGlobalSearchLoan(button, rowData) {
+function us_callStartLoanPageMethod(loanData, includeScript, onSuccess, onError) {
+    if (includeScript) {
+        return PageMethods.StartLoan(loanData.processID, loanData.projectNumber, loanData.dealNo, loanData.loanNo,
+            loanData.orderDate, loanData.process, loanData.review, loanData.startDatetime, loanData.script || "", onSuccess, onError);
+    }
+
+    return PageMethods.StartLoan(loanData.processID, loanData.projectNumber, loanData.dealNo, loanData.loanNo,
+        loanData.orderDate, loanData.process, loanData.review, loanData.startDatetime, onSuccess, onError);
+}
+
+function us_callCompleteLoanPageMethod(loanData, includeScript, onSuccess, onError) {
+    if (includeScript) {
+        return PageMethods.CompleteLoan(loanData.processID, loanData.projectNumber, loanData.dealNo, loanData.loanNo,
+            loanData.orderDate, loanData.process, loanData.review, loanData.startDatetime, loanData.script || "", onSuccess, onError);
+    }
+
+    return PageMethods.CompleteLoan(loanData.processID, loanData.projectNumber, loanData.dealNo, loanData.loanNo,
+        loanData.orderDate, loanData.process, loanData.review, loanData.startDatetime, onSuccess, onError);
+}
+
+function usfeedback_callInsertATRFeedbacks(args, script, onSuccess, onError) {
+    if (usfeedback_isCanopyPage()) args.push(script || "");
+    args.push(onSuccess, onError);
+    return PageMethods.InsertATRFeedbacks.apply(PageMethods, args);
+}
+
+function usfeedback_callInsertOtherFeedbacks(args, script, onSuccess, onError) {
+    if (usfeedback_isCanopyPage()) args.push(script || "");
+    args.push(onSuccess, onError);
+    return PageMethods.InsertOtherFeedbacks.apply(PageMethods, args);
+}
+
+function us_startGlobalSearchLoan(button, rowData, detailsPage, source) {
     var $button = $(button);
     var loanData = us_getGlobalSearchLoanData(rowData || {});
 
@@ -785,7 +1177,7 @@ function us_startGlobalSearchLoan(button, rowData) {
     if ($button.data('saving')) {
         return false;
     }
-
+    console.log(loanData);
     $button.data('saving', true).prop('disabled', true);
 
     loanData.startDatetime = usfeedback_getNowDateTime();
@@ -800,29 +1192,23 @@ function us_startGlobalSearchLoan(button, rowData) {
         }
     });
 
-    PageMethods.StartLoan(
-        parseInt(loanData.processID, 10) || 0,
-        loanData.projectNumber || "",
-        loanData.dealNo || "",
-        loanData.loanNo || "",
-        loanData.orderDate || "",
-        loanData.process || "",
-        loanData.review || "",
-        loanData.startDatetime,
-
+    loanData.processID = parseInt(loanData.processID, 10) || 0;
+    us_callStartLoanPageMethod(loanData, source === "CanopySearch",
         function (result) {
             if (result > 0) {
                 GetFeedbackPage(
                     loanData.loanNo,
                     loanData.dealNo,
                     loanData.processID,
-                    "GlobalSearch",
+                    source || "GlobalSearch",
                     loanData.projectNumber,
                     loanData.orderDate,
                     loanData.process,
                     loanData.review,
                     loanData.startDatetime,
-                    true
+                    true,
+                    loanData.script,
+                    detailsPage
                 );
                 return false;
             }
@@ -848,7 +1234,7 @@ function us_startGlobalSearchLoan(button, rowData) {
     return false;
 }
 
-function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate, process, review, startDatetime, started) {
+function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate, process, review, startDatetime, started, script, detailsPage) {
     const payload = {
         ln: loanno,
         dn: dealno
@@ -874,6 +1260,10 @@ function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate, p
         payload.process = process;
     }
 
+    if (script) {
+        payload.script = script;
+    }
+
     if (review) {
         payload.review = review;
     }
@@ -887,17 +1277,17 @@ function GetFeedbackPage(loanno, dealno, processid, source, client, orderDate, p
     }
 
     const encoded = btoa(JSON.stringify(payload));
-    location.href = "FeedbackDetails.aspx?data=" + encodeURIComponent(encoded);
+    location.href = (detailsPage || "FeedbackDetails.aspx") + "?data=" + encodeURIComponent(encoded);
 }
 
 function GetLoggedInUserDetails() {
     $.ajax({
-        type: "POST", url: "FeedbackDetails.aspx/GetLoggedInUser", dataType: "json", contentType: "application/json",
+        type: "POST", url: us_getFeedbackDetailsEndpoint("GetLoggedInUser"), dataType: "json", contentType: "application/json",
         success: function (res) {
             var dataArray = JSON.parse(res.d);
             $.each(dataArray, function (data, value) {
-                document.getElementById("usfeedback_reviewer").value = blankForNull(value.FullName);
-                document.getElementById("usfeedback_reviewer").readonly = true;
+                usfeedback_getElement("usfeedback_reviewer").value = blankForNull(value.FullName);
+                usfeedback_getElement("usfeedback_reviewer").readOnly = true;
 
             })
         }
@@ -907,27 +1297,40 @@ function GetLoggedInUserDetails() {
 function bindloanDetails_feedback() {
     const decoded = us_getFeedbackPayload();
     if (!decoded) return;
-
+    console.log(decoded);
     usfeedbackLoanStarted = decoded.started === true || decoded.started === "true";
     usfeedbackStartDatetime = decoded.sd || decoded.startDatetime || "";
-    if (document.getElementById("usfeedback_back")) {
-        document.getElementById("usfeedback_back").href = us_getFeedbackReturnUrl("LoanDetails.aspx");
+    if (usfeedback_getElement("usfeedback_back")) {
+        usfeedback_getElement("usfeedback_back").href = us_getFeedbackReturnUrl("LoanDetails.aspx");
     }
 
     $.ajax({
-        url: "FeedbackDetails.aspx/GetLoanDetailsbyLoanNo",
+        url: us_getFeedbackDetailsEndpoint(usfeedback_isCanopyPage()
+            ? "GetLoanDetailsbyLoanNo_Canopy"
+            : "GetLoanDetailsbyLoanNo"),
         type: "POST",
         dataType: "json",
-        data: "{DealNo:'" + decoded.dn + "',LoanNo:'" + decoded.ln + "'}",
+        data: JSON.stringify({
+            DealNo: decoded.dn,
+            LoanNo: decoded.ln,
+            Script: decoded.script || decoded.process || ""
+        }),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
             var dataArray = JSON.parse(data.d);
             $.each(dataArray, function (index, value) {
 
-                document.getElementById("usfeedback_projectno").value = value.ProjectName;
-                document.getElementById("usfeedback_dealno").value = value.DealNo;
-                document.getElementById("usfeedback_loanno").value = value.LoanNo;
-                document.getElementById("usfeedback_projectid").value = value.ProjectID;
+                usfeedback_getElement("usfeedback_projectno").value = value.ProjectName;
+                usfeedback_getElement("usfeedback_dealno").value = value.DealNo;
+                usfeedback_getElement("usfeedback_loanno").value = value.LoanNo;
+                usfeedback_getElement("usfeedback_projectid").value = value.ProjectID;
+                var qcerName = usfeedback_getElement("usfeedback_qcername");
+                var qcerDate = usfeedback_getElement("usfeedback_qcerdate");
+                if (qcerName) {
+                    qcerName.value = blankForNull(value.taskAssignedUser);
+                    document.getElementById("clientinfocanopy").innerHTML = "Feedback Information for - <b style='color:green;'>" + value.ClientName + "</b>";
+                }
+                if (qcerDate) qcerDate.value = blankForNull(value.completedDate);
 
 
                 usfeedback_bindProcessTask(value.ProjectID);
@@ -947,12 +1350,12 @@ function bindloanDetails_feedback() {
 
 function usfeedback_bindProcessTask(Projectid) {
 
-    $("#usfeedback_task").empty()
+    usfeedback_select("usfeedback_task").empty()
         .append('<option value="">Select</option>');
 
     $.ajax({
         type: "POST",
-        url: "FeedbackDetails.aspx/GetUSProcessTask",
+        url: us_getFeedbackDetailsEndpoint("GetUSProcessTask"),
         dataType: "json",
         contentType: "application/json",
         data: JSON.stringify({ ProjectID: Projectid }),
@@ -964,8 +1367,8 @@ function usfeedback_bindProcessTask(Projectid) {
             $.each(dataArray, function (index, value) {
 
                 // Prevent duplicate option
-                if ($("#usfeedback_task option[value='" + value.ProcessID + "']").length === 0) {
-                    $("#usfeedback_task").append(
+                if (usfeedback_select("usfeedback_task").find("option[value='" + value.ProcessID + "']").length === 0) {
+                    usfeedback_select("usfeedback_task").append(
                         $("<option></option>")
                             .val(value.ProcessID)
                             .text(value.ProcessName)
@@ -982,12 +1385,12 @@ function usfeedback_bindProcessTask(Projectid) {
 
             if (decoded.tp) {
 
-                $("#usfeedback_task").val(decoded.tp);
+                usfeedback_select("usfeedback_task").val(decoded.tp);
 
                 // Call only once
-                getTaskwiseDetails(document.getElementById("usfeedback_task"));
+                getTaskwiseDetails(usfeedback_getElement("usfeedback_task"));
 
-                document.getElementById("usfeedback_back").href = us_getFeedbackReturnUrl("LoanDetails.aspx");
+                usfeedback_getElement("usfeedback_back").href = us_getFeedbackReturnUrl("LoanDetails.aspx");
             }
         }
     });
@@ -999,20 +1402,20 @@ function getTaskwiseDetails(ddl) {
     var id = ddl.options[ddl.selectedIndex].value;
 
     if (value == "" || value == "Select") {
-        document.getElementById("trOther").style.display = 'none';
-        document.getElementById("tratr1").style.display = 'none';
-        document.getElementById("tratr2").style.display = 'none';
-        document.getElementById("tratr3").style.display = 'none';
-        document.getElementById("tratr4").style.display = 'none';
-        document.getElementById("tratr5").style.display = 'none';
+        usfeedback_getElement("trOther").style.display = 'none';
+        usfeedback_getElement("tratr1").style.display = 'none';
+        usfeedback_getElement("tratr2").style.display = 'none';
+        usfeedback_getElement("tratr3").style.display = 'none';
+        usfeedback_getElement("tratr4").style.display = 'none';
+        usfeedback_getElement("tratr5").style.display = 'none';
     }
     else if (value == "ATR Review") {
-        document.getElementById("trOther").style.display = 'none';
-        document.getElementById("tratr1").style.display = '';
-        document.getElementById("tratr2").style.display = '';
-        document.getElementById("tratr3").style.display = '';
-        document.getElementById("tratr4").style.display = '';
-        document.getElementById("tratr5").style.display = '';
+        usfeedback_getElement("trOther").style.display = 'none';
+        usfeedback_getElement("tratr1").style.display = '';
+        usfeedback_getElement("tratr2").style.display = '';
+        usfeedback_getElement("tratr3").style.display = '';
+        usfeedback_getElement("tratr4").style.display = '';
+        usfeedback_getElement("tratr5").style.display = '';
         var date = new Date();
         var day = String(date.getDate()).padStart(2, '0');
         var month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1020,18 +1423,18 @@ function getTaskwiseDetails(ddl) {
 
         var actualdate = year + "-" + month + "-" + day;
 
-        document.getElementById("usfeedback_reviewdate").value = actualdate;
+        usfeedback_getElement("usfeedback_reviewdate").value = actualdate;
 
         usfeedback_startLoanIfNeeded(id, value);
         usfeedback_atr_bindgrid("ATR", id);
     }
     else {
-        document.getElementById("trOther").style.display = '';
-        document.getElementById("tratr1").style.display = 'none';
-        document.getElementById("tratr2").style.display = 'none';
-        document.getElementById("tratr3").style.display = 'none';
-        document.getElementById("tratr4").style.display = 'none';
-        document.getElementById("tratr5").style.display = 'none';
+        usfeedback_getElement("trOther").style.display = '';
+        usfeedback_getElement("tratr1").style.display = 'none';
+        usfeedback_getElement("tratr2").style.display = 'none';
+        usfeedback_getElement("tratr3").style.display = 'none';
+        usfeedback_getElement("tratr4").style.display = 'none';
+        usfeedback_getElement("tratr5").style.display = 'none';
         usfeedback_startLoanIfNeeded(id, value);
         usfeedback_atr_bindgrid("Other", id);
 
@@ -1039,23 +1442,27 @@ function getTaskwiseDetails(ddl) {
 }
 
 function usfeedback_atr_bindgrid(type, processid) {
-    $('#load1').show();
+    usfeedback_select("load1").show();
     usfeedbackRecordCount = 0;
     var columns = [];
-    var dealno = document.getElementById("usfeedback_dealno").value;
-    var loanno = document.getElementById("usfeedback_loanno").value;
+    var dealno = usfeedback_getElement("usfeedback_dealno").value;
+    var loanno = usfeedback_getElement("usfeedback_loanno").value;
+    var payload = us_getFeedbackPayload() || {};
+    var feedbackRequest = { DealNo: dealno, LoanNo: loanno, Type: type, ProcessID: processid };
+    if (usfeedback_isCanopyPage()) feedbackRequest.Script = payload.script || "";
 
     $.ajax({
-        url: "FeedbackDetails.aspx/GetATRDetails",
+        url: us_getFeedbackDetailsEndpoint("GetATRDetails"),
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        data: "{DealNo:'" + dealno + "', LoanNo:'" + loanno + "', Type:'" + type + "', ProcessID:" + processid + "}",
+        data: JSON.stringify(feedbackRequest),
         success: function (data) {
             var dataArray = JSON.parse(data.d);//
             usfeedbackRecordCount = dataArray ? dataArray.length : 0;
-            if ($.fn.DataTable.isDataTable('#usfeedback_table')) {
-                $('#usfeedback_table').DataTable().clear().destroy();
+            var feedbackTableSelector = "#" + usfeedback_pageId("usfeedback_table");
+            if ($.fn.DataTable.isDataTable(feedbackTableSelector)) {
+                $(feedbackTableSelector).DataTable().clear().destroy();
             }
             if (dataArray != '') {
                 $.each(dataArray[0], function (key, value) {
@@ -1065,7 +1472,7 @@ function usfeedback_atr_bindgrid(type, processid) {
                     my_item.title = key;
                     columns.push(my_item);
                 });
-                $('#usfeedback_table').DataTable({
+                $(feedbackTableSelector).DataTable({
                     dom: 'lBftip',
                     destroy: true,
                     orderCellsTop: true,
@@ -1088,7 +1495,7 @@ function usfeedback_atr_bindgrid(type, processid) {
                     },
 
                     initComplete: function () {
-                        $('#load1').hide();
+                        usfeedback_select("load1").hide();
                     },
                     buttons: [
                         {
@@ -1099,7 +1506,7 @@ function usfeedback_atr_bindgrid(type, processid) {
 
             }
             else {
-                $('#load1').hide();
+                usfeedback_select("load1").hide();
             }
         },
 
@@ -1134,15 +1541,16 @@ function usfeedback_getNowDateTime() {
 
 function usfeedback_getLoanProcessData(processid, processName) {
     const payload = us_getFeedbackPayload() || {};
-
+    console.log(payload);
     return {
         processID: parseInt(processid, 10) || 0,
-        projectNumber: document.getElementById("usfeedback_projectno").value || payload.client || "",
-        dealNo: document.getElementById("usfeedback_dealno").value || payload.dn || "",
-        loanNo: document.getElementById("usfeedback_loanno").value || payload.ln || "",
+        projectNumber: usfeedback_getElement("usfeedback_projectno").value || payload.client || "",
+        dealNo: usfeedback_getElement("usfeedback_dealno").value || payload.dn || "",
+        loanNo: usfeedback_getElement("usfeedback_loanno").value || payload.ln || "",
         orderDate: payload.od || "",
         process: processName || payload.process || "",
-        review: document.getElementById("usfeedback_reviewer").value || payload.review || "",
+        script: payload.script || "",
+        review: usfeedback_getElement("usfeedback_reviewer").value || payload.review || "",
         startDatetime: usfeedbackStartDatetime || payload.sd || payload.startDatetime || usfeedback_getNowDateTime()
     };
 }
@@ -1150,26 +1558,19 @@ function usfeedback_getLoanProcessData(processid, processName) {
 function usfeedback_startLoanIfNeeded(processid, processName) {
     const payload = us_getFeedbackPayload();
 
-    if (!payload || payload.src != "GlobalSearch" || usfeedbackLoanStarted || !processid) {
+    var isCanopy = payload && payload.src == "CanopySearch";
+    if (!payload || (payload.src != "GlobalSearch" && !isCanopy) || !processid || (!isCanopy && usfeedbackLoanStarted) || (isCanopy && usfeedbackLastProcessID == processid)) {
         return false;
     }
 
     var loanData = usfeedback_getLoanProcessData(processid, processName);
     usfeedbackStartDatetime = loanData.startDatetime;
 
-    PageMethods.StartLoan(
-        loanData.processID,
-        loanData.projectNumber,
-        loanData.dealNo,
-        loanData.loanNo,
-        loanData.orderDate,
-        loanData.process,
-        loanData.review,
-        loanData.startDatetime,
-
+    us_callStartLoanPageMethod(loanData, isCanopy,
         function (result) {
             if (result > 0) {
                 usfeedbackLoanStarted = true;
+                if (isCanopy) usfeedbackLastProcessID = processid;
                 return false;
             }
 
@@ -1194,7 +1595,7 @@ function usfeedback_startLoanIfNeeded(processid, processName) {
 
 function usfeedback_completeLoan() {
 
-    var ddl = document.getElementById("usfeedback_task");
+    var ddl = usfeedback_getElement("usfeedback_task");
     var processid = "";
     var processName = "";
 
@@ -1253,16 +1654,7 @@ function usfeedback_completeLoan() {
             }
         });
 
-        PageMethods.CompleteLoan(
-            loanData.processID,
-            loanData.projectNumber,
-            loanData.dealNo,
-            loanData.loanNo,
-            loanData.orderDate,
-            loanData.process,
-            loanData.review,
-            loanData.startDatetime,
-
+        us_callCompleteLoanPageMethod(loanData, usfeedback_isCanopyPage(),
             function (result) {
                 if (result === -2) {
                     Swal.fire({
@@ -1313,12 +1705,14 @@ function usfeedback_completeLoan() {
 
 function usfeedback_submit() {
 
-    var projectid = document.getElementById("usfeedback_projectid").value;
-    var dealno = document.getElementById("usfeedback_dealno").value;
-    var loanno = document.getElementById("usfeedback_loanno").value;
-    var ddl = document.getElementById("usfeedback_task");
+    var projectid = usfeedback_getElement("usfeedback_projectid").value;
+    var dealno = usfeedback_getElement("usfeedback_dealno").value;
+    var loanno = usfeedback_getElement("usfeedback_loanno").value;
+    var ddl = usfeedback_getElement("usfeedback_task");
     var processid = ddl.options[ddl.selectedIndex].value;
     var value = ddl.options[ddl.selectedIndex].text;
+    var payload = us_getFeedbackPayload() || {};
+    var script = payload.script || "";
 
     if (value == "" || value == "Select") {
         Swal.fire('Validation', 'Please select task.', 'warning');
@@ -1326,46 +1720,52 @@ function usfeedback_submit() {
     }
 
     else if (value == "ATR Review") {
-        var reviewer = document.getElementById("usfeedback_reviewer").value;
-        var reviewdate = document.getElementById("usfeedback_reviewdate").value;
-        var ddlatrsupported = document.getElementById("usfeedback_atrsupported");
+        var reviewer = usfeedback_getElement("usfeedback_reviewer").value;
+        var reviewdate = usfeedback_getElement("usfeedback_reviewdate").value;
+        var ddlatrsupported = usfeedback_getElement("usfeedback_atrsupported");
         var atrsupported = ddlatrsupported.options[ddlatrsupported.selectedIndex].value;
+        var noofbwr = $.trim(usfeedback_getElement("usfeedback_noofbwr").value);
+        var reviewfinding = $.trim(usfeedback_getElement("usfeedback_reviewfindings").value);
+        var dtiissue = $.trim(usfeedback_getElement("usfeedback_dtiissue").value);
+        var incometype = $.trim(usfeedback_getElement("usfeedback_incometype").value);
+        var sebusiness = $.trim(usfeedback_getElement("usfeedback_noofsebus").value);
+        var rental = $.trim(usfeedback_getElement("usfeedback_noofrental").value);
 
         if (atrsupported == "") {
             Swal.fire('Validation', "Please select 'ATR Supported?'", 'warning');
-            document.getElementById("usfeedback_atrsupported").focus();
+            usfeedback_getElement("usfeedback_atrsupported").focus();
             return false;
         }
 
         if (noofbwr == "") {
             Swal.fire('Validation', "Please enter '# of Borrowers'", 'warning');
-            document.getElementById("usfeedback_noofbwr").focus();
+            usfeedback_getElement("usfeedback_noofbwr").focus();
             return false;
         }
 
         if (reviewfinding == "") {
             Swal.fire('Validation', "Please enter 'Review Findings'", 'warning');
-            document.getElementById("usfeedback_reviewfindings").focus();
+            usfeedback_getElement("usfeedback_reviewfindings").focus();
             return false;
         }
 
         if (sebusiness == "") {
             Swal.fire('Validation', "Please enter '# SE businesses'", 'warning');
-            document.getElementById("usfeedback_noofsebus").focus();
+            usfeedback_getElement("usfeedback_noofsebus").focus();
             return false;
         }
 
         if (rental == "") {
             Swal.fire('Validation', "Please enter '# Rental Properties'", 'warning');
-            document.getElementById("usfeedback_noofrental").focus();
+            usfeedback_getElement("usfeedback_noofrental").focus();
             return false;
         }
 
-        var comments = document.getElementById("usfeedback_comments").value;
+        var comments = usfeedback_getElement("usfeedback_comments").value;
 
-        PageMethods.InsertATRFeedbacks(projectid, processid, dealno, loanno, reviewer, reviewdate, atrsupported, reviewfinding, dtiissue, noofbwr,
-            incometype, sebusiness, rental, comments,
-
+        usfeedback_callInsertATRFeedbacks(
+            [projectid, processid, dealno, loanno, reviewer, reviewdate, atrsupported, reviewfinding, dtiissue, noofbwr,
+                incometype, sebusiness, rental, comments], script,
             function (result) {
                 if (result > 0) {
                     usfeedback_setLastProcess(processid, value);
@@ -1389,24 +1789,23 @@ function usfeedback_submit() {
         );
     }
     else {
-        var ddlseverity = document.getElementById("usfeedback_severity");
+        var ddlseverity = usfeedback_getElement("usfeedback_severity");
         var severity = ddlseverity.options[ddlseverity.selectedIndex].value;
-        var findings = $.trim(document.getElementById("usfeedback_finding").value);
+        var findings = $.trim(usfeedback_getElement("usfeedback_finding").value);
 
         if (severity == "") {
             Swal.fire('Validation', 'Please select Severity.', 'warning');
-            document.getElementById("usfeedback_severity").focus();
+            usfeedback_getElement("usfeedback_severity").focus();
             return false;
         }
 
         if (findings == "") {
             Swal.fire('Validation', 'Please enter Findings.', 'warning');
-            document.getElementById("usfeedback_finding").focus();
+            usfeedback_getElement("usfeedback_finding").focus();
             return false;
         }
 
-        PageMethods.InsertOtherFeedbacks(projectid, processid, dealno, loanno, findings, severity,
-
+        usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
             function (result) {
                 if (result > 0) {
                     usfeedback_setLastProcess(processid, value);
@@ -1442,35 +1841,35 @@ function clearusfeedbackForm() {
     // $('#usfeedback_projectno').val('');
     // $('#usfeedback_dealno').val('');
     // $('#usfeedback_loanno').val('');
-    $('#usfeedback_reviewer').val('');
-    $('#usfeedback_reviewdate').val('');
-    $('#usfeedback_noofbwr').val('');
-    $('#usfeedback_incometype').val('');
-    $('#usfeedback_noofsebus').val('');
-    $('#usfeedback_noofrental').val('');
+    usfeedback_select('usfeedback_reviewer').val('');
+    usfeedback_select('usfeedback_reviewdate').val('');
+    usfeedback_select('usfeedback_noofbwr').val('');
+    usfeedback_select('usfeedback_incometype').val('');
+    usfeedback_select('usfeedback_noofsebus').val('');
+    usfeedback_select('usfeedback_noofrental').val('');
 
     // Dropdowns
     //$('#usfeedback_task').prop('selectedIndex', 0);
-    $('#usfeedback_severity').prop('selectedIndex', 0);
-    $('#usfeedback_atrsupported').prop('selectedIndex', 0);
+    usfeedback_select('usfeedback_severity').prop('selectedIndex', 0);
+    usfeedback_select('usfeedback_atrsupported').prop('selectedIndex', 0);
 
     // Textareas
-    $('#usfeedback_finding').val('');
-    $('#usfeedback_reviewfindings').val('');
-    $('#usfeedback_dtiissue').val('');
-    $('#usfeedback_comments').val('');
+    usfeedback_select('usfeedback_finding').val('');
+    usfeedback_select('usfeedback_reviewfindings').val('');
+    usfeedback_select('usfeedback_dtiissue').val('');
+    usfeedback_select('usfeedback_comments').val('');
 
     // File Upload
-    $('#usfeedback_fileUploads').val('');
-    $('#usfeedback_selectedFile').text('');
+    usfeedback_select('usfeedback_fileUploads').val('');
+    usfeedback_select('usfeedback_selectedFile').text('');
 
     // Hide conditional sections
     //$('#trOther').hide();
-    $('#tratr1').hide();
-    $('#tratr2').hide();
-    $('#tratr3').hide();
-    $('#tratr4').hide();
-    $('#tratr5').hide();
+    usfeedback_select('tratr1').hide();
+    usfeedback_select('tratr2').hide();
+    usfeedback_select('tratr3').hide();
+    usfeedback_select('tratr4').hide();
+    usfeedback_select('tratr5').hide();
 }
 
 
@@ -1557,7 +1956,7 @@ function us_getproductionSummary(month, year) {
                 "data": dataArray,
                 columns: columns,
                 columnDefs: [
-                    { targets: [1,2,15, 17, 18], visible: false }
+                    { targets: [1, 2, 15, 17, 18], visible: false }
                 ],
                 fnCreatedRow: function (nRow, aData, iDataIndex) {
                     $(nRow).children("td").css("text-wrap", "nowrap");
@@ -1873,7 +2272,7 @@ function us_rpt_getproductionSummary() {
                 "data": dataArray,
                 columns: columns,
                 columnDefs: [
-                    { targets: [15,16, 17], visible: false }
+                    { targets: [15, 16, 17], visible: false }
                 ],
                 fnCreatedRow: function (nRow, aData, iDataIndex) {
                     $(nRow).children("td").css("text-wrap", "nowrap");

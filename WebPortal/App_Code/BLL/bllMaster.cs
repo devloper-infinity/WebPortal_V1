@@ -2683,12 +2683,6 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.DeleteExistingOthertaskRecords(htParam);
         }
 
-        public DataTable GetProcessForOtherTask(int ProjectID)
-        {
-            return dalMaster.GetProcessForOtherTask(ProjectID);
-        }
-
-
         public DataTable GetAllUserERPLoginDetails()
         {
             return dalMaster.GetAllUserERPLoginDetails();

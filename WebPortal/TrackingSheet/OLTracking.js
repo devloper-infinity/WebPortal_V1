@@ -22,15 +22,12 @@
         loadingRequests = force ? 0 : Math.max(0, loadingRequests - 1);
         if (loadingRequests === 0) { var element = document.getElementById('oltGlobalLoader'); if (element) element.classList.remove('open'); }
     }
-
     function call(page, method, data) {
-
         showLoading('Loading, please wait...');
         return fetch(page + '/' + method, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify(data || {}) })
             .then(function (response) { return response.json().then(function (json) { if (!response.ok) throw new Error((json && json.Message) || 'Request failed.'); return parse(json.d); }); })
             .then(function (result) { hideLoading(false); return result; }, function (error) { hideLoading(false); throw error; });
     }
-
     function val(object, names) { for (var i = 0; i < names.length; i++) if (object[names[i]] !== undefined) return object[names[i]]; return ''; }
     function options(element, rows, idNames, textNames, placeholder) {
         element.innerHTML = '<option value="">' + (placeholder || 'Select') + '</option>';

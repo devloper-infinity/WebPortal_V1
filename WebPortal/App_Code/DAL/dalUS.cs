@@ -119,6 +119,107 @@ ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
             return dt;
         }
 
+        public DataSet getLoansForGlobalSearch_Canopy(int EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OnShoreGetallLoans_GlobalSearch_Canopy");
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, EmployeeID);
+            DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetCanopySearchProcessStatuses()
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("ProjectNumber", typeof(string));
+            result.Columns.Add("DealNo", typeof(string));
+            result.Columns.Add("LoanNo", typeof(string));
+            result.Columns.Add("ProcessName", typeof(string));
+            result.Columns.Add("Script", typeof(string));
+            result.Columns.Add("ProcessStatus", typeof(string));
+            result.Columns.Add("ProcessEmployeeID", typeof(int));
+            result.Columns.Add("ProcessEmployeeName", typeof(string));
+            result.Columns.Add("ProcessStatusDate", typeof(string));
+
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+;WITH ProcessRanked AS
+(
+    SELECT
+        ISNULL(track.ProjectNumber, '') AS ProjectNumber,
+        ISNULL(track.DealNo, '') AS DealNo,
+        ISNULL(track.LoanNo, '') AS LoanNo,
+        ISNULL(track.[Process], '') AS ProcessName,
+        ISNULL(track.Script, '') AS Script,
+        CASE
+            WHEN track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status], '')) = 'COMPLETED' THEN 'Completed'
+            ELSE 'Started'
+        END AS ProcessStatus,
+        ISNULL(track.EmployeeID, 0) AS ProcessEmployeeID,
+        LTRIM(RTRIM(ISNULL(employee.FirstName, '') + ' ' + ISNULL(employee.LastName, ''))) AS ProcessEmployeeName,
+        ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) AS ProcessStatusDate,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY track.ProjectNumber, track.DealNo, track.LoanNo, track.[Process], track.Script
+            ORDER BY
+                CASE WHEN track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status], '')) = 'COMPLETED' THEN 0 ELSE 1 END,
+                ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) DESC,
+                track.ProductionTrackID DESC
+        ) AS RowNumber
+    FROM dbo.USLoanProductionTrack track
+    LEFT JOIN dbo.EmployeeInfo employee
+        ON employee.EmployeeID = track.EmployeeID
+    WHERE track.SourcePage = 'CanopySearch'
+)
+SELECT
+    ProjectNumber,
+    DealNo,
+    LoanNo,
+    ProcessName,
+    Script,
+    ProcessStatus,
+    ProcessEmployeeID,
+    ProcessEmployeeName,
+    CONVERT(varchar(19), ProcessStatusDate, 120) AS ProcessStatusDate
+FROM ProcessRanked
+WHERE RowNumber = 1
+OPTION (RECOMPILE);");
+
+            DataTable current = SQLHelper.ExecuteDataTableCmd(cmd);
+            foreach (DataRow row in current.Rows)
+            {
+                result.ImportRow(row);
+            }
+
+            return result;
+        }
+
+        public bool CanStartCanopyLoan(string DealNo, string LoanNo, string Script, int EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT TOP (1)
+    CASE
+        WHEN (track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status], '')) = 'COMPLETED')
+             AND ISNULL(track.EmployeeID, 0) <> @EmployeeID THEN 0
+        ELSE 1
+    END AS CanStart
+FROM dbo.USLoanProductionTrack track
+WHERE track.SourcePage = 'CanopySearch'
+  AND ISNULL(track.DealNo, '') = ISNULL(@DealNo, '')
+  AND ISNULL(track.LoanNo, '') = ISNULL(@LoanNo, '')
+  AND ISNULL(track.Script, '') = ISNULL(@Script, '')
+ORDER BY
+    CASE WHEN track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status], '')) = 'COMPLETED' THEN 0 ELSE 1 END,
+    ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) DESC,
+    track.ProductionTrackID DESC;");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 200, ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 200, ParameterDirection.Input, LoanNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Script", SqlDbType.NVarChar, 500, ParameterDirection.Input, Script);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.Int, 0, ParameterDirection.Input, EmployeeID);
+
+            object value = SQLHelper.ExecuteScalarCmd(cmd);
+            return value == null || value == DBNull.Value || Convert.ToInt32(value) == 1;
+        }
+
         public DataTable GetGlobalSearchReQcStatuses(IEnumerable<string> loanNumbers)
         {
             DataTable result = new DataTable();
@@ -399,6 +500,15 @@ WHERE RowNumber = 1;");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+        public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUSLoanDetails_Canopy");
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, LoanNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Script);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
 
         public DataTable GetATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID)
         {
@@ -409,6 +519,35 @@ WHERE RowNumber = 1;");
             SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.Int, 100, System.Data.ParameterDirection.Input, ProcessID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
+        }
+
+        public DataTable GetCanopyATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID, string Script)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+IF @Type = 'ATR'
+BEGIN
+    SELECT Reviewer, ReviewDate AS [Review Date], LoanNo AS [Loan #], DealNo AS [Client Deal #],
+           CASE WHEN isATRSupported = 1 THEN 'Yes' ELSE 'No' END AS [ATR Supported?],
+           ReviewFindings AS [Review Findings], SellerDisclosedDTIIssue AS [Seller Disclosed DTI Issue],
+           NoOfBorrowers AS [# of Borrowers], HighestBorrowerIncomeType AS [Highest BWR Income Type],
+           NoOfSEBusiness AS [# of SE businesses], NoOfRentalProperties AS [# Rental Properties], Comments
+    FROM dbo.OnShoreFeedbacks_ATRReview
+    WHERE DealNo = @DealNo AND LoanNo = @LoanNo AND ProcessID = @ProcessID
+      AND ISNULL(Script, '') = ISNULL(@Script, '');
+END
+ELSE
+BEGIN
+    SELECT DealNo AS [Deal #], LoanNo AS [Loan #], Severity, Finding
+    FROM dbo.OnShoreFeedbacks
+    WHERE DealNo = @DealNo AND LoanNo = @LoanNo AND ProcessID = @ProcessID
+      AND ISNULL(Script, '') = ISNULL(@Script, '');
+END");
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, LoanNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", SqlDbType.NVarChar, 100, ParameterDirection.Input, Type);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.Int, 0, ParameterDirection.Input, ProcessID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Script", SqlDbType.NVarChar, 500, ParameterDirection.Input, Script);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
         public DataTable GetUSProcessList(int ProjectID)
@@ -601,9 +740,12 @@ BEGIN
     FROM dbo.USLoanProductionTrack
     WHERE EmployeeID = @EmployeeID
         AND EndDatetime IS NULL
+        AND DealNo = @DealNo
+        AND LoanNo = @LoanNo
+        AND ISNULL(Script, '') = ISNULL(@Script, '')
         AND (
-            (@ProcessID > 0 AND ProcessID = @ProcessID)
-            OR (DealNo = @DealNo AND LoanNo = @LoanNo)
+            (@ProcessID > 0 AND (ProcessID = @ProcessID OR ISNULL(ProcessID, 0) = 0))
+            OR (@ProcessID <= 0 AND ISNULL(ProcessID, 0) = 0 AND ISNULL([Process], '') = ISNULL(@Process, ''))
         )
     ORDER BY
         CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
@@ -613,12 +755,12 @@ BEGIN
     BEGIN
         INSERT INTO dbo.USLoanProductionTrack
         (
-            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review, SourcePage,
+            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Script, Review, SourcePage,
             StartDatetime, EndDatetime, EmployeeID, AddedBy, AddedDate, [Status]
         )
         VALUES
         (
-            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review, @SourcePage,
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Script, @Review, @SourcePage,
             @StartValue, NULL, @EmployeeID, @AddedBy, GETDATE(), 'Started'
         );
     END
@@ -631,6 +773,7 @@ BEGIN
             LoanNo = @LoanNo,
             OrderDate = @OrderDate,
             [Process] = @Process,
+            Script = @Script,
             Review = @Review,
             SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
             StartDatetime = COALESCE(StartDatetime, @StartValue),
@@ -646,9 +789,12 @@ BEGIN
     FROM dbo.USLoanProductionTrack
     WHERE EmployeeID = @EmployeeID
         AND EndDatetime IS NULL
+        AND DealNo = @DealNo
+        AND LoanNo = @LoanNo
+        AND ISNULL(Script, '') = ISNULL(@Script, '')
         AND (
             (@ProcessID > 0 AND ProcessID = @ProcessID)
-            OR (DealNo = @DealNo AND LoanNo = @LoanNo)
+            OR (@ProcessID <= 0 AND ISNULL(ProcessID, 0) = 0 AND ISNULL([Process], '') = ISNULL(@Process, ''))
         )
     ORDER BY
         CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
@@ -659,12 +805,12 @@ BEGIN
     BEGIN
         INSERT INTO dbo.USLoanProductionTrack
         (
-            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Review, SourcePage,
+            ProcessID, ProjectNumber, DealNo, LoanNo, OrderDate, [Process], Script, Review, SourcePage,
             StartDatetime, EndDatetime, EmployeeID, AddedBy, AddedDate, [Status]
         )
         VALUES
         (
-            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Review, @SourcePage,
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Script, @Review, @SourcePage,
             @StartValue, @EndValue, @EmployeeID, @AddedBy, GETDATE(), 'Completed'
         );
     END
@@ -677,6 +823,7 @@ BEGIN
             LoanNo = @LoanNo,
             OrderDate = @OrderDate,
             [Process] = @Process,
+            Script = @Script,
             Review = @Review,
             SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
             StartDatetime = COALESCE(StartDatetime, @StartValue),
@@ -697,6 +844,8 @@ SELECT 1;");
             SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["LoanNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@OrderDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["OrderDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 250, System.Data.ParameterDirection.Input, htParam["Process"]);
+            object script = htParam.ContainsKey("Script") ? htParam["Script"] : "";
+            SQLHelper.AddParamToSQLCmd(cmd, "@Script", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, script);
             SQLHelper.AddParamToSQLCmd(cmd, "@Review", System.Data.SqlDbType.NVarChar, 250, System.Data.ParameterDirection.Input, htParam["Review"]);
             object sourcePage = htParam.ContainsKey("SourcePage") ? htParam["SourcePage"] : "";
             SQLHelper.AddParamToSQLCmd(cmd, "@SourcePage", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, sourcePage);
@@ -729,6 +878,23 @@ SELECT 1;");
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+        public int InsertOnShoreUSFeedbacksCanopy(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+INSERT INTO dbo.OnShoreFeedbacks
+    (ProjectID, ProcessID, DealNo, LoanNo, Script, Finding, Severity, AddedBy, AddedDate, Attachment)
+VALUES
+    (@ProjectID, @ProcessID, @DealNo, @LoanNo, @Script, @Finding, @Severity, @AddedBy, GETDATE(), @Attachment);
+SELECT CAST(SCOPE_IDENTITY() AS int);");
+            AddCanopyFeedbackCommonParameters(cmd, htParam);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Severity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Attachment", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Attachment"]);
+            object result = SQLHelper.ExecuteScalarCmd(cmd);
+            cmd.Dispose();
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
         public int InsertOnShoreUSATRFeedbacks(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertUSATRFeedback");
@@ -752,6 +918,44 @@ SELECT 1;");
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
             cmd.Dispose();
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+        public int InsertOnShoreUSATRFeedbacksCanopy(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+INSERT INTO dbo.OnShoreFeedbacks_ATRReview
+    (ProjectID, ProcessID, DealNo, LoanNo, Script, Reviewer, ReviewDate, isATRSupported,
+     ReviewFindings, SellerDisclosedDTIIssue, NoOfBorrowers, HighestBorrowerIncomeType,
+     NoOfSEBusiness, NoOfRentalProperties, Comments, AddedBy, AddedDate)
+VALUES
+    (@ProjectID, @ProcessID, @DealNo, @LoanNo, @Script, @Reviewer, @ReviewDate, @isATRSupported,
+     @ReviewFindings, @SellerDisclosedDTIIssue, @NoOfBorrowers, @HighestBorrowerIncomeType,
+     @NoOfSEBusiness, @NoOfRentalProperties, @Comments, @AddedBy, GETDATE());
+SELECT CAST(SCOPE_IDENTITY() AS int);");
+            AddCanopyFeedbackCommonParameters(cmd, htParam);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Reviewer", SqlDbType.NVarChar, 500, ParameterDirection.Input, htParam["Reviewer"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReviewDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["ReviewDate"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@isATRSupported", SqlDbType.Bit, 0, ParameterDirection.Input, htParam["isATRSupported"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReviewFindings", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["ReviewFindings"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SellerDisclosedDTIIssue", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["SellerDisclosedDTIIssue"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NoOfBorrowers", SqlDbType.Int, 0, ParameterDirection.Input, htParam["NoOfBorrowers"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@HighestBorrowerIncomeType", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["HighestBorrowerIncomeType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NoOfSEBusiness", SqlDbType.Int, 0, ParameterDirection.Input, htParam["NoOfSEBusiness"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NoOfRentalProperties", SqlDbType.Int, 0, ParameterDirection.Input, htParam["NoOfRentalProperties"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Comments", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Comments"]);
+            object result = SQLHelper.ExecuteScalarCmd(cmd);
+            cmd.Dispose();
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+        private static void AddCanopyFeedbackCommonParameters(SqlCommand cmd, Hashtable htParam)
+        {
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 0, ParameterDirection.Input, htParam["ProjectID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.Int, 0, ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Script", SqlDbType.NVarChar, 500, ParameterDirection.Input, htParam["Script"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
         }
 
         public int InsertOnShoreProduction(Hashtable htParam)

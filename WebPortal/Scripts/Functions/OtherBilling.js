@@ -42,7 +42,6 @@ function otherbil_bindDeals(ddlprojectId) {
     }
 
     $("#otherBilling_DealNo").append($("<option></option>").val("Select").html("Select"));
-    $("#otherBilling_DealNo").append($("<option></option>").val("AddNew").html("Add New"));
 
     $.ajax({
         type: "POST", url: "OtherBilling.aspx/GetAllDealNumber", dataType: "json",
@@ -55,21 +54,14 @@ function otherbil_bindDeals(ddlprojectId) {
 
                 $("#otherBilling_DealNo").append($("<option></option>").val(value.DealNo).html(value.DealNo));
             })
-
-
         }
     });
 }
 
-function getNewDalNo(obj) {
-    if (obj.value === "AddNew") {
-        document.getElementById("divNewDealNo").style.display = "block";
-    } else {
-        document.getElementById("divNewDealNo").style.display = "none";
-    }
-}
-
 function btnOtherBilling_Import() {
+
+
+
 
     document.getElementById("spntext").innerHTML = "Reading data from Excel...";
     $('#OtherBilling_Waitingpanel').modal('show');
@@ -140,88 +132,90 @@ function btnOtherBilling_Import() {
     return false;
 }
 
-async function btnOtherBilling_Verify() {
 
-    const projectType = document.getElementById("otherBilling_ProjectType").value.trim();
-    const project = document.getElementById("otherBilling_Project").value.trim();
-    const selectedDealNo = document.getElementById("otherBilling_DealNo").value.trim();
-    const newDealNo = document.getElementById("otherBilling_NewDealNo").value.trim();
+function core_btnOtherBilling_Import() {
 
-    if (!projectType) {
-        await showValidationMessage("Project Type Required", "Please select a project type.");
+    //$('#OtherBilling_Waitingpanel').modal('show');
 
-        document.getElementById("otherBilling_ProjectType").focus();
-        return false;
-    }
+    document.getElementById("spntext").innerHTML = "Reading data from excel . . . .";
 
-    if (!project) {
-        await showValidationMessage("Project Required", "Please select a project.");
-
-        document.getElementById("otherBilling_Project").focus();
-        return false;
-    }
-
-    if (!selectedDealNo) {
-        await showValidationMessage("Deal Number Required", "Please select a deal number.");
-        document.getElementById("otherBilling_DealNo").focus();
-        return false;
-    }
-
-    if (selectedDealNo === "AddNew" && !newDealNo) {
-        await showValidationMessage("New Deal Number Required", "Please enter a new deal number.");
-        document.getElementById("otherBilling_NewDealNo").focus();
-        return false;
-    }
-
-    const dealNo = selectedDealNo === "AddNew" ? newDealNo : selectedDealNo;
-
-    Swal.fire({
-        title: "Please wait", html: "The system is verifying and submitting your data.",
-        allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false, didOpen: function () {
-            Swal.showLoading();
-        }
-    });
-
-    try {
-        const result = await verifyAndSubmitData(projectType, project, dealNo);
-
-        if (Number(result) > 0) {
-            await Swal.fire({
-                icon: "success",
-                title: "Submitted Successfully",
-                text: "Your billing information has been verified and submitted successfully.",
-                confirmButtonText: "OK"
-            }).then(function () {
-
-                clearOtherBillingControls();
-            });
-        } else {
-            await Swal.fire({ icon: "warning", title: "Submission Not Completed", text: "No record was submitted. Please verify the entered information.", confirmButtonText: "OK" });
-        }
-    } catch (error) {
-        const errorMessage =
-            error?.get_message?.() ||
-            error?.responseText ||
-            error?.message ||
-            "An unexpected error occurred while submitting the data.";
-
-        await Swal.fire({ icon: "error", title: "Submission Failed", text: errorMessage, confirmButtonText: "OK" });
-    }
+    PageMethods.ImportExcel(import_OnSuccess, import_OnError);
 
     return false;
 }
 
-function showValidationMessage(title, message) {
-    return Swal.fire({ icon: "warning", title: title, text: message, confirmButtonText: "OK" });
+function import_OnSuccess(result) {
+
+    if (result > 0) {
+
+        $('#OtherBilling_Waitingpanel').modal('hide');
+
+        var ddlProjectType = document.getElementById('otherBilling_ProjectType');
+        var ProjectType = ddlProjectType.options[ddlProjectType.selectedIndex].value;
+
+        document.getElementById("table_Research").style.display = "none";
+        document.getElementById("table_Rebuttal").style.display = "none";
+
+        if (ProjectType == "Research") {
+
+            document.getElementById("table_Research").style.display = "";
+            research_BindGrid();
+        }
+        if (ProjectType == 'Rebuttal') {
+
+            document.getElementById("table_Rebuttal").style.display = "";
+            rebuttal_BindGrid();
+        }
+    }
+    else if (result == -1) {
+        alert("Please select an Excel file with the .xlsx extension.");
+    }
+    else {
+        alert("Something went wrong, Please contact administrator.");
+    }
+    return false;
 }
 
-function verifyAndSubmitData(projectType, project, dealNo) {
-    return new Promise(function (resolve, reject) {
-        PageMethods.VerifyAndSubmitData(projectType, project, dealNo, resolve, reject);
-    });
+function import_OnError(error) {
+    alert(error.responseText);
+    return false;
 }
 
+function btnOtherBilling_Verify() {
 
+    var ddlProjectType = document.getElementById('otherBilling_ProjectType');
+    var ProjectType = ddlProjectType.options[ddlProjectType.selectedIndex].value;
+
+    var ddlProject = document.getElementById('otherBilling_Project');
+    var Project = ddlProject.options[ddlProject.selectedIndex].value;
+
+    var ddlDeal = document.getElementById('otherBilling_DealNo');
+    var DealNo = ddlDeal.options[ddlDeal.selectedIndex].value;
+
+    $('#OtherBilling_Waitingpanel').modal('show');
+    document.getElementById("spntext").innerHTML = "Please wait… The system is verifying and submitting your data";
+
+    PageMethods.VerifyAndSubmitData(ProjectType, Project, DealNo, verify_OnSuccess, verify_OnError);
+
+    return false;
+} 
+
+function verify_OnSuccess(result) {
+
+    $('#waitingpanel').modal('hide');
+
+    if (result > 0) {
+
+        $('#billingMessage').modal('show');
+
+    }
+    return false;
+}
+
+function verify_OnError(error) {
+    alert(error.responseText);
+    return false;
+}
 
 function research_BindGrid() {
 
@@ -322,8 +316,6 @@ function rebuttal_BindGrid() {
         success: function (data) {
             var dataArray = JSON.parse(data.d);
 
-            alert(dataArray);
-
             Rebuttal_table = $('#table_Rebuttal').DataTable({
                 dom: 'ftip',
                 destroy: true,
@@ -399,63 +391,6 @@ function rebuttal_BindGrid() {
     return false;
 }
 
-function getGridValue(row) {
-    if (!row) {
-        return '';
-    }
-
-    for (var i = 1; i < arguments.length; i++) {
-        var propertyName = arguments[i];
-
-        if (
-            Object.prototype.hasOwnProperty.call(row, propertyName) &&
-            row[propertyName] !== null &&
-            row[propertyName] !== undefined
-        ) {
-            return row[propertyName];
-        }
-    }
-
-    return '';
-}
-
-function clearOtherBillingControls() {
-
-    $('#otherBilling_ProjectType').val('Select');
-
-    $('#otherBilling_Project').html('<option value="">Select</option>');
-
-    $('#otherBilling_DealNo').html('<option value="">Select</option>');
-
-    BindDomainWise_Project(9);
-
-    $('#otherBilling_NewDealNo').val('');
-    $('#divNewDealNo').hide();
-
-    $('#otherBilling_attachment').val('');
-    $('#otherbillingfilesdiv').empty();
-    $('#conentdiv').attr('style', 'display: none !important;');
-    $('#otherBilling_uploadArea').show();
-
-    clearOtherBillingTables();
-
-    $('#load1').hide();
-    $('#OtherBilling_Waitingpanel').modal('hide');
-
-    $('#otherBilling_Import, #otherBilling_Verify')
-        .prop('disabled', false);
-}
-
-function clearOtherBillingTables() {
-    ['#table_Research', '#table_Rebuttal'].forEach(function (selector) {
-        if ($.fn.DataTable.isDataTable(selector)) {
-            $(selector).DataTable().clear().destroy();
-        }
-
-        $(selector).find('thead, tbody, tfoot').empty();
-        $(selector).hide();
-    });
-}
 
 /*------------- Excel Billing Report ------------- */
 
