@@ -496,48 +496,9 @@ function verifyBilling_addRemark(orderid, index) {
     $('#popUp_viewBilling_addRemark').modal('show');
 }
 
+
+
 function core_btnverfybilling_AddRemark() {
-
-    var orderCost = $('#vrbil_orderCost').val();
-    var remark = $('#vrbil_remark').val();
-
-    if (remark === "") {
-        alert("Please enter remark");
-        return false;
-    }
-
-    $.ajax({
-        type: "POST",
-        url: "VerifyBilling.aspx/AddRemark_VerifyBilling",
-        data: JSON.stringify({
-            OrderID: remark_orderid,
-            OrderCost: orderCost,
-            Remark: remark
-        }),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (res) {
-            alert("Remark added successfully!");
-
-            // optional: clear fields
-            $('#vrbil_orderCost').val('');
-            $('#vrbil_remark').val('');
-
-            $('#VerifyOrders_Search_Billing tr').css('background-color', '');
-            $('#VerifyOrders_Search_Billing tr').css('font-weight', 'normal');
-
-            // optional: close modal
-            $('#popUp_viewBilling_addRemark').modal('hide');
-        },
-        error: function () {
-            alert("Error while adding data");
-        }
-    });
-
-    return false; // 🔥 VERY IMPORTANT: stops form submit
-}
-
-function btnverfybilling_AddRemark() {
 
     var orderCost = $('#vrbil_orderCost').val();
     var remark = $('#vrbil_remark').val().trim();
@@ -613,6 +574,130 @@ function btnverfybilling_AddRemark() {
             });
         }
     });
+
+    return false;
+}
+
+async function btnverfybilling_AddRemark() {
+
+    var orderCost = $('#vrbil_orderCost').val();
+    var remark = $('#vrbil_remark').val().trim();
+
+    var isAdditionalChecked = $('#vrbil_additional').is(':checked');
+    var emailInput = $('#vrbil_email').val() ? $('#vrbil_email').val().trim() : '';
+    var vrbil_costDiff = $('#vrbil_costDiff').val() ? $('#vrbil_costDiff').val().trim() : '';
+    var fileInput = document.getElementById('vrbil_attachment');
+    var selectedFile = fileInput.files[0].name;
+
+    if (fileInput && fileInput.files.length > 0) {
+        selectedFile = fileInput.files[0];
+    }
+
+
+    // if (orderCost === "" || orderCost === null || parseFloat(orderCost) <= 0) {
+
+    //     Swal.fire({
+    //         icon: "warning", title: "Amount Required", text: "Please enter a order cost.", confirmButtonText: "OK"
+    //     }).then(function () {
+    //         $('#vrbil_orderCost').focus();
+    //     });
+
+    //     return false;
+    // }
+
+    if (remark === "") {
+
+        Swal.fire({
+            icon: "warning", title: "Remark Required", text: "Please enter a remark.", confirmButtonText: "OK"
+        }).then(function () {
+            $('#vrbil_remark').focus();
+        });
+
+        return false;
+    }
+
+
+    // Validate additional fields only when switch is ON
+
+    if (isAdditionalChecked) {
+
+        if (vrbil_costDiff === "" || vrbil_costDiff === null || parseFloat(vrbil_costDiff) <= 0) {
+
+            Swal.fire({
+                icon: "warning", title: "Amount Required", text: "Please enter a cost difference.", confirmButtonText: "OK"
+            }).then(function () {
+                $('#vrbil_costDiff').focus();
+            });
+
+            return false;
+        }
+
+        if (emailInput === "") {
+            Swal.fire({
+                icon: "warning", title: "Email Required", text: "Please enter an email address.", confirmButtonText: "OK"
+            }).then(function () {
+                $('#vrbil_email').focus();
+            });
+            return false;
+        }
+
+        if (!selectedFile) {
+            Swal.fire({ icon: "warning", title: "Attachment Required", text: "Please select a file to upload.", confirmButtonText: "OK" });
+            return false;
+        }
+    }
+
+
+    // Show loading
+    Swal.fire({
+        title: "Saving...", text: "Please wait while the details are being saved.", allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: "VerifyBilling.aspx/AddRemark_VerifyBilling",
+        data: JSON.stringify({
+            OrderID: remark_orderid,
+            OrderCost: isAdditionalChecked ? orderCost : "",
+            Remark: remark,
+            IsMailInput: isAdditionalChecked,
+            EmailInput: isAdditionalChecked ? emailInput : "",
+            CostDiff: isAdditionalChecked ? additionalText : ""
+        }),
+
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+
+        success: function (res) {
+            Swal.close();
+            Swal.fire({
+                icon: "success", title: "Success", text: "Remark and details saved successfully!", confirmButtonText: "OK"
+            }).then(function () {
+                vrbil_clearAdditionalFields(2);
+            });
+        },
+        error: function (xhr) {
+
+            Swal.close();
+
+            var errorMessage = "An error occurred while adding the remark.";
+
+            if (xhr.responseJSON && xhr.responseJSON.Message) {
+
+                errorMessage = xhr.responseJSON.Message;
+
+            } else if (xhr.responseText) {
+
+                errorMessage = xhr.responseText;
+            }
+
+            Swal.fire({ icon: "error", title: "Error", text: errorMessage, confirmButtonText: "OK" });
+        }
+    });
+
 
     return false;
 }
@@ -1108,5 +1193,182 @@ function escapeHtml(value) {
         .html();
 }
 
+function vrbil_toggleAdditional() {
+
+    var checkbox = document.getElementById("vrbil_additional");
+    var section = document.getElementById("vrbil_additionalFields");
+
+    if (!checkbox || !section) {
+        return;
+    }
+
+    if (checkbox.checked) {
+
+        section.style.display = "block";
+
+        section.animate(
+            [
+                {
+                    opacity: 0,
+                    transform: "translateY(-8px)"
+                },
+                {
+                    opacity: 1,
+                    transform: "translateY(0)"
+                }
+            ],
+            {
+                duration: 220,
+                easing: "ease-out"
+            }
+        );
+
+    } else {
+
+        var animation = section.animate(
+            [
+                {
+                    opacity: 1,
+                    transform: "translateY(0)"
+                },
+                {
+                    opacity: 0,
+                    transform: "translateY(-6px)"
+                }
+            ],
+            {
+                duration: 160,
+                easing: "ease-in"
+            }
+        );
+
+        animation.onfinish = function () {
+            section.style.display = "none";
+
+            // Clear all fields
+            vrbil_clearAdditionalFields(1);
+        };
+    }
+}
+
+function vrbil_clearAdditionalFields(calltime) {
 
 
+    var orderCost = document.getElementById("vrbil_orderCost");
+    var remark = document.getElementById("vrbil_EmailNote");
+    var additionalText = document.getElementById("vrbil_additionalText");
+    var attachment = document.getElementById("vrbil_attachment");
+    var fileName = document.getElementById("vrbil_fileName");
+
+    if (orderCost) {
+        orderCost.value = "";
+    }
+
+    if (remark) {
+        remark.value = "";
+    }
+
+    if (additionalText) {
+        additionalText.value = "";
+    }
+
+    if (attachment) {
+        attachment.value = "";
+    }
+
+    if (fileName) {
+        fileName.innerHTML = "or click to browse";
+    }
+
+    if (calltime == 2) {
+        // Clear main fields
+        $('#vrbil_orderCost').val('');
+        $('#vrbil_remark').val('');
+
+        // Clear additional fields
+        $('#vrbil_email').val('');
+        $('#vrbil_additionalText').val('');
+
+        // Clear attachment
+        $('#vrbil_attachment').val('');
+
+        // Reset file upload text
+        $('#vrbil_fileName').html('or click to browse');
+
+        // Reset checkbox
+        $('#vrbil_additional').prop('checked', false);
+
+        // Hide additional section
+        $('#vrbil_additionalFields').hide();
+
+
+        // Reset table row formatting
+        $('#VerifyOrders_Search_Billing tr').css({ 'background-color': '', 'font-weight': 'normal' });
+
+
+        // Close modal
+        $('#popUp_viewBilling_addRemark').modal('hide');
+    }
+}
+
+function vrbil_showFileName(input) {
+
+    var fileNameElement = document.getElementById("vrbil_fileName");
+
+    if (!fileNameElement) {
+        return;
+    }
+
+    if (input.files && input.files.length > 0) {
+
+        var file = input.files[0];
+
+        fileNameElement.innerHTML =
+            "&#10003;&nbsp; " + file.name;
+
+    } else {
+
+        fileNameElement.innerHTML = "";
+
+    }
+}
+
+
+/*
+ * Optional drag-over visual feedback.
+ * No IDs changed.
+ */
+(function () {
+
+    var dropzone = document.getElementById("vrbil_dropzone");
+
+    if (!dropzone) {
+        return;
+    }
+
+    ["dragenter", "dragover"].forEach(function (eventName) {
+
+        dropzone.addEventListener(eventName, function (event) {
+
+            event.preventDefault();
+
+            dropzone.style.borderColor = "#0c8f8f";
+            dropzone.style.background = "#f2fbfa";
+
+        });
+
+    });
+
+
+    ["dragleave", "drop"].forEach(function (eventName) {
+
+        dropzone.addEventListener(eventName, function () {
+
+            dropzone.style.borderColor = "";
+            dropzone.style.background = "";
+
+        });
+
+    });
+
+})();

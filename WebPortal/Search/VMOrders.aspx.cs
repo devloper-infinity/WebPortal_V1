@@ -552,12 +552,19 @@ namespace WebPortal.Search
             int orderId = FormInt("orderId");
             string mode = (Request.Form["mode"] ?? string.Empty).Trim();
             int addedBy = CurrentUserId();
-            if (orderId <= 0) return Result(false, "Select a valid order.");
-            if (mode != "Offline" && mode != "Partial") return Result(false, "Select an allocation mode.");
+
+            if (orderId <= 0)
+                return Result(false, "Select a valid order.");
+
+            if (mode != "Offline" && mode != "Partial")
+                return Result(false, "Select an allocation mode.");
 
             bllOST ost = new bllOST();
             DataTable orderTable = ost.GetOrderByID_VM(orderId);
-            if (orderTable.Rows.Count == 0) return Result(false, "The selected order was not found.");
+
+            if (orderTable.Rows.Count == 0)
+                return Result(false, "The selected order was not found.");
+
             DataRow order = orderTable.Rows[0];
             string product = Value(order, "ProductType");
             string clientOrderNo = Value(order, "ClientOrderNo");
@@ -579,26 +586,45 @@ namespace WebPortal.Search
             {
                 int abstractor1 = FormInt("abstractor1");
                 int abstractor2 = FormInt("abstractor2");
+
                 int[] docs1 = CsvInts(Request.Form["docs1"]);
                 int[] docs2 = CsvInts(Request.Form["docs2"]);
                 int[] docs3 = CsvInts(Request.Form["docs3"]);
-                if (docs1.Length + docs2.Length + docs3.Length == 0) return Result(false, "Please select at least one document.");
-                if (docs1.Length > 0 && abstractor1 <= 0) return Result(false, "Please select Searcher 1.");
-                if (docs2.Length > 0 && abstractor2 <= 0) return Result(false, "Please select Searcher 2.");
-                foreach (int doc in docs1) inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, abstractor1, string.Empty, Digits(Request.Form["eta1"]), searchCost, copyCost, total, addedBy);
-                foreach (int doc in docs2) inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, abstractor2, string.Empty, Digits(Request.Form["eta2"]), searchCost, copyCost, total, addedBy);
-                foreach (int doc in docs3) inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, 0, string.Empty, string.Empty, searchCost, copyCost, total, addedBy);
+
+                if (docs1.Length + docs2.Length + docs3.Length == 0)
+                    return Result(false, "Please select at least one document.");
+
+                if (docs1.Length > 0 && abstractor1 <= 0)
+                    return Result(false, "Please select Searcher 1.");
+
+                if (docs2.Length > 0 && abstractor2 <= 0)
+                    return Result(false, "Please select Searcher 2.");
+
+                foreach (int doc in docs1)
+                    inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, abstractor1, string.Empty, Digits(Request.Form["eta1"]), searchCost, copyCost, total, addedBy);
+
+                foreach (int doc in docs2)
+                    inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, abstractor2, string.Empty, Digits(Request.Form["eta2"]), searchCost, copyCost, total, addedBy);
+
+                foreach (int doc in docs3)
+                    inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, 0, string.Empty, string.Empty, searchCost, copyCost, total, addedBy);
             }
 
-            if (inserted <= 0) return Result(false, "Order allocation was not saved.");
+            if (inserted <= 0)
+                return Result(false, "Order allocation was not saved.");
+
             SaveOptionalAttachment(ost, orderId, 1, addedBy, "VM Order Allocation");
             string comment = mode == "Offline" ? "Order Allocate to " + allocatedTo + " Abstractor" : "Order Allocated to Abstractor.";
+
             ost.InsertCommentOrder(orderId, 0, "Auto", comment, addedBy);
-            if (mode == "Offline") TrySendAllocationMail(order, allocatedTo);
+
+            if (mode == "Offline")
+                TrySendAllocationMail(order, allocatedTo);
+
             return Result(true, "Order allocated successfully.", inserted);
         }
 
-        private static int InsertAbstractorTask(bllOST ost, int orderId, string product, string mode, int docId,int abstractorId, string emailType, string eta, string searchCost, string copyCost, string total, int addedBy)
+        private static int InsertAbstractorTask(bllOST ost, int orderId, string product, string mode, int docId, int abstractorId, string emailType, string eta, string searchCost, string copyCost, string total, int addedBy)
         {
             Hashtable values = new Hashtable();
             values["Orderid"] = orderId;

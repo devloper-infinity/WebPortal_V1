@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -10,6 +11,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Search
 {
@@ -20,9 +22,13 @@ namespace WebPortal.Search
         static string FileName = "";
         static string GUIDFile = "";
         static string FolderPath = "";
+        static int AddedBy;
+
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            AddedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+
             FolderPath = Server.MapPath(@"~\SearchDocuments\");
 
             try
@@ -72,8 +78,6 @@ namespace WebPortal.Search
             return ser.Serialize(rows);
         }
 
-
-
         [WebMethod]
         public static string GetAllOrderDetails(string FromDate, string ToDate, string ProjectNo)
         {
@@ -97,8 +101,6 @@ namespace WebPortal.Search
             return ser.Serialize(rows);
         }
 
-
-
         [WebMethod]
         public static string GetOrderDetailsProcesswise(int OrderID)
         {
@@ -120,6 +122,50 @@ namespace WebPortal.Search
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static string GetCommentData(int OrderID)
+        {
+            EnsureCommentPermission();
+            ValidateCommentOrder(OrderID);
+
+            DataTable orderDetails = GetCommentOrderDetails(OrderID);
+            DataRow order = orderDetails != null && orderDetails.Rows.Count > 0 ? orderDetails.Rows[0] : null;
+
+            Dictionary<string, object> response = new Dictionary<string, object>();
+            response["OrderID"] = OrderID;
+            response["OrderNo"] = DbString(order, "ClientOrderNo", "OrderNo");
+            response["OrderDate"] = DbString(order, "OrderDateTime", "OrderDate");
+            response["Comments"] = DataTableToRows(GetOrderComments(OrderID));
+            return SerializeJson(response);
+        }
+
+        [WebMethod]
+        public static string SaveComment(int OrderID, string Comment)
+        {
+            EnsureCommentPermission();
+            ValidateCommentOrder(OrderID);
+
+            string comment = (Comment ?? string.Empty).Trim();
+            if (comment.Length == 0)
+            {
+                throw new ArgumentException("Please enter a comment.");
+            }
+
+            if (comment.Length > 10000)
+            {
+                throw new ArgumentException("Comment cannot exceed 10000 characters.");
+            }
+
+            int result = new bllOST().InsertCommentOrder(OrderID, 0, "Manual", comment, AddedBy);
+
+            if (result <= 0)
+            {
+                throw new InvalidOperationException("Comment was not saved. Please try again.");
+            }
+
+            return SerializeJson(DataTableToRows(GetOrderComments(OrderID)));
         }
 
 
@@ -639,6 +685,57 @@ namespace WebPortal.Search
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(value);
+        }
+
+        private static DataTable GetOrderComments(int orderId)
+        {
+            SqlCommand command = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllCommentOrderwise");
+            SQLHelper.AddParamToSQLCmd(command, "@OrderID", SqlDbType.BigInt, 0, ParameterDirection.Input, orderId);
+            return SQLHelper.ExecuteDataTableCmd(command);
+        }
+
+        private static DataTable GetCommentOrderDetails(int orderId)
+        {
+            SqlCommand command = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllDetailsByOrderNo");
+            SQLHelper.AddParamToSQLCmd(command, "@OrderNo", SqlDbType.NVarChar, 1000, ParameterDirection.Input, orderId.ToString());
+            return SQLHelper.ExecuteDataTableCmd(command);
+        }
+
+        private static List<Dictionary<string, object>> DataTableToRows(DataTable table)
+        {
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            if (table == null)
+            {
+                return rows;
+            }
+
+            foreach (DataRow dataRow in table.Rows)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>();
+                foreach (DataColumn column in table.Columns)
+                {
+                    row[column.ColumnName] = dataRow[column];
+                }
+                rows.Add(row);
+            }
+            return rows;
+        }
+
+        private static void EnsureCommentPermission()
+        {
+            int employeeId = AddedBy;
+            if (employeeId != 369 && employeeId != 375)
+            {
+                throw new HttpException(403, "You do not have permission to manage order comments.");
+            }
+        }
+
+        private static void ValidateCommentOrder(int orderId)
+        {
+            if (orderId <= 0)
+            {
+                throw new ArgumentException("Please select a valid order.");
+            }
         }
     }
 }

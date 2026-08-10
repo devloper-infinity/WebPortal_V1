@@ -448,6 +448,8 @@
                             },
                             { data: "AttendanceDate", defaultContent: "" },
                             { data: "DayName", defaultContent: "" },
+                            // { data: "DomainName", defaultContent: "" },
+                            // { data: "SubDomain", defaultContent: "" },
                             { data: "AJ", defaultContent: "0" },
                             { data: "KP", defaultContent: "0" },
                             { data: "Akola", defaultContent: "0" },
@@ -578,6 +580,8 @@
                         <th>Sr. #</th>
                         <th>Date</th>
                         <th>Day</th>
+                      <%--  <th>Domain</th>
+                        <th>Sub-Domain</th>--%>
                         <th>AJ</th>
                         <th>KP</th>
                         <th>Akola</th>

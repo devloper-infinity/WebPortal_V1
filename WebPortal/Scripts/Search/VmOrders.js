@@ -129,6 +129,9 @@
     }
 
     function openAllocation(id) {
+
+        alert(id);
+
         var row = findOrder(id);
         if (!row) return;
         busy(true);

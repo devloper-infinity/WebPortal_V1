@@ -168,9 +168,9 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static int AddRemark_VerifyBilling(int OrderID, string OrderCost, string Remark)
+        public static int AddRemark_VerifyBilling(int OrderID, string OrderCost, string Remark, bool IsMailInput, decimal CostDiff, string EmailInput)
         {
-            int returnValue = new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
+            int returnValue = 10;// new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
 
             return returnValue;
         }

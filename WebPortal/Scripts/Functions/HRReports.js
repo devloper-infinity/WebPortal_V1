@@ -418,6 +418,8 @@ function socialsite_bindgrid() {
                 socialsite_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Name) + '</td>';
                 socialsite_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.SocialSite) + '</td>';
                 socialsite_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.DateVisited) + '</td>';
+                socialsite_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Month) + '</td>';
+                socialsite_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Year) + '</td>';
                 socialsite_html += '<td><a href="#!" id="Actions" onclick="socialsite_download(' + value.VisitorID + ',' + index + ');" title="Download Attachment"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-cloud-download" style="font-size:14px;"></i></span></a></td>';
                 socialsite_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.Attachment) + '</td>';
                 socialsite_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.Filepath) + '</td>';
@@ -468,7 +470,145 @@ function socialsite_bindgrid() {
     return false;
 }
 
+async function socialsite_submit() {
+    const employee = document
+        .getElementById("socialsite_employee")
+        .value
+        .trim();
 
+    const socialSite = document
+        .getElementById("socialsite_site")
+        .value
+        .trim();
+
+    const dateVisited = document
+        .getElementById("socialsite_datevisited")
+        .value
+        .trim();
+
+    if (!employee) {
+        await Swal.fire({
+            icon: "warning",
+            title: "Employee Required",
+            text: "Please select an employee.",
+            confirmButtonText: "OK"
+        });
+
+        document.getElementById("socialsite_employee").focus();
+        return false;
+    }
+
+    if (!socialSite) {
+        await Swal.fire({
+            icon: "warning",
+            title: "Social Site Required",
+            text: "Please select a social site.",
+            confirmButtonText: "OK"
+        });
+
+        document.getElementById("socialsite_site").focus();
+        return false;
+    }
+
+    if (!dateVisited) {
+        await Swal.fire({
+            icon: "warning",
+            title: "Date Required",
+            text: "Please select the date visited.",
+            confirmButtonText: "OK"
+        });
+
+        document.getElementById("socialsite_datevisited").focus();
+        return false;
+    }
+
+    Swal.fire({
+        title: "Please wait",
+        text: "The system is submitting your data.",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: function () {
+            Swal.showLoading();
+        }
+    });
+
+    try {
+        const result = await insertSocialSiteVisitor(
+            employee,
+            socialSite,
+            dateVisited
+        );
+
+        Swal.close();
+
+        if (Number(result) === -1) {
+            await Swal.fire({
+                icon: "warning",
+                title: "Record Already Exists",
+                text: "A record already exists for the same month and year.",
+                confirmButtonText: "OK",
+                allowOutsideClick: false
+            });
+
+            return false;
+        }
+
+        if (Number(result) > 0) {
+            await Swal.fire({
+                icon: "success",
+                title: "Saved Successfully",
+                text: "The social site visitor record was saved successfully.",
+                confirmButtonText: "OK",
+                allowOutsideClick: false
+            });
+
+            document.getElementById("socialsite_employee").value = "";
+            document.getElementById("socialsite_site").value = "";
+            document.getElementById("socialsite_datevisited").value = "";
+
+            return false;
+        }
+
+        await Swal.fire({
+            icon: "error",
+            title: "Submission Failed",
+            text: "An error occurred while submitting the data. Please contact the administrator.",
+            confirmButtonText: "OK",
+            allowOutsideClick: false
+        });
+    } catch (error) {
+        Swal.close();
+
+        const errorMessage =
+            error?.get_message?.() ||
+            error?.responseText ||
+            error?.message ||
+            "An unexpected error occurred while submitting the data.";
+
+        await Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: errorMessage,
+            confirmButtonText: "OK",
+            allowOutsideClick: false
+        });
+    }
+
+    return false;
+}
+
+function insertSocialSiteVisitor(employee, socialSite, dateVisited) {
+    return new Promise(function (resolve, reject) {
+        PageMethods.InsertSocialSiteVisitors(
+            employee,
+            socialSite,
+            dateVisited,
+            resolve,
+            reject
+        );
+    });
+}
 
 function socialsite_bindusersNew() {
 
