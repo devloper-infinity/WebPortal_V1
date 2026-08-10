@@ -2902,6 +2902,7 @@
     <Content Include="DatabaseScripts\OLTracking_011_UniqueLoanProcessAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_012_DynamicUniqueAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_013_BillingParameter.sql" />
+    <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />
@@ -2939,10 +2940,12 @@
     <Content Include="US\ConditionClearingReport.aspx" />
     <Content Include="US\CreditConsolidatedReport.aspx" />
     <Content Include="US\Dashboard.aspx" />
+    <Content Include="US\CanopySearch.aspx" />
     <Content Include="US\USDashboard.aspx" />
     <Content Include="US\InfinityFeedbackOnshore.aspx" />
     <Content Include="US\ReQcUtility.aspx" />
     <Content Include="US\FeedbackDetails.aspx" />
+    <Content Include="US\FeedbackCanopyDetails.aspx" />
     <Content Include="US\GlobalSearch.aspx" />
     <Content Include="US\LoanDetails.aspx" />
     <Content Include="US\MyQueue.aspx" />
@@ -5424,6 +5427,13 @@
     <Compile Include="US\Dashboard.aspx.designer.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
     </Compile>
+    <Compile Include="US\CanopySearch.aspx.cs">
+      <DependentUpon>CanopySearch.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\CanopySearch.aspx.designer.cs">
+      <DependentUpon>CanopySearch.aspx</DependentUpon>
+    </Compile>
     <Compile Include="US\USDashboard.aspx.cs">
       <DependentUpon>USDashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5451,6 +5461,13 @@
     </Compile>
     <Compile Include="US\FeedbackDetails.aspx.designer.cs">
       <DependentUpon>FeedbackDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\FeedbackCanopyDetails.aspx.cs">
+      <DependentUpon>FeedbackCanopyDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\FeedbackCanopyDetails.aspx.designer.cs">
+      <DependentUpon>FeedbackCanopyDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\GlobalSearch.aspx.cs">
       <DependentUpon>GlobalSearch.aspx</DependentUpon>
