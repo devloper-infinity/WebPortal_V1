@@ -548,7 +548,7 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-        public DataTable GetBulkAllocatedOrders(int projectId, string processName)
+        public DataTable GetBulkAllocatedOrders()
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
 ;WITH CurrentQueue AS
@@ -570,8 +570,7 @@ namespace WebPortal.App_Code.DAL
             ORDER BY ProcessDate DESC, ProcessID DESC
         ) AS RowNumber
     FROM dbo.WBT_TrackingsheetOrderProcessQueue
-    WHERE ProjectId = @ProjectId
-      AND [Process] = @ProcessName
+    WHERE [Process] IN ('PH ReQC', 'ATR Review')
 ),
 LatestHistory AS
 (
@@ -592,8 +591,7 @@ LatestHistory AS
             ORDER BY ProcessDate DESC, ProcessID DESC
         ) AS RowNumber
     FROM dbo.WBT_TrackingsheetOrderProcessHistory
-    WHERE ProjectId = @ProjectId
-      AND [Process] = @ProcessName
+    WHERE [Process] IN ('PH ReQC', 'ATR Review')
 )
 SELECT
     ProjectNo AS Project,
@@ -632,24 +630,27 @@ WHERE history.RowNumber = 1
   )
 ORDER BY ProcessDate DESC, LoanNo;");
 
-            SQLHelper.AddParamToSQLCmd(
-                cmd,
-                "@ProjectId",
-                SqlDbType.BigInt,
-                0,
-                ParameterDirection.Input,
-                projectId);
-            SQLHelper.AddParamToSQLCmd(
-                cmd,
-                "@ProcessName",
-                SqlDbType.NVarChar,
-                4000,
-                ParameterDirection.Input,
-                processName);
-
             DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
             cmd.Dispose();
             return dt;
+        }
+
+        public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT TOP (1) 1
+FROM dbo.OrderData WITH (NOLOCK)
+WHERE ProjectID = @ProjectID
+  AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo))
+  AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(@LoanNo));");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 0, ParameterDirection.Input, projectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, dealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, loanNo);
+
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            cmd.Dispose();
+            return dt != null && dt.Rows.Count > 0;
         }
 
         public string GetBulkAllocationDuplicateStatus(
