@@ -3,6 +3,7 @@ var prjTrack_OrderID = 0;
 var prjTrack_StatusOrderID = 0;
 var Search_ProjectTracking;
 var table_track_attachment;
+var table_project_tracking_comments;
 var ProjectTracking_ChangeStatusInfo = null;
 
 function ProjectTracking_CanShowActions() {
@@ -22,6 +23,8 @@ function ProjectTracking_InitPage() {
     ProjectTracking_BindReportTable([], "Project Tracking Report");
     ProjectTracking_BindAttachmentTable([], 0);
     ProjectTracking_BindChangeStatusEvents();
+    ProjectTracking_BindCommentEvents();
+    ProjectTracking_BindCommentTable([]);
 }
 
 function blankForNull(s) {
@@ -310,24 +313,34 @@ function BindProjectTracking_Report(FromDateNew, ToDateNew, ProjectNoNew) {
 }
 
 function ProjectTracking_ActionRenderer(data, type, row, meta) {
-    if (type !== "display" || !ProjectTracking_CanShowActions()) {
+    if (type !== "display") {
         return "";
     }
 
     var orderId = blankForNull(row._OrderId);
     var rowIndex = meta && typeof meta.row !== "undefined" ? meta.row : "";
+    var privilegedActions = "";
+
+    if (ProjectTracking_CanShowActions()) {
+        privilegedActions = '' +
+            '<button type="button" class="tracking-action-btn tracking-action-edit tracking-edit-order" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Edit Order" aria-label="Edit Order">' +
+            '<i class="fas fa-pen" aria-hidden="true"></i>' +
+            '</button>' +
+            '<button type="button" class="tracking-action-btn tracking-action-status tracking-change-status" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Change Order Status" aria-label="Change Order Status">' +
+            '<i class="fas fa-exchange-alt" aria-hidden="true"></i>' +
+            '</button>';
+    }
 
     return '' +
         '<div class="tracking-action-buttons" role="group" aria-label="Order actions">' +
-        '<button type="button" class="tracking-action-btn tracking-action-edit tracking-edit-order" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Edit Order" aria-label="Edit Order">' +
-        '<i class="fas fa-pen" aria-hidden="true"></i>' +
-        '</button>' +
-        '<button type="button" class="tracking-action-btn tracking-action-status tracking-change-status" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Change Order Status" aria-label="Change Order Status">' +
-        '<i class="fas fa-exchange-alt" aria-hidden="true"></i>' +
-        '</button>' +
+        privilegedActions +
         '<button type="button" class="tracking-action-btn tracking-action-attachment tracking-show-attachment" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" title="Show Attachment" aria-label="Show Attachment">' +
         '<i class="fas fa-paperclip" aria-hidden="true"></i>' +
         '</button>' +
+        (ProjectTracking_CanShowActions() ?
+            '<button type="button" class="tracking-action-btn tracking-action-comment tracking-show-comments" data-order-id="' + ProjectTracking_EscapeAttr(orderId) + '" data-row-index="' + ProjectTracking_EscapeAttr(rowIndex) + '" title="Comments" aria-label="Comments">' +
+            '<i class="fas fa-comment-dots" aria-hidden="true"></i>' +
+            '</button>' : '') +
         '</div>';
 }
 
@@ -338,8 +351,8 @@ function ProjectTracking_ReportColumns() {
             render: ProjectTracking_ActionRenderer,
             orderable: false,
             searchable: false,
-            visible: ProjectTracking_CanShowActions(),
-            width: "132px",
+            visible: true,
+            width: ProjectTracking_CanShowActions() ? "168px" : "52px",
             className: "tracking-action-column"
         },
         { data: "_SrNo", width: "58px", className: "text-center" },
@@ -421,8 +434,8 @@ function ProjectTracking_BindReportTable(rows, title) {
         dom: '<"tracking-toolbar"<"tracking-toolbar-left"B><"tracking-toolbar-right"f>>rt<"row align-items-center mt-2"<"col-sm-6"i><"col-sm-6"p>>',
         destroy: true,
         deferRender: true,
-        scrollX: true,
-        scrollCollapse: true,
+        scrollX: false,
+        scrollCollapse: false,
         autoWidth: false,
         ordering: false,
         paging: true,
@@ -476,7 +489,152 @@ function ProjectTracking_BindReportTable(rows, title) {
         .off("click.projectTrackingAttachment", ".tracking-show-attachment")
         .on("click.projectTrackingAttachment", ".tracking-show-attachment", function () {
             prjTrack_showAttachment($(this).data("order-id"));
+        })
+        .off("click.projectTrackingComments", ".tracking-show-comments")
+        .on("click.projectTrackingComments", ".tracking-show-comments", function () {
+            ProjectTracking_OpenComments($(this).data("order-id"), $(this).data("row-index"));
         });
+}
+
+function ProjectTracking_BindCommentEvents() {
+    $(document)
+        .off("input.projectTrackingComment", "#ProjectTracking_CommentText")
+        .on("input.projectTrackingComment", "#ProjectTracking_CommentText", function () {
+            $("#ProjectTracking_CommentCount").text($(this).val().length);
+        })
+        .off("click.projectTrackingComment", "#ProjectTracking_SaveComment")
+        .on("click.projectTrackingComment", "#ProjectTracking_SaveComment", function () {
+            ProjectTracking_SaveComment();
+        });
+}
+
+function ProjectTracking_OpenComments(orderId, selected) {
+    var numericOrderId = parseInt(orderId, 10) || 0;
+    var rowData = ProjectTracking_FindReportRow(numericOrderId, selected);
+
+    if (!numericOrderId) {
+        ProjectTracking_Notify("warning", "Validation", "Please select a valid order.");
+        return false;
+    }
+
+    $("#ProjectTracking_CommentOrderId").val(numericOrderId);
+    $("#ProjectTracking_CommentOrderNo").text(rowData ? blankForNull(rowData.OrderNo) || "-" : "-");
+    $("#ProjectTracking_CommentOrderDate").text(rowData ? blankForNull(rowData.OrderDateTime || rowData.OrderDate) || "-" : "-");
+    $("#ProjectTracking_CommentText").val("");
+    $("#ProjectTracking_CommentCount").text("0");
+    ProjectTracking_BindCommentTable([]);
+    $("#ProjectTracking_CommentModal").modal("show");
+    ProjectTracking_ShowLoader(true);
+
+    ProjectTracking_PostJson("ProjectTrackingReport.aspx/GetCommentData", {
+        OrderID: numericOrderId
+    }).done(function (data) {
+        data = data || {};
+        $("#ProjectTracking_CommentOrderNo").text(blankForNull(data.OrderNo) || (rowData ? blankForNull(rowData.OrderNo) : "") || "-");
+        $("#ProjectTracking_CommentOrderDate").text(blankForNull(data.OrderDate) || (rowData ? blankForNull(rowData.OrderDateTime || rowData.OrderDate) : "") || "-");
+        ProjectTracking_BindCommentTable(data.Comments || []);
+        window.setTimeout(function () { $("#ProjectTracking_CommentText").trigger("focus"); }, 150);
+    }).fail(function (error) {
+        ProjectTracking_AjaxError(error, "Unable to load order comments.");
+    }).always(function () {
+        ProjectTracking_ShowLoader(false);
+    });
+
+    return false;
+}
+
+function ProjectTracking_SaveComment() {
+    var orderId = parseInt($("#ProjectTracking_CommentOrderId").val(), 10) || 0;
+    var comment = $.trim($("#ProjectTracking_CommentText").val());
+
+    if (!orderId) {
+        ProjectTracking_Notify("warning", "Validation", "Please select a valid order.");
+        return false;
+    }
+
+    if (!comment) {
+        ProjectTracking_Notify("warning", "Comment Required", "Please enter a comment.").then(function () {
+            $("#ProjectTracking_CommentText").trigger("focus");
+        });
+        return false;
+    }
+
+    if (comment.length > 10000) {
+        ProjectTracking_Notify("warning", "Comment Too Long", "Comment cannot exceed 10000 characters.");
+        return false;
+    }
+
+    ProjectTracking_SetButtonBusy("#ProjectTracking_SaveComment", true, "Saving");
+    ProjectTracking_PostJson("ProjectTrackingReport.aspx/SaveComment", {
+        OrderID: orderId,
+        Comment: comment
+    }).done(function (rows) {
+        $("#ProjectTracking_CommentText").val("").trigger("input");
+        ProjectTracking_BindCommentTable(rows || []);
+        ProjectTracking_Notify("success", "Comment Saved", "The order comment was saved successfully.");
+    }).fail(function (error) {
+        var message = error && error.responseJSON && error.responseJSON.Message ? error.responseJSON.Message : "Unable to save the comment.";
+        ProjectTracking_Notify("error", "Comment Not Saved", message);
+    }).always(function () {
+        ProjectTracking_SetButtonBusy("#ProjectTracking_SaveComment", false);
+    });
+
+    return false;
+}
+
+function ProjectTracking_BindCommentTable(rows) {
+    
+    var $table = $("#ProjectTracking_CommentsTable");
+    if (!$table.length || !$.fn.dataTable) { return; }
+
+    rows = $.map(rows || [], function (row, index) {
+        return {
+            SrNo: index + 1,
+            OrderNo: blankForNull(row.ClientOrderNo || row.OrderNo),
+            Process: blankForNull(row.ProcessName || row.Process),
+            Comment: blankForNull(row.Comment || row.Remark),
+            AddedBy: blankForNull(row.Code || row.AddedBy),
+            AddedDate: blankForNull(row.AddedDate)
+        };
+    });
+
+    if ($.fn.dataTable.isDataTable($table[0])) {
+        $table.DataTable().clear().destroy();
+    }
+
+    table_project_tracking_comments = $table.DataTable({
+        data: rows,
+        dom: "t",
+        destroy: true,
+        // scrollX: true,
+        // scrollCollapse: true,
+        // paging: true,
+        pageLength: 6,
+        lengthChange: false,
+        searching: false,
+        ordering: false,
+        autoWidth: false,
+        language: { emptyTable: "No comments available", info: "Showing _START_ to _END_ of _TOTAL_ comments", infoEmpty: "No comments" },
+        columns: [
+            { data: "SrNo", width: "48px", className: "text-center" },
+            { data: "OrderNo", render: ProjectTracking_TextRenderer },
+            { data: "Process", render: ProjectTracking_TextRenderer },
+            { data: "Comment", className: "tracking-text-wrap", render: ProjectTracking_WrapRenderer },
+            { data: "AddedBy", render: ProjectTracking_TextRenderer },
+            { data: "AddedDate", render: ProjectTracking_TextRenderer }
+        ]
+    });
+
+    $("#ProjectTracking_CommentTotal").text(rows.length + (rows.length === 1 ? " record" : " records"));
+}
+
+function ProjectTracking_Notify(icon, title, message) {
+    if (window.Swal && typeof window.Swal.fire === "function") {
+        return window.Swal.fire({ icon: icon, title: title, text: message, confirmButtonColor: "#0f8a7d" });
+    }
+
+    alert(message);
+    return $.Deferred().resolve().promise();
 }
 
 function ProjectTracking_BindChangeStatusEvents() {

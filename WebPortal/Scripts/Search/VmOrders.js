@@ -83,10 +83,10 @@
             bindProjects(data.Projects || []);
             bindAbstractors(data.Abstractors || []);
             bindAllocationTable(state.allocationRows);
-            if (!state.isPM) {
-                $('#vmAllOrdersOption,#vmAllProjectsOption').hide();
-                $('input[name="vmQueueView"][value="mine"]').prop('checked', true);
-            }
+            // if (!state.isPM) {
+            //     $('#vmAllOrdersOption,#vmAllProjectsOption').hide();
+            //     $('input[name="vmQueueView"][value="mine"]').prop('checked', true);
+            // }
         }).fail(showAjaxError).always(function () { busy(false); });
     }
 
@@ -129,6 +129,7 @@
     }
 
     function openAllocation(id) {
+
         var row = findOrder(id);
         if (!row) return;
         busy(true);
@@ -199,8 +200,18 @@
     }
 
     function allocateOrder() {
-        if (!state.selectedOrder) return notify('Select an order first.');
+
+        if (!state.selectedOrder) {
+            notify('Select an order first.');
+            return;
+        }
+
         var mode = $('input[name="vmAllocationMode"]:checked').val();
+        if (mode !== 'Offline' && mode !== 'Partial') {
+            notify('Select an allocation mode.');
+            return;
+        }
+
         var form = new FormData();
         form.append('orderId', orderId(state.selectedOrder));
         form.append('mode', mode);
@@ -209,19 +220,37 @@
         form.append('total', stripMoney($('#vmTotalCost').val()));
 
         if (mode === 'Offline') {
-            if (!$('#vmFullAbstractor').val()) return notify('Please select company name.');
+            if (!$('#vmFullAbstractor').val()) {
+                notify('Please select company name.');
+                $('#vmFullAbstractor').focus();
+                return;
+            }
+
             form.append('abstractorId', $('#vmFullAbstractor').val());
             form.append('abstractorName', $('#vmFullAbstractor option:selected').text());
             form.append('eta', $('#vmFullEta').val());
             form.append('deliveryMethod', $('input[name="vmDeliveryMethod"]:checked').val() || '');
             appendFile(form, $('#vmFullAttachment')[0]);
-        } else {
+        }
+        else {
             var docs1 = checkedValues('#vmPartialDocs1');
             var docs2 = checkedValues('#vmPartialDocs2');
             var docs3 = checkedValues('#vmPartialDocs3');
-            if (!docs1.length && !docs2.length && !docs3.length) return notify('Please select at least one document.');
-            if (docs1.length && !$('#vmPartialAbstractor1').val()) return notify('Please select Searcher 1.');
-            if (docs2.length && !$('#vmPartialAbstractor2').val()) return notify('Please select Searcher 2.');
+            if (!docs1.length && !docs2.length && !docs3.length) {
+                notify('Please select at least one document.');
+                return;
+            }
+            if (docs1.length && !$('#vmPartialAbstractor1').val()) {
+                notify('Please select Searcher 1.');
+                $('#vmPartialAbstractor1').focus();
+                return;
+            }
+            if (docs2.length && !$('#vmPartialAbstractor2').val()) {
+                notify('Please select Searcher 2.');
+                $('#vmPartialAbstractor2').focus();
+                return;
+            }
+
             form.append('abstractor1', $('#vmPartialAbstractor1').val());
             form.append('abstractor2', $('#vmPartialAbstractor2').val());
             form.append('eta1', $('#vmPartialEta1').val());
@@ -233,9 +262,13 @@
         }
 
         if (!window.confirm('Allocate the selected order to the configured abstractor(s)?')) return;
+
         busy(true);
         uploadAction('allocate', form).done(function (result) {
-            if (!result.Success) return notify(result.Message);
+            if (!result || !result.Success) {
+                notify(result && result.Message ? result.Message : 'Order allocation was not saved.');
+                return;
+            }
             notify(result.Message);
             showAllocationList();
             reloadAllocationOrders();
@@ -285,14 +318,17 @@
         if (from > to) return notify('From Date should be less than or equal to To Date.');
         var view = $('input[name="vmQueueView"]:checked').val();
         var project = $('#vmQueueProject').val();
+
         if (view === 'all' && (!project || project === 'Select')) {
             $('#vmQueueProject').trigger('focus');
             return notify('Please select a project.', 'warning', 'Validation');
         }
         busy(true);
         pageMethod('GetQueueOrders', {
-            fromDate: from, toDate: to, project: project || (view === 'mine' ? 'All' : ''), view: view
+            // fromDate: from, toDate: to, project: project || (view === 'mine' ? 'All' : ''), view: view
+            fromDate: from, toDate: to, project: project || (view === 'All' ? 'All' : ''), view: view
         }).done(function (rows) {
+
             rows = rows || [];
             bindQueueTable(rows);
             state.queueLoaded = true;
