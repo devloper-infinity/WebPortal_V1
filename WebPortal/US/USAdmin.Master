@@ -146,13 +146,13 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=20260808.2" />
+                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=20260811.4" />
                 <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js" />
                 <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js" />
                 <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js" />
                 <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js" />
                 <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js" />
-                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js" />
+                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js?v=20260810.1" />
                 <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js" />
 
                 <%--<asp:ScriptReference Path="../Scripts/Functions/Delegation.js?v=<%= System.IO.File.GetLastWriteTime(Server.MapPath("~/Scripts/Functions/Delegation.js")).Ticks %>" />--%>

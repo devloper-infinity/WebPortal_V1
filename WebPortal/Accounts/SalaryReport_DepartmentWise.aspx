@@ -52,8 +52,9 @@
     .metric-table-wrap { padding:15px; }
     .horizontal-report .dataTables_scrollHeadInner, .horizontal-report .dataTables_scrollHeadInner table,
     .horizontal-report .dataTables_scrollBody table { width:auto !important; table-layout:fixed !important; }
-    .horizontal-report table.dataTable th:first-child, .horizontal-report table.dataTable td:first-child { width:220px !important; min-width:220px !important; max-width:220px !important; }
-    .horizontal-report table.dataTable th:not(:first-child), .horizontal-report table.dataTable td:not(:first-child) { width:140px !important; min-width:140px !important; max-width:140px !important; }
+    .horizontal-report table.dataTable th:first-child, .horizontal-report table.dataTable td:first-child { width:250px !important; min-width:250px !important; max-width:250px !important; }
+    .horizontal-report table.dataTable th:nth-child(2), .horizontal-report table.dataTable td:nth-child(2) { width:220px !important; min-width:220px !important; max-width:220px !important; }
+    .horizontal-report table.dataTable th:nth-child(n+3), .horizontal-report table.dataTable td:nth-child(n+3) { width:140px !important; min-width:140px !important; max-width:140px !important; }
     .horizontal-report .dataTables_filter { margin-bottom:8px; }
     @media (max-width:767px) { .filter-action { margin-top:10px; } .chart-box,.chart-box.tall { height:290px; } }
 </style>
@@ -63,7 +64,7 @@
 <div class="salary-page">
     <div class="page-hero">
         <h3>Salary & Headcount Dashboard</h3>
-        <small>Department-wise salary, headcount, deviation trends and employee-level details</small>
+        <small>Manager-clustered department salary, headcount, deviation trends and employee-level details</small>
     </div>
 
     <div class="erp-panel">
@@ -118,7 +119,7 @@
         </div>
 
         <div class="metric-section">
-            <div class="metric-section-head"><strong>3. Salary Deviation Analysis</strong><span>Month-over-month movement and Excel-format department table</span></div>
+            <div class="metric-section-head"><strong>3. Salary Deviation Analysis</strong><span>Month-over-month movement on screen; Excel export also includes prior-year period comparison</span></div>
             <div class="metric-chart-wrap">
                 <div id="txtDeviationInsight" class="chart-summary"></div>
                 <div class="excel-chart-box"><canvas id="chtDeviationTrend"></canvas></div>
@@ -220,7 +221,7 @@
     }
 
     function normalizeMonthlyData(monthRows, employeeRows) {
-        var countMap = buildMonthEmployeeCountMap(employeeRows), periods = {}, periodList = [], departments = {};
+        var countMap = buildMonthEmployeeCountMap(employeeRows), managerMap = buildDepartmentManagerMap(employeeRows), periods = {}, periodList = [], departments = {};
         $.each(monthRows, function (_, r) {
             var month = num(r.MonthNumber || r.MonthNo); if (!month) month = monthNumberFromLabel(r.MonthYear || r.MonthName);
             var key = num(r.Year) * 100 + month, label = r.MonthYear || ((r.MonthName || '') + '-' + r.Year), dept = String(r.Department || 'Not Assigned');
@@ -229,7 +230,11 @@
             departments[dept] = true;
         });
         periodList.sort(function (a, b) { return a.key - b.key; });
-        var departmentList = Object.keys(departments).sort();
+        var departmentList = Object.keys(departments).sort(function (a, b) {
+            var am = managerMap[a] || '(Not Assigned)', bm = managerMap[b] || '(Not Assigned)';
+            var managerCompare = am.localeCompare(bm);
+            return managerCompare !== 0 ? managerCompare : a.localeCompare(b);
+        });
         $.each(periodList, function (i, p) {
             $.each(departmentList, function (_, d) {
                 if (!p.rows[d]) p.rows[d] = { department: d, gross: 0, net: 0, count: 0 };
@@ -239,7 +244,26 @@
             p.totalGross = 0; p.totalNet = 0; p.totalCount = 0;
             $.each(p.rows, function (_, v) { p.totalGross += v.gross; p.totalNet += v.net; p.totalCount += v.count; });
         });
-        return { periods: periodList, departments: departmentList };
+        return { periods: periodList, departments: departmentList, managers: managerMap };
+    }
+
+    function buildDepartmentManagerMap(employeeRows) {
+        var counts = {}, result = {};
+        $.each(employeeRows || [], function (_, r) {
+            var department = String(r.Department || r.DepartmentName || '').trim();
+            var manager = String(r['Reporting Manager'] || r.ReportingManager || '').trim();
+            if (!department || !manager) return;
+            counts[department] = counts[department] || {};
+            counts[department][manager] = (counts[department][manager] || 0) + 1;
+        });
+        $.each(counts, function (department, managerCounts) {
+            var best = '', bestCount = -1;
+            $.each(managerCounts, function (manager, count) {
+                if (count > bestCount || (count === bestCount && manager.localeCompare(best) < 0)) { best = manager; bestCount = count; }
+            });
+            result[department] = best || '(Not Assigned)';
+        });
+        return result;
     }
 
     function bindCards(model) {
@@ -513,14 +537,14 @@
         $(selector).empty();
         if (!model.periods.length) { $(selector).html('<thead><tr><th>No data available</th></tr></thead>'); return; }
 
-        var columns = [{ title: 'Department', data: 'Department' }], rows = [];
+        var columns = [{ title: 'Reporting Manager', data: 'Reporting Manager' }, { title: 'Department', data: 'Department' }], rows = [];
         $.each(model.periods, function (_, p) {
             if (type === 'headcount') columns.push({ title: p.label, data: String(p.key), className: 'amount' });
             else if (type === 'salary') columns.push({ title: p.label, data: String(p.key), render: money, className: 'amount' });
             else columns.push({ title: p.label, data: String(p.key), render: deviation, className: 'amount' });
         });
         $.each(model.departments, function (_, d) {
-            var row = { Department: d };
+            var row = { 'Reporting Manager': (model.managers && model.managers[d]) || '(Not Assigned)', Department: d };
             $.each(model.periods, function (_, p) {
                 row[String(p.key)] = type === 'headcount' ? p.rows[d].count : type === 'salary' ? p.rows[d].gross : p.rows[d].deviation;
             });
@@ -530,8 +554,8 @@
         var options = {
             data: rows, columns: columns, paging: false, searching: true, info: true, ordering: false,
             autoWidth: false, scrollX: true, scrollY: '42vh', scrollCollapse: true, fixedHeader: true,
-            fixedColumns: { leftColumns: 1 },
-            columnDefs: [{ targets: '_all', width: '140px' }, { targets: 0, width: '220px' }],
+            fixedColumns: { leftColumns: 2 },
+            columnDefs: [{ targets: '_all', width: '140px' }, { targets: 0, width: '250px' }, { targets: 1, width: '220px' }],
             initComplete: function () {
                 var api = this.api();
                 api.columns.adjust();

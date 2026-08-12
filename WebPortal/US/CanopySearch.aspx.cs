@@ -20,13 +20,13 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static string getLoansForGlobalSearch()
+        public static List<Dictionary<string, object>> getLoansForGlobalSearch()
         {
             int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
             DataSet dataSet = new bllUS().getLoansForGlobalSearch_Canopy(currentEmployeeId);
             if (dataSet == null || dataSet.Tables.Count == 0)
             {
-                return "[]";
+                return new List<Dictionary<string, object>>();
             }
 
             DataTable orders = dataSet.Tables[0];
@@ -44,9 +44,7 @@ namespace WebPortal.US
                 rows.Add(row);
             }
 
-            JavaScriptSerializer ser = new JavaScriptSerializer();
-            ser.MaxJsonLength = int.MaxValue;
-            return ser.Serialize(rows);
+            return rows;
         }
 
         private static void AddProcessStatus(DataTable loans, int currentEmployeeId)

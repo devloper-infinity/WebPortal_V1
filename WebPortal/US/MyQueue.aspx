@@ -183,6 +183,9 @@
         }
     </style>
 
+    <script src="../Scripts/US/GlobalSearchFeedback.js?v=20260812.1"></script>
+    <script src="../Scripts/US/CanopySearchFeedback.js?v=20260812.1"></script>
+
     <script>
         var myQueueRows = [];
         var myQueueTable = null;
@@ -263,8 +266,19 @@
                 return false;
             }
 
-            var sourcePage = (row.SourcePage || "").toLowerCase();
-            if (sourcePage != "globalsearch") {
+            var sourcePage = $.trim(row.SourcePage || "").toLowerCase();
+            var isCanopySearch = sourcePage === "canopysearch";
+            var isAtrReview = $.trim(row.Process || "").toLowerCase() === "atr review";
+
+            if (isCanopySearch) {
+                return CanopySearchFeedback.resume(row, "MyQueue");
+            }
+
+            if (sourcePage === "globalsearch") {
+                return GlobalSearchFeedback.resume(row, "MyQueue");
+            }
+
+            if (!isAtrReview) {
                 if (!row.ProcessID || parseInt(row.ProcessID, 10) <= 0) {
                     alert("Process details are not available for this loan.");
                     return false;
@@ -274,22 +288,12 @@
                 return false;
             }
 
-            var payload = {
-                ln: row.LoanNo || "",
-                dn: row.DealNo || "",
-                tp: row.ProcessID || "",
-                src: "MyQueue",
-                client: row.Client || "",
-                od: row.OrderDate || "",
-                process: row.Process || "",
-                review: row.Review || "",
-                sd: row.StartDatetime || "",
-                started: true
-            };
+            if (!row.ProcessID || parseInt(row.ProcessID, 10) <= 0) {
+                alert("Process details are not available for this loan.");
+                return false;
+            }
 
-            var encoded = btoa(JSON.stringify(payload));
-            window.location.href = "FeedbackDetails.aspx?data=" + encodeURIComponent(encoded);
-            return false;
+            return GlobalSearchFeedback.resume(row, "MyQueue");
         }
 
         function formatElapsed(value) {

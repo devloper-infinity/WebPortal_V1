@@ -3,7 +3,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/US/BulkOrderAllocation.js?v=1.4"></script>
+    <script src="../Scripts/US/BulkOrderAllocation.js?v=1.5"></script>
     <style>
         .content .container { max-width: 1500px; }
         .tracking-page { color: #1f2937; padding-top: 18px; }
@@ -228,7 +228,7 @@
             <div class="tracking-panel-head">
                 <div>
                     <h2>Allocate Orders</h2>
-                    <span>Required columns: Project, Deal #, Loan #, Employee</span>
+                    <span>Required columns: Project, Deal #, Loan #, Employee, Process</span>
                 </div>
                 <span class="badge-soft">Pending allocation</span>
             </div>
@@ -260,7 +260,7 @@
                 <div class="tracking-panel-head">
                     <div>
                         <h2>Allocated Orders</h2>
-                        <span>All project 561 orders allocated to PH RecQC, including their current status.</span>
+                        <span>Orders allocated to PH ReQC or ATR Review, including their current status.</span>
                     </div>
                     <button type="button" class="tracking-btn neutral" id="oa_refresh_status">
                         <i class="fas fa-sync-alt"></i>Refresh

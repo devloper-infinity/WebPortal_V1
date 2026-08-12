@@ -431,10 +431,11 @@
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="../Scripts/US/GlobalSearchFeedback.js?v=20260812.1"></script>
 
     <script>
         $(document).ready(function () {
-            us_getloansforglobalsearch();
+            GlobalSearchFeedback.loadSearch();
 
         });
 

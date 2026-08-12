@@ -15,14 +15,14 @@ namespace WebPortal.US
 {
     public partial class BulkOrderAllocation : Page
     {
-        private const int AllocationProjectId = 70;
-        private const string AllocationProjectName = "561";
-        private const int AllocationProcessId = 2506;
-        private const string AllocationProcessName = "PH ReQC";
-
         private static readonly string[] ImportHeaders =
         {
-            "Project", "Deal #", "Loan #", "Employee"
+            "Project", "Deal #", "Loan #", "Employee", "Process"
+        };
+
+        private static readonly string[] AllowedProcessNames =
+        {
+            "PH ReQC", "ATR Review"
         };
 
         protected void Page_Load(object sender, EventArgs e)
@@ -37,14 +37,6 @@ namespace WebPortal.US
 
             try
             {
-                if (request != null)
-                {
-                    request.ProjectId = AllocationProjectId;
-                    request.ProjectName = AllocationProjectName;
-                    request.ProcessId = AllocationProcessId;
-                    request.ProcessName = AllocationProcessName;
-                }
-
                 string validation = ValidateRequest(request);
                 if (!string.IsNullOrWhiteSpace(validation))
                     return TrackingImportResponse.Fail(validation);
@@ -66,6 +58,11 @@ namespace WebPortal.US
                 result.Message = "Import completed.";
                 result.TotalRows = 0;
                 bllTracking tracking = new bllTracking();
+                bllMaster master = new bllMaster();
+                Dictionary<string, int> projectIds = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, DataTable> projectProcesses = new Dictionary<string, DataTable>(StringComparer.OrdinalIgnoreCase);
+                HashSet<string> allocationKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                List<ValidatedAllocationRow> validRows = new List<ValidatedAllocationRow>();
 
                 foreach (DataRow row in dtExcel.Rows)
                 {
@@ -75,13 +72,41 @@ namespace WebPortal.US
                     result.TotalRows++;
 
                     string error = ValidateImportRow(row);
-                    if (string.IsNullOrWhiteSpace(error) &&
-                        !string.Equals(Clean(row["Project"]), request.ProjectName, StringComparison.OrdinalIgnoreCase))
+                    string projectNumber = Clean(row["Project"]);
+                    string processName = CanonicalProcessName(Clean(row["Process"]));
+                    int projectId = 0;
+                    int processId = 0;
+
+                    if (string.IsNullOrWhiteSpace(error) && string.IsNullOrWhiteSpace(processName))
+                        error = "Process must be PH ReQC or ATR Review.";
+
+                    if (string.IsNullOrWhiteSpace(error))
                     {
-                        error = "Project must be " + request.ProjectName + ".";
+                        projectId = ResolveProjectId(master, projectIds, projectNumber);
+                        if (projectId <= 0)
+                            error = "Project # does not exist in ERP.";
                     }
 
-                    string orderDate = DateTime.Today.ToString("MM/dd/yyyy");
+                    if (string.IsNullOrWhiteSpace(error))
+                    {
+                        processId = ResolveProcessId(tracking, projectProcesses, projectId, processName);
+                        if (processId <= 0)
+                            error = "Process '" + processName + "' is not configured for project " + projectNumber + ".";
+                    }
+
+                    if (string.IsNullOrWhiteSpace(error) &&
+                        !tracking.BulkAllocationOrderExists(
+                            projectId,
+                            Clean(row["Deal #"]),
+                            Clean(row["Loan #"])))
+                    {
+                        error = "Deal # and Loan # combination does not match Tracking Sheet for the specified project.";
+                    }
+
+                    string allocationKey = projectId + "|" + Clean(row["Deal #"]) + "|" +
+                        Clean(row["Loan #"]) + "|" + Clean(row["Employee"]) + "|" + processName;
+                    if (string.IsNullOrWhiteSpace(error) && !allocationKeys.Add(allocationKey))
+                        error = "Duplicate row in the uploaded file.";
 
                     if (!string.IsNullOrWhiteSpace(error))
                     {
@@ -90,11 +115,11 @@ namespace WebPortal.US
                     }
 
                     string existingStatus = tracking.GetBulkAllocationDuplicateStatus(
-                        request.ProjectId,
+                        projectId,
                         Clean(row["Deal #"]),
                         Clean(row["Loan #"]),
                         Clean(row["Employee"]),
-                        request.ProcessName);
+                        processName);
                     if (!string.IsNullOrWhiteSpace(existingStatus))
                     {
                         MarkFailed(
@@ -104,7 +129,27 @@ namespace WebPortal.US
                         continue;
                     }
 
-                    Hashtable parameters = BuildAllocationParams(row, request, orderDate);
+                    validRows.Add(new ValidatedAllocationRow(row, projectId, processId, processName));
+                }
+
+                result.FailedRows = result.NotAddedRows.Count;
+                if (result.FailedRows > 0)
+                {
+                    result.Message = "No rows were imported. Correct all validation errors and upload the file again.";
+                    return result;
+                }
+
+                string orderDate = DateTime.Today.ToString("MM/dd/yyyy");
+                foreach (ValidatedAllocationRow validRow in validRows)
+                {
+                    DataRow row = validRow.Row;
+
+                    Hashtable parameters = BuildAllocationParams(
+                        row,
+                        validRow.ProjectId,
+                        validRow.ProcessId,
+                        validRow.ProcessName,
+                        orderDate);
                     string projectNumber = Clean(row["Project"]);
                     int returnValue = ShouldUseServicing(projectNumber)
                         ? tracking.InsertModifyUWOrderOC22Servicing(parameters)
@@ -146,9 +191,7 @@ namespace WebPortal.US
             try
             {
                 bllTracking tracking = new bllTracking();
-                DataTable table = tracking.GetBulkAllocatedOrders(
-                    AllocationProjectId,
-                    AllocationProcessName);
+                DataTable table = tracking.GetBulkAllocatedOrders();
 
                 List<Dictionary<string, object>> rows = ToAllocatedOrderRows(table);
                 return TrackingListResponse.Ok(rows);
@@ -169,14 +212,8 @@ namespace WebPortal.US
             foreach (DataRow row in table.Rows)
             {
                 string project = FirstValue(row, "ProjectName", "ProjectNumber", "ProjectNo", "Project");
-                if (string.IsNullOrWhiteSpace(project))
-                    project = AllocationProjectName;
-                if (!string.Equals(project, AllocationProjectName, StringComparison.OrdinalIgnoreCase))
-                    continue;
 
                 string process = FirstValue(row, "Process", "ProcessName");
-                if (string.IsNullOrWhiteSpace(process))
-                    process = AllocationProcessName;
 
                 string status = FirstValue(row, "CurrentStatus", "Current Status", "Status", "OrderStatus", "Order Status", "TaskStatus");
                 if (string.IsNullOrWhiteSpace(status))
@@ -200,14 +237,6 @@ namespace WebPortal.US
         {
             if (request == null)
                 return "Invalid import request.";
-            if (request.ProjectId <= 0)
-                return "Please select Project.";
-            if (string.IsNullOrWhiteSpace(request.ProjectName))
-                return "Project name is required.";
-            if (request.ProcessId <= 0)
-                return "Please select Process.";
-            if (string.IsNullOrWhiteSpace(request.ProcessName))
-                return "Please select Process.";
             if (string.IsNullOrWhiteSpace(request.FileName) || string.IsNullOrWhiteSpace(request.ContentBase64))
                 return "Please select import file.";
 
@@ -221,12 +250,12 @@ namespace WebPortal.US
         private static string ValidateHeaders(DataTable table)
         {
             if (table == null || table.Columns.Count != ImportHeaders.Length)
-                return "The import file must contain exactly 4 columns: Project, Deal #, Loan #, Employee.";
+                return "The import file must contain exactly 5 columns: Project, Deal #, Loan #, Employee, Process.";
 
             for (int i = 0; i < ImportHeaders.Length; i++)
             {
                 if (!string.Equals(table.Columns[i].ColumnName.Trim(), ImportHeaders[i], StringComparison.OrdinalIgnoreCase))
-                    return "The import file columns must be: Project, Deal #, Loan #, Employee.";
+                    return "The import file columns must be: Project, Deal #, Loan #, Employee, Process.";
             }
 
             return "";
@@ -242,12 +271,16 @@ namespace WebPortal.US
                 return "Project is compulsory.";
             if (string.IsNullOrWhiteSpace(Clean(row["Deal #"])))
                 return "Deal # is compulsory.";
+            if (string.IsNullOrWhiteSpace(Clean(row["Process"])))
+                return "Process is compulsory.";
             return "";
         }
 
         private static Hashtable BuildAllocationParams(
             DataRow row,
-            BulkOrderAllocationImportRequest request,
+            int projectId,
+            int processId,
+            string processName,
             string orderDate)
         {
             Hashtable parameters = new Hashtable();
@@ -256,13 +289,79 @@ namespace WebPortal.US
             parameters.Add("OrderNumber", Clean(row["Loan #"]));
             parameters.Add("Review", Clean(row["Employee"]));
             parameters.Add("ReviewEndTime", orderDate);
-            parameters.Add("Process", Clean(request.ProcessName));
+            parameters.Add("Process", processName);
             parameters.Add("ProductType", "");
             parameters.Add("Status", "Pending");
             parameters.Add("Type", "Allocation");
             parameters.Add("Remark", "");
             parameters.Add("AddedBY", Convert.ToString(CurrentEmployeeId()));
+            parameters.Add("ProjectID", projectId);
+            parameters.Add("ProcessID", processId);
+            parameters.Add("PrevID", 0);
+            parameters.Add("TrackingSheetID", 0);
+            parameters.Add("LoanNo", Clean(row["Loan #"]));
+            parameters.Add("AllocationStatus", "Pending");
+            parameters.Add("PseudoName", Clean(row["Employee"]));
+            parameters.Add("UserID", CurrentEmployeeId());
             return parameters;
+        }
+
+        private static string CanonicalProcessName(string processName)
+        {
+            foreach (string allowedProcessName in AllowedProcessNames)
+            {
+                if (string.Equals(processName, allowedProcessName, StringComparison.OrdinalIgnoreCase))
+                    return allowedProcessName;
+            }
+            return "";
+        }
+
+        private static int ResolveProjectId(
+            bllMaster master,
+            Dictionary<string, int> projectIds,
+            string projectNumber)
+        {
+            int projectId;
+            if (projectIds.TryGetValue(projectNumber, out projectId))
+                return projectId;
+
+            try { projectId = master.GetprojectId(projectNumber); }
+            catch { projectId = 0; }
+            projectIds[projectNumber] = projectId;
+            return projectId;
+        }
+
+        private static int ResolveProcessId(
+            bllTracking tracking,
+            Dictionary<string, DataTable> projectProcesses,
+            int projectId,
+            string processName)
+        {
+            string projectKey = Convert.ToString(projectId);
+            DataTable processes;
+            if (!projectProcesses.TryGetValue(projectKey, out processes))
+            {
+                processes = new bllMaster().getProcess(projectId);
+                projectProcesses[projectKey] = processes;
+            }
+
+            if (processes == null)
+                return 0;
+
+            foreach (DataRow process in processes.Rows)
+            {
+                if (!string.Equals(
+                    FirstValue(process, "ProcessName", "Process"),
+                    processName,
+                    StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int processId;
+                return int.TryParse(FirstValue(process, "ProcessID", "ProcessId"), out processId)
+                    ? processId
+                    : 0;
+            }
+            return 0;
         }
 
         private static bool ShouldUseServicing(string projectNumber)
@@ -448,6 +547,22 @@ namespace WebPortal.US
             return value == null || value == DBNull.Value
                 ? ""
                 : Convert.ToString(value).Trim();
+        }
+
+        private sealed class ValidatedAllocationRow
+        {
+            public DataRow Row { get; private set; }
+            public int ProjectId { get; private set; }
+            public int ProcessId { get; private set; }
+            public string ProcessName { get; private set; }
+
+            public ValidatedAllocationRow(DataRow row, int projectId, int processId, string processName)
+            {
+                Row = row;
+                ProjectId = projectId;
+                ProcessId = processId;
+                ProcessName = processName;
+            }
         }
     }
 

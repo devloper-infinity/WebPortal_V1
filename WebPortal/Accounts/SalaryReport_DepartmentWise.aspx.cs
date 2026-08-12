@@ -71,17 +71,24 @@ namespace WebPortal.Reports
             try
             {
                 DataSet ds = GetSalaryData(fromMonth, fromYear, toMonth, toYear);
+                DataSet previousYearDs = GetPreviousYearComparisonData(ds, fromMonth, fromYear, toMonth, toYear);
                 using (XLWorkbook workbook = new XLWorkbook())
                 {
                     DataTable yearSummary = ds.Tables.Count > 0 ? ds.Tables[0] : new DataTable();
                     DataTable monthSummary = ds.Tables.Count > 1 ? ds.Tables[1] : new DataTable();
                     DataTable employeeDetails = ds.Tables.Count > 2 ? ds.Tables[2] : new DataTable();
-                    CreateHeadcountTrendSheet(workbook, monthSummary, employeeDetails);
-                    CreateGrossSalaryTrendSheet(workbook, monthSummary, employeeDetails);
-                    CreateSalaryDeviationSheet(workbook, monthSummary, employeeDetails);
+                    DataTable previousMonthSummary = previousYearDs != null && previousYearDs.Tables.Count > 1
+                        ? previousYearDs.Tables[1]
+                        : new DataTable();
+                    DataTable previousEmployeeDetails = previousYearDs != null && previousYearDs.Tables.Count > 2
+                        ? previousYearDs.Tables[2]
+                        : new DataTable();
+                    CreateHeadcountTrendSheet(workbook, monthSummary, employeeDetails, previousMonthSummary, previousEmployeeDetails);
+                    CreateGrossSalaryTrendSheet(workbook, monthSummary, employeeDetails, previousMonthSummary, previousEmployeeDetails);
+                    CreateYearOverYearSalaryDeviationSheet(workbook, employeeDetails, previousEmployeeDetails, fromMonth, fromYear, toMonth, toYear);
                     CreateDashboardDataSheet(workbook, monthSummary, employeeDetails);
                     CreateHorizontalMonthlySheet(workbook, monthSummary, employeeDetails);
-                    CreateYearSummarySheet(workbook, yearSummary, employeeDetails);
+                    CreateYearComparisonSheet(workbook, employeeDetails, previousEmployeeDetails, fromMonth, fromYear, toMonth, toYear);
                     CreateMonthSummarySheet(workbook, monthSummary, employeeDetails);
                     CreateEmployeeDetailsSheet(workbook, employeeDetails);
 
@@ -593,6 +600,37 @@ namespace WebPortal.Reports
             return ds;
         }
 
+        private static DataSet GetPreviousYearComparisonData(DataSet currentData, int fromMonth, int fromYear, int toMonth, int toYear)
+        {
+            // The review workbook asks for a like-for-like Jan-Jul 2026 vs Jan-Jul 2025 comparison.
+            // Only a single-year selection can be compared cleanly to the same months of the prior year.
+            if (fromYear != toYear || fromYear <= 1900)
+                return null;
+
+            int lastAvailableMonth = GetLastAvailableMonth(currentData, fromMonth, toMonth);
+            if (lastAvailableMonth < fromMonth)
+                lastAvailableMonth = toMonth;
+
+            return GetSalaryData(fromMonth, fromYear - 1, lastAvailableMonth, fromYear - 1);
+        }
+
+        private static int GetLastAvailableMonth(DataSet data, int fromMonth, int requestedToMonth)
+        {
+            if (data == null || data.Tables.Count < 2 || data.Tables[1].Rows.Count == 0)
+                return requestedToMonth;
+
+            DataTable monthSummary = data.Tables[1];
+            int maximumMonth = 0;
+            foreach (DataRow row in monthSummary.Rows)
+            {
+                string label = monthSummary.Columns.Contains("MonthYear") ? Convert.ToString(row["MonthYear"]) : string.Empty;
+                int month = GetMonthNumber(row, label);
+                if (month >= fromMonth && month <= requestedToMonth)
+                    maximumMonth = Math.Max(maximumMonth, month);
+            }
+            return maximumMonth == 0 ? requestedToMonth : maximumMonth;
+        }
+
         private static string ValidatePeriod(int fromMonth, int fromYear, int toMonth, int toYear)
         {
             if (fromMonth < 1 || fromMonth > 12 || toMonth < 1 || toMonth > 12)
@@ -606,6 +644,176 @@ namespace WebPortal.Reports
             return fromDate > toDate ? "From Month-Year cannot be greater than To Month-Year." : string.Empty;
         }
 
+
+        private static void CreateYearComparisonSheet(
+            XLWorkbook workbook,
+            DataTable currentEmployees,
+            DataTable previousEmployees,
+            int fromMonth,
+            int currentYear,
+            int requestedToMonth,
+            int toYear)
+        {
+            IXLWorksheet ws = workbook.Worksheets.Add("Year Summary");
+            if (currentYear != toYear)
+            {
+                ws.Cell(1, 1).Value = "Year-on-year comparison is available for a single-year selection.";
+                return;
+            }
+
+            int toMonth = GetMaximumMonthFromEmployeeDetails(currentEmployees, requestedToMonth);
+            int previousYear = currentYear - 1;
+            Dictionary<string, YearDepartmentTotal> current = BuildYearDepartmentTotals(currentEmployees, currentYear, fromMonth, toMonth);
+            Dictionary<string, YearDepartmentTotal> previous = BuildYearDepartmentTotals(previousEmployees, previousYear, fromMonth, toMonth);
+            SortedSet<string> departments = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string key in current.Keys) departments.Add(key);
+            foreach (string key in previous.Keys) departments.Add(key);
+            string currentLabel = GetMonthRangeLabel(fromMonth, toMonth, currentYear);
+            string previousLabel = GetMonthRangeLabel(fromMonth, toMonth, previousYear);
+            ws.Range(1, 1, 1, 8).Merge();
+            ws.Cell(1, 1).Value = "Project Manager-wise Salary & Headcount Comparison — " + currentLabel + " vs " + previousLabel;
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 15;
+            ws.Cell(1, 1).Style.Font.FontColor = XLColor.White;
+            ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#355A8A");
+
+            string[] headers = { "Project Manager", "Department", currentLabel + " Employee Count", currentLabel + " Total Salaries", previousLabel + " Employee Count", previousLabel + " Total Salaries", "Deviation INR", "Deviation %" };
+            for (int c = 0; c < headers.Length; c++) ws.Cell(3, c + 1).Value = headers[c];
+
+            int rowNo = 4;
+            foreach (string department in departments)
+            {
+                YearDepartmentTotal currentValue;
+                YearDepartmentTotal previousValue;
+                if (!current.TryGetValue(department, out currentValue)) currentValue = new YearDepartmentTotal();
+                if (!previous.TryGetValue(department, out previousValue)) previousValue = new YearDepartmentTotal();
+                decimal deviation = currentValue.Gross - previousValue.Gross;
+
+                ws.Cell(rowNo, 1).Value = GetManagerFromPmDepartmentKey(department);
+                ws.Cell(rowNo, 2).Value = GetDepartmentFromPmDepartmentKey(department);
+                ws.Cell(rowNo, 3).Value = currentValue.Employees.Count;
+                ws.Cell(rowNo, 4).Value = currentValue.Gross;
+                ws.Cell(rowNo, 5).Value = previousValue.Employees.Count;
+                ws.Cell(rowNo, 6).Value = previousValue.Gross;
+                ws.Cell(rowNo, 7).Value = deviation;
+                if (previousValue.Gross != 0M) ws.Cell(rowNo, 8).Value = deviation / previousValue.Gross;
+                rowNo++;
+            }
+
+            int lastRow = Math.Max(4, rowNo - 1);
+            IXLRange header = ws.Range(3, 1, 3, 8);
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            header.Style.Font.FontColor = XLColor.White;
+            header.Style.Font.Bold = true;
+            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(3, 1, lastRow, 8).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(3, 1, lastRow, 8).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            if (lastRow >= 4)
+            {
+                ws.Range(4, 3, lastRow, 3).Style.NumberFormat.Format = "0";
+                ws.Range(4, 4, lastRow, 4).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(4, 5, lastRow, 5).Style.NumberFormat.Format = "0";
+                ws.Range(4, 6, lastRow, 7).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(4, 8, lastRow, 8).Style.NumberFormat.Format = "0.00%";
+                ws.Range(4, 7, lastRow, 8).AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9"));
+                ws.Range(4, 7, lastRow, 8).AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6"));
+            }
+            ws.SheetView.FreezeRows(3);
+            ws.Range(3, 1, lastRow, 8).SetAutoFilter();
+            ws.Columns().AdjustToContents(1, 38);
+            ws.Column(1).Width = Math.Max(ws.Column(1).Width, 18);
+            ws.Column(2).Width = Math.Max(ws.Column(2).Width, 30);
+
+            ws.Cell(lastRow + 3, 1).Value = "Data availability note:";
+            ws.Cell(lastRow + 3, 1).Style.Font.Bold = true;
+            ws.Cell(lastRow + 3, 2).Value = "The current salary detail result contains Gross/Net Salary and Reporting Manager, but no separate numeric side-remuneration, productivity-target or accuracy-target fields. Those metrics are therefore not fabricated in this export.";
+            ws.Range(lastRow + 3, 2, lastRow + 4, 8).Merge();
+            ws.Cell(lastRow + 3, 2).Style.Alignment.WrapText = true;
+        }
+
+        private static int GetMaximumMonthFromEmployeeDetails(DataTable table, int fallbackMonth)
+        {
+            if (table == null || table.Rows.Count == 0) return fallbackMonth;
+            int maximum = 0;
+            foreach (DataRow row in table.Rows)
+            {
+                string label = GetStringValue(row, "MonthYear", "Month");
+                int month = GetMonthNumber(row, label);
+                maximum = Math.Max(maximum, month);
+            }
+            return maximum == 0 ? fallbackMonth : Math.Min(maximum, fallbackMonth);
+        }
+
+        private static string GetMonthRangeLabel(int fromMonth, int toMonth, int year)
+        {
+            string from = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(fromMonth);
+            string to = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(toMonth);
+            return from + " to " + to + " " + year.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static Dictionary<string, YearDepartmentTotal> BuildYearDepartmentTotals(DataTable table, int year, int fromMonth, int toMonth)
+        {
+            Dictionary<string, YearDepartmentTotal> totals = new Dictionary<string, YearDepartmentTotal>(StringComparer.OrdinalIgnoreCase);
+            if (table == null || !table.Columns.Contains("Year") || !table.Columns.Contains("Department")) return totals;
+
+            foreach (DataRow row in table.Rows)
+            {
+                int rowYear;
+                if (!int.TryParse(Convert.ToString(row["Year"]), out rowYear) || rowYear != year) continue;
+                string monthLabel = GetStringValue(row, "MonthYear", "Month");
+                int month = GetMonthNumber(row, monthLabel);
+                if (month < fromMonth || month > toMonth) continue;
+
+                string department = Convert.ToString(row["Department"]).Trim();
+                if (department.Length == 0) department = "(Not Assigned)";
+                string manager = GetStringValue(row, "Reporting Manager", "Project Manager").Trim();
+                if (manager.Length == 0) manager = "(Not Assigned)";
+                string key = MakePmDepartmentKey(manager, department);
+
+                YearDepartmentTotal total;
+                if (!totals.TryGetValue(key, out total))
+                {
+                    total = new YearDepartmentTotal { Employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase) };
+                    totals[key] = total;
+                }
+                string employee = GetStringValue(row, "Code", "EmployeeID", "EmployeeCode", "Name");
+                if (!string.IsNullOrWhiteSpace(employee)) total.Employees.Add(employee.Trim());
+                total.Gross += GetDecimalValue(row, "Gross Salary", "GrossSalary", "Gross");
+            }
+            return totals;
+        }
+
+        private static string MakePmDepartmentKey(string manager, string department)
+        {
+            return (string.IsNullOrWhiteSpace(manager) ? "(Not Assigned)" : manager.Trim()) + "||" +
+                   (string.IsNullOrWhiteSpace(department) ? "(Not Assigned)" : department.Trim());
+        }
+
+        private static string GetManagerFromPmDepartmentKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return "(Not Assigned)";
+            int separator = key.IndexOf("||", StringComparison.Ordinal);
+            return separator < 0 ? "(Not Assigned)" : key.Substring(0, separator);
+        }
+
+        private static string GetDepartmentFromPmDepartmentKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return "(Not Assigned)";
+            int separator = key.IndexOf("||", StringComparison.Ordinal);
+            return separator < 0 ? key : key.Substring(separator + 2);
+        }
+
+        private static string GetPmDepartmentDisplayLabel(string key)
+        {
+            return GetManagerFromPmDepartmentKey(key) + " - " + GetDepartmentFromPmDepartmentKey(key);
+        }
+
+        private sealed class YearDepartmentTotal
+        {
+            public YearDepartmentTotal() { Employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
+            public HashSet<string> Employees { get; set; }
+            public decimal Gross { get; set; }
+        }
 
         private static void CreateGrossYearSummarySheet(XLWorkbook workbook, DataTable source, DataTable employeeDetails)
         {
@@ -779,48 +987,155 @@ namespace WebPortal.Reports
         private sealed class SalaryPeriod { public int Key { get; set; } public string Label { get; set; } }
         private sealed class SalaryAmount { public decimal Gross { get; set; } }
 
+        private static void CreateYearOverYearSalaryDeviationSheet(
+            XLWorkbook workbook,
+            DataTable currentEmployees,
+            DataTable previousEmployees,
+            int fromMonth,
+            int currentYear,
+            int requestedToMonth,
+            int toYear)
+        {
+            IXLWorksheet ws = workbook.Worksheets.Add("Salary Deviation");
+            if (currentYear != toYear)
+            {
+                ws.Cell(1, 1).Value = "Year-on-year salary deviation is available for a single-year selection.";
+                return;
+            }
+
+            int toMonth = GetMaximumMonthFromEmployeeDetails(currentEmployees, requestedToMonth);
+            int previousYear = currentYear - 1;
+            Dictionary<string, YearDepartmentTotal> current = BuildYearDepartmentTotals(currentEmployees, currentYear, fromMonth, toMonth);
+            Dictionary<string, YearDepartmentTotal> previous = BuildYearDepartmentTotals(previousEmployees, previousYear, fromMonth, toMonth);
+            SortedSet<string> departments = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string department in current.Keys) departments.Add(department);
+            foreach (string department in previous.Keys) departments.Add(department);
+
+            string currentLabel = GetMonthRangeLabel(fromMonth, toMonth, currentYear);
+            string previousLabel = GetMonthRangeLabel(fromMonth, toMonth, previousYear);
+            ws.Range(1, 1, 1, 6).Merge();
+            ws.Cell(1, 1).Value = "Project Manager-wise Salary Deviation — " + currentLabel + " minus " + previousLabel;
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 15;
+            ws.Cell(1, 1).Style.Font.FontColor = XLColor.White;
+            ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#355A8A");
+
+            AddYearOverYearSalaryComparisonPicture(ws, current, previous, departments, currentLabel, previousLabel, "H3");
+
+            string[] headers = { "Project Manager", "Department", currentLabel + " Total Salary", previousLabel + " Total Salary", "Deviation INR", "Deviation %" };
+            for (int c = 0; c < headers.Length; c++) ws.Cell(3, c + 1).Value = headers[c];
+
+            List<string> orderedDepartments = new List<string>(departments);
+            orderedDepartments.Sort(delegate (string left, string right)
+            {
+                int managerCompare = StringComparer.OrdinalIgnoreCase.Compare(
+                    GetManagerFromPmDepartmentKey(left),
+                    GetManagerFromPmDepartmentKey(right));
+                return managerCompare != 0
+                    ? managerCompare
+                    : StringComparer.OrdinalIgnoreCase.Compare(
+                        GetDepartmentFromPmDepartmentKey(left),
+                        GetDepartmentFromPmDepartmentKey(right));
+            });
+
+            int rowNo = 4;
+            foreach (string department in orderedDepartments)
+            {
+                YearDepartmentTotal currentValue;
+                YearDepartmentTotal previousValue;
+                if (!current.TryGetValue(department, out currentValue)) currentValue = new YearDepartmentTotal();
+                if (!previous.TryGetValue(department, out previousValue)) previousValue = new YearDepartmentTotal();
+                decimal deviation = currentValue.Gross - previousValue.Gross;
+
+                ws.Cell(rowNo, 1).Value = GetManagerFromPmDepartmentKey(department);
+                ws.Cell(rowNo, 2).Value = GetDepartmentFromPmDepartmentKey(department);
+                ws.Cell(rowNo, 3).Value = currentValue.Gross;
+                ws.Cell(rowNo, 4).Value = previousValue.Gross;
+                ws.Cell(rowNo, 5).Value = deviation;
+                if (previousValue.Gross != 0M) ws.Cell(rowNo, 6).Value = deviation / previousValue.Gross;
+                rowNo++;
+            }
+
+            int lastRow = Math.Max(4, rowNo - 1);
+            IXLRange header = ws.Range(3, 1, 3, 6);
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            header.Style.Font.FontColor = XLColor.White;
+            header.Style.Font.Bold = true;
+            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(3, 1, lastRow, 6).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range(3, 1, lastRow, 6).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            if (lastRow >= 4)
+            {
+                ws.Range(4, 3, lastRow, 5).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(4, 6, lastRow, 6).Style.NumberFormat.Format = "0.00%";
+                ws.Range(4, 5, lastRow, 6).AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9")).Font.SetFontColor(XLColor.FromHtml("#006100"));
+                ws.Range(4, 5, lastRow, 6).AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6")).Font.SetFontColor(XLColor.FromHtml("#9C0006"));
+            }
+            ws.SheetView.FreezeRows(3);
+            ws.Range(3, 1, lastRow, 6).SetAutoFilter();
+            ws.Columns().AdjustToContents(1, 36);
+        }
+
         private static void CreateDashboardDataSheet(XLWorkbook workbook, DataTable source, DataTable employeeDetails)
         {
             IXLWorksheet ws = workbook.Worksheets.Add("Dashboard Data");
             ws.Cell(1, 1).Value = "Month";
             ws.Cell(1, 2).Value = "Location";
             ws.Cell(1, 3).Value = "Domain";
-            ws.Cell(1, 4).Value = "Subdomain";
-            ws.Cell(1, 5).Value = "Total Headcount";
-            ws.Cell(1, 6).Value = "Total Gross Salary";
-            ws.Cell(1, 7).Value = "Total Net Salary";
+            ws.Cell(1, 4).Value = "Corrected Domain";
+            ws.Cell(1, 5).Value = "Subdomain";
+            ws.Cell(1, 6).Value = "Total Headcount";
+            ws.Cell(1, 7).Value = "% of Total Force";
+            ws.Cell(1, 8).Value = "Total Gross Salary";
+            ws.Cell(1, 9).Value = "Total Net Salary";
+            ws.Cell(1, 10).Value = "% of Total Salary";
 
             SortedDictionary<string, SalaryDashboardTotal> totals = BuildDashboardTotals(employeeDetails);
-
-            // Keep the sheet usable if the detail result is unavailable while preserving monthly report totals.
             if (totals.Count == 0)
                 AddUnassignedDashboardTotals(totals, source);
+
+            Dictionary<string, int> monthHeadcount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, decimal> monthNet = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+            foreach (KeyValuePair<string, SalaryDashboardTotal> item in totals)
+            {
+                string month = item.Value.Label;
+                monthHeadcount[month] = (monthHeadcount.ContainsKey(month) ? monthHeadcount[month] : 0) + item.Value.Employees.Count;
+                monthNet[month] = (monthNet.ContainsKey(month) ? monthNet[month] : 0M) + item.Value.Net;
+            }
 
             int outputRow = 2;
             foreach (KeyValuePair<string, SalaryDashboardTotal> item in totals)
             {
-                ws.Cell(outputRow, 1).Value = item.Value.Label;
-                ws.Cell(outputRow, 2).Value = item.Value.Location;
-                ws.Cell(outputRow, 3).Value = item.Value.Domain;
-                ws.Cell(outputRow, 4).Value = item.Value.Subdomain;
-                ws.Cell(outputRow, 5).Value = item.Value.Employees.Count;
-                ws.Cell(outputRow, 6).Value = item.Value.Gross;
-                ws.Cell(outputRow, 7).Value = item.Value.Net;
+                SalaryDashboardTotal value = item.Value;
+                int totalForce = monthHeadcount.ContainsKey(value.Label) ? monthHeadcount[value.Label] : 0;
+                decimal totalSalary = monthNet.ContainsKey(value.Label) ? monthNet[value.Label] : 0M;
+                ws.Cell(outputRow, 1).Value = value.Label;
+                ws.Cell(outputRow, 2).Value = value.Location;
+                ws.Cell(outputRow, 3).Value = value.Domain;
+                ws.Cell(outputRow, 4).Value = value.CorrectedDomain;
+                ws.Cell(outputRow, 5).Value = value.Subdomain;
+                ws.Cell(outputRow, 6).Value = value.Employees.Count;
+                ws.Cell(outputRow, 7).Value = totalForce == 0 ? 0M : (decimal)value.Employees.Count / totalForce;
+                ws.Cell(outputRow, 8).Value = value.Gross;
+                ws.Cell(outputRow, 9).Value = value.Net;
+                ws.Cell(outputRow, 10).Value = totalSalary == 0M ? 0M : value.Net / totalSalary;
                 outputRow++;
             }
 
             int lastRow = Math.Max(outputRow - 1, 1);
-            ws.Range(1, 1, 1, 7).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
-            ws.Range(1, 1, 1, 7).Style.Font.FontColor = XLColor.White;
-            ws.Range(1, 1, 1, 7).Style.Font.Bold = true;
+            ws.Range(1, 1, 1, 10).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            ws.Range(1, 1, 1, 10).Style.Font.FontColor = XLColor.White;
+            ws.Range(1, 1, 1, 10).Style.Font.Bold = true;
             if (lastRow > 1)
             {
-                ws.Range(2, 5, lastRow, 5).Style.NumberFormat.Format = "0";
-                ws.Range(2, 6, lastRow, 7).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(2, 6, lastRow, 6).Style.NumberFormat.Format = "0";
+                ws.Range(2, 7, lastRow, 7).Style.NumberFormat.Format = "0.00%";
+                ws.Range(2, 8, lastRow, 9).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(2, 10, lastRow, 10).Style.NumberFormat.Format = "0.00%";
             }
-            ws.Range(1, 1, lastRow, 7).SetAutoFilter();
+            ws.Range(1, 1, lastRow, 10).SetAutoFilter();
             ws.SheetView.FreezeRows(1);
-            ws.Columns().AdjustToContents(1, 24);
+            ws.Columns().AdjustToContents(1, 28);
         }
 
         private static SortedDictionary<string, SalaryDashboardTotal> BuildDashboardTotals(DataTable employeeDetails)
@@ -842,7 +1157,8 @@ namespace WebPortal.Reports
                 string location = GetDimensionValue(row, "Location", "Branch", "WorkingBranch", "WorkingBranchName");
                 string domain = GetDimensionValue(row, "Domain", "DomainName");
                 string subdomain = GetDimensionValue(row, "Subdomain", "SubDomain", "SubdomainName", "SubDomainName");
-                string key = periodKey.ToString("D6", CultureInfo.InvariantCulture) + "||" + location + "||" + domain + "||" + subdomain;
+                string correctedDomain = GetCorrectedDashboardDomain(row, domain);
+                string key = periodKey.ToString("D6", CultureInfo.InvariantCulture) + "||" + location + "||" + domain + "||" + correctedDomain + "||" + subdomain;
 
                 SalaryDashboardTotal total;
                 if (!totals.TryGetValue(key, out total))
@@ -852,6 +1168,7 @@ namespace WebPortal.Reports
                         Label = GetShortPeriodLabel(periodKey, monthLabel),
                         Location = location,
                         Domain = domain,
+                        CorrectedDomain = correctedDomain,
                         Subdomain = subdomain,
                         Employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                     };
@@ -889,6 +1206,7 @@ namespace WebPortal.Reports
                         Label = GetShortPeriodLabel(periodKey, monthLabel),
                         Location = "(Not Assigned)",
                         Domain = "(Not Assigned)",
+                        CorrectedDomain = "(Not Assigned)",
                         Subdomain = "(Not Assigned)",
                         Employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                     };
@@ -897,6 +1215,24 @@ namespace WebPortal.Reports
                 total.Gross += GetDecimalValue(row, "GrossSalary", "Gross Salary", "Gross");
                 total.Net += GetDecimalValue(row, "NetSalary", "Net Salary", "Net");
             }
+        }
+
+        private static string GetCorrectedDashboardDomain(DataRow row, string rawDomain)
+        {
+            string domain = (rawDomain ?? string.Empty).Trim();
+            string department = GetStringValue(row, "DepartmentName", "Department").Trim();
+
+            // Reviewer requested the Title variants to be shown as one Title domain.
+            if (domain.StartsWith("Title-", StringComparison.OrdinalIgnoreCase))
+                return "Title";
+
+            // Generic Support/Others obscures the real support function. DepartmentName is available
+            // in the detail result and gives Accounts/Admin/HR/IT/Legal/etc. without inventing a mapping.
+            if ((domain.Equals("Support", StringComparison.OrdinalIgnoreCase) || domain.Equals("Others", StringComparison.OrdinalIgnoreCase))
+                && !string.IsNullOrWhiteSpace(department))
+                return department;
+
+            return string.IsNullOrWhiteSpace(domain) ? "(Not Assigned)" : domain;
         }
 
         private static string GetDimensionValue(DataRow row, params string[] columnNames)
@@ -1001,7 +1337,6 @@ namespace WebPortal.Reports
                 ws.Range(3, c + 2, lastRow, c + 2).Style.NumberFormat.Format = "0.00%";
             }
             ws.SheetView.FreezeRows(2);
-            ws.SheetView.FreezeColumns(1);
             ws.Columns().AdjustToContents(1, 24);
         }
 
@@ -1010,6 +1345,7 @@ namespace WebPortal.Reports
             public string Label { get; set; }
             public string Location { get; set; }
             public string Domain { get; set; }
+            public string CorrectedDomain { get; set; }
             public string Subdomain { get; set; }
             public HashSet<string> Employees { get; set; }
             public decimal Gross { get; set; }
@@ -1023,6 +1359,7 @@ namespace WebPortal.Reports
             public List<string> Departments { get; set; }
             public Dictionary<string, decimal> GrossValues { get; set; }
             public Dictionary<string, int> HeadcountValues { get; set; }
+            public Dictionary<string, string> DepartmentManagers { get; set; }
         }
 
         private sealed class DepartmentChartSeries
@@ -1039,49 +1376,213 @@ namespace WebPortal.Reports
                 Periods = new SortedDictionary<int, string>(),
                 Departments = new List<string>(),
                 GrossValues = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
-                HeadcountValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+                HeadcountValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
+                DepartmentManagers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             };
 
-            SortedSet<string> departmentSet = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (DataRow row in monthSummary.Rows)
+            // Keep period labels from the monthly result when available.
+            if (monthSummary != null)
             {
-                int year = Convert.ToInt32(row["Year"]);
-                string monthYear = Convert.ToString(row["MonthYear"]);
-                int month = GetMonthNumber(row, monthYear);
-                int periodKey = year * 100 + month;
-                string department = Convert.ToString(row["Department"]);
-
-                model.Periods[periodKey] = monthYear;
-                departmentSet.Add(department);
-                model.GrossValues[periodKey.ToString(CultureInfo.InvariantCulture) + "||" + department] =
-                    ToDecimal(row["GrossSalary"]);
+                foreach (DataRow row in monthSummary.Rows)
+                {
+                    int year;
+                    if (!int.TryParse(Convert.ToString(row["Year"]), out year)) continue;
+                    string monthYear = GetStringValue(row, "MonthYear", "Month");
+                    int month = GetMonthNumber(row, monthYear);
+                    if (month < 1 || month > 12) continue;
+                    model.Periods[year * 100 + month] = monthYear;
+                }
             }
 
-            Dictionary<string, HashSet<string>> countMap = BuildEmployeeCountMap(employeeDetails, true);
-            foreach (KeyValuePair<string, HashSet<string>> item in countMap)
+            SortedSet<string> pmDepartmentKeys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, HashSet<string>> employeeSets = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+            // PM-wise bifurcation must be calculated from employee-level data, not the department summary.
+            if (employeeDetails != null && employeeDetails.Columns.Contains("Year") && employeeDetails.Columns.Contains("Department"))
+            {
+                foreach (DataRow row in employeeDetails.Rows)
+                {
+                    int year;
+                    if (!int.TryParse(Convert.ToString(row["Year"]), out year)) continue;
+                    string monthYear = GetStringValue(row, "MonthYear", "Month");
+                    int month = GetMonthNumber(row, monthYear);
+                    if (month < 1 || month > 12) continue;
+
+                    int periodKey = year * 100 + month;
+                    if (!model.Periods.ContainsKey(periodKey))
+                        model.Periods[periodKey] = GetShortPeriodLabel(periodKey, monthYear);
+
+                    string department = GetStringValue(row, "Department").Trim();
+                    if (department.Length == 0) department = "(Not Assigned)";
+                    string manager = GetStringValue(row, "Reporting Manager", "Project Manager").Trim();
+                    if (manager.Length == 0) manager = "(Not Assigned)";
+                    string pmDepartmentKey = MakePmDepartmentKey(manager, department);
+                    pmDepartmentKeys.Add(pmDepartmentKey);
+                    model.DepartmentManagers[pmDepartmentKey] = manager;
+
+                    string valueKey = periodKey.ToString(CultureInfo.InvariantCulture) + "||" + pmDepartmentKey;
+                    decimal existingGross;
+                    model.GrossValues.TryGetValue(valueKey, out existingGross);
+                    model.GrossValues[valueKey] = existingGross + GetDecimalValue(row, "GrossSalary", "Gross Salary", "Gross");
+
+                    HashSet<string> employees;
+                    if (!employeeSets.TryGetValue(valueKey, out employees))
+                    {
+                        employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        employeeSets[valueKey] = employees;
+                    }
+                    string employee = GetStringValue(row, "Code", "EmployeeID", "EmployeeCode", "Name");
+                    if (!string.IsNullOrWhiteSpace(employee)) employees.Add(employee.Trim());
+                }
+            }
+
+            foreach (KeyValuePair<string, HashSet<string>> item in employeeSets)
                 model.HeadcountValues[item.Key] = item.Value.Count;
 
-            model.Departments.AddRange(departmentSet);
+            model.Departments.AddRange(pmDepartmentKeys);
+            model.Departments.Sort(delegate (string left, string right)
+            {
+                int managerCompare = StringComparer.OrdinalIgnoreCase.Compare(
+                    GetManagerFromPmDepartmentKey(left),
+                    GetManagerFromPmDepartmentKey(right));
+                return managerCompare != 0
+                    ? managerCompare
+                    : StringComparer.OrdinalIgnoreCase.Compare(
+                        GetDepartmentFromPmDepartmentKey(left),
+                        GetDepartmentFromPmDepartmentKey(right));
+            });
             return model;
         }
 
-        private static void CreateHeadcountTrendSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
+        private static Dictionary<string, string> BuildDepartmentManagerMap(DataTable employeeDetails)
         {
-            MonthlyExportModel model = BuildMonthlyExportModel(monthSummary, employeeDetails);
-            IXLWorksheet ws = workbook.Worksheets.Add("Headcount Trend");
-            WriteSheetTitle(ws, "Department-wise Headcount Trend");
+            Dictionary<string, SortedSet<string>> managersByDepartment = new Dictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (employeeDetails == null || !employeeDetails.Columns.Contains("Department") || !employeeDetails.Columns.Contains("Reporting Manager"))
+                return result;
 
-            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Department-wise Headcount Trend", model, ExportMetric.Headcount, "B3");
+            foreach (DataRow row in employeeDetails.Rows)
+            {
+                string department = Convert.ToString(row["Department"]).Trim();
+                string manager = Convert.ToString(row["Reporting Manager"]).Trim();
+                if (department.Length == 0 || manager.Length == 0) continue;
+
+                SortedSet<string> managers;
+                if (!managersByDepartment.TryGetValue(department, out managers))
+                {
+                    managers = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                    managersByDepartment[department] = managers;
+                }
+                managers.Add(manager);
+            }
+
+            foreach (KeyValuePair<string, SortedSet<string>> item in managersByDepartment)
+                result[item.Key] = string.Join(Environment.NewLine, new List<string>(item.Value).ToArray());
+
+            return result;
+        }
+
+        private static string GetManagerForDepartment(Dictionary<string, string> map, string department)
+        {
+            string manager;
+            return map != null && map.TryGetValue(department ?? string.Empty, out manager) && !string.IsNullOrWhiteSpace(manager)
+                ? manager
+                : "(Not Assigned)";
+        }
+
+        private static MonthlyExportModel BuildComparisonMonthlyExportModel(
+            DataTable currentMonthSummary,
+            DataTable currentEmployeeDetails,
+            DataTable previousMonthSummary,
+            DataTable previousEmployeeDetails)
+        {
+            MonthlyExportModel current = BuildMonthlyExportModel(currentMonthSummary ?? new DataTable(), currentEmployeeDetails ?? new DataTable());
+            MonthlyExportModel previous = BuildMonthlyExportModel(previousMonthSummary ?? new DataTable(), previousEmployeeDetails ?? new DataTable());
+            MonthlyExportModel combined = new MonthlyExportModel
+            {
+                Periods = new SortedDictionary<int, string>(),
+                Departments = new List<string>(),
+                GrossValues = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
+                HeadcountValues = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
+                DepartmentManagers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            };
+
+            SortedSet<string> departments = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            CopyMonthlyModelIntoComparison(previous, combined, departments, "Prior");
+            CopyMonthlyModelIntoComparison(current, combined, departments, "Current");
+
+            foreach (string department in departments)
+            {
+                combined.DepartmentManagers[department] = GetManagerFromPmDepartmentKey(department);
+                combined.Departments.Add(department);
+            }
+
+            combined.Departments.Sort(delegate (string left, string right)
+            {
+                int managerCompare = StringComparer.OrdinalIgnoreCase.Compare(
+                    GetManagerFromPmDepartmentKey(left),
+                    GetManagerFromPmDepartmentKey(right));
+                return managerCompare != 0
+                    ? managerCompare
+                    : StringComparer.OrdinalIgnoreCase.Compare(
+                        GetDepartmentFromPmDepartmentKey(left),
+                        GetDepartmentFromPmDepartmentKey(right));
+            });
+            return combined;
+        }
+
+        private static void CopyMonthlyModelIntoComparison(
+            MonthlyExportModel source,
+            MonthlyExportModel target,
+            SortedSet<string> departments,
+            string periodTag)
+        {
+            if (source == null) return;
+            foreach (KeyValuePair<int, string> period in source.Periods)
+                target.Periods[period.Key] = GetShortPeriodLabel(period.Key, period.Value) + " (" + periodTag + ")";
+            foreach (string department in source.Departments) departments.Add(department);
+            foreach (KeyValuePair<string, decimal> item in source.GrossValues) target.GrossValues[item.Key] = item.Value;
+            foreach (KeyValuePair<string, int> item in source.HeadcountValues) target.HeadcountValues[item.Key] = item.Value;
+        }
+
+        private static void AddManagerList(SortedSet<string> managers, string managerList)
+        {
+            if (managers == null || string.IsNullOrWhiteSpace(managerList) || managerList == "(Not Assigned)") return;
+            string[] items = managerList.Split(new[] { ",", "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string item in items)
+            {
+                string value = item.Trim();
+                if (value.Length > 0) managers.Add(value);
+            }
+        }
+
+        private static void CreateHeadcountTrendSheet(
+            XLWorkbook workbook,
+            DataTable monthSummary,
+            DataTable employeeDetails,
+            DataTable previousMonthSummary,
+            DataTable previousEmployeeDetails)
+        {
+            MonthlyExportModel model = BuildComparisonMonthlyExportModel(monthSummary, employeeDetails, previousMonthSummary, previousEmployeeDetails);
+            IXLWorksheet ws = workbook.Worksheets.Add("Headcount Trend");
+            WriteSheetTitle(ws, "Project Manager-wise Headcount Trend — Current vs Prior Year");
+
+            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Project Manager-wise Headcount: Current vs Prior Year", model, ExportMetric.Headcount, "B3");
             WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Headcount);
         }
 
-        private static void CreateGrossSalaryTrendSheet(XLWorkbook workbook, DataTable monthSummary, DataTable employeeDetails)
+        private static void CreateGrossSalaryTrendSheet(
+            XLWorkbook workbook,
+            DataTable monthSummary,
+            DataTable employeeDetails,
+            DataTable previousMonthSummary,
+            DataTable previousEmployeeDetails)
         {
-            MonthlyExportModel model = BuildMonthlyExportModel(monthSummary, employeeDetails);
+            MonthlyExportModel model = BuildComparisonMonthlyExportModel(monthSummary, employeeDetails, previousMonthSummary, previousEmployeeDetails);
             IXLWorksheet ws = workbook.Worksheets.Add("Gross Salary Trend");
-            WriteSheetTitle(ws, "Department-wise Gross Salary Trend");
+            WriteSheetTitle(ws, "Project Manager-wise Gross Salary Trend — Current vs Prior Year");
 
-            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Department-wise Gross Salary Trend", model, ExportMetric.Gross, "B3");
+            int tableStartRow = AddDepartmentAdjustedBarPicture(ws, "Project Manager-wise Gross Salary: Current vs Prior Year", model, ExportMetric.Gross, "B3");
             WriteHorizontalMetricTable(ws, model, tableStartRow, ExportMetric.Gross);
         }
 
@@ -1116,16 +1617,18 @@ namespace WebPortal.Reports
 
         private static void WriteHorizontalMetricTable(IXLWorksheet ws, MonthlyExportModel model, int startRow, ExportMetric metric)
         {
-            ws.Cell(startRow, 1).Value = "Department";
-            int col = 2;
+            ws.Cell(startRow, 1).Value = "Project Manager";
+            ws.Cell(startRow, 2).Value = "Department";
+            int col = 3;
             foreach (KeyValuePair<int, string> period in model.Periods)
                 ws.Cell(startRow, col++).Value = period.Value;
 
             int row = startRow + 1;
             foreach (string department in model.Departments)
             {
-                ws.Cell(row, 1).Value = department;
-                col = 2;
+                ws.Cell(row, 1).Value = GetManagerFromPmDepartmentKey(department);
+                ws.Cell(row, 2).Value = GetDepartmentFromPmDepartmentKey(department);
+                col = 3;
                 decimal previousGross = 0M;
                 bool hasPrevious = false;
 
@@ -1141,11 +1644,8 @@ namespace WebPortal.Reports
                         ws.Cell(row, col).Value = count;
                     else if (metric == ExportMetric.Gross)
                         ws.Cell(row, col).Value = gross;
-                    else
-                    {
-                        if (hasPrevious && previousGross != 0M)
-                            ws.Cell(row, col).Value = (gross - previousGross) / previousGross;
-                    }
+                    else if (hasPrevious && previousGross != 0M)
+                        ws.Cell(row, col).Value = (gross - previousGross) / previousGross;
 
                     previousGross = gross;
                     hasPrevious = true;
@@ -1155,7 +1655,7 @@ namespace WebPortal.Reports
             }
 
             int lastRow = Math.Max(row - 1, startRow);
-            int lastCol = Math.Max(col - 1, 1);
+            int lastCol = Math.Max(col - 1, 2);
             IXLRange header = ws.Range(startRow, 1, startRow, lastCol);
             header.Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
             header.Style.Font.FontColor = XLColor.White;
@@ -1165,24 +1665,125 @@ namespace WebPortal.Reports
             IXLRange dataRange = ws.Range(startRow, 1, lastRow, lastCol);
             dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            ws.Column(1).Width = 24;
-            for (int c = 2; c <= lastCol; c++) ws.Column(c).Width = 15;
+            ws.Column(1).Width = 30;
+            ws.Column(2).Width = 24;
+            for (int c = 3; c <= lastCol; c++) ws.Column(c).Width = 15;
 
-            if (metric == ExportMetric.Headcount)
-                ws.Range(startRow + 1, 2, lastRow, lastCol).Style.NumberFormat.Format = "0";
-            else if (metric == ExportMetric.Gross)
-                ws.Range(startRow + 1, 2, lastRow, lastCol).Style.NumberFormat.Format = "#,##0.00";
-            else
+            if (lastRow > startRow)
             {
-                IXLRange deviationRange = ws.Range(startRow + 1, 2, lastRow, lastCol);
-                deviationRange.Style.NumberFormat.Format = "0.00%";
-                deviationRange.AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9")).Font.SetFontColor(XLColor.FromHtml("#006100"));
-                deviationRange.AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6")).Font.SetFontColor(XLColor.FromHtml("#9C0006"));
+                if (metric == ExportMetric.Headcount)
+                    ws.Range(startRow + 1, 3, lastRow, lastCol).Style.NumberFormat.Format = "0";
+                else if (metric == ExportMetric.Gross)
+                    ws.Range(startRow + 1, 3, lastRow, lastCol).Style.NumberFormat.Format = "#,##0.00";
+                else
+                {
+                    IXLRange deviationRange = ws.Range(startRow + 1, 3, lastRow, lastCol);
+                    deviationRange.Style.NumberFormat.Format = "0.00%";
+                    deviationRange.AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9")).Font.SetFontColor(XLColor.FromHtml("#006100"));
+                    deviationRange.AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6")).Font.SetFontColor(XLColor.FromHtml("#9C0006"));
+                }
             }
 
             ws.SheetView.FreezeRows(startRow);
-            ws.SheetView.FreezeColumns(1);
             ws.Range(startRow, 1, lastRow, lastCol).SetAutoFilter();
+        }
+
+        private static void AddYearOverYearSalaryComparisonPicture(
+            IXLWorksheet ws,
+            Dictionary<string, YearDepartmentTotal> current,
+            Dictionary<string, YearDepartmentTotal> previous,
+            IEnumerable<string> departments,
+            string currentLabel,
+            string previousLabel,
+            string cellAddress)
+        {
+            List<string> labels = new List<string>();
+            List<decimal> currentValues = new List<decimal>();
+            List<decimal> previousValues = new List<decimal>();
+            foreach (string department in departments)
+            {
+                YearDepartmentTotal currentValue;
+                YearDepartmentTotal previousValue;
+                if (!current.TryGetValue(department, out currentValue)) currentValue = new YearDepartmentTotal();
+                if (!previous.TryGetValue(department, out previousValue)) previousValue = new YearDepartmentTotal();
+                labels.Add(string.IsNullOrWhiteSpace(department) ? "(Not Assigned)" : GetPmDepartmentDisplayLabel(department));
+                currentValues.Add(currentValue.Gross);
+                previousValues.Add(previousValue.Gross);
+            }
+
+            using (MemoryStream image = DrawYearOverYearSalaryComparisonChart(labels, currentValues, previousValues, currentLabel, previousLabel))
+            {
+                ws.AddPicture(image, GetExcelPictureName("YoYCompare"))
+                    .MoveTo(ws.Cell(cellAddress))
+                    .WithSize(1050, 445);
+            }
+        }
+
+        private static MemoryStream DrawYearOverYearSalaryComparisonChart(
+            List<string> labels,
+            List<decimal> currentValues,
+            List<decimal> previousValues,
+            string currentLabel,
+            string previousLabel)
+        {
+            int width = Math.Max(1500, 650 + Math.Max(labels.Count, 1) * 90);
+            const int height = 620;
+            Bitmap bitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.Clear(Color.White);
+                using (Font titleFont = new Font("Arial", 16F, FontStyle.Bold))
+                using (Brush titleBrush = new SolidBrush(Color.FromArgb(30, 55, 90)))
+                    g.DrawString("Gross Salary Comparison — Current vs Prior Year", titleFont, titleBrush, new PointF(95F, 18F));
+
+                Rectangle plot = new Rectangle(95, 72, width - 180, height - 205);
+                DrawChartFrame(g, plot, string.Empty);
+                decimal maximum = 1M;
+                foreach (decimal value in currentValues) maximum = Math.Max(maximum, value);
+                foreach (decimal value in previousValues) maximum = Math.Max(maximum, value);
+                maximum *= 1.08M;
+                DrawYAxis(g, plot, 0M, maximum, "#,##0");
+                DrawRotatedDepartmentXAxis(g, plot, labels);
+
+                int groupCount = Math.Max(labels.Count, 1);
+                float groupWidth = plot.Width / (float)groupCount;
+                float barWidth = Math.Max(3F, Math.Min(28F, groupWidth * 0.30F));
+                Color previousColor = GetDepartmentChartColor(0);
+                Color currentColor = GetDepartmentChartColor(1);
+                for (int i = 0; i < labels.Count; i++)
+                {
+                    float center = plot.Left + groupWidth * i + groupWidth / 2F;
+                    decimal prior = i < previousValues.Count ? previousValues[i] : 0M;
+                    decimal current = i < currentValues.Count ? currentValues[i] : 0M;
+                    float priorY = plot.Bottom - (float)(prior / maximum) * plot.Height;
+                    float currentY = plot.Bottom - (float)(current / maximum) * plot.Height;
+                    using (Brush priorBrush = new SolidBrush(previousColor))
+                        g.FillRectangle(priorBrush, center - barWidth - 1F, priorY, barWidth, Math.Max(1F, plot.Bottom - priorY));
+                    using (Brush currentBrush = new SolidBrush(currentColor))
+                        g.FillRectangle(currentBrush, center + 1F, currentY, barWidth, Math.Max(1F, plot.Bottom - currentY));
+                }
+
+                using (Font legendFont = new Font("Arial", 9F, FontStyle.Bold))
+                using (Brush textBrush = new SolidBrush(Color.FromArgb(55, 65, 80)))
+                using (Brush priorBrush = new SolidBrush(previousColor))
+                using (Brush currentBrush = new SolidBrush(currentColor))
+                {
+                    float x = plot.Left;
+                    float y = height - 55F;
+                    g.FillRectangle(priorBrush, x, y, 14F, 14F);
+                    g.DrawString(previousLabel, legendFont, textBrush, x + 20F, y - 2F);
+                    float nextX = x + 260F;
+                    g.FillRectangle(currentBrush, nextX, y, 14F, 14F);
+                    g.DrawString(currentLabel, legendFont, textBrush, nextX + 20F, y - 2F);
+                }
+            }
+
+            MemoryStream stream = new MemoryStream();
+            bitmap.Save(stream, ImageFormat.Png);
+            bitmap.Dispose();
+            stream.Position = 0;
+            return stream;
         }
 
         private static void AddLineChartPicture(
@@ -1230,7 +1831,7 @@ namespace WebPortal.Reports
         {
             List<string> departments = new List<string>();
             foreach (string department in model.Departments)
-                departments.Add(string.IsNullOrWhiteSpace(department) ? "(Not Assigned)" : department);
+                departments.Add(string.IsNullOrWhiteSpace(department) ? "(Not Assigned)" : GetPmDepartmentDisplayLabel(department));
 
             List<DepartmentChartSeries> monthSeries = new List<DepartmentChartSeries>();
             int monthIndex = 0;
@@ -2220,7 +2821,6 @@ namespace WebPortal.Reports
             ws.Range(1, 1, 1, lastColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             ws.Range(1, 1, lastRow, lastColumn).SetAutoFilter();
             ws.SheetView.FreezeRows(1);
-            ws.SheetView.FreezeColumns(3);
 
             ApplyAmountFormatByColumnName(ws, table, lastRow);
             ws.Columns().AdjustToContents(1, 40);

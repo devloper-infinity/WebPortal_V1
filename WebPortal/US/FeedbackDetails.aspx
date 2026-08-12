@@ -461,10 +461,11 @@
         }
     </style>
 
+    <script src="../Scripts/US/GlobalSearchFeedback.js?v=20260812.1"></script>
+
     <script>
         $(document).ready(function () {
-            GetLoggedInUserDetails();
-            bindloanDetails_feedback();
+            GlobalSearchFeedback.initializeDetails();
             initusfeedbackDragDrop();
         });
 
@@ -601,7 +602,7 @@
                         </div>
                         <div class="my-col-6">
                             <label><b>Task</b></label>
-                            <select id="usfeedback_task" name="usfeedback_task" class="my-select form-control" onchange="return getTaskwiseDetails(this);"></select>
+                            <select id="usfeedback_task" name="usfeedback_task" class="my-select form-control" onchange="return GlobalSearchFeedback.taskChanged(this);"></select>
                         </div>
                     </div>
 
@@ -699,10 +700,10 @@
                         </div>
                         <div class="my-row">
                             <div class="my-col-12 action-row">
-                                <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return usfeedback_submit();">
+                                <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return GlobalSearchFeedback.submit();">
                                     <i class="fas fa-plus"></i>&nbsp; Add
                                 </button>
-                                <button type="button" id="usfeedback_btncomplete" name="usfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return usfeedback_completeLoan();">
+                                <button type="button" id="usfeedback_btncomplete" name="usfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return GlobalSearchFeedback.complete();">
                                     <i class="fas fa-check"></i>&nbsp; Complete Loan
                                 </button>
                             </div>

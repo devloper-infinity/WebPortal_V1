@@ -2879,6 +2879,8 @@
     <Content Include="Scripts\US\InfinityFeedbackOnshore.js" />
     <Content Include="Scripts\US\ReQcUtility.js" />
     <Content Include="Scripts\US\LoanDetails.js" />
+    <Content Include="Scripts\US\GlobalSearchFeedback.js" />
+    <Content Include="Scripts\US\CanopySearchFeedback.js" />
     <Content Include="Scripts\US\UserPerformanceReport.js" />
     <Content Include="Search\AbstractorReport.aspx" />
     <Content Include="Search\Costing.aspx" />

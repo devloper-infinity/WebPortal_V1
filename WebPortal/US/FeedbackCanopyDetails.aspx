@@ -461,10 +461,11 @@
         }
     </style>
 
+    <script src="../Scripts/US/CanopySearchFeedback.js?v=20260812.1"></script>
+
     <script>
         $(document).ready(function () {
-            canopyfeedback_getLoggedInUserDetails();
-            canopyfeedback_bindLoanDetails();
+            CanopySearchFeedback.initializeDetails();
             initcanopyfeedbackDragDrop();
         });
 
@@ -610,7 +611,7 @@
                         </div>
                         <div class="my-col-6">
                             <label><b>Task</b></label>
-                            <select id="canopyfeedback_task" name="canopyfeedback_task" class="my-select form-control" onchange="return canopyfeedback_getTaskwiseDetails(this);"></select>
+                            <select id="canopyfeedback_task" name="canopyfeedback_task" class="my-select form-control" onchange="return CanopySearchFeedback.taskChanged(this);"></select>
                         </div>
                     </div>
 
@@ -708,10 +709,10 @@
                         </div>
                         <div class="my-row">
                             <div class="my-col-12 action-row">
-                                <button type="button" id="canopyfeedback_btnsubmit" name="canopyfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return canopyfeedback_submit();">
+                                <button type="button" id="canopyfeedback_btnsubmit" name="canopyfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return CanopySearchFeedback.submit();">
                                     <i class="fas fa-plus"></i>&nbsp; Add
                                 </button>
-                                <button type="button" id="canopyfeedback_btncomplete" name="canopyfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return canopyfeedback_completeLoan();">
+                                <button type="button" id="canopyfeedback_btncomplete" name="canopyfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return CanopySearchFeedback.complete();">
                                     <i class="fas fa-check"></i>&nbsp; Complete Loan
                                 </button>
                             </div>

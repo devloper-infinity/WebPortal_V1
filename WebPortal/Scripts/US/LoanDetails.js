@@ -105,7 +105,7 @@ function canopyfeedback_getTaskwiseDetails(ddl) {
 }
 
 function canopyfeedback_submit() {
-    return usfeedback_submit();
+    return canopyfeedback_submitFeedback();
 }
 
 function canopyfeedback_completeLoan() {
@@ -180,6 +180,8 @@ function BindUSLoanDetails_Grid() {
 function start_Loan(button, ProcessID) {
     var $button = $(button);
     var $row = $button.closest('tr');
+    var processName = $row.find('.process').text().trim();
+    var startDatetime = usfeedback_getNowDateTime();
 
     if (!ProcessID) {
         Swal.fire('Warning', 'Loan details are not available for this row.', 'warning');
@@ -214,6 +216,22 @@ function start_Loan(button, ProcessID) {
 
         function (result) {
             if (result > 0) {
+                if (processName.toLowerCase() === "atr review") {
+                    GetFeedbackPage(
+                        $row.find('.loan').text().trim(),
+                        $row.find('.deal').text().trim(),
+                        parseInt($row.find('.processid').text().trim(), 10) || 0,
+                        "MyTask",
+                        $row.find('.client').text().trim(),
+                        $row.find('.recdate').text().trim(),
+                        processName,
+                        $row.find('.uwname').text().trim(),
+                        startDatetime,
+                        true
+                    );
+                    return false;
+                }
+
                 window.location.href = "AddFeedback.aspx?ProcessID=" + ProcessFeedbackID;
                 return false;
             }
@@ -1165,6 +1183,49 @@ function usfeedback_callInsertOtherFeedbacks(args, script, onSuccess, onError) {
     return PageMethods.InsertOtherFeedbacks.apply(PageMethods, args);
 }
 
+function usfeedback_getTodayDate() {
+    var today = new Date();
+    var month = String(today.getMonth() + 1).padStart(2, '0');
+    var day = String(today.getDate()).padStart(2, '0');
+    return month + "/" + day + "/" + today.getFullYear();
+}
+
+function usfeedback_insertExistingFeedback(feedback, onSuccess) {
+    var currentDate = usfeedback_getTodayDate();
+
+    PageMethods.InsertUSImportedFeedback_NewERP(
+        feedback.loanNo,
+        feedback.client,
+        feedback.uwName,
+        feedback.dateReviewed || currentDate,
+        currentDate,
+        feedback.finding,
+        feedback.severity,
+        feedback.source,
+        currentDate,
+        function (result) {
+            // -1 means the record already exists in the legacy feedback table.
+            if (result > 0 || result === -1) {
+                onSuccess();
+                return;
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Partially saved',
+                text: 'Feedback was saved for this process, but could not be added to the existing feedback table. Please contact administrator.'
+            });
+        },
+        function (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Partially saved',
+                text: error.get_message ? error.get_message() : 'Feedback was saved for this process, but could not be added to the existing feedback table.'
+            });
+        }
+    );
+}
+
 function us_startGlobalSearchLoan(button, rowData, detailsPage, source) {
     var $button = $(button);
     var loanData = us_getGlobalSearchLoanData(rowData || {});
@@ -1383,9 +1444,22 @@ function usfeedback_bindProcessTask(Projectid) {
 
             const decoded = JSON.parse(atob(encoded));
 
-            if (decoded.tp) {
+            if (decoded.tp || decoded.process) {
+                var $task = usfeedback_select("usfeedback_task");
+                var selectedProcessId = decoded.tp || "";
 
-                usfeedback_select("usfeedback_task").val(decoded.tp);
+                if (!$task.find("option[value='" + selectedProcessId + "']").length && decoded.process) {
+                    $task.find("option").each(function () {
+                        if ($.trim($(this).text()).toLowerCase() === $.trim(decoded.process).toLowerCase()) {
+                            selectedProcessId = $(this).val();
+                            return false;
+                        }
+                    });
+                }
+
+                $task.val(selectedProcessId);
+
+                if (!$task.val()) return;
 
                 // Call only once
                 getTaskwiseDetails(usfeedback_getElement("usfeedback_task"));
@@ -1558,7 +1632,7 @@ function usfeedback_getLoanProcessData(processid, processName) {
 function usfeedback_startLoanIfNeeded(processid, processName) {
     const payload = us_getFeedbackPayload();
 
-    var isCanopy = payload && payload.src == "CanopySearch";
+    var isCanopy = usfeedback_isCanopyPage();
     if (!payload || (payload.src != "GlobalSearch" && !isCanopy) || !processid || (!isCanopy && usfeedbackLoanStarted) || (isCanopy && usfeedbackLastProcessID == processid)) {
         return false;
     }
@@ -1703,6 +1777,134 @@ function usfeedback_completeLoan() {
     return false;
 }
 
+function canopyfeedback_submitFeedback() {
+
+    var projectid = usfeedback_getElement("usfeedback_projectid").value;
+    var dealno = usfeedback_getElement("usfeedback_dealno").value;
+    var loanno = usfeedback_getElement("usfeedback_loanno").value;
+    var ddl = usfeedback_getElement("usfeedback_task");
+    var processid = ddl.options[ddl.selectedIndex].value;
+    var value = ddl.options[ddl.selectedIndex].text;
+    var payload = us_getFeedbackPayload() || {};
+    var script = payload.script || "";
+
+    if (value == "" || value == "Select") {
+        Swal.fire('Validation', 'Please select task.', 'warning');
+        return false;
+    }
+
+    if (value == "ATR Review") {
+        var reviewer = usfeedback_getElement("usfeedback_reviewer").value;
+        var reviewdate = usfeedback_getElement("usfeedback_reviewdate").value;
+        var ddlatrsupported = usfeedback_getElement("usfeedback_atrsupported");
+        var atrsupported = ddlatrsupported.options[ddlatrsupported.selectedIndex].value;
+        var noofbwr = $.trim(usfeedback_getElement("usfeedback_noofbwr").value);
+        var reviewfinding = $.trim(usfeedback_getElement("usfeedback_reviewfindings").value);
+        var dtiissue = $.trim(usfeedback_getElement("usfeedback_dtiissue").value);
+        var incometype = $.trim(usfeedback_getElement("usfeedback_incometype").value);
+        var sebusiness = $.trim(usfeedback_getElement("usfeedback_noofsebus").value);
+        var rental = $.trim(usfeedback_getElement("usfeedback_noofrental").value);
+
+        if (atrsupported == "") {
+            Swal.fire('Validation', "Please select 'ATR Supported?'", 'warning');
+            usfeedback_getElement("usfeedback_atrsupported").focus();
+            return false;
+        }
+
+        if (noofbwr == "") {
+            Swal.fire('Validation', "Please enter '# of Borrowers'", 'warning');
+            usfeedback_getElement("usfeedback_noofbwr").focus();
+            return false;
+        }
+
+        if (reviewfinding == "") {
+            Swal.fire('Validation', "Please enter 'Review Findings'", 'warning');
+            usfeedback_getElement("usfeedback_reviewfindings").focus();
+            return false;
+        }
+
+        if (sebusiness == "") {
+            Swal.fire('Validation', "Please enter '# SE businesses'", 'warning');
+            usfeedback_getElement("usfeedback_noofsebus").focus();
+            return false;
+        }
+
+        if (rental == "") {
+            Swal.fire('Validation', "Please enter '# Rental Properties'", 'warning');
+            usfeedback_getElement("usfeedback_noofrental").focus();
+            return false;
+        }
+
+        var comments = usfeedback_getElement("usfeedback_comments").value;
+
+        usfeedback_callInsertATRFeedbacks(
+            [projectid, processid, dealno, loanno, reviewer, reviewdate, atrsupported, reviewfinding, dtiissue, noofbwr,
+                incometype, sebusiness, rental, comments], script,
+            function (result) {
+                if (result > 0) {
+                    usfeedback_setLastProcess(processid, value);
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                        usfeedback_atr_bindgrid("ATR", processid);
+                        clearusfeedbackForm();
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
+                }
+            },
+            function (error) {
+                Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+            }
+        );
+
+        return false;
+    }
+
+    var ddlseverity = usfeedback_getElement("usfeedback_severity");
+    var severity = ddlseverity.options[ddlseverity.selectedIndex].value;
+    var findings = $.trim(usfeedback_getElement("usfeedback_finding").value);
+
+    if (severity == "") {
+        Swal.fire('Validation', 'Please select Severity.', 'warning');
+        usfeedback_getElement("usfeedback_severity").focus();
+        return false;
+    }
+
+    if (findings == "") {
+        Swal.fire('Validation', 'Please enter Findings.', 'warning');
+        usfeedback_getElement("usfeedback_finding").focus();
+        return false;
+    }
+
+    usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
+        function (result) {
+            if (result > 0) {
+                usfeedback_insertExistingFeedback({
+                    loanNo: loanno,
+                    client: usfeedback_getElement("usfeedback_projectno").value,
+                    uwName: document.getElementById("canopyfeedback_qcername").value,
+                    dateReviewed: document.getElementById("canopyfeedback_qcerdate").value,
+                    finding: findings,
+                    severity: severity,
+                    source: "ReQC"
+                }, function () {
+                    usfeedback_setLastProcess(processid, value);
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                        usfeedback_atr_bindgrid("Other", processid);
+                        clearusfeedbackForm();
+                    });
+                });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
+            }
+        },
+        function (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+        }
+    );
+
+    return false;
+}
+
 function usfeedback_submit() {
 
     var projectid = usfeedback_getElement("usfeedback_projectid").value;
@@ -1769,13 +1971,8 @@ function usfeedback_submit() {
             function (result) {
                 if (result > 0) {
                     usfeedback_setLastProcess(processid, value);
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => {
-                        // location.reload();
-                        if (value == "ATR Review")
-                            usfeedback_atr_bindgrid("ATR", processid);
-                        else
-                            usfeedback_atr_bindgrid("Other", processid);
-
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                        usfeedback_atr_bindgrid("ATR", processid);
                         clearusfeedbackForm();
                     });
                 } else {
@@ -1808,15 +2005,20 @@ function usfeedback_submit() {
         usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
             function (result) {
                 if (result > 0) {
-                    usfeedback_setLastProcess(processid, value);
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(() => {
-                        // location.reload();
-                        if (value == "ATR Review")
-                            usfeedback_atr_bindgrid("ATR", processid);
-                        else
+                    usfeedback_insertExistingFeedback({
+                        loanNo: loanno,
+                        client: usfeedback_getElement("usfeedback_projectno").value,
+                        uwName: usfeedback_getElement("usfeedback_reviewer").value,
+                        dateReviewed: usfeedback_getTodayDate(),
+                        finding: findings,
+                        severity: severity,
+                        source: "ReQC"
+                    }, function () {
+                        usfeedback_setLastProcess(processid, value);
+                        Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
                             usfeedback_atr_bindgrid("Other", processid);
-
-                        clearusfeedbackForm();
+                            clearusfeedbackForm();
+                        });
                     });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
