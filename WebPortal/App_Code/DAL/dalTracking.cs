@@ -898,103 +898,103 @@ ORDER BY ExistingOrder.SourcePriority, ExistingOrder.ProcessDate DESC, ExistingO
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
-        public DataTable GetBulkAllocatedOrders()
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
-;WITH CurrentQueue AS
-(
-    SELECT
-        ProcessID,
-        ProjectId,
-        ProjectNo,
-        DealNo,
-        OrderNumber,
-        UserCode,
-        [Process],
-        OrderStatus,
-        AddedDate,
-        ProcessDate,
-        ROW_NUMBER() OVER
-        (
-            PARTITION BY ProjectId, DealNo, OrderNumber, [Process]
-            ORDER BY ProcessDate DESC, ProcessID DESC
-        ) AS RowNumber
-    FROM dbo.WBT_TrackingsheetOrderProcessQueue
-    WHERE [Process] IN ('PH ReQC', 'ATR Review')
-),
-LatestHistory AS
-(
-    SELECT
-        ProcessID,
-        ProjectId,
-        ProjectNo,
-        DealNo,
-        OrderNumber,
-        UserCode,
-        [Process],
-        OrderStatus,
-        AddedDate,
-        ProcessDate,
-        ROW_NUMBER() OVER
-        (
-            PARTITION BY ProjectId, DealNo, OrderNumber, [Process]
-            ORDER BY ProcessDate DESC, ProcessID DESC
-        ) AS RowNumber
-    FROM dbo.WBT_TrackingsheetOrderProcessHistory
-    WHERE [Process] IN ('PH ReQC', 'ATR Review')
-)
-SELECT
-    ProjectNo AS Project,
-    DealNo,
-    OrderNumber AS LoanNo,
-    UserCode AS Employee,
-    [Process],
-    OrderStatus AS [Status],
-    AddedDate,
-    ProcessDate
-FROM CurrentQueue
-WHERE RowNumber = 1
+//        public DataTable GetBulkAllocatedOrders()
+//        {
+//            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+//;WITH CurrentQueue AS
+//(
+//    SELECT
+//        ProcessID,
+//        ProjectId,
+//        ProjectNo,
+//        DealNo,
+//        OrderNumber,
+//        UserCode,
+//        [Process],
+//        OrderStatus,
+//        AddedDate,
+//        ProcessDate,
+//        ROW_NUMBER() OVER
+//        (
+//            PARTITION BY ProjectId, DealNo, OrderNumber, [Process]
+//            ORDER BY ProcessDate DESC, ProcessID DESC
+//        ) AS RowNumber
+//    FROM dbo.WBT_TrackingsheetOrderProcessQueue
+//    WHERE [Process] IN ('PH ReQC', 'ATR Review')
+//),
+//LatestHistory AS
+//(
+//    SELECT
+//        ProcessID,
+//        ProjectId,
+//        ProjectNo,
+//        DealNo,
+//        OrderNumber,
+//        UserCode,
+//        [Process],
+//        OrderStatus,
+//        AddedDate,
+//        ProcessDate,
+//        ROW_NUMBER() OVER
+//        (
+//            PARTITION BY ProjectId, DealNo, OrderNumber, [Process]
+//            ORDER BY ProcessDate DESC, ProcessID DESC
+//        ) AS RowNumber
+//    FROM dbo.WBT_TrackingsheetOrderProcessHistory
+//    WHERE [Process] IN ('PH ReQC', 'ATR Review')
+//)
+//SELECT
+//    ProjectNo AS Project,
+//    DealNo,
+//    OrderNumber AS LoanNo,
+//    UserCode AS Employee,
+//    [Process],
+//    OrderStatus AS [Status],
+//    AddedDate,
+//    ProcessDate
+//FROM CurrentQueue
+//WHERE RowNumber = 1
 
-UNION ALL
+//UNION ALL
 
-SELECT
-    history.ProjectNo AS Project,
-    history.DealNo,
-    history.OrderNumber AS LoanNo,
-    history.UserCode AS Employee,
-    history.[Process],
-    history.OrderStatus AS [Status],
-    history.AddedDate,
-    history.ProcessDate
-FROM LatestHistory history
-WHERE history.RowNumber = 1
-  AND NOT EXISTS
-  (
-      SELECT 1
-      FROM CurrentQueue queue
-      WHERE queue.RowNumber = 1
-        AND queue.ProjectId = history.ProjectId
-        AND ISNULL(queue.DealNo, '') = ISNULL(history.DealNo, '')
-        AND queue.OrderNumber = history.OrderNumber
-        AND queue.[Process] = history.[Process]
-  )
-ORDER BY ProcessDate DESC, LoanNo;");
+//SELECT
+//    history.ProjectNo AS Project,
+//    history.DealNo,
+//    history.OrderNumber AS LoanNo,
+//    history.UserCode AS Employee,
+//    history.[Process],
+//    history.OrderStatus AS [Status],
+//    history.AddedDate,
+//    history.ProcessDate
+//FROM LatestHistory history
+//WHERE history.RowNumber = 1
+//  AND NOT EXISTS
+//  (
+//      SELECT 1
+//      FROM CurrentQueue queue
+//      WHERE queue.RowNumber = 1
+//        AND queue.ProjectId = history.ProjectId
+//        AND ISNULL(queue.DealNo, '') = ISNULL(history.DealNo, '')
+//        AND queue.OrderNumber = history.OrderNumber
+//        AND queue.[Process] = history.[Process]
+//  )
+//ORDER BY ProcessDate DESC, LoanNo;");
 
-            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
-            cmd.Dispose();
-            return dt;
-        }
+//            DataTable dt = SQLHelper.ExecuteDataTableCmd_Underwriting(cmd);
+//            cmd.Dispose();
+//            return dt;
+//        }
 
-        public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"SELECT TOP (1) 1 FROM dbo.OrderData WITH (NOLOCK) WHERE ProjectID = @ProjectID AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo)) AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(@LoanNo));");
-            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 0, ParameterDirection.Input, projectId);
-            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, dealNo);
-            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, loanNo);
+//        public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
+//        {
+//            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"SELECT TOP (1) 1 FROM dbo.OrderData WITH (NOLOCK) WHERE ProjectID = @ProjectID AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo)) AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(@LoanNo));");
+//            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 0, ParameterDirection.Input, projectId);
+//            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, dealNo);
+//            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, loanNo);
 
-            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            cmd.Dispose();
-            return dt != null && dt.Rows.Count > 0;
-        }
+//            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+//            cmd.Dispose();
+//            return dt != null && dt.Rows.Count > 0;
+//        }
     }
 }
