@@ -869,6 +869,8 @@
     <Content Include="Scripts\TrackingSheet\TrackingSheetReport.js" />
     <Content Include="Scripts\TrackingSheet\MonthlyBilling.js" />
     <Content Include="Scripts\TrackingSheet\ImportBilling.js" />
+    <Content Include="Scripts\US\CanopySearchFeedback.js" />
+    <Content Include="Scripts\US\GlobalSearchFeedback.js" />
     <Content Include="Search\SearchDashboard.aspx" />
     <Content Include="Search\VMOrders.aspx" />
     <Content Include="Search\VMReport.aspx" />

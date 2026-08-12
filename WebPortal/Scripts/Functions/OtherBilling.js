@@ -322,8 +322,6 @@ function rebuttal_BindGrid() {
         success: function (data) {
             var dataArray = JSON.parse(data.d);
 
-            alert(dataArray);
-
             Rebuttal_table = $('#table_Rebuttal').DataTable({
                 dom: 'ftip',
                 destroy: true,

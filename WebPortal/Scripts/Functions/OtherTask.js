@@ -63,8 +63,6 @@ function core_otherTask_bindProcess(el) {
             ddl.empty();
             ddl.append('<option value="">-- Select Process --</option>');
 
-            alert(data);
-
             $.each(data, function (i, item) {
 
                 alert('message');
