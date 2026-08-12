@@ -18,30 +18,50 @@
             background: var(--bda-bg);
         }
 
-        .loading {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
+        #load1.bda-loading-overlay {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            z-index: 99999 !important;
+            float: none !important;
             background: rgba(255,255,255,.72);
             backdrop-filter: blur(3px);
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
         }
 
-            .loading img {
-                width: 70px;
-                height: 70px;
-            }
+        #load1.bda-loading-overlay.bda-loading-visible {
+            display: block !important;
+        }
 
-            .loading div {
-                margin-top: 10px;
-                color: var(--bda-text);
-                font-size: 12px;
-                font-weight: 700;
-            }
+        #load1 .bda-loading-content {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            width: 180px;
+            margin: 0 !important;
+            text-align: center;
+            transform: translate(-50%, -50%) !important;
+        }
+
+        #load1 .bda-loading-content img {
+            display: block;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto;
+        }
+
+        #load1 .bda-loading-text {
+            margin-top: 10px;
+            color: var(--bda-text);
+            font-size: 12px;
+            font-weight: 700;
+        }
 
         .bda-page {
             background: var(--bda-bg);
@@ -227,6 +247,30 @@
                 text-align: center;
             }
 
+            #bda_table thead tr:first-child th {
+                color: #163a63 !important;
+                background: #bfdbfe !important;
+                border-color: #93c5fd !important;
+            }
+
+            #bda_table thead tr:first-child th[rowspan] {
+                background: #dbeafe !important;
+            }
+
+            #bda_table thead tr:nth-child(2) th {
+                color: #1e3a5f !important;
+                background: #eff6ff !important;
+                border-color: #bfdbfe !important;
+            }
+
+            #bda_table thead .bda-group-total,
+            #bda_table tbody .bda-group-total,
+            #bda_table tfoot .bda-group-total {
+                color: #163a63 !important;
+                background: #dbeafe !important;
+                font-weight: 800;
+            }
+
             #bda_table tbody td {
                 color: #334155;
                 font-size: 12px;
@@ -372,9 +416,6 @@
             var month = $("#bda_month").val();
             var year = $("#bda_year").val();
 
-            month = 'June';
-            year = '2026';
-
             if (month === "") {
                 bdaNotify("Please select month.");
                 $("#bda_month").focus();
@@ -387,7 +428,7 @@
                 return false;
             }
 
-            $("#load1").css("display", "flex");
+            $("#load1").addClass("bda-loading-visible");
 
             bd_bindGrid(month, year);
 
@@ -395,12 +436,376 @@
         }
 
         var bda_table = null;
+        var bdaLocations = ["AJ", "KP", "Akola", "Bangalore", "Solapur"];
 
-        var bda_table = null;
+        function bdaToNumber(value) {
+            var number = parseInt(String(value == null ? "0" : value).replace(/,/g, ""), 10);
+            return isNaN(number) ? 0 : number;
+        }
+
+        function bdaLocationName(value) {
+            var location = $.trim(String(value == null ? "" : value)).toLowerCase();
+            var i;
+
+            for (i = 0; i < bdaLocations.length; i++) {
+                if (bdaLocations[i].toLowerCase() === location) {
+                    return bdaLocations[i];
+                }
+            }
+
+            return "";
+        }
+
+        function bdaFormatDate(value) {
+            var text = $.trim(String(value == null ? "" : value));
+            var match = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(text);
+            var months = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
+
+            if (match && months[match[2]]) {
+                return months[match[2]] + "/" + parseInt(match[1], 10) + "/" + match[3];
+            }
+
+            return text;
+        }
+
+        function bdaPivotRows(sourceRows) {
+            var rowsByDate = {};
+            var pivotRows = [];
+
+            $.each(sourceRows || [], function (_, source) {
+                var dateKey = $.trim(String(source.AttendanceDate == null ? "" : source.AttendanceDate));
+                var dayName = $.trim(String(source.DayName == null ? "" : source.DayName));
+                var key = dateKey + "|" + dayName;
+                var location = bdaLocationName(source.Location);
+                var dd = bdaToNumber(source.DD);
+                var nonDd = bdaToNumber(source["Non-DD"] != null ? source["Non-DD"] : source.NonDD);
+                var support = bdaToNumber(source.Support);
+                var total = source.Total == null || source.Total === ""
+                    ? dd + nonDd + support
+                    : bdaToNumber(source.Total);
+                var row;
+                var i;
+
+                if (!rowsByDate[key]) {
+                    row = {
+                        AttendanceDate: bdaFormatDate(dateKey),
+                        DayName: dayName,
+                        Total: 0
+                    };
+
+                    for (i = 0; i < bdaLocations.length; i++) {
+                        row["DD_" + bdaLocations[i]] = 0;
+                        row["NDD_" + bdaLocations[i]] = 0;
+                        row["Support_" + bdaLocations[i]] = 0;
+                    }
+
+                    row.DD_Total = 0;
+                    row.NDD_Total = 0;
+                    row.Support_Total = 0;
+
+                    rowsByDate[key] = row;
+                    pivotRows.push(row);
+                }
+
+                row = rowsByDate[key];
+
+                if (location) {
+                    row["DD_" + location] += dd;
+                    row["NDD_" + location] += nonDd;
+                    row["Support_" + location] += support;
+                }
+
+                row.DD_Total += dd;
+                row.NDD_Total += nonDd;
+                row.Support_Total += support;
+                row.Total += total;
+            });
+
+            return pivotRows;
+        }
+
+        function bdaColumns() {
+            var columns = [
+                { data: "AttendanceDate", defaultContent: "", className: "text-nowrap" },
+                { data: "DayName", defaultContent: "", className: "text-nowrap" }
+            ];
+
+            $.each(["DD", "NDD", "Support"], function (_, group) {
+                $.each(bdaLocations, function (__, location) {
+                    columns.push({
+                        data: group + "_" + location,
+                        defaultContent: 0,
+                        className: "text-center"
+                    });
+                });
+
+                columns.push({
+                    data: group + "_Total",
+                    defaultContent: 0,
+                    className: "text-center bda-group-total"
+                });
+            });
+
+            columns.push({ data: "Total", defaultContent: 0, className: "text-center font-weight-bold" });
+            return columns;
+        }
+
+        function bdaExcelColumnName(columnNumber) {
+            var name = "";
+
+            while (columnNumber > 0) {
+                columnNumber--;
+                name = String.fromCharCode(65 + (columnNumber % 26)) + name;
+                columnNumber = Math.floor(columnNumber / 26);
+            }
+
+            return name;
+        }
+
+        function bdaCustomizeExcel(xlsx) {
+            var sheet = xlsx.xl.worksheets["sheet1.xml"];
+            var styles = xlsx.xl["styles.xml"];
+            var worksheet = sheet.documentElement;
+            var sheetData = worksheet.getElementsByTagName("sheetData")[0];
+            var fills = styles.getElementsByTagName("fills")[0];
+            var cellXfs = styles.getElementsByTagName("cellXfs")[0];
+            var mergeRanges = [];
+            var occupied = {};
+            var excelRows = {};
+            var rowNumber = 1;
+
+            function addFill(rgb) {
+                var fill = styles.createElement("fill");
+                var pattern = styles.createElement("patternFill");
+                var foreground = styles.createElement("fgColor");
+                var background = styles.createElement("bgColor");
+
+                pattern.setAttribute("patternType", "solid");
+                foreground.setAttribute("rgb", rgb);
+                background.setAttribute("indexed", "64");
+                pattern.appendChild(foreground);
+                pattern.appendChild(background);
+                fill.appendChild(pattern);
+                fills.appendChild(fill);
+                fills.setAttribute("count", fills.getElementsByTagName("fill").length.toString());
+                return fills.getElementsByTagName("fill").length - 1;
+            }
+
+            function addStyle(fontId, fillId, boldBorder) {
+                var style = styles.createElement("xf");
+                var alignment = styles.createElement("alignment");
+
+                style.setAttribute("numFmtId", "0");
+                style.setAttribute("fontId", String(fontId));
+                style.setAttribute("fillId", String(fillId));
+                style.setAttribute("borderId", boldBorder ? "1" : "1");
+                style.setAttribute("xfId", "0");
+                style.setAttribute("applyFont", "1");
+                style.setAttribute("applyFill", "1");
+                style.setAttribute("applyBorder", "1");
+                style.setAttribute("applyAlignment", "1");
+
+                alignment.setAttribute("horizontal", "center");
+                alignment.setAttribute("vertical", "center");
+                alignment.setAttribute("wrapText", "1");
+                style.appendChild(alignment);
+                cellXfs.appendChild(style);
+                cellXfs.setAttribute("count", cellXfs.getElementsByTagName("xf").length.toString());
+                return cellXfs.getElementsByTagName("xf").length - 1;
+            }
+
+            var topHeaderFill = addFill("FFBFDBFE");
+            var subHeaderFill = addFill("FFEFF6FF");
+            var totalFill = addFill("FFDBEAFE");
+            var topHeaderStyle = addStyle(2, topHeaderFill, true);
+            var subHeaderStyle = addStyle(2, subHeaderFill, true);
+            var dataStyle = addStyle(0, 0, true);
+            var totalStyle = addStyle(2, totalFill, true);
+
+            while (sheetData.firstChild) {
+                sheetData.removeChild(sheetData.firstChild);
+            }
+
+            $(worksheet).find("mergeCells, cols").remove();
+
+            function getExcelRow(number, height) {
+                var row = excelRows[number];
+
+                if (!row) {
+                    row = sheet.createElement("row");
+                    row.setAttribute("r", number);
+                    row.setAttribute("ht", height || 21);
+                    row.setAttribute("customHeight", "1");
+                    excelRows[number] = row;
+                }
+
+                return row;
+            }
+
+            function appendCell(row, columnNumber, value, styleIndex, isNumber) {
+                var cell = sheet.createElement("c");
+                var cellRef = bdaExcelColumnName(columnNumber) + row.getAttribute("r");
+
+                cell.setAttribute("r", cellRef);
+                cell.setAttribute("s", String(styleIndex));
+
+                if (isNumber) {
+                    var numericValue = sheet.createElement("v");
+                    cell.setAttribute("t", "n");
+                    numericValue.textContent = String(bdaToNumber(value));
+                    cell.appendChild(numericValue);
+                }
+                else {
+                    var inlineString = sheet.createElement("is");
+                    var text = sheet.createElement("t");
+                    cell.setAttribute("t", "inlineStr");
+                    text.textContent = String(value == null || value === "" ? " " : value);
+                    inlineString.appendChild(text);
+                    cell.appendChild(inlineString);
+                }
+
+                row.appendChild(cell);
+            }
+
+            $("#bda_table thead tr").each(function (headerIndex) {
+                var currentRowNumber = rowNumber + headerIndex;
+                var excelRow = getExcelRow(currentRowNumber, 24);
+                var columnNumber = 1;
+                var headerStyle = headerIndex === 0 ? topHeaderStyle : subHeaderStyle;
+
+                $(this).children("th").each(function () {
+                    var colspan = parseInt($(this).attr("colspan"), 10) || 1;
+                    var rowspan = parseInt($(this).attr("rowspan"), 10) || 1;
+                    var startColumn;
+                    var endColumn;
+                    var endRow;
+                    var rr;
+                    var cc;
+
+                    while (occupied[currentRowNumber + "-" + columnNumber]) {
+                        columnNumber++;
+                    }
+
+                    startColumn = columnNumber;
+                    endColumn = startColumn + colspan - 1;
+                    endRow = currentRowNumber + rowspan - 1;
+                    appendCell(excelRow, startColumn, $.trim($(this).text()), $(this).hasClass("bda-group-total") ? totalStyle : headerStyle, false);
+
+                    for (rr = currentRowNumber; rr <= endRow; rr++) {
+                        for (cc = startColumn; cc <= endColumn; cc++) {
+                            occupied[rr + "-" + cc] = true;
+
+                            if (rr !== currentRowNumber || cc !== startColumn) {
+                                appendCell(getExcelRow(rr, 24), cc, "", headerStyle, false);
+                            }
+                        }
+                    }
+
+                    if (colspan > 1 || rowspan > 1) {
+                        mergeRanges.push(bdaExcelColumnName(startColumn) + currentRowNumber + ":" + bdaExcelColumnName(endColumn) + endRow);
+                    }
+
+                    columnNumber += colspan;
+                });
+            });
+
+            rowNumber += 2;
+
+            var columnDefinitions = bdaColumns();
+            var exportedRows = bda_table.rows({ search: "applied" }).data().toArray();
+            var groupTotalColumns = { 8: true, 14: true, 20: true, 21: true };
+
+            $.each(exportedRows, function (_, dataRow) {
+                var excelRow = getExcelRow(rowNumber, 20);
+
+                $.each(columnDefinitions, function (columnIndex, definition) {
+                    var excelColumn = columnIndex + 1;
+                    var numeric = excelColumn > 2;
+                    appendCell(
+                        excelRow,
+                        excelColumn,
+                        dataRow[definition.data],
+                        groupTotalColumns[excelColumn] ? totalStyle : dataStyle,
+                        numeric
+                    );
+                });
+
+                rowNumber++;
+            });
+
+            var footerRow = getExcelRow(rowNumber, 22);
+            appendCell(footerRow, 1, "Grand Total", totalStyle, false);
+            appendCell(footerRow, 2, "", totalStyle, false);
+            mergeRanges.push("A" + rowNumber + ":B" + rowNumber);
+
+            for (var footerColumn = 3; footerColumn <= 21; footerColumn++) {
+                var propertyName = columnDefinitions[footerColumn - 1].data;
+                var columnTotal = 0;
+
+                $.each(exportedRows, function (_, dataRow) {
+                    columnTotal += bdaToNumber(dataRow[propertyName]);
+                });
+
+                appendCell(footerRow, footerColumn, columnTotal, totalStyle, true);
+            }
+
+            Object.keys(excelRows).sort(function (a, b) { return Number(a) - Number(b); }).forEach(function (key) {
+                var excelRow = excelRows[key];
+                var cells = Array.prototype.slice.call(excelRow.getElementsByTagName("c"));
+
+                cells.sort(function (left, right) {
+                    function columnIndex(cell) {
+                        var letters = cell.getAttribute("r").replace(/[0-9]/g, "");
+                        var index = 0;
+
+                        for (var i = 0; i < letters.length; i++) {
+                            index = (index * 26) + letters.charCodeAt(i) - 64;
+                        }
+
+                        return index;
+                    }
+
+                    return columnIndex(left) - columnIndex(right);
+                });
+
+                $.each(cells, function (_, cell) {
+                    excelRow.appendChild(cell);
+                });
+
+                sheetData.appendChild(excelRow);
+            });
+
+            var columns = sheet.createElement("cols");
+            for (var widthColumn = 1; widthColumn <= 21; widthColumn++) {
+                var column = sheet.createElement("col");
+                var width = widthColumn === 1 ? 14 : (widthColumn === 2 ? 12 : (groupTotalColumns[widthColumn] ? 11 : 10));
+                column.setAttribute("min", widthColumn);
+                column.setAttribute("max", widthColumn);
+                column.setAttribute("width", width);
+                column.setAttribute("customWidth", "1");
+                columns.appendChild(column);
+            }
+            worksheet.insertBefore(columns, sheetData);
+
+            var mergeCells = sheet.createElement("mergeCells");
+            mergeCells.setAttribute("count", mergeRanges.length);
+            $.each(mergeRanges, function (_, range) {
+                var mergeCell = sheet.createElement("mergeCell");
+                mergeCell.setAttribute("ref", range);
+                mergeCells.appendChild(mergeCell);
+            });
+
+            if (sheetData.nextSibling) {
+                worksheet.insertBefore(mergeCells, sheetData.nextSibling);
+            }
+            else {
+                worksheet.appendChild(mergeCells);
+            }
+        }
 
         function bd_bindGrid(month, year) {
 
-            $('#load1').show();
+            $('#load1').addClass('bda-loading-visible');
 
             $.ajax({
                 type: "POST",
@@ -412,9 +817,7 @@
                 success: function (data) {
 
                     var result = JSON.parse(data.d || "{}");
-                    var dataArray = result.Rows || [];
-
-                    console.log(dataArray);
+                    var dataArray = bdaPivotRows(result.Rows || []);
 
                     if ($.fn.DataTable.isDataTable('#bda_table')) {
                         $('#bda_table').DataTable().clear().destroy();
@@ -437,27 +840,12 @@
                                 text: 'Excel',
                                 className: 'btn btn-success',
                                 title: 'Date Wise Attendance Details',
-                                footer: true
+                                footer: true,
+                                customize: bdaCustomizeExcel
                             }
                         ],
 
-                        columns: [
-                            {
-                                data: null,
-                                className: "text-center text-nowrap",
-                                render: function (data, type, row, meta) {
-                                    return meta.row + 1;
-                                }
-                            },
-                            { data: "AttendanceDate", defaultContent: "" },
-                            { data: "DayName", defaultContent: "" },
-                            { data: "AJ", defaultContent: "0" },
-                            { data: "KP", defaultContent: "0" },
-                            { data: "Akola", defaultContent: "0" },
-                            { data: "Bangalore", defaultContent: "0" },
-                            { data: "Solapur", defaultContent: "0" },
-                            { data: "Total", defaultContent: "0" }
-                        ],
+                        columns: bdaColumns(),
 
                         footerCallback: function () {
 
@@ -467,7 +855,7 @@
                                 return parseInt(i, 10) || 0;
                             };
 
-                            for (var col = 3; col <= 8; col++) {
+                            for (var col = 2; col <= 20; col++) {
 
                                 var total = api.column(col).data().reduce(function (a, b) {
                                     return intVal(a) + intVal(b);
@@ -483,7 +871,7 @@
                             }
 
                             $(api.column(0).footer())
-                                .attr("colspan", 3)
+                                .attr("colspan", 2)
                                 .html("Grand Total")
                                 .css({
                                     "text-align": "center",
@@ -492,15 +880,19 @@
                         },
 
                         initComplete: function () {
-                            $('#load1').hide();
+                            $("#bda_count").text(dataArray.length + (dataArray.length === 1 ? " record" : " records"));
                             this.api().columns.adjust();
                         }
                     });
                 },
 
                 error: function (error) {
-                    $('#load1').hide();
+                    $('#load1').removeClass('bda-loading-visible');
                     alert('error: ' + error.responseText);
+                },
+
+                complete: function () {
+                    $('#load1').removeClass('bda-loading-visible');
                 }
             });
 
@@ -510,6 +902,13 @@
 
 
         function bdaClearReport() {
+            if ($.fn.DataTable.isDataTable('#bda_table')) {
+                $('#bda_table').DataTable().clear().destroy();
+            }
+
+            $('#bda_table tbody').empty();
+            $('#bda_table tfoot th').not(':first').empty();
+            $('#bda_count').text('0 records');
             bdaBindMonthYear();
             return false;
         }
@@ -527,9 +926,11 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="loading" id="load1">
-        <img src="../images/Load_1.gif" />
-        <div>One moment, please...</div>
+    <div class="bda-loading-overlay" id="load1">
+        <div class="bda-loading-content">
+            <img src="../images/Load_1.gif" alt="Loading" />
+            <div class="bda-loading-text">One moment, please...</div>
+        </div>
     </div>
 
     <div class="bda-page">
@@ -575,18 +976,21 @@
                 <h2 class="bda-table-title"><i class="fas fa-table mr-2"></i>Date Wise Attendance Details</h2>
                 <span class="bda-count" id="bda_count">0 records</span>
             </div>
+            <div class="bda-table-wrap">
             <table id="bda_table" class="table table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>Sr. #</th>
-                        <th>Date</th>
-                        <th>Day</th>
-                        <th>AJ</th>
-                        <th>KP</th>
-                        <th>Akola</th>
-                        <th>Bangalore</th>
-                        <th>Solapur</th>
-                        <th>Total</th>
+                        <th rowspan="2">Date</th>
+                        <th rowspan="2">Day</th>
+                        <th colspan="6">DD</th>
+                        <th colspan="6">Non-DD</th>
+                        <th colspan="6">Support</th>
+                        <th rowspan="2">Total</th>
+                    </tr>
+                    <tr>
+                        <th>AJ</th><th>KP</th><th>Akola</th><th>Bangalore</th><th>Solapur</th><th class="bda-group-total">Total</th>
+                        <th>AJ</th><th>KP</th><th>Akola</th><th>Bangalore</th><th>Solapur</th><th class="bda-group-total">Total</th>
+                        <th>AJ</th><th>KP</th><th>Akola</th><th>Bangalore</th><th>Solapur</th><th class="bda-group-total">Total</th>
                     </tr>
                 </thead>
 
@@ -594,16 +998,15 @@
 
                 <tfoot>
                     <tr>
-                        <th colspan="3" class="text-right">Grand Total</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
+                        <th colspan="2">Grand Total</th>
+                        <th></th><th></th><th></th><th></th><th></th><th class="bda-group-total"></th>
+                        <th></th><th></th><th></th><th></th><th></th><th class="bda-group-total"></th>
+                        <th></th><th></th><th></th><th></th><th></th><th class="bda-group-total"></th>
                         <th></th>
                     </tr>
                 </tfoot>
             </table>
+            </div>
         </div>
     </div>
 </asp:Content>
