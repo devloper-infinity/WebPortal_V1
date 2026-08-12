@@ -251,7 +251,7 @@
         .tracking-table,
         #Search_ProjectTracking,
         #table_track_attachment {
-            width: 100% !important;
+            width: 100%;
             margin-bottom: 0 !important;
             border-collapse: separate !important;
             border-spacing: 0;
@@ -268,7 +268,8 @@
         .tracking-table thead th,
         #Search_ProjectTracking thead th,
         #table_track_attachment thead th {
-            height: 42px;
+           /* height: 42px;*/
+            padding: 9px 10px !important;
             color: #164e4a;
             background: linear-gradient(180deg, #edf7f6 0%, #dcefeb 100%) !important;
             border-color: #c7dfdb !important;
@@ -314,8 +315,8 @@
             position: sticky !important;
             left: 0;
             z-index: 4;
-            min-width: 132px !important;
-            width: 132px !important;
+            min-width: 168px !important;
+            width: 168px !important;
             text-align: center !important;
             box-shadow: 6px 0 12px rgba(15, 23, 42, .08);
         }
@@ -325,7 +326,8 @@
         }
 
         .tracking-actions-disabled .tracking-action-column {
-            display: none !important;
+            min-width: 52px !important;
+            width: 52px !important;
         }
 
         .tracking-action-buttons {
@@ -391,6 +393,18 @@
         .tracking-action-attachment:focus {
             color: #075985;
             background: #a5f3fc;
+        }
+
+        .tracking-action-comment {
+            color: #b45309;
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+
+        .tracking-action-comment:hover,
+        .tracking-action-comment:focus {
+            color: #92400e;
+            background: #fde68a;
         }
 
         .tracking-chip {
@@ -651,6 +665,113 @@
             background: #e7f6f3;
         }
 
+        .tracking-comment-modal .modal-dialog {
+            max-width: min(920px, calc(100vw - 32px));
+        }
+
+        .tracking-comment-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .tracking-comment-summary-item {
+            padding: 11px 13px;
+            border: 1px solid #dbe7ed;
+            border-radius: 9px;
+            background: #ffffff;
+        }
+
+        .tracking-comment-summary-item span {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--track-muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .35px;
+            text-transform: uppercase;
+        }
+
+        .tracking-comment-summary-item strong {
+            display: block;
+            color: var(--track-text);
+            font-size: 13px;
+        }
+
+        .tracking-comment-editor {
+            padding: 14px;
+            border: 1px solid #dbe7ed;
+            border-radius: 10px;
+            background: #ffffff;
+        }
+
+        .tracking-comment-editor label {
+            color: var(--track-text);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tracking-comment-editor textarea {
+            min-height: 92px;
+            resize: vertical;
+            border-color: #cbd8e3;
+            border-radius: 8px;
+        }
+
+        .tracking-comment-editor textarea:focus {
+            border-color: var(--track-primary);
+            box-shadow: 0 0 0 3px rgba(15, 138, 125, .12);
+        }
+
+        .tracking-comment-editor-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 9px;
+        }
+
+        .tracking-comment-counter {
+            color: var(--track-muted);
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .tracking-comment-history {
+            margin-top: 14px;
+            padding: 14px;
+            border: 1px solid #dbe7ed;
+            border-radius: 10px;
+            background: #ffffff;
+        }
+
+        .tracking-comment-history-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #0f5f59;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        #ProjectTracking_CommentsTable thead th {
+            white-space: nowrap;
+            color: #184b50;
+            background: #e8f5f4;
+            border-top: 2px solid #15998b;
+            border-bottom: 1px solid #a9d7d2;
+            font-size: 10px;
+        }
+
+        #ProjectTracking_CommentsTable tbody td {
+            vertical-align: top;
+            border-color: #e1e8ee;
+            font-size: 11px;
+        }
+
         @media (max-width: 1199px) {
             .tracking-edit-grid {
                 grid-template-columns: repeat(3, minmax(180px, 1fr));
@@ -703,6 +824,15 @@
 
             .tracking-actions .btn {
                 width: 100%;
+            }
+
+            .tracking-comment-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .tracking-comment-editor-footer {
+                align-items: stretch;
+                flex-direction: column;
             }
         }
     </style>
@@ -1033,7 +1163,7 @@
                                 <span>Current Status</span>
                                 <strong id="ChangeStatus_CurrentStatus">-</strong>
                             </div>
-                        </div>        
+                        </div>
 
                         <div class="tracking-status-grid">
                             <div class="form-group tracking-edit-field tracking-status-field-wide">
@@ -1134,6 +1264,44 @@
                         <button type="button" class="btn btn-tracking-secondary" data-dismiss="modal">
                             <i class="fas fa-times"></i><span>Close</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+        <div class="modal fade tracking-modal tracking-comment-modal" id="ProjectTracking_CommentModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="ProjectTracking_CommentTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title" id="ProjectTracking_CommentTitle"><i class="fas fa-comment-dots"></i><span>Order Comments</span></h1>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="ProjectTracking_CommentOrderId" />
+                        <div class="tracking-comment-summary">
+                            <div class="tracking-comment-summary-item"><span>Order Number</span><strong id="ProjectTracking_CommentOrderNo">-</strong></div>
+                            <div class="tracking-comment-summary-item"><span>Order Date</span><strong id="ProjectTracking_CommentOrderDate">-</strong></div>
+                        </div>
+                        <div class="tracking-comment-editor">
+                            <label for="ProjectTracking_CommentText">Comment <span class="text-danger">*</span></label>
+                            <textarea id="ProjectTracking_CommentText" class="form-control" maxlength="10000" rows="4" placeholder="Enter your comment"></textarea>
+                            <div class="tracking-comment-editor-footer">
+                                <span class="tracking-comment-counter"><span id="ProjectTracking_CommentCount">0</span> / 10000 characters</span>
+                                <button type="button" id="ProjectTracking_SaveComment" class="btn btn-tracking-success"><i class="fas fa-paper-plane"></i><span>Submit Comment</span></button>
+                            </div>
+                        </div>
+                        <div class="tracking-comment-history">
+                            <div class="tracking-comment-history-title"><span><i class="fas fa-history mr-1"></i>Comment History</span><span id="ProjectTracking_CommentTotal" class="tracking-chip tracking-chip-info">0 records</span></div>
+                            <div class="tracking-table-wrap">
+                                <table id="ProjectTracking_CommentsTable" class="table table-hover table-sm tracking-table w-100">
+                                    <thead><tr><th>Sr. #</th><th>Order #</th><th>Process</th><th>Comment</th><th>Added By</th><th>Added Date</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-tracking-secondary" data-dismiss="modal"><i class="fas fa-times"></i><span>Close</span></button>
                     </div>
                 </div>
             </div>

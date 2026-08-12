@@ -1,7 +1,5 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="VerifyBilling.aspx.cs" Inherits="WebPortal.Search.VerifyBilling" %>
 
-
-
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
@@ -338,13 +336,33 @@
             line-height: 1.15;
         }
 
-        .summary-metric.received { --metric-color: #2563eb; }
-        .summary-metric.dispatch { --metric-color: #059669; }
-        .summary-metric.cancel { --metric-color: #dc2626; }
-        .summary-metric.hold { --metric-color: #d97706; }
-        .summary-metric.pending-search { --metric-color: #7c3aed; }
-        .summary-metric.pending-typing { --metric-color: #0891b2; }
-        .summary-metric.pending-tax { --metric-color: #db2777; }
+        .summary-metric.received {
+            --metric-color: #2563eb;
+        }
+
+        .summary-metric.dispatch {
+            --metric-color: #059669;
+        }
+
+        .summary-metric.cancel {
+            --metric-color: #dc2626;
+        }
+
+        .summary-metric.hold {
+            --metric-color: #d97706;
+        }
+
+        .summary-metric.pending-search {
+            --metric-color: #7c3aed;
+        }
+
+        .summary-metric.pending-typing {
+            --metric-color: #0891b2;
+        }
+
+        .summary-metric.pending-tax {
+            --metric-color: #db2777;
+        }
 
         .summary-empty {
             display: flex;
@@ -444,7 +462,7 @@
             background: #edf3f6 !important;
             border-color: #d7e2ea !important;
             border-bottom: 1px solid var(--order-border) !important;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             vertical-align: middle;
             white-space: nowrap;
@@ -481,7 +499,7 @@
                 border-color: var(--order-primary);
             }
 
-        #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label::after {
+                #VerifyOrders_Search_Billing input[type="checkbox"]:checked + label::after {
                     content: "\2713";
                     color: #fff;
                     font-size: 13px;
@@ -573,7 +591,7 @@
 
                 #VerifyOrders_Search_Billing_wrapper table.dataTable thead th {
                     height: 42px;
-                  /*  padding: 9px 10px !important;*/
+                    /*  padding: 9px 10px !important;*/
                     color: #17413e;
                     background: #eaf4f3 !important;
                     background-image: none !important;
@@ -587,52 +605,52 @@
                     white-space: nowrap;
                 }
 
-            #VerifyOrders_Search_Billing tbody td {
-                padding: 9px 10px !important;
-                color: #334155;
-                background: #ffffff;
-                border-right: 1px solid #edf2f5;
-                border-bottom: 1px solid #e7edf1;
-                font-size: 11px;
-                vertical-align: middle;
-                white-space: nowrap;
+        #VerifyOrders_Search_Billing tbody td {
+            padding: 9px 10px !important;
+            color: #334155;
+            background: #ffffff;
+            border-right: 1px solid #edf2f5;
+            border-bottom: 1px solid #e7edf1;
+            font-size: 11px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        #VerifyOrders_Search_Billing tbody tr:nth-child(even) td {
+            background: #f8fafb;
+        }
+
+        #VerifyOrders_Search_Billing tbody tr:hover td {
+            background: #eef8f6;
+        }
+
+        #VerifyOrders_Search_Billing tbody tr.selected-row td {
+            background: #dff3ef !important;
+        }
+
+        #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody {
+            min-height: 0 !important;
+            scrollbar-color: #94a3b8 #edf2f5;
+            scrollbar-width: thin;
+        }
+
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
             }
 
-            #VerifyOrders_Search_Billing tbody tr:nth-child(even) td {
-                background: #f8fafb;
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
+                background: #edf2f5;
             }
 
-            #VerifyOrders_Search_Billing tbody tr:hover td {
-                background: #eef8f6;
+            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
+                background: #94a3b8;
+                border-radius: 999px;
             }
 
-            #VerifyOrders_Search_Billing tbody tr.selected-row td {
-                background: #dff3ef !important;
-            }
-
-            #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody {
-                min-height: 0 !important;
-                scrollbar-color: #94a3b8 #edf2f5;
-                scrollbar-width: thin;
-            }
-
-                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar {
-                    width: 8px;
-                    height: 8px;
-                }
-
-                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
-                    background: #edf2f5;
-                }
-
-                #VerifyOrders_Search_Billing_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
-                    background: #94a3b8;
-                    border-radius: 999px;
-                }
-
-            #VerifyOrders_Search_Billing_wrapper .dataTables_paginate {
-                padding-top: 10px;
-            }
+        #VerifyOrders_Search_Billing_wrapper .dataTables_paginate {
+            padding-top: 10px;
+        }
 
         .modal-content {
             border: 0;
@@ -686,110 +704,108 @@
 
     <style>
         .account-mail-loader {
-    padding: 8px 15px 5px;
-    text-align: center;
-}
+            padding: 8px 15px 5px;
+            text-align: center;
+        }
 
-.mail-icon-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 78px;
-    height: 78px;
-    margin-bottom: 14px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    color: #2563eb;
-    font-size: 30px;
-    overflow: hidden;
-}
+        .mail-icon-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 78px;
+            height: 78px;
+            margin-bottom: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            color: #2563eb;
+            font-size: 30px;
+            overflow: hidden;
+        }
 
-.mail-send-animation {
-    position: absolute;
-    right: -18px;
-    width: 22px;
-    height: 3px;
-    border-radius: 10px;
-    background: #2563eb;
-    box-shadow:
-        0 -8px 0 rgba(37, 99, 235, 0.55),
-        0 8px 0 rgba(37, 99, 235, 0.35);
-    animation: sendMailLine 1.2s infinite ease-in-out;
-}
+        .mail-send-animation {
+            position: absolute;
+            right: -18px;
+            width: 22px;
+            height: 3px;
+            border-radius: 10px;
+            background: #2563eb;
+            box-shadow: 0 -8px 0 rgba(37, 99, 235, 0.55), 0 8px 0 rgba(37, 99, 235, 0.35);
+            animation: sendMailLine 1.2s infinite ease-in-out;
+        }
 
-.mail-project-name {
-    margin-bottom: 6px;
-    color: #111827;
-    font-size: 15px;
-    font-weight: 700;
-}
+        .mail-project-name {
+            margin-bottom: 6px;
+            color: #111827;
+            font-size: 15px;
+            font-weight: 700;
+        }
 
-.mail-status-text {
-    margin-bottom: 16px;
-    color: #6b7280;
-    font-size: 13px;
-}
+        .mail-status-text {
+            margin-bottom: 16px;
+            color: #6b7280;
+            font-size: 13px;
+        }
 
-.mail-progress {
-    width: 100%;
-    height: 6px;
-    overflow: hidden;
-    border-radius: 20px;
-    background: #e5e7eb;
-}
+        .mail-progress {
+            width: 100%;
+            height: 6px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #e5e7eb;
+        }
 
-.mail-progress-bar {
-    width: 35%;
-    height: 100%;
-    border-radius: 20px;
-    background: linear-gradient(90deg, #2563eb, #60a5fa);
-    animation: mailProgress 1.4s infinite ease-in-out;
-}
+        .mail-progress-bar {
+            width: 35%;
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #2563eb, #60a5fa);
+            animation: mailProgress 1.4s infinite ease-in-out;
+        }
 
-.email-success-details {
-    padding: 5px 10px;
-    text-align: left;
-    color: #374151;
-    font-size: 14px;
-    line-height: 1.8;
-}
+        .email-success-details {
+            padding: 5px 10px;
+            text-align: left;
+            color: #374151;
+            font-size: 14px;
+            line-height: 1.8;
+        }
 
-.success-note {
-    margin-top: 12px;
-    padding: 12px;
-    border: 1px solid #bbf7d0;
-    border-radius: 8px;
-    background: #f0fdf4;
-    color: #166534;
-    line-height: 1.5;
-}
+        .success-note {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            background: #f0fdf4;
+            color: #166534;
+            line-height: 1.5;
+        }
 
-@keyframes sendMailLine {
-    0% {
-        opacity: 0;
-        transform: translateX(-15px);
-    }
+        @keyframes sendMailLine {
+            0% {
+                opacity: 0;
+                transform: translateX(-15px);
+            }
 
-    50% {
-        opacity: 1;
-    }
+            50% {
+                opacity: 1;
+            }
 
-    100% {
-        opacity: 0;
-        transform: translateX(35px);
-    }
-}
+            100% {
+                opacity: 0;
+                transform: translateX(35px);
+            }
+        }
 
-@keyframes mailProgress {
-    0% {
-        margin-left: -35%;
-    }
+        @keyframes mailProgress {
+            0% {
+                margin-left: -35%;
+            }
 
-    100% {
-        margin-left: 100%;
-    }
-}
+            100% {
+                margin-left: 100%;
+            }
+        }
     </style>
 
     <script>
@@ -797,8 +813,34 @@
 
             verifyOrdres_BindProject();
 
-            // Bind_SearchBilling_Grid("735", "01-Jun-2026", "15-Jun-2026");
+          //  Bind_SearchBilling_Grid("735", "01-Aug-2026", "15-Aug-2026");
         });
+
+
+        function vrbil_showFileName(input) {
+            var fileNameElement = document.getElementById("vrbil_fileName");
+
+            if (input.files && input.files.length > 0) {
+                var file = input.files[0];
+                var fileName = file.name;
+
+                var extension = fileName
+                    .substring(fileName.lastIndexOf("."))
+                    .toLowerCase();
+
+                if (extension !== ".msg") {
+                    alert("Please upload only Outlook .msg files.");
+
+                    input.value = "";
+                    fileNameElement.innerHTML = "or click to browse";
+                    return false;
+                }
+
+                fileNameElement.textContent = fileName;
+            } else {
+                fileNameElement.innerHTML = "or click to browse";
+            }
+        }
 
     </script>
 
@@ -931,25 +973,7 @@
                                 </tr>
                             </thead>
                             <tbody></tbody>
-                            <%--<tfoot>
-                            <tr>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                                <td style="text-align: center;"></td>
-                            </tr>
-                        </tfoot>--%>
                         </table>
-
                     </div>
                 </div>
             </div>
@@ -965,45 +989,675 @@
         </div>
     </div>
 
-    <div class="modal fade" id="popUp_viewBilling_addRemark">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
+    <div class="modal fade" id="popUp_viewBilling_addRemark" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content vrbil-modal-content">
+
+                <!-- ================= HEADER ================= -->
+                <div class="modal-header vrbil-modal-header">
                     <h5 class="modal-title">
-                        <label id="lblupdateRemark" style="font-weight: bold!important;"></label>
+                        <label id="lblupdateRemark" style="font-weight: bold !important;"></label>
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table class="table">
-                        <tr>
-                            <td>
-                                <b>Order Cost :</b>
-                            </td>
-                            <td>
-                                <input type="number" name="vrbil_orderCost" id="vrbil_orderCost" class="form-control" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <b>Remark :</b>
-                            </td>
-                            <td>
-                                <textarea name="vrbil_remark" id="vrbil_remark" class="form-control" style="width: 360px;"></textarea>
-                            </td>
-                        </tr>
-                    </table>
+                    <button type="button" class="close vrbil-modal-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
 
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="clearBillingFields()">Close</button>
-                    <button class="btn btn-primary" type="submit" id="btnvrfBilling" onclick="return btnverfybilling_AddRemark();">Add Remark</button>
+                <!-- ================= BODY ================= -->
+                <div class="modal-body vrbil-modal-body">
+
+                    <!-- Primary fields -->
+                    <div class="vrbil-form-grid">
+                        <div class="vrbil-form-group">
+                            <label for="vrbil_orderCost" class="form-label vrbil-label"><span class="vrbil-field-icon">$</span>Order Cost :</label>
+                            <input type="number" name="vrbil_orderCost" id="vrbil_orderCost" class="form-control vrbil-control" placeholder="Enter order cost" min="0" step="0.01" />
+                        </div>
+
+                        <div class="vrbil-form-group">
+                            <label for="vrbil_remark" class="form-label vrbil-label"><span class="vrbil-field-icon">&#9998;</span>Remark :</label>
+                            <textarea name="vrbil_remark" id="vrbil_remark" class="form-control vrbil-control" rows="3" placeholder="Enter remark"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- ================= ADDITIONAL DETAILS ================= -->
+                    <div class="vrbil-additional-wrapper" id="costingDiffEmail_div" style="display: none;">
+                        <div class="vrbil-switch-card">
+                            <div class="vrbil-switch-info">
+                                <div class="vrbil-switch-symbol">+</div>
+                                <div>
+                                    <div class="vrbil-switch-title">Add Additional Details</div>
+                                    <div class="vrbil-switch-description">Enable to enter additional information</div>
+                                </div>
+                            </div>
+
+                            <label class="vrbil-switch">
+                                <input type="checkbox" id="vrbil_additional" onchange="vrbil_toggleAdditional();" />
+                                <span class="vrbil-slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Dependent fields -->
+                        <div id="vrbil_additionalFields" class="vrbil-dependent-section" style="display: none;">
+                            <div class="vrbil-dependent-grid">
+                                <div class="vrbil-form-group">
+                                    <label for="vrbil_additionalText" class="form-label vrbil-label">
+                                        <span class="vrbil-field-icon">&#177;</span>Cost Difference :
+                                    </label>
+                                    <input type="number" name="vrbil_costDiff" id="vrbil_costDiff" class="form-control vrbil-control" placeholder="Enter cost difference" step="0.01" />
+                                </div>
+
+                                <div class="vrbil-form-group">
+                                    <label for="vrbil_attachment" class="form-label vrbil-label">
+                                        <span class="vrbil-field-icon">&#128206;</span>Attachment :
+                                    </label>
+                                    <%--   <div class="vrbil-upload-box" id="vrbil_dropzone">
+                                        <input type="file" name="vrbil_attachment" id="vrbil_attachment" class="vrbil-upload-input" onchange="vrbil_showFileName(this);" />
+                                        <div class="vrbil-upload-content">
+                                            <div class="vrbil-upload-main">
+                                                <div class="vrbil-upload-icon">&#8593;</div>
+                                                <div class="vrbil-upload-title">Drag &amp; drop file here</div>
+                                            </div>
+                                            <div id="vrbil_fileName" class="vrbil-file-name">or click to browse</div>
+                                        </div>
+                                    </div>--%>
+                                    <div class="vrbil-upload-box" id="vrbil_dropzone">
+                                        <input type="file"
+                                            name="vrbil_attachment"
+                                            id="vrbil_attachment"
+                                            class="vrbil-upload-input"
+                                            accept=".msg"
+                                            onchange="vrbil_showFileName(this);" />
+
+                                        <div class="vrbil-upload-content">
+                                            <div class="vrbil-upload-main">
+                                                <div class="vrbil-upload-icon">&#8593;</div>
+                                                <div class="vrbil-upload-title">Drag &amp; drop .msg file here</div>
+                                            </div>
+
+                                            <div id="vrbil_fileName" class="vrbil-file-name">
+                                                or click to browse
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="vrbil-form-group vrbil-email-note-full">
+                                    <label for="vrbil_EmailNote" class="form-label vrbil-label"><span class="vrbil-field-icon">&#9993;</span>Email Note :</label>
+                                    <textarea name="vrbil_EmailNote" id="vrbil_EmailNote" class="form-control vrbil-email-note-full" rows="3" placeholder="Enter email note"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ================= FOOTER ================= -->
+                <div class="modal-footer vrbil-modal-footer">
+                    <button type="button" class="btn vrbil-btn-secondary" data-dismiss="modal" onclick="clearBillingFields();">Close</button>
+                    <button type="submit" class="btn vrbil-btn-primary" id="btnvrfBilling" onclick="return btnverfybilling_AddRemark();">Add Remark</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <style>
+        /* =========================================================
+       ADD REMARK MODAL - MODERN UI
+       Prefix: vrbil-
+       ========================================================= */
+
+        #popUp_viewBilling_addRemark {
+            --vrbil-primary: #0c8f8f;
+            --vrbil-primary-dark: #087575;
+            --vrbil-primary-soft: #e9f8f7;
+            --vrbil-blue: #2563eb;
+            --vrbil-bg: #f7f9fc;
+            --vrbil-surface: #ffffff;
+            --vrbil-border: #dbe3ee;
+            --vrbil-border-focus: #54a7a7;
+            --vrbil-text: #172033;
+            --vrbil-text-secondary: #526175;
+            --vrbil-muted: #8a98aa;
+            --vrbil-danger: #dc3545;
+            --vrbil-radius: 16px;
+            --vrbil-input-radius: 9px;
+            --vrbil-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+        }
+
+            /* ---------- Dialog ---------- */
+
+            #popUp_viewBilling_addRemark .modal-dialog {
+                max-width: 1080px;
+                width: calc(100% - 32px);
+                margin: 1rem auto;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-content {
+                border: 0;
+                border-radius: var(--vrbil-radius);
+                overflow: hidden;
+                background: var(--vrbil-surface);
+                box-shadow: var(--vrbil-shadow);
+            }
+
+            /* ---------- Header ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-modal-header {
+                min-height: 72px;
+                padding: 18px 24px;
+                border-bottom: 1px solid #edf1f6;
+                background: linear-gradient(135deg, #ffffff 0%, #fbfdff 55%, #f2fbfb 100%);
+                display: flex;
+                align-items: center;
+            }
+
+            #popUp_viewBilling_addRemark .modal-title {
+                margin: 0;
+                color: var(--vrbil-text);
+                font-size: 17px;
+                font-weight: 700;
+                letter-spacing: -0.2px;
+                line-height: 1.4;
+            }
+
+            #popUp_viewBilling_addRemark #lblupdateRemark {
+                margin: 0;
+                font-weight: 700 !important;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-close {
+                width: 38px;
+                height: 38px;
+                margin: 0 0 0 auto;
+                padding: 0;
+                border: 0;
+                border-radius: 10px;
+                background: transparent;
+                color: #6b7a90;
+                opacity: 1;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 25px;
+                line-height: 1;
+                transition: all 0.2s ease;
+                outline: none;
+            }
+
+                #popUp_viewBilling_addRemark .vrbil-modal-close:hover {
+                    color: #dc3545;
+                    background: #fff1f2;
+                    transform: rotate(4deg);
+                }
+
+            /* ---------- Body ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-modal-body {
+                padding: 26px 28px 20px;
+                background: var(--vrbil-surface);
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-form-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 22px 24px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-form-group {
+                min-width: 0;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-full-width {
+                grid-column: 1 / -1;
+            }
+
+            /* ---------- Labels ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                margin-bottom: 8px;
+                color: #344258;
+                font-size: 13px;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-field-icon {
+                width: 25px;
+                height: 25px;
+                border-radius: 7px;
+                background: var(--vrbil-primary-soft);
+                color: var(--vrbil-primary);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                flex-shrink: 0;
+            }
+
+            /* ---------- Inputs ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-control {
+                width: 100%;
+                min-height: 44px;
+                padding: 10px 13px;
+                border: 1px solid var(--vrbil-border);
+                border-radius: var(--vrbil-input-radius);
+                background: #ffffff;
+                color: var(--vrbil-text);
+                font-size: 14px;
+                font-weight: 400;
+                outline: none;
+                box-shadow: none;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+            }
+
+            #popUp_viewBilling_addRemark textarea.vrbil-control {
+                min-height: 76px;
+                resize: vertical;
+                line-height: 1.55;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-control::placeholder {
+                color: #9aa7b7;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-control:hover {
+                border-color: #bdcad9;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-control:focus {
+                border-color: var(--vrbil-border-focus);
+                background: #ffffff;
+                box-shadow: 0 0 0 4px rgba(12, 143, 143, 0.10);
+            }
+
+            #popUp_viewBilling_addRemark input[type="number"]::-webkit-inner-spin-button,
+            #popUp_viewBilling_addRemark input[type="number"]::-webkit-outer-spin-button {
+                opacity: 0.6;
+            }
+
+            /* ---------- Additional Details Card ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-additional-wrapper {
+                margin-top: 24px;
+                border: 1px solid var(--vrbil-border);
+                border-radius: 14px;
+                overflow: hidden;
+                background: #fff;
+                transition: box-shadow 0.25s ease;
+            }
+
+                #popUp_viewBilling_addRemark .vrbil-additional-wrapper:hover {
+                    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.05);
+                }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-card {
+                min-height: 55px !important;
+                padding: 15px 18px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 20px;
+                background: linear-gradient(90deg, #f9fbfd 0%, #f7fbfb 100%);
+                border-bottom: 0;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 0;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-symbol {
+                width: 38px;
+                height: 38px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                background: var(--vrbil-primary-soft);
+                color: var(--vrbil-primary);
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-title {
+                margin-bottom: 3px;
+                color: #27364a;
+                font-size: 13px;
+                font-weight: 700;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-description {
+                color: #8794a7;
+                font-size: 11px;
+                line-height: 1.4;
+            }
+
+            /* ---------- Modern Switch ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-switch {
+                position: relative;
+                display: inline-block;
+                width: 65px;
+                height: 35px;
+                margin: 0;
+                flex-shrink: 0;
+            }
+
+                #popUp_viewBilling_addRemark .vrbil-switch input {
+                    width: 0;
+                    height: 0;
+                    opacity: 0;
+                }
+
+            #popUp_viewBilling_addRemark .vrbil-slider {
+                position: absolute;
+                inset: 0;
+                cursor: pointer;
+                border-radius: 50px;
+                background: #cbd5e1;
+                box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+                transition: 0.25s ease;
+            }
+
+                #popUp_viewBilling_addRemark .vrbil-slider::before {
+                    content: "";
+                    position: absolute;
+                    width: 30px;
+                    height: 30px;
+                    left: 5px;
+                    top: 3px;
+                    border-radius: 50%;
+                    background: #fff;
+                    box-shadow: 0 2px 5px rgba(15, 23, 42, 0.22);
+                    transition: 0.25s ease;
+                }
+
+            #popUp_viewBilling_addRemark .vrbil-switch input:checked + .vrbil-slider {
+                background: var(--vrbil-primary);
+            }
+
+                #popUp_viewBilling_addRemark .vrbil-switch input:checked + .vrbil-slider::before {
+                    transform: translateX(21px);
+                }
+
+            #popUp_viewBilling_addRemark .vrbil-switch input:focus + .vrbil-slider {
+                box-shadow: 0 0 0 4px rgba(12, 143, 143, 0.12);
+            }
+
+            /* ---------- Dependent Section ---------- */
+
+            #popUp_viewBilling_addRemark .vrbil-dependent-section {
+                padding: 22px 18px 20px;
+                border-top: 1px solid #edf1f6;
+                background: #ffffff;
+                animation: vrbilFadeIn 0.25s ease;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-dependent-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 22px 24px;
+            }
+
+        @keyframes vrbilFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---------- Upload ---------- */
+
+        #popUp_viewBilling_addRemark .vrbil-upload-box {
+            position: relative;
+            min-height: 74px;
+            border: 1.5px dashed #b9cce2;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fbfdff 0%, #f8fbff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+            #popUp_viewBilling_addRemark .vrbil-upload-box:hover {
+                border-color: var(--vrbil-primary);
+                background: #f6fdfc;
+                box-shadow: 0 0 0 4px rgba(12, 143, 143, 0.06);
+            }
+
+        #popUp_viewBilling_addRemark .vrbil-upload-input {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        /* Icon + Drag text same line */
+        .vrbil-upload-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-upload-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e8f0ff;
+            color: #087575;
+            font-size: 21px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-upload-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-upload-subtitle {
+            color: #8a98aa;
+            font-size: 11px;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-file-name {
+            margin-top: 0;
+            min-height: auto;
+            font-size: 12px;
+            color: #087575;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-email-note-full {
+            grid-column: 1 / -1;
+            border-radius: 10px;
+            width: 100% !important;
+        }
+
+            #popUp_viewBilling_addRemark .vrbil-email-note-full textarea {
+                width: 100% !important;
+                border-radius: 10px;
+            }
+
+        /* ---------- Footer ---------- */
+
+        #popUp_viewBilling_addRemark .vrbil-modal-footer {
+            min-height: 76px;
+            padding: 14px 24px;
+            border-top: 1px solid #edf1f6;
+            background: #fbfcfe;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-footer::before,
+            #popUp_viewBilling_addRemark .vrbil-modal-footer::after {
+                display: none;
+            }
+
+        #popUp_viewBilling_addRemark .vrbil-btn-secondary,
+        #popUp_viewBilling_addRemark .vrbil-btn-primary {
+            min-width: 112px;
+            min-height: 42px;
+            padding: 9px 18px;
+            border: none;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.2;
+            box-shadow: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        #popUp_viewBilling_addRemark .vrbil-btn-secondary {
+            color: #ffffff;
+            background: #64748b;
+        }
+
+            #popUp_viewBilling_addRemark .vrbil-btn-secondary:hover {
+                color: #ffffff;
+                background: #536176;
+                transform: translateY(-1px);
+                box-shadow: 0 7px 15px rgba(71, 85, 105, 0.18);
+            }
+
+        #popUp_viewBilling_addRemark .vrbil-btn-primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--vrbil-primary), var(--vrbil-primary-dark));
+            box-shadow: 0 6px 14px rgba(12, 143, 143, 0.18);
+        }
+
+            #popUp_viewBilling_addRemark .vrbil-btn-primary:hover {
+                color: #ffffff;
+                transform: translateY(-1px);
+                box-shadow: 0 9px 20px rgba(12, 143, 143, 0.25);
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-btn-primary:active,
+            #popUp_viewBilling_addRemark .vrbil-btn-secondary:active {
+                transform: translateY(0);
+            }
+
+        #popUp_viewBilling_addRemark button:focus {
+            outline: none;
+        }
+
+        /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+        @media (max-width: 767.98px) {
+
+            #popUp_viewBilling_addRemark .modal-dialog {
+                width: calc(100% - 20px);
+                margin: 10px auto;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-content {
+                border-radius: 13px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-header {
+                min-height: 62px;
+                padding: 14px 16px;
+            }
+
+            #popUp_viewBilling_addRemark .modal-title {
+                font-size: 15px;
+                padding-right: 10px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-body {
+                padding: 18px 16px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-form-grid,
+            #popUp_viewBilling_addRemark .vrbil-dependent-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-additional-wrapper {
+                margin-top: 20px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-card {
+                padding: 14px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-dependent-section {
+                padding: 18px 14px;
+            }
+
+            #popUp_viewBilling_addRemark textarea.vrbil-control {
+                min-height: 88px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-upload-box {
+                min-height: 125px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-modal-footer {
+                min-height: auto;
+                padding: 13px 16px;
+                gap: 12px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-btn-secondary,
+            #popUp_viewBilling_addRemark .vrbil-btn-primary {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 420px) {
+
+            #popUp_viewBilling_addRemark .modal-dialog {
+                width: calc(100% - 12px);
+                margin: 6px auto;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-symbol {
+                display: none;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-card {
+                gap: 10px;
+            }
+
+            #popUp_viewBilling_addRemark .vrbil-switch-description {
+                max-width: 210px;
+            }
+        }
+    </style>
 
 </asp:Content>

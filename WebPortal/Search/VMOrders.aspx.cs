@@ -135,12 +135,12 @@ namespace WebPortal.Search
 
             if (selectedView.Equals("allProjects", StringComparison.OrdinalIgnoreCase))
             {
-                if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all projects.");
+              //  if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all projects.");
                 table = GetAllProjectQueue();
             }
             else if (selectedView.Equals("all", StringComparison.OrdinalIgnoreCase))
             {
-                if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all orders.");
+               // if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all orders.");
                 if (string.IsNullOrWhiteSpace(project) || project.Equals("Select", StringComparison.OrdinalIgnoreCase))
                     throw new ArgumentException("Please select project.");
                 table = vendors.GetAllInfinityOrderTraking_VM(
@@ -549,18 +549,25 @@ namespace WebPortal.Search
 
         private VmResult AllocateOrder()
         {
+            const int processId = 1;
             int orderId = FormInt("orderId");
             string mode = (Request.Form["mode"] ?? string.Empty).Trim();
             int addedBy = CurrentUserId();
-            if (orderId <= 0) return Result(false, "Select a valid order.");
-            if (mode != "Offline" && mode != "Partial") return Result(false, "Select an allocation mode.");
+
+            if (orderId <= 0)
+                return Result(false, "Select a valid order.");
+
+            if (mode != "Offline" && mode != "Partial")
+                return Result(false, "Select an allocation mode.");
 
             bllOST ost = new bllOST();
             DataTable orderTable = ost.GetOrderByID_VM(orderId);
-            if (orderTable.Rows.Count == 0) return Result(false, "The selected order was not found.");
+
+            if (orderTable == null || orderTable.Rows.Count == 0)
+                return Result(false, "The selected order was not found.");
+
             DataRow order = orderTable.Rows[0];
             string product = Value(order, "ProductType");
-            string clientOrderNo = Value(order, "ClientOrderNo");
             string searchCost = MoneyText(Request.Form["searchCost"]);
             string copyCost = MoneyText(Request.Form["copyCost"]);
             string total = MoneyText(Request.Form["total"]);
@@ -571,34 +578,58 @@ namespace WebPortal.Search
             {
                 int abstractorId = FormInt("abstractorId");
                 if (abstractorId <= 0) return Result(false, "Please select company name.");
-                inserted += InsertAbstractorTask(ost, orderId, product, "Offline", 0, abstractorId,
-                    Request.Form["deliveryMethod"] ?? string.Empty, Digits(Request.Form["eta"]), searchCost, copyCost, total, addedBy);
-                allocatedTo = Request.Form["abstractorName"] ?? string.Empty;
+
+                allocatedTo = (Request.Form["abstractorName"] ?? string.Empty).Trim();
+                inserted += InsertAbstractorTask(ost, orderId, product, processId, "Offline", 0, abstractorId,
+                    Request.Form["deliveryMethod"] ?? string.Empty, Request.Form["eta"] ?? string.Empty,
+                    searchCost, copyCost, total, addedBy);
             }
             else
             {
                 int abstractor1 = FormInt("abstractor1");
                 int abstractor2 = FormInt("abstractor2");
+
                 int[] docs1 = CsvInts(Request.Form["docs1"]);
                 int[] docs2 = CsvInts(Request.Form["docs2"]);
                 int[] docs3 = CsvInts(Request.Form["docs3"]);
-                if (docs1.Length + docs2.Length + docs3.Length == 0) return Result(false, "Please select at least one document.");
-                if (docs1.Length > 0 && abstractor1 <= 0) return Result(false, "Please select Searcher 1.");
-                if (docs2.Length > 0 && abstractor2 <= 0) return Result(false, "Please select Searcher 2.");
-                foreach (int doc in docs1) inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, abstractor1, string.Empty, Digits(Request.Form["eta1"]), searchCost, copyCost, total, addedBy);
-                foreach (int doc in docs2) inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, abstractor2, string.Empty, Digits(Request.Form["eta2"]), searchCost, copyCost, total, addedBy);
-                foreach (int doc in docs3) inserted += InsertAbstractorTask(ost, orderId, product, "Partial", doc, 0, string.Empty, string.Empty, searchCost, copyCost, total, addedBy);
+
+                if (docs1.Length + docs2.Length + docs3.Length == 0)
+                    return Result(false, "Please select at least one document.");
+
+                if (docs1.Length > 0 && abstractor1 <= 0)
+                    return Result(false, "Please select Searcher 1.");
+
+                if (docs2.Length > 0 && abstractor2 <= 0)
+                    return Result(false, "Please select Searcher 2.");
+
+                foreach (int doc in docs1)
+                    inserted += InsertAbstractorTask(ost, orderId, product, processId, "Partial", doc, abstractor1,
+                        string.Empty, Request.Form["eta1"] ?? string.Empty, searchCost, copyCost, total, addedBy);
+
+                foreach (int doc in docs2)
+                    inserted += InsertAbstractorTask(ost, orderId, product, processId, "Partial", doc, abstractor2,
+                        string.Empty, Request.Form["eta2"] ?? string.Empty, searchCost, copyCost, total, addedBy);
+
+                foreach (int doc in docs3)
+                    inserted += InsertAbstractorTask(ost, orderId, product, processId, "Partial", doc, 0,
+                        string.Empty, string.Empty, searchCost, copyCost, total, addedBy);
             }
 
-            if (inserted <= 0) return Result(false, "Order allocation was not saved.");
-            SaveOptionalAttachment(ost, orderId, 1, addedBy, "VM Order Allocation");
+            if (inserted <= 0)
+                return Result(false, "Order allocation was not saved.");
+
+            SaveOptionalAttachment(ost, orderId, processId, addedBy, "VM Order Allocation");
             string comment = mode == "Offline" ? "Order Allocate to " + allocatedTo + " Abstractor" : "Order Allocated to Abstractor.";
+
             ost.InsertCommentOrder(orderId, 0, "Auto", comment, addedBy);
-            if (mode == "Offline") TrySendAllocationMail(order, allocatedTo);
+
+            if (mode == "Offline")
+                TrySendAllocationMail(order, allocatedTo, addedBy);
+
             return Result(true, "Order allocated successfully.", inserted);
         }
 
-        private static int InsertAbstractorTask(bllOST ost, int orderId, string product, string mode, int docId,int abstractorId, string emailType, string eta, string searchCost, string copyCost, string total, int addedBy)
+        private static int InsertAbstractorTask(bllOST ost, int orderId, string product, int processId, string mode, int docId, int abstractorId, string emailType, string eta, string searchCost, string copyCost, string total, int addedBy)
         {
             Hashtable values = new Hashtable();
             values["Orderid"] = orderId;
@@ -606,7 +637,7 @@ namespace WebPortal.Search
             values["TaskTemplateid"] = 0;
             values["Docid"] = docId;
             values["TaskAssignedId"] = abstractorId;
-            values["TaskProcessid"] = 1;
+            values["TaskProcessid"] = processId;
             values["OnOffLine"] = mode;
             values["EmailType"] = emailType;
             values["ETATime"] = eta;
@@ -890,12 +921,6 @@ namespace WebPortal.Search
                 .Where(value => value > 0).Distinct().ToArray();
         }
 
-        private static string Digits(string text)
-        {
-            string value = new string((text ?? string.Empty).Where(char.IsDigit).ToArray());
-            return value;
-        }
-
         private static string MoneyText(string text)
         {
             decimal value;
@@ -910,31 +935,53 @@ namespace WebPortal.Search
             return value;
         }
 
-        private static void TrySendAllocationMail(DataRow order, string abstractor)
+        private static void TrySendAllocationMail(DataRow order, string abstractor, int addedBy)
         {
             try
             {
                 string orderNo = Value(order, "ClientOrderNo");
+                DataTable userTable = new bllLogin().GetUserInformation(addedBy);
+                string vmCode = userTable != null && userTable.Rows.Count > 0 ? Value(userTable.Rows[0], "Code") : string.Empty;
+                string vmName = userTable != null && userTable.Rows.Count > 0 ? Value(userTable.Rows[0], "FullName") : string.Empty;
+                string project = Value(order, "ProjectNumber");
+                if (string.IsNullOrWhiteSpace(project)) project = Value(order, "Project");
+
                 StringBuilder body = new StringBuilder();
-                body.Append("<p><b>Dear " + HttpUtility.HtmlEncode(abstractor) + ",</b></p>");
-                body.Append("<p>New order has been assigned '" + HttpUtility.HtmlEncode(orderNo) + "'.</p>");
-                body.Append("<table border='1' cellpadding='5' cellspacing='0'>");
-                body.Append("<tr><td>Project #</td><td>" + HttpUtility.HtmlEncode(Value(order, "ProjectNumber")) + "</td></tr>");
-                body.Append("<tr><td>Order #</td><td>" + HttpUtility.HtmlEncode(orderNo) + "</td></tr>");
-                body.Append("<tr><td>Order Date</td><td>" + HttpUtility.HtmlEncode(Value(order, "OrderDate")) + "</td></tr>");
-                body.Append("<tr><td>Process</td><td>Search</td></tr></table><p>Thanks,<br/>Infinity ERP</p>");
-                MailMessage message = new MailMessage();
-                message.From = new MailAddress("ack@infinityinternationals.us", "Orders");
-                message.To.Add("josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
-                message.Subject = "A new Order(" + orderNo + ") has been assigned to Abstractor : " + abstractor;
-                message.Body = body.ToString();
-                message.IsBodyHtml = true;
-                using (SmtpClient client = new SmtpClient()) client.Send(message);
+                body.Append("<table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
+                body.Append("<tr><td><b>Dear " + HttpUtility.HtmlEncode(abstractor) + ",</b></td></tr></table><br/>");
+                body.Append("<table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
+                body.Append("<tr><td>New order has been assigned '" + HttpUtility.HtmlEncode(orderNo) + "'</td></tr></table><br/>");
+                body.Append("<table cellspacing='7' cellpadding='5' width='700' border='1' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
+                AppendAllocationMailRow(body, "Project #", project);
+                AppendAllocationMailRow(body, "Order #", orderNo);
+                AppendAllocationMailRow(body, "Order Date", Value(order, "OrderDate"));
+                AppendAllocationMailRow(body, "Process", "Search");
+                AppendAllocationMailRow(body, "VM", string.IsNullOrWhiteSpace(vmCode) ? vmName : vmCode + ":" + vmName);
+                AppendAllocationMailRow(body, "Abstractor", abstractor);
+                AppendAllocationMailRow(body, "Remark", string.Empty);
+                body.Append("</table><br/><br/><table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
+                body.Append("<tr><td>Thanks,<br/>Infinity ERP</td></tr></table>");
+
+                using (MailMessage message = new MailMessage())
+                {
+                    message.From = new MailAddress("ack@infinityinternationals.us", "Orders");
+                    message.To.Add("josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
+                    message.Subject = "A new Order(" + orderNo + " )has been assigned to Abstractor : " + abstractor;
+                    message.Body = body.ToString();
+                    message.IsBodyHtml = true;
+                    using (SmtpClient client = new SmtpClient()) client.Send(message);
+                }
             }
             catch
             {
                 // Allocation remains successful when the notification service is unavailable, as in the ERP workflow.
             }
+        }
+
+        private static void AppendAllocationMailRow(StringBuilder body, string label, string value)
+        {
+            body.Append("<tr><td style='width:200px'>" + HttpUtility.HtmlEncode(label) +
+                " :</td><td style='width:200px'>" + HttpUtility.HtmlEncode(value ?? string.Empty) + "</td></tr>");
         }
 
         private void WriteJson(VmResult result)
