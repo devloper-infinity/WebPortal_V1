@@ -566,6 +566,24 @@
             background-color: #AFEEEE !important;
             font-weight: 600;
         }
+
+        .feedback-report-tabs {
+            border-bottom: 1px solid var(--ca-border);
+            margin-bottom: 16px;
+        }
+
+        .feedback-report-tabs .nav-link {
+            border: 0;
+            border-bottom: 3px solid transparent;
+            color: var(--ca-muted);
+            font-weight: 700;
+        }
+
+        .feedback-report-tabs .nav-link.active {
+            border-bottom-color: var(--ca-primary);
+            color: var(--ca-primary);
+            background: var(--ca-primary-soft);
+        }
     </style>
     <script>
 
@@ -624,19 +642,51 @@
                     </div>
                 </div>
                 <hr />
-                <div style="overflow: auto;">
-                    <div id="feedbackLoader" class="table-loader">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="sr-only">Loading...</span>
+                <ul class="nav nav-tabs feedback-report-tabs" id="feedbackReportTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="standardFeedbackTab" data-toggle="tab" href="#standardFeedbackPane" role="tab" aria-controls="standardFeedbackPane" aria-selected="true">
+                            Feedback
+                        </a>
+                    </li>
+                    <li class="nav-item" id="atrReviewTabItem" role="presentation" style="display: none;">
+                        <a class="nav-link" id="atrReviewTab" data-toggle="tab" href="#atrReviewPane" role="tab" aria-controls="atrReviewPane" aria-selected="false">
+                            ATR Review
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="feedbackReportTabContent">
+                    <div class="tab-pane fade show active" id="standardFeedbackPane" role="tabpanel" aria-labelledby="standardFeedbackTab">
+                        <div style="overflow: auto;">
+                            <div id="feedbackLoader" class="table-loader">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <div class="mt-2">Loading feedback records...</div>
+                            </div>
+
+                            <table class="table" id="table_InfinityFeedbackOnShore" style="width: 100%;">
+                                <thead></thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
-                        <div class="mt-2">Loading feedback records...</div>
                     </div>
 
-                    <table class="table" id="table_InfinityFeedbackOnShore" style="width: 100%;">
-                        <thead>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div class="tab-pane fade" id="atrReviewPane" role="tabpanel" aria-labelledby="atrReviewTab">
+                        <div style="overflow: auto;">
+                            <div id="atrFeedbackLoader" class="table-loader" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <div class="mt-2">Loading ATR Review feedback...</div>
+                            </div>
+
+                            <table class="table" id="table_ATRReviewFeedback" style="width: 100%;">
+                                <thead></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

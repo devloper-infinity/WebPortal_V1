@@ -53,6 +53,43 @@ namespace WebPortal.US
         }
 
         [WebMethod]
+        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate)
+        {
+            int ReturnValue = 0;
+
+            Severity = (Severity ?? string.Empty).Trim();
+            Finding = (Finding ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(Severity) || (Severity != "No Error" && string.IsNullOrEmpty(Finding)))
+            {
+                return -1;
+            }
+
+            if (Severity == "No Error")
+            {
+                Finding = "No Error";
+            }
+
+            string QCName = "";
+
+            Hashtable htParam = new Hashtable();
+            htParam.Add("LoanNo", LoanNo);
+            htParam.Add("Client", Client);
+            htParam.Add("UWName", UWName);
+            htParam.Add("QCName", QCName);
+            htParam.Add("DateReviewed", DateReviewed);
+            htParam.Add("QCDate", QCDate);
+            htParam.Add("Finding", Finding);
+            htParam.Add("Severity", Severity);
+            htParam.Add("Source", Source);
+            htParam.Add("FeedbackReceivedDate", FeedbackReceivedDate);
+            htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            ReturnValue = new bllUS().InsertUSImportedFeedback_NewERP(htParam);
+
+            return ReturnValue;
+        }
+
+        [WebMethod]
         public static string GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script)
         {
             DataTable dt1 = new bllUS().GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script);

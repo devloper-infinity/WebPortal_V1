@@ -58,6 +58,36 @@ namespace WebPortal.US
         }
 
         [WebMethod]
+        public static string GetATRReviewFeedbackByDateRange(string FromDate, string ToDate)
+        {
+            DateTime fromDate;
+            DateTime toDate;
+            if (!DateTime.TryParse(FromDate, out fromDate) || !DateTime.TryParse(ToDate, out toDate))
+                throw new ArgumentException("Please provide a valid date range.");
+            if (fromDate.Date > toDate.Date)
+                throw new ArgumentException("From Date cannot be greater than To Date.");
+
+            int addedBy = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            DataTable table = new bllUS().GetATRReviewFeedback_Onshore(fromDate, toDate, addedBy);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            if (table != null)
+            {
+                foreach (DataRow dataRow in table.Rows)
+                {
+                    Dictionary<string, object> row = new Dictionary<string, object>();
+                    foreach (DataColumn column in table.Columns)
+                        row.Add(column.ColumnName, dataRow[column] == DBNull.Value ? string.Empty : dataRow[column]);
+                    rows.Add(row);
+                }
+            }
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            serializer.MaxJsonLength = int.MaxValue;
+            return serializer.Serialize(rows);
+        }
+
+        [WebMethod]
         public static string SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, string RebuttalStatus)
         {
             try

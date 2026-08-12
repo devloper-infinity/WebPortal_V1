@@ -332,6 +332,97 @@ function showdata1() {
     }
 
     bind_onshoredata(fromDate, toDate);
+    bindATRReviewFeedback(fromDate, toDate);
+    return false;
+}
+
+function renderATRReviewText(value, type) {
+    if (type !== 'display') {
+        return blankForNull(value);
+    }
+    return encodeInfinityOnshoreHtml(value);
+}
+
+function hideATRReviewTab() {
+    $('#atrReviewTabItem').hide();
+    if ($('#atrReviewTab').hasClass('active')) {
+        $('#standardFeedbackTab').tab('show');
+    }
+}
+
+function bindATRReviewFeedback(fromDate, toDate) {
+    $('#atrFeedbackLoader').show();
+
+    $.ajax({
+        url: 'InfinityFeedbackOnshore.aspx/GetATRReviewFeedbackByDateRange',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        data: JSON.stringify({ FromDate: fromDate, ToDate: toDate }),
+        success: function (response) {
+            var rows = JSON.parse(response.d || '[]');
+
+            if ($.fn.DataTable.isDataTable('#table_ATRReviewFeedback')) {
+                $('#table_ATRReviewFeedback').DataTable().clear().destroy();
+            }
+
+            if (!rows.length) {
+                $('#table_ATRReviewFeedback').empty();
+                hideATRReviewTab();
+                return;
+            }
+
+            $('#atrReviewTabItem').show();
+            $('#table_ATRReviewFeedback').DataTable({
+                dom: 'Bfrtip',
+                data: rows,
+                destroy: true,
+                scrollX: true,
+                paging: true,
+                processing: true,
+                ordering: false,
+                columns: [
+                    {
+                        data: null,
+                        title: 'Sr. #',
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { data: 'ProjectName', title: 'Project Name', render: renderATRReviewText },
+                    { data: 'ProcessID', title: 'Process ID', render: renderATRReviewText },
+                    { data: 'DealNo', title: 'Deal #', render: renderATRReviewText },
+                    { data: 'LoanNo', title: 'Loan #', render: renderATRReviewText },
+                    { data: 'Reviewer', title: 'Reviewer', render: renderATRReviewText },
+                    { data: 'ReviewDate', title: 'Review Date', render: renderATRReviewText },
+                    { data: 'ATRSupported', title: 'ATR Supported?', render: renderATRReviewText },
+                    { data: 'ReviewFindings', title: 'Review Findings', render: renderATRReviewText },
+                    { data: 'SellerDisclosedDTIIssue', title: 'Seller Disclosed DTI Issue', render: renderATRReviewText },
+                    { data: 'NoOfBorrowers', title: '# of Borrowers', render: renderATRReviewText },
+                    { data: 'HighestBorrowerIncomeType', title: 'Highest BWR Income Type', render: renderATRReviewText },
+                    { data: 'NoOfSEBusiness', title: '# of SE Businesses', render: renderATRReviewText },
+                    { data: 'NoOfRentalProperties', title: '# Rental Properties', render: renderATRReviewText },
+                    { data: 'Comments', title: 'Comments', render: renderATRReviewText },
+                    { data: 'AddedByName', title: 'Added By', render: renderATRReviewText },
+                    { data: 'AddedDate', title: 'Added Date', render: renderATRReviewText },
+                    { data: 'Script', title: 'Script', render: renderATRReviewText }
+                ],
+                buttons: [
+                    { extend: 'excelHtml5', title: 'ATR Review Feedback - OnShore' }
+                ],
+                initComplete: function () {
+                    $('#atrFeedbackLoader').hide();
+                }
+            });
+        },
+        error: function () {
+            hideATRReviewTab();
+        },
+        complete: function () {
+            $('#atrFeedbackLoader').hide();
+        }
+    });
+
     return false;
 }
 

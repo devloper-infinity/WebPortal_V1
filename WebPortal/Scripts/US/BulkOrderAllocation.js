@@ -1,13 +1,7 @@
 (function () {
     "use strict";
 
-    var importHeaders = ["Project", "Deal #", "Loan #", "Employee"];
-    var allocationDefaults = {
-        projectId: 70,
-        projectName: "561",
-        processId: 2506,
-        processName: "PH RecQC"
-    };
+    var importHeaders = ["Project", "Deal #", "Loan #", "Employee", "Process"];
     var allocationProcessingOpen = false;
 
     function pageMethod(method, payload) {
@@ -75,10 +69,6 @@
         readFile(file).done(function (content) {
             pageMethod("ImportOrders", {
                 request: {
-                    ProjectId: allocationDefaults.projectId,
-                    ProjectName: allocationDefaults.projectName,
-                    ProcessId: allocationDefaults.processId,
-                    ProcessName: allocationDefaults.processName,
                     FileName: file.name,
                     ContentBase64: content
                 }
@@ -109,7 +99,8 @@
         var failedRows = normalizeRows(res && res.NotAddedRows);
         var successCount = toCount(res && res.SuccessRows);
         var failedCount = failedRows.length;
-        var totalCount = successCount + failedCount;
+        var suppliedTotal = toCount(res && res.TotalRows);
+        var totalCount = suppliedTotal || (successCount + failedCount);
 
         $("#oa_total_allocation").text(totalCount);
         $("#oa_success_allocation").text(successCount);
@@ -166,7 +157,7 @@
     function downloadTemplate() {
         var sample = [
             importHeaders.join(","),
-            "561,SampleDeal,SampleLoan,EMPLOYEE1"
+            "561,SampleDeal,SampleLoan,EMPLOYEE1,PH ReQC"
         ].join("\r\n");
         var blob = new Blob([sample], { type: "text/csv;charset=utf-8;" });
         var url = URL.createObjectURL(blob);
