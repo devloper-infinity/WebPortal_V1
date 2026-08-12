@@ -48,6 +48,7 @@ SELECT
     LoanNo,
     ISNULL(OrderDate, '') AS OrderDate,
     ISNULL([Process], '') AS Process,
+    ISNULL(Script, '') AS Script,
     ISNULL(Review, '') AS Review,
     ISNULL(SourcePage, CASE WHEN ISNULL(ProcessID, 0) = 0 THEN 'GlobalSearch' ELSE 'MyTask' END) AS SourcePage,
     CONVERT(VARCHAR(19), StartDatetime, 120) AS StartDatetime,
@@ -736,20 +737,37 @@ DECLARE @TrackID BIGINT;
 
 IF UPPER(@Action) = 'START'
 BEGIN
-    SELECT TOP 1 @TrackID = ProductionTrackID
-    FROM dbo.USLoanProductionTrack
-    WHERE EmployeeID = @EmployeeID
-        AND EndDatetime IS NULL
-        AND DealNo = @DealNo
-        AND LoanNo = @LoanNo
-        AND ISNULL(Script, '') = ISNULL(@Script, '')
-        AND (
-            (@ProcessID > 0 AND (ProcessID = @ProcessID OR ISNULL(ProcessID, 0) = 0))
-            OR (@ProcessID <= 0 AND ISNULL(ProcessID, 0) = 0 AND ISNULL([Process], '') = ISNULL(@Process, ''))
-        )
-    ORDER BY
-        CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
-        ProductionTrackID DESC;
+    IF UPPER(ISNULL(@SourcePage, '')) = 'MYTASK'
+    BEGIN
+        SELECT TOP 1 @TrackID = ProductionTrackID
+        FROM dbo.USLoanProductionTrack
+        WHERE LTRIM(RTRIM(ISNULL(ProjectNumber, ''))) = LTRIM(RTRIM(ISNULL(@ProjectNumber, '')))
+            AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(ISNULL(@DealNo, '')))
+            AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(ISNULL(@LoanNo, '')))
+            AND LTRIM(RTRIM(ISNULL([Process], ''))) = LTRIM(RTRIM(ISNULL(@Process, '')))
+            AND ISNULL(Script, '') = ISNULL(@Script, '')
+        ORDER BY
+            CASE WHEN UPPER(ISNULL(SourcePage, '')) = 'MYTASK' THEN 0 ELSE 1 END,
+            CASE WHEN EndDatetime IS NULL THEN 0 ELSE 1 END,
+            ProductionTrackID DESC;
+    END
+    ELSE
+    BEGIN
+        SELECT TOP 1 @TrackID = ProductionTrackID
+        FROM dbo.USLoanProductionTrack
+        WHERE EmployeeID = @EmployeeID
+            AND EndDatetime IS NULL
+            AND DealNo = @DealNo
+            AND LoanNo = @LoanNo
+            AND ISNULL(Script, '') = ISNULL(@Script, '')
+            AND (
+                (@ProcessID > 0 AND (ProcessID = @ProcessID OR ISNULL(ProcessID, 0) = 0))
+                OR (@ProcessID <= 0 AND ISNULL(ProcessID, 0) = 0 AND ISNULL([Process], '') = ISNULL(@Process, ''))
+            )
+        ORDER BY
+            CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
+            ProductionTrackID DESC;
+    END
 
     IF @TrackID IS NULL
     BEGIN
@@ -763,6 +781,8 @@ BEGIN
             @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Script, @Review, @SourcePage,
             @StartValue, NULL, @EmployeeID, @AddedBy, GETDATE(), 'Started'
         );
+
+        SET @TrackID = SCOPE_IDENTITY();
     END
     ELSE
     BEGIN
@@ -776,11 +796,33 @@ BEGIN
             Script = @Script,
             Review = @Review,
             SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
-            StartDatetime = COALESCE(StartDatetime, @StartValue),
+            StartDatetime = CASE
+                WHEN UPPER(ISNULL(@SourcePage, '')) = 'MYTASK' THEN @StartValue
+                ELSE COALESCE(StartDatetime, @StartValue)
+            END,
+            EndDatetime = CASE
+                WHEN UPPER(ISNULL(@SourcePage, '')) = 'MYTASK' THEN NULL
+                ELSE EndDatetime
+            END,
+            EmployeeID = CASE
+                WHEN UPPER(ISNULL(@SourcePage, '')) = 'MYTASK' THEN @EmployeeID
+                ELSE EmployeeID
+            END,
             [Status] = 'Started',
             ModifiedBy = @AddedBy,
             ModifiedDate = GETDATE()
         WHERE ProductionTrackID = @TrackID;
+    END
+
+    IF UPPER(ISNULL(@SourcePage, '')) = 'MYTASK'
+    BEGIN
+        DELETE FROM dbo.USLoanProductionTrack
+        WHERE ProductionTrackID <> @TrackID
+            AND LTRIM(RTRIM(ISNULL(ProjectNumber, ''))) = LTRIM(RTRIM(ISNULL(@ProjectNumber, '')))
+            AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(ISNULL(@DealNo, '')))
+            AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(ISNULL(@LoanNo, '')))
+            AND LTRIM(RTRIM(ISNULL([Process], ''))) = LTRIM(RTRIM(ISNULL(@Process, '')))
+            AND ISNULL(Script, '') = ISNULL(@Script, '');
     END
 END
 ELSE
@@ -794,10 +836,20 @@ BEGIN
         AND ISNULL(Script, '') = ISNULL(@Script, '')
         AND (
             (@ProcessID > 0 AND ProcessID = @ProcessID)
+            OR (UPPER(ISNULL(@SourcePage, '')) = 'GLOBALSEARCH'
+                AND UPPER(ISNULL(SourcePage, '')) = 'GLOBALSEARCH'
+                AND @ProcessID > 0
+                AND ISNULL(ProcessID, 0) = 0)
+            OR (UPPER(ISNULL(SourcePage, '')) = 'MYTASK'
+                AND LTRIM(RTRIM(ISNULL([Process], ''))) = LTRIM(RTRIM(ISNULL(@Process, ''))))
             OR (@ProcessID <= 0 AND ISNULL(ProcessID, 0) = 0 AND ISNULL([Process], '') = ISNULL(@Process, ''))
         )
     ORDER BY
+        CASE WHEN UPPER(ISNULL(SourcePage, '')) = 'MYTASK' THEN 0 ELSE 1 END,
         CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
+        CASE WHEN UPPER(ISNULL(@SourcePage, '')) = 'GLOBALSEARCH'
+                  AND UPPER(ISNULL(SourcePage, '')) = 'GLOBALSEARCH'
+                  AND ISNULL(ProcessID, 0) = 0 THEN 0 ELSE 1 END,
         StartDatetime DESC,
         ProductionTrackID DESC;
 
@@ -817,7 +869,11 @@ BEGIN
     ELSE
     BEGIN
         UPDATE dbo.USLoanProductionTrack
-        SET ProcessID = CASE WHEN @ProcessID > 0 THEN @ProcessID ELSE ProcessID END,
+        SET ProcessID = CASE
+                WHEN UPPER(ISNULL(SourcePage, '')) = 'MYTASK' AND ISNULL(ProcessID, 0) > 0 THEN ProcessID
+                WHEN @ProcessID > 0 THEN @ProcessID
+                ELSE ProcessID
+            END,
             ProjectNumber = @ProjectNumber,
             DealNo = @DealNo,
             LoanNo = @LoanNo,
@@ -825,7 +881,10 @@ BEGIN
             [Process] = @Process,
             Script = @Script,
             Review = @Review,
-            SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
+            SourcePage = CASE
+                WHEN UPPER(ISNULL(SourcePage, '')) = 'MYTASK' THEN SourcePage
+                ELSE COALESCE(NULLIF(@SourcePage, ''), SourcePage)
+            END,
             StartDatetime = COALESCE(StartDatetime, @StartValue),
             EndDatetime = @EndValue,
             [Status] = 'Completed',
@@ -1121,6 +1180,43 @@ SELECT CAST(SCOPE_IDENTITY() AS int);");
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, ToDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataTable GetATRReviewFeedback_Onshore(DateTime fromDate, DateTime toDate, int addedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT
+    ISNULL(ProjectDetails.ProjectName, CONVERT(nvarchar(100), Feedback.ProjectID)) AS ProjectName,
+   s Feedback.DealNo,
+    Feedback.LoanNo,
+    Feedback.Reviewer,
+    CONVERT(varchar(10), Feedback.ReviewDate, 120) AS ReviewDate,
+    CASE WHEN Feedback.isATRSupported = 1 THEN 'Yes' ELSE 'No' END AS ATRSupported,
+    Feedback.ReviewFindings,
+    Feedback.SellerDisclosedDTIIssue,
+    Feedback.NoOfBorrowers,
+    Feedback.HighestBorrowerIncomeType,
+    Feedback.NoOfSEBusiness,
+    Feedback.NoOfRentalProperties,
+    Feedback.Comments,
+    LTRIM(RTRIM(ISNULL(AddedByEmployee.FirstName, '') + ' ' + ISNULL(AddedByEmployee.LastName, ''))) AS AddedByName,
+    CONVERT(varchar(19), Feedback.AddedDate, 120) AS AddedDate
+FROM dbo.OnShoreFeedbacks_ATRReview Feedback WITH (NOLOCK)
+LEFT JOIN dbo.Project ProjectDetails WITH (NOLOCK)
+    ON ProjectDetails.ProjectID = Feedback.ProjectID
+LEFT JOIN dbo.EmployeeInfo AddedByEmployee WITH (NOLOCK)
+    ON AddedByEmployee.EmployeeID = Feedback.AddedBy
+WHERE (Feedback.AddedBy = @AddedBy or @AddedBy=10497)
+  AND Feedback.AddedDate >= @FromDate
+  AND Feedback.AddedDate < DATEADD(DAY, 1, @ToDate)
+ORDER BY Feedback.AddedDate DESC, Feedback.LoanNo;");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.Date, 0, ParameterDirection.Input, fromDate.Date);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.Date, 0, ParameterDirection.Input, toDate.Date);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.Int, 0, ParameterDirection.Input, addedBy);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            cmd.Dispose();
             return dt;
         }
 

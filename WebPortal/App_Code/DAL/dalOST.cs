@@ -658,6 +658,39 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+        public int InsertCostEmailDetails(Hashtable htDetails)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_Order_CostEmailDetails_Insert");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input,htDetails["Project"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htDetails["BillingPeriod"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input,  htDetails["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CostDiff", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htDetails["CostDiff"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmailNote", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["EmailNote"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AttachmentPath", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDetails["AttachmentPath"]);
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+        public DataTable GetCostEmailDetails(int projectId, string billingPeriod)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
+                @"SELECT Project, BillingPeriod, OrderID, CostDifference AS CostDiff,
+                         EmailNote AS EmailInput, AttachmentPath
+                    FROM Order_CostEmailDetails
+                   WHERE Project = @ProjectID
+                     AND BillingPeriod = @BillingPeriod
+                   ORDER BY OrderID");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, projectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, billingPeriod);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
 
         public int UpdateBillingInBillingDB(int ProjectID, string period, string BillingCycle, int BillingBy, string ProductionBillingDate, string BillingDate, bool isdelay, string remark, string BillingStatus)
         {

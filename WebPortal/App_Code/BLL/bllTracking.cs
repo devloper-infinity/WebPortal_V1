@@ -220,6 +220,7 @@ namespace WebPortal.App_Code.BLL
         }
 
 
+
         public int InsertFeedbackForNewOrderUnderwritingByTracking(Hashtable htParam)
         {
             return dalTracking.InsertFeedbackForNewOrderUnderwritingByTracking(htParam);
@@ -348,6 +349,17 @@ namespace WebPortal.App_Code.BLL
         public int CodeExists(string Code)
         {
             return dalTracking.CodeExists(Code);
+        }
+
+        public DataTable GetBulkAllocatedOrders()
+        {
+            return dalTracking.GetBulkAllocatedOrders();
+        }
+
+
+        public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
+        {
+            return dalTracking.BulkAllocationOrderExists(projectId, dealNo, loanNo);
         }
     }
 }

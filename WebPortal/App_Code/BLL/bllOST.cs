@@ -322,7 +322,7 @@ namespace WebPortal.App_Code.BLL
 
         public DataTable GetOrdersForSentToAccounts(string ProjectNo, string BillingPeriod, string Remark)
         {
-            return dalOst.GetOrdersForSentToAccounts( ProjectNo,  BillingPeriod,  Remark);
+            return dalOst.GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
         }
 
         public int VerifyOstOrdersForBilling(int OrderID, string Project, int AddedBy, string Remark)
@@ -335,6 +335,15 @@ namespace WebPortal.App_Code.BLL
             return dalOst.UpdateBillingInBillingDB(ProjectID, period, BillingCycle, BillingBy, ProductionBillingDate, BillingDate, Isdelay, remark, BillingStatus);
         }
 
+        public int InsertCostEmailDetails(Hashtable htDetails)
+        {
+            return dalOst.InsertCostEmailDetails(htDetails);
+        }
+
+        public DataTable GetCostEmailDetails(int projectId, string billingPeriod)
+        {
+            return dalOst.GetCostEmailDetails(projectId, billingPeriod);
+        }
 
         public int UpdateBillingRemark(int OrderID, string Remark, string Cost)
         {

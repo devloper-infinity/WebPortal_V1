@@ -269,6 +269,11 @@ namespace WebPortal.App_Code.BLL
             return dalUS.GetAllFeedbackByDateRange_NewFormat_Onshore(FromDate, ToDate);
         }
 
+        public DataTable GetATRReviewFeedback_Onshore(DateTime fromDate, DateTime toDate, int addedBy)
+        {
+            return dalUS.GetATRReviewFeedback_Onshore(fromDate, toDate, addedBy);
+        }
+
         public int SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, string RebuttalStatus, int AddedBy)
         {
             return dalUS.SaveInfinityOnshoreRemark(FeedbackID, Client, Remark, RebuttalStatus, AddedBy);

@@ -81,6 +81,7 @@ namespace WebPortal.App_Code.Class
         public string IsPolicy { get; set; }
         public string JobType { get; set; }
         public string PseudoName { get; set; }
+        public string IsPM { get; set; }
 
         public static EmployeeInfo Current
         {
@@ -118,7 +119,7 @@ namespace WebPortal.App_Code.Class
                     lastName = GetValue(row, "lastName"),
                     Name = GetValue(row, "EmpFullName"),
                     Gender = gender,
-                 
+
                     PresentAddress = GetValue(row, "PresentAddress"),
                     PermanentAddress = GetValue(row, "PermenentAddress"),
                     EmailID = GetValue(row, "EmailID"),
@@ -181,7 +182,8 @@ namespace WebPortal.App_Code.Class
                     IncYear = GetValue(row, "IncYear"),
                     IsPolicy = GetValue(row, "IsPolicy"),
                     JobType = GetValue(row, "JobType"),
-                    PseudoName = GetValue(row, "PsuedoName")
+                    PseudoName = GetValue(row, "PsuedoName"),
+                    IsPM = GetValue(row, "IsPM")
                 };
             }
         }
