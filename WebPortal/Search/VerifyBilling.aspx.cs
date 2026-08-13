@@ -300,7 +300,7 @@ namespace WebPortal.Search
         [WebMethod]
         public static int AddRemark_VerifyBilling(int Project, string BillingPeriod, int OrderID, string OrderCost, string Remark, bool IsMailInput, decimal CostDiff, string EmailInput, string AttachmentPath)
         {
-            int returnValue = 10;// new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
+            int returnValue =  new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
 
             if (IsMailInput == true)
             {
@@ -328,9 +328,9 @@ namespace WebPortal.Search
             DataTable costEmailDetails = new bllOST().GetCostEmailDetails(ProjectID, BillingPeriod);
             DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
 
-             returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, "735", "Search Typing", "01-Aug-2026 ~ 15-Aug-2026");
+            // returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, "735", "Search Typing", "01-Aug-2026 ~ 15-Aug-2026");
 
-          // returnValue = SendClientBillingOrdersTyping(dt, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod);
+            returnValue = SendClientBillingOrdersTyping(dt, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod);
 
             return returnValue;
         }

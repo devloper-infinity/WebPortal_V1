@@ -228,7 +228,7 @@ namespace WebPortal.Admin
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain Head:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(DomainHead) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Location Head:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(LocationHead) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Leave Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(LeaveType) + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Paid / Unpaid:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(PaidStatus) + "</td></tr>");
+                    //body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Paid / Unpaid:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(PaidStatus) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>No Of Days:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Days) + "</td></tr>");
                     body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>From Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(FromDate) + "</td></tr>");
                     body.Append("<tr><td  style=\"border:solid 1px Gray;border-top:none;\"><b>To Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ToDate) + "</td></tr>");
