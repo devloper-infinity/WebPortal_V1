@@ -20,6 +20,7 @@ using System.Web.UI.WebControls;
 using WebPortal.App_Code;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
+using static WebPortal.Admin.ResponsibilityDelegation;
 using DataTable = System.Data.DataTable;
 
 namespace WebPortal.Admin
@@ -138,6 +139,7 @@ namespace WebPortal.Admin
         }
 
         #region Step 1 - Initiate Resignation
+
 
         [WebMethod]
         public static List<Project> GetProjects()
@@ -260,8 +262,7 @@ namespace WebPortal.Admin
             {
                 SendStep1Email(EmployeeID, Code, ResignationType, ResignationDate, LastWorkingDate, ReasonToTerminate, Remark, LastLoginDate, NoOfDays);
             }
-            //new CodeGeneration().SendNoticePeriodMailToUnitHead(EmployeeID, htParam);
-            //System.Threading.Thread.Sleep(10000);
+
             return returnvalue;
         }
 
@@ -279,8 +280,6 @@ namespace WebPortal.Admin
             string ToCC = string.Empty;
             string ToBCC = string.Empty;
 
-            //string UnitHeadEmail = new bllMaster().GetUnitHeadEmail(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
             DataTable dtInit = new bllLogin().GetUserInformation(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             if (dtInit != null)
             {
@@ -289,10 +288,19 @@ namespace WebPortal.Admin
                 {
                     if (dt.Rows.Count > 0)
                     {
-                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(EmployeeID, "Notice Period1");
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(EmployeeID, "Resignation");
                         ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResignation"]);
                         ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
                         ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        //ToAddress = "b.shubhangi@infinityinternationals.us";
+                        //ToCC = "b.shubhangi@infinityinternationals.us";
+                        //ToBCC = "b.shubhangi@infinityinternationals.us";
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
 
                         string contentHeader = "";
                         if (ResignationType == "Immediate" || ResignationType == "Normal" || ResignationType == "Special")
@@ -300,42 +308,46 @@ namespace WebPortal.Admin
                         else
                             contentHeader = ResignationType;
 
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:monospace; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:monospace; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
-                            "<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />" + Convert.ToString(contentHeader) + " of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been initiated.<br /><br /></b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Code) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Working Branch:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Joining Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Job Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ResignationType) + "</td></tr>");
+                        head.Append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body style=\"margin:0;padding:0;background-color:#f3f6fa;\">");
+                        body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f3f6fa;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#25324b;\"><tr><td align=\"left\">" +
+                            "<table role=\"presentation\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #dfe6ef;border-radius:12px;overflow:hidden;\">" +
+                            "<tr><td style=\"padding:26px 32px;background-color:#174a7e;border-bottom:4px solid #2ea3f2;\"><div style=\"font-size:24px;line-height:30px;font-weight:bold;color:#ffffff;letter-spacing:.2px;\">Infinity IPS</div></td></tr>" +
+                            "<tr><td style=\"padding:30px 32px 18px 32px;\"><h1 style=\"margin:0 0 10px 0;font-size:23px;line-height:31px;color:#172b4d;font-weight:600;\">" + Convert.ToString(contentHeader) + " initiated</h1><p style=\"margin:0;font-size:15px;line-height:24px;color:#52637a;\">Dear Sir/Madam,</p><p style=\"margin:8px 0 0 0;font-size:15px;line-height:24px;color:#52637a;\">The " + Convert.ToString(contentHeader).ToLower() + " process for <strong style=\"color:#25324b;\">" + Convert.ToString(dt.Rows[0]["FullName"]) + "</strong> has been initiated. The relevant employee and request details are provided below for your review.</p></td></tr>" +
+                            "<tr><td style=\"padding:10px 32px 30px 32px;\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #dfe6ef;border-radius:8px;border-collapse:separate;overflow:hidden;\">" +
+                            "<tr><td colspan=\"2\" style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\">Employee Information</td></tr>" +
+                            "<tr><td width=\"38%\" style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Employee</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(Code) + " &nbsp;|&nbsp; " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Working Branch</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Joining Date</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Job Type</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Department</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Designation</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Reporting Manager</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
+                            "<tr><td colspan=\"2\" style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\">Request Details</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Resignation Type</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(ResignationType) + "</td></tr>");
                         if (ResignationType == "Termination")
                         {
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason to terminate:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ReasonToTerminate) + " </td></tr> ");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " : " + Convert.ToString(Remark) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Notice Period</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\"><strong>From:</strong> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " &nbsp;&nbsp; <strong>To:</strong> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " &nbsp;&nbsp; <strong>Days:</strong> " + Convert.ToString(0) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Reason for Termination</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(ReasonToTerminate) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Step 1 Remark</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " &nbsp;|&nbsp; " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + "<br />" + Convert.ToString(Remark) + "</td></tr>");
                         }
                         else if (ResignationType == "Absconding")
                         {
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " : " + Convert.ToString(Remark) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Notice Period</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\"><strong>From:</strong> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " &nbsp;&nbsp; <strong>To:</strong> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " &nbsp;&nbsp; <strong>Days:</strong> " + Convert.ToString(0) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Step 1 Remark</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " &nbsp;|&nbsp; " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + "<br />" + Convert.ToString(Remark) + "</td></tr>");
                         }
                         else
                         {
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(ResignationDate) + " <b>To:</b> " + Convert.ToString(LastWorkingDate) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " : " + Convert.ToString(Remark) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Notice Period</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\"><strong>From:</strong> " + Convert.ToString(ResignationDate) + " &nbsp;&nbsp; <strong>To:</strong> " + Convert.ToString(LastWorkingDate) + " &nbsp;&nbsp; <strong>Days:</strong> " + Convert.ToString(NoOfDays) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Step 1 Remark</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " &nbsp;|&nbsp; " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + "<br />" + Convert.ToString(Remark) + "</td></tr>");
                         }
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Latest Login Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-
-                        "</table>");
+                        body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;font-size:13px;font-weight:bold;color:#52637a;\">Latest Login Date</td><td style=\"padding:11px 16px;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>" +
+                        "</table></td></tr>" +
+                        "<tr><td style=\"padding:0 32px 28px 32px;\"><p style=\"margin:0;font-size:14px;line-height:22px;color:#52637a;\">Regards,<br /><strong style=\"color:#25324b;\">Infinity IPS</strong></p></td></tr>" +
+                        "<tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e6ebf1;text-align:center;font-size:11px;line-height:17px;color:#7b8798;\">This is an automated notification from Infinity IPS. Please do not reply to this email.</td></tr>" +
+                        "</table></td></tr></table>");
                         footer.Append("</body></html>");
 
                         string Pass = new bllMaster().GetPassword("ackdata");
@@ -486,10 +498,15 @@ namespace WebPortal.Admin
                         string subject = "";
                         string ResignationStatus = "";
 
-                        //if (Convert.ToInt32(dt.Rows[0]["WorkingBranch"]) == 5)
-                        //    ToAddress = "hr@infinityinternationals.us,v.rohan@infinityinternationals.us";
-                        //else if (Convert.ToInt32(dt.Rows[0]["WorkingBranch"]) != 5)
-                        //    ToAddress = "hr@infinityinternationals.us";
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Notice Period");
+                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResg_Step2"]);
+                        ToCC = Convert.ToString(dtEmail.Rows[0]["CCResg_Step2"]);
+                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
 
                         if (Status == "Approve")
                         {
@@ -505,58 +522,53 @@ namespace WebPortal.Admin
                             contentHeader = "Resignation";
                         else
                             contentHeader = ResignationType;
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:monospace; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:monospace; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
+
+                        head.Append(GetProfessionalResignationEmailHead());
+                        body.Append(GetProfessionalResignationEmailHeader() +
                             "<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />" + Convert.ToString(contentHeader) + " of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been " + subject + ".<br /><br /></b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Working Branch:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Joining Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Job Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ResignationType) + "</td></tr>");
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Name:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Working Branch:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Joining Date:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Job Type:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Domain:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Department:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Designation:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Reporting Manager:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Resignation Type:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(ResignationType) + "</td></tr>");
                         if (ResignationType == "Termination")
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
                             NoOfDays = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason to terminate:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]) + " </td></tr> ");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Reason to terminate:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
                         else if (ResignationType == "Absconding")
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
                             NoOfDays = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
                         else
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dtResigned.Rows[0]["LastWorkingDate"]) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays.ToString();
                             NoOfDays = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 2 :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Status:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ResignationStatus) + " </td></tr> " +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 2 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " : " + Convert.ToString(UHRemark) + " </td></tr> " +
+                        body.Append("<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 2 :: </b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Resignation Status:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(ResignationStatus) + " </td></tr> " +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 2 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " : " + Convert.ToString(UHRemark) + " </td></tr> " +
 
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Latest Login Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
+                        "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Latest Login Date:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>" +
                         "</table>");
-                        footer.Append("</body></html>");
-
-                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Notice Period");
-                        ToAddress = Convert.ToString(dtEmail.Rows[0]["To"]);
-                        ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
-                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+                        footer.Append(GetProfessionalResignationEmailFooter());
 
                         string Pass = new bllMaster().GetPassword("ackdata");
 
@@ -627,6 +639,16 @@ namespace WebPortal.Admin
                 {
                     if (dt.Rows.Count > 0)
                     {
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Notice Period1");
+                        string ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResg_Step2"]);
+                        string ToCC = Convert.ToString(dtEmail.Rows[0]["CCResg_Step2"]);
+                        string ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
+
                         int NoOfDays = 0;
                         string contentHeader = "";
                         string subject = "";
@@ -645,22 +667,24 @@ namespace WebPortal.Admin
                             contentHeader = "Resignation";
                         else
                             contentHeader = ResignationType;
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:Verdana; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:22px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:Verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
+                        head.Append(GetProfessionalResignationEmailHead());
+                        body.Append(GetProfessionalResignationEmailHeader() +
                             "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />Employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has completed exit formalities.<br /><br /></b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Working Branch:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Joining Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Job Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ResignationType) + "</td></tr>");
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Name:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Working Branch:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Joining Date:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Job Type:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Domain:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Department:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Designation:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Reporting Manager:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                                 "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
+
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Resignation Type:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(ResignationType) + "</td></tr>");
 
                         if (ResignationType == "Termination")
                         {
@@ -694,19 +718,20 @@ namespace WebPortal.Admin
                         "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Exit Formalities Completion Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Remark) + "</td></tr>" +
                         "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Current Status:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">Step 3 Pending.</td></tr>" +
 
-                        "<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
                         "</table>");
-                        footer.Append("</body></html>");
+                        footer.Append(GetProfessionalResignationEmailFooter());
 
                         string Pass = new bllMaster().GetPassword("ackdata");
 
                         MailMessage mail = new MailMessage();
                         mail.From = new MailAddress("ack@infinity-data.com", "HRMS", System.Text.Encoding.UTF8);
-                        mail.To.Add("jim@infinity-data.com");
-                        mail.CC.Add("hetal@infinity-data.com");
-                        mail.CC.Add("hr@infinityinternationals.com");
-                        mail.Bcc.Add("n.nilkanth@infinity-data.com");
+                        //mail.To.Add("jim@infinity-data.com");
+                        //mail.CC.Add("hetal@infinity-data.com");
+                        //mail.CC.Add("hr@infinityinternationals.com");
+                        // mail.Bcc.Add("n.nilkanth@infinity-data.com");
+                        mail.To.Add(ToAddress);
+                        mail.CC.Add(ToCC);
+                        mail.Bcc.Add(ToBCC);
                         mail.Subject = "Exit Formality:- User " + Convert.ToString(dt.Rows[0]["Code"]) + " has completed exit formalities.";
                         mail.Body = head.ToString() + body.ToString() + footer.ToString();
                         mail.IsBodyHtml = true;
@@ -776,6 +801,17 @@ namespace WebPortal.Admin
                 {
                     if (dt.Rows.Count > 0)
                     {
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Resignation");//"Change Resignation"
+                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResg_Step2"]);
+                        ToCC = Convert.ToString(dtEmail.Rows[0]["CCResg_Step2"]);
+                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        // ToAddress = "b.shubhangi@infinityinternationals.us";
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
 
                         int NoOfDays_1 = 0;
                         string ResignationStatus = "";
@@ -788,9 +824,8 @@ namespace WebPortal.Admin
                             ResignationStatus = "Rejected";
                         }
 
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:Verdana; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:22px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:Verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
+                        head.Append(GetProfessionalResignationEmailHead());
+                        body.Append(GetProfessionalResignationEmailHeader() +
                             "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />Resignation type of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been changed.<br /><br /></b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
@@ -801,6 +836,8 @@ namespace WebPortal.Admin
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Convert.ToString(dtResigned.Rows[0]["ResignationType"])) + "</td></tr>");
@@ -808,16 +845,16 @@ namespace WebPortal.Admin
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
                             NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason to terminate:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]) + " </td></tr> ");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Reason to terminate:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
                         else if (Convert.ToString(dtResigned.Rows[0]["ResignationType"]) == "Absconding")
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
                             NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
                         else
                         {
@@ -859,19 +896,10 @@ namespace WebPortal.Admin
                             body.Append("<tr style=\"background-color:yellow;\"><td style=\"border:solid 1px Gray;border-top:none;\"><b>Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + Convert.ToString(Remark) + " </td></tr> ");
                         }
 
-                        body.Append("<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                        "</table>");
-                        footer.Append("</body></html>");
+                        body.Append("</table>");
+                        footer.Append(GetProfessionalResignationEmailFooter());
 
                         string Pass = new bllMaster().GetPassword("ackdata");
-
-                        //Change Resignation  PM, DomainHead
-                        //Same as Change Resignation
-                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Change Resignation");
-                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToChangeResignation"]);
-                        ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
-                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
 
                         MailMessage mail = new MailMessage();
                         mail.From = new MailAddress("ack@infinity-data.com", "HRMS", System.Text.Encoding.UTF8);
@@ -979,6 +1007,18 @@ namespace WebPortal.Admin
                 {
                     if (dt.Rows.Count > 0)
                     {
+
+                        //Same as Change Resignation
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Resignation");//"Change Resignation"
+                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResg_Step2"]);
+                        ToCC = Convert.ToString(dtEmail.Rows[0]["CCResg_Step2"]);
+                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
+
                         int NoOfDays_1 = 0;
                         string ResignationStatus = "";
                         if (Convert.ToString(dtResigned.Rows[0]["Status"]) == "Accept")
@@ -990,9 +1030,8 @@ namespace WebPortal.Admin
                             ResignationStatus = "Rejected";
                         }
 
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:Verdana; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:22px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:Verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
+                        head.Append(GetProfessionalResignationEmailHead());
+                        body.Append(GetProfessionalResignationEmailHeader() +
                             "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />Notice period of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been " + Type + "ed.<br /><br /></b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
@@ -1003,9 +1042,13 @@ namespace WebPortal.Admin
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Convert.ToString(dtResigned.Rows[0]["ResignationType"])) + "</td></tr>");
+                                   "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
+
+
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Resignation Type:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(Convert.ToString(dtResigned.Rows[0]["ResignationType"])) + "</td></tr>");
                         if (Convert.ToString(dtResigned.Rows[0]["ResignationType"]) == "Termination")
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
@@ -1046,16 +1089,8 @@ namespace WebPortal.Admin
                         body.Append("<tr style=\"background-color:yellow;\"><td style=\"border:solid 1px Gray;border-top:none;\"><b>New Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(ResignationDate) + " <b>To:</b> " + Convert.ToString(RevisedDate) + " :: <b>No of Days:</b> " + Convert.ToString(NoofDays) + "</td></tr>");
                         body.Append("<tr style=\"background-color:yellow;\"><td style=\"border:solid 1px Gray;border-top:none;\"><b>Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + Convert.ToString(Remark) + " </td></tr> ");
 
-                        body.Append("<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                        "</table>");
-                        footer.Append("</body></html>");
-
-                        //Same as Change Resignation
-                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Change Resignation");
-                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToChangeResignation"]);
-                        ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
-                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+                        body.Append("</table>");
+                        footer.Append(GetProfessionalResignationEmailFooter());
 
                         string Pass = new bllMaster().GetPassword("ackdata");
 
@@ -1129,6 +1164,18 @@ namespace WebPortal.Admin
                 {
                     if (dt.Rows.Count > 0)
                     {
+                        //Same as Change Resignation
+
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Resignation");//"Change Resignation"
+                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResg_Step2"]);
+                        ToCC = Convert.ToString(dtEmail.Rows[0]["CCResg_Step2"]);
+                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
+
                         int NoOfDays_1 = 0;
                         string ResignationStatus = "";
                         if (Convert.ToString(dtResigned.Rows[0]["Status"]) == "Accept")
@@ -1140,9 +1187,8 @@ namespace WebPortal.Admin
                             ResignationStatus = "Rejected";
                         }
 
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:Verdana; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:22px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:Verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
+                        head.Append(GetProfessionalResignationEmailHead());
+                        body.Append(GetProfessionalResignationEmailHeader() +
                             "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />Resignation of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been Cancelled.<br /><br /></b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
@@ -1153,6 +1199,9 @@ namespace WebPortal.Admin
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                              "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
+
                             "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Convert.ToString(dtResigned.Rows[0]["ResignationType"])) + "</td></tr>");
@@ -1194,17 +1243,9 @@ namespace WebPortal.Admin
                         body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Status:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">Cancelled</td></tr>");
                         body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + Convert.ToString(Remark) + " </td></tr> ");
 
-                        body.Append("<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                        "</table>");
-                        footer.Append("</body></html>");
+                        body.Append("</table>");
+                        footer.Append(GetProfessionalResignationEmailFooter());
 
-                        //Same as Change Resignation
-
-                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Change Resignation");
-                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToChangeResignation"]);
-                        ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
-                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
 
                         string Pass = new bllMaster().GetPassword("ackdata");
 
@@ -1263,7 +1304,7 @@ namespace WebPortal.Admin
                 htParam.Add("LastWorkingDate", lastWorkingDate);
                 htParam.Add("DropOutBy", AddedBy);
 
-                ReturnValue =  new bllMaster().DropOutUser(htParam);
+                ReturnValue = new bllMaster().DropOutUser(htParam);
 
                 if (ReturnValue > 0)
                     DeleteUserEmail(dt, Remark);
@@ -1290,21 +1331,6 @@ namespace WebPortal.Admin
                 EmailType = "Droup Out Employee";
 
 
-            /*--------- As per new email changes ---------- */
-            //DataTable dt1 = new bllMaster().getEmailConfigrationInfo(EmailType);
-            //if (dt1.Rows.Count > 0)
-            //{
-            //    ToAddress = dt1.Rows[0][2].ToString();
-            //    ToCC = Convert.ToString(dt1.Rows[0][3]);
-            //    ToBCC = Convert.ToString(dt1.Rows[0][4]);
-            //}
-
-
-            DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), EmailType);
-            ToAddress = Convert.ToString(dtEmail.Rows[0]["To"]);
-            ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
-            ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
-
             DataTable dtInit = new bllLogin().GetUserInformation(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             if (dtInit != null)
             {
@@ -1313,6 +1339,18 @@ namespace WebPortal.Admin
                 {
                     if (dt.Rows.Count > 0)
                     {
+
+                        // DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), EmailType);
+                        DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(Convert.ToInt32(dtResigned.Rows[0]["EmployeeID"]), "Resignation");
+                        ToAddress = Convert.ToString(dtEmail.Rows[0]["ToResg_Step2"]);
+                        ToCC = Convert.ToString(dtEmail.Rows[0]["CCResg_Step2"]);
+                        ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                        string locationHead = Convert.ToString(dtEmail.Rows[0]["LocationHeadName"]);
+                        string domainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
+                        if (locationHead == "")
+                            locationHead = domainHead;
+
                         int NoOfDays_1 = 0;
                         string ResignationStatus = "";
                         if (Convert.ToString(dtResigned.Rows[0]["Status"]) == "Accept")
@@ -1324,19 +1362,21 @@ namespace WebPortal.Admin
                             ResignationStatus = "Rejected";
                         }
 
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:Verdana; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:22px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:Verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
+                        head.Append(GetProfessionalResignationEmailHead());
+                        body.Append(GetProfessionalResignationEmailHeader() +
                             "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />Employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been dropped out.<br /><br /></b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Working Branch:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Joining Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Job Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Name:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Working Branch:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Joining Date:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Job Type:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["JobType"]) + " </td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Domain:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Department:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DepartmentName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Designation:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["DesignationName"]) + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Reporting Manager:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]) + "</td></tr>" +
+                                       "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Domain Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + domainHead + "</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Location Head</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + locationHead + "</td></tr>" +
+
                             "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b>Resignation Details</b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 1 :: </b></td></tr>" +
                             "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(Convert.ToString(dtResigned.Rows[0]["ResignationType"])) + "</td></tr>");
@@ -1359,28 +1399,26 @@ namespace WebPortal.Admin
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dtResigned.Rows[0]["LastWorkingDate"]) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays.ToString();
                             NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays_1) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays_1) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 2 :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Status:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ResignationStatus) + " </td></tr> " +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 2 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["UnitHeadRemark"]) + " </td></tr> " +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Latest Login Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>");
+                        body.Append("<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 2 :: </b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Resignation Status:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(ResignationStatus) + " </td></tr> " +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 2 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["UnitHeadRemark"]) + " </td></tr> " +
+                        "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Latest Login Date:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>");
                         if (Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesCompleted"]) == "True")
                         {
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Exit Formality Details :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Exit Formalities Completed?:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">Yes</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Exit Formalities Completion Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesRemark"]) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Exit Formality Details :: </b></td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Exit Formalities Completed?:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">Yes</td></tr>" +
+                            "<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Exit Formalities Completion Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesRemark"]) + "</td></tr>");
                         }
 
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 3 :: </b></td></tr>");
+                        body.Append("<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 3 :: </b></td></tr>");
                         string PM = new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + Convert.ToString(Remark) + " </td></tr> ");
+                        body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + Convert.ToString(Remark) + " </td></tr> ");
 
-                        body.Append("<tr><td style=\"text-align:left; font-size:13px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                        "</table>");
-                        footer.Append("</body></html>");
+                        body.Append("</table>");
+                        footer.Append(GetProfessionalResignationEmailFooter());
 
                         string Pass = new bllMaster().GetPassword("ackdata");
 
@@ -1463,6 +1501,39 @@ namespace WebPortal.Admin
                 ReturnValue = new bllMaster().DropOutUser(htParam);
             }
             return ReturnValue;
+        }
+
+        private static string GetProfessionalResignationEmailHead()
+        {
+            return "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" +
+                "<style type=\"text/css\">" +
+                "body{margin:0!important;padding:0!important;background-color:#f3f6fa!important;}" +
+                ".email-background{width:100%!important;background-color:#f3f6fa!important;font-family:Arial,Helvetica,sans-serif!important;color:#25324b!important;}" +
+                ".email-card{width:100%!important;max-width:680px!important;background-color:#ffffff!important;border:1px solid #dfe6ef!important;border-radius:12px!important;}" +
+                ".email-details{width:100%!important;border:1px solid #dfe6ef!important;border-radius:8px!important;border-collapse:separate!important;border-spacing:0!important;font-family:Arial,Helvetica,sans-serif!important;}" +
+                ".email-details td{padding:11px 16px!important;border:0!important;border-bottom:1px solid #e6ebf1!important;font-family:Arial,Helvetica,sans-serif!important;font-size:13px!important;line-height:20px!important;color:#25324b!important;text-align:left!important;}" +
+                ".email-details td:first-child:not([colspan]){width:38%!important;background-color:#f8fafc!important;font-weight:bold!important;color:#52637a!important;}" +
+                ".email-details tr:first-child td[colspan=\"2\"]{padding:20px 16px!important;background-color:#ffffff!important;font-size:15px!important;line-height:24px!important;color:#52637a!important;}" +
+                ".email-details td[colspan=\"2\"][style*=\"text-align:center\"]{padding:13px 16px!important;background-color:#edf4fb!important;font-size:14px!important;line-height:20px!important;font-weight:bold!important;color:#174a7e!important;}" +
+                ".email-details tr[style*=\"background-color:yellow\"] td{background-color:#fff7dc!important;}" +
+                ".email-details tr:last-child td{border-bottom:0!important;}" +
+                "</style></head><body>";
+        }
+
+        private static string GetProfessionalResignationEmailHeader()
+        {
+            return "<table role=\"presentation\" class=\"email-background\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f3f6fa;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#25324b;\"><tr><td align=\"left\">" +
+                "<table role=\"presentation\" class=\"email-card\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #dfe6ef;border-radius:12px;overflow:hidden;\">" +
+                "<tr><td style=\"padding:26px 32px;background-color:#174a7e;border-bottom:4px solid #2ea3f2;\"><div style=\"font-size:24px;line-height:30px;font-weight:bold;color:#ffffff;letter-spacing:.2px;\">Infinity IPS</div></td></tr>" +
+                "<tr><td style=\"padding:30px 32px;\"><table role=\"presentation\" class=\"email-details\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #dfe6ef;border-radius:8px;border-collapse:separate;border-spacing:0;font-family:Arial,Helvetica,sans-serif;\">";
+        }
+
+        private static string GetProfessionalResignationEmailFooter()
+        {
+            return "</td></tr>" +
+                "<tr><td style=\"padding:0 32px 28px 32px;font-family:Arial,Helvetica,sans-serif;\"><p style=\"margin:0;font-size:14px;line-height:22px;color:#52637a;\">Regards,<br /><strong style=\"color:#25324b;\">Infinity IPS</strong></p></td></tr>" +
+                "<tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e6ebf1;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;color:#7b8798;\">This is an automated notification from Infinity IPS. Please do not reply to this email.</td></tr>" +
+                "</table></td></tr></table></body></html>";
         }
     }
 }

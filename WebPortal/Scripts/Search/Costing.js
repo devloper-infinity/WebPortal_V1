@@ -18,8 +18,6 @@ function Costing_InitPage(orderId) {
     initializeCostingTables();
     resetCostingPage(true);
 
-    alert(costingState.selectedOrderId);
-
     loadCostingOrders(costingState.selectedOrderId);
 }
 

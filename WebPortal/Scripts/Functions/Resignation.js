@@ -1,4 +1,4 @@
-(function (window, document, $) {
+﻿(function (window, document, $) {
     "use strict";
 
     var state = {
@@ -57,6 +57,32 @@
         $(selector).toggle(!!visible);
     }
 
+    function showSweetAlert(message, icon, title) {
+        return Swal.fire({
+            icon: icon,
+            title: title,
+            text: blank(message),
+            confirmButtonText: "OK",
+            confirmButtonColor: "#174a7e"
+        });
+    }
+
+    function showSuccess(message) {
+        return showSweetAlert(message, "success", "Success");
+    }
+
+    function showWarning(message) {
+        return showSweetAlert(message, "warning", "Attention");
+    }
+
+    function showError(message) {
+        return showSweetAlert(message, "error", "Error");
+    }
+
+    function showInfo(message) {
+        return showSweetAlert(message, "info", "Information");
+    }
+
     function selectedText(selector) {
         var option = $(selector).find("option:selected");
         return option.length ? option.text() : "Select";
@@ -76,7 +102,7 @@
                 if (onError) {
                     onError(xhr);
                 } else {
-                    alert("Unable to complete request.");
+                    showError("Unable to complete request.");
                 }
             }
         });
@@ -211,12 +237,12 @@
     function validateRemark(selector, messagePrefix) {
         var value = $(selector).val();
         if ($.trim(value) === "") {
-            alert("Please enter " + messagePrefix + " remark.");
+            showWarning("Please enter " + messagePrefix + " remark.");
             $(selector).focus();
             return false;
         }
         if (value.length < 10) {
-            alert("Remark should be more than 10 charaters long.");
+            showWarning("Remark should be more than 10 charaters long.");
             $(selector).focus();
             return false;
         }
@@ -252,7 +278,7 @@
 
     function buildTable(selector, key, rows, columns, exportColumns, title) {
         if (!$.fn.DataTable) {
-            alert("DataTable plugin is not loaded.");
+            showError("DataTable plugin is not loaded.");
             return null;
         }
 
@@ -441,7 +467,7 @@
             if (parseInt(parts[1], 10) < 0) {
                 setDateInput("#resgLastWorkingDate", "");
                 setValue("#resgDays", "0");
-                alert("Last Working Date must be greater than Resignation Date!!");
+                showWarning("Last Working Date must be greater than Resignation Date!!");
                 return;
             }
 
@@ -458,13 +484,13 @@
         if (joining && resignation && joining > resignation) {
             setDateInput("#resgDate", "");
             setDateInput("#resgLastWorkingDate", "");
-            alert("Resignation Date must be greater than Joining Date!!");
+            showWarning("Resignation Date must be greater than Joining Date!!");
             return;
         }
 
         if (resignation && lastWorking && resignation > lastWorking) {
             setDateInput("#resgLastWorkingDate", "");
-            alert("Last Working Date must be greater than Resignation Date!!");
+            showWarning("Last Working Date must be greater than Resignation Date!!");
             return;
         }
 
@@ -495,15 +521,15 @@
         var lastLoginDate = $("#resgLastLoginDate").val();
         var remark = $("#resgRemark").val();
 
-        if (!employeeId) { alert("Please select code"); return; }
-        if (!contact) { alert("Please enter contact #"); $("#resgContact").focus(); return; }
-        if (!type) { alert("Please select resignation type"); $("#resgType").focus(); return; }
-        if (!resignationDate) { alert("Please select resignation date"); return; }
+        if (!employeeId) { showWarning("Please select code"); return; }
+        if (!contact) { showWarning("Please enter contact #"); $("#resgContact").focus(); return; }
+        if (!type) { showWarning("Please select resignation type"); $("#resgType").focus(); return; }
+        if (!resignationDate) { showWarning("Please select resignation date"); return; }
         if ((type === "Normal" || type === "Immediate" || type === "Special") && !lastWorkingDate) {
-            alert("Please select last working date");
+            showWarning("Please select last working date");
             return;
         }
-        if ($.trim(remark) === "") { alert("Please enter remark"); $("#resgRemark").focus(); return; }
+        if ($.trim(remark) === "") { showWarning("Please enter remark"); $("#resgRemark").focus(); return; }
 
         showWait(true);
         post("InitiateResignation", {
@@ -522,14 +548,13 @@
         }, function (result) {
             showWait(false);
             if (parseInt(result, 10) > 0) {
-                alert("Resignation initiated successfully!");
+                showSuccess("Resignation initiated successfully!").then(reloadPage);
             } else {
-                alert("Record already exists for selected employee!");
+                showWarning("Record already exists for selected employee!").then(reloadPage);
             }
-            reloadPage();
         }, function () {
             showWait(false);
-            alert("Unable to initiate resignation.");
+            showError("Unable to initiate resignation.");
         });
     }
 
@@ -555,7 +580,7 @@
             showTableLoader(false);
         }, function () {
             showTableLoader(false);
-            alert("Unable to load finalize data.");
+            showError("Unable to load finalize data.");
         });
     }
 
@@ -580,7 +605,7 @@
             showTableLoader(false);
         }, function () {
             showTableLoader(false);
-            alert("Unable to load resigned employees.");
+            showError("Unable to load resigned employees.");
         });
     }
 
@@ -627,7 +652,7 @@
             showTableLoader(false);
         }, function () {
             showTableLoader(false);
-            alert("Unable to load direct dropout data.");
+            showError("Unable to load direct dropout data.");
         });
     }
 
@@ -662,9 +687,9 @@
         var attrition = $("#step2AttritionCategory").val();
         var receivedThrough = $("#step2ReceivedThrough").val();
 
-        if (!attrition) { alert("Please select attrition category"); $("#step2AttritionCategory").focus(); return; }
-        if (!status) { alert("Please select appropriate status."); $("#step2Status").focus(); return; }
-        if (!receivedThrough) { alert("Please select resignation received through option."); $("#step2ReceivedThrough").focus(); return; }
+        if (!attrition) { showWarning("Please select attrition category"); $("#step2AttritionCategory").focus(); return; }
+        if (!status) { showWarning("Please select appropriate status."); $("#step2Status").focus(); return; }
+        if (!receivedThrough) { showWarning("Please select resignation received through option."); $("#step2ReceivedThrough").focus(); return; }
         if (!validateRemark("#step2Remark", "step 2")) { return; }
 
         runModal("#step2Modal", "hide");
@@ -677,11 +702,10 @@
             resignationreceivedthrough: receivedThrough
         }, function () {
             showWait(false);
-            alert("Record updated successfully!");
-            reloadPage();
+            showSuccess("Record updated successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to update record.");
+            showError("Unable to update record.");
         });
     }
 
@@ -699,7 +723,7 @@
     function openDropout(row) {
         var lastDate = parseDate(safe(row, "LastWorkingDate"));
         if (lastDate && new Date() < lastDate) {
-            alert("Notice period of selected employee is not completed. Please contact domain head for further clarification.");
+            showWarning("Notice period of selected employee is not completed. Please contact domain head for further clarification.");
             return;
         }
         setValue("#dropoutResignationId", resignationId(row));
@@ -717,11 +741,10 @@
             Remark: $("#dropoutRemark").val()
         }, function () {
             showWait(false);
-            alert("Employee dropped out successfully!");
-            reloadPage();
+            showSuccess("Employee dropped out successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to delete user.");
+            showError("Unable to delete user.");
         });
     }
 
@@ -732,7 +755,7 @@
 
         runModal("#dropoutModal", "hide");
 
-        alert($("#resignationId").val());
+        showInfo($("#resignationId").val());
 
         showWait(true);
 
@@ -788,11 +811,10 @@
             Remark: $("#exitRemark").val()
         }, function () {
             showWait(false);
-            alert("Exit formalities completed successfully!");
-            reloadPage();
+            showSuccess("Exit formalities completed successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to update exit formality.");
+            showError("Unable to update exit formality.");
         });
     }
 
@@ -854,7 +876,7 @@
             if (parseInt(parts[1], 10) < 0) {
                 setDateInput("#changeLastWorkingDate", "");
                 setValue("#changeDays", "0");
-                alert("Last Working Date must be greater than Resignation Date!!");
+                showWarning("Last Working Date must be greater than Resignation Date!!");
                 return;
             }
             if (parts[0]) { setDateInput("#changeLastWorkingDate", parts[0]); }
@@ -870,13 +892,13 @@
         if (joining && resignation && joining > resignation) {
             setDateInput("#changeResignationDate", "");
             setDateInput("#changeLastWorkingDate", "");
-            alert("Resignation Date must be greater than Joining Date!!");
+            showWarning("Resignation Date must be greater than Joining Date!!");
             return;
         }
 
         if (resignation && lastWorking && resignation > lastWorking) {
             setDateInput("#changeLastWorkingDate", "");
-            alert("Last Working Date must be greater than Resignation Date!!");
+            showWarning("Last Working Date must be greater than Resignation Date!!");
             return;
         }
 
@@ -888,9 +910,9 @@
         var resignationDate = serverDateFromInput("#changeResignationDate");
         var lastWorkingDate = serverDateFromInput("#changeLastWorkingDate");
 
-        if (!type) { alert("Please select resignation type."); $("#changeType").focus(); return; }
-        if (!resignationDate) { alert("Please select resignation date."); return; }
-        if (!lastWorkingDate) { alert("Please select last working date."); return; }
+        if (!type) { showWarning("Please select resignation type."); $("#changeType").focus(); return; }
+        if (!resignationDate) { showWarning("Please select resignation date."); return; }
+        if (!lastWorkingDate) { showWarning("Please select last working date."); return; }
         if (!validateRemark("#changeRemark", "")) { return; }
 
         runModal("#changeTypeModal", "hide");
@@ -906,18 +928,17 @@
             NoofDays: $("#changeDays").val()
         }, function () {
             showWait(false);
-            alert("Resignation type changed successfully!");
-            reloadPage();
+            showSuccess("Resignation type changed successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to change resignation type.");
+            showError("Unable to change resignation type.");
         });
     }
 
     function openExtend(row) {
         var type = safe(row, "ResignedType", "ResignationType");
         if (type === "Absconding" || type === "Termination") {
-            alert("You cannot extend/shorten notice period as employee is in " + type + " phase.");
+            showWarning("You cannot extend/shorten notice period as employee is in " + type + " phase.");
             return;
         }
 
@@ -945,7 +966,7 @@
         var resignation = parseDate($("#extendResignationDate").text());
 
         if (!actionType) {
-            alert("Please select type.");
+            showWarning("Please select type.");
             setDateInput("#extendRevisedDate", "");
             return;
         }
@@ -953,23 +974,23 @@
 
         if (actionType === "Shorten") {
             if (resignation.getTime() > selected.getTime()) {
-                alert("Selected date must be greater than existing resignation date");
+                showWarning("Selected date must be greater than existing resignation date");
                 setDateInput("#extendRevisedDate", existing);
                 return;
             }
             if (existing.getTime() < selected.getTime()) {
-                alert("Selected date must be less than existing last working date");
+                showWarning("Selected date must be less than existing last working date");
                 setDateInput("#extendRevisedDate", existing);
                 return;
             }
         } else if (actionType === "Extend") {
             if (resignation.getTime() > selected.getTime()) {
-                alert("Selected date must be greater than existing resignation date");
+                showWarning("Selected date must be greater than existing resignation date");
                 setDateInput("#extendRevisedDate", existing);
                 return;
             }
             if (existing.getTime() > selected.getTime()) {
-                alert("Selected date must be greater than existing last working date");
+                showWarning("Selected date must be greater than existing last working date");
                 setDateInput("#extendRevisedDate", existing);
                 return;
             }
@@ -982,8 +1003,8 @@
         var actionType = $("#extendType").val();
         var revisedDate = serverDateFromInput("#extendRevisedDate");
 
-        if (!actionType) { alert("Please select type."); $("#extendType").focus(); return; }
-        if (!revisedDate) { alert("Please select revised date."); return; }
+        if (!actionType) { showWarning("Please select type."); $("#extendType").focus(); return; }
+        if (!revisedDate) { showWarning("Please select revised date."); return; }
         if (!validateRemark("#extendRemark", "")) { return; }
 
         runModal("#extendModal", "hide");
@@ -999,11 +1020,10 @@
             Type: actionType
         }, function () {
             showWait(false);
-            alert("Changes made successfully!");
-            reloadPage();
+            showSuccess("Changes made successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to update notice period.");
+            showError("Unable to update notice period.");
         });
     }
 
@@ -1023,11 +1043,10 @@
             Remark: $("#cancelRemark").val()
         }, function () {
             showWait(false);
-            alert("Resignation cancelled successfully!");
-            reloadPage();
+            showSuccess("Resignation cancelled successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to cancel resignation.");
+            showError("Unable to cancel resignation.");
         });
     }
 
@@ -1054,11 +1073,10 @@
             Remark: $("#directRemark").val()
         }, function () {
             showWait(false);
-            alert("Employee dropped out successfully!");
-            reloadPage();
+            showSuccess("Employee dropped out successfully!").then(reloadPage);
         }, function () {
             showWait(false);
-            alert("Unable to drop out employee.");
+            showError("Unable to drop out employee.");
         });
     }
 
