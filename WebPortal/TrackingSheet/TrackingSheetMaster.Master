@@ -24,50 +24,21 @@
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
     <script>
-$(document).ready(function() {
-
-});
 
 $(document).ready(function() {
 
     $.ajax({
         type: "POST",
-        url: "../Admin/DashboardEmployee.aspx/BindInformation",
+        url: "../MenuService.aspx/LoadMenu",
         contentType: "application/json",
         dataType: "json",
-        success: function(data) {
-            var dataArray = JSON.parse(data.d);
-            var i = 0;
-            $.each(dataArray, function(index, value) {
-
-                var Posh_Status = value.PoshStatus;
-
-                if (Posh_Status && Posh_Status.toLowerCase() === "completed") {
-
-                    $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
-                    $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
-                    getPendingTaskNotifications_Sidebar();
-
-                    $.ajax({
-                        type: "POST",
-                        url: "../MenuService.aspx/LoadMenu",
-                        contentType: "application/json",
-                        dataType: "json",
-                        success: function(res) {
-                            let menuTree = res.d;
-                            console.log(res.d);
-                            let html = "";
-                            menuTree.forEach(m => html += renderTopMenu(m));
-                            $("#dynamicMenu").html(html);
-                        }
-                    });
-                }
-                else {
-                    $("#aLogo").css({ "pointer-events": "none", "opacity": "0.5" });
-                    $("#lipendingTask").css({ "pointer-events": "none", "opacity": "0.5" });
-                }
-            });
-        },
+        success: function (res) {
+            let menuTree = res.d;
+            console.log(res.d);
+            let html = "";
+            menuTree.forEach(m => html += renderTopMenu(m));
+            $("#dynamicMenu").html(html);
+        }
     });
 });
 
@@ -148,7 +119,7 @@ function renderMegaSections(children) {
 // const appVersion = '@DateTime.Now.Ticks';
 // console.log('App Version:', appVersion);
 
-</script>
+    </script>
 </head>
 <body class="hold-transition sidebar-collapse layout-top-nav">
     <form id="form1" runat="server">
@@ -204,7 +175,7 @@ function renderMegaSections(children) {
        <asp:ScriptReference Path="~/Scripts/Functions/EmployeeComments.js" />
        <asp:ScriptReference Path="~/Scripts/Functions/HRInvoice.js" />
        <asp:ScriptReference Path="~/Scripts/Functions/DailyLogin.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceHR.js" />
+       
        <asp:ScriptReference Path="~/Scripts/Functions/ClientHolidays.js" />
        <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js" />
        <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js" />

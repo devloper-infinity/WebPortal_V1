@@ -369,5 +369,12 @@ FodyWeavers.xsd
 /WebPortal/Accounts/IncrementReport.aspx.cs
 /WebPortal/Scripts/Reports/MonthlyIncrements.js
 /WebPortal
+# Keep versioned database migrations visible even though this legacy project root is ignored.
+!/WebPortal/
+/WebPortal/*
+!/WebPortal/DatabaseScripts/
+/WebPortal/DatabaseScripts/*
+!/WebPortal/DatabaseScripts/OLTracking_015_ProductivityAndCollectionComments.sql
+!/WebPortal/DatabaseScripts/OLTracking_016_ManagerOperationalDashboard.sql
 /WebPortal/Admin/BranchAndDateWiseAttendanceReport.aspx
 /WebPortal/Admin/HRReportInput.aspx

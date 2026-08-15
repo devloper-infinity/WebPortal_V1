@@ -10,10 +10,10 @@ namespace WebPortal.TrackingSheet
     public partial class ManagerDashboardPage : System.Web.UI.Page
     {
         [WebMethod]
-        public static string GetFlow(int projectId)
+        public static string GetFlow(int projectId, string dealNumber)
         {
             Access(projectId);
-            return OLTrackingWeb.Json(new bllOLTracking().GetProcessFlow(projectId));
+            return OLTrackingWeb.Json(new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber));
         }
 
         [WebMethod]

@@ -1,4 +1,4 @@
-<%@ Page Title="Import Tracking Data" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ImportData.aspx.cs" Inherits="WebPortal.TrackingSheet.ImportData" %>
+<%@ Page Title="Import Tracking Data" Language="C#" MasterPageFile="~/TrackingSheet/TrackingSheetMaster.Master" AutoEventWireup="true" CodeBehind="ImportData.aspx.cs" Inherits="WebPortal.TrackingSheet.ImportData" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>

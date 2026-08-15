@@ -272,6 +272,7 @@ var usfeedback_html;
 var usfeedback_table;
 var ProcessFeedbackID = 0;
 var feedbackRows = [];
+var isCollectionCommentsReQC = false;
 
 function BindInfinityFeedback_US(ProcessID) {
 
@@ -291,6 +292,9 @@ function BindInfinityFeedback_US(ProcessID) {
             $.each(dataArray, function (index, value) {
 
                 LoanNo = value.LoanNo;
+                var taskName = $.trim(value.Process || value.Task || '');
+                document.getElementById("USLoanDetails_Task").value = taskName;
+                configureAddFeedbackTask(taskName);
 
                 BindUSFeedbackDetails_Grid(LoanNo);
 
@@ -338,7 +342,19 @@ function OnClickAddFeedback() {
     var Source = "ReQC";
     var FeedbackID = parseInt(document.getElementById("USFeedback_EditId").value, 10) || 0;
 
-    if (Severity == "") {
+    var Task = document.getElementById("USLoanDetails_Task").value;
+    var DataField = isCollectionCommentsReQC ? $('#USLoanDetails_DataField').val() : '';
+    var IsError = isCollectionCommentsReQC ? $('#USLoanDetails_IsError').val() : '';
+    if (isCollectionCommentsReQC) {
+        Finding = $.trim($('#USLoanDetails_CollectionFinding').val());
+        Severity = '';
+        if (!DataField) { Swal.fire('Validation', 'Please select Data Field.', 'warning'); $('#USLoanDetails_DataField').focus(); return false; }
+        if (DataField === 'No Error') { IsError = 'No'; Finding = 'No Error'; }
+        if (!IsError) { Swal.fire('Validation', 'Please select Is Error.', 'warning'); $('#USLoanDetails_IsError').focus(); return false; }
+        if (!Finding) { Swal.fire('Validation', 'Please enter Finding.', 'warning'); $('#USLoanDetails_CollectionFinding').focus(); return false; }
+    }
+
+    if (!isCollectionCommentsReQC && Severity == "") {
         Swal.fire({
             icon: 'warning',
             title: 'Validation',
@@ -368,6 +384,10 @@ function OnClickAddFeedback() {
             Client,
             Finding,
             Severity,
+            Task,
+            ProcessFeedbackID,
+            DataField,
+            IsError,
             function (result) {
                 if (result > 0) {
                     CancelFeedbackEdit();
@@ -400,6 +420,10 @@ function OnClickAddFeedback() {
         Severity,
         Source,
         FeedbackRecDate,
+        Task,
+        ProcessFeedbackID,
+        DataField,
+        IsError,
 
         function (result) {
 
@@ -562,6 +586,8 @@ function BindUSFeedbackDetails_Grid(loanNo) {
                 usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.LoanNo) + '</td>';
                 usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.Severity) + '</td>';
                 usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.Finding) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.DataField) + '</td>';
+                usfeedback_html += '<td style="text-wrap: nowrap;">' + feedbackHtml(value.IsError) + '</td>';
                 usfeedback_html += '<td style="text-wrap: nowrap; display:none;">' + feedbackHtml(value.AddedByName) + '</td>';
                 usfeedback_html += '<td style="text-wrap: nowrap; display:none;">' + feedbackHtml(value.AddedDate) + '</td>';
 
@@ -609,10 +635,14 @@ function EditFeedback(index) {
     $('#USFeedback_EditId').val(getFeedbackId(row));
     $('#USLoanDetails_Severity').val(row.Severity || '');
     $('#USLoanDetails_Finding').val(row.Finding || '');
+    $('#USLoanDetails_DataField').val(row.DataField || '');
+    $('#USLoanDetails_IsError').val(row.IsError || '');
+    $('#USLoanDetails_CollectionFinding').val(row.Finding || '');
+    if (isCollectionCommentsReQC) syncCollectionCommentsFeedback();
     syncAddFeedbackFindingRequirement();
     $('#btnAddFeedback').html('<i class="fas fa-save"></i>&nbsp; Update Feedback');
     $('#btnCancelEdit').show();
-    $('#USLoanDetails_Severity').focus();
+    $(isCollectionCommentsReQC ? '#USLoanDetails_DataField' : '#USLoanDetails_Severity').focus();
     $('html, body').animate({ scrollTop: $('.feedback-card').first().offset().top - 15 }, 250);
     return false;
 }
@@ -634,6 +664,21 @@ function syncAddFeedbackFindingRequirement() {
         findingElement.value = "";
     }
 
+    return false;
+}
+
+function configureAddFeedbackTask(taskName) {
+    isCollectionCommentsReQC = $.trim(taskName).toLowerCase() === 'collection comments reqc';
+    $('#standardSeverityField,#standardFindingField').toggle(!isCollectionCommentsReQC);
+    $('#collectionCommentsFields').toggle(isCollectionCommentsReQC);
+    if (!isCollectionCommentsReQC) return;
+    $.ajax({ url: 'AddFeedback.aspx/GetCollectionCommentsDataFields', type: 'POST', contentType: 'application/json; charset=utf-8', dataType: 'json', data: '{}', success: function (response) { var rows = JSON.parse(response.d || '[]'), ddl = $('#USLoanDetails_DataField').empty().append($('<option/>').val('').text('Select')); $.each(rows, function (_, row) { ddl.append($('<option/>').val(row.DataField).text(row.DataField)); }); } });
+}
+
+function syncCollectionCommentsFeedback() {
+    var noError = $('#USLoanDetails_DataField').val() === 'No Error';
+    $('#USLoanDetails_IsError').val(noError ? 'No' : '').prop('disabled', noError);
+    $('#USLoanDetails_CollectionFinding').val(noError ? 'No Error' : '').prop('disabled', noError);
     return false;
 }
 
@@ -688,6 +733,7 @@ function CancelFeedbackEdit() {
     $('#USFeedback_EditId').val('0');
     $('#USLoanDetails_Severity').val('');
     $('#USLoanDetails_Finding').val('');
+    $('#USLoanDetails_DataField').val(''); $('#USLoanDetails_IsError').val('').prop('disabled', false); $('#USLoanDetails_CollectionFinding').val('').prop('disabled', false);
     syncAddFeedbackFindingRequirement();
     $('#btnAddFeedback').html('<i class="fas fa-plus"></i>&nbsp; Add Feedback');
     $('#btnCancelEdit').hide();

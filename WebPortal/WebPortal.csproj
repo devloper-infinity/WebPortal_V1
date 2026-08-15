@@ -2904,6 +2904,9 @@
     <Content Include="DatabaseScripts\OLTracking_011_UniqueLoanProcessAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_012_DynamicUniqueAllocation.sql" />
     <Content Include="DatabaseScripts\OLTracking_013_BillingParameter.sql" />
+    <Content Include="DatabaseScripts\OLTracking_014_TrackingSheetProcess.sql" />
+    <Content Include="DatabaseScripts\OLTracking_015_ProductivityAndCollectionComments.sql" />
+    <Content Include="DatabaseScripts\OLTracking_016_ManagerOperationalDashboard.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
@@ -5268,6 +5271,13 @@
     <Compile Include="Search\ViewBilling.aspx.designer.cs">
       <DependentUpon>ViewBilling.aspx</DependentUpon>
     </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetMaster.Master.cs">
+      <DependentUpon>TrackingSheetMaster.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetMaster.Master.designer.cs">
+      <DependentUpon>TrackingSheetMaster.Master</DependentUpon>
+    </Compile>
     <Compile Include="TrackingSheet\UpdateBillingParameters.aspx.cs">
       <DependentUpon>UpdateBillingParameters.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5927,6 +5937,7 @@
     <Content Include="UploadScreenShot\26-Sep-2025\36263\ERP-Task.xlsx" />
     <Content Include="Tracking\Tracking.Master" />
     <Content Include="Vendor\VendorMaster.Master" />
+    <Content Include="TrackingSheet\TrackingSheetMaster.Master" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

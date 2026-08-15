@@ -38,7 +38,6 @@ INNER JOIN dbo.OLTracking_ImportFieldConfiguration i
     ON i.FieldConfigId = f.FieldConfigId AND i.IsForImport = 1
 WHERE f.ProjectID = @ProjectID
   AND f.IsDeleted = 0
-  AND ISNULL(f.IsBillingField, 0) = 0
 ORDER BY f.DisplayOrder, f.FieldConfigId;"))
             {
                 command.Connection = new SqlConnection(SQLHelper.ConnectionString);
@@ -116,7 +115,6 @@ LEFT JOIN dbo.WBT_ProjectTrackingFieldConfig f
     ON f.FieldConfigId = v.FieldConfigId
    AND f.ProjectID = @ProjectID
    AND f.IsDeleted = 0
-   AND ISNULL(f.IsBillingField, 0) = 0
 WHERE i.ProjectID = @ProjectID
   AND i.IsDeleted = 0
   AND d.EntryDate >= @FromDate
@@ -132,6 +130,58 @@ ORDER BY d.EntryDate, i.ItemID, f.DisplayOrder, f.FieldConfigId;"))
                     DataTable result = new DataTable();
                     adapter.Fill(result);
                     return result;
+                }
+            }
+        }
+
+        public DataTable GetTrackingReportProcesses(int projectId, DateTime fromDate, DateTime toDate)
+        {
+            using (SqlCommand command = new SqlCommand(@"
+SELECT i.ItemID,d.EntryDate,flow.ProcessID,flow.ProcessName,flow.StageNo,flow.IsMandatory,flow.CanSkip,
+       flow.IsFinalProcess,COALESCE(a.AssignmentStatus,'Pending') AS ProcessStatus,
+       ISNULL(a.IsCurrent,0) AS IsCurrent,a.AssignedDate,a.StartedDate,a.CompletedDate,
+       CASE WHEN a.AssignmentStatus='Completed'
+            THEN COALESCE(NULLIF(completedUser.UserName,''),CONVERT(nvarchar(30),a.UserID),'')
+            ELSE '' END AS CompletedBy,
+       COALESCE(NULLIF(completedUser.UserName,''),CONVERT(nvarchar(30),a.UserID),'') AS ProcessUser
+FROM dbo.OLTracking_Item i
+INNER JOIN (SELECT DISTINCT ItemID,EntryDate FROM dbo.OLTracking_ImportBatchItem) d ON d.ItemID=i.ItemID
+CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(i.ProjectID,i.DealNumber) flow
+OUTER APPLY
+(
+    SELECT TOP (1) assignment.AssignmentStatus,assignment.IsCurrent,assignment.UserID,assignment.AssignedDate,
+           assignment.StartedDate,assignment.CompletedDate
+    FROM dbo.OLTracking_Assignment assignment
+    WHERE assignment.ItemID=i.ItemID AND assignment.ProcessID=flow.ProcessID
+    ORDER BY assignment.AssignmentID DESC
+) a
+OUTER APPLY
+(
+    SELECT TOP (1)
+           COALESCE(NULLIF(configuration.PsuedoName,''),NULLIF(configuration.Code,''),NULLIF(employee.Code,'')) UserName
+    FROM dbo.EmployeeInfo employee
+    OUTER APPLY
+    (
+        SELECT TOP (1) employeeConfiguration.Code,employeeConfiguration.PsuedoName
+        FROM dbo.EmployeeConfiguration employeeConfiguration
+        WHERE employeeConfiguration.EmployeeID=employee.EmployeeID
+          AND employeeConfiguration.Code=employee.Code
+          AND employeeConfiguration.DataSource='ERP'
+          AND employeeConfiguration.IsDelete=0
+        ORDER BY employeeConfiguration.EmpConfigrationID DESC
+    ) configuration
+    WHERE employee.EmployeeID=a.UserID
+) completedUser
+WHERE i.ProjectID=@ProjectID AND i.IsDeleted=0 AND d.EntryDate BETWEEN @FromDate AND @ToDate
+ORDER BY d.EntryDate,i.ItemID,flow.StageNo,flow.ProcessName;"))
+            {
+                command.Connection = new SqlConnection(SQLHelper.ConnectionString);
+                command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;
+                command.Parameters.Add("@FromDate", SqlDbType.Date).Value = fromDate.Date;
+                command.Parameters.Add("@ToDate", SqlDbType.Date).Value = toDate.Date;
+                using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                {
+                    DataTable result = new DataTable(); adapter.Fill(result); return result;
                 }
             }
         }

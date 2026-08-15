@@ -15,8 +15,9 @@ namespace WebPortal.TrackingSheet
     {
         protected void Page_Load(object sender, EventArgs e) { }
         [WebMethod] public static string GetProjects() { return OLTrackingWeb.Json(new bllOLTracking().GetProjectsByUser(OLTrackingWeb.UserId)); }
+        [WebMethod] public static string GetCurrentPseudoName() { return EmployeeInfo.Current == null ? string.Empty : EmployeeInfo.Current.PseudoName; }
         [WebMethod] public static string GetDeals(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetSourceDeals(projectId, OLTrackingWeb.UserId)); }
-        [WebMethod] public static string GetFlow(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetProcessFlow(projectId)); }
+        [WebMethod] public static string GetFlow(int projectId, string dealNumber) { return OLTrackingWeb.Json(new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber)); }
         [WebMethod]
         public static AvailableLoanResult GetAvailableLoan(int projectId, string dealNumber, int processId, string processName)
         {
@@ -50,6 +51,28 @@ namespace WebPortal.TrackingSheet
         {
             bllOLTracking tracking = new bllOLTracking();
             return OLTrackingWeb.Json(AddProjectNames(tracking.GetTrackingQueue(OLTrackingWeb.UserId), tracking));
+        }
+        [WebMethod]
+        public static string GetNonTrackingPendingLoans(int projectId, string dealNumber, int processId)
+        {
+            string pseudoName = EmployeeInfo.Current == null ? string.Empty : EmployeeInfo.Current.PseudoName;
+            return OLTrackingWeb.Json(new bllOLTracking().GetNonTrackingPendingLoans(projectId, dealNumber, processId,
+                OLTrackingWeb.UserId, pseudoName));
+        }
+        [WebMethod]
+        public static TrackingActionResult StartNonTrackingLoan(int projectId, int processId, string loanNumber, string dealNumber, long assignmentId)
+        {
+            try
+            {
+                bllOLTracking tracking = new bllOLTracking();
+                assignmentId = tracking.StartNonTrackingLoan(projectId, processId, loanNumber, dealNumber,
+                    assignmentId, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = true, Message = "Loan started successfully.", AssignmentID = assignmentId };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
         }
         [WebMethod] public static string GetDailyProcesses() { return OLTrackingWeb.Json(new bllOLTracking().GetUserDailyProcesses(OLTrackingWeb.UserId)); }
         [WebMethod]
@@ -107,9 +130,27 @@ namespace WebPortal.TrackingSheet
             }
         }
         [WebMethod]
+        public static TrackingActionResult SkipLoan(long assignmentId, string remark)
+        {
+            try
+            {
+                new bllOLTracking().SkipLoan(assignmentId, remark, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = true, Message = "Process skipped successfully." };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
+        }
+        [WebMethod]
         public static string GetFeedbackDefaults(long assignmentId)
         {
             return OLTrackingWeb.Json(new bllOLTracking().GetFeedbackDefaults(assignmentId, OLTrackingWeb.UserId, EmployeeInfo.Current.PseudoName));
+        }
+        [WebMethod]
+        public static bool GetCompletionFeedbackRequirement(long assignmentId)
+        {
+            return new bllOLTracking().GetCompletionFeedbackRequirement(assignmentId, OLTrackingWeb.UserId);
         }
         [WebMethod]
         public static List<FeedbackListItem> GetFeedbackCategories()
@@ -227,6 +268,8 @@ namespace WebPortal.TrackingSheet
                 case 50130: return "Select one or two loans.";
                 case 50131: return "The selected user is not configured for this project.";
                 case 50132: return "Another loan is already In Process. Place it on Hold or complete it before starting another loan.";
+                case 50137: return "This process is mandatory and cannot be skipped.";
+                case 50138: return "The selected process uses the standard Tracking Sheet workflow.";
                 case 2601:
                 case 2627:
                     if (sqlException.Message.IndexOf("UX_OLTracking_Assignment_LoanProcess", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -258,9 +301,20 @@ namespace WebPortal.TrackingSheet
             if (model.CategoryID <= 0 || string.IsNullOrWhiteSpace(model.Category)) return "Please select Category.";
             if (model.SubcategoryID <= 0 || string.IsNullOrWhiteSpace(model.Subcategory)) return "Please select Subcategory.";
             if (string.IsNullOrWhiteSpace(model.Severity)) return "Please select Severity.";
+            if (!model.Severity.Equals("No Error", StringComparison.OrdinalIgnoreCase) &&
+                !model.Severity.Equals("Critical", StringComparison.OrdinalIgnoreCase) &&
+                !model.Severity.Equals("Non-Critical", StringComparison.OrdinalIgnoreCase)) return "Please select a valid Severity.";
             if (string.IsNullOrWhiteSpace(model.ErrorField)) return "Please enter Error Field.";
+            if (string.IsNullOrWhiteSpace(model.Screen)) return "Please enter Screen.";
             if (string.IsNullOrWhiteSpace(model.FeedbackType)) return "Please enter Feedback Type.";
             if (string.IsNullOrWhiteSpace(model.Error)) return "Please enter Finding.";
+            if (string.IsNullOrWhiteSpace(model.ShouldBe)) return "Please enter RCA.";
+            if (model.Severity.Equals("No Error", StringComparison.OrdinalIgnoreCase) &&
+                (!model.Category.Equals("Compliance", StringComparison.OrdinalIgnoreCase) ||
+                 !model.Subcategory.Equals("Compliance", StringComparison.OrdinalIgnoreCase) ||
+                 model.ErrorField != "NA" || model.Screen != "NA" || model.ErrorType != "NA" ||
+                 model.FeedbackType != "NA" || model.Error != "No Error" || model.ShouldBe != "No Error"))
+                return "No Error feedback must use the configured Compliance defaults.";
             return string.Empty;
         }
     }
@@ -275,6 +329,7 @@ namespace WebPortal.TrackingSheet
     {
         public bool Success { get; set; }
         public string Message { get; set; }
+        public long AssignmentID { get; set; }
     }
 
     public sealed class FeedbackListItem { public string Value { get; set; } public string Text { get; set; } }

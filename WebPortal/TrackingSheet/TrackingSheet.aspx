@@ -1,4 +1,4 @@
-<%@ Page Title="Tracking Sheet" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="TrackingSheet.aspx.cs" Inherits="WebPortal.TrackingSheet.TrackingSheetPage" %>
+<%@ Page Title="Tracking Sheet" Language="C#" MasterPageFile="~/TrackingSheet/TrackingSheetMaster.Master" AutoEventWireup="true" CodeBehind="TrackingSheet.aspx.cs" Inherits="WebPortal.TrackingSheet.TrackingSheetPage" %>
 
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="OLTracking.css" />
@@ -79,12 +79,30 @@
             cursor: not-allowed;
             opacity: .78
         }
+
+        .ots-other-processing { display:none; margin-top:18px; border-top:1px solid #d7e2ee; padding-top:18px }
+        .ots-other-processing.active { display:block }
+        .ots-processing-head { display:flex; justify-content:space-between; gap:16px; align-items:flex-end; margin-bottom:12px }
+        .ots-processing-head h3 { margin:0 0 4px; color:#17324d }
+        .ots-processing-head p { margin:0; color:#64748b }
+        .ots-search-row { display:grid; grid-template-columns:minmax(260px,1fr) minmax(180px,280px) auto; gap:12px; align-items:end; margin-bottom:12px }
+        .ots-search-help { margin-top:5px; color:#64748b; font-size:11px }
+        .ots-selection-count { padding-bottom:9px; color:#496078; font-weight:700; white-space:nowrap }
+        .ots-row-check { width:16px; height:16px }
+        .ots-action-group { display:flex; gap:6px; flex-wrap:wrap }
+        .ots-status.available { background:#eef2ff; color:#4338ca }
+        .ots-status.pending { background:#fff7dc; color:#92400e }
+        .ots-status.in-process { background:#e0f2fe; color:#075985 }
+        .ots-status.hold { background:#fee2e2; color:#991b1b }
+        .olt-dialog-head button:not(.olt-dialog-close) { display:none }
+        .ots-status-control { grid-column:span 12; max-width:540px }
+        @media(max-width:700px) { .ots-processing-head { display:block } .ots-search-row { grid-template-columns:1fr } }
     </style>
 
    <%-- <script src="OLTracking.js"></script>--%>
    <%-- <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>--%>
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>
+    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260814.7"></script>
 </asp:Content>
 
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -103,7 +121,7 @@
 
         <section id="allocation" class="ots-panel active">
             <div class="olt-card">
-                <div class="olt-card-head">Allocate one eligible loan</div>
+                <div class="olt-card-head">Loan processing</div>
                 <div class="olt-card-body">
                     <div class="olt-form">
                         <div class="olt-field wide">
@@ -117,17 +135,44 @@
                             <label>Process</label><select id="process" disabled><option value="">Select deal first</option>
                             </select>
                         </div>
-                        <div class="olt-field wide">
+                        <div id="loanField" class="olt-field wide">
                             <label>Loan #</label><select id="loan" class="ots-disabled" disabled><option value="">Select project, deal and process</option>
                             </select>
                         </div>
-                        <div class="olt-field full">
+                        <div id="legacyAllocationActions" class="olt-field full">
                             <div class="ots-note">The first eligible loan is populated automatically and cannot be changed. Only one loan can be In Process at a time. Place it on Hold or complete it before starting another loan.</div>
                             <button type="button" class="olt-btn" onclick="allocateLoan()">Allocate</button>
                         </div>
                     </div>
+                    <div id="otherProcessingSection" class="ots-other-processing">
+                        <div class="ots-processing-head">
+                            <div><h3>Pending Loan Processing</h3><p>Work on pending loans without leaving the selected Project / Deal / Process.</p></div>
+                        </div>
+                        <div class="ots-search-row">
+                            <div class="olt-field">
+                                <label for="otherLoanSearch">Loan Search</label>
+                                <input id="otherLoanSearch" type="text" placeholder="100245, 100278, 100301" autocomplete="off" />
+                                <div class="ots-search-help">Enter one or more comma-separated loan numbers. Spaces are ignored.</div>
+                            </div>
+                            <div class="olt-field">
+                                <label for="processingUserName">Username</label>
+                                <input id="processingUserName" class="ots-disabled" readonly />
+                            </div>
+                            <div><button id="clearOtherLoanSearch" type="button" class="olt-btn secondary">Clear Search</button></div>
+                        </div>
+                        <div id="otherSelectionCount" class="ots-selection-count">0 loan(s) selected</div>
+                        <div class="olt-table-wrap">
+                            <table id="otherLoanTable" class="olt-table">
+                                <thead><tr>
+                                    <th><input id="selectAllOtherLoans" class="ots-row-check" type="checkbox" aria-label="Select all visible loans" /></th>
+                                    <th>LoanNo</th><th>DealNo</th><th>UserName</th><th>StartDate</th><th>EndDate</th><th>Status</th><th>Reason</th><th>Action</th>
+                                </tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                     <br />
-                    <div class="olt-table-wrap">
+                    <div id="trackingQueueSection" class="olt-table-wrap">
                         <table class="olt-table">
                             <thead>
                                 <tr>
@@ -211,13 +256,14 @@
                 <input id="assignmentId" type="hidden" />
                 <div id="statusStep" class="ots-step">
                     <div class="olt-form">
-                        <div class="olt-field wide">
+                        <div class="olt-field ots-status-control">
                             <label>Status</label><select id="updateStatus" onchange="changeCompletionStatus()"><option value="">Select status</option>
                                 <option value="Completed">Completed</option>
-                                <option value="Hold">Hold</option>
+                                <option value="Hold">On Hold</option>
+                                <option id="skipStatusOption" value="Skipped" hidden>Skipped</option>
                             </select>
                         </div>
-                        <div id="holdReasonField" class="olt-field wide" style="display: none">
+                        <div id="holdReasonField" class="olt-field ots-status-control" style="display: none">
                             <label>Hold Reason</label><select id="holdReason"><option value="">Select</option>
                                 <option>PDF Issue</option>
                                 <option>Audit Worksheet Not available in Box</option>
@@ -226,7 +272,7 @@
                                 <option value="Miscellaneous - Any other issue with comments">Miscellaneous &ndash; Any other issue with comments</option>
                             </select>
                         </div>
-                        <div class="olt-field full olt-actions">
+                        <div id="statusActions" class="olt-field full olt-actions" style="display:none">
                             <button id="statusContinueButton" type="button" class="olt-btn" onclick="selectCompletionStatus()">Continue</button>
                         </div>
                     </div>
@@ -263,8 +309,15 @@
                             <label>QC Date</label><input id="fbQCDate" class="ots-disabled" disabled />
                         </div>
                         <div class="olt-field">
-                            <label>Category</label><select id="fbCategory" onchange="loadFeedbackSubcategories()"><option value="">Select</option>
+                            <label>Severity</label><select id="fbSeverity" onchange="severityChanged()"><option value="">Select</option>
+                                <option>No Error</option>
+                                <option>Non-Critical</option>
+                                <option>Critical</option>
+                                <option>Critical-Saleable</option>
                             </select>
+                        </div>
+                        <div class="olt-field">
+                            <label>Category</label><select id="fbCategory" onchange="loadFeedbackSubcategories()"><option value="">Select</option></select>
                         </div>
                         <div class="olt-field">
                             <label>Subcategory</label><select id="fbSubcategory"><option value="">Select</option>
@@ -283,13 +336,6 @@
                             <label>Feedback Type</label><input id="fbFeedbackType" maxlength="100" />
                         </div>
                         <div class="olt-field">
-                            <label>Severity</label><select id="fbSeverity"><option value="">Select</option>
-                                <option>Non-Critical</option>
-                                <option>Critical</option>
-                                <option>Critical-Saleable</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
                             <label>Feedback Status</label><input id="fbFeedbackStatus" value="Pending" class="ots-disabled" disabled />
                         </div>
                         <div class="olt-field">
@@ -301,6 +347,9 @@
                         <div class="olt-field span-3">
                             <label>Finding</label><textarea id="fbError" maxlength="2000"></textarea>
                         </div>
+                        <div class="olt-field span-3">
+                            <label>RCA</label><textarea id="fbRca" maxlength="2000"></textarea>
+                        </div>
                     </div>
                     <div class="olt-actions olt-feedback-actions">
                         <button type="button" class="olt-btn" onclick="saveFeedback()">Add Feedback</button>
@@ -310,9 +359,7 @@
                 </div>
                 <div id="completeStep" class="ots-step">
                     <div class="olt-form">
-                        <div class="olt-field wide">
-                            <label>Status</label><input value="Completed" class="ots-disabled" disabled />
-                        </div>
+                        <input id="finalStatus" type="hidden" value="Completed" />
                         <div class="olt-field full">
                             <label>Remark</label><textarea id="completeRemark" maxlength="1000"></textarea>
                         </div>
@@ -325,6 +372,4 @@
             </div>
         </div>
     </div>
-
-
 </asp:Content>

@@ -90,11 +90,27 @@ namespace WebPortal.US
             return ser.Serialize(rows);
         }
 
+        [WebMethod]
+        public static string GetCollectionCommentsDataFields()
+        {
+            DataTable table = new bllUS().GetCollectionCommentsDataFields();
+            return SerializeTable(table);
+        }
+
 
         [WebMethod]
-        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate)
+        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate, string Task, int ProcessID, string DataField, string IsError)
         {
             int ReturnValue = 0;
+
+            Task = (Task ?? string.Empty).Trim(); DataField = (DataField ?? string.Empty).Trim(); IsError = (IsError ?? string.Empty).Trim();
+            if (IsCollectionCommentsTask(ProcessID, Task))
+            {
+                string collectionValidation = ValidateCollectionComments(DataField, ref IsError, ref Finding);
+                if (collectionValidation.Length > 0) return -1;
+                return new bllUS().InsertCollectionCommentsFeedback(LoanNo, Client, UWName, DateReviewed, QCDate,
+                    FeedbackReceivedDate, DataField, IsError, Finding, int.Parse(HttpContext.Current.User.Identity.Name));
+            }
 
             Severity = (Severity ?? string.Empty).Trim();
             Finding = (Finding ?? string.Empty).Trim();
@@ -129,8 +145,17 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int UpdateUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client, string Finding, string Severity)
+        public static int UpdateUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client, string Finding, string Severity, string Task, int ProcessID, string DataField, string IsError)
         {
+            Task = (Task ?? string.Empty).Trim(); DataField = (DataField ?? string.Empty).Trim(); IsError = (IsError ?? string.Empty).Trim();
+            if (IsCollectionCommentsTask(ProcessID, Task))
+            {
+                string collectionValidation = ValidateCollectionComments(DataField, ref IsError, ref Finding);
+                if (collectionValidation.Length > 0) return -1;
+                return new bllUS().UpdateCollectionCommentsFeedback(FeedbackID, LoanNo, Client, DataField, IsError,
+                    Finding, int.Parse(HttpContext.Current.User.Identity.Name));
+            }
+
             Severity = (Severity ?? string.Empty).Trim();
             Finding = (Finding ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(Severity) || (Severity != "No Error" && string.IsNullOrEmpty(Finding)))
@@ -292,6 +317,32 @@ namespace WebPortal.US
         private static string NormalizeDateTime(string value)
         {
             return string.IsNullOrWhiteSpace(value) ? "" : value.Replace("T", " ");
+        }
+
+        private static string ValidateCollectionComments(string dataField, ref string isError, ref string finding)
+        {
+            finding = (finding ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(dataField)) return "Data Field is required.";
+            if (!new bllUS().IsCollectionCommentsDataFieldValid(dataField)) return "The selected Data Field is not configured.";
+            if (dataField.Equals("No Error", StringComparison.OrdinalIgnoreCase)) { isError = "No"; finding = "No Error"; return string.Empty; }
+            if (isError != "Yes" && isError != "No") return "Is Error is required.";
+            if (finding.Length == 0) return "Finding is required.";
+            return string.Empty;
+        }
+
+        private static bool IsCollectionCommentsTask(int processId, string submittedTask)
+        {
+            DataTable details = new bllUS().GetLoanDetails_RemoteUW_ByID(processId);
+            if (details == null || details.Rows.Count == 0) return false;
+            string task = GetRowValue(details.Rows[0], "Process", "Task");
+            return task.Equals("Collection Comments ReQC", StringComparison.OrdinalIgnoreCase) && task.Equals((submittedTask ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string SerializeTable(DataTable table)
+        {
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            foreach (DataRow dataRow in table.Rows) { Dictionary<string, object> row = new Dictionary<string, object>(); foreach (DataColumn column in table.Columns) row[column.ColumnName] = dataRow[column] == DBNull.Value ? string.Empty : dataRow[column]; rows.Add(row); }
+            JavaScriptSerializer serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue }; return serializer.Serialize(rows);
         }
     }
 }

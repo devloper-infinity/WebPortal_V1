@@ -333,7 +333,32 @@ function showdata1() {
 
     bind_onshoredata(fromDate, toDate);
     bindATRReviewFeedback(fromDate, toDate);
+    bindCollectionCommentsFeedback(fromDate, toDate);
     return false;
+}
+
+function hideCollectionCommentsTab() { $('#collectionCommentsTabItem').hide(); if ($('#collectionCommentsTab').hasClass('active')) $('#standardFeedbackTab').tab('show'); }
+function showCollectionCommentsRemarkPopup(feedbackId) {
+    var table = $('#table_CollectionCommentsFeedback').DataTable(), matched = null;
+    table.rows().every(function () { var row = this.data(); if ((parseInt(row.FeedbackID, 10) || 0) === feedbackId) { matched = row; return false; } });
+    if (!matched) return false;
+    InfinityFeedbackOnshore_selectedRow = matched; $('#hdnInfinityOnshoreFeedbackId').val(feedbackId); $('#spnInfinityOnshoreLoanNumber').text(blankForNull(matched.LoanNumber) || '-'); $('#spnInfinityOnshoreClient').text(blankForNull(matched.Client) || '-'); $('#spnInfinityOnshoreRCA').text(blankForNull(matched.RCA) || '-'); $('#spnInfinityOnshoreComments').text(blankForNull(matched.Comments) || '-'); $('#txtInfinityOnshoreRemark').val(blankForNull(matched.OnshoreRemark)); $('#popUp_InfinityOnshoreRemark').modal('show'); return false;
+}
+function bindCollectionCommentsFeedback(fromDate, toDate) {
+    $('#collectionCommentsLoader').show();
+    $.ajax({ url: 'InfinityFeedbackOnshore.aspx/GetCollectionCommentsFeedbackByDateRange', type: 'POST', contentType: 'application/json; charset=utf-8', dataType: 'json', data: JSON.stringify({ FromDate: fromDate, ToDate: toDate }), success: function (response) {
+        var rows = JSON.parse(response.d || '[]'); if ($.fn.DataTable.isDataTable('#table_CollectionCommentsFeedback')) $('#table_CollectionCommentsFeedback').DataTable().clear().destroy();
+        if (!rows.length) { $('#table_CollectionCommentsFeedback').empty(); hideCollectionCommentsTab(); return; }
+        $('#collectionCommentsTabItem').show(); $('#table_CollectionCommentsFeedback').DataTable({ dom: 'Bfrtip', data: rows, destroy: true, scrollX: true, paging: true, processing: true, ordering: false,
+            columns: [
+                { data: null, title: 'Sr. #', render: function (_, type, row, meta) { return meta.row + 1; } },
+                { data: null, title: 'Action', orderable: false, render: function (_, type, row) { return type === 'display' ? '<a href="#" class="feedback-action-link" title="Review / respond" onclick="return showCollectionCommentsRemarkPopup(' + (+row.FeedbackID) + ');"><i class="fas fa-comment-dots"></i></a>' : ''; } },
+                { data: 'ProjectName', title: 'Project', render: renderATRReviewText }, { data: 'LoanNumber', title: 'Loan #', render: renderATRReviewText }, { data: 'Reviewer', title: 'Reviewer', render: renderATRReviewText },
+                { data: 'DataField', title: 'Data Field', render: renderATRReviewText }, { data: 'IsError', title: 'Is Error', render: renderATRReviewText }, { data: 'Finding', title: 'Finding', render: renderATRReviewText },
+                { data: 'FeedbackStatus', title: 'Status', render: renderATRReviewText }, { data: 'OnshoreRemark', title: 'Response / Remark', render: renderATRReviewText }, { data: 'AddedByName', title: 'Added By', render: renderATRReviewText }, { data: 'AddedDate', title: 'Added Date', render: renderATRReviewText }
+            ], buttons: [{ extend: 'excelHtml5', title: 'Collection Comments ReQC Feedback - OnShore', exportOptions: { columns: ':not(:eq(1))' } }]
+        });
+    }, error: hideCollectionCommentsTab, complete: function () { $('#collectionCommentsLoader').hide(); } }); return false;
 }
 
 function renderATRReviewText(value, type) {

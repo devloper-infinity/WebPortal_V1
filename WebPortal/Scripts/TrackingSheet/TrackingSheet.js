@@ -1,5 +1,5 @@
 ﻿
-var page = 'TrackingSheet.aspx', flow = [], queue = [];
+var page = 'TrackingSheet.aspx', flow = [], queue = [], otherLoanRows = [], otherLoanTable = null, otherSearchLoans = [], selectedOtherLoans = {}, isOtherProcess = false;
 var from_Date; var to_Date;
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -11,17 +11,100 @@ document.addEventListener('DOMContentLoaded', function () {
     OLT.call(page, 'GetDailyProcesses').then(function (r) {
         OLT.options(dailyProcess, r, ['ProcessID'], ['ProcessName'], 'All processes');
     });
+    OLT.call(page, 'GetCurrentPseudoName').then(function (r) { processingUserName.value = r || ''; });
 
-    project.onchange = loadProject; deal.onchange = selectDeal; process.onchange = tryLoadLoan; loadQueue(); loadDaily();
+    project.onchange = loadProject; deal.onchange = selectDeal; process.onchange = selectProcess;
+    otherLoanSearch.oninput = applyOtherLoanSearch;
+    clearOtherLoanSearch.onclick = clearOtherSearch;
+    selectAllOtherLoans.onchange = toggleAllOtherLoans;
+    bindOtherLoanActions();
+    if (window.jQuery && $.fn.DataTable) $.fn.dataTable.ext.search.push(function (settings, data, dataIndex, rowData) {
+        if (!settings.nTable || settings.nTable.id !== 'otherLoanTable' || !otherSearchLoans.length) return true;
+        var loanNo = String((rowData && rowData.LoanNo) || data[1] || '').trim().toLowerCase();
+        return otherSearchLoans.indexOf(loanNo) >= 0;
+    });
+    loadQueue(); loadDaily();
 });
 
 function bindTabs() { [].slice.call(document.querySelectorAll('.ots-tab')).forEach(function (b) { b.onclick = function () { document.querySelector('.ots-tab.active').classList.remove('active'); document.querySelector('.ots-panel.active').classList.remove('active'); b.classList.add('active'); document.getElementById(b.dataset.panel).classList.add('active'); if (b.dataset.panel === 'status') loadQueue(); if (b.dataset.panel === 'daily') loadDaily(); }; }); }
 
-function loadProject() { if (!project.value) return; process.disabled = true; loan.innerHTML = '<option value="">Select deal and process</option>'; Promise.all([OLT.call(page, 'GetDeals', { projectId: +project.value }), OLT.call(page, 'GetFlow', { projectId: +project.value })]).then(function (r) { OLT.options(deal, r[0], ['DealNo', 'DealNumber', 'Deal'], ['DealNo', 'DealNumber', 'Deal'], 'Select deal'); flow = r[1]; OLT.options(process, flow, ['ProcessID'], ['ProcessName'], 'Select deal first'); process.disabled = true; }).catch(showError); }
+function loadProject() { resetProcessDisplay(); process.disabled = true; process.innerHTML = '<option value="">Select deal first</option>'; loan.innerHTML = '<option value="">Select deal and process</option>'; deal.innerHTML = '<option value="">Select deal</option>'; if (!project.value) return; OLT.call(page, 'GetDeals', { projectId: +project.value }).then(function (r) { OLT.options(deal, r, ['DealNo', 'DealNumber', 'Deal'], ['DealNo', 'DealNumber', 'Deal'], 'Select deal'); }).catch(showError); }
 
-function selectDeal() { process.disabled = !deal.value; process.value = ''; if (process.options.length) process.options[0].text = deal.value ? 'Select process' : 'Select deal first'; loan.innerHTML = '<option value="">Select process</option>'; }
+function selectDeal() { resetProcessDisplay(); process.disabled = true; process.innerHTML = '<option value="">Loading configured flow...</option>'; loan.innerHTML = '<option value="">Select process</option>'; if (!deal.value) return; OLT.call(page, 'GetFlow', { projectId: +project.value, dealNumber: deal.value }).then(function (r) { flow = r || []; OLT.options(process, flow, ['ProcessID'], ['ProcessName'], 'Select process'); process.disabled = false; }).catch(showError); }
+
+function selectProcess() {
+    resetProcessDisplay();
+    if (!project.value || !deal.value || !process.value) return;
+    var configured = flow.filter(function (x) { return String(x.ProcessID) === String(process.value); })[0] || {};
+    isOtherProcess = configured.IsTrackingSheetProcess === false || configured.IsTrackingSheetProcess === 0 || configured.IsTrackingSheetProcess === '0';
+    loanField.style.display = isOtherProcess ? 'none' : '';
+    legacyAllocationActions.style.display = isOtherProcess ? 'none' : '';
+    trackingQueueSection.style.display = isOtherProcess ? 'none' : '';
+    otherProcessingSection.classList.toggle('active', isOtherProcess);
+    if (isOtherProcess) loadNonTrackingLoans(); else tryLoadLoan();
+}
+
+function resetProcessDisplay() {
+    isOtherProcess = false; otherProcessingSection.classList.remove('active');
+    loanField.style.display = ''; legacyAllocationActions.style.display = ''; trackingQueueSection.style.display = '';
+    clearOtherSearch();
+    if (otherLoanTable) { otherLoanTable.destroy(); otherLoanTable = null; }
+    otherLoanRows = []; selectedOtherLoans = {}; updateOtherSelectionCount();
+}
 
 function tryLoadLoan() { if (!project.value || !process.value || !deal.value) return; var selected = process.options[process.selectedIndex]; loan.innerHTML = '<option value="">Checking eligibility...</option>'; OLT.call(page, 'GetAvailableLoan', { projectId: +project.value, dealNumber: deal.value, processId: +process.value, processName: selected.text }).then(function (r) { if (typeof r === 'string') { try { r = JSON.parse(r); } catch (e) { r = { LoanNumber: r }; } } var number = r && r.LoanNumber ? String(r.LoanNumber) : ''; loan.innerHTML = ''; var option = document.createElement('option'); option.value = number; option.textContent = number || 'No eligible loan available'; loan.appendChild(option); }).catch(showError); }
+
+function loadNonTrackingLoans() {
+    if (!isOtherProcess || !project.value || !deal.value || !process.value) return;
+    OLT.call(page, 'GetNonTrackingPendingLoans', { projectId: +project.value, dealNumber: deal.value, processId: +process.value }).then(function (rows) {
+        otherLoanRows = rows || []; selectedOtherLoans = {}; updateOtherSelectionCount();
+        if (otherLoanRows.length && otherLoanRows[0].UserName) processingUserName.value = otherLoanRows[0].UserName;
+        if (otherLoanTable) otherLoanTable.destroy();
+        otherLoanTable = $('#otherLoanTable').DataTable({
+            data: otherLoanRows, pageLength: 25, order: [[1, 'asc']], autoWidth: false, dom: 'lrtip',
+            columns: [
+                { data: null, orderable: false, searchable: false, render: function (_, type, row) { if (type !== 'display') return ''; var key = otherLoanKey(row); return '<input type="checkbox" class="ots-row-check other-loan-check" data-key="' + OLT.esc(key) + '"' + (selectedOtherLoans[key] ? ' checked' : '') + ' />'; } },
+                { data: 'LoanNo' }, { data: 'DealNo' }, { data: 'UserName' },
+                { data: 'StartDate', render: function (v, type) { return type === 'display' ? fmt(v) : (v || ''); } },
+                { data: 'EndDate', render: function (v, type) { return type === 'display' ? fmt(v) : (v || ''); } },
+                { data: 'Status', render: function (v, type) { if (type !== 'display') return v || ''; var css = String(v || '').toLowerCase().replace(/\s+/g, '-'), label = v === 'Hold' ? 'On Hold' : v; return '<span class="ots-status ' + css + '">' + OLT.esc(label) + '</span>'; } },
+                { data: 'Reason', defaultContent: '' },
+                { data: null, orderable: false, searchable: false, render: function (_, type, row) { if (type !== 'display') return ''; var blockedText = 'Complete or place the current In Process loan on hold before starting another loan.'; if (row.Status === 'Hold') return '<div class="ots-action-group"><button type="button" class="olt-btn other-resume"' + (row.StartBlocked ? ' disabled title="' + blockedText + '"' : '') + '>Resume</button></div>'; if (row.Status === 'In Process') return '<div class="ots-action-group"><button type="button" class="olt-btn other-end">End</button></div>'; return '<div class="ots-action-group"><button type="button" class="olt-btn secondary other-start"' + (row.StartBlocked ? ' disabled title="' + blockedText + '"' : '') + '>Start</button></div>'; } }
+            ],
+            language: { emptyTable: 'No pending loans are available for the selected process.' },
+            drawCallback: function () { selectAllOtherLoans.checked = false; }
+        });
+        applyOtherLoanSearch();
+    }).catch(showError);
+}
+
+function bindOtherLoanActions() {
+    $('#otherLoanTable').on('click', '.other-start', function () { var tableRow = otherLoanTable.row($(this).closest('tr')); startOtherLoan(tableRow.data(), this, tableRow); });
+    $('#otherLoanTable').on('click', '.other-end', function () { var row = otherLoanTable.row($(this).closest('tr')).data(); openComplete(+row.AssignmentID, row); });
+    $('#otherLoanTable').on('click', '.other-resume', function () { resumeLoan(+(otherLoanTable.row($(this).closest('tr')).data().AssignmentID)); });
+    $('#otherLoanTable').on('change', '.other-loan-check', function () { selectedOtherLoans[this.dataset.key] = this.checked; updateOtherSelectionCount(); });
+}
+
+function startOtherLoan(row, button, tableRow) {
+    if (!row || !button) return;
+    button.disabled = true; button.textContent = 'Starting...';
+    OLT.call(page, 'StartNonTrackingLoan', { projectId: +project.value, processId: +process.value, loanNumber: row.LoanNo, dealNumber: deal.value, assignmentId: +(row.AssignmentID || 0) })
+        .then(function (r) {
+            if (!actionSucceeded(r)) { loadNonTrackingLoans(); return; }
+            row.AssignmentID = r.AssignmentID; row.Status = 'In Process'; row.StartDate = '/Date(' + Date.now() + ')/'; row.Reason = 'Work started';
+            tableRow.data(row);
+            otherLoanTable.rows().every(function () { var item = this.data(); if (item !== row) { item.StartBlocked = true; this.data(item); } });
+            otherLoanTable.draw(false);
+            OLT.alert(r.Message || 'Loan started successfully.');
+        })
+        .catch(function (error) { showError(error); loadNonTrackingLoans(); });
+}
+function otherLoanKey(row) { return String(row.AssignmentID || '') + '|' + String(row.LoanNo || '').trim(); }
+function applyOtherLoanSearch() { otherSearchLoans = String(otherLoanSearch.value || '').split(',').map(function (x) { return x.trim().toLowerCase(); }).filter(function (x, i, a) { return x && a.indexOf(x) === i; }); if (otherLoanTable) otherLoanTable.draw(); }
+function clearOtherSearch() { if (!window.otherLoanSearch) return; otherLoanSearch.value = ''; otherSearchLoans = []; if (otherLoanTable) otherLoanTable.draw(); }
+function toggleAllOtherLoans() { if (!otherLoanTable) return; var checked = selectAllOtherLoans.checked; otherLoanTable.rows({ search: 'applied' }).every(function () { var row = this.data(); selectedOtherLoans[otherLoanKey(row)] = checked; }); $('#otherLoanTable tbody .other-loan-check').prop('checked', checked); updateOtherSelectionCount(); }
+function updateOtherSelectionCount() { var count = Object.keys(selectedOtherLoans).filter(function (k) { return selectedOtherLoans[k]; }).length; if (window.otherSelectionCount) otherSelectionCount.textContent = count + ' loan(s) selected'; }
+function refreshQueues() { loadQueue(); loadDaily(); if (isOtherProcess) loadNonTrackingLoans(); }
 
 function allocateLoan() { if (!loan.value) { OLT.alert('No eligible loan is available for the selected process and deal.', true); return; } OLT.call(page, 'Allocate', { projectId: +project.value, processId: +process.value, loanNumber: loan.value, dealNumber: deal.value }).then(function (r) { if (!actionSucceeded(r)) return; OLT.alert(r.Message || 'Loan allocated successfully.'); tryLoadLoan(); loadQueue(); }).catch(showError); }
 
@@ -52,17 +135,44 @@ function loadQueue() {
 
 function startLoan(id) { OLT.call(page, 'StartLoan', { assignmentId: id }).then(function (r) { if (!actionSucceeded(r)) return; OLT.alert(r.Message || 'Loan marked In Process.'); loadQueue(); }).catch(showError); }
 
-function resumeLoan(id) { OLT.call(page, 'ResumeLoan', { assignmentId: id }).then(function (r) { if (!actionSucceeded(r)) return; OLT.alert(r.Message || 'Loan resumed successfully.'); loadQueue(); loadDaily(); }).catch(showError); }
+function resumeLoan(id) { OLT.call(page, 'ResumeLoan', { assignmentId: id }).then(function (r) { if (!actionSucceeded(r)) return; OLT.alert(r.Message || 'Loan resumed successfully.'); refreshQueues(); }).catch(showError); }
 
 var activeAssignment = null, feedbackRequired = false, savedFeedbacks = 0, feedbackOwners = [];
 
-function openComplete(id) { activeAssignment = queue.filter(function (q) { return q.AssignmentID === id; })[0] || null; feedbackRequired = !!(activeAssignment && activeAssignment.FeedbackRequiredOnComplete); savedFeedbacks = 0; assignmentId.value = id; completeRemark.value = ''; updateStatus.value = ''; holdReason.value = ''; changeCompletionStatus(); savedFeedbackList.innerHTML = ''; savedFeedbackCount.textContent = '0 feedback added'; continueAfterFeedback.disabled = true;[statusStep, feedbackStep, completeStep].forEach(function (s) { s.classList.remove('active'); }); statusStep.classList.add('active'); completeModal.classList.add('open'); }
+function openComplete(id, selectedAssignment) {
+    var assignment = selectedAssignment || queue.filter(function (q) { return q.AssignmentID === id; })[0] || null;
+    if (!assignment) { OLT.alert('The selected assignment is no longer available.', true); return; }
+    OLT.call(page, 'GetCompletionFeedbackRequirement', { assignmentId: id })
+        .then(function (required) { showCompleteModal(id, assignment, !!required, !!selectedAssignment); })
+        .catch(showError);
+}
+
+function showCompleteModal(id, assignment, requiresFeedback, isSeparateProcessing) {
+    activeAssignment = assignment; feedbackRequired = requiresFeedback;
+    activeAssignment.FeedbackRequiredOnComplete = requiresFeedback;
+    skipStatusOption.hidden = isSeparateProcessing || !(activeAssignment && activeAssignment.CanSkip);
+    savedFeedbacks = 0; assignmentId.value = id; completeRemark.value = ''; updateStatus.value = ''; holdReason.value = ''; finalStatus.value = 'Completed';
+    savedFeedbackList.innerHTML = ''; savedFeedbackCount.textContent = '0 feedback added'; continueAfterFeedback.disabled = true;
+    [statusStep, feedbackStep, completeStep].forEach(function (step) { step.classList.remove('active'); });
+    statusStep.classList.add('active'); changeCompletionStatus(); completeModal.classList.add('open');
+}
 
 function closeComplete() { completeModal.classList.remove('open'); activeAssignment = null; }
 
-function changeCompletionStatus() { var isHold = updateStatus.value === 'Hold'; holdReasonField.style.display = isHold ? 'block' : 'none'; statusContinueButton.textContent = isHold ? 'Place on Hold' : 'Continue'; }
+function changeCompletionStatus() {
+    var status = updateStatus.value;
+    holdReasonField.style.display = status === 'Hold' ? 'block' : 'none';
+    statusActions.style.display = status === 'Hold' ? 'block' : 'none';
+    feedbackStep.classList.remove('active'); completeStep.classList.remove('active'); statusStep.classList.add('active');
+    if (status === 'Hold') { statusContinueButton.textContent = 'Place on Hold'; return; }
+    if (status !== 'Completed' && status !== 'Skipped') return;
+    if (status === 'Skipped' && !(activeAssignment && activeAssignment.CanSkip)) { updateStatus.value = ''; OLT.alert('This process is mandatory and cannot be skipped.', true); return changeCompletionStatus(); }
+    finalStatus.value = status;
+    if (status === 'Completed' && feedbackRequired) { feedbackStep.classList.add('active'); loadFeedbackForm(); return; }
+    completeStep.classList.add('active');
+}
 
-function selectCompletionStatus() { if (updateStatus.value === 'Hold') { if (!holdReason.value) { OLT.alert('Please select a hold reason.', true); return; } statusContinueButton.disabled = true; OLT.call(page, 'HoldLoan', { assignmentId: +assignmentId.value, holdReason: holdReason.value }).then(function (r) { if (!actionSucceeded(r)) return; closeComplete(); OLT.alert(r.Message || 'Loan placed on hold successfully.'); loadQueue(); loadDaily(); }).catch(showError).then(function () { statusContinueButton.disabled = false; }); return; } if (updateStatus.value !== 'Completed') { OLT.alert('Please select a status.', true); return; } statusStep.classList.remove('active'); if (!feedbackRequired) { completeStep.classList.add('active'); return; } feedbackStep.classList.add('active'); loadFeedbackForm(); }
+function selectCompletionStatus() { if (updateStatus.value === 'Hold') { if (!holdReason.value) { OLT.alert('Please select a hold reason.', true); return; } statusContinueButton.disabled = true; OLT.call(page, 'HoldLoan', { assignmentId: +assignmentId.value, holdReason: holdReason.value }).then(function (r) { if (!actionSucceeded(r)) return; closeComplete(); OLT.alert(r.Message || 'Loan placed on hold successfully.'); refreshQueues(); }).catch(showError).then(function () { statusContinueButton.disabled = false; }); return; } if (updateStatus.value !== 'Completed' && updateStatus.value !== 'Skipped') { OLT.alert('Please select a status.', true); return; } if (updateStatus.value === 'Skipped' && !(activeAssignment && activeAssignment.CanSkip)) { OLT.alert('This process is mandatory and cannot be skipped.', true); return; } finalStatus.value = updateStatus.value; statusStep.classList.remove('active'); if (updateStatus.value === 'Skipped' || !feedbackRequired) { completeStep.classList.add('active'); return; } feedbackStep.classList.add('active'); loadFeedbackForm(); }
 
 function parseJsonResult(r) { if (typeof r === 'string') { try { return JSON.parse(r); } catch (e) { return {}; } } return r || {}; }
 
@@ -74,21 +184,33 @@ function bindFeedbackOwner() { var assignment = String(fbErrorBy.value || ''), o
 
 function formatFeedbackDate(value) { if (!value) return ''; var n = parseInt(String(value).replace(/\D/g, ''), 10), d = n ? new Date(n) : new Date(value); if (isNaN(d.getTime())) return ''; return String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0') + '/' + d.getFullYear(); }
 
-function loadFeedbackSubcategories() { fbSubcategory.innerHTML = '<option value="">Select</option>'; if (!fbCategory.value) return; OLT.call(page, 'GetFeedbackSubcategories', { categoryId: +fbCategory.value }).then(function (r) { fillSelect(fbSubcategory, r, 'Value', 'Text', 'Select'); }).catch(showError); }
+function loadFeedbackSubcategories() { fbSubcategory.innerHTML = '<option value="">Select</option>'; if (!fbCategory.value) return Promise.resolve(); return OLT.call(page, 'GetFeedbackSubcategories', { categoryId: +fbCategory.value }).then(function (r) { fillSelect(fbSubcategory, r, 'Value', 'Text', 'Select'); }).catch(showError); }
 
-function feedbackModel() { var owner = feedbackOwners.filter(function (x) { return String(x.AssignmentID) === String(fbErrorBy.value); })[0] || {}; return { AssignmentID: +assignmentId.value, MarkedTo: owner.ProcessName || '', ErrorBy: owner.UserName || '', FeedbackBy: fbFeedbackBy.value, DateReviewed: fbDateReviewed.value, ErrorType: fbErrorType.value.trim(), CategoryID: +fbCategory.value || 0, Category: fbCategory.options[fbCategory.selectedIndex] ? fbCategory.options[fbCategory.selectedIndex].text : '', SubcategoryID: +fbSubcategory.value || 0, Subcategory: fbSubcategory.options[fbSubcategory.selectedIndex] ? fbSubcategory.options[fbSubcategory.selectedIndex].text : '', Severity: fbSeverity.value, ErrorField: fbErrorField.value.trim(), Screen: fbScreen.value.trim(), FeedbackType: fbFeedbackType.value.trim(), Error: fbError.value.trim(), ShouldBe: '', Remark: '' }; }
+function selectByText(select, text) { var option = [].slice.call(select.options).filter(function (x) { return x.text.trim().toLowerCase() === text.toLowerCase(); })[0]; if (option) select.value = option.value; return !!option; }
+function severityChanged() {
+    var noError = fbSeverity.value === 'No Error', fields = [fbCategory, fbSubcategory, fbErrorField, fbScreen, fbErrorType, fbFeedbackType, fbError, fbRca];
+    fields.forEach(function (field) { field.disabled = noError; field.classList.toggle('ots-disabled', noError); });
+    if (!noError) { fields.forEach(function (field) { field.disabled = false; field.classList.remove('ots-disabled'); }); return; }
+    if (!selectByText(fbCategory, 'Compliance')) { OLT.alert('Compliance category is not configured. Please contact the administrator.', true); fbSeverity.value = ''; return severityChanged(); }
+    loadFeedbackSubcategories().then(function () {
+        if (!selectByText(fbSubcategory, 'Compliance')) { OLT.alert('Compliance subcategory is not configured. Please contact the administrator.', true); fbSeverity.value = ''; return severityChanged(); }
+        fbErrorField.value = 'NA'; fbScreen.value = 'NA'; fbErrorType.value = 'NA'; fbFeedbackType.value = 'NA'; fbError.value = 'No Error'; fbRca.value = 'No Error';
+    });
+}
 
-function validateFeedback(m) { if (!m.MarkedTo || !m.ErrorBy) return 'Please select UW Name.'; if (!m.ErrorType) return 'Please enter Error Type.'; if (!m.CategoryID) return 'Please select Category.'; if (!m.SubcategoryID) return 'Please select Subcategory.'; if (!m.Severity) return 'Please select Severity.'; if (!m.ErrorField) return 'Please enter Error Field.'; if (!m.FeedbackType) return 'Please enter Feedback Type.'; if (!m.Error) return 'Please enter Finding.'; return ''; }
+function feedbackModel() { var owner = feedbackOwners.filter(function (x) { return String(x.AssignmentID) === String(fbErrorBy.value); })[0] || {}; return { AssignmentID: +assignmentId.value, MarkedTo: owner.ProcessName || '', ErrorBy: owner.UserName || '', FeedbackBy: fbFeedbackBy.value, DateReviewed: fbDateReviewed.value, ErrorType: fbErrorType.value.trim(), CategoryID: +fbCategory.value || 0, Category: fbCategory.options[fbCategory.selectedIndex] ? fbCategory.options[fbCategory.selectedIndex].text : '', SubcategoryID: +fbSubcategory.value || 0, Subcategory: fbSubcategory.options[fbSubcategory.selectedIndex] ? fbSubcategory.options[fbSubcategory.selectedIndex].text : '', Severity: fbSeverity.value, ErrorField: fbErrorField.value.trim(), Screen: fbScreen.value.trim(), FeedbackType: fbFeedbackType.value.trim(), Error: fbError.value.trim(), ShouldBe: fbRca.value.trim(), Remark: '' }; }
+
+function validateFeedback(m) { if (!m.MarkedTo || !m.ErrorBy) return 'Please select UW Name.'; if (!m.Severity) return 'Please select Severity.'; if (!m.CategoryID) return 'Please select Category.'; if (!m.SubcategoryID) return 'Please select Subcategory.'; if (!m.ErrorField) return 'Please enter Error Field.'; if (!m.Screen) return 'Please enter Screen.'; if (!m.ErrorType) return 'Please enter Error Type.'; if (!m.FeedbackType) return 'Please enter Feedback Type.'; if (!m.Error) return 'Please enter Finding.'; if (!m.ShouldBe) return 'Please enter RCA.'; return ''; }
 
 function saveFeedback() { var m = feedbackModel(), error = validateFeedback(m); if (error) { OLT.alert(error, true); return; } OLT.call(page, 'SaveFeedback', { model: m }).then(function (r) { if (!actionSucceeded(r)) return; savedFeedbacks = +(r.FeedbackCount || savedFeedbacks + 1); var item = document.createElement('div'); item.textContent = 'Feedback #' + r.FeedbackID + ' added successfully.'; savedFeedbackList.appendChild(item); clearFeedbackEntry(); updateFeedbackState(); OLT.alert(r.Message || 'Feedback added successfully.'); }).catch(showError); }
 
-function clearFeedbackEntry() { fbErrorType.value = ''; fbCategory.value = ''; fbSubcategory.innerHTML = '<option value="">Select</option>'; fbSeverity.value = ''; fbErrorField.value = ''; fbScreen.value = ''; fbFeedbackType.value = ''; fbError.value = ''; }
+function clearFeedbackEntry() { fbSeverity.value = ''; severityChanged(); fbErrorType.value = ''; fbCategory.value = ''; fbSubcategory.innerHTML = '<option value="">Select</option>'; fbErrorField.value = ''; fbScreen.value = ''; fbFeedbackType.value = ''; fbError.value = ''; fbRca.value = ''; }
 
 function updateFeedbackState() { savedFeedbackCount.textContent = savedFeedbacks + ' feedback ' + (savedFeedbacks === 1 ? 'added' : 'entries added'); continueAfterFeedback.disabled = savedFeedbacks < 1; }
 
 function continueToComplete() { if (feedbackRequired && savedFeedbacks < 1) { OLT.alert('At least one feedback entry is required.', true); return; } feedbackStep.classList.remove('active'); completeStep.classList.add('active'); }
 
-function submitCompletion() { if (!completeRemark.value.trim()) { OLT.alert('Remark is required.', true); return; } OLT.call(page, 'CompleteLoan', { assignmentId: +assignmentId.value, remark: completeRemark.value, feedbacks: [] }).then(function (r) { if (!actionSucceeded(r)) return; closeComplete(); OLT.alert(r.Message || 'Loan completed.'); loadQueue(); loadDaily(); }).catch(showError); }
+function submitCompletion() { if (!completeRemark.value.trim()) { OLT.alert('Remark is required.', true); return; } var skipped = finalStatus.value === 'Skipped', method = skipped ? 'SkipLoan' : 'CompleteLoan', model = skipped ? { assignmentId: +assignmentId.value, remark: completeRemark.value } : { assignmentId: +assignmentId.value, remark: completeRemark.value, feedbacks: [] }; OLT.call(page, method, model).then(function (r) { if (!actionSucceeded(r)) return; closeComplete(); OLT.alert(r.Message || (skipped ? 'Process skipped.' : 'Loan completed.')); refreshQueues(); }).catch(showError); }
 
 function setToday() {
 

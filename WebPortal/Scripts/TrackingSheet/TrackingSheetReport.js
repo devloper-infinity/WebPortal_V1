@@ -5,6 +5,29 @@
     function popup(icon, title, message) { Swal.fire({ icon: icon, title: title, text: message, confirmButtonText: "OK" }); }
     function webMethod(name, data) { return $.ajax({ url: pageUrl + "/" + name, type: "POST", contentType: "application/json; charset=utf-8", dataType: "json", data: JSON.stringify(data || {}) }); }
     function errorMessage(xhr) { try { return JSON.parse(xhr.responseText).Message || "A system error occurred."; } catch (e) { return "A system error occurred."; } }
+    function escapeHtml(value) { return $("<div>").text(value == null ? "" : value).html(); }
+    function flowStats(row) {
+        var result = { total: 0, completed: 0, skipped: 0, pending: 0, current: null };
+        $.each(row.Processes || [], function (_, p) { var status = String(p.Status || 'Pending').toLowerCase(); result.total++; if (status === 'completed') result.completed++; else if (status === 'skipped') result.skipped++; else result.pending++; if (p.IsCurrent) result.current = p; });
+        result.progress = result.total ? Math.round(((result.completed + result.skipped) * 100) / result.total) : 0;
+        return result;
+    }
+    function processSummary(row) {
+        var stats = flowStats(row);
+        if (!stats.total) return '<span class="text-muted">No configured process flow</span>';
+        return '<div class="tr-process-summary"><div class="tr-progress-head"><strong>' + stats.progress + '% complete</strong><span>' + (stats.completed + stats.skipped) + ' / ' + stats.total + '</span></div>' +
+            '<div class="tr-progress-track"><div class="tr-progress-value" style="width:' + stats.progress + '%"></div></div>' +
+            '<div class="tr-progress-meta"><span>' + stats.completed + ' completed</span><span>' + stats.pending + ' pending</span><span>' + stats.skipped + ' skipped</span></div>' +
+            '<div class="tr-current-process">Current: ' + escapeHtml(stats.current ? stats.current.ProcessName : (stats.progress === 100 ? 'Flow complete' : 'Not started')) + '</div>' +
+            '<button type="button" class="tr-flow-toggle">View process flow</button></div>';
+    }
+    function processExportSummary(row) { var stats = flowStats(row); if (!stats.total) return 'No configured process flow'; return stats.progress + '% complete | ' + stats.completed + ' completed | ' + stats.pending + ' pending | ' + stats.skipped + ' skipped | Current: ' + (stats.current ? stats.current.ProcessName : (stats.progress === 100 ? 'Flow complete' : 'Not started')); }
+    function processDetails(row) {
+        var grouped = {}, order = [], stats = flowStats(row);
+        $.each(row.Processes || [], function (_, p) { var key = String(p.Sequence); if (!grouped[key]) { grouped[key] = []; order.push(key); } grouped[key].push(p); });
+        var stages = $.map(order, function (key) { var current = false, cards = $.map(grouped[key], function (p) { var status = String(p.Status || 'Pending'), normalizedStatus = status.toLowerCase(), css = normalizedStatus.replace(/\s+/g, '-'), userName = p.ProcessUser || p.CompletedBy || '', userLine = ''; if (userName && normalizedStatus === 'completed') userLine = '<span class="tr-process-user">Completed by: ' + escapeHtml(userName) + '</span>'; else if (userName && normalizedStatus === 'in process') userLine = '<span class="tr-process-user">In process by: ' + escapeHtml(userName) + '</span>'; else if (userName && normalizedStatus === 'hold') userLine = '<span class="tr-process-user">On hold by: ' + escapeHtml(userName) + '</span>'; current = current || p.IsCurrent; return '<div class="tr-process-step ' + css + (p.IsCurrent ? ' current' : '') + '"><strong>' + escapeHtml(p.ProcessName) + '</strong><small><span class="tr-status-dot"></span>' + escapeHtml(status) + (p.IsMandatory ? ' • Mandatory' : ' • Can skip') + (p.IsFinalProcess ? ' • Final' : '') + '</small>' + userLine + '</div>'; }).join(''); return '<section class="tr-stage' + (current ? ' current' : '') + '"><div class="tr-stage-title"><span>Stage ' + escapeHtml(key) + '</span><span>' + grouped[key].length + ' process' + (grouped[key].length === 1 ? '' : 'es') + '</span></div><div class="tr-stage-processes">' + cards + '</div></section>'; }).join('');
+        return '<div class="tr-flow-detail"><div class="tr-flow-detail-head"><h4>Configured process flow</h4><span>' + stats.completed + ' completed · ' + stats.pending + ' pending · ' + stats.skipped + ' skipped</span></div><div class="tr-stage-grid">' + stages + '</div></div>';
+    }
 
     function loadProjects() {
         webMethod("GetProjects").done(function (response) {
@@ -29,7 +52,7 @@
             $("#trTable").empty();
             reportTable = $("#trTable").DataTable({
                 data: result.Rows,
-                columns: $.map(result.Columns, function (name) { return { data: name, title: name, defaultContent: "", className: "text-nowrap" }; }),
+                columns: [{ data: null, title: "Process Progress", width: "300px", orderable: false, searchable: false, render: function (_, type, row) { return type === 'display' ? processSummary(row) : processExportSummary(row); } }].concat($.map(result.Columns, function (name) { return { data: function (row) { return row.Values && row.Values[name] || ''; }, title: name, defaultContent: "", className: "text-nowrap" }; })),
                 scrollX: true, scrollY: "58vh", scrollCollapse: true, responsive: false, autoWidth: false,
                 pageLength: 25, lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]], ordering: true,
                 dom: "<'row mb-2'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
@@ -45,8 +68,9 @@
                     exportOptions: { columns: ":visible", modifier: { search: "applied", order: "applied", page: "all" } }
                 }]
             });
-            $("#trSummary").text(result.RowCount + " record(s) | " + result.Columns.length + " column(s)");
+            $("#trSummary").text(result.RowCount + " record(s) | " + result.Columns.length + " configured tracking column(s) | Deal-wise flow overrides are applied automatically");
             $("#trResults").show(); reportTable.columns.adjust();
+            $("#trTable tbody").off("click", ".tr-flow-toggle").on("click", ".tr-flow-toggle", function () { var button = $(this), tableRow = button.closest("tr"), row = reportTable.row(tableRow); if (row.child.isShown()) { row.child.hide(); tableRow.removeClass("shown"); button.text("View process flow"); } else { row.child(processDetails(row.data())).show(); tableRow.addClass("shown"); button.text("Hide process flow"); } });
             if (!result.RowCount) popup("info", "No Records", "No records were found for the selected project and date range.");
         }).fail(function (xhr) { popup("error", "Report Failed", errorMessage(xhr)); }).always(function () { $("#trShow").prop("disabled", false); $("#trLoading").hide(); });
     }

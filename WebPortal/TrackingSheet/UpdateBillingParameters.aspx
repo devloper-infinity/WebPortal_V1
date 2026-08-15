@@ -1,4 +1,4 @@
-<%@ Page Title="Update Billing Parameters" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="UpdateBillingParameters.aspx.cs" Inherits="WebPortal.TrackingSheet.UpdateBillingParameters" %>
+<%@ Page Title="Update Billing Parameters" Language="C#" MasterPageFile="~/TrackingSheet/TrackingSheetMaster.Master" AutoEventWireup="true" CodeBehind="UpdateBillingParameters.aspx.cs" Inherits="WebPortal.TrackingSheet.UpdateBillingParameters" %>
 
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />

@@ -33,21 +33,42 @@ namespace WebPortal.App_Code.BLL
             return dal.GetImportedDeals(projectId);
         }
         public DataTable GetProcessFlow(int projectId) { return dal.GetProcessFlow(projectId); }
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, int userId)
-        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, userId); }
+        public DataTable GetDealProcessFlow(int projectId, string dealNumber) { return dal.GetDealProcessFlow(projectId, dealNumber); }
+        public DataTable GetEffectiveProcessFlow(int projectId, string dealNumber) { return dal.GetEffectiveProcessFlow(projectId, dealNumber); }
+        public DataTable GetConfiguredProcesses(int projectId) { return dal.GetConfiguredProcesses(projectId); }
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int userId)
+        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, userId); }
         public int RemoveProcessFlow(int projectId, int processId, int userId) { return dal.RemoveProcessFlow(projectId, processId, userId); }
+        public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int userId)
+        { dal.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, mandatory, feedback, isFinalProcess, productivityType, expectedCompletionMinutes, userId); }
+        public int RemoveDealProcessFlow(int projectId, string dealNumber, int processId, int userId) { return dal.RemoveDealProcessFlow(projectId, dealNumber, processId, userId); }
         public DataTable GetAvailableLoan(int projectId, string dealNumber, int processId, string processName, int userId)
         {
             return dal.GetNextEligibleImportedLoan(projectId, dealNumber, processId);
         }
         public int AllocateLoan(int projectId, int processId, string loanNumber, string dealNumber, int userId) { return dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId); }
+        public long StartNonTrackingLoan(int projectId, int processId, string loanNumber, string dealNumber, long assignmentId, int userId)
+        {
+            long resolvedAssignmentId = assignmentId;
+            dal.EnsureCanStartNonTrackingLoan(userId, resolvedAssignmentId);
+            if (resolvedAssignmentId <= 0)
+                resolvedAssignmentId = dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId);
+            if (resolvedAssignmentId <= 0)
+                throw new InvalidOperationException("Unable to allocate the selected loan.");
+            dal.StartLoan(resolvedAssignmentId, userId);
+            return resolvedAssignmentId;
+        }
         public bool IsLoanProcessCurrentlyAllocated(string loanNumber, int processId) { return dal.IsLoanProcessCurrentlyAllocated(loanNumber, processId); }
         public DataTable GetTrackingQueue(int userId) { return dal.GetTrackingQueue(userId); }
+        public DataTable GetNonTrackingPendingLoans(int projectId, string dealNumber, int processId, int userId, string userName)
+        { return dal.GetNonTrackingPendingLoans(projectId, dealNumber, processId, userId, userName); }
         public void StartLoan(long assignmentId, int userId) { dal.StartLoan(assignmentId, userId); }
         public void HoldLoan(long assignmentId, string holdReason, int userId) { dal.HoldLoan(assignmentId, holdReason, userId); }
         public void ResumeLoan(long assignmentId, int userId) { dal.ResumeLoan(assignmentId, userId); }
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId) { dal.CompleteLoan(assignmentId, remark, feedbacks, userId); }
+        public void SkipLoan(long assignmentId, string remark, int userId) { dal.SkipLoan(assignmentId, remark, userId); }
         public DataSet GetFeedbackDefaults(long assignmentId, int userId, string feedbackBy) { return dal.GetFeedbackDefaults(assignmentId, userId, feedbackBy); }
+        public bool GetCompletionFeedbackRequirement(long assignmentId, int userId) { return dal.GetCompletionFeedbackRequirement(assignmentId, userId); }
         public DataTable SaveFeedback(long assignmentId, string markedTo, string errorBy, string feedbackBy, string errorType,
             int categoryId, string category, int subcategoryId, string subcategory, string severity, string errorField,
             string screen, string feedbackType, string error, string shouldBe, string remark, string dateReviewed, int userId)
@@ -67,10 +88,10 @@ namespace WebPortal.App_Code.BLL
         public void ValidateManagerAllocation(int projectId, int processId, string[] loanNumbers)
         { dal.ValidateManagerAllocation(projectId, processId, loanNumbers); }
 
-        public DataTable GetManagerDetail(int projectId, int processId, int userId, string status, DateTime? fromDate, DateTime? toDate)
-        { return dal.GetManagerDetail(projectId, processId, userId, status, fromDate, toDate); }
-        public DataTable GetManagerSummary(int projectId, int processId, int userId, DateTime? fromDate, DateTime? toDate)
-        { return dal.GetManagerSummary(projectId, processId, userId, fromDate, toDate); }
+        public DataTable GetManagerDetail(int projectId, string dealNumber, int processId, int userId, string status, string productivityType, DateTime? fromDate, DateTime? toDate)
+        { return dal.GetManagerDetail(projectId, dealNumber, processId, userId, status, productivityType, fromDate, toDate); }
+        public DataTable GetManagerSummary(int projectId, string dealNumber, int processId, int userId, string productivityType, DateTime? fromDate, DateTime? toDate)
+        { return dal.GetManagerSummary(projectId, dealNumber, processId, userId, productivityType, fromDate, toDate); }
         public DataTable GetDealDashboard(int projectId, string dealNumber) { return dal.GetDealDashboard(projectId, dealNumber); }
         public DataTable GetHourlyProduction(int projectId, DateTime reportDate, string dealNumber) { return dal.GetHourlyProduction(projectId, reportDate, dealNumber); }
         public DataTable GetReallocationUsers(int projectId, string dealNumber, int processId) { return dal.GetReallocationUsers(projectId, dealNumber, processId); }
