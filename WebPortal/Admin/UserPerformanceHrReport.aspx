@@ -213,54 +213,121 @@
         .upr-tabs-card > .card-header {
             background: transparent;
             border: 0;
-            padding: 0 0 12px !important;
+            padding: 0 !important;
+            margin-bottom: 18px;
         }
 
         .upr-tabs-card > .card-body {
-            border: 1px solid var(--upr-border);
-            border-radius: 8px;
-            padding: 14px;
-            background: #fff;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
         }
 
-        .upr-main-tabs,
-        .upr-sub-tabs {
+        .upr-main-tabs {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            width: 100%;
             gap: 8px;
-            border: 0 !important;
+            padding: 8px;
+            background: #eff6ff;
+            border: 1px solid #d9e8fb !important;
+            border-radius: 14px;
         }
 
-        .upr-main-tabs .nav-link,
-        .upr-sub-tabs .nav-link {
-            border: 1px solid #dbe3ef !important;
-            background: #fff;
+        .upr-main-tabs .nav-item,
+        .upr-sub-tabs .nav-item {
+            margin: 0 !important;
+        }
+
+        .upr-main-tabs .nav-item {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .upr-main-tabs .nav-link {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            border: 0 !important;
+            background: transparent;
             color: #334155;
-            border-radius: 8px !important;
+            border-radius: 10px !important;
             font-weight: 800;
             font-size: 13px;
-            padding: 10px 14px;
-            transition: all .22s ease;
+            padding: 13px 16px;
+            text-align: center;
+            white-space: nowrap;
+            transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
         }
 
-        .upr-sub-tabs .nav-link {
-            border-radius: 8px !important;
-            padding: 8px 13px;
-            font-size: 12px;
-        }
-
-        .upr-main-tabs .nav-link:hover,
-        .upr-sub-tabs .nav-link:hover {
-            background: #eef6ff;
+        .upr-main-tabs .nav-link:hover {
+            background: rgba(255,255,255,.72);
             color: var(--upr-primary);
         }
 
-        .upr-main-tabs .nav-link.active,
+        .upr-main-tabs .nav-link.active {
+            background: #fff !important;
+            color: #0f172a !important;
+            box-shadow: 0 6px 16px rgba(15,23,42,.10);
+        }
+
+        .upr-main-tabs .nav-link.active::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg,var(--upr-primary),var(--upr-cyan));
+        }
+
+        .upr-sub-tabs {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 24px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            border: 0 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            scrollbar-width: thin;
+        }
+
+        .upr-sub-tabs .nav-link {
+            position: relative;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            color: #64748b;
+            padding: 7px 2px 12px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+            transition: color .18s ease;
+        }
+
+        .upr-sub-tabs .nav-link:hover {
+            color: var(--upr-primary);
+        }
+
         .upr-sub-tabs .nav-link.active {
-            background: var(--upr-primary) !important;
-            color: #fff !important;
-            border-color: transparent !important;
-            box-shadow: 0 8px 18px rgba(21,94,117,.16);
+            color: var(--upr-primary) !important;
+            box-shadow: none;
+        }
+
+        .upr-sub-tabs .nav-link.active::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: -1px;
+            left: 0;
+            height: 3px;
+            border-radius: 3px 3px 0 0;
+            background: linear-gradient(90deg,var(--upr-primary),var(--upr-cyan));
+        }
+
+        .upr-tabs-card .upr-tabs-card > .card-header {
+            margin-bottom: 16px;
         }
 
         .upr-data-wrap {
@@ -357,10 +424,15 @@
             text-align: center;
         }
 
-        .loading {
+        #load1.loading {
             display: none;
             position: fixed;
             inset: 0;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            opacity: 1;
+            border-radius: 0;
             z-index: 99999;
             background: rgba(15,23,42,.32);
             backdrop-filter: blur(2px);
@@ -369,12 +441,16 @@
             text-align: center;
         }
 
-        .loading img {
+        #load1.loading img {
             width: 78px;
             height: 78px;
         }
 
-        .loading > div {
+        #load1.loading > div {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: #fff;
             padding: 22px 28px;
             border-radius: 10px;
@@ -617,8 +693,11 @@
             .upr-card-body { padding: 14px; }
             .upr-actions { justify-content: stretch; }
             .upr-btn { width: 100%; }
-            .upr-main-tabs .nav-link,
-            .upr-sub-tabs .nav-link { width: 100%; text-align: center; border-radius: 8px !important; }
+            .upr-main-tabs { display: flex; width: 100%; }
+            .upr-main-tabs .nav-item { flex: 1 1 0; }
+            .upr-main-tabs .nav-link { width: 100%; padding-right: 10px; padding-left: 10px; text-align: center; }
+            .upr-sub-tabs { gap: 20px; }
+            .upr-sub-tabs .nav-link { width: auto; text-align: left; }
             #waitingpanel .modal-dialog { margin: .75rem; }
             .excel-progress-panel { padding: 18px; }
             .excel-progress-track-row { align-items: stretch; flex-direction: column; }
@@ -629,8 +708,8 @@
 
     <script>
         $(document).ready(function () {
-            $("#hrUser_fromDate").val("2025-03-26");
-            $("#hrUser_toDate").val("2025-04-25");
+            // $("#hrUser_fromDate").val("2025-03-26");
+            // $("#hrUser_toDate").val("2025-04-25");
         });
 
         function showData() {
@@ -723,17 +802,17 @@
                         <ul class="nav nav-tabs upr-main-tabs" id="custom-tabs-main-tab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="custom-tabs-main-nonDD-tab" data-toggle="pill" href="#custom-tabs-main-nonDD" role="tab" aria-controls="custom-tabs-main-nonDD" aria-selected="true">
-                                    <i class="fas fa-layer-group"></i> Non-DD
+                                    Non-DD
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="custom-tabs-main-profile-tab" data-toggle="pill" onclick="cred_summary_bindGrid();" href="#custom-tabs-main-Crdit" role="tab" aria-controls="custom-tabs-main-Crdit" aria-selected="false">
-                                    <i class="fas fa-credit-card"></i> Credit
+                                    Credit
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="custom-tabs-main-feedback-tab" data-toggle="pill" onclick="serv_summary_bindGrid();" href="#custom-tabs-main-Servicing" role="tab" aria-controls="custom-tabs-main-Servicing" aria-selected="false">
-                                    <i class="fas fa-headset"></i> Servicing
+                                    Servicing
                                 </a>
                             </li>
                         </ul>

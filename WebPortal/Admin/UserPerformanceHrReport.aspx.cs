@@ -69,6 +69,9 @@ namespace WebPortal.Admin
 
         private static List<Dictionary<string, object>> ToRows(DataTable dt)
         {
+            if (dt == null)
+                return new List<Dictionary<string, object>>();
+
             return dt.AsEnumerable()
                 .Select(row => dt.Columns.Cast<DataColumn>()
                     .ToDictionary(col => col.ColumnName, col => row[col] == DBNull.Value ? null : row[col]))
@@ -162,6 +165,9 @@ namespace WebPortal.Admin
                                                                                                           // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 }
 
+
+                if (dt == null)
+                    dt = new DataTable();
 
                 int totalRecords = dt.Rows.Count;
 

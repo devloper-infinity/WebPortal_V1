@@ -132,7 +132,7 @@ namespace WebPortal.Admin
             result.Success = true;
             result.EmployeeId = employeeId;
             result.Code = Text(employee, "Code");
-            result.Name = (Text(employee, "FirstName") + " " + Text(employee, "middleName") + " " + Text(employee, "LastName")).Trim();
+            result.Name = (Text(employee, "FirstName") + " " + Text(employee, "LastName")).Trim();
             result.EmployeeType = employeeType;
             result.Branch = Text(employee, "WorkingBranchName");
             result.Department = Text(employee, "DepartmentName");
@@ -215,7 +215,7 @@ namespace WebPortal.Admin
             parameters.Add("QualityBonus", request.IsQualityBonusApplicable ? request.QualityBonus : 0);
             parameters.Add("AddedBy", Convert.ToInt32(HttpContext.Current.User.Identity.Name));
 
-            int returnValue = new bllMaster().InsertSalaryStructure(parameters);
+            int returnValue =  new bllMaster().InsertSalaryStructure(parameters);
             result.ReturnValue = returnValue;
             result.Success = returnValue > 0;
             result.Message = result.Success

@@ -6029,6 +6029,45 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
+        public DataTable GetAllEmployeeDetailsForApprovalofSalaryStructure()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "[usp_GetAllEmployeeDetailsForApprovalofNewProfile]");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public int InsertSalaryStructure(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertSalaryStructure_Revised");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["EmployeeId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Salary", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["Salary"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Basic", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["Basic"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DA", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["DA"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@MR", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["MR"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TA", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["TA"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EA", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["EA"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@HA", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["HA"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@HRA", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["HRA"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Other", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["Other"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProfTax", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["ProfTax"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@isESIC", SqlDbType.Bit, 0, ParameterDirection.Input, htParam["isESIC"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ESIC", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["ESIC"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@isPF", SqlDbType.Bit, 0, ParameterDirection.Input, htParam["isPF"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PF", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["PF"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@isNightBonus", SqlDbType.Bit, 0, ParameterDirection.Input, htParam["isNightBonus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@NightBonus", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["NightBonus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@isExtra", SqlDbType.Bit, 0, ParameterDirection.Input, htParam["isExtra"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AttendanceBonusType", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["AttendanceBonusType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AttendanceBonus", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AttendanceBonus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@isQualityBonusApplicable", SqlDbType.Bit, 0, ParameterDirection.Input, htParam["isQualityBonusApplicable"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@QualityBonus", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["QualityBonus"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
         public DataTable GetAllUserERPLoginDetails()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllUserERPLoginDetails");

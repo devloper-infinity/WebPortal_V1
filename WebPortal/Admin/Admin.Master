@@ -46,6 +46,7 @@
 
                             $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
                             $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
+
                             getPendingTaskNotifications_Sidebar();
 
                             $.ajax({

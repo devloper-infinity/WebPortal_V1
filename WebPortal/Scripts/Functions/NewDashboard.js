@@ -1567,10 +1567,15 @@ function dash_PendingTaskNotifications(callback) {
 
                 total_Count++;
 
+                var taskUrl = item.Url;
+                if ((item.Text || "").indexOf("Profile Verification Request") === 0) {
+                    taskUrl = "ApproveSalaryStructure.aspx";
+                }
+
                 html += `
                     <tr>
                         <td>
-                             <a href="${item.Url}" target="_blank" style="font-size:14px; color:black; text-decoration:underline;">${item.Text || ""}</a>
+                             <a href="${taskUrl}" target="_blank" style="font-size:14px; color:black; text-decoration:underline;">${item.Text || ""}</a>
                         </td>
                     </tr>`;
             });

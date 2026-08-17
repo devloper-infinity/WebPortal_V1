@@ -2688,6 +2688,16 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetProcessForOtherTask(ProjectID);
         }
 
+        public DataTable GetAllEmployeeDetailsForApprovalofSalaryStructure()
+        {
+            return dalMaster.GetAllEmployeeDetailsForApprovalofSalaryStructure();
+        }
+
+        public int InsertSalaryStructure(Hashtable htParam)
+        {
+            return dalMaster.InsertSalaryStructure(htParam);
+        }
+
 
         public DataTable GetAllUserERPLoginDetails()
         {

@@ -304,7 +304,7 @@ namespace WebPortal.IT
                         {
                             To = "support@infinityinternationals.us";
                             CC = TicketCC + ",hetal@infinity-data.com";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                             Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
                             Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                         }
@@ -312,7 +312,7 @@ namespace WebPortal.IT
                         {
                             To = OfficialIdDoaminHead;
                             CC = "";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                             Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]) + " : Pending for Approval";
                             Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                         }
@@ -320,7 +320,7 @@ namespace WebPortal.IT
                         {
                             To = OfficialIdDoaminHead + "," + OfficialId;
                             CC = "";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                             Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]) + " : Pending for Approval";
                             Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                         }
@@ -328,7 +328,7 @@ namespace WebPortal.IT
                         {
                             To = "support@infinityinternationals.us";
                             CC = TicketCC + ",hetal@infinity-data.com";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                             Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
                             Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                         }
@@ -337,7 +337,7 @@ namespace WebPortal.IT
                     {
                         To = "admin-dept@infinityinternationals.us";
                         CC = TicketCC + ",hetal@infinity-data.com";
-                        BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                        BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                         Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
                         Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                     }
@@ -345,7 +345,7 @@ namespace WebPortal.IT
                     {
                         To = "n.nilkanth@infinityinternationals.us";
                         CC = TicketCC;
-                        BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                        BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                         Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
                         Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                     }
@@ -353,7 +353,7 @@ namespace WebPortal.IT
                     {
                         To = "hr@infinityinternationals.us";
                         CC = TicketCC;
-                        BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us";
+                        BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                         Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
                         Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
                     }
@@ -368,7 +368,7 @@ namespace WebPortal.IT
                     if (CC != "")
                         mail.CC.Add(CC);
                     if (BCC != "")
-                        mail.Bcc.Add(BCC);// "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us");
+                        mail.Bcc.Add(BCC);
                     mail.Subject = Subject;
                     mail.Body = head.ToString() + body.ToString() + footer.ToString();
                     mail.IsBodyHtml = true;

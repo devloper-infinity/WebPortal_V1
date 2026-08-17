@@ -739,6 +739,7 @@
     <Content Include="Admin\RequisitionProfile.aspx" />
     <Content Include="Admin\InitiateResignation.aspx" />
     <Content Include="Admin\Resignation.aspx" />
+    <Content Include="Admin\ApproveSalaryStructure.aspx" />
     <Content Include="Admin\RewardAndRecognition.aspx" />
     <Content Include="Admin\RoamingBranch.aspx" />
     <Content Include="Admin\SelfLeaves.aspx" />
@@ -2796,6 +2797,7 @@
     <Content Include="Scripts\Functions\QualityReport.js" />
     <Content Include="Scripts\Functions\InitiateResignation.js" />
     <Content Include="Scripts\Functions\Resignation.js" />
+    <Content Include="Scripts\Functions\ApproveSalaryStructure.js" />
     <Content Include="Scripts\Functions\SecruitizationBilling.js" />
     <Content Include="Scripts\Functions\SecuritizationBillingImport.js" />
     <Content Include="Scripts\Functions\SLAReport.js" />
@@ -4898,6 +4900,13 @@
     </Compile>
     <Compile Include="Admin\Resignation.aspx.designer.cs">
       <DependentUpon>Resignation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ApproveSalaryStructure.aspx.cs">
+      <DependentUpon>ApproveSalaryStructure.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ApproveSalaryStructure.aspx.designer.cs">
+      <DependentUpon>ApproveSalaryStructure.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\RewardAndRecognition.aspx.cs">
       <DependentUpon>RewardAndRecognition.aspx</DependentUpon>

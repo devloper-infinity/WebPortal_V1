@@ -165,7 +165,7 @@ namespace WebPortal.Admin
                     //mail.CC.Add("n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us");
 
                     mail.To.Add(Receiver);
-                    mail.CC.Add("k.sagar@infinity-data.com,j.rucha@infinityinternationals.us,g.trupti@infinityinternationals.us");
+                    mail.CC.Add("k.sagar@infinity-data.com,g.trupti@infinityinternationals.us");
                     mail.Bcc.Add("n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us");
 
                     mail.Subject = "Ex Employer Verification – Infinity Data Technologies Pvt. Ltd. – " + Convert.ToString(dt.Rows[0]["CandidateName"]);
