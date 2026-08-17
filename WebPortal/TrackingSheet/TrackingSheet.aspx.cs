@@ -15,8 +15,24 @@ namespace WebPortal.TrackingSheet
     {
         protected void Page_Load(object sender, EventArgs e) { }
         [WebMethod] public static string GetProjects() { return OLTrackingWeb.Json(new bllOLTracking().GetProjectsByUser(OLTrackingWeb.UserId)); }
+        [WebMethod] public static string GetCurrentPseudoName() { return EmployeeInfo.Current == null ? string.Empty : EmployeeInfo.Current.PseudoName; }
         [WebMethod] public static string GetDeals(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetSourceDeals(projectId, OLTrackingWeb.UserId)); }
-        [WebMethod] public static string GetFlow(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetProcessFlow(projectId)); }
+        [WebMethod] public static string GetFlow(int projectId, string dealNumber) { return OLTrackingWeb.Json(new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber)); }
+        [WebMethod]
+        public static ProcessEntryMode GetProcessEntryMode(int projectId, string dealNumber, int processId)
+        {
+            DataTable flow = new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber);
+            foreach (DataRow row in flow.Rows)
+            {
+                if (Convert.ToInt32(row["ProcessID"]) != processId) continue;
+                return new ProcessEntryMode
+                {
+                    IsTrackingSheetProcess = Convert.ToBoolean(row["IsTrackingSheetProcess"]),
+                    ProductivityType = Convert.ToString(row["ProductivityType"])
+                };
+            }
+            throw new ArgumentException("The selected process is not configured for this Project and Deal.");
+        }
         [WebMethod]
         public static AvailableLoanResult GetAvailableLoan(int projectId, string dealNumber, int processId, string processName)
         {
@@ -50,6 +66,44 @@ namespace WebPortal.TrackingSheet
         {
             bllOLTracking tracking = new bllOLTracking();
             return OLTrackingWeb.Json(AddProjectNames(tracking.GetTrackingQueue(OLTrackingWeb.UserId), tracking));
+        }
+        [WebMethod]
+        public static string GetNonTrackingPendingLoans(int projectId, string dealNumber, int processId)
+        {
+            string pseudoName = EmployeeInfo.Current == null ? string.Empty : EmployeeInfo.Current.PseudoName;
+            return OLTrackingWeb.Json(new bllOLTracking().GetNonTrackingPendingLoans(projectId, dealNumber, processId,
+                OLTrackingWeb.UserId, pseudoName));
+        }
+        [WebMethod]
+        public static TrackingActionResult StartNonTrackingLoan(int projectId, int processId, string loanNumber, string dealNumber, long assignmentId)
+        {
+            try
+            {
+                bllOLTracking tracking = new bllOLTracking();
+                assignmentId = tracking.StartNonTrackingLoan(projectId, processId, loanNumber, dealNumber,
+                    assignmentId, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = true, Message = "Loan started successfully.", AssignmentID = assignmentId };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
+        }
+        [WebMethod]
+        public static TrackingActionResult SubmitHourlyProductivity(int projectId, int processId, string dealNumber, int hours, int minutes)
+        {
+            try
+            {
+                if (hours < 0 || hours > 24 || minutes < 0 || minutes > 59 || hours * 60 + minutes < 1 || (hours == 24 && minutes > 0))
+                    return new TrackingActionResult { Success = false, Message = "Enter a duration between 00:01 and 24:00." };
+                long assignmentId = new bllOLTracking().SubmitHourlyProductivity(projectId, processId, dealNumber,
+                    hours * 60 + minutes, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = assignmentId > 0, AssignmentID = assignmentId, Message = "Hourly productivity submitted successfully." };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
         }
         [WebMethod] public static string GetDailyProcesses() { return OLTrackingWeb.Json(new bllOLTracking().GetUserDailyProcesses(OLTrackingWeb.UserId)); }
         [WebMethod]
@@ -107,9 +161,27 @@ namespace WebPortal.TrackingSheet
             }
         }
         [WebMethod]
+        public static TrackingActionResult SkipLoan(long assignmentId, string remark)
+        {
+            try
+            {
+                new bllOLTracking().SkipLoan(assignmentId, remark, OLTrackingWeb.UserId);
+                return new TrackingActionResult { Success = true, Message = "Process skipped successfully." };
+            }
+            catch (Exception exception)
+            {
+                return new TrackingActionResult { Success = false, Message = UserMessage(exception) };
+            }
+        }
+        [WebMethod]
         public static string GetFeedbackDefaults(long assignmentId)
         {
             return OLTrackingWeb.Json(new bllOLTracking().GetFeedbackDefaults(assignmentId, OLTrackingWeb.UserId, EmployeeInfo.Current.PseudoName));
+        }
+        [WebMethod]
+        public static bool GetCompletionFeedbackRequirement(long assignmentId)
+        {
+            return new bllOLTracking().GetCompletionFeedbackRequirement(assignmentId, OLTrackingWeb.UserId);
         }
         [WebMethod]
         public static List<FeedbackListItem> GetFeedbackCategories()
@@ -130,16 +202,19 @@ namespace WebPortal.TrackingSheet
                 string validation = ValidateFeedback(model);
                 if (validation.Length > 0) return new FeedbackSaveResult { Success = false, Message = validation };
 
-                DataTable saved = new bllOLTracking().SaveFeedback(model.AssignmentID, model.MarkedTo, model.ErrorBy,
+                DataTable saved = new bllOLTracking().SaveFeedbackForTargets(model.AssignmentID, model.TargetAssignmentIDs,
                     model.FeedbackBy, model.ErrorType, model.CategoryID, model.Category, model.SubcategoryID,
                     model.Subcategory, model.Severity, model.ErrorField, model.Screen, model.FeedbackType, model.Error,
-                    model.ShouldBe, model.Remark, model.DateReviewed, OLTrackingWeb.UserId);
+                    model.ShouldBe, model.Remark, OLTrackingWeb.UserId);
+                int savedTargetCount = saved.Rows.Count == 0 ? 0 : Convert.ToInt32(saved.Rows[0]["SavedTargetCount"]);
                 return new FeedbackSaveResult
                 {
                     Success = saved.Rows.Count > 0,
-                    Message = "Feedback added successfully.",
+                    Message = savedTargetCount == 1 ? "Feedback added against the selected process user." :
+                        "Feedback added against " + savedTargetCount + " selected process users.",
                     FeedbackID = saved.Rows.Count == 0 ? 0 : Convert.ToInt64(saved.Rows[0]["FeedbackID"]),
-                    FeedbackCount = saved.Rows.Count == 0 ? 0 : Convert.ToInt32(saved.Rows[0]["FeedbackCount"])
+                    FeedbackCount = saved.Rows.Count == 0 ? 0 : Convert.ToInt32(saved.Rows[0]["FeedbackCount"]),
+                    SavedTargetCount = savedTargetCount
                 };
             }
             catch (Exception exception)
@@ -227,6 +302,12 @@ namespace WebPortal.TrackingSheet
                 case 50130: return "Select one or two loans.";
                 case 50131: return "The selected user is not configured for this project.";
                 case 50132: return "Another loan is already In Process. Place it on Hold or complete it before starting another loan.";
+                case 50137: return "This process is mandatory and cannot be skipped.";
+                case 50138: return "The selected process uses the standard Tracking Sheet workflow.";
+                case 50143: return "All configured Eligible After Process(es) must be completed before this loan can be allocated.";
+                case 50147: return "Please select at least one Previous Process.";
+                case 50148: return "One or more selected Previous Processes are not completed or are not allowed by the feedback routing configuration. Refresh and try again.";
+                case 50149: return "Feedback must be added against every configured Previous Process user before completing the loan.";
                 case 2601:
                 case 2627:
                     if (sqlException.Message.IndexOf("UX_OLTracking_Assignment_LoanProcess", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -252,15 +333,25 @@ namespace WebPortal.TrackingSheet
         private static string ValidateFeedback(TrackingFeedbackModel model)
         {
             if (model == null) return "Invalid feedback data.";
-            if (string.IsNullOrWhiteSpace(model.MarkedTo)) return "Please select Marked to.";
-            if (string.IsNullOrWhiteSpace(model.ErrorBy)) return "Please select Error By.";
+            if (model.TargetAssignmentIDs == null || model.TargetAssignmentIDs.Length == 0) return "Please select at least one Previous Process.";
             if (string.IsNullOrWhiteSpace(model.ErrorType)) return "Please enter Error Type.";
             if (model.CategoryID <= 0 || string.IsNullOrWhiteSpace(model.Category)) return "Please select Category.";
             if (model.SubcategoryID <= 0 || string.IsNullOrWhiteSpace(model.Subcategory)) return "Please select Subcategory.";
             if (string.IsNullOrWhiteSpace(model.Severity)) return "Please select Severity.";
+            if (!model.Severity.Equals("No Error", StringComparison.OrdinalIgnoreCase) &&
+                !model.Severity.Equals("Critical", StringComparison.OrdinalIgnoreCase) &&
+                !model.Severity.Equals("Non-Critical", StringComparison.OrdinalIgnoreCase)) return "Please select a valid Severity.";
             if (string.IsNullOrWhiteSpace(model.ErrorField)) return "Please enter Error Field.";
+            if (string.IsNullOrWhiteSpace(model.Screen)) return "Please enter Screen.";
             if (string.IsNullOrWhiteSpace(model.FeedbackType)) return "Please enter Feedback Type.";
             if (string.IsNullOrWhiteSpace(model.Error)) return "Please enter Finding.";
+            if (string.IsNullOrWhiteSpace(model.ShouldBe)) return "Please enter RCA.";
+            if (model.Severity.Equals("No Error", StringComparison.OrdinalIgnoreCase) &&
+                (!model.Category.Equals("Compliance", StringComparison.OrdinalIgnoreCase) ||
+                 !model.Subcategory.Equals("Compliance", StringComparison.OrdinalIgnoreCase) ||
+                 model.ErrorField != "NA" || model.Screen != "NA" || model.ErrorType != "NA" ||
+                 model.FeedbackType != "NA" || model.Error != "No Error" || model.ShouldBe != "No Error"))
+                return "No Error feedback must use the configured Compliance defaults.";
             return string.Empty;
         }
     }
@@ -270,11 +361,17 @@ namespace WebPortal.TrackingSheet
         public string LoanNumber { get; set; }
         public string DealNumber { get; set; }
     }
+    public sealed class ProcessEntryMode
+    {
+        public bool IsTrackingSheetProcess { get; set; }
+        public string ProductivityType { get; set; }
+    }
 
     public class TrackingActionResult
     {
         public bool Success { get; set; }
         public string Message { get; set; }
+        public long AssignmentID { get; set; }
     }
 
     public sealed class FeedbackListItem { public string Value { get; set; } public string Text { get; set; } }
@@ -282,10 +379,12 @@ namespace WebPortal.TrackingSheet
     {
         public long FeedbackID { get; set; }
         public int FeedbackCount { get; set; }
+        public int SavedTargetCount { get; set; }
     }
     public sealed class TrackingFeedbackModel
     {
         public long AssignmentID { get; set; }
+        public long[] TargetAssignmentIDs { get; set; }
         public string MarkedTo { get; set; }
         public string ErrorBy { get; set; }
         public string FeedbackBy { get; set; }

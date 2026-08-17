@@ -480,7 +480,68 @@ WHERE RowNumber = 1;");
             SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, LoanNo);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, EmployeeID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            if (!dt.Columns.Contains("DataField")) dt.Columns.Add("DataField", typeof(string));
+            if (!dt.Columns.Contains("IsError")) dt.Columns.Add("IsError", typeof(string));
+            if (!dt.Columns.Contains("Task")) dt.Columns.Add("Task", typeof(string));
+            SqlCommand collection = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT FeedbackID,ISNULL(DataField,'') DataField,ISNULL(IsError,'') IsError,
+       CASE WHEN Source='Collection Comments ReQC' THEN Source ELSE '' END Task
+FROM dbo.ImportedFeedbacks_Servicing WITH(NOLOCK)
+WHERE [Loan Number]=@LoanNo AND AddedBy=@EmployeeID;");
+            SQLHelper.AddParamToSQLCmd(collection, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, LoanNo);
+            SQLHelper.AddParamToSQLCmd(collection, "@EmployeeID", SqlDbType.Int, 0, ParameterDirection.Input, EmployeeID);
+            DataTable collectionRows = SQLHelper.ExecuteDataTableCmd(collection);
+            Dictionary<int, DataRow> collectionById = collectionRows.AsEnumerable().ToDictionary(x => Convert.ToInt32(x["FeedbackID"]));
+            foreach (DataRow row in dt.Rows) { int id; DataRow details; if (dt.Columns.Contains("FeedbackID") && int.TryParse(Convert.ToString(row["FeedbackID"]), out id) && collectionById.TryGetValue(id, out details)) { row["DataField"] = details["DataField"]; row["IsError"] = details["IsError"]; row["Task"] = details["Task"]; } }
             return dt;
+        }
+
+        public DataTable GetCollectionCommentsDataFields()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, "SELECT DataField FROM dbo.CollectionCommentsReQCDataField WHERE IsActive=1 ORDER BY CASE WHEN DataField='No Error' THEN 1 ELSE 0 END,SortOrder,DataField;");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public bool IsCollectionCommentsDataFieldValid(string dataField)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, "SELECT COUNT(1) FROM dbo.CollectionCommentsReQCDataField WHERE IsActive=1 AND DataField=@DataField;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@DataField", SqlDbType.NVarChar, 200, ParameterDirection.Input, dataField);
+            return Convert.ToInt32(SQLHelper.ExecuteScalarCmd(cmd)) > 0;
+        }
+
+        public int InsertCollectionCommentsFeedback(string loanNo, string client, string uwName, string dateReviewed, string qcDate, string feedbackReceivedDate, string dataField, string isError, string finding, int addedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+INSERT dbo.ImportedFeedbacks_Servicing
+([Loan Number],Client,[UW Name],[QC Name],[Date Reviewed],[QC Date],Finding,Severity,Source,
+ [Feedback Received Date],[Emp Status],AddedBy,AddedDate,IsDisplayFeedbackInERP,[Finding Status],DataField,IsError)
+VALUES(@LoanNo,@Client,@UWName,'',@DateReviewed,@QCDate,@Finding,'',N'Collection Comments ReQC',
+ @FeedbackReceivedDate,'Active',@AddedBy,GETDATE(),1,'Pending',@DataField,@IsError);
+SELECT CONVERT(int,SCOPE_IDENTITY());");
+            AddCollectionCommentsParameters(cmd, loanNo, client, dataField, isError, finding, addedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UWName", SqlDbType.NVarChar, 500, ParameterDirection.Input, uwName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DateReviewed", SqlDbType.NVarChar, 100, ParameterDirection.Input, dateReviewed);
+            SQLHelper.AddParamToSQLCmd(cmd, "@QCDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, qcDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackReceivedDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, feedbackReceivedDate);
+            return Convert.ToInt32(SQLHelper.ExecuteScalarCmd(cmd));
+        }
+
+        public int UpdateCollectionCommentsFeedback(int feedbackId, string loanNo, string client, string dataField, string isError, string finding, int addedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"UPDATE dbo.ImportedFeedbacks_Servicing SET DataField=@DataField,IsError=@IsError,Finding=@Finding WHERE FeedbackID=@FeedbackID AND [Loan Number]=@LoanNo AND Client=@Client AND AddedBy=@AddedBy AND Source=N'Collection Comments ReQC'; SELECT @@ROWCOUNT;");
+            AddCollectionCommentsParameters(cmd, loanNo, client, dataField, isError, finding, addedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", SqlDbType.Int, 0, ParameterDirection.Input, feedbackId);
+            return Convert.ToInt32(SQLHelper.ExecuteScalarCmd(cmd));
+        }
+
+        private static void AddCollectionCommentsParameters(SqlCommand cmd, string loanNo, string client, string dataField, string isError, string finding, int addedBy)
+        {
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, loanNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", SqlDbType.NVarChar, 500, ParameterDirection.Input, client);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DataField", SqlDbType.NVarChar, 200, ParameterDirection.Input, dataField);
+            SQLHelper.AddParamToSQLCmd(cmd, "@IsError", SqlDbType.NVarChar, 3, ParameterDirection.Input, isError);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, finding);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.Int, 0, ParameterDirection.Input, addedBy);
         }
 
         public DataTable GetOverAllUserPerformanceDetails_Servicing_Greg(int EmployeeID, string FromDate, string ToDate)
@@ -1188,7 +1249,7 @@ SELECT CAST(SCOPE_IDENTITY() AS int);");
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
 SELECT
     ISNULL(ProjectDetails.ProjectName, CONVERT(nvarchar(100), Feedback.ProjectID)) AS ProjectName,
-   s Feedback.DealNo,
+    Feedback.DealNo,
     Feedback.LoanNo,
     Feedback.Reviewer,
     CONVERT(varchar(10), Feedback.ReviewDate, 120) AS ReviewDate,
@@ -1218,6 +1279,31 @@ ORDER BY Feedback.AddedDate DESC, Feedback.LoanNo;");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             cmd.Dispose();
             return dt;
+        }
+
+        public DataTable GetCollectionCommentsFeedbackOnshore(DateTime fromDate, DateTime toDate, int addedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT Feedback.FeedbackID,Feedback.Client,Feedback.[Loan Number] LoanNumber,
+       ISNULL(ProjectDetails.ProjectName,Feedback.Client) ProjectName,
+       ISNULL(Feedback.[UW Name],'') Reviewer,ISNULL(Feedback.DataField,'') DataField,
+       ISNULL(Feedback.IsError,'') IsError,ISNULL(Feedback.Finding,'') Finding,
+       ISNULL(Feedback.RCA,'') RCA,ISNULL(Feedback.Comments,'') Comments,
+       ISNULL(Feedback.[Finding Status],'Pending') FeedbackStatus,
+       CAST('' AS nvarchar(4000)) OnshoreRemark,
+       LTRIM(RTRIM(ISNULL(AddedByEmployee.FirstName,'')+' '+ISNULL(AddedByEmployee.LastName,''))) AddedByName,
+       CONVERT(varchar(19),Feedback.AddedDate,120) AddedDate
+FROM dbo.ImportedFeedbacks_Servicing Feedback WITH(NOLOCK)
+LEFT JOIN dbo.Project ProjectDetails WITH(NOLOCK) ON CONVERT(nvarchar(100),ProjectDetails.ProjectID)=Feedback.Client
+LEFT JOIN dbo.EmployeeInfo AddedByEmployee WITH(NOLOCK) ON AddedByEmployee.EmployeeID=Feedback.AddedBy
+WHERE Feedback.Source=N'Collection Comments ReQC'
+  AND (Feedback.AddedBy=@AddedBy OR @AddedBy=10497)
+  AND Feedback.AddedDate>=@FromDate AND Feedback.AddedDate<DATEADD(day,1,@ToDate)
+ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.Date, 0, ParameterDirection.Input, fromDate.Date);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.Date, 0, ParameterDirection.Input, toDate.Date);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.Int, 0, ParameterDirection.Input, addedBy);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
         public int SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, string RebuttalStatus, int AddedBy)

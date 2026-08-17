@@ -435,7 +435,8 @@
             </div>
             <div class="feedback-card-body">
                 <div class="feedback-grid">
-                    <div class="feedback-field">
+                    <input type="hidden" id="USLoanDetails_Task" />
+                    <div id="standardSeverityField" class="feedback-field">
                         <label for="USLoanDetails_LoanNo">Loan #</label>
                         <input type="text" id="USLoanDetails_LoanNo" name="USLoanDetails_LoanNo" class="form-control" disabled="disabled" />
                     </div>
@@ -470,9 +471,25 @@
                         </select>
                     </div>
 
-                    <div class="feedback-field full">
+                    <div id="standardFindingField" class="feedback-field full">
                         <label for="USLoanDetails_Finding">Finding</label>
                         <textarea id="USLoanDetails_Finding" name="USLoanDetails_Finding" class="form-control"></textarea>
+                    </div>
+                    <div id="collectionCommentsFields" class="feedback-field full" style="display:none">
+                        <div class="feedback-grid">
+                            <div class="feedback-field">
+                                <label for="USLoanDetails_DataField">Data Field</label>
+                                <select id="USLoanDetails_DataField" class="form-control" onchange="return syncCollectionCommentsFeedback();"><option value="">Select</option></select>
+                            </div>
+                            <div class="feedback-field">
+                                <label for="USLoanDetails_IsError">Is Error</label>
+                                <select id="USLoanDetails_IsError" class="form-control"><option value="">Select</option><option value="Yes">Yes</option><option value="No">No</option></select>
+                            </div>
+                            <div class="feedback-field full">
+                                <label for="USLoanDetails_CollectionFinding">Finding</label>
+                                <textarea id="USLoanDetails_CollectionFinding" class="form-control" rows="4"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -508,6 +525,8 @@
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Loan #</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Severity</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap;">Findings</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Data Field</th>
+                                <th class="sort border-top ps-3" style="text-wrap: nowrap;">Is Error</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Added By Name</th>
                                 <th class="sort border-top ps-3" style="text-wrap: nowrap; display: none;">Added Date</th>
                             </tr>

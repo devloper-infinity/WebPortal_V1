@@ -33,6 +33,11 @@ namespace WebPortal.App_Code.BLL
             return dal.GetTrackingReportRows(projectId, fromDate, toDate);
         }
 
+        public DataTable GetTrackingReportProcesses(int projectId, DateTime fromDate, DateTime toDate)
+        {
+            return dal.GetTrackingReportProcesses(projectId, fromDate, toDate);
+        }
+
         public void SaveImportFlag(int fieldConfigId, int projectId, bool isForImport, int userId)
         {
             dal.SaveImportFlag(fieldConfigId, projectId, isForImport, userId);

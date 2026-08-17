@@ -36,11 +36,13 @@ namespace WebPortal.TrackingSheet
             bllOLTrackingImport tracking = new bllOLTrackingImport();
             DataTable fields = tracking.GetTrackingReportFields(projectId);
             DataTable source = tracking.GetTrackingReportRows(projectId, from, to);
+            DataTable processes = tracking.GetTrackingReportProcesses(projectId, from, to);
+            DataTable hourlyEntries = new bllOLTracking().GetHourlyProductivityEntries(projectId, from, to);
             string projectName = GetProjects().Where(x => x.ID == projectId).Select(x => x.Name).FirstOrDefault() ?? projectId.ToString();
-            return BuildResponse(source, fields, projectName);
+            return BuildResponse(source, fields, processes, hourlyEntries, projectName);
         }
 
-        private static ReportResponse BuildResponse(DataTable source, DataTable fields, string projectName)
+        private static ReportResponse BuildResponse(DataTable source, DataTable fields, DataTable processes, DataTable hourlyEntries, string projectName)
         {
             List<string> columns = new List<string> { "Project #", "Deal #", "Loan #", "Order Date" };
             Dictionary<int, string> fieldColumns = new Dictionary<int, string>();
@@ -50,8 +52,10 @@ namespace WebPortal.TrackingSheet
                 if (name.Length == 0 || IsBaseField(name) || columns.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase))) continue;
                 columns.Add(name); fieldColumns[Convert.ToInt32(field["FieldConfigId"])] = name;
             }
+            if (hourlyEntries.Rows.Count > 0) columns.Add("Hours Worked");
 
             List<Dictionary<string, string>> rows = new List<Dictionary<string, string>>();
+            List<string> rowKeys = new List<string>();
             Dictionary<string, Dictionary<string, string>> rowMap = new Dictionary<string, Dictionary<string, string>>();
             foreach (DataRow sourceRow in source.Rows)
             {
@@ -63,7 +67,7 @@ namespace WebPortal.TrackingSheet
                     row = columns.ToDictionary(x => x, x => string.Empty);
                     row["Project #"] = projectName; row["Deal #"] = Convert.ToString(sourceRow["DealNumber"]);
                     row["Loan #"] = Convert.ToString(sourceRow["ItemNumber"]); row["Order Date"] = date.ToString("dd-MMM-yyyy");
-                    rowMap.Add(key, row); rows.Add(row);
+                    rowMap.Add(key, row); rows.Add(row); rowKeys.Add(key);
                 }
                 if (sourceRow["FieldConfigId"] != DBNull.Value)
                 {
@@ -71,13 +75,74 @@ namespace WebPortal.TrackingSheet
                     if (fieldColumns.TryGetValue(Convert.ToInt32(sourceRow["FieldConfigId"]), out column)) row[column] = Convert.ToString(sourceRow["FieldValue"]);
                 }
             }
-            return new ReportResponse { Columns = columns, Rows = rows, RowCount = rows.Count };
+            Dictionary<string, List<ProcessView>> processMap = new Dictionary<string, List<ProcessView>>();
+            foreach (DataRow process in processes.Rows)
+            {
+                string key = Convert.ToString(process["ItemID"]) + "|" + Convert.ToDateTime(process["EntryDate"]).ToString("yyyyMMdd");
+                List<ProcessView> list;
+                if (!processMap.TryGetValue(key, out list)) { list = new List<ProcessView>(); processMap[key] = list; }
+                list.Add(new ProcessView
+                {
+                    ProcessID = Convert.ToInt32(process["ProcessID"]), ProcessName = Convert.ToString(process["ProcessName"]),
+                    Sequence = Convert.ToInt32(process["StageNo"]), Status = Convert.ToString(process["ProcessStatus"]),
+                    IsMandatory = Convert.ToBoolean(process["IsMandatory"]), IsFinalProcess = Convert.ToBoolean(process["IsFinalProcess"]),
+                    IsCurrent = Convert.ToBoolean(process["IsCurrent"]), CompletedBy = FirstValue(process, "CompletedBy"),
+                    ProcessUser = FirstValue(process, "ProcessUser"),
+                    ManualDurationMinutes = process["ManualDurationMinutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(process["ManualDurationMinutes"])
+                });
+            }
+            List<ReportRow> reportRows = new List<ReportRow>();
+            for (int rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+            {
+                string key = rowKeys[rowIndex]; List<ProcessView> itemProcesses; processMap.TryGetValue(key, out itemProcesses);
+                itemProcesses = itemProcesses ?? new List<ProcessView>();
+                foreach (ProcessView process in itemProcesses) process.IsCurrent = false;
+                ProcessView current = itemProcesses
+                    .Where(x => StatusIs(x, "In Process"))
+                    .OrderByDescending(x => x.Sequence).ThenBy(x => x.ProcessName).FirstOrDefault();
+                if (current == null)
+                    current = itemProcesses.Where(x => StatusIs(x, "Hold") || StatusIs(x, "On Hold"))
+                        .OrderByDescending(x => x.Sequence).ThenBy(x => x.ProcessName).FirstOrDefault();
+                if (current == null)
+                    current = itemProcesses.Where(x => x.IsMandatory && IsPending(x))
+                        .OrderBy(x => x.Sequence).ThenBy(x => x.ProcessName).FirstOrDefault();
+                if (current == null)
+                    current = itemProcesses.Where(IsPending)
+                        .OrderBy(x => x.Sequence).ThenBy(x => x.ProcessName).FirstOrDefault();
+                if (current != null) current.IsCurrent = true;
+                reportRows.Add(new ReportRow { Values = rows[rowIndex], Processes = itemProcesses });
+            }
+            foreach (DataRow entry in hourlyEntries.Rows)
+            {
+                Dictionary<string, string> values = columns.ToDictionary(x => x, x => string.Empty);
+                int minutes = Convert.ToInt32(entry["DurationMinutes"]);
+                values["Project #"] = projectName; values["Deal #"] = Convert.ToString(entry["DealNumber"]);
+                values["Order Date"] = Convert.ToDateTime(entry["EntryDate"]).ToString("dd-MMM-yyyy");
+                values["Hours Worked"] = (minutes / 60).ToString() + ":" + (minutes % 60).ToString("00");
+                reportRows.Add(new ReportRow
+                {
+                    Values = values,
+                    Processes = new List<ProcessView> { new ProcessView { ProcessID=Convert.ToInt32(entry["ProcessID"]), ProcessName=Convert.ToString(entry["ProcessName"]), Sequence=Convert.ToInt32(entry["StageNo"]), Status="Completed", IsCurrent=false, CompletedBy=Convert.ToString(entry["UserName"]), ProcessUser=Convert.ToString(entry["UserName"]), ManualDurationMinutes=minutes } }
+                });
+            }
+            return new ReportResponse { Columns = columns, Rows = reportRows, RowCount = reportRows.Count };
         }
 
         private static bool IsBaseField(string value)
         {
             string n = new string((value ?? "").ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
             return new[] { "project", "projectno", "projectnumber", "deal", "dealno", "dealnumber", "loan", "loanno", "loannumber", "orderdate", "entrydate" }.Contains(n);
+        }
+
+        private static bool StatusIs(ProcessView process, string status)
+        {
+            return string.Equals(process.Status ?? string.Empty, status, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsPending(ProcessView process)
+        {
+            return !StatusIs(process, "Completed") && !StatusIs(process, "Skipped") &&
+                   !StatusIs(process, "In Process") && !StatusIs(process, "Hold") && !StatusIs(process, "On Hold");
         }
 
         private static string FirstValue(DataRow row, params string[] names)
@@ -88,5 +153,7 @@ namespace WebPortal.TrackingSheet
     }
 
     public sealed class ProjectOption { public int ID { get; set; } public string Name { get; set; } }
-    public sealed class ReportResponse { public List<string> Columns { get; set; } public List<Dictionary<string, string>> Rows { get; set; } public int RowCount { get; set; } }
+    public sealed class ProcessView { public int ProcessID { get; set; } public string ProcessName { get; set; } public int Sequence { get; set; } public string Status { get; set; } public bool IsMandatory { get; set; } public bool IsFinalProcess { get; set; } public bool IsCurrent { get; set; } public string CompletedBy { get; set; } public string ProcessUser { get; set; } public int? ManualDurationMinutes { get; set; } }
+    public sealed class ReportRow { public Dictionary<string, string> Values { get; set; } public List<ProcessView> Processes { get; set; } }
+    public sealed class ReportResponse { public List<string> Columns { get; set; } public List<ReportRow> Rows { get; set; } public int RowCount { get; set; } }
 }

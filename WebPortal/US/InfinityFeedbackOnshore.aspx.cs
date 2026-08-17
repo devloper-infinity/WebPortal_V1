@@ -88,6 +88,18 @@ namespace WebPortal.US
         }
 
         [WebMethod]
+        public static string GetCollectionCommentsFeedbackByDateRange(string FromDate, string ToDate)
+        {
+            DateTime fromDate, toDate;
+            if (!DateTime.TryParse(FromDate, out fromDate) || !DateTime.TryParse(ToDate, out toDate)) throw new ArgumentException("Please provide a valid date range.");
+            if (fromDate.Date > toDate.Date) throw new ArgumentException("From Date cannot be greater than To Date.");
+            DataTable table = new bllUS().GetCollectionCommentsFeedbackOnshore(fromDate, toDate, int.Parse(HttpContext.Current.User.Identity.Name));
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            foreach (DataRow dataRow in table.Rows) { Dictionary<string, object> row = new Dictionary<string, object>(); foreach (DataColumn column in table.Columns) row[column.ColumnName] = dataRow[column] == DBNull.Value ? string.Empty : dataRow[column]; rows.Add(row); }
+            JavaScriptSerializer serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue }; return serializer.Serialize(rows);
+        }
+
+        [WebMethod]
         public static string SaveInfinityOnshoreRemark(int FeedbackID, string Client, string Remark, string RebuttalStatus)
         {
             try

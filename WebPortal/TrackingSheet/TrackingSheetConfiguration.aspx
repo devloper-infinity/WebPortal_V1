@@ -1,4 +1,4 @@
-<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="TrackingSheetConfiguration.aspx.cs" Inherits="WebPortal.TrackingSheet.TrackingSheetConfiguration" %>
+<%@ Page Title="" Language="C#" MasterPageFile="~/TrackingSheet/TrackingSheetMaster.Master" AutoEventWireup="true" CodeBehind="TrackingSheetConfiguration.aspx.cs" Inherits="WebPortal.TrackingSheet.TrackingSheetConfiguration" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>

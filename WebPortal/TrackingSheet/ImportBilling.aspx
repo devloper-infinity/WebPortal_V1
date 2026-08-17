@@ -1,4 +1,4 @@
-<%@ Page Title="Import Billing" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ImportBilling.aspx.cs" Inherits="WebPortal.TrackingSheet.ImportBilling" %>
+<%@ Page Title="Import Billing" Language="C#" MasterPageFile="~/TrackingSheet/TrackingSheetMaster.Master" AutoEventWireup="true" CodeBehind="ImportBilling.aspx.cs" Inherits="WebPortal.TrackingSheet.ImportBilling" %>
 
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />

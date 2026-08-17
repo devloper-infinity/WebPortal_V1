@@ -1,4 +1,4 @@
-<%@ Page Title="Tracking Manager Dashboard" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ManagerDashboard.aspx.cs" Inherits="WebPortal.TrackingSheet.ManagerDashboardPage" %>
+<%@ Page Title="Tracking Manager Dashboard" Language="C#" MasterPageFile="~/TrackingSheet/TrackingSheetMaster.Master" AutoEventWireup="true" CodeBehind="ManagerDashboard.aspx.cs" Inherits="WebPortal.TrackingSheet.ManagerDashboardPage" %>
 
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="OLTracking.css" />
@@ -167,11 +167,18 @@
     .olt-table-wrap {
         padding: 1%;
     }
+    .mgr-kpis.extended { grid-template-columns:repeat(5,minmax(130px,1fr)); }
+    .mgr-charts { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0; }
+    .mgr-chart { min-height:330px;padding:16px;background:#fff;border:1px solid #d7e2ee;border-radius:10px; }
+    .mgr-chart h4 { margin:0 0 12px;color:#17324d;font-size:15px; }
+    .mgr-chart canvas { width:100%!important;height:270px!important; }
+    @media(max-width:1000px) { .mgr-kpis.extended { grid-template-columns:repeat(2,1fr); } .mgr-charts { grid-template-columns:1fr; } }
 
     </style>
 
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/ManagerDashboard.js"></script>
+    <script src="../plugins/chart.js/Chart.min.js"></script>
+    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260816.2"></script>
 
 </asp:Content>
 
@@ -213,6 +220,9 @@
                             </select>
                         </div>
                         <div class="olt-field">
+                            <label>Deal</label><select id="mgrDeal" disabled><option value="">All deals</option></select>
+                        </div>
+                        <div class="olt-field">
                             <label>User</label><select id="mgrUser"><option value="0">All users</option>
                             </select>
                         </div>
@@ -222,26 +232,46 @@
                                 <option>In Process</option>
                                 <option>Hold</option>
                                 <option>Completed</option>
+                                <option>Skipped</option>
                             </select>
                         </div>
+                        <div class="olt-field"><label>Productivity Type</label><select id="mgrProductivityType"><option value="">All types</option><option value="Hourly Productivity">Hourly Productivity</option><option value="Loan Based Productivity">Loan Based Productivity</option></select></div>
                         <div class="olt-field">
                             <label>From date</label><input id="mgrFrom" type="date" />
                         </div>
                         <div class="olt-field">
                             <label>To date</label><input id="mgrTo" type="date" />
                         </div>
-                        <div class="olt-field full">
-                            <button type="button" class="olt-btn" onclick="loadManagerReport()">Show Report</button>
+                        <div class="olt-field full olt-actions">
+                            <button type="button" class="olt-btn" onclick="loadManagerReport()">Apply Filter</button>
+                            <button type="button" class="olt-btn secondary" onclick="resetManagerFilters()">Clear / Reset Filter</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="mgr-kpis">
-                <div class="mgr-kpi"><span>Total</span><strong id="kTotal">0</strong></div>
+            <div class="mgr-kpis extended">
+                <div class="mgr-kpi"><span>Total Loans</span><strong id="kTotal">0</strong></div>
                 <div class="mgr-kpi"><span>Pending</span><strong id="kPending">0</strong></div>
                 <div class="mgr-kpi"><span>In Process</span><strong id="kProcess">0</strong></div>
-                <div class="mgr-kpi"><span>Hold</span><strong id="kHold">0</strong></div>
                 <div class="mgr-kpi"><span>Completed</span><strong id="kCompleted">0</strong></div>
+                <div class="mgr-kpi"><span>Total Users</span><strong id="kUsers">0</strong></div>
+                <div class="mgr-kpi"><span>Total Processes</span><strong id="kProcesses">0</strong></div>
+                <div class="mgr-kpi"><span>Completed Today</span><strong id="kCompletedToday">0</strong></div>
+                <div class="mgr-kpi"><span>Pending Today</span><strong id="kPendingToday">0</strong></div>
+                <div class="mgr-kpi"><span>Avg Processing Time</span><strong id="kAverageTime">00:00</strong></div>
+                <div class="mgr-kpi"><span>Productivity Achievement</span><strong id="kProductivity">—</strong></div>
+                <div class="mgr-kpi"><span>Target Productivity</span><strong id="kTargetProductivity">—</strong></div>
+                <div class="mgr-kpi"><span>Actual Productivity</span><strong id="kActualProductivity">—</strong></div>
+                <div class="mgr-kpi"><span>Productivity Variance</span><strong id="kProductivityVariance">—</strong></div>
+                <div class="mgr-kpi"><span>On Hold</span><strong id="kHold">0</strong></div>
+            </div>
+            <div class="mgr-charts">
+                <div class="mgr-chart"><h4>Project-Wise Loan Status</h4><canvas id="chartProjectStatus"></canvas></div>
+                <div class="mgr-chart"><h4>Deal-Wise Status</h4><canvas id="chartDealStatus"></canvas></div>
+                <div class="mgr-chart"><h4>Process-Wise Productivity</h4><canvas id="chartProcessProductivity"></canvas></div>
+                <div class="mgr-chart"><h4>User-Wise Productivity</h4><canvas id="chartUserProductivity"></canvas></div>
+                <div class="mgr-chart"><h4>Daily Completion Trend</h4><canvas id="chartDailyTrend"></canvas></div>
+                <div class="mgr-chart"><h4>Process Status Distribution</h4><canvas id="chartStatusDistribution"></canvas></div>
             </div>
             <div class="olt-card mgr-section">
                 <div class="olt-card-head">Summary report</div>
@@ -253,6 +283,7 @@
                                 <th>Process</th>
                                 <th>User</th>
                                 <th>Total</th>
+                                <th>Total Hours</th>
                                 <th>Pending</th>
                                 <th>In Process</th>
                                 <th>Hold</th>
@@ -277,11 +308,18 @@
                                 <th>Process</th>
                                 <th>User</th>
                                 <th>Status</th>
-                                <th>Assigned</th>
-                                <th>Started</th>
-                                <th>Completed</th>
+                                <th>Assigned Date</th>
+                                <th>Start Date</th>
+                                <th>Start Time</th>
+                                <th>Completion Date</th>
+                                <th>Completion Time</th>
+                                <th>Productivity Type</th>
+                                <th>Target Time / Loans</th>
+                                <th>Productivity %</th>
                                 <th>Hold TAT</th>
                                 <th>Total TAT</th>
+                                <th>Hours Worked</th>
+                                <th>Feedback Status</th>
                                 <th>Remark</th>
                             </tr>
                         </thead>
@@ -497,8 +535,10 @@
                         </div>
                     </div>
                     <div class="ots-note">Select a maximum of two orders. The selected user can have no more than two Pending/In Process orders after allocation.</div>
-                    <div id="pmaLoans" class="pma-loans">
-                        <div class="olt-empty">Select project, deal and process.</div>
+                    <div class="olt-table-wrap mgr-orders">
+                        <table class="olt-table"><thead><tr><th>Select</th><th>Project</th><th>Deal #</th><th>Process</th><th>Loan #</th><th>Current User</th><th>Status</th><th>Remark</th><th>Assigned Date</th></tr></thead>
+                            <tbody id="pmaRows"><tr><td colspan="9" class="olt-empty">Select project, deal and process.</td></tr></tbody>
+                        </table>
                     </div>
                     <div class="olt-actions" style="        margin-top: 14px">
                         <button type="button" class="olt-btn" onclick="allocateSelected()">Allocate Selected Orders</button>

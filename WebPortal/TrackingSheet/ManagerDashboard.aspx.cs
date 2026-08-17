@@ -17,7 +17,7 @@ namespace WebPortal.TrackingSheet
         public static string GetProjects() { return OLTrackingWeb.Json(Projects()); }
        
         [WebMethod] 
-        public static string GetProcesses(int projectId) { RequiredProject(projectId); return OLTrackingWeb.Json(Collect(projectId, delegate (bllOLTracking b, int id) { return b.GetProcessFlow(id); }, "ProcessID")); }
+        public static string GetProcesses(int projectId) { RequiredProject(projectId); return OLTrackingWeb.Json(Collect(projectId, delegate (bllOLTracking b, int id) { return b.GetConfiguredProcesses(id); }, "ProcessID")); }
        
         [WebMethod] 
         public static string GetUsers(int projectId) { RequiredProject(projectId); return OLTrackingWeb.Json(Collect(projectId, delegate (bllOLTracking b, int id) { return b.GetProjectUsers(id); }, "UserID")); }
@@ -57,14 +57,14 @@ namespace WebPortal.TrackingSheet
         }
 
         [WebMethod]
-        public static string GetReport(int projectId, int processId, int userId, string status, string fromDate, string toDate)
+        public static string GetReport(int projectId, string dealNumber, int processId, int userId, string status, string productivityType, string fromDate, string toDate)
         {
-            RequiredProject(projectId); DateTime? from = Date(fromDate), to = Date(toDate); bllOLTracking tracking = new bllOLTracking();
+            DateTime? from = Date(fromDate), to = Date(toDate); bllOLTracking tracking = new bllOLTracking();
             int[] ids = ProjectIds(projectId); DataTable summary = null, detail = null;
             foreach (int id in ids)
             {
-                Append(ref summary, tracking.GetManagerSummary(id, processId, userId, from, to));
-                Append(ref detail, tracking.GetManagerDetail(id, processId, userId, status, from, to));
+                Append(ref summary, tracking.GetManagerSummary(id, dealNumber, processId, userId, productivityType, from, to));
+                Append(ref detail, tracking.GetManagerDetail(id, dealNumber, processId, userId, status, productivityType, from, to));
             }
             DataSet set = new DataSet(); set.Tables.Add(summary ?? new DataTable()); set.Tables.Add(detail ?? new DataTable()); return OLTrackingWeb.Json(set);
         }

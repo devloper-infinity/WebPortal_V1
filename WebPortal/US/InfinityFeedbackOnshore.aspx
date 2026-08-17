@@ -653,6 +653,9 @@
                             ATR Review
                         </a>
                     </li>
+                    <li class="nav-item" id="collectionCommentsTabItem" role="presentation" style="display:none;">
+                        <a class="nav-link" id="collectionCommentsTab" data-toggle="tab" href="#collectionCommentsPane" role="tab" aria-controls="collectionCommentsPane" aria-selected="false">Collection Comments ReQC</a>
+                    </li>
                 </ul>
 
                 <div class="tab-content" id="feedbackReportTabContent">
@@ -685,6 +688,12 @@
                                 <thead></thead>
                                 <tbody></tbody>
                             </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="collectionCommentsPane" role="tabpanel" aria-labelledby="collectionCommentsTab">
+                        <div style="overflow:auto;">
+                            <div id="collectionCommentsLoader" class="table-loader" style="display:none;"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><div class="mt-2">Loading Collection Comments ReQC feedback...</div></div>
+                            <table class="table" id="table_CollectionCommentsFeedback" style="width:100%;"><thead></thead><tbody></tbody></table>
                         </div>
                     </div>
                 </div>

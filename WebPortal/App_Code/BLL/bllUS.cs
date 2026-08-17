@@ -87,6 +87,15 @@ namespace WebPortal.App_Code.BLL
             return dalUS.GetUSImportedFeedback_ByUser_NewERP(LoanNo, @EmployeeID);
         }
 
+        public DataTable GetCollectionCommentsDataFields() { return dalUS.GetCollectionCommentsDataFields(); }
+        public bool IsCollectionCommentsDataFieldValid(string dataField) { return dalUS.IsCollectionCommentsDataFieldValid(dataField); }
+        public int InsertCollectionCommentsFeedback(string loanNo, string client, string uwName, string dateReviewed, string qcDate, string feedbackReceivedDate, string dataField, string isError, string finding, int addedBy)
+        { return dalUS.InsertCollectionCommentsFeedback(loanNo, client, uwName, dateReviewed, qcDate, feedbackReceivedDate, dataField, isError, finding, addedBy); }
+        public int UpdateCollectionCommentsFeedback(int feedbackId, string loanNo, string client, string dataField, string isError, string finding, int addedBy)
+        { return dalUS.UpdateCollectionCommentsFeedback(feedbackId, loanNo, client, dataField, isError, finding, addedBy); }
+        public DataTable GetCollectionCommentsFeedbackOnshore(DateTime fromDate, DateTime toDate, int addedBy)
+        { return dalUS.GetCollectionCommentsFeedbackOnshore(fromDate, toDate, addedBy); }
+
         public DataSet getLoansForGlobalSearch(int EmployeeID)
         {
             return dalUS.getLoansForGlobalSearch(EmployeeID);

@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ViewEmployee.aspx.cs" Inherits="WebPortal.Admin.ViewEmployee" %>
+<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ViewEmployee.aspx.cs" Inherits="WebPortal.Admin.ViewEmployee" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
