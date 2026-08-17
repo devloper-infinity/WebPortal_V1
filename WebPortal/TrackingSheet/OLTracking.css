@@ -92,6 +92,7 @@
     }
 
     .olt-field input, .olt-field select, .olt-field textarea {
+        box-sizing: border-box;
         width: 100%;
         min-height: 38px;
         padding: 7px 9px;

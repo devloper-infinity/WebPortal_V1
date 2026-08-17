@@ -513,3 +513,56 @@
     }
 
 })(window, document);
+
+/* Global Tracking Sheet maximum-time alerts. The server remains authoritative. */
+(function (window, document) {
+    "use strict";
+    var script = document.currentScript;
+    if (!script || !window.fetch) return;
+    var root = new URL("../", script.src).href;
+    var endpoint = new URL("TrackingSheet/TrackingSheet.aspx/", root).href;
+    var originalTitle = document.title, alertFavicon = null, lastAlertKey = "", modalOpen = false;
+
+    function post(method, body) {
+        return window.fetch(endpoint + method, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify(body || {}) })
+            .then(function (response) { if (!response.ok) throw new Error("Request failed"); return response.json(); })
+            .then(function (result) { var value = result && result.d !== undefined ? result.d : result; if (typeof value === "string") try { return JSON.parse(value); } catch (ignore) { return value; } return value; });
+    }
+    function escapeHtml(value) { var node = document.createElement("div"); node.textContent = value == null ? "" : String(value); return node.innerHTML; }
+    function ensureUi() {
+        if (document.getElementById("ol-overdue-badge")) return;
+        var style = document.createElement("style");
+        style.textContent = "#ol-overdue-badge{position:fixed;right:18px;top:12px;z-index:99990;border:0;border-radius:999px;padding:9px 14px;background:#b42318;color:#fff;font-weight:800;box-shadow:0 5px 18px rgba(0,0,0,.24);cursor:pointer}#ol-overdue-overlay{display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.58);align-items:center;justify-content:center;padding:20px}#ol-overdue-overlay.open{display:flex}#ol-overdue-dialog{width:min(760px,96vw);max-height:84vh;overflow:auto;border-radius:10px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.35)}#ol-overdue-head{padding:18px 22px;background:#fff1f0;color:#9f1c13;font-size:20px;font-weight:900}#ol-overdue-body{padding:18px 22px}#ol-overdue-table{width:100%;border-collapse:collapse}#ol-overdue-table th,#ol-overdue-table td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left}#ol-overdue-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px}#ol-overdue-actions button{border:0;border-radius:6px;padding:10px 16px;background:#b42318;color:#fff;font-weight:800;cursor:pointer}";
+        document.head.appendChild(style);
+        var badge = document.createElement("button"); badge.id = "ol-overdue-badge"; badge.hidden = true; badge.onclick = function () { check(true); }; document.body.appendChild(badge);
+        var overlay = document.createElement("div"); overlay.id = "ol-overdue-overlay"; overlay.innerHTML = '<div id="ol-overdue-dialog" role="alertdialog" aria-modal="true"><div id="ol-overdue-head">&#9888; PROCESS TIME EXCEEDED</div><div id="ol-overdue-body"></div><div id="ol-overdue-actions"><button id="ol-overdue-ack" type="button">Acknowledge</button></div></div>'; document.body.appendChild(overlay);
+    }
+    function setAttention(on) {
+        document.title = on ? "\u26a0 Process Overdue \u2013 " + originalTitle : originalTitle;
+        var current = document.querySelector('link[rel~="icon"]');
+        if (!alertFavicon && current) alertFavicon = current.href;
+        if (current) current.href = on ? "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#c81e1e"/><text x="32" y="46" text-anchor="middle" font-size="42" fill="white">!</text></svg>') : (alertFavicon || current.href);
+    }
+    function notify(row) {
+        if (window.Notification && Notification.permission === "granted") new Notification("Infinity ERP \u2013 Process Time Exceeded", { body: "Loan " + row.LoanNumber + " \u2013 " + row.ProcessName + " has exceeded " + row.MaxCompletionMinutes + " minutes." });
+        try { var context = new (window.AudioContext || window.webkitAudioContext)(), oscillator = context.createOscillator(), gain = context.createGain(); oscillator.connect(gain); gain.connect(context.destination); oscillator.frequency.value = 880; gain.gain.value = .08; oscillator.start(); oscillator.stop(context.currentTime + .18); } catch (ignore) { }
+    }
+    function show(rows) {
+        ensureUi(); modalOpen = true;
+        document.getElementById("ol-overdue-body").innerHTML = '<p>' + (rows.length === 1 ? "This process has" : rows.length + " processes have") + ' exceeded the configured maximum completion time.</p><table id="ol-overdue-table"><thead><tr><th>Loan #</th><th>Process</th><th>Max Time</th><th>Elapsed</th></tr></thead><tbody>' + rows.map(function (x) { return '<tr><td>' + escapeHtml(x.LoanNumber) + '</td><td>' + escapeHtml(x.ProcessName) + '</td><td>' + escapeHtml(x.MaxCompletionMinutes) + ' min</td><td>' + escapeHtml(x.ElapsedMinutes) + ' min</td></tr>'; }).join("") + "</tbody></table>";
+        document.getElementById("ol-overdue-overlay").className = "open";
+        document.getElementById("ol-overdue-ack").onclick = function () { var ids = rows.map(function (x) { return +x.AssignmentID; }); post("AcknowledgeOverdueProcesses", { assignmentIds: ids }).then(function () { modalOpen = false; document.getElementById("ol-overdue-overlay").className = ""; setAttention(false); check(false); }); };
+    }
+    function check(force) {
+        post("GetOverdueProcesses").then(function (rows) {
+            rows = rows || []; ensureUi(); var badge = document.getElementById("ol-overdue-badge"); badge.hidden = !rows.length; badge.textContent = "\ud83d\udd14 " + rows.length + (rows.length === 1 ? " Process Overdue" : " Processes Overdue");
+            var unacknowledged = rows.filter(function (x) { return !x.IsAcknowledged; }); setAttention(unacknowledged.length > 0);
+            if (force && rows.length && !modalOpen) { show(rows); return; }
+            if (!unacknowledged.length) { lastAlertKey = ""; return; }
+            var key = unacknowledged.map(function (x) { return x.AssignmentID; }).join(",");
+            if ((force || key !== lastAlertKey) && !modalOpen) { lastAlertKey = key; notify(unacknowledged[0]); show(unacknowledged); }
+        }).catch(function () { /* Other pages must continue even if Tracking Sheet is unavailable. */ });
+    }
+    function initialize() { ensureUi(); window.setTimeout(function () { check(false); }, 5000); window.setInterval(function () { check(false); }, 60000); }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initialize); else initialize();
+})(window, document);

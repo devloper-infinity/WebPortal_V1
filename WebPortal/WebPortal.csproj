@@ -2914,6 +2914,7 @@
     <Content Include="DatabaseScripts\OLTracking_018_FeedbackRouting.sql" />
     <Content Include="DatabaseScripts\OLTracking_019_ProductivityTypeWithoutTime.sql" />
     <Content Include="DatabaseScripts\OLTracking_020_HourlyNonTrackingProductivity.sql" />
+    <Content Include="DatabaseScripts\OLTracking_021_ProcessCompletionTimeLimits.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\TrackingSheetFeedbackEntry.css" />

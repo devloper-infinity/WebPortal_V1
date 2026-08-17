@@ -165,13 +165,13 @@ function showCompleteModal(id, assignment, requiresFeedback, isSeparateProcessin
     activeAssignment = assignment; feedbackRequired = requiresFeedback;
     activeAssignment.FeedbackRequiredOnComplete = requiresFeedback;
     skipStatusOption.hidden = isSeparateProcessing || !(activeAssignment && activeAssignment.CanSkip);
-    savedFeedbacks = 0; assignmentId.value = id; completeRemark.value = ''; updateStatus.value = ''; holdReason.value = ''; finalStatus.value = 'Completed';
+    savedFeedbacks = 0; assignmentId.value = id; completeRemark.value = ''; updateStatus.value = ''; holdReason.value = ''; finalStatus.value = 'Completed'; hideCompletionValidation();
     renderSavedFeedbackDetails([]); continueAfterFeedback.disabled = true;
     [statusStep, feedbackStep, completeStep].forEach(function (step) { step.classList.remove('active'); });
     statusStep.classList.add('active'); changeCompletionStatus(); completeModal.classList.add('open');
 }
 
-function closeComplete() { completeModal.classList.remove('open'); activeAssignment = null; }
+function closeComplete() { completeModal.classList.remove('open'); hideCompletionValidation(); activeAssignment = null; }
 
 function changeCompletionStatus() {
     var status = updateStatus.value;
@@ -182,13 +182,16 @@ function changeCompletionStatus() {
     if (status !== 'Completed' && status !== 'Skipped') return;
     if (status === 'Skipped' && !(activeAssignment && activeAssignment.CanSkip)) { updateStatus.value = ''; OLT.alert('This process is mandatory and cannot be skipped.', true); return changeCompletionStatus(); }
     finalStatus.value = status;
-    if (status === 'Completed' && feedbackRequired) { openMandatoryFeedbackPage(); return; }
+    if (status === 'Completed' && feedbackRequired) { validateCompletionTimeThen(openMandatoryFeedbackPage); return; }
     completeStep.classList.add('active');
 }
 
 function selectCompletionStatus() { if (updateStatus.value === 'Hold') { if (!holdReason.value) { OLT.alert('Please select a hold reason.', true); return; } statusContinueButton.disabled = true; OLT.call(page, 'HoldLoan', { assignmentId: +assignmentId.value, holdReason: holdReason.value }).then(function (r) { if (!actionSucceeded(r)) return; closeComplete(); OLT.alert(r.Message || 'Loan placed on hold successfully.'); refreshQueues(); }).catch(showError).then(function () { statusContinueButton.disabled = false; }); return; } if (updateStatus.value !== 'Completed' && updateStatus.value !== 'Skipped') { OLT.alert('Please select a status.', true); return; } if (updateStatus.value === 'Skipped' && !(activeAssignment && activeAssignment.CanSkip)) { OLT.alert('This process is mandatory and cannot be skipped.', true); return; } finalStatus.value = updateStatus.value; statusStep.classList.remove('active'); if (updateStatus.value === 'Skipped' || !feedbackRequired) { completeStep.classList.add('active'); return; } openMandatoryFeedbackPage(); }
 
 function openMandatoryFeedbackPage() { var id = +assignmentId.value; if (!id) { OLT.alert('The selected assignment is no longer available.', true); return; } window.location.href = 'TrackingSheetFeedback.aspx?assignmentId=' + encodeURIComponent(id); }
+function hideCompletionValidation() { if (!window.completionValidation) return; completionValidation.hidden = true; completionValidationText.textContent = ''; }
+function showCompletionValidation(message, title) { completionValidationTitle.textContent = title || 'Unable to update loan'; completionValidationText.textContent = message || 'The requested action could not be completed.'; completionValidation.hidden = false; var body = completeModal.querySelector('.olt-dialog-body'); if (body) body.scrollTop = 0; }
+function validateCompletionTimeThen(callback) { hideCompletionValidation(); OLT.call(page, 'ValidateCompletionTime', { assignmentId: +assignmentId.value }).then(function (result) { if (!result || result.Allowed !== true) { updateStatus.value = ''; changeCompletionStatus(); showCompletionValidation(result && result.Message ? result.Message : 'Process cannot be completed yet.', 'Minimum processing time not reached'); return; } callback(); }).catch(function (error) { showCompletionValidation(error && error.message ? error.message : 'The completion time could not be validated.'); }); }
 
 function parseJsonResult(r) { if (typeof r === 'string') { try { return JSON.parse(r); } catch (e) { return {}; } } return r || {}; }
 
@@ -292,7 +295,7 @@ function renderSavedFeedbackDetails(rows) {
 
 function continueToComplete() { if (feedbackRequired && savedFeedbacks < 1) { OLT.alert('At least one feedback entry is required.', true); return; } feedbackStep.classList.remove('active'); completeStep.classList.add('active'); }
 
-function submitCompletion() { if (!completeRemark.value.trim()) { OLT.alert('Remark is required.', true); return; } var skipped = finalStatus.value === 'Skipped', method = skipped ? 'SkipLoan' : 'CompleteLoan', model = skipped ? { assignmentId: +assignmentId.value, remark: completeRemark.value } : { assignmentId: +assignmentId.value, remark: completeRemark.value, feedbacks: [] }; OLT.call(page, method, model).then(function (r) { if (!actionSucceeded(r)) return; closeComplete(); OLT.alert(r.Message || (skipped ? 'Process skipped.' : 'Loan completed.')); refreshQueues(); }).catch(showError); }
+function submitCompletion() { hideCompletionValidation(); if (!completeRemark.value.trim()) { showCompletionValidation('Please enter a completion remark before updating the loan.', 'Remark required'); completeRemark.focus(); return; } var skipped = finalStatus.value === 'Skipped', method = skipped ? 'SkipLoan' : 'CompleteLoan', model = skipped ? { assignmentId: +assignmentId.value, remark: completeRemark.value } : { assignmentId: +assignmentId.value, remark: completeRemark.value, feedbacks: [] }; OLT.call(page, method, model).then(function (r) { if (!r || r.Success !== true) { showCompletionValidation(r && r.Message ? r.Message : 'The loan could not be updated.', skipped ? 'Unable to skip process' : 'Unable to complete process'); return; } closeComplete(); OLT.alert(r.Message || (skipped ? 'Process skipped.' : 'Loan completed.')); refreshQueues(); }).catch(function (error) { showCompletionValidation(error && error.message ? error.message : 'The requested action could not be completed.'); }); }
 
 function setToday() {
 

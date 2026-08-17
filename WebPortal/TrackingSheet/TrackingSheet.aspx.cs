@@ -18,6 +18,23 @@ namespace WebPortal.TrackingSheet
         [WebMethod] public static string GetCurrentPseudoName() { return EmployeeInfo.Current == null ? string.Empty : EmployeeInfo.Current.PseudoName; }
         [WebMethod] public static string GetDeals(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetSourceDeals(projectId, OLTrackingWeb.UserId)); }
         [WebMethod] public static string GetFlow(int projectId, string dealNumber) { return OLTrackingWeb.Json(new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber)); }
+        [WebMethod] public static string GetOverdueProcesses() { return OLTrackingWeb.Json(new bllOLTracking().GetOverdueProcesses(OLTrackingWeb.UserId)); }
+        [WebMethod] public static string AcknowledgeOverdueProcesses(long[] assignmentIds) { return OLTrackingWeb.Ok(new bllOLTracking().AcknowledgeOverdueProcesses(assignmentIds, OLTrackingWeb.UserId)); }
+        [WebMethod]
+        public static CompletionTimeValidationResult ValidateCompletionTime(long assignmentId)
+        {
+            DataTable table = new bllOLTracking().GetCompletionTimeValidation(assignmentId, OLTrackingWeb.UserId);
+            if (table.Rows.Count == 0) return new CompletionTimeValidationResult { Allowed = true };
+            DataRow row = table.Rows[0];
+            int? minimum = row["MinCompletionMinutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(row["MinCompletionMinutes"]);
+            int elapsed = Convert.ToInt32(row["ElapsedMinutes"]), remaining = Convert.ToInt32(row["RemainingMinutes"]);
+            return new CompletionTimeValidationResult
+            {
+                Allowed = !minimum.HasValue || remaining <= 0,
+                ProcessName = Convert.ToString(row["ProcessName"]), MinimumMinutes = minimum, ElapsedMinutes = elapsed, RemainingMinutes = remaining,
+                Message = !minimum.HasValue || remaining <= 0 ? string.Empty : "Process cannot be completed yet. Minimum processing time for " + Convert.ToString(row["ProcessName"]) + " is " + minimum.Value + " minutes. Elapsed Time: " + elapsed + " minutes. Remaining Time: " + remaining + " minutes."
+            };
+        }
         [WebMethod]
         public static ProcessEntryMode GetProcessEntryMode(int projectId, string dealNumber, int processId)
         {
@@ -308,6 +325,9 @@ namespace WebPortal.TrackingSheet
                 case 50147: return "Please select at least one Previous Process.";
                 case 50148: return "One or more selected Previous Processes are not completed or are not allowed by the feedback routing configuration. Refresh and try again.";
                 case 50149: return "Feedback must be added against every configured Previous Process user before completing the loan.";
+                case 50150: return sqlException.Message;
+                case 50151: return "Min and Max Completion Minutes must be 0 or greater.";
+                case 50152: return "Maximum completion time cannot be less than the minimum completion time.";
                 case 2601:
                 case 2627:
                     if (sqlException.Message.IndexOf("UX_OLTracking_Assignment_LoanProcess", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -365,6 +385,15 @@ namespace WebPortal.TrackingSheet
     {
         public bool IsTrackingSheetProcess { get; set; }
         public string ProductivityType { get; set; }
+    }
+    public sealed class CompletionTimeValidationResult
+    {
+        public bool Allowed { get; set; }
+        public string ProcessName { get; set; }
+        public int? MinimumMinutes { get; set; }
+        public int ElapsedMinutes { get; set; }
+        public int RemainingMinutes { get; set; }
+        public string Message { get; set; }
     }
 
     public class TrackingActionResult

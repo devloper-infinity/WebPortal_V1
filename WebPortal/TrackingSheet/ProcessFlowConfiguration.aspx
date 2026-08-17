@@ -153,7 +153,7 @@
 
 
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/ProcessFlowConfiguration.js?v=20260816.4"></script>
+    <script src="../Scripts/TrackingSheet/ProcessFlowConfiguration.js?v=20260817.1"></script>
 </asp:Content>
 
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -227,6 +227,15 @@
                                 <option value="Hourly Productivity">Hourly Productivity</option>
                             </select>
                         </div>
+                        <div class="olt-field">
+                            <label>Min Completion Minutes <span class="olt-muted">(optional)</span></label>
+                            <input id="minCompletionMinutes" type="number" min="0" step="1" placeholder="No minimum" />
+                        </div>
+                        <div class="olt-field">
+                            <label>Max Completion Minutes <span class="olt-muted">(optional)</span></label>
+                            <input id="maxCompletionMinutes" type="number" min="0" step="1" placeholder="No maximum" />
+                        </div>
+                        <div class="olt-field full"><small class="olt-muted">Leave Min/Max blank if no completion-time validation is required.</small></div>
                             </div>
                         </div>
                         <div class="flow-config-section">
@@ -287,13 +296,15 @@
                                 <th>Final process</th>
                                 <th>Tracking Sheet process</th>
                                 <th>Productivity Type</th>
+                                <th>Min Minutes</th>
+                                <th>Max Minutes</th>
                                 <th>Eligible After Process(es)</th>
                                 <th>Feedback Against Process(es)</th>
                             </tr>
                         </thead>
                         <tbody id="rows">
                             <tr>
-                                <td colspan="10" class="olt-empty">Select a project.</td>
+                                <td colspan="12" class="olt-empty">Select a project.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -314,6 +325,9 @@
                         <div class="olt-field"><div class="checkbox-wrapper-22"><label class="switch" for="dealFeedback"><input id="dealFeedback" type="checkbox" /><span class="slider round"></span></label><label class="toggle-text" for="dealFeedback">Feedback mandatory while completing</label></div></div>
                         <div class="olt-field"><div class="checkbox-wrapper-22"><label class="switch" for="dealFinalProcess"><input id="dealFinalProcess" type="checkbox" /><span class="slider round"></span></label><label class="toggle-text" for="dealFinalProcess">Final Process</label></div></div>
                         <div class="olt-field wide"><label>Productivity Type</label><select id="dealProductivityType"><option value="Loan Based Productivity">Loan Based Productivity</option><option value="Hourly Productivity">Hourly Productivity</option></select></div>
+                        <div class="olt-field"><label>Min Completion Minutes <span class="olt-muted">(optional)</span></label><input id="dealMinCompletionMinutes" type="number" min="0" step="1" placeholder="No minimum" /></div>
+                        <div class="olt-field"><label>Max Completion Minutes <span class="olt-muted">(optional)</span></label><input id="dealMaxCompletionMinutes" type="number" min="0" step="1" placeholder="No maximum" /></div>
+                        <div class="olt-field full"><small class="olt-muted">Leave Min/Max blank if no completion-time validation is required.</small></div>
                         <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="saveDealFlow()">Save process</button><button type="button" class="olt-btn secondary" onclick="clearDealForm()">Clear</button></div>
                     </div>
                 </div>
@@ -321,7 +335,7 @@
             <section class="olt-card">
                 <div class="olt-card-head">Configured deal process flow</div>
                 <div class="olt-card-body olt-muted">The complete project flow is shown automatically. Edit only the rows that need a deal-specific value; the full flow is preserved for the deal.</div>
-                <div class="flow-grid-scroll"><table class="olt-table deal-flow-table"><thead><tr><th>Actions</th><th>Process Name</th><th>Sequence</th><th>Requirement</th><th>Feedback mandatory</th><th>Final process</th><th>Source</th><th>Productivity Type</th></tr></thead><tbody id="dealRows"><tr><td colspan="8" class="olt-empty">Select a project and deal.</td></tr></tbody></table></div>
+                <div class="flow-grid-scroll"><table class="olt-table deal-flow-table"><thead><tr><th>Actions</th><th>Process Name</th><th>Sequence</th><th>Requirement</th><th>Feedback mandatory</th><th>Final process</th><th>Source</th><th>Productivity Type</th><th>Min Minutes</th><th>Max Minutes</th></tr></thead><tbody id="dealRows"><tr><td colspan="10" class="olt-empty">Select a project and deal.</td></tr></tbody></table></div>
             </section>
         </div></div>
         <div id="flowActionMenu" class="flow-action-menu" hidden role="menu" onclick="event.stopPropagation()">

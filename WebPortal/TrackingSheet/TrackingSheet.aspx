@@ -96,6 +96,17 @@
         .ots-status.hold { background:#fee2e2; color:#991b1b }
         .olt-dialog-head button:not(.olt-dialog-close) { display:none }
         .ots-status-control { grid-column:span 12; max-width:540px }
+        #completeModal .olt-dialog { overflow:hidden; box-shadow:0 24px 70px rgba(15,23,42,.28) }
+        #completeModal .olt-dialog-body { max-height:calc(90vh - 63px); overflow:auto; padding:0 }
+        #completeModal .ots-step { box-sizing:border-box; padding:20px 22px 22px }
+        #completeModal #completeStep.active { border-top:1px solid #e2e8f0; background:#fbfdff }
+        #completeModal #completeRemark { box-sizing:border-box; min-height:100px; resize:vertical; line-height:1.5 }
+        #completeModal .ots-completion-actions { margin-top:4px; padding-top:2px }
+        .ots-modal-message { display:flex; align-items:flex-start; gap:12px; margin:16px 22px 0; padding:13px 15px; border:1px solid #fecaca; border-left:4px solid #dc2626; border-radius:8px; background:#fff7f7; color:#7f1d1d; box-shadow:0 4px 14px rgba(127,29,29,.08) }
+        .ots-modal-message[hidden] { display:none }
+        .ots-modal-message-icon { display:flex; flex:0 0 28px; width:28px; height:28px; align-items:center; justify-content:center; border-radius:50%; background:#dc2626; color:#fff; font-size:17px; font-weight:900 }
+        .ots-modal-message strong { display:block; margin:1px 0 4px; color:#991b1b; font-size:14px }
+        .ots-modal-message p { margin:0; color:#7f1d1d; line-height:1.5 }
         .hourly-hours,.hourly-minutes { width:90px; min-width:70px; padding:8px; border:1px solid #c8d5e3; border-radius:5px }
         .ots-hourly-entry { display:none; padding:16px; border:1px solid #cfe0eb; border-radius:8px; background:#f7fbfd }
         .ots-hourly-entry.active { display:block }
@@ -106,7 +117,7 @@
    <%-- <script src="OLTracking.js"></script>--%>
    <%-- <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>--%>
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260816.9"></script>
+    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260817.2"></script>
 </asp:Content>
 
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -269,6 +280,10 @@
             </div>
             <div class="olt-dialog-body">
                 <input id="assignmentId" type="hidden" />
+                <div id="completionValidation" class="ots-modal-message" role="alert" aria-live="assertive" hidden>
+                    <span class="ots-modal-message-icon" aria-hidden="true">!</span>
+                    <div><strong id="completionValidationTitle">Unable to update loan</strong><p id="completionValidationText"></p></div>
+                </div>
                 <div id="statusStep" class="ots-step">
                     <div class="olt-form">
                         <div class="olt-field ots-status-control">
@@ -409,7 +424,7 @@
                         <div class="olt-field full">
                             <label>Remark</label><textarea id="completeRemark" maxlength="1000"></textarea>
                         </div>
-                        <div class="olt-field full olt-actions">
+                        <div class="olt-field full olt-actions ots-completion-actions">
                             <button type="button" class="olt-btn" onclick="submitCompletion()">Update Loan</button>
                             <button type="button" class="olt-btn secondary" onclick="closeComplete()">Cancel</button>
                         </div>

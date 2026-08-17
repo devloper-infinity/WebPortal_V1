@@ -204,7 +204,7 @@ SELECT FlowID,ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,
        CAST(CASE WHEN IsMandatory=1 THEN 0 ELSE 1 END AS bit) CanSkip,
        FeedbackRequiredOnComplete,IsFinalProcess,IsTrackingSheetProcess,
        ISNULL(ProductivityType,'Loan Based Productivity') ProductivityType,
-       ISNULL(ExpectedCompletionMinutes,0) ExpectedCompletionMinutes,IsActive,
+       ISNULL(ExpectedCompletionMinutes,0) ExpectedCompletionMinutes,MinCompletionMinutes,MaxCompletionMinutes,IsActive,
        STUFF((SELECT ','+CONVERT(varchar(11),dependency.PredecessorProcessID)
               FROM dbo.OLTracking_ProcessDependency dependency
               JOIN dbo.OLTracking_ProcessFlow predecessor ON predecessor.ProjectID=dependency.ProjectID
@@ -278,7 +278,7 @@ GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
         }
 
         public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo,
-            bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int userId)
+            bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int userId)
         {
             SqlCommand command = Command("OLTracking_SaveDealProcessFlow");
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -291,6 +291,8 @@ GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
             Add(command, "@IsFinalProcess", SqlDbType.Bit, isFinalProcess);
             Add(command, "@ProductivityType", SqlDbType.NVarChar, productivityType, 40);
             Add(command, "@ExpectedCompletionMinutes", SqlDbType.Int, expectedCompletionMinutes);
+            Add(command, "@MinCompletionMinutes", SqlDbType.Int, minCompletionMinutes);
+            Add(command, "@MaxCompletionMinutes", SqlDbType.Int, maxCompletionMinutes);
             Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
         }
@@ -305,7 +307,7 @@ GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
             return Execute(command);
         }
 
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
         {
             EnsureProcessFlowColumns();
             XElement dependencies = new XElement("processes");
@@ -322,6 +324,9 @@ SET XACT_ABORT ON;
 IF @ProjectID<=0 OR @ProcessID<=0 THROW 50100,'Project and process are required.',1;
 IF @StageNo<=0 THROW 50101,'Sequence must be greater than zero.',1;
 IF NULLIF(LTRIM(RTRIM(@ProcessName)),'') IS NULL THROW 50102,'Process name is required.',1;
+IF @MinCompletionMinutes<0 OR @MaxCompletionMinutes<0 THROW 50151,'Completion minutes must be zero or greater.',1;
+IF @MinCompletionMinutes IS NOT NULL AND @MaxCompletionMinutes IS NOT NULL AND @MaxCompletionMinutes<@MinCompletionMinutes
+    THROW 50152,'Maximum completion time cannot be less than the minimum completion time.',1;
 IF EXISTS(SELECT 1 FROM @EligibleAfterXml.nodes('/processes/process') dependency(node) WHERE dependency.node.value('(text())[1]','int')=@ProcessID)
     THROW 50141,'A process cannot depend on itself.',1;
 IF EXISTS
@@ -352,9 +357,9 @@ USING(SELECT @ProjectID ProjectID,@ProcessID ProcessID) S
 ON T.ProjectID=S.ProjectID AND T.ProcessID=S.ProcessID
 WHEN MATCHED THEN UPDATE SET ProcessName=LTRIM(RTRIM(@ProcessName)),StageNo=@StageNo,IsMandatory=@IsMandatory,
  FeedbackRequiredOnComplete=@FeedbackRequiredOnComplete,IsFinalProcess=@IsFinalProcess,IsTrackingSheetProcess=@IsTrackingSheetProcess,
- ProductivityType=@ProductivityType,ExpectedCompletionMinutes=NULLIF(@ExpectedCompletionMinutes,0),IsActive=1,UpdatedBy=@UserID,UpdatedDate=GETDATE()
-WHEN NOT MATCHED THEN INSERT(ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,FeedbackRequiredOnComplete,IsFinalProcess,IsTrackingSheetProcess,ProductivityType,ExpectedCompletionMinutes,AddedBy)
- VALUES(@ProjectID,@ProcessID,LTRIM(RTRIM(@ProcessName)),@StageNo,@IsMandatory,@FeedbackRequiredOnComplete,@IsFinalProcess,@IsTrackingSheetProcess,@ProductivityType,NULLIF(@ExpectedCompletionMinutes,0),@UserID);
+ ProductivityType=@ProductivityType,ExpectedCompletionMinutes=NULLIF(@ExpectedCompletionMinutes,0),MinCompletionMinutes=@MinCompletionMinutes,MaxCompletionMinutes=@MaxCompletionMinutes,IsActive=1,UpdatedBy=@UserID,UpdatedDate=GETDATE()
+WHEN NOT MATCHED THEN INSERT(ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,FeedbackRequiredOnComplete,IsFinalProcess,IsTrackingSheetProcess,ProductivityType,ExpectedCompletionMinutes,MinCompletionMinutes,MaxCompletionMinutes,AddedBy)
+ VALUES(@ProjectID,@ProcessID,LTRIM(RTRIM(@ProcessName)),@StageNo,@IsMandatory,@FeedbackRequiredOnComplete,@IsFinalProcess,@IsTrackingSheetProcess,@ProductivityType,NULLIF(@ExpectedCompletionMinutes,0),@MinCompletionMinutes,@MaxCompletionMinutes,@UserID);
 DELETE dbo.OLTracking_ProcessDependency WHERE ProjectID=@ProjectID AND ProcessID=@ProcessID;
 INSERT dbo.OLTracking_ProcessDependency(ProjectID,ProcessID,PredecessorProcessID,IsActive,AddedBy)
 SELECT @ProjectID,@ProcessID,dependency.PredecessorProcessID,1,@UserID
@@ -379,6 +384,8 @@ COMMIT TRANSACTION;") { CommandType = CommandType.Text };
             Add(command, "@IsTrackingSheetProcess", SqlDbType.Bit, isTrackingSheetProcess);
             Add(command, "@ProductivityType", SqlDbType.NVarChar, productivityType, 40);
             Add(command, "@ExpectedCompletionMinutes", SqlDbType.Int, expectedCompletionMinutes);
+            Add(command, "@MinCompletionMinutes", SqlDbType.Int, minCompletionMinutes);
+            Add(command, "@MaxCompletionMinutes", SqlDbType.Int, maxCompletionMinutes);
             Add(command, "@EligibleAfterXml", SqlDbType.Xml, dependencies.ToString(SaveOptions.DisableFormatting));
             Add(command, "@FeedbackTargetXml", SqlDbType.Xml, feedbackTargets.ToString(SaveOptions.DisableFormatting));
             Add(command, "@UserID", SqlDbType.Int, userId);
@@ -400,6 +407,16 @@ IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ProductivityType') IS NULL
         CONSTRAINT DF_OLTracking_ProcessFlow_ProductivityType DEFAULT('Loan Based Productivity') WITH VALUES;
 IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ExpectedCompletionMinutes') IS NULL
     ALTER TABLE dbo.OLTracking_ProcessFlow ADD ExpectedCompletionMinutes int NULL;
+IF COL_LENGTH('dbo.OLTracking_ProcessFlow','MinCompletionMinutes') IS NULL
+    ALTER TABLE dbo.OLTracking_ProcessFlow ADD MinCompletionMinutes int NULL;
+IF COL_LENGTH('dbo.OLTracking_ProcessFlow','MaxCompletionMinutes') IS NULL
+    ALTER TABLE dbo.OLTracking_ProcessFlow ADD MaxCompletionMinutes int NULL;
+IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MinCompletionMinutes') IS NULL
+    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MinCompletionMinutes int NULL;
+IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MaxCompletionMinutes') IS NULL
+    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MaxCompletionMinutes int NULL;
+IF COL_LENGTH('dbo.OLTracking_Assignment','MaxTimeAcknowledgedDate') IS NULL
+    ALTER TABLE dbo.OLTracking_Assignment ADD MaxTimeAcknowledgedDate datetime NULL;
 IF OBJECT_ID('dbo.OLTracking_ProcessDependency','U') IS NULL
 BEGIN
     CREATE TABLE dbo.OLTracking_ProcessDependency
@@ -751,6 +768,26 @@ END CATCH", connection) { CommandTimeout = 90 })
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId)
         {
             EnsureProcessFlowColumns();
+            SqlCommand timeValidation = new SqlCommand(@"
+DECLARE @ProcessName nvarchar(200),@MinMinutes int,@ElapsedSeconds bigint,@Message nvarchar(2048);
+SELECT @ProcessName=flow.ProcessName,@MinMinutes=flow.MinCompletionMinutes,
+       @ElapsedSeconds=CASE WHEN DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
+                            ELSE DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0) END
+FROM dbo.OLTracking_Assignment a
+JOIN dbo.OLTracking_Item i ON i.ItemID=a.ItemID
+CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(a.ProjectID,i.DealNumber) flow
+WHERE a.AssignmentID=@AssignmentID AND a.UserID=@UserID AND a.IsCurrent=1
+  AND flow.ProcessID=a.ProcessID AND a.StartedDate IS NOT NULL;
+IF @MinMinutes IS NOT NULL AND @ElapsedSeconds<CONVERT(bigint,@MinMinutes)*60
+BEGIN
+    SET @Message=N'Process cannot be completed yet. Minimum processing time for '+@ProcessName+N' is '
+        +CONVERT(nvarchar(20),@MinMinutes)+N' minutes. Elapsed Time: '+CONVERT(nvarchar(20),@ElapsedSeconds/60)
+        +N' minutes. Remaining Time: '+CONVERT(nvarchar(20),CEILING((CONVERT(bigint,@MinMinutes)*60-@ElapsedSeconds)/60.0))+N' minutes.';
+    THROW 50150,@Message,1;
+END;") { CommandType = CommandType.Text, CommandTimeout = 10 };
+            Add(timeValidation, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(timeValidation, "@UserID", SqlDbType.Int, userId);
+            ExecuteNonQuery(timeValidation);
             XElement root = new XElement("feedbacks");
             if (feedbacks != null) foreach (string feedback in feedbacks)
                 if (!string.IsNullOrWhiteSpace(feedback)) root.Add(new XElement("feedback", feedback.Trim()));
@@ -791,6 +828,65 @@ ELSE IF NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Feedback WHERE AssignmentID=@Ass
             Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000);
             Add(command, "@FeedbackXml", SqlDbType.Xml, root.HasElements ? root.ToString(SaveOptions.DisableFormatting) : null);
             Add(command, "@UserID", SqlDbType.Int, userId); ExecuteNonQuery(command);
+        }
+
+        public DataTable GetOverdueProcesses(int userId)
+        {
+            EnsureProcessFlowColumns();
+            SqlCommand command = new SqlCommand(@"
+SELECT a.AssignmentID,i.ItemNumber LoanNumber,flow.ProcessName,flow.MaxCompletionMinutes,
+       CONVERT(int,elapsed.ElapsedSeconds/60) ElapsedMinutes,
+       CAST(CASE WHEN a.MaxTimeAcknowledgedDate IS NULL THEN 0 ELSE 1 END AS bit) IsAcknowledged
+FROM dbo.OLTracking_Assignment a
+JOIN dbo.OLTracking_Item i ON i.ItemID=a.ItemID
+CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(a.ProjectID,i.DealNumber) flow
+CROSS APPLY
+(
+    SELECT CONVERT(bigint,CASE WHEN DATEDIFF(second,a.StartedDate,
+       CASE WHEN a.AssignmentStatus='Hold' AND a.HoldDate IS NOT NULL THEN a.HoldDate ELSE GETDATE() END)-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
+       ELSE DATEDIFF(second,a.StartedDate,CASE WHEN a.AssignmentStatus='Hold' AND a.HoldDate IS NOT NULL THEN a.HoldDate ELSE GETDATE() END)-ISNULL(a.HoldTATSeconds,0) END) ElapsedSeconds
+) elapsed
+WHERE a.UserID=@UserID AND a.IsCurrent=1 AND a.AssignmentStatus IN('In Process','Hold')
+  AND a.StartedDate IS NOT NULL AND flow.ProcessID=a.ProcessID AND flow.MaxCompletionMinutes IS NOT NULL
+  AND elapsed.ElapsedSeconds>=CONVERT(bigint,flow.MaxCompletionMinutes)*60
+ORDER BY IsAcknowledged,a.AssignedDate;") { CommandType = CommandType.Text };
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Table(command);
+        }
+
+        public DataTable GetCompletionTimeValidation(long assignmentId, int userId)
+        {
+            EnsureProcessFlowColumns();
+            SqlCommand command = new SqlCommand(@"
+SELECT flow.ProcessName,flow.MinCompletionMinutes,
+       CONVERT(int,CASE WHEN a.StartedDate IS NULL THEN 0 WHEN DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
+                        ELSE (DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0))/60 END) ElapsedMinutes,
+       CONVERT(int,CASE WHEN flow.MinCompletionMinutes IS NULL OR a.StartedDate IS NULL THEN 0
+                        WHEN CONVERT(bigint,flow.MinCompletionMinutes)*60>(DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0))
+                        THEN CEILING((CONVERT(bigint,flow.MinCompletionMinutes)*60-(DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)))/60.0) ELSE 0 END) RemainingMinutes
+FROM dbo.OLTracking_Assignment a
+JOIN dbo.OLTracking_Item i ON i.ItemID=a.ItemID
+CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(a.ProjectID,i.DealNumber) flow
+WHERE a.AssignmentID=@AssignmentID AND a.UserID=@UserID AND a.IsCurrent=1 AND flow.ProcessID=a.ProcessID;") { CommandType = CommandType.Text };
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Table(command);
+        }
+
+        public int AcknowledgeOverdueProcesses(long[] assignmentIds, int userId)
+        {
+            XElement root = new XElement("assignments");
+            if (assignmentIds != null) foreach (long id in assignmentIds) if (id > 0) root.Add(new XElement("assignment", id));
+            SqlCommand command = new SqlCommand(@"
+UPDATE assignment SET MaxTimeAcknowledgedDate=GETDATE()
+FROM dbo.OLTracking_Assignment assignment
+JOIN @AssignmentXml.nodes('/assignments/assignment') selected(node)
+  ON assignment.AssignmentID=selected.node.value('(text())[1]','bigint')
+WHERE assignment.UserID=@UserID AND assignment.IsCurrent=1 AND assignment.AssignmentStatus IN('In Process','Hold');
+SELECT @@ROWCOUNT;") { CommandType = CommandType.Text };
+            Add(command, "@AssignmentXml", SqlDbType.Xml, root.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Execute(command);
         }
 
         public DataSet GetFeedbackDefaults(long assignmentId, int userId, string feedbackBy)
