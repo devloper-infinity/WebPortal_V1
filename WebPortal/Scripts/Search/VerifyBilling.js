@@ -817,6 +817,8 @@ function Core_VerifyOrdres_Verify() {
     var ddlprj_vrf = document.getElementById("VerifyOrdres_projectno");
     var project = ddlprj_vrf.options[ddlprj_vrf.selectedIndex].text;
     var remark = document.getElementById("VerifyOrdres_Remark").value;
+    var ddlprj_billPeriod = document.getElementById("VerifyOrdres_BillingCycle");
+    var billingPeriod = ddlprj_billPeriod.options[ddlprj_billPeriod.selectedIndex].text;
 
     if (project != "" && remark != "") {
 
@@ -838,7 +840,9 @@ function Core_VerifyOrdres_Verify() {
         $.ajax({
             url: "VerifyBilling.aspx/VerifyOrders",
             type: "POST",
-            data: "{OrderIDs:'" + selectedOrderIDs + "',Project:'" + project + "',Remark:'" + remark + "'}",
+            // data: "{OrderIDs:'" + selectedOrderIDs + "',Project:'" + project + "',Remark:'" + remark + "',BillingPeriod:'" + billingPeriod + "'}",
+            data: "{OrderIDs:'" + selectedOrderIDs + "',Project:'" + project + "',Remark:'" + remark + "',BillingPeriod:'" + billingPeriod + "'}",
+
             contentType: "application/json; charset=utf-8",
             dataType: "json",
 
@@ -872,6 +876,8 @@ function VerifyOrdres_Verify() {
 
     const project = $("#VerifyOrdres_projectno option:selected").text().trim();
     const remark = $("#VerifyOrdres_Remark").val().trim();
+    var ddlprj_billPeriod = document.getElementById("VerifyOrdres_BillingCycle");
+    var billingPeriod = ddlprj_billPeriod.options[ddlprj_billPeriod.selectedIndex].text;
 
     if (!project) {
         Swal.fire({
@@ -927,7 +933,8 @@ function VerifyOrdres_Verify() {
         data: JSON.stringify({
             OrderIDs: selectedOrderIDs.join(","),
             Project: project,
-            Remark: remark
+            Remark: remark,
+            BillingPeriod: billingPeriod
         }),
 
         success: function (response) {

@@ -81,7 +81,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static object GetUserPerformanceFeedbackDetailsNonDD(string type, string tab, string FromDate, string EndDate)
         {
-          DataTable  dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(NormalizeReportDate(FromDate), NormalizeReportDate(EndDate), GetCurrentEmployeeId());
+            DataTable dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_NonDD(NormalizeReportDate(FromDate), NormalizeReportDate(EndDate), GetCurrentEmployeeId());
 
             return ToRows(dt);
         }
@@ -146,7 +146,7 @@ namespace WebPortal.Admin
 
                     else if (req.tab == "attendance")
                         //  dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate,  employeeId);
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate, employeeId);
                 }
 
                 else if (req.type == "servicing")
@@ -161,8 +161,8 @@ namespace WebPortal.Admin
                         dt = new bllMaster().GetUserPerformanceFeedbackDetails_HR_Servicing(req.FromDate, req.EndDate, employeeId);
 
                     else if (req.tab == "attendance")
-                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate,  employeeId);
-                                                                                                          // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                        dt = new bllMaster().GetUserPerformanceAttendanceDetails(req.FromDate, req.EndDate, employeeId);
+                    // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 }
 
 
@@ -220,7 +220,6 @@ namespace WebPortal.Admin
                         //   dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_NonDD(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                         dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, employeeId);
                 }
-
                 else if (type == "credit")
                 {
                     if (tab == "summary")
@@ -236,7 +235,6 @@ namespace WebPortal.Admin
                         //  dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Credit(FromDate, EndDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                         dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, employeeId);
                 }
-
                 else if (type == "servicing")
                 {
                     if (tab == "summary")
@@ -250,7 +248,7 @@ namespace WebPortal.Admin
 
                     else if (tab == "attendance")
                         dt = new bllMaster().GetUserPerformanceAttendanceDetails(FromDate, EndDate, employeeId);
-                                                                                                          // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                    // dt = new bllMaster().GetUserPerformanceAttendanceDetails_HR_Servicing(FromDate, EndDate, 7171);// int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 }
 
                 return ToRows(dt);
@@ -275,7 +273,7 @@ namespace WebPortal.Admin
                 return new { error = ex.Message };
             }
         }
-       
+
         [WebMethod]
         public static void StartExport(string FromDate, string ToDate)
         {
@@ -293,7 +291,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static int GetExportProgress()
         {
-           
+
             if (HttpContext.Current.Session["ExportStep"] != null)
                 return Convert.ToInt32(HttpContext.Current.Session["ExportStep"]);
             else

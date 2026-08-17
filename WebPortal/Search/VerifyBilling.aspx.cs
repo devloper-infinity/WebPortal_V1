@@ -281,7 +281,7 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static int VerifyOrders(string OrderIDs, string Project, string Remark)
+        public static int VerifyOrders(string OrderIDs, string Project, string Remark, string BillingPeriod)
         {
             int returnValue = 0;
 
@@ -291,7 +291,7 @@ namespace WebPortal.Search
             {
                 string id = orderId.Trim(); // remove spaces if any
 
-                returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark);
+                returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark, BillingPeriod);
             }
 
             return returnValue;

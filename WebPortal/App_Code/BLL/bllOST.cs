@@ -325,9 +325,9 @@ namespace WebPortal.App_Code.BLL
             return dalOst.GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
         }
 
-        public int VerifyOstOrdersForBilling(int OrderID, string Project, int AddedBy, string Remark)
+        public int VerifyOstOrdersForBilling(int OrderID, string Project, int AddedBy, string Remark, string BillingPeriod)
         {
-            return dalOst.VerifyOstOrdersForBilling(OrderID, Project, AddedBy, Remark);
+            return dalOst.VerifyOstOrdersForBilling(OrderID, Project, AddedBy, Remark, BillingPeriod);
         }
 
         public int UpdateBillingInBillingDB(int ProjectID, string period, string BillingCycle, int BillingBy, string ProductionBillingDate, string BillingDate, bool Isdelay, string remark, string BillingStatus)
