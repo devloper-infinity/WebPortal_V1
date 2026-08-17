@@ -346,13 +346,13 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            //string toAddress = "anita@infinity-data.com";
-            //string toCC = "p.patil@infinityinternationals.us," + EmployeeInfo.Current.OfficialEmailID;
-            //string toBcc = "b.shubhangi@infinityinternationals.us";
-
-            string toAddress = "b.shubhangi@infinityinternationals.us";
-            string toCC = "b.shubhangi@infinityinternationals.us";
+            string toAddress = "anita@infinity-data.com";
+            string toCC = "p.patil@infinityinternationals.us," + EmployeeInfo.Current.OfficialEmailID;
             string toBcc = "b.shubhangi@infinityinternationals.us";
+
+             //toAddress = "b.shubhangi@infinityinternationals.us";
+             //toCC = "b.shubhangi@infinityinternationals.us";
+             //toBcc = "b.shubhangi@infinityinternationals.us";
 
             try
             {

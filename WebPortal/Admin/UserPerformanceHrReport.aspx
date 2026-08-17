@@ -238,10 +238,12 @@
         .upr-main-tabs .nav-item,
         .upr-sub-tabs .nav-item {
             margin: 0 !important;
+           
         }
 
         .upr-main-tabs .nav-item {
             flex: 1 1 0;
+            /* padding:2%;*/
             min-width: 0;
         }
 
