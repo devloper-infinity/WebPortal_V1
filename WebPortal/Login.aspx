@@ -158,7 +158,6 @@
             justify-content: space-between;
         }
 
-        /* Decorative Geometric Rings in Hero */
         .login-visual::before {
             content: "";
             position: absolute;
@@ -202,7 +201,6 @@
             gap: 36px;
         }
 
-        /* Live Status Pill Badge */
         .brand-badge {
             display: inline-flex;
             align-items: center;
@@ -236,7 +234,6 @@
             100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
         }
 
-        /* Hero Typography */
         .brand-title {
             margin-top: 18px;
         }
@@ -266,7 +263,6 @@
             max-width: 480px;
         }
 
-        /* Enterprise Feature Cards Grid */
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -323,7 +319,6 @@
             line-height: 1.3;
         }
 
-        /* Trust Footer in Visual Panel */
         .visual-footer {
             display: flex;
             align-items: center;
@@ -357,7 +352,6 @@
             max-width: 360px;
         }
 
-        /* Brand Logo Box */
         .logo-box {
             text-align: center;
             margin-bottom: 24px;
@@ -405,7 +399,6 @@
             font-weight: 500;
         }
 
-        /* Server-side Alert Styling */
         #dvError {
             margin-bottom: 18px;
             padding: 12px 14px;
@@ -451,20 +444,40 @@
             animation: fadeInAlert 0.2s ease;
         }
 
+        /* Reset any conflicting inherited styles for span or text inside loader */
+        .auth-loader span,
+        .auth-loader .auth-loader-text {
+            animation: none !important;
+            transform: none !important;
+            width: auto !important;
+            height: auto !important;
+            border: none !important;
+            border-radius: 0 !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+            margin: 0 !important;
+            color: var(--brand-primary) !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+        }
+
         .auth-spinner {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid rgba(37, 99, 235, 0.25);
-            border-top-color: var(--brand-primary);
-            animation: spinRing 0.7s linear infinite;
+            width: 18px !important;
+            height: 18px !important;
+            border-radius: 50% !important;
+            border: 2.5px solid rgba(37, 99, 235, 0.2) !important;
+            border-top-color: var(--brand-primary) !important;
+            animation: spinRing 0.75s linear infinite !important;
+            flex-shrink: 0;
+            display: inline-block !important;
+            vertical-align: middle !important;
         }
 
         @keyframes spinRing {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Form Controls */
         .login-field {
             margin-bottom: 16px;
         }
@@ -513,7 +526,6 @@
             font-weight: 400;
         }
 
-        /* Left Input Icon */
         .input-lead-icon {
             position: absolute;
             left: 13px;
@@ -529,7 +541,6 @@
             color: var(--brand-primary);
         }
 
-        /* Password Eye Toggle Button */
         .password-toggle-btn {
             position: absolute;
             right: 12px;
@@ -553,7 +564,6 @@
             background-color: #f1f5f9;
         }
 
-        /* Options Row: Remember Me & Forgot Password */
         .login-options {
             display: flex;
             align-items: center;
@@ -593,7 +603,6 @@
             text-decoration: underline;
         }
 
-        /* Primary Action Button */
         .btn-login-primary {
             width: 100%;
             height: 48px;
@@ -630,7 +639,6 @@
             pointer-events: none;
         }
 
-        /* Security Trust Footer */
         .login-card-footer {
             margin-top: 24px;
             padding-top: 16px;
@@ -649,9 +657,6 @@
             font-size: 12px;
         }
 
-        /* ============================================================
-           RESPONSIVE BREAKPOINTS
-           ============================================================ */
         @media (max-width: 980px) {
             body.login-page {
                 padding: 20px 14px;
@@ -821,7 +826,7 @@
                 <!-- Client-side Loading State -->
                 <div id="authLoader" class="auth-loader" aria-live="polite">
                     <div class="auth-spinner"></div>
-                    <span>Verifying credentials...</span>
+                    <div class="auth-loader-text">Verifying credentials...</div>
                 </div>
 
                 <!-- ASP.NET Server Form -->

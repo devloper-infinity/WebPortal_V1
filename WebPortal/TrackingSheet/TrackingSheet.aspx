@@ -2,7 +2,7 @@
 
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="OLTracking.css" />
-    <link rel="stylesheet" href="TrackingSheetFeedback.css" />
+    <link rel="stylesheet" href="TrackingSheetFeedback.css?v=20260816.2" />
 
     <style>
         .ots-tabs {
@@ -96,13 +96,17 @@
         .ots-status.hold { background:#fee2e2; color:#991b1b }
         .olt-dialog-head button:not(.olt-dialog-close) { display:none }
         .ots-status-control { grid-column:span 12; max-width:540px }
+        .hourly-hours,.hourly-minutes { width:90px; min-width:70px; padding:8px; border:1px solid #c8d5e3; border-radius:5px }
+        .ots-hourly-entry { display:none; padding:16px; border:1px solid #cfe0eb; border-radius:8px; background:#f7fbfd }
+        .ots-hourly-entry.active { display:block }
+        .ots-hourly-entry .olt-form { align-items:end }
         @media(max-width:700px) { .ots-processing-head { display:block } .ots-search-row { grid-template-columns:1fr } }
     </style>
 
    <%-- <script src="OLTracking.js"></script>--%>
    <%-- <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>--%>
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260814.7"></script>
+    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260816.9"></script>
 </asp:Content>
 
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -148,6 +152,15 @@
                         <div class="ots-processing-head">
                             <div><h3>Pending Loan Processing</h3><p>Work on pending loans without leaving the selected Project / Deal / Process.</p></div>
                         </div>
+                        <div id="hourlyEntrySection" class="ots-hourly-entry">
+                            <div class="olt-form">
+                                <div class="olt-field"><label for="hourlyEntryHours">Hours</label><select id="hourlyEntryHours"></select></div>
+                                <div class="olt-field"><label for="hourlyEntryMinutes">Minutes</label><select id="hourlyEntryMinutes"></select></div>
+                                <div class="olt-field"><button id="hourlyEntrySubmit" type="button" class="olt-btn">Submit</button></div>
+                            </div>
+                            <div class="ots-search-help">Submit the total time worked for the selected Project, Deal and Process. Start and End time are not captured.</div>
+                        </div>
+                        <div id="standardOtherProcessingSection">
                         <div class="ots-search-row">
                             <div class="olt-field">
                                 <label for="otherLoanSearch">Loan Search</label>
@@ -163,13 +176,14 @@
                         <div id="otherSelectionCount" class="ots-selection-count">0 loan(s) selected</div>
                         <div class="olt-table-wrap">
                             <table id="otherLoanTable" class="olt-table">
-                                <thead><tr>
+                                <thead id="otherLoanHead"><tr>
                                     <th><input id="selectAllOtherLoans" class="ots-row-check" type="checkbox" aria-label="Select all visible loans" /></th>
                                     <th>LoanNo</th><th>DealNo</th><th>UserName</th><th>StartDate</th><th>EndDate</th><th>Status</th><th>Reason</th><th>Action</th>
                                 </tr></thead>
                                 <tbody></tbody>
                             </table>
                         </div>
+                    </div>
                     </div>
                     <br />
                     <div id="trackingQueueSection" class="olt-table-wrap">
@@ -235,6 +249,7 @@
                                 <th>Completed</th>
                                 <th>Hold TAT</th>
                                 <th>Total TAT</th>
+                                <th>Hours Worked</th>
                                 <th>Remark</th>
                             </tr>
                         </thead>
@@ -281,9 +296,8 @@
                     <div class="olt-feedback-heading">
                         <div>
                             <h3>Add Feedback</h3>
-                            <p>At least one feedback entry is mandatory before the loan can be completed.</p>
+                            <p>Add feedback and review every saved error before continuing.</p>
                         </div>
-                        <span id="savedFeedbackCount" class="olt-feedback-count">0 feedback added</span>
                     </div>
                     <div class="olt-feedback-form">
                         <div class="olt-field">
@@ -292,12 +306,20 @@
                         <div class="olt-field">
                             <label>Client</label><input id="fbClient" class="ots-disabled" disabled />
                         </div>
-                        <div class="olt-field">
-                            <label>UW Name</label><select id="fbErrorBy" onchange="bindFeedbackOwner()"><option value="">Select</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
-                            <label>Previous Process</label><input id="fbMarkedTo" class="ots-disabled" disabled />
+                        <div class="olt-field span-2">
+                            <label>Previous Process(es)</label>
+                            <details id="fbPreviousProcessPicker" class="olt-feedback-process-picker">
+                                <summary id="fbPreviousProcessSummary">Select completed process(es)</summary>
+                                <div class="olt-feedback-process-menu">
+                                    <input id="fbPreviousProcessSearch" type="search" placeholder="Search completed processes..." autocomplete="off" />
+                                    <div id="fbPreviousProcessOptions" class="olt-feedback-process-options"></div>
+                                    <div class="olt-feedback-process-actions">
+                                        <button type="button" class="olt-btn secondary" onclick="clearPreviousProcessSelection();return false;">Clear all</button>
+                                        <button type="button" class="olt-btn" onclick="fbPreviousProcessPicker.open=false;return false;">Done</button>
+                                    </div>
+                                </div>
+                            </details>
+                            <small class="olt-muted">Feedback is saved against the user who completed each selected process.</small>
                         </div>
                         <div class="olt-field">
                             <label>Date Reviewed</label><input id="fbDateReviewed" class="ots-disabled" disabled />
@@ -355,7 +377,31 @@
                         <button type="button" class="olt-btn" onclick="saveFeedback()">Add Feedback</button>
                         <button id="continueAfterFeedback" type="button" class="olt-btn secondary" onclick="continueToComplete()" disabled>Continue to Update Loan</button>
                     </div>
-                    <div id="savedFeedbackList" class="olt-saved-feedback"></div>
+                    <div class="olt-saved-feedback">
+                        <div class="olt-saved-feedback-title">Saved Feedback Details</div>
+                        <div class="olt-table-wrap">
+                            <table id="savedFeedbackTable" class="olt-table" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>Feedback #</th>
+                                        <th>Previous Process</th>
+                                        <th>Feedback Against User</th>
+                                        <th>Severity</th>
+                                        <th>Category</th>
+                                        <th>Subcategory</th>
+                                        <th>Error Field</th>
+                                        <th>Error Type</th>
+                                        <th>Finding</th>
+                                        <th>RCA</th>
+                                        <th>Status</th>
+                                        <th>Added</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="completeStep" class="ots-step">
                     <div class="olt-form">

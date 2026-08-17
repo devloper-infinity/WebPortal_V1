@@ -18,7 +18,7 @@ namespace WebPortal.TrackingSheet
         public static string GetDeals(int projectId) { Access(projectId); return OLTrackingWeb.Json(new bllOLTracking().GetSourceDeals(projectId, OLTrackingWeb.UserId)); }
 
         [WebMethod]
-        public static string GetFlow(int projectId) { Access(projectId); return OLTrackingWeb.Json(new bllOLTracking().GetProcessFlow(projectId)); }
+        public static string GetFlow(int projectId, string dealNumber) { Access(projectId); return OLTrackingWeb.Json(new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber)); }
 
         [WebMethod]
         public static string GetUsers(int projectId) { Access(projectId); return OLTrackingWeb.Json(new bllOLTracking().GetProjectUsers(projectId)); }
@@ -52,7 +52,7 @@ namespace WebPortal.TrackingSheet
         private static string Message(Exception ex)
         {
             SqlException sql = ex as SqlException; if (sql == null) return "The requested allocation could not be completed.";
-            if (sql.Number == 50110 || sql.Number == 50128 || sql.Number == 50130 || sql.Number == 50131) return sql.Message;
+            if (sql.Number == 50110 || sql.Number == 50128 || sql.Number == 50130 || sql.Number == 50131 || sql.Number == 50143) return sql.Message;
             return "The requested allocation could not be completed. Please refresh and try again.";
         }
     }

@@ -178,7 +178,7 @@
 
     <script src="OLTracking.js"></script>
     <script src="../plugins/chart.js/Chart.min.js"></script>
-    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260815.1"></script>
+    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260816.2"></script>
 
 </asp:Content>
 
@@ -283,6 +283,7 @@
                                 <th>Process</th>
                                 <th>User</th>
                                 <th>Total</th>
+                                <th>Total Hours</th>
                                 <th>Pending</th>
                                 <th>In Process</th>
                                 <th>Hold</th>
@@ -317,6 +318,7 @@
                                 <th>Productivity %</th>
                                 <th>Hold TAT</th>
                                 <th>Total TAT</th>
+                                <th>Hours Worked</th>
                                 <th>Feedback Status</th>
                                 <th>Remark</th>
                             </tr>

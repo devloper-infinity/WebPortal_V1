@@ -44,28 +44,31 @@ GO
 
 IF OBJECT_ID('dbo.OLTracking_GetHourlyProduction','P') IS NULL EXEC('CREATE PROCEDURE dbo.OLTracking_GetHourlyProduction AS BEGIN SET NOCOUNT ON; END');
 GO
+IF COL_LENGTH('dbo.OLTracking_Assignment','ManualDurationMinutes') IS NULL
+    ALTER TABLE dbo.OLTracking_Assignment ADD ManualDurationMinutes int NULL;
+GO
 ALTER PROCEDURE dbo.OLTracking_GetHourlyProduction @ProjectID int,@ReportDate date,@DealNumber nvarchar(150)=NULL
 AS
 BEGIN
     SET NOCOUNT ON; SET @ReportDate=ISNULL(@ReportDate,CAST(GETDATE() AS date));
     DECLARE @Start datetime=DATEADD(hour,10,CAST(@ReportDate AS datetime));
     SELECT ISNULL(i.DealNumber,'') DealNumber,f.ProcessID,f.ProcessName,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,0,@Start) AND a.CompletedDate<DATEADD(hour,2,@Start) THEN 1 ELSE 0 END) H10AM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,2,@Start) AND a.CompletedDate<DATEADD(hour,4,@Start) THEN 1 ELSE 0 END) H12PM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,4,@Start) AND a.CompletedDate<DATEADD(hour,6,@Start) THEN 1 ELSE 0 END) H02PM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,6,@Start) AND a.CompletedDate<DATEADD(hour,8,@Start) THEN 1 ELSE 0 END) H04PM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,8,@Start) AND a.CompletedDate<DATEADD(hour,10,@Start) THEN 1 ELSE 0 END) H06PM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,10,@Start) AND a.CompletedDate<DATEADD(hour,12,@Start) THEN 1 ELSE 0 END) H08PM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,12,@Start) AND a.CompletedDate<DATEADD(hour,14,@Start) THEN 1 ELSE 0 END) H10PM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,14,@Start) AND a.CompletedDate<DATEADD(hour,16,@Start) THEN 1 ELSE 0 END) H12AM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,16,@Start) AND a.CompletedDate<DATEADD(hour,18,@Start) THEN 1 ELSE 0 END) H02AM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,18,@Start) AND a.CompletedDate<DATEADD(hour,20,@Start) THEN 1 ELSE 0 END) H04AM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,20,@Start) AND a.CompletedDate<DATEADD(hour,22,@Start) THEN 1 ELSE 0 END) H06AM,
-      SUM(CASE WHEN a.CompletedDate>=DATEADD(hour,22,@Start) AND a.CompletedDate<DATEADD(hour,24,@Start) THEN 1 ELSE 0 END) H08AM,
-      COUNT(1) TotalCompleted
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,0,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,2,@Start) THEN 1 ELSE 0 END) H10AM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,2,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,4,@Start) THEN 1 ELSE 0 END) H12PM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,4,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,6,@Start) THEN 1 ELSE 0 END) H02PM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,6,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,8,@Start) THEN 1 ELSE 0 END) H04PM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,8,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,10,@Start) THEN 1 ELSE 0 END) H06PM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,10,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,12,@Start) THEN 1 ELSE 0 END) H08PM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,12,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,14,@Start) THEN 1 ELSE 0 END) H10PM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,14,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,16,@Start) THEN 1 ELSE 0 END) H12AM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,16,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,18,@Start) THEN 1 ELSE 0 END) H02AM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,18,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,20,@Start) THEN 1 ELSE 0 END) H04AM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,20,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,22,@Start) THEN 1 ELSE 0 END) H06AM,
+      SUM(CASE WHEN ISNULL(a.CompletedDate,a.AssignedDate)>=DATEADD(hour,22,@Start) AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,24,@Start) THEN 1 ELSE 0 END) H08AM,
+      COUNT(1) TotalCompleted,SUM(ISNULL(a.ManualDurationMinutes,0)) TotalDurationMinutes
     FROM dbo.OLTracking_Assignment a JOIN dbo.OLTracking_Item i ON i.ItemID=a.ItemID
     JOIN dbo.OLTracking_ProcessFlow f ON f.ProjectID=a.ProjectID AND f.ProcessID=a.ProcessID
-    WHERE a.ProjectID=@ProjectID AND a.AssignmentStatus='Completed' AND a.CompletedDate>=@Start AND a.CompletedDate<DATEADD(hour,24,@Start)
+    WHERE a.ProjectID=@ProjectID AND a.AssignmentStatus='Completed' AND ISNULL(a.CompletedDate,a.AssignedDate)>=@Start AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(hour,24,@Start)
       AND (NULLIF(@DealNumber,'') IS NULL OR i.DealNumber=@DealNumber)
     GROUP BY i.DealNumber,f.ProcessID,f.ProcessName ORDER BY i.DealNumber,f.ProcessName;
 END;

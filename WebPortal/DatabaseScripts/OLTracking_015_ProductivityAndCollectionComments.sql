@@ -71,8 +71,7 @@ AS
 BEGIN
     SET NOCOUNT ON; SET XACT_ABORT ON;
     IF @ProductivityType NOT IN(N'Hourly Productivity',N'Loan Based Productivity') THROW 50139,'Invalid productivity type.',1;
-    IF @ProductivityType=N'Hourly Productivity' AND ISNULL(@ExpectedCompletionMinutes,0)<=0 THROW 50140,'Expected completion time is required.',1;
-    IF @ProductivityType=N'Loan Based Productivity' SET @ExpectedCompletionMinutes=NULL;
+    SET @ExpectedCompletionMinutes=NULL;
     BEGIN TRANSACTION;
     IF @IsFinalProcess=1 UPDATE dbo.OLTracking_DealProcessFlow SET IsFinalProcess=0,UpdatedBy=@UserID,UpdatedDate=GETDATE() WHERE ProjectID=@ProjectID AND DealNumber=@DealNumber AND ProcessID<>@ProcessID AND IsActive=1;
     MERGE dbo.OLTracking_DealProcessFlow AS target

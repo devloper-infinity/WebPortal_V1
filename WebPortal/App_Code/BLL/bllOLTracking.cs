@@ -36,8 +36,8 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetDealProcessFlow(int projectId, string dealNumber) { return dal.GetDealProcessFlow(projectId, dealNumber); }
         public DataTable GetEffectiveProcessFlow(int projectId, string dealNumber) { return dal.GetEffectiveProcessFlow(projectId, dealNumber); }
         public DataTable GetConfiguredProcesses(int projectId) { return dal.GetConfiguredProcesses(projectId); }
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int userId)
-        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, userId); }
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
+        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, eligibleAfterProcessIds, feedbackAgainstProcessIds, userId); }
         public int RemoveProcessFlow(int projectId, int processId, int userId) { return dal.RemoveProcessFlow(projectId, processId, userId); }
         public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int userId)
         { dal.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, mandatory, feedback, isFinalProcess, productivityType, expectedCompletionMinutes, userId); }
@@ -62,6 +62,8 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetTrackingQueue(int userId) { return dal.GetTrackingQueue(userId); }
         public DataTable GetNonTrackingPendingLoans(int projectId, string dealNumber, int processId, int userId, string userName)
         { return dal.GetNonTrackingPendingLoans(projectId, dealNumber, processId, userId, userName); }
+        public long SubmitHourlyProductivity(int projectId, int processId, string dealNumber, int durationMinutes, int userId)
+        { return dal.SubmitHourlyProductivity(projectId, processId, dealNumber, durationMinutes, userId); }
         public void StartLoan(long assignmentId, int userId) { dal.StartLoan(assignmentId, userId); }
         public void HoldLoan(long assignmentId, string holdReason, int userId) { dal.HoldLoan(assignmentId, holdReason, userId); }
         public void ResumeLoan(long assignmentId, int userId) { dal.ResumeLoan(assignmentId, userId); }
@@ -76,8 +78,16 @@ namespace WebPortal.App_Code.BLL
             return dal.SaveFeedback(assignmentId, markedTo, errorBy, feedbackBy, errorType, categoryId, category,
                 subcategoryId, subcategory, severity, errorField, screen, feedbackType, error, shouldBe, remark, dateReviewed, userId);
         }
+        public DataTable SaveFeedbackForTargets(long assignmentId, long[] targetAssignmentIds, string feedbackBy, string errorType,
+            int categoryId, string category, int subcategoryId, string subcategory, string severity, string errorField,
+            string screen, string feedbackType, string error, string shouldBe, string remark, int userId)
+        {
+            return dal.SaveFeedbackForTargets(assignmentId, targetAssignmentIds, feedbackBy, errorType, categoryId,
+                category, subcategoryId, subcategory, severity, errorField, screen, feedbackType, error, shouldBe, remark, userId);
+        }
         public DataTable GetUserDailyStatus(int userId, int processId, DateTime? from, DateTime? to) { return dal.GetUserDailyStatus(userId, processId, from, to); }
         public DataTable GetUserDailyProcesses(int userId) { return dal.GetUserDailyProcesses(userId); }
+        public DataTable GetHourlyProductivityEntries(int projectId, DateTime from, DateTime to) { return dal.GetHourlyProductivityEntries(projectId, from, to); }
         public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
         public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId) { return dal.GetEligibleLoans(projectId, dealNumber, processId); }
        

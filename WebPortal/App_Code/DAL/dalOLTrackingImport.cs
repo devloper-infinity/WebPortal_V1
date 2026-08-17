@@ -139,7 +139,7 @@ ORDER BY d.EntryDate, i.ItemID, f.DisplayOrder, f.FieldConfigId;"))
             using (SqlCommand command = new SqlCommand(@"
 SELECT i.ItemID,d.EntryDate,flow.ProcessID,flow.ProcessName,flow.StageNo,flow.IsMandatory,flow.CanSkip,
        flow.IsFinalProcess,COALESCE(a.AssignmentStatus,'Pending') AS ProcessStatus,
-       ISNULL(a.IsCurrent,0) AS IsCurrent,a.AssignedDate,a.StartedDate,a.CompletedDate,
+       ISNULL(a.IsCurrent,0) AS IsCurrent,a.AssignedDate,a.StartedDate,a.CompletedDate,a.ManualDurationMinutes,
        CASE WHEN a.AssignmentStatus='Completed'
             THEN COALESCE(NULLIF(completedUser.UserName,''),CONVERT(nvarchar(30),a.UserID),'')
             ELSE '' END AS CompletedBy,
@@ -150,7 +150,7 @@ CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(i.ProjectID,i.DealNumber) flow
 OUTER APPLY
 (
     SELECT TOP (1) assignment.AssignmentStatus,assignment.IsCurrent,assignment.UserID,assignment.AssignedDate,
-           assignment.StartedDate,assignment.CompletedDate
+           assignment.StartedDate,assignment.CompletedDate,assignment.ManualDurationMinutes
     FROM dbo.OLTracking_Assignment assignment
     WHERE assignment.ItemID=i.ItemID AND assignment.ProcessID=flow.ProcessID
     ORDER BY assignment.AssignmentID DESC

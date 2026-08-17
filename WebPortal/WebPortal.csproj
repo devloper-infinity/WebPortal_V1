@@ -863,6 +863,7 @@
     <Content Include="Scripts\Search\VMReport.js" />
     <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
+    <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\UpdateBillingParameters.js" />
@@ -2907,8 +2908,14 @@
     <Content Include="DatabaseScripts\OLTracking_014_TrackingSheetProcess.sql" />
     <Content Include="DatabaseScripts\OLTracking_015_ProductivityAndCollectionComments.sql" />
     <Content Include="DatabaseScripts\OLTracking_016_ManagerOperationalDashboard.sql" />
+    <Content Include="DatabaseScripts\OLTracking_017_ProcessSpecificEligibility.sql" />
+    <Content Include="DatabaseScripts\OLTracking_018_FeedbackRouting.sql" />
+    <Content Include="DatabaseScripts\OLTracking_019_ProductivityTypeWithoutTime.sql" />
+    <Content Include="DatabaseScripts\OLTracking_020_HourlyNonTrackingProductivity.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
+    <Content Include="TrackingSheet\TrackingSheetFeedbackEntry.css" />
+    <Content Include="TrackingSheet\TrackingSheetFeedback.aspx" />
     <Content Include="TrackingSheet\ProcessFlowConfiguration.aspx" />
     <Content Include="TrackingSheet\ImportData.aspx" />
     <Content Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx" />
@@ -3241,6 +3248,13 @@
     </Compile>
     <Compile Include="TrackingSheet\TrackingSheet.aspx.designer.cs">
       <DependentUpon>TrackingSheet.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetFeedback.aspx.cs">
+      <DependentUpon>TrackingSheetFeedback.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="TrackingSheet\TrackingSheetFeedback.aspx.designer.cs">
+      <DependentUpon>TrackingSheetFeedback.aspx</DependentUpon>
     </Compile>
     <Compile Include="TrackingSheet\ManagerDashboard.aspx.cs">
       <DependentUpon>ManagerDashboard.aspx</DependentUpon>

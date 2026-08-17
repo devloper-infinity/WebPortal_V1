@@ -2,6 +2,10 @@
 SET NOCOUNT ON;
 GO
 
+IF COL_LENGTH('dbo.OLTracking_Assignment','ManualDurationMinutes') IS NULL
+    ALTER TABLE dbo.OLTracking_Assignment ADD ManualDurationMinutes int NULL;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.OLTracking_GetManagerDetail
     @ProjectID int,@DealNumber nvarchar(150)=NULL,@ProcessID int=0,@UserID int=0,
     @Status varchar(20)=NULL,@FromDate date=NULL,@ToDate date=NULL,@ProductivityType nvarchar(40)=NULL
@@ -14,7 +18,7 @@ BEGIN
     (
         SELECT a.AssignmentID,a.ProjectID,p.ProjectName,a.ProcessID,flow.ProcessName,a.UserID,
             COALESCE(NULLIF(ec.PsuedoName,''),NULLIF(ec.Code,''),NULLIF(e.Code,''),CONVERT(nvarchar(30),a.UserID)) UserName,
-            i.ItemNumber LoanNumber,ISNULL(i.DealNumber,'') DealNumber,a.AssignmentStatus,a.AssignedDate,a.StartedDate,a.CompletedDate,a.LastRemark,
+            i.ItemNumber LoanNumber,ISNULL(i.DealNumber,'') DealNumber,a.AssignmentStatus,a.AssignedDate,a.StartedDate,a.CompletedDate,a.LastRemark,a.ManualDurationMinutes,
             ISNULL(flow.ProductivityType,N'Loan Based Productivity') ProductivityType,ISNULL(flow.ExpectedCompletionMinutes,0) ExpectedCompletionMinutes,
             ISNULL(a.HoldTATSeconds,0)+CASE WHEN a.AssignmentStatus='Hold' AND a.HoldDate IS NOT NULL THEN DATEDIFF(second,a.HoldDate,GETDATE()) ELSE 0 END HoldTATSeconds,
             CASE WHEN a.TotalTATSeconds IS NOT NULL THEN a.TotalTATSeconds ELSE
@@ -36,7 +40,7 @@ BEGIN
           AND ISNULL(a.CompletedDate,a.AssignedDate)>=@FromDate AND ISNULL(a.CompletedDate,a.AssignedDate)<DATEADD(day,1,@ToDate)
     )
     SELECT *,
-       CASE WHEN ProductivityType=N'Hourly Productivity' THEN RIGHT('00'+CONVERT(varchar(10),ExpectedCompletionMinutes/60),2)+':'+RIGHT('00'+CONVERT(varchar(2),ExpectedCompletionMinutes%60),2)
+       CASE WHEN ProductivityType=N'Hourly Productivity' THEN N'Hourly'
             ELSE N'Loan based' END TargetDisplay,
        CONVERT(decimal(10,2),CASE WHEN ProductivityType=N'Hourly Productivity' AND TotalTATSeconds>0 AND ExpectedCompletionMinutes>0 THEN ExpectedCompletionMinutes*60.0/TotalTATSeconds*100
             WHEN ProductivityType=N'Loan Based Productivity' AND AssignmentStatus='Completed' THEN 100 ELSE 0 END) ProductivityPercent
@@ -52,7 +56,7 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @Detail TABLE
     (
-        AssignmentID bigint,ProjectID int,ProjectName nvarchar(200),ProcessID int,ProcessName nvarchar(200),UserID int,UserName nvarchar(200),LoanNumber nvarchar(200),DealNumber nvarchar(150),AssignmentStatus varchar(20),AssignedDate datetime,StartedDate datetime,CompletedDate datetime,LastRemark nvarchar(1000),ProductivityType nvarchar(40),ExpectedCompletionMinutes int,HoldTATSeconds bigint,TotalTATSeconds bigint,FeedbackStatus nvarchar(50),TargetDisplay nvarchar(50),ProductivityPercent decimal(10,2)
+        AssignmentID bigint,ProjectID int,ProjectName nvarchar(200),ProcessID int,ProcessName nvarchar(200),UserID int,UserName nvarchar(200),LoanNumber nvarchar(200),DealNumber nvarchar(150),AssignmentStatus varchar(20),AssignedDate datetime,StartedDate datetime,CompletedDate datetime,LastRemark nvarchar(1000),ManualDurationMinutes int,ProductivityType nvarchar(40),ExpectedCompletionMinutes int,HoldTATSeconds bigint,TotalTATSeconds bigint,FeedbackStatus nvarchar(50),TargetDisplay nvarchar(50),ProductivityPercent decimal(10,2)
     );
     INSERT @Detail EXEC dbo.OLTracking_GetManagerDetail @ProjectID,@DealNumber,@ProcessID,@UserID,NULL,@FromDate,@ToDate,@ProductivityType;
     SELECT ProjectName,ProcessName,UserID,UserName,COUNT(1) TotalOrders,

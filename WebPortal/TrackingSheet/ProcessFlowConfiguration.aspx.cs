@@ -14,8 +14,8 @@ namespace WebPortal.TrackingSheet
         [WebMethod] public static string GetFlow(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetProcessFlow(projectId)); }
         [WebMethod] public static string GetDeals(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetSourceDeals(projectId, OLTrackingWeb.UserId)); }
         [WebMethod] public static string GetDealFlow(int projectId, string dealNumber) { return OLTrackingWeb.Json(new bllOLTracking().GetDealProcessFlow(projectId, dealNumber)); }
-        [WebMethod] public static string SaveFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes)
-        { ValidateProductivity(productivityType, expectedCompletionMinutes); new bllOLTracking().SaveProcessFlow(projectId, processId, processName, stageNo, isMandatory, feedbackRequired, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, OLTrackingWeb.UserId); return OLTrackingWeb.Ok(true); }
+        [WebMethod] public static string SaveFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds)
+        { ValidateProductivity(productivityType, expectedCompletionMinutes); new bllOLTracking().SaveProcessFlow(projectId, processId, processName, stageNo, isMandatory, feedbackRequired, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, eligibleAfterProcessIds, feedbackAgainstProcessIds, OLTrackingWeb.UserId); return OLTrackingWeb.Ok(true); }
         [WebMethod] public static string RemoveFlow(int projectId, int processId)
         { return OLTrackingWeb.Ok(new bllOLTracking().RemoveProcessFlow(projectId, processId, OLTrackingWeb.UserId)); }
         [WebMethod] public static string SaveDealFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes)
@@ -46,8 +46,6 @@ namespace WebPortal.TrackingSheet
         private static void ValidateProductivity(string productivityType, int expectedCompletionMinutes)
         {
             if (productivityType != "Hourly Productivity" && productivityType != "Loan Based Productivity") throw new ArgumentException("Please select a valid Productivity Type.");
-            if (productivityType == "Hourly Productivity" && expectedCompletionMinutes <= 0) throw new ArgumentException("Expected Completion Time is required for Hourly Productivity.");
-            if (expectedCompletionMinutes < 0 || expectedCompletionMinutes > 59999) throw new ArgumentException("Expected Completion Time is outside the supported range.");
         }
     }
 }

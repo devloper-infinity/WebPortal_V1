@@ -7,9 +7,26 @@
     function errorMessage(xhr) { try { return JSON.parse(xhr.responseText).Message || "A system error occurred."; } catch (e) { return "A system error occurred."; } }
     function escapeHtml(value) { return $("<div>").text(value == null ? "" : value).html(); }
     function flowStats(row) {
-        var result = { total: 0, completed: 0, skipped: 0, pending: 0, current: null };
+        var result = { total: 0, completed: 0, skipped: 0, pending: 0, current: null, currentLabel: '', focus: [], more: 0 };
         $.each(row.Processes || [], function (_, p) { var status = String(p.Status || 'Pending').toLowerCase(); result.total++; if (status === 'completed') result.completed++; else if (status === 'skipped') result.skipped++; else result.pending++; if (p.IsCurrent) result.current = p; });
         result.progress = result.total ? Math.round(((result.completed + result.skipped) * 100) / result.total) : 0;
+        if (result.current) {
+            var currentStatus = String(result.current.Status || 'Pending').toLowerCase(), candidates = [];
+            if (currentStatus === 'in process') {
+                result.currentLabel = 'In Process';
+                candidates = $.grep(row.Processes || [], function (p) { return String(p.Status || '').toLowerCase() === 'in process'; });
+            } else if (currentStatus === 'hold' || currentStatus === 'on hold') {
+                result.currentLabel = 'On Hold';
+                candidates = $.grep(row.Processes || [], function (p) { var status = String(p.Status || '').toLowerCase(); return status === 'hold' || status === 'on hold'; });
+            } else if (result.current.IsMandatory) {
+                result.currentLabel = 'Next required';
+                candidates = $.grep(row.Processes || [], function (p) { var status = String(p.Status || 'Pending').toLowerCase(); return p.IsMandatory && +p.Sequence === +result.current.Sequence && status !== 'completed' && status !== 'skipped' && status !== 'in process' && status !== 'hold' && status !== 'on hold'; });
+            } else {
+                result.currentLabel = 'Optional remaining';
+                candidates = $.grep(row.Processes || [], function (p) { var status = String(p.Status || 'Pending').toLowerCase(); return !p.IsMandatory && status !== 'completed' && status !== 'skipped' && status !== 'in process' && status !== 'hold' && status !== 'on hold'; });
+            }
+            result.focus = $.map(candidates, function (p) { return String(p.ProcessID); }); result.more = Math.max(0, candidates.length - 1);
+        } else result.currentLabel = result.progress === 100 ? 'Flow complete' : 'Not started';
         return result;
     }
     function processSummary(row) {
@@ -18,14 +35,15 @@
         return '<div class="tr-process-summary"><div class="tr-progress-head"><strong>' + stats.progress + '% complete</strong><span>' + (stats.completed + stats.skipped) + ' / ' + stats.total + '</span></div>' +
             '<div class="tr-progress-track"><div class="tr-progress-value" style="width:' + stats.progress + '%"></div></div>' +
             '<div class="tr-progress-meta"><span>' + stats.completed + ' completed</span><span>' + stats.pending + ' pending</span><span>' + stats.skipped + ' skipped</span></div>' +
-            '<div class="tr-current-process">Current: ' + escapeHtml(stats.current ? stats.current.ProcessName : (stats.progress === 100 ? 'Flow complete' : 'Not started')) + '</div>' +
+            '<div class="tr-current-process">' + escapeHtml(stats.currentLabel) + (stats.current ? ': ' + escapeHtml(stats.current.ProcessName) + (stats.more ? ' <span class="text-muted">(+' + stats.more + ' more)</span>' : '') : '') + '</div>' +
             '<button type="button" class="tr-flow-toggle">View process flow</button></div>';
     }
-    function processExportSummary(row) { var stats = flowStats(row); if (!stats.total) return 'No configured process flow'; return stats.progress + '% complete | ' + stats.completed + ' completed | ' + stats.pending + ' pending | ' + stats.skipped + ' skipped | Current: ' + (stats.current ? stats.current.ProcessName : (stats.progress === 100 ? 'Flow complete' : 'Not started')); }
+    function workedTime(minutes) { minutes = +minutes || 0; return Math.floor(minutes / 60) + ':' + String(minutes % 60).padStart(2, '0'); }
+    function processExportSummary(row) { var stats = flowStats(row), hourly = $.map(row.Processes || [], function (p) { return p.ManualDurationMinutes == null ? null : p.ProcessName + ' ' + workedTime(p.ManualDurationMinutes) + ' hours'; }); if (!stats.total) return 'No configured process flow'; return stats.progress + '% complete | ' + stats.completed + ' completed | ' + stats.pending + ' pending | ' + stats.skipped + ' skipped | ' + stats.currentLabel + (stats.current ? ': ' + stats.current.ProcessName + (stats.more ? ' (+' + stats.more + ' more)' : '') : '') + (hourly.length ? ' | Hours worked: ' + hourly.join(', ') : ''); }
     function processDetails(row) {
         var grouped = {}, order = [], stats = flowStats(row);
         $.each(row.Processes || [], function (_, p) { var key = String(p.Sequence); if (!grouped[key]) { grouped[key] = []; order.push(key); } grouped[key].push(p); });
-        var stages = $.map(order, function (key) { var current = false, cards = $.map(grouped[key], function (p) { var status = String(p.Status || 'Pending'), normalizedStatus = status.toLowerCase(), css = normalizedStatus.replace(/\s+/g, '-'), userName = p.ProcessUser || p.CompletedBy || '', userLine = ''; if (userName && normalizedStatus === 'completed') userLine = '<span class="tr-process-user">Completed by: ' + escapeHtml(userName) + '</span>'; else if (userName && normalizedStatus === 'in process') userLine = '<span class="tr-process-user">In process by: ' + escapeHtml(userName) + '</span>'; else if (userName && normalizedStatus === 'hold') userLine = '<span class="tr-process-user">On hold by: ' + escapeHtml(userName) + '</span>'; current = current || p.IsCurrent; return '<div class="tr-process-step ' + css + (p.IsCurrent ? ' current' : '') + '"><strong>' + escapeHtml(p.ProcessName) + '</strong><small><span class="tr-status-dot"></span>' + escapeHtml(status) + (p.IsMandatory ? ' • Mandatory' : ' • Can skip') + (p.IsFinalProcess ? ' • Final' : '') + '</small>' + userLine + '</div>'; }).join(''); return '<section class="tr-stage' + (current ? ' current' : '') + '"><div class="tr-stage-title"><span>Stage ' + escapeHtml(key) + '</span><span>' + grouped[key].length + ' process' + (grouped[key].length === 1 ? '' : 'es') + '</span></div><div class="tr-stage-processes">' + cards + '</div></section>'; }).join('');
+        var stages = $.map(order, function (key) { var current = false, cards = $.map(grouped[key], function (p) { var status = String(p.Status || 'Pending'), normalizedStatus = status.toLowerCase(), css = normalizedStatus.replace(/\s+/g, '-'), userName = p.ProcessUser || p.CompletedBy || '', userLine = '', focused = stats.focus.indexOf(String(p.ProcessID)) >= 0; if (userName && normalizedStatus === 'completed') userLine = '<span class="tr-process-user">Completed by: ' + escapeHtml(userName) + '</span>'; else if (userName && normalizedStatus === 'in process') userLine = '<span class="tr-process-user">In process by: ' + escapeHtml(userName) + '</span>'; else if (userName && (normalizedStatus === 'hold' || normalizedStatus === 'on hold')) userLine = '<span class="tr-process-user">On hold by: ' + escapeHtml(userName) + '</span>'; if (p.ManualDurationMinutes != null) userLine += '<span class="tr-process-user">Hours worked: ' + workedTime(p.ManualDurationMinutes) + '</span>'; current = current || focused; return '<div class="tr-process-step ' + css + (focused ? ' current' : '') + '"><strong>' + escapeHtml(p.ProcessName) + '</strong><small><span class="tr-status-dot"></span>' + escapeHtml(status) + (p.IsMandatory ? ' • Mandatory' : ' • Can skip') + (p.IsFinalProcess ? ' • Final' : '') + '</small>' + userLine + '</div>'; }).join(''); return '<section class="tr-stage' + (current ? ' current' : '') + '"><div class="tr-stage-title"><span>Stage ' + escapeHtml(key) + '</span><span>' + grouped[key].length + ' process' + (grouped[key].length === 1 ? '' : 'es') + '</span></div><div class="tr-stage-processes">' + cards + '</div></section>'; }).join('');
         return '<div class="tr-flow-detail"><div class="tr-flow-detail-head"><h4>Configured process flow</h4><span>' + stats.completed + ' completed · ' + stats.pending + ' pending · ' + stats.skipped + ' skipped</span></div><div class="tr-stage-grid">' + stages + '</div></div>';
     }
 

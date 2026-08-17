@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Xml.Linq;
@@ -203,8 +204,36 @@ SELECT FlowID,ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,
        CAST(CASE WHEN IsMandatory=1 THEN 0 ELSE 1 END AS bit) CanSkip,
        FeedbackRequiredOnComplete,IsFinalProcess,IsTrackingSheetProcess,
        ISNULL(ProductivityType,'Loan Based Productivity') ProductivityType,
-       ISNULL(ExpectedCompletionMinutes,0) ExpectedCompletionMinutes,IsActive
-FROM dbo.OLTracking_ProcessFlow
+       ISNULL(ExpectedCompletionMinutes,0) ExpectedCompletionMinutes,IsActive,
+       STUFF((SELECT ','+CONVERT(varchar(11),dependency.PredecessorProcessID)
+              FROM dbo.OLTracking_ProcessDependency dependency
+              JOIN dbo.OLTracking_ProcessFlow predecessor ON predecessor.ProjectID=dependency.ProjectID
+                   AND predecessor.ProcessID=dependency.PredecessorProcessID AND predecessor.IsActive=1
+              WHERE dependency.ProjectID=flow.ProjectID AND dependency.ProcessID=flow.ProcessID AND dependency.IsActive=1
+              ORDER BY predecessor.StageNo,predecessor.ProcessName
+              FOR XML PATH(''),TYPE).value('.','nvarchar(max)'),1,1,'') EligibleAfterProcessIDs,
+       STUFF((SELECT ', '+predecessor.ProcessName
+              FROM dbo.OLTracking_ProcessDependency dependency
+              JOIN dbo.OLTracking_ProcessFlow predecessor ON predecessor.ProjectID=dependency.ProjectID
+                   AND predecessor.ProcessID=dependency.PredecessorProcessID AND predecessor.IsActive=1
+              WHERE dependency.ProjectID=flow.ProjectID AND dependency.ProcessID=flow.ProcessID AND dependency.IsActive=1
+              ORDER BY predecessor.StageNo,predecessor.ProcessName
+              FOR XML PATH(''),TYPE).value('.','nvarchar(max)'),1,2,'') EligibleAfterProcessNames,
+       STUFF((SELECT ','+CONVERT(varchar(11),target.TargetProcessID)
+              FROM dbo.OLTracking_ProcessFeedbackTarget target
+              JOIN dbo.OLTracking_ProcessFlow targetFlow ON targetFlow.ProjectID=target.ProjectID
+                   AND targetFlow.ProcessID=target.TargetProcessID AND targetFlow.IsActive=1
+              WHERE target.ProjectID=flow.ProjectID AND target.ProcessID=flow.ProcessID AND target.IsActive=1
+              ORDER BY targetFlow.StageNo,targetFlow.ProcessName
+              FOR XML PATH(''),TYPE).value('.','nvarchar(max)'),1,1,'') FeedbackAgainstProcessIDs,
+       STUFF((SELECT ', '+targetFlow.ProcessName
+              FROM dbo.OLTracking_ProcessFeedbackTarget target
+              JOIN dbo.OLTracking_ProcessFlow targetFlow ON targetFlow.ProjectID=target.ProjectID
+                   AND targetFlow.ProcessID=target.TargetProcessID AND targetFlow.IsActive=1
+              WHERE target.ProjectID=flow.ProjectID AND target.ProcessID=flow.ProcessID AND target.IsActive=1
+              ORDER BY targetFlow.StageNo,targetFlow.ProcessName
+              FOR XML PATH(''),TYPE).value('.','nvarchar(max)'),1,2,'') FeedbackAgainstProcessNames
+FROM dbo.OLTracking_ProcessFlow flow
 WHERE ProjectID=@ProjectID AND IsActive=1
 ORDER BY StageNo,ProcessName;") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -276,15 +305,43 @@ GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
             return Execute(command);
         }
 
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int userId)
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
         {
             EnsureProcessFlowColumns();
+            XElement dependencies = new XElement("processes");
+            if (eligibleAfterProcessIds != null)
+                foreach (int predecessorId in eligibleAfterProcessIds)
+                    if (predecessorId > 0) dependencies.Add(new XElement("process", predecessorId));
+            XElement feedbackTargets = new XElement("processes");
+            if (feedbackAgainstProcessIds != null)
+                foreach (int targetProcessId in feedbackAgainstProcessIds)
+                    if (targetProcessId > 0) feedbackTargets.Add(new XElement("process", targetProcessId));
             SqlCommand command = new SqlCommand(@"
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 IF @ProjectID<=0 OR @ProcessID<=0 THROW 50100,'Project and process are required.',1;
 IF @StageNo<=0 THROW 50101,'Sequence must be greater than zero.',1;
 IF NULLIF(LTRIM(RTRIM(@ProcessName)),'') IS NULL THROW 50102,'Process name is required.',1;
+IF EXISTS(SELECT 1 FROM @EligibleAfterXml.nodes('/processes/process') dependency(node) WHERE dependency.node.value('(text())[1]','int')=@ProcessID)
+    THROW 50141,'A process cannot depend on itself.',1;
+IF EXISTS
+(
+    SELECT 1 FROM @EligibleAfterXml.nodes('/processes/process') dependency(node)
+    LEFT JOIN dbo.OLTracking_ProcessFlow predecessor ON predecessor.ProjectID=@ProjectID
+         AND predecessor.ProcessID=dependency.node.value('(text())[1]','int') AND predecessor.IsActive=1
+    WHERE predecessor.ProcessID IS NULL OR predecessor.StageNo>=@StageNo
+)
+    THROW 50142,'Eligible After Process(es) must contain only active processes from an earlier sequence.',1;
+IF EXISTS(SELECT 1 FROM @FeedbackTargetXml.nodes('/processes/process') target(node) WHERE target.node.value('(text())[1]','int')=@ProcessID)
+    THROW 50145,'A process cannot route feedback to itself.',1;
+IF EXISTS
+(
+    SELECT 1 FROM @FeedbackTargetXml.nodes('/processes/process') target(node)
+    LEFT JOIN dbo.OLTracking_ProcessFlow targetFlow ON targetFlow.ProjectID=@ProjectID
+         AND targetFlow.ProcessID=target.node.value('(text())[1]','int') AND targetFlow.IsActive=1
+    WHERE targetFlow.ProcessID IS NULL OR targetFlow.StageNo>=@StageNo
+)
+    THROW 50146,'Feedback Against Process(es) must contain only active processes from an earlier sequence.',1;
 BEGIN TRANSACTION;
 IF @IsFinalProcess=1
     UPDATE dbo.OLTracking_ProcessFlow
@@ -298,6 +355,22 @@ WHEN MATCHED THEN UPDATE SET ProcessName=LTRIM(RTRIM(@ProcessName)),StageNo=@Sta
  ProductivityType=@ProductivityType,ExpectedCompletionMinutes=NULLIF(@ExpectedCompletionMinutes,0),IsActive=1,UpdatedBy=@UserID,UpdatedDate=GETDATE()
 WHEN NOT MATCHED THEN INSERT(ProjectID,ProcessID,ProcessName,StageNo,IsMandatory,FeedbackRequiredOnComplete,IsFinalProcess,IsTrackingSheetProcess,ProductivityType,ExpectedCompletionMinutes,AddedBy)
  VALUES(@ProjectID,@ProcessID,LTRIM(RTRIM(@ProcessName)),@StageNo,@IsMandatory,@FeedbackRequiredOnComplete,@IsFinalProcess,@IsTrackingSheetProcess,@ProductivityType,NULLIF(@ExpectedCompletionMinutes,0),@UserID);
+DELETE dbo.OLTracking_ProcessDependency WHERE ProjectID=@ProjectID AND ProcessID=@ProcessID;
+INSERT dbo.OLTracking_ProcessDependency(ProjectID,ProcessID,PredecessorProcessID,IsActive,AddedBy)
+SELECT @ProjectID,@ProcessID,dependency.PredecessorProcessID,1,@UserID
+FROM
+(
+    SELECT DISTINCT node.value('(text())[1]','int') PredecessorProcessID
+    FROM @EligibleAfterXml.nodes('/processes/process') source(node)
+) dependency;
+DELETE dbo.OLTracking_ProcessFeedbackTarget WHERE ProjectID=@ProjectID AND ProcessID=@ProcessID;
+INSERT dbo.OLTracking_ProcessFeedbackTarget(ProjectID,ProcessID,TargetProcessID,IsActive,AddedBy)
+SELECT @ProjectID,@ProcessID,target.TargetProcessID,1,@UserID
+FROM
+(
+    SELECT DISTINCT node.value('(text())[1]','int') TargetProcessID
+    FROM @FeedbackTargetXml.nodes('/processes/process') source(node)
+) target;
 COMMIT TRANSACTION;") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@ProcessName", SqlDbType.NVarChar, processName, 200);
@@ -306,6 +379,8 @@ COMMIT TRANSACTION;") { CommandType = CommandType.Text };
             Add(command, "@IsTrackingSheetProcess", SqlDbType.Bit, isTrackingSheetProcess);
             Add(command, "@ProductivityType", SqlDbType.NVarChar, productivityType, 40);
             Add(command, "@ExpectedCompletionMinutes", SqlDbType.Int, expectedCompletionMinutes);
+            Add(command, "@EligibleAfterXml", SqlDbType.Xml, dependencies.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@FeedbackTargetXml", SqlDbType.Xml, feedbackTargets.ToString(SaveOptions.DisableFormatting));
             Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
         }
@@ -325,6 +400,36 @@ IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ProductivityType') IS NULL
         CONSTRAINT DF_OLTracking_ProcessFlow_ProductivityType DEFAULT('Loan Based Productivity') WITH VALUES;
 IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ExpectedCompletionMinutes') IS NULL
     ALTER TABLE dbo.OLTracking_ProcessFlow ADD ExpectedCompletionMinutes int NULL;
+IF OBJECT_ID('dbo.OLTracking_ProcessDependency','U') IS NULL
+BEGIN
+    CREATE TABLE dbo.OLTracking_ProcessDependency
+    (
+        DependencyID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_OLTracking_ProcessDependency PRIMARY KEY,
+        ProjectID int NOT NULL,ProcessID int NOT NULL,PredecessorProcessID int NOT NULL,
+        IsActive bit NOT NULL CONSTRAINT DF_OLTracking_ProcessDependency_Active DEFAULT(1),
+        AddedBy int NOT NULL,AddedDate datetime NOT NULL CONSTRAINT DF_OLTracking_ProcessDependency_Added DEFAULT(GETDATE()),
+        UpdatedBy int NULL,UpdatedDate datetime NULL,
+        CONSTRAINT UQ_OLTracking_ProcessDependency UNIQUE(ProjectID,ProcessID,PredecessorProcessID),
+        CONSTRAINT CK_OLTracking_ProcessDependency_Self CHECK(ProcessID<>PredecessorProcessID)
+    );
+END;
+IF OBJECT_ID('dbo.OLTracking_ProcessFeedbackTarget','U') IS NULL
+BEGIN
+    CREATE TABLE dbo.OLTracking_ProcessFeedbackTarget
+    (
+        FeedbackTargetID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_OLTracking_ProcessFeedbackTarget PRIMARY KEY,
+        ProjectID int NOT NULL,ProcessID int NOT NULL,TargetProcessID int NOT NULL,
+        IsActive bit NOT NULL CONSTRAINT DF_OLTracking_ProcessFeedbackTarget_Active DEFAULT(1),
+        AddedBy int NOT NULL,AddedDate datetime NOT NULL CONSTRAINT DF_OLTracking_ProcessFeedbackTarget_Added DEFAULT(GETDATE()),
+        UpdatedBy int NULL,UpdatedDate datetime NULL,
+        CONSTRAINT UQ_OLTracking_ProcessFeedbackTarget UNIQUE(ProjectID,ProcessID,TargetProcessID),
+        CONSTRAINT CK_OLTracking_ProcessFeedbackTarget_Self CHECK(ProcessID<>TargetProcessID)
+    );
+END;
+IF COL_LENGTH('dbo.OLTracking_Feedback','FeedbackAgainstAssignmentID') IS NULL
+    ALTER TABLE dbo.OLTracking_Feedback ADD FeedbackAgainstAssignmentID bigint NULL;
+IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_Feedback') AND name='IX_OLTracking_Feedback_AgainstAssignment')
+    EXEC(N'CREATE INDEX IX_OLTracking_Feedback_AgainstAssignment ON dbo.OLTracking_Feedback(AssignmentID,FeedbackAgainstAssignmentID,IsDeleted);');
 IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_ProcessFlow') AND name='UX_OLTracking_ProcessFlow_Final')
     EXEC(N'CREATE UNIQUE INDEX UX_OLTracking_ProcessFlow_Final
         ON dbo.OLTracking_ProcessFlow(ProjectID)
@@ -376,6 +481,7 @@ SELECT TOP (1)
     i.ItemNumber AS LoanNumber,
     ISNULL(i.DealNumber, '') AS DealNumber
 FROM dbo.OLTracking_Item i
+CROSS APPLY dbo.OLTracking_ProcessDependencyEligibility(@ProjectID,@ProcessID,i.ItemID) dependencyEligibility
 WHERE @StageNo IS NOT NULL
   AND i.ProjectID = @ProjectID
   AND i.IsDeleted = 0
@@ -396,16 +502,21 @@ WHERE @StageNo IS NOT NULL
         AND duplicateAssignment.IsCurrent = 1
         AND LTRIM(RTRIM(duplicateItem.ItemNumber)) = LTRIM(RTRIM(i.ItemNumber))
   )
-  AND NOT EXISTS
+  AND
   (
-      SELECT 1 FROM dbo.OLTracking_EffectiveProcessFlow(@ProjectID,@DealNumber) requiredFlow
-      WHERE requiredFlow.StageNo<@StageNo AND requiredFlow.IsMandatory=1
-        AND NOT EXISTS
-        (
-            SELECT 1 FROM dbo.OLTracking_Assignment completedAssignment
-            WHERE completedAssignment.ItemID=i.ItemID AND completedAssignment.ProcessID=requiredFlow.ProcessID
-              AND completedAssignment.AssignmentStatus='Completed'
-        )
+      (dependencyEligibility.HasConfiguredDependencies=1 AND dependencyEligibility.DependenciesSatisfied=1)
+      OR
+      (dependencyEligibility.HasConfiguredDependencies=0 AND NOT EXISTS
+       (
+           SELECT 1 FROM dbo.OLTracking_EffectiveProcessFlow(@ProjectID,@DealNumber) requiredFlow
+           WHERE requiredFlow.StageNo<@StageNo AND requiredFlow.IsMandatory=1
+             AND NOT EXISTS
+             (
+                 SELECT 1 FROM dbo.OLTracking_Assignment completedAssignment
+                 WHERE completedAssignment.ItemID=i.ItemID AND completedAssignment.ProcessID=requiredFlow.ProcessID
+                   AND completedAssignment.AssignmentStatus='Completed'
+             )
+       ))
   )
 ORDER BY i.ItemID; ") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -639,9 +750,43 @@ END CATCH", connection) { CommandTimeout = 90 })
 
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId)
         {
+            EnsureProcessFlowColumns();
             XElement root = new XElement("feedbacks");
             if (feedbacks != null) foreach (string feedback in feedbacks)
                 if (!string.IsNullOrWhiteSpace(feedback)) root.Add(new XElement("feedback", feedback.Trim()));
+            if (!root.HasElements && GetCompletionFeedbackRequirement(assignmentId, userId))
+            {
+                SqlCommand validation = new SqlCommand(@"
+DECLARE @ProjectID int,@ProcessID int;
+SELECT @ProjectID=ProjectID,@ProcessID=ProcessID
+FROM dbo.OLTracking_Assignment
+WHERE AssignmentID=@AssignmentID AND UserID=@UserID AND IsCurrent=1;
+IF @ProjectID IS NULL THROW 50122,'Assignment was not found.',1;
+
+IF EXISTS(SELECT 1 FROM dbo.OLTracking_ProcessFeedbackTarget WHERE ProjectID=@ProjectID AND ProcessID=@ProcessID AND IsActive=1)
+BEGIN
+    IF EXISTS
+    (
+        SELECT 1
+        FROM dbo.OLTracking_ProcessFeedbackTarget configured
+        WHERE configured.ProjectID=@ProjectID AND configured.ProcessID=@ProcessID AND configured.IsActive=1
+          AND NOT EXISTS
+          (
+              SELECT 1
+              FROM dbo.OLTracking_Feedback feedback
+              JOIN dbo.OLTracking_Assignment previous ON previous.AssignmentID=feedback.FeedbackAgainstAssignmentID
+              WHERE feedback.AssignmentID=@AssignmentID AND feedback.IsDeleted=0
+                AND previous.ProcessID=configured.TargetProcessID AND previous.AssignmentStatus='Completed'
+          )
+    ) THROW 50149,'Feedback is required for every configured Previous Process user.',1;
+END
+ELSE IF NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Feedback WHERE AssignmentID=@AssignmentID AND IsDeleted=0)
+    THROW 50123,'Feedback is mandatory before completing this process.',1;")
+                { CommandType = CommandType.Text, CommandTimeout = 10 };
+                Add(validation, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+                Add(validation, "@UserID", SqlDbType.Int, userId);
+                ExecuteNonQuery(validation);
+            }
             SqlCommand command = Command("OLTracking_CompleteLoan"); Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
             Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000);
             Add(command, "@FeedbackXml", SqlDbType.Xml, root.HasElements ? root.ToString(SaveOptions.DisableFormatting) : null);
@@ -650,11 +795,77 @@ END CATCH", connection) { CommandTimeout = 90 })
 
         public DataSet GetFeedbackDefaults(long assignmentId, int userId, string feedbackBy)
         {
-            SqlCommand command = Command("OLTracking_GetFeedbackDefaults");
+            EnsureProcessFlowColumns();
+            SqlCommand command = new SqlCommand(@"
+EXEC dbo.OLTracking_GetFeedbackDefaults @AssignmentID=@AssignmentID,@UserID=@UserID,@FeedbackBy=@FeedbackBy;
+
+SELECT feedback.FeedbackID,feedback.MarkedTo,feedback.ErrorBy,feedback.FeedbackBy,
+       feedback.Severity,feedback.Category,feedback.Subcategory,feedback.ErrorField,
+       feedback.Screen,feedback.ErrorType,feedback.FeedbackType,
+       COALESCE(NULLIF(feedback.ErrorText,''),feedback.FeedbackText,'') Finding,
+       ISNULL(feedback.ShouldBe,'') RCA,ISNULL(feedback.Remark,'') Remark,
+       COALESCE
+       (
+           CASE WHEN feedback.ExternalTable='ImportedFeedbacks_Servicing' THEN
+               (SELECT TOP(1) ISNULL(servicing.[Finding Status],'Pending')
+                FROM dbo.ImportedFeedbacks_Servicing servicing
+                WHERE servicing.FeedbackID=feedback.ExternalFeedbackID)
+           END,
+           CASE WHEN feedback.ExternalTable='ImportedFeedbacks' THEN
+               (SELECT TOP(1) ISNULL(standard.[Finding Status],'Pending')
+                FROM dbo.ImportedFeedbacks standard
+                WHERE standard.FeedbackID=feedback.ExternalFeedbackID)
+           END,
+           'Pending'
+       ) FeedbackStatus,
+       feedback.AddedDate,feedback.FeedbackAgainstAssignmentID,
+       feedbackTargetAssignment.ProcessID FeedbackAgainstProcessID
+FROM dbo.OLTracking_Feedback feedback
+LEFT JOIN dbo.OLTracking_Assignment feedbackTargetAssignment
+  ON feedbackTargetAssignment.AssignmentID=feedback.FeedbackAgainstAssignmentID
+WHERE feedback.AssignmentID=@AssignmentID AND feedback.IsDeleted=0
+  AND EXISTS
+  (
+      SELECT 1 FROM dbo.OLTracking_Assignment assignment
+      WHERE assignment.AssignmentID=feedback.AssignmentID
+        AND assignment.UserID=@UserID AND assignment.IsCurrent=1
+  )
+ORDER BY feedback.FeedbackID DESC;
+
+SELECT target.TargetProcessID ProcessID,targetFlow.ProcessName,targetFlow.StageNo
+FROM dbo.OLTracking_Assignment currentAssignment
+JOIN dbo.OLTracking_ProcessFeedbackTarget target
+  ON target.ProjectID=currentAssignment.ProjectID
+ AND target.ProcessID=currentAssignment.ProcessID
+ AND target.IsActive=1
+JOIN dbo.OLTracking_ProcessFlow targetFlow ON targetFlow.ProjectID=target.ProjectID
+ AND targetFlow.ProcessID=target.TargetProcessID AND targetFlow.IsActive=1
+WHERE currentAssignment.AssignmentID=@AssignmentID
+  AND currentAssignment.UserID=@UserID
+  AND currentAssignment.IsCurrent=1
+ORDER BY targetFlow.StageNo,targetFlow.ProcessName;") { CommandType = CommandType.Text, CommandTimeout = 30 };
             Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
             Add(command, "@UserID", SqlDbType.Int, userId);
             Add(command, "@FeedbackBy", SqlDbType.NVarChar, feedbackBy, 200);
-            return Set(command);
+            DataSet result = Set(command);
+            bool hasConfiguredTargets = result.Tables.Count > 4 && result.Tables[4].Rows.Count > 0;
+            if (result.Tables.Count > 0)
+            {
+                if (!result.Tables[0].Columns.Contains("HasConfiguredFeedbackTargets"))
+                    result.Tables[0].Columns.Add("HasConfiguredFeedbackTargets", typeof(bool));
+                foreach (DataRow contextRow in result.Tables[0].Rows)
+                    contextRow["HasConfiguredFeedbackTargets"] = hasConfiguredTargets;
+            }
+            if (hasConfiguredTargets && result.Tables.Count > 2)
+            {
+                HashSet<int> allowedProcessIds = new HashSet<int>();
+                foreach (DataRow row in result.Tables[4].Rows)
+                    allowedProcessIds.Add(Convert.ToInt32(row["ProcessID"]));
+                DataTable owners = result.Tables[2];
+                for (int index = owners.Rows.Count - 1; index >= 0; index--)
+                    if (!allowedProcessIds.Contains(Convert.ToInt32(owners.Rows[index]["ProcessID"]))) owners.Rows.RemoveAt(index);
+            }
+            return result;
         }
 
         public bool GetCompletionFeedbackRequirement(long assignmentId, int userId)
@@ -700,6 +911,7 @@ DECLARE @StageNo int=(SELECT StageNo FROM dbo.OLTracking_EffectiveProcessFlow(@P
 (
     SELECT i.ItemID,i.ItemNumber LoanNo,ISNULL(i.DealNumber,'') DealNo
     FROM dbo.OLTracking_Item i
+    CROSS APPLY dbo.OLTracking_ProcessDependencyEligibility(@ProjectID,@ProcessID,i.ItemID) dependencyEligibility
     WHERE @StageNo IS NOT NULL AND i.ProjectID=@ProjectID AND i.IsDeleted=0 AND i.RecordSource='Import'
       AND LTRIM(RTRIM(ISNULL(i.DealNumber,'')))=LTRIM(RTRIM(ISNULL(@DealNumber,'')))
       AND NOT EXISTS
@@ -708,16 +920,21 @@ DECLARE @StageNo int=(SELECT StageNo FROM dbo.OLTracking_EffectiveProcessFlow(@P
           WHERE a.ItemID=i.ItemID AND a.ProcessID=@ProcessID
             AND (a.IsCurrent=1 OR a.AssignmentStatus IN('Completed','Skipped'))
       )
-      AND NOT EXISTS
+      AND
       (
-          SELECT 1 FROM dbo.OLTracking_EffectiveProcessFlow(@ProjectID,@DealNumber) requiredFlow
-          WHERE requiredFlow.StageNo<@StageNo AND requiredFlow.IsMandatory=1
-            AND NOT EXISTS
-            (
-                SELECT 1 FROM dbo.OLTracking_Assignment completedAssignment
-                WHERE completedAssignment.ItemID=i.ItemID AND completedAssignment.ProcessID=requiredFlow.ProcessID
-                  AND completedAssignment.AssignmentStatus IN('Completed','Skipped')
-            )
+          (dependencyEligibility.HasConfiguredDependencies=1 AND dependencyEligibility.DependenciesSatisfied=1)
+          OR
+          (dependencyEligibility.HasConfiguredDependencies=0 AND NOT EXISTS
+           (
+               SELECT 1 FROM dbo.OLTracking_EffectiveProcessFlow(@ProjectID,@DealNumber) requiredFlow
+               WHERE requiredFlow.StageNo<@StageNo AND requiredFlow.IsMandatory=1
+                 AND NOT EXISTS
+                 (
+                     SELECT 1 FROM dbo.OLTracking_Assignment completedAssignment
+                     WHERE completedAssignment.ItemID=i.ItemID AND completedAssignment.ProcessID=requiredFlow.ProcessID
+                       AND completedAssignment.AssignmentStatus IN('Completed','Skipped')
+                 )
+           ))
       )
 )
 SELECT CAST(NULL AS bigint) AssignmentID,a.LoanNo,a.DealNo,@UserName UserName,
@@ -818,6 +1035,152 @@ IF EXISTS
             return Table(command);
         }
 
+        public long SubmitHourlyProductivity(int projectId, int processId, string dealNumber, int durationMinutes, int userId)
+        {
+            SqlCommand command = Command("OLTracking_SubmitHourlyProductivity");
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);
+            Add(command, "@DurationMinutes", SqlDbType.Int, durationMinutes);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            DataTable result = Table(command);
+            return result.Rows.Count == 0 ? 0 : Convert.ToInt64(result.Rows[0]["HourlyEntryID"]);
+        }
+
+        public DataTable SaveFeedbackForTargets(long assignmentId, long[] targetAssignmentIds, string feedbackBy,
+            string errorType, int categoryId, string category, int subcategoryId, string subcategory, string severity,
+            string errorField, string screen, string feedbackType, string error, string shouldBe, string remark, int userId)
+        {
+            EnsureProcessFlowColumns();
+            XElement targets = new XElement("assignments");
+            if (targetAssignmentIds != null)
+                foreach (long targetAssignmentId in targetAssignmentIds)
+                    if (targetAssignmentId > 0) targets.Add(new XElement("assignment", targetAssignmentId));
+
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON; SET XACT_ABORT ON;
+DECLARE @Requested int=(SELECT COUNT(DISTINCT node.value('(text())[1]','bigint')) FROM @TargetXml.nodes('/assignments/assignment') source(node));
+IF @Requested<1 THROW 50147,'Select at least one Previous Process.',1;
+
+DECLARE @ItemID bigint,@ProjectID int,@CurrentProcessID int,@CurrentStage int;
+SELECT @ItemID=currentAssignment.ItemID,@ProjectID=currentAssignment.ProjectID,
+       @CurrentProcessID=currentAssignment.ProcessID,@CurrentStage=currentFlow.StageNo
+FROM dbo.OLTracking_Assignment currentAssignment WITH(UPDLOCK,HOLDLOCK)
+JOIN dbo.OLTracking_ProcessFlow currentFlow ON currentFlow.ProjectID=currentAssignment.ProjectID
+ AND currentFlow.ProcessID=currentAssignment.ProcessID AND currentFlow.IsActive=1
+WHERE currentAssignment.AssignmentID=@AssignmentID AND currentAssignment.UserID=@UserID AND currentAssignment.IsCurrent=1;
+IF @ItemID IS NULL THROW 50124,'Assignment is no longer available.',1;
+
+DECLARE @HasConfiguredTargets bit=CASE WHEN EXISTS
+(
+    SELECT 1 FROM dbo.OLTracking_ProcessFeedbackTarget
+    WHERE ProjectID=@ProjectID AND ProcessID=@CurrentProcessID AND IsActive=1
+) THEN 1 ELSE 0 END;
+
+DECLARE @Targets table
+(
+    AssignmentID bigint NOT NULL PRIMARY KEY,ProcessID int NOT NULL,ProcessName nvarchar(200) NOT NULL,
+    UserName nvarchar(200) NOT NULL,DateReviewed nvarchar(100) NULL
+);
+INSERT @Targets(AssignmentID,ProcessID,ProcessName,UserName,DateReviewed)
+SELECT previous.AssignmentID,previous.ProcessID,previousFlow.ProcessName,
+       COALESCE(NULLIF(employeeConfig.PsuedoName,''),NULLIF(employeeConfig.Code,''),NULLIF(employee.Code,''),CONVERT(nvarchar(30),previous.UserID)),
+       CONVERT(varchar(10),previous.CompletedDate,101)
+FROM
+(
+    SELECT DISTINCT node.value('(text())[1]','bigint') AssignmentID
+    FROM @TargetXml.nodes('/assignments/assignment') source(node)
+) requested
+JOIN dbo.OLTracking_Assignment previous ON previous.AssignmentID=requested.AssignmentID
+JOIN dbo.OLTracking_ProcessFlow previousFlow ON previousFlow.ProjectID=previous.ProjectID
+ AND previousFlow.ProcessID=previous.ProcessID AND previousFlow.IsActive=1
+LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID=previous.UserID
+OUTER APPLY
+(
+    SELECT TOP 1 configuration.Code,configuration.PsuedoName
+    FROM dbo.EmployeeConfiguration configuration
+    WHERE configuration.EmployeeID=previous.UserID AND configuration.Code=employee.Code
+      AND configuration.DataSource='ERP' AND configuration.IsDelete=0
+    ORDER BY configuration.EmpConfigrationID DESC
+) employeeConfig
+WHERE previous.ItemID=@ItemID AND previous.ProjectID=@ProjectID
+  AND previous.AssignmentStatus='Completed' AND previousFlow.StageNo<@CurrentStage
+  AND
+  (
+      @HasConfiguredTargets=0 OR EXISTS
+      (
+          SELECT 1 FROM dbo.OLTracking_ProcessFeedbackTarget configured
+          WHERE configured.ProjectID=@ProjectID AND configured.ProcessID=@CurrentProcessID
+            AND configured.TargetProcessID=previous.ProcessID AND configured.IsActive=1
+      )
+  );
+IF (SELECT COUNT(1) FROM @Targets)<>@Requested
+    THROW 50148,'A selected Previous Process is invalid, incomplete, or not configured for feedback.',1;
+IF @HasConfiguredTargets=1 AND EXISTS
+(
+    SELECT 1 FROM dbo.OLTracking_ProcessFeedbackTarget configured
+    WHERE configured.ProjectID=@ProjectID AND configured.ProcessID=@CurrentProcessID AND configured.IsActive=1
+      AND NOT EXISTS(SELECT 1 FROM @Targets selected WHERE selected.ProcessID=configured.TargetProcessID)
+)
+    THROW 50149,'Feedback must be added against every configured Previous Process user.',1;
+
+DECLARE @Saved table(FeedbackID bigint NOT NULL);
+DECLARE @One table(FeedbackID bigint,FeedbackCount int,ExternalFeedbackID bigint,ExternalTable nvarchar(100));
+DECLARE @TargetAssignmentID bigint,@ProcessName nvarchar(200),@ErrorBy nvarchar(200),@DateReviewed nvarchar(100);
+DECLARE targetCursor CURSOR LOCAL FAST_FORWARD FOR
+    SELECT AssignmentID,ProcessName,UserName,DateReviewed FROM @Targets ORDER BY AssignmentID;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    OPEN targetCursor;
+    FETCH NEXT FROM targetCursor INTO @TargetAssignmentID,@ProcessName,@ErrorBy,@DateReviewed;
+    WHILE @@FETCH_STATUS=0
+    BEGIN
+        DELETE FROM @One;
+        INSERT @One(FeedbackID,FeedbackCount,ExternalFeedbackID,ExternalTable)
+        EXEC dbo.OLTracking_SaveFeedback
+            @AssignmentID=@AssignmentID,@MarkedTo=@ProcessName,@ErrorBy=@ErrorBy,@FeedbackBy=@FeedbackBy,
+            @ErrorType=@ErrorType,@CategoryID=@CategoryID,@Category=@Category,@SubcategoryID=@SubcategoryID,
+            @Subcategory=@Subcategory,@Severity=@Severity,@ErrorField=@ErrorField,@Screen=@Screen,
+            @FeedbackType=@FeedbackType,@Error=@Error,@ShouldBe=@ShouldBe,@Remark=@Remark,
+            @DateReviewed=@DateReviewed,@UserID=@UserID;
+        INSERT @Saved(FeedbackID) SELECT FeedbackID FROM @One;
+        UPDATE feedback SET FeedbackAgainstAssignmentID=@TargetAssignmentID
+        FROM dbo.OLTracking_Feedback feedback
+        JOIN @One savedFeedback ON savedFeedback.FeedbackID=feedback.FeedbackID;
+        FETCH NEXT FROM targetCursor INTO @TargetAssignmentID,@ProcessName,@ErrorBy,@DateReviewed;
+    END;
+    CLOSE targetCursor; DEALLOCATE targetCursor;
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF CURSOR_STATUS('local','targetCursor')>=0 CLOSE targetCursor;
+    IF CURSOR_STATUS('local','targetCursor')>-3 DEALLOCATE targetCursor;
+    IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+SELECT ISNULL(MAX(FeedbackID),0) FeedbackID,
+       (SELECT COUNT(1) FROM dbo.OLTracking_Feedback WHERE AssignmentID=@AssignmentID AND IsDeleted=0) FeedbackCount,
+       COUNT(1) SavedTargetCount
+FROM @Saved;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId);
+            Add(command, "@TargetXml", SqlDbType.Xml, targets.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@FeedbackBy", SqlDbType.NVarChar, feedbackBy, 200);
+            Add(command, "@ErrorType", SqlDbType.NVarChar, errorType, 100);
+            Add(command, "@CategoryID", SqlDbType.Int, categoryId);
+            Add(command, "@Category", SqlDbType.NVarChar, category, 200);
+            Add(command, "@SubcategoryID", SqlDbType.Int, subcategoryId);
+            Add(command, "@Subcategory", SqlDbType.NVarChar, subcategory, 200);
+            Add(command, "@Severity", SqlDbType.NVarChar, severity, 100);
+            Add(command, "@ErrorField", SqlDbType.NVarChar, errorField, 500);
+            Add(command, "@Screen", SqlDbType.NVarChar, screen, 1000);
+            Add(command, "@FeedbackType", SqlDbType.NVarChar, feedbackType, 100);
+            Add(command, "@Error", SqlDbType.NVarChar, error, 2000);
+            Add(command, "@ShouldBe", SqlDbType.NVarChar, shouldBe, 2000);
+            Add(command, "@Remark", SqlDbType.NVarChar, remark, 1000);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Table(command);
+        }
+
         public DataTable GetUserDailyStatus(int userId, int processId, DateTime? fromDate, DateTime? toDate)
         {
             SqlCommand command = Command("OLTracking_GetUserDailyStatus"); Add(command, "@UserID", SqlDbType.Int, userId);
@@ -828,6 +1191,25 @@ IF EXISTS
         public DataTable GetUserDailyProcesses(int userId)
         {
             SqlCommand command = Command("OLTracking_GetUserDailyProcesses"); Add(command, "@UserID", SqlDbType.Int, userId); return Table(command);
+        }
+
+        public DataTable GetHourlyProductivityEntries(int projectId, DateTime fromDate, DateTime toDate)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT h.HourlyEntryID,h.ProjectID,h.DealNumber,h.ProcessID,flow.ProcessName,flow.StageNo,h.UserID,
+       COALESCE(NULLIF(ec.PsuedoName,''),NULLIF(ec.Code,''),NULLIF(e.Code,''),CONVERT(nvarchar(30),h.UserID)) UserName,
+       h.DurationMinutes,h.EntryDate
+FROM dbo.OLTracking_HourlyProductivityEntry h
+CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(h.ProjectID,h.DealNumber) flow
+LEFT JOIN dbo.EmployeeInfo e ON e.EmployeeID=h.UserID
+OUTER APPLY(SELECT TOP 1 c.Code,c.PsuedoName FROM dbo.EmployeeConfiguration c WHERE c.EmployeeID=h.UserID AND c.IsDelete=0 ORDER BY c.EmpConfigrationID DESC) ec
+WHERE flow.ProcessID=h.ProcessID AND h.ProjectID=@ProjectID
+  AND h.EntryDate>=@FromDate AND h.EntryDate<DATEADD(day,1,@ToDate)
+ORDER BY h.EntryDate,h.HourlyEntryID;") { CommandType = CommandType.Text };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@FromDate", SqlDbType.Date, fromDate.Date);
+            Add(command, "@ToDate", SqlDbType.Date, toDate.Date);
+            return Table(command);
         }
 
         public DataTable GetProjectUsers(int projectId)
