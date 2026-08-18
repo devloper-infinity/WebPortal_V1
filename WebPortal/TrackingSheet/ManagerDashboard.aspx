@@ -178,7 +178,7 @@
 
     <script src="OLTracking.js"></script>
     <script src="../plugins/chart.js/Chart.min.js"></script>
-    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260816.2"></script>
+    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260817.1"></script>
 
 </asp:Content>
 
@@ -319,6 +319,10 @@
                                 <th>Hold TAT</th>
                                 <th>Total TAT</th>
                                 <th>Hours Worked</th>
+                                <th>Min Minutes</th>
+                                <th>Max Minutes</th>
+                                <th>Actual Processing Minutes</th>
+                                <th>Time Limit Status</th>
                                 <th>Feedback Status</th>
                                 <th>Remark</th>
                             </tr>

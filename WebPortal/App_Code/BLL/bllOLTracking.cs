@@ -36,11 +36,14 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetDealProcessFlow(int projectId, string dealNumber) { return dal.GetDealProcessFlow(projectId, dealNumber); }
         public DataTable GetEffectiveProcessFlow(int projectId, string dealNumber) { return dal.GetEffectiveProcessFlow(projectId, dealNumber); }
         public DataTable GetConfiguredProcesses(int projectId) { return dal.GetConfiguredProcesses(projectId); }
-        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
-        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, eligibleAfterProcessIds, feedbackAgainstProcessIds, userId); }
+        public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
+        { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, eligibleAfterProcessIds, feedbackAgainstProcessIds, userId); }
         public int RemoveProcessFlow(int projectId, int processId, int userId) { return dal.RemoveProcessFlow(projectId, processId, userId); }
-        public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int userId)
-        { dal.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, mandatory, feedback, isFinalProcess, productivityType, expectedCompletionMinutes, userId); }
+        public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int userId)
+        { dal.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, mandatory, feedback, isFinalProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, userId); }
+        public DataTable GetOverdueProcesses(int userId) { return dal.GetOverdueProcesses(userId); }
+        public DataTable GetCompletionTimeValidation(long assignmentId, int userId) { return dal.GetCompletionTimeValidation(assignmentId, userId); }
+        public int AcknowledgeOverdueProcesses(long[] assignmentIds, int userId) { return dal.AcknowledgeOverdueProcesses(assignmentIds, userId); }
         public int RemoveDealProcessFlow(int projectId, string dealNumber, int processId, int userId) { return dal.RemoveDealProcessFlow(projectId, dealNumber, processId, userId); }
         public DataTable GetAvailableLoan(int projectId, string dealNumber, int processId, string processName, int userId)
         {

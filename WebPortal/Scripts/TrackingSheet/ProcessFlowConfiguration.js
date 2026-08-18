@@ -63,8 +63,8 @@ function mergeDealFlow(overrides) {
     return merged.sort(function (a, b) { return (+a.StageNo - +b.StageNo) || String(a.ProcessName).localeCompare(String(b.ProcessName)); });
 }
 
-function render() { rows.innerHTML = flow.length ? flow.map(function (x, i) { return flowRow(x, i, flow, false); }).join('') : '<tr><td colspan="10" class="olt-empty">No tracking processes configured.</td></tr>'; renderProjectPickers(); }
-function renderDeal() { dealRows.innerHTML = dealFlow.length ? dealFlow.map(function (x, i) { return flowRow(x, i, dealFlow, true); }).join('') : '<tr><td colspan="8" class="olt-empty">No project process flow is configured.</td></tr>'; }
+function render() { rows.innerHTML = flow.length ? flow.map(function (x, i) { return flowRow(x, i, flow, false); }).join('') : '<tr><td colspan="12" class="olt-empty">No tracking processes configured.</td></tr>'; renderProjectPickers(); }
+function renderDeal() { dealRows.innerHTML = dealFlow.length ? dealFlow.map(function (x, i) { return flowRow(x, i, dealFlow, true); }).join('') : '<tr><td colspan="10" class="olt-empty">No project process flow is configured.</td></tr>'; }
 function flowRow(x, i, source, isDeal) {
     var simultaneous = i > 0 && source[i - 1].StageNo === x.StageNo;
     var isTracking = !(x.IsTrackingSheetProcess === false || x.IsTrackingSheetProcess === 0 || x.IsTrackingSheetProcess === '0');
@@ -73,7 +73,9 @@ function flowRow(x, i, source, isDeal) {
     var dependencyCell = isDeal ? '' : '<td>' + (x.EligibleAfterProcessNames ? OLT.esc(x.EligibleAfterProcessNames) : '<span class="olt-muted">Sequence flow</span>') + '</td>';
     var feedbackTargetCell = isDeal ? '' : '<td>' + (x.FeedbackAgainstProcessNames ? OLT.esc(x.FeedbackAgainstProcessNames) : '<span class="olt-muted">All prior completed processes</span>') + '</td>';
     var actionButton = '<button type="button" class="flow-action-button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for ' + OLT.esc(x.ProcessName) + '" onclick="toggleFlowActions(event,' + (+x.ProcessID) + ',' + (isDeal ? 'true' : 'false') + ')">&#9881;</button>';
-    return '<tr><td>' + actionButton + '</td><td>' + OLT.esc(x.ProcessName) + '</td><td><span class="flow-stage">' + x.StageNo + '</span>' + (simultaneous ? '<span class="flow-same">simultaneous</span>' : '') + '</td><td>' + (x.IsMandatory ? 'Mandatory' : 'Can be skipped') + '</td><td>' + (x.FeedbackRequiredOnComplete ? 'Yes' : 'No') + '</td><td>' + (x.IsFinalProcess ? '<span class="flow-final">Final</span>' : 'No') + '</td>' + trackingCell + '<td>' + OLT.esc(productivity) + '</td>' + dependencyCell + feedbackTargetCell + '</tr>';
+    var minMinutes = x.MinCompletionMinutes == null ? '&mdash;' : OLT.esc(x.MinCompletionMinutes);
+    var maxMinutes = x.MaxCompletionMinutes == null ? '&mdash;' : OLT.esc(x.MaxCompletionMinutes);
+    return '<tr><td>' + actionButton + '</td><td>' + OLT.esc(x.ProcessName) + '</td><td><span class="flow-stage">' + x.StageNo + '</span>' + (simultaneous ? '<span class="flow-same">simultaneous</span>' : '') + '</td><td>' + (x.IsMandatory ? 'Mandatory' : 'Can be skipped') + '</td><td>' + (x.FeedbackRequiredOnComplete ? 'Yes' : 'No') + '</td><td>' + (x.IsFinalProcess ? '<span class="flow-final">Final</span>' : 'No') + '</td>' + trackingCell + '<td>' + OLT.esc(productivity) + '</td><td>' + minMinutes + '</td><td>' + maxMinutes + '</td>' + dependencyCell + feedbackTargetCell + '</tr>';
 }
 
 function toggleFlowActions(event, processId, isDeal) {
@@ -105,14 +107,17 @@ function runFlowAction(action) {
     if (selected.isDeal) removeDealFlow(selected.processId, true); else removeFlow(selected.processId, true);
 }
 
-function editFlow(id) { var x = find(flow, id); if (!x) return; process.value = id; stageNo.value = x.StageNo; requirement.value = x.IsMandatory ? 'mandatory' : 'skippable'; feedback.checked = x.FeedbackRequiredOnComplete; finalProcess.checked = x.IsFinalProcess; trackingSheetProcess.checked = !(x.IsTrackingSheetProcess === false || x.IsTrackingSheetProcess === 0 || x.IsTrackingSheetProcess === '0'); setProductivity(false, x); setEligibleAfter(x.EligibleAfterProcessIDs); setFeedbackTargets(x.FeedbackAgainstProcessIDs); window.scrollTo(0, 0); }
-function editDealFlow(id) { var x = find(dealFlow, id); if (!x) return; dealProcess.value = id; dealStageNo.value = x.StageNo; dealRequirement.value = x.IsMandatory ? 'mandatory' : 'skippable'; dealFeedback.checked = x.FeedbackRequiredOnComplete; dealFinalProcess.checked = x.IsFinalProcess; setProductivity(true, x); window.scrollTo(0, 0); }
+function editFlow(id) { var x = find(flow, id); if (!x) return; process.value = id; stageNo.value = x.StageNo; requirement.value = x.IsMandatory ? 'mandatory' : 'skippable'; feedback.checked = x.FeedbackRequiredOnComplete; finalProcess.checked = x.IsFinalProcess; trackingSheetProcess.checked = !(x.IsTrackingSheetProcess === false || x.IsTrackingSheetProcess === 0 || x.IsTrackingSheetProcess === '0'); setProductivity(false, x); setTimeLimits(false, x); setEligibleAfter(x.EligibleAfterProcessIDs); setFeedbackTargets(x.FeedbackAgainstProcessIDs); window.scrollTo(0, 0); }
+function editDealFlow(id) { var x = find(dealFlow, id); if (!x) return; dealProcess.value = id; dealStageNo.value = x.StageNo; dealRequirement.value = x.IsMandatory ? 'mandatory' : 'skippable'; dealFeedback.checked = x.FeedbackRequiredOnComplete; dealFinalProcess.checked = x.IsFinalProcess; setProductivity(true, x); setTimeLimits(true, x); window.scrollTo(0, 0); }
 function find(source, id) { return source.filter(function (x) { return +x.ProcessID === id; })[0]; }
 
-function clearForm() { process.value = ''; stageNo.value = 1; requirement.value = 'mandatory'; feedback.checked = false; finalProcess.checked = false; trackingSheetProcess.checked = true; setProductivity(false, {}); clearEligibleAfter(); clearFeedbackTargets(); }
-function clearDealForm() { dealProcess.value = ''; dealStageNo.value = 1; dealRequirement.value = 'mandatory'; dealFeedback.checked = false; dealFinalProcess.checked = false; setProductivity(true, {}); }
+function clearForm() { process.value = ''; stageNo.value = 1; requirement.value = 'mandatory'; feedback.checked = false; finalProcess.checked = false; trackingSheetProcess.checked = true; setProductivity(false, {}); setTimeLimits(false, {}); clearEligibleAfter(); clearFeedbackTargets(); }
+function clearDealForm() { dealProcess.value = ''; dealStageNo.value = 1; dealRequirement.value = 'mandatory'; dealFeedback.checked = false; dealFinalProcess.checked = false; setProductivity(true, {}); setTimeLimits(true, {}); }
 
 function setProductivity(isDeal, row) { document.getElementById(isDeal ? 'dealProductivityType' : 'productivityType').value = row.ProductivityType || 'Loan Based Productivity'; }
+function setTimeLimits(isDeal, row) { document.getElementById(isDeal ? 'dealMinCompletionMinutes' : 'minCompletionMinutes').value = row.MinCompletionMinutes == null ? '' : row.MinCompletionMinutes; document.getElementById(isDeal ? 'dealMaxCompletionMinutes' : 'maxCompletionMinutes').value = row.MaxCompletionMinutes == null ? '' : row.MaxCompletionMinutes; }
+function optionalMinutes(element) { if (String(element.value).trim() === '') return null; var value = Number(element.value); return Number.isInteger(value) && value >= 0 ? value : NaN; }
+function timeLimits(isDeal) { var min = optionalMinutes(document.getElementById(isDeal ? 'dealMinCompletionMinutes' : 'minCompletionMinutes')), max = optionalMinutes(document.getElementById(isDeal ? 'dealMaxCompletionMinutes' : 'maxCompletionMinutes')); if (isNaN(min) || isNaN(max)) { OLT.alert('Min and Max Completion Minutes must be whole numbers greater than or equal to 0.', true); return null; } if (min != null && max != null && max < min) { OLT.alert('Maximum completion time cannot be less than the minimum completion time.', true); return null; } return { min: min, max: max }; }
 
 function selectedEligibleAfterIds() { return eligibleAfterSelection.slice(); }
 function setEligibleAfter(csv) {
@@ -175,11 +180,13 @@ function updateFeedbackTargetSummary() {
 
 function saveFlow() {
     if (!project.value || !process.value || +stageNo.value < 1) return OLT.alert('Project, process, and valid sequence are required.', true);
-    callSave('SaveFlow', { projectId: +project.value, processId: +process.value, processName: process.options[process.selectedIndex].text, stageNo: +stageNo.value, isMandatory: requirement.value === 'mandatory', feedbackRequired: feedback.checked, isFinalProcess: finalProcess.checked, isTrackingSheetProcess: trackingSheetProcess.checked, productivityType: productivityType.value, expectedCompletionMinutes: 0, eligibleAfterProcessIds: selectedEligibleAfterIds(), feedbackAgainstProcessIds: selectedFeedbackTargetIds() }, clearForm, loadProject);
+    var limits = timeLimits(false); if (!limits) return;
+    callSave('SaveFlow', { projectId: +project.value, processId: +process.value, processName: process.options[process.selectedIndex].text, stageNo: +stageNo.value, isMandatory: requirement.value === 'mandatory', feedbackRequired: feedback.checked, isFinalProcess: finalProcess.checked, isTrackingSheetProcess: trackingSheetProcess.checked, productivityType: productivityType.value, expectedCompletionMinutes: 0, minCompletionMinutes: limits.min, maxCompletionMinutes: limits.max, eligibleAfterProcessIds: selectedEligibleAfterIds(), feedbackAgainstProcessIds: selectedFeedbackTargetIds() }, clearForm, loadProject);
 }
 function saveDealFlow() {
     if (!dealProject.value || !dealNumber.value || !dealProcess.value || +dealStageNo.value < 1) return OLT.alert('Project, deal, process, and valid sequence are required.', true);
-    callSave('SaveDealFlow', { projectId: +dealProject.value, dealNumber: dealNumber.value, processId: +dealProcess.value, processName: dealProcess.options[dealProcess.selectedIndex].text, stageNo: +dealStageNo.value, isMandatory: dealRequirement.value === 'mandatory', feedbackRequired: dealFeedback.checked, isFinalProcess: dealFinalProcess.checked, productivityType: dealProductivityType.value, expectedCompletionMinutes: 0 }, clearDealForm, loadDeal);
+    var limits = timeLimits(true); if (!limits) return;
+    callSave('SaveDealFlow', { projectId: +dealProject.value, dealNumber: dealNumber.value, processId: +dealProcess.value, processName: dealProcess.options[dealProcess.selectedIndex].text, stageNo: +dealStageNo.value, isMandatory: dealRequirement.value === 'mandatory', feedbackRequired: dealFeedback.checked, isFinalProcess: dealFinalProcess.checked, productivityType: dealProductivityType.value, expectedCompletionMinutes: 0, minCompletionMinutes: limits.min, maxCompletionMinutes: limits.max }, clearDealForm, loadDeal);
 }
 function callSave(method, model, clear, reload) { OLT.call(page, method, model).then(function () { OLT.alert('Process flow saved.'); clear(); reload(); }).catch(showError); }
 
