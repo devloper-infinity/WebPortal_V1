@@ -146,7 +146,7 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                         {
                             data: "FeedbackID",
                             title: "FeedbackID",
-                            visible: false,
+                            visible: true,
                             defaultContent: ""
                         },
                         {
