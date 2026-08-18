@@ -541,12 +541,16 @@
 
                         <div class="leave-field">
                             <label for="empleave_fromdate">From Date</label>
-                            <input type="date" id="empleave_fromdate" name="empleave_fromdate" class="form-control" onchange="return GetLeavesToDate();" />
+                            <input type="date" id="empleave_fromdate" name="empleave_fromdate" class="form-control"
+                                autocomplete="off"
+                                onkeydown="return event.key === 'Tab' || event.key === 'Escape';"
+                                onpaste="return false;" ondrop="return false;"
+                                onchange="return GetLeavesToDate();" />
                         </div>
 
                         <div class="leave-field">
                             <label for="empleave_todate">To Date</label>
-                            <input type="date" id="empleave_todate" name="empleave_todate" class="form-control" />
+                            <input type="date" id="empleave_todate" name="empleave_todate" class="form-control" readonly />
                         </div>
 
                         <div class="leave-field leave-field--wide">

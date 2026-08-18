@@ -598,7 +598,11 @@
 
                         <div class="sl-field">
                             <label class="sl-label" for="selfleave_fromdate">From Date</label>
-                            <input type="date" id="selfleave_fromdate" name="selfleave_fromdate" class="form-control" onchange="return selfleave_validatedates();" />
+                            <input type="date" id="selfleave_fromdate" name="selfleave_fromdate" class="form-control"
+                                autocomplete="off"
+                                onkeydown="return event.key === 'Tab' || event.key === 'Escape';"
+                                onpaste="return false;" ondrop="return false;"
+                                onchange="return selfleave_validatedates();" />
                             <div class="sl-help-text">Date must be from tomorrow onward.</div>
                         </div>
 

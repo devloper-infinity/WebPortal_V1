@@ -330,7 +330,7 @@ namespace WebPortal.Search
 
             // returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, "735", "Search Typing", "01-Aug-2026 ~ 15-Aug-2026");
 
-            returnValue = SendClientBillingOrdersTyping(dt, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod);
+            returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod);
 
             return returnValue;
         }

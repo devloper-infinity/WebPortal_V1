@@ -124,14 +124,12 @@ function selfleave_loadPaidEligibility(domain, workingBranch) {
     });
 }
 
-
 function selfleave_validatedates() {
 
     var fromDate = $("#selfleave_fromdate").val();
     var days = parseInt($("#selfleave_days").val());
 
     if (days === 0) {
-        $("#selfleave_fromdate").val("");
         $("#selfleave_todate").val("");
         return true;
     }

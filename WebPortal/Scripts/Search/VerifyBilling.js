@@ -812,65 +812,6 @@ function renderTotalOrdersSummary(dataArray) {
     $summary.html(html);
 }
 
-function Core_VerifyOrdres_Verify() {
-
-    var ddlprj_vrf = document.getElementById("VerifyOrdres_projectno");
-    var project = ddlprj_vrf.options[ddlprj_vrf.selectedIndex].text;
-    var remark = document.getElementById("VerifyOrdres_Remark").value;
-    var ddlprj_billPeriod = document.getElementById("VerifyOrdres_BillingCycle");
-    var billingPeriod = ddlprj_billPeriod.options[ddlprj_billPeriod.selectedIndex].text;
-
-    if (project != "" && remark != "") {
-
-        $('#waitingpanel').modal('show');
-
-        var table = $('#VerifyOrders_Search_Billing').DataTable();
-        var selectedOrderIDs = [];
-
-        table.$('input.row-checkbox:checked').each(function () {
-
-            selectedOrderIDs.push($(this).val());
-        });
-
-        if (selectedOrderIDs.length === 0) {
-            alert('Please select at least one order.');
-            return;
-        }
-
-        $.ajax({
-            url: "VerifyBilling.aspx/VerifyOrders",
-            type: "POST",
-            // data: "{OrderIDs:'" + selectedOrderIDs + "',Project:'" + project + "',Remark:'" + remark + "',BillingPeriod:'" + billingPeriod + "'}",
-            data: "{OrderIDs:'" + selectedOrderIDs + "',Project:'" + project + "',Remark:'" + remark + "',BillingPeriod:'" + billingPeriod + "'}",
-
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-
-            success: function (response) {
-
-                $('#waitingpanel').modal('hide');
-
-                if (response.d > 0)
-                    alert("Selected orders verified successfully!");
-                else
-                    alert("Oops! Error occured while verifying orders. Please contact administrator!");
-            },
-
-            error: function (err) {
-
-                $('#waitingpanel').modal('hide');
-                alert("Oops! Error occured while verifying orders. Please contact administrator!");
-            }
-        });
-    }
-    else {
-
-        if (remark == "") {
-
-            alert("Please enter Remark!");
-        }
-    }
-}
 
 function VerifyOrdres_Verify() {
 
