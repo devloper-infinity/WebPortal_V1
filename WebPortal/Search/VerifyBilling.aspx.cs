@@ -16,6 +16,7 @@ using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using WebPortal.Admin;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
@@ -288,7 +289,7 @@ namespace WebPortal.Search
 
             foreach (string orderId in arr_OrderiDS)
             {
-                string id = orderId.Trim(); // remove spaces if any
+                string id = orderId.Trim(); 
 
                 returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark, BillingPeriod);
             }
@@ -327,6 +328,14 @@ namespace WebPortal.Search
             DataTable summaryForEmail = new bllOST().GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
             DataTable costEmailDetails = new bllOST().GetCostEmailDetails(ProjectID, BillingPeriod);
             DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
+
+            DataTable dt_Address = new bllOST().ProjectEmailConfiguration(ProjectID);
+            if(dt_Address.Rows.Count > 0)
+            {
+                ToAddress = dt_Address.Rows[0]["ToAddress"].ToString();
+                CC = dt_Address.Rows[0]["CC"].ToString();
+                Bcc = dt_Address.Rows[0]["Bcc"].ToString();
+            }
 
             returnValue = SendClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress,  CC, Bcc);
 

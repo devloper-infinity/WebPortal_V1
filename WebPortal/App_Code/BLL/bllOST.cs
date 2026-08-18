@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
+using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
 
 namespace WebPortal.App_Code.BLL
@@ -343,6 +344,12 @@ namespace WebPortal.App_Code.BLL
         public int InsertCostEmailDetails(Hashtable htDetails)
         {
             return dalOst.InsertCostEmailDetails(htDetails);
+        }
+
+
+        public DataTable ProjectEmailConfiguration(int ProjectID)
+        {
+            return dalOst.ProjectEmailConfiguration(ProjectID);
         }
 
         public DataTable GetCostEmailDetails(int projectId, string billingPeriod)

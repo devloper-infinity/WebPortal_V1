@@ -543,42 +543,6 @@
                     <div class="pec-card-subtitle">Review and edit active project recipients.</div>
                 </div>
             </header>
-            <%--    <div class="pec-table-wrap">
-                <table id="pecConfigurationTable" class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Project</th>
-                            <th>To Email Address(es)</th>
-                            <th>CC Email Address(es)</th>
-                            <th>Added By</th>
-                            <th>Added Date &amp; Time</th>
-                            <th>Updated By</th>
-                            <th>Updated Date &amp; Time</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>--%>
-
-            <%--            <div class="pec-table-wrap">
-                <table id="pecConfigurationTable" class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th class="text-center">Actions</th>
-                            <th>Project</th>
-                            <th>To Email Address(es)</th>
-                            <th>CC Email Address(es)</th>
-                            <th>Added By</th>
-                            <th>Added Date &amp; Time</th>
-                            <th>Updated By</th>
-                            <th>Updated Date &amp; Time</th>
-
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>--%>
             <div class="pec-table-card">
                 <div class="table-responsive">
                     <table id="pecConfigurationTable">

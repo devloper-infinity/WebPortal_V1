@@ -290,16 +290,16 @@
             white-space: nowrap;
         }
 
-            .summary-period-header i {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                color: #ffffff;
-                background: var(--order-primary);
-                border-radius: 7px;
-            }
+        .summary-period-header i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            color: #ffffff;
+            background: var(--order-primary);
+            border-radius: 7px;
+        }
 
         .summary-metrics {
             display: grid;
@@ -826,7 +826,7 @@
 
             verifyOrdres_BindProject();
 
-          //  Bind_SearchBilling_Grid("735", "01-Aug-2026", "15-Aug-2026");
+            //  Bind_SearchBilling_Grid("735", "01-Aug-2026", "15-Aug-2026");
         });
 
 
@@ -1061,30 +1061,15 @@
                                     <label for="vrbil_attachment" class="form-label vrbil-label">
                                         <span class="vrbil-field-icon">&#128206;</span>Attachment :
                                     </label>
-                                    <%--   <div class="vrbil-upload-box" id="vrbil_dropzone">
-                                        <input type="file" name="vrbil_attachment" id="vrbil_attachment" class="vrbil-upload-input" onchange="vrbil_showFileName(this);" />
-                                        <div class="vrbil-upload-content">
-                                            <div class="vrbil-upload-main">
-                                                <div class="vrbil-upload-icon">&#8593;</div>
-                                                <div class="vrbil-upload-title">Drag &amp; drop file here</div>
-                                            </div>
-                                            <div id="vrbil_fileName" class="vrbil-file-name">or click to browse</div>
-                                        </div>
-                                    </div>--%>
+
                                     <div class="vrbil-upload-box" id="vrbil_dropzone">
-                                        <input type="file"
-                                            name="vrbil_attachment"
-                                            id="vrbil_attachment"
-                                            class="vrbil-upload-input"
-                                            accept=".msg"
-                                            onchange="vrbil_showFileName(this);" />
+                                        <input type="file" name="vrbil_attachment" id="vrbil_attachment" class="vrbil-upload-input" accept=".msg" onchange="vrbil_showFileName(this);" />
 
                                         <div class="vrbil-upload-content">
                                             <div class="vrbil-upload-main">
                                                 <div class="vrbil-upload-icon">&#8593;</div>
                                                 <div class="vrbil-upload-title">Drag &amp; drop .msg file here</div>
                                             </div>
-
                                             <div id="vrbil_fileName" class="vrbil-file-name">
                                                 or click to browse
                                             </div>

@@ -859,6 +859,7 @@
     <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
+    <Content Include="Scripts\Functions\ProjectEmailConfiguration.js" />
     <Content Include="Scripts\Search\VmOrders.js" />
     <Content Include="Scripts\Search\VMReport.js" />
     <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
