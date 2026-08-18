@@ -230,6 +230,7 @@
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
                 success: function (response) {
+                    
                     it_tq_departmentUsers = response && response.d ? JSON.parse(response.d) : [];
                     if (typeof callback === 'function') callback();
                 },
@@ -242,18 +243,18 @@
 
         function it_tq_assignDropdown(ticketId, disabled, item) {
             if (disabled) return '<span class="badge badge-secondary" style="font-size:100%!important;">' + item.AssignName + '</span>';
-            var html = '<div class="input-group input-group-sm" style="min-width:210px;">';
-            html += '<select class="form-control it-tq-assignto" data-ticketid="' + it_tq_text(ticketId) + '">';
-            html += '<option value="0">Select user</option>';
+            var htmldrp = '<div class="input-group input-group-sm" style="min-width:210px;">';
+            htmldrp += '<select class="form-control it-tq-assignto" data-ticketid="' + it_tq_text(ticketId) + '">';
+            htmldrp += '<option value="0">Select user</option>';
             $.each(it_tq_departmentUsers, function (i, emp) {
-                var empId = it_tq_value(emp, ['EmpId', 'EmployeeId', 'UserId', 'ID', 'Id', 'EmpID']);
-                var empText = it_tq_value(emp, ['Employee', 'EmployeeName', 'Name', 'FullName', 'FirstName']);
+                var empId = it_tq_value(emp, ['EmpId', 'EmployeeId','EmployeeID', 'UserId', 'ID', 'Id', 'EmpID']);
+                var empText = it_tq_value(emp, ['EmpName1', 'EmployeeName', 'Name', 'FullName', 'FirstName']);
                 var code = it_tq_value(emp, ['Code', 'EmployeeCode', 'EmpCode']);
                 if (code) empText = code + ' - ' + empText;
-                if (empId) html += '<option value="' + it_tq_text(empId) + '">' + it_tq_text(empText) + '</option>';
+                if (empId) htmldrp += '<option value="' + it_tq_text(empId) + '">' + it_tq_text(empText) + '</option>';
             });
-            html += '</select><div class="input-group-append"><button type="button" class="btn btn-primary" onclick="return it_tq_assignSelected(this);">Assign</button></div></div>';
-            return html;
+            htmldrp += '</select><div class="input-group-append"><button type="button" class="btn btn-primary" onclick="return it_tq_assignSelected(this);">Assign</button></div></div>';
+            return htmldrp;
         }
 
         function it_tq_actionHtml(item) {
@@ -309,6 +310,7 @@
                             '</tr>';
                         tbody.append(html);
                     });
+                    console.log(tbody.html());
                     $('#it_ticketqueue').DataTable({ scrollX: true, autoWidth: false, pageLength: 25, order: [] });
                 }
             });
