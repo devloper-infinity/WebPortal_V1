@@ -142,6 +142,7 @@
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\All.aspx" />
     <Content Include="Admin\FeedbackPerformanceReport.aspx" />
+    <Content Include="Admin\ProjectEmailConfiguration.aspx" />
     <Content Include="All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
@@ -3122,6 +3123,13 @@
     </Compile>
     <Compile Include="Admin\FileDownload.aspx.designer.cs">
       <DependentUpon>FileDownload.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ProjectEmailConfiguration.aspx.cs">
+      <DependentUpon>ProjectEmailConfiguration.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ProjectEmailConfiguration.aspx.designer.cs">
+      <DependentUpon>ProjectEmailConfiguration.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\ProjectHealthReport.aspx.cs">
       <DependentUpon>ProjectHealthReport.aspx</DependentUpon>

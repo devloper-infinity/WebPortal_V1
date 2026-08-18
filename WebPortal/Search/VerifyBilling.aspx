@@ -268,6 +268,7 @@
         .summary-period-header {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
             padding: 10px 12px;
             color: var(--order-primary-dark);
@@ -275,6 +276,18 @@
             border-bottom: 1px solid #d9eee9;
             font-size: 12px;
             font-weight: 800;
+        }
+
+        .summary-project {
+            margin-left: auto;
+            padding: 5px 9px;
+            color: #0f766e;
+            background: #ffffff;
+            border: 1px solid #bfe4dc;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
         }
 
             .summary-period-header i {
@@ -1039,9 +1052,9 @@
                             <div class="vrbil-dependent-grid">
                                 <div class="vrbil-form-group">
                                     <label for="vrbil_additionalText" class="form-label vrbil-label">
-                                        <span class="vrbil-field-icon">&#177;</span>Cost Difference :
+                                        <span class="vrbil-field-icon">&#177;</span>Fees Approved By Client :
                                     </label>
-                                    <input type="number" name="vrbil_costDiff" id="vrbil_costDiff" class="form-control vrbil-control" placeholder="Enter cost difference" step="0.01" />
+                                    <input type="text" name="vrbil_costDiff" id="vrbil_costDiff" class="form-control vrbil-control" placeholder="Enter cost difference" step="0.01" />
                                 </div>
 
                                 <div class="vrbil-form-group">

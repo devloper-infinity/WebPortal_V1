@@ -24,7 +24,6 @@ namespace WebPortal.Search
 {
     public partial class VerifyBilling : System.Web.UI.Page
     {
-        static DataTable dtSummary;
         static DataTable dtRecords;
 
         protected void Page_Load(object sender, EventArgs e)
@@ -236,7 +235,6 @@ namespace WebPortal.Search
         public static string GetDataForSummary(string ProjectNo, string FromDate, string ToDate)
         {
             DataTable dt1 = new bllOST().GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
-            dtSummary = dt1;
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -313,7 +311,7 @@ namespace WebPortal.Search
                 htDetails["EmailNote"] = EmailInput;
                 htDetails["AttachmentPath"] = AttachmentPath ?? string.Empty;
 
-                int ReturnValue = new bllOST().InsertCostEmailDetails(htDetails);
+                returnValue = new bllOST().InsertCostEmailDetails(htDetails);
             }
 
             return returnValue;
@@ -321,17 +319,16 @@ namespace WebPortal.Search
 
 
         [WebMethod]
-        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingPeriod, string Remark, string ToAddress, string CC, string Bcc)
+        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingPeriod, string FromDate, string ToDate, string Remark, string ToAddress, string CC, string Bcc)
         {
             int returnValue = 0;
 
             DataTable dt = new bllOST().GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
+            DataTable summaryForEmail = new bllOST().GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
             DataTable costEmailDetails = new bllOST().GetCostEmailDetails(ProjectID, BillingPeriod);
             DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
 
-            // returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, "735", "Search Typing", "01-Aug-2026 ~ 15-Aug-2026");
-
-            returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress,  CC, Bcc);
+            returnValue = SendClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress,  CC, Bcc);
 
             return returnValue;
         }
@@ -346,11 +343,10 @@ namespace WebPortal.Search
             string subject = string.Empty;
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
-                     
 
-            //toAddress = "b.shubhangi@infinityinternationals.us";
-            //toCC = "b.shubhangi@infinityinternationals.us";
-            //toBcc = "b.shubhangi@infinityinternationals.us";
+            //ToAddress = "b.shubhangi@infinityinternationals.us";
+            //CC = "b.shubhangi@infinityinternationals.us";
+            //Bcc = "b.shubhangi@infinityinternationals.us";
 
             try
             {
@@ -992,52 +988,58 @@ namespace WebPortal.Search
 
         private static void AppendBillingSummaryTable(StringBuilder htmlBody, DataTable dt2, string projectName, string projectType, string billingPeriod)
         {
+            htmlBody.AppendFormat(
+                @"<tr>
+                    <td style='padding:18px 25px 8px;'>
+                      <table role='presentation' width='100%' cellpadding='0' cellspacing='0' border='0'>
+                        <tr>
+                          <td style='padding:0 0 10px;color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:700;'>Billing overview &nbsp;&bull;&nbsp; Project {0}</td>
+                          <td align='right' style='padding:0 0 10px;'><span style='display:inline-block;padding:4px 8px;color:#0f766e;background-color:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;font-family:Segoe UI,Arial,sans-serif;font-size:9px;font-weight:700;'>{1} billing period{2}</span></td>
+                        </tr>
+                      </table>
+                      <table role='presentation' width='100%' cellpadding='0' cellspacing='0' border='0' style='width:100%;table-layout:fixed;border:1px solid #dbe4ee;border-radius:9px;border-collapse:separate;border-spacing:0;overflow:hidden;'>
+                        <tr style='background-color:#f1f5f9;'>
+                          <td width='25%' style='padding:8px 9px;color:#475569;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;letter-spacing:.25px;text-transform:uppercase;'>Billing period</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#2563eb;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>Received</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#dc2626;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>Cancelled</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#059669;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>Dispatched</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#7c3aed;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>Pending<br/>Search</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#d97706;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>On Hold</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#0891b2;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>Pending<br/>Typing</td>
+                          <td width='10.7%' align='center' style='padding:8px 3px;border-left:1px solid #dbe4ee;color:#be185d;font-family:Segoe UI,Arial,sans-serif;font-size:8px;font-weight:700;text-transform:uppercase;'>Pending<br/>Tax</td>
+                        </tr>",
+                System.Web.HttpUtility.HtmlEncode(projectName),
+                dt2.Rows.Count,
+                dt2.Rows.Count == 1 ? string.Empty : "s");
+
+            int rowIndex = 0;
             foreach (DataRow row in dt2.Rows)
             {
                 htmlBody.AppendFormat(
-                    @"<tr>
-                        <td style='padding:18px 25px 6px;'>
-                          <table role='presentation' width='100%' cellpadding='0' cellspacing='0' border='0'>
-                            <tr>
-                              <td style='padding:0 5px 9px;color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:700;'>Billing overview</td>
-                              <td align='right' style='padding:0 5px 9px;color:#64748b;font-family:Segoe UI,Arial,sans-serif;font-size:10px;'>{0}</td>
-                            </tr>
-                          </table>
-                          <table role='presentation' width='100%' cellpadding='0' cellspacing='0' border='0' style='table-layout:fixed;'>
-                            <tr>",
+                    @"<tr style='background-color:{0};'>
+                        <td style='padding:10px 9px;border-top:1px solid #e2e8f0;color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:9px;font-weight:700;line-height:1.35;'>{1}</td>",
+                    rowIndex++ % 2 == 0 ? "#ffffff" : "#f8fafc",
                     System.Web.HttpUtility.HtmlEncode(GetBillingValue(row, "BillingPeriod")));
 
-                AppendBillingMetricCard(htmlBody, "Received", GetBillingValue(row, "Received"), "#2563eb", "#eff6ff");
-                AppendBillingMetricCard(htmlBody, "Dispatched", GetBillingValue(row, "Dispatch"), "#059669", "#ecfdf5");
-                AppendBillingMetricCard(htmlBody, "Cancelled", GetBillingValue(row, "Cancel"), "#dc2626", "#fef2f2");
-                AppendBillingMetricCard(htmlBody, "On Hold", GetBillingValue(row, "Hold"), "#d97706", "#fffbeb");
-
-                htmlBody.Append("</tr><tr>");
-
-                AppendBillingMetricCard(htmlBody, "Pending Search", GetBillingValue(row, "Pending"), "#7c3aed", "#f5f3ff");
-                AppendBillingMetricCard(htmlBody, "Pending Typing", GetBillingValue(row, "Typing"), "#0891b2", "#ecfeff");
-                AppendBillingMetricCard(htmlBody, "Pending Tax", GetBillingValue(row, "Tax"), "#be185d", "#fdf2f8");
-                htmlBody.Append("<td width='25%' style='padding:5px;'>&nbsp;</td>");
-
-                htmlBody.Append("</tr></table></td></tr>");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Received"), "#1d4ed8");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Cancel"), "#b91c1c");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Dispatch"), "#047857");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Pending"), "#6d28d9");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Hold"), "#b45309");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Typing"), "#0e7490");
+                AppendBillingSummaryValueCell(htmlBody, GetBillingValue(row, "Tax"), "#9d174d");
+                htmlBody.Append("</tr>");
             }
+
+            htmlBody.Append("</table></td></tr>");
         }
 
-        private static void AppendBillingMetricCard(StringBuilder htmlBody, string label, string value, string accentColor, string backgroundColor)
+        private static void AppendBillingSummaryValueCell(StringBuilder htmlBody, string value, string color)
         {
             htmlBody.AppendFormat(
-                @"<td width='25%' valign='top' style='padding:5px;'>
-                    <table role='presentation' width='100%' cellpadding='0' cellspacing='0' border='0' style='background-color:{3};border:1px solid #e2e8f0;border-left:4px solid {2};border-radius:9px;'>
-                      <tr><td style='padding:13px 11px;'>
-                        <div style='color:#64748b;font-family:Segoe UI,Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;'>{0}</div>
-                        <div style='margin-top:5px;color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:20px;font-weight:750;line-height:1;'>{1}</div>
-                      </td></tr>
-                    </table>
-                  </td>",
-                System.Web.HttpUtility.HtmlEncode(label),
-                System.Web.HttpUtility.HtmlEncode(string.IsNullOrWhiteSpace(value) ? "0" : value),
-                accentColor,
-                backgroundColor);
+                @"<td align='center' style='padding:10px 3px;border-top:1px solid #e2e8f0;border-left:1px solid #e2e8f0;color:{0};font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:700;'>{1}</td>",
+                color,
+                System.Web.HttpUtility.HtmlEncode(string.IsNullOrWhiteSpace(value) ? "0" : value));
         }
 
         private static string GetBillingValue(DataRow row, string columnName)

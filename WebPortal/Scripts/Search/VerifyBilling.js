@@ -688,20 +688,6 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
         success: function (data) {
             var dataArray = JSON.parse(data.d);
 
-            // The summary query can return cached/adjacent billing periods.
-            // Keep only the row belonging to the currently selected date range.
-            var selectedRows = dataArray.filter(function (row) {
-                var periodParts = String(row.BillingPeriod || '').split('~');
-
-                return periodParts.length === 2 &&
-                    getBillingDateKey(periodParts[0]) === getBillingDateKey(fromdate) &&
-                    getBillingDateKey(periodParts[1]) === getBillingDateKey(todate);
-            });
-
-            if (selectedRows.length) {
-                dataArray = selectedRows;
-            }
-
             renderTotalOrdersSummary(dataArray);
 
             if ($.fn.DataTable.isDataTable('#table_grdPending')) {
@@ -724,7 +710,6 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
                     { data: "Dispatch" },
                     { data: "Cancel" },
                     { data: "Hold" },
-                    { data: "Pending" },
                     { data: "Typing" },
                     { data: "Tax" }
                 ],
@@ -759,18 +744,6 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
     return false;
 }
 
-function getBillingDateKey(value) {
-    var parsedDate = new Date($.trim(String(value || '')));
-
-    if (isNaN(parsedDate.getTime())) {
-        return $.trim(String(value || '')).toLowerCase().replace(/\s+/g, '');
-    }
-
-    return parsedDate.getFullYear() + '-' +
-        ('0' + (parsedDate.getMonth() + 1)).slice(-2) + '-' +
-        ('0' + parsedDate.getDate()).slice(-2);
-}
-
 function renderTotalOrdersSummary(dataArray) {
     var $summary = $('#totalOrdersSummary');
     var rows = Array.isArray(dataArray) ? dataArray : [];
@@ -782,10 +755,10 @@ function renderTotalOrdersSummary(dataArray) {
 
     var metrics = [
         { key: 'Received', label: 'Received', icon: 'fa-inbox', tone: 'received' },
-        { key: 'Dispatch', label: 'Dispatch', icon: 'fa-paper-plane', tone: 'dispatch' },
         { key: 'Cancel', label: 'Cancel', icon: 'fa-times-circle', tone: 'cancel' },
-        { key: 'Hold', label: 'Hold', icon: 'fa-pause-circle', tone: 'hold' },
+        { key: 'Dispatch', label: 'Dispatch', icon: 'fa-paper-plane', tone: 'dispatch' },
         { key: 'Pending', label: 'Pending Search', icon: 'fa-search', tone: 'pending-search' },
+        { key: 'Hold', label: 'Hold', icon: 'fa-pause-circle', tone: 'hold' },
         { key: 'Typing', label: 'Pending Typing', icon: 'fa-keyboard', tone: 'pending-typing' },
         { key: 'Tax', label: 'Pending Tax', icon: 'fa-receipt', tone: 'pending-tax' }
     ];
@@ -804,7 +777,8 @@ function renderTotalOrdersSummary(dataArray) {
 
         return '<section class="summary-period">'
             + '<div class="summary-period-header"><i class="fas fa-calendar-alt"></i>'
-            + '<span>Order Details For Billing Period : ' + encode(row.BillingPeriod) + '</span></div>'
+            + '<span>Order Details For Billing Period : ' + encode(row.BillingPeriod) + '</span>'
+            + '<span class="summary-project">Project : ' + encode(row.ProjectNumber) + '</span></div>'
             + '<div class="summary-metrics">' + cards + '</div>'
             + '</section>';
     }).join('');
@@ -931,6 +905,9 @@ function VerifyOrdres_SendToAccount() {
     var billingPeriod = $.trim($billingPeriod.val());
     var billingPeriodText = $.trim($billingPeriod.find('option:selected').text());
     var remark = $.trim($remark.val());
+    var billingDates = billingPeriodText.split('~');
+    var fromDate = billingDates.length > 1 ? $.trim(billingDates[0]) : '';
+    var toDate = billingDates.length > 1 ? $.trim(billingDates[1]) : '';
 
     if (!projectNo) {
         Swal.fire({
@@ -1018,6 +995,8 @@ function VerifyOrdres_SendToAccount() {
             ProjectID: parseInt(projectNo, 10),
             ProjectNo: projectName,
             BillingPeriod: billingPeriodText,
+            FromDate: fromDate,
+            ToDate: toDate,
             Remark: remark,
             ToAddress: toAddress,
             CC: toCC,
