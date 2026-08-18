@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections;
@@ -320,7 +321,7 @@ namespace WebPortal.Search
 
 
         [WebMethod]
-        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingPeriod, string Remark)
+        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingPeriod, string Remark, string ToAddress, string CC, string Bcc)
         {
             int returnValue = 0;
 
@@ -330,14 +331,14 @@ namespace WebPortal.Search
 
             // returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, "735", "Search Typing", "01-Aug-2026 ~ 15-Aug-2026");
 
-            returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod);
+            returnValue = SendClientBillingOrdersTyping(dtRecords, dtSummary, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress,  CC, Bcc);
 
             return returnValue;
         }
 
         #region Email
 
-        public static int SendClientBillingOrdersTyping(DataTable dt, DataTable dtSummaryForEmail, DataTable dtRecordsForExcel, DataTable dtEmailForExcel, DataTable costEmailDetails, string ProjectName, string ProjectType, string BillingPeriod)
+        public static int SendClientBillingOrdersTyping(DataTable dt, DataTable dtSummaryForEmail, DataTable dtRecordsForExcel, DataTable dtEmailForExcel, DataTable costEmailDetails, string ProjectName, string ProjectType, string BillingPeriod, string ToAddress, string CC, string Bcc)
         {
             StringBuilder htmlBody = new StringBuilder();
             bool ISend;
@@ -345,14 +346,11 @@ namespace WebPortal.Search
             string subject = string.Empty;
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
+                     
 
-            string toAddress = "anita@infinity-data.com";
-            string toCC = "p.patil@infinityinternationals.us," + EmployeeInfo.Current.OfficialEmailID;
-            string toBcc = "b.shubhangi@infinityinternationals.us";
-
-             //toAddress = "b.shubhangi@infinityinternationals.us";
-             //toCC = "b.shubhangi@infinityinternationals.us";
-             //toBcc = "b.shubhangi@infinityinternationals.us";
+            //toAddress = "b.shubhangi@infinityinternationals.us";
+            //toCC = "b.shubhangi@infinityinternationals.us";
+            //toBcc = "b.shubhangi@infinityinternationals.us";
 
             try
             {
@@ -442,7 +440,7 @@ namespace WebPortal.Search
 
                 string strPassword = new bllMaster().GetPassword("ackdata");
 
-                ISend = sendMailForOnlineTracking(toAddress, toCC, toBcc, subject, attachmentPath, zipAttachmentPath, htmlBody, strPassword);
+                ISend = sendMailForOnlineTracking(ToAddress, CC, Bcc, subject, attachmentPath, zipAttachmentPath, htmlBody, strPassword);
             }
             finally
             {

@@ -113,6 +113,11 @@ namespace WebPortal.App_Code.BLL
             return dalOst.DispatchOrderTask(htParam);
         }
 
+        public int SPQAOrderTask(Hashtable htParam)
+        {
+            return dalOst.SPQAOrderTask(htParam);
+        }
+
         public int FeedBackOrders(Hashtable htParam)
         {
             return dalOst.FeedBackOrders(htParam);

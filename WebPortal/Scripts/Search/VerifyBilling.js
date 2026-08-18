@@ -1003,6 +1003,11 @@ function VerifyOrdres_SendToAccount() {
         }
     });
 
+    var toAddress = "anita@infinity-data.com";
+    var toCC = "p.patil@infinityinternationals.us,t.jason@infinityinternationals.us,e.mike@infinityinternationals.us,c.eva@infinityinternationals.us ";
+    var toBcc = "b.shubhangi@infinityinternationals.us";
+
+
     $.ajax({
         url: 'VerifyBilling.aspx/SendToAccounts',
         type: 'POST',
@@ -1013,7 +1018,10 @@ function VerifyOrdres_SendToAccount() {
             ProjectID: parseInt(projectNo, 10),
             ProjectNo: projectName,
             BillingPeriod: billingPeriodText,
-            Remark: remark
+            Remark: remark,
+            ToAddress: toAddress,
+            CC: toCC,
+            Bcc: toBcc
         }),
 
         success: function (response) {

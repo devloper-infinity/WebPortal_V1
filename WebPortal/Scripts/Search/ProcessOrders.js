@@ -943,6 +943,7 @@ function CompleteOrder() {
                 NoFeedback: $('#ProcessOrders_NoFeedback').is(':checked'),
                 TaxCalling: $('#ProcessOrders_TaxCalling').is(':checked'),
                 Audit: $('#ProcessOrders_Audit').is(':checked'),
+                SPQA: $('#ProcessOrders_SPQA').is(':checked'),
                 Offline: $('#ProcessOrders_Offline').is(':checked')
             }),
             success: function (result) {

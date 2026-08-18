@@ -268,7 +268,7 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static ProcessOrderResponse CompleteOrder(int OrderID, List<int> TaskIDs, string ClientOrderNo, string ProjectNumber, string ProcessName, string ActionStatus, string Remark, string AttachmentOriginalName, bool DispatchOrder, bool NoFeedback, bool TaxCalling, bool Audit, bool Offline)
+        public static ProcessOrderResponse CompleteOrder(int OrderID, List<int> TaskIDs, string ClientOrderNo, string ProjectNumber, string ProcessName, string ActionStatus, string Remark, string AttachmentOriginalName, bool DispatchOrder, bool NoFeedback, bool TaxCalling, bool Audit, bool SPQA, bool Offline)
         {
             try
             {
@@ -378,12 +378,17 @@ namespace WebPortal.Search
                 }
 
                 string attachmentPath = SaveUploadedAttachment(OrderID, ClientOrderNo, currentProcessName, AttachmentOriginalName);
-                InsertCompletionComments(ost, OrderID, processId, currentProcessName, taskStatus, addedBy, TaxCalling, Audit, Offline);
+                InsertCompletionComments(ost, OrderID, processId, currentProcessName, taskStatus, addedBy, TaxCalling, Audit, SPQA, Offline);
                 InsertAttachment(ost, OrderID, processId, taskStatus, attachmentPath, addedBy);
 
                 if (DispatchOrder)
                 {
                     DispatchCompletedOrder(ost, OrderID, Remark, addedBy);
+                }
+
+                if (SPQA)
+                {
+                    SendToSpqa(ost, OrderID, Remark, addedBy);
                 }
 
                 if ((processId == 2 || processId == 11 || processId == 5) && NoFeedback)
@@ -773,7 +778,7 @@ namespace WebPortal.Search
             return safe;
         }
 
-        private static void InsertCompletionComments(bllOST ost, int orderId, int processId, string processName, int taskStatus, int addedBy, bool taxCalling, bool audit, bool offline)
+        private static void InsertCompletionComments(bllOST ost, int orderId, int processId, string processName, int taskStatus, int addedBy, bool taxCalling, bool audit, bool spqa, bool offline)
         {
             string comment = processName + " Process Completed by User";
             ost.InsertCommentOrder(orderId, processId, "Auto", comment, addedBy);
@@ -801,6 +806,11 @@ namespace WebPortal.Search
             if (audit)
             {
                 ost.InsertCommentOrder(orderId, processId, "Auto", "Order has been send to Audit Process by User", addedBy);
+            }
+
+            if (spqa)
+            {
+                ost.InsertCommentOrder(orderId, processId, "Auto", "Order has been sent to SPQA by User", addedBy);
             }
         }
 
@@ -835,6 +845,17 @@ namespace WebPortal.Search
             {
                 ost.InsertCommentOrder(orderId, 6, "Auto", "Order is Dispatched", addedBy);
             }
+        }
+
+        private static void SendToSpqa(bllOST ost, int orderId, string remark, int addedBy)
+        {
+            Hashtable htSheet = new Hashtable();
+            htSheet["OrderId"] = orderId;
+            htSheet["TaskTemplateid"] = 0;
+            htSheet["TaskAssignedId"] = addedBy;
+            htSheet["Remark"] = (remark ?? string.Empty).Trim();
+            htSheet["AdddedBy"] = addedBy;
+            ost.SPQAOrderTask(htSheet);
         }
 
         private static void InsertNoFeedback(bllOST ost, int orderId, string orderNo, string projectName, string processName, int addedBy)
