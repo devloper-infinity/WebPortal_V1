@@ -68,11 +68,15 @@
             var safeProjectName = projectName.replace(/[^a-z0-9_-]+/gi, "_");
             if (reportTable) { reportTable.destroy(); reportTable = null; }
             $("#trTable").empty();
+            var reportColumnCount = result.Columns.length + 1, footer = '<tfoot><tr>';
+            for (var footerIndex = 0; footerIndex < reportColumnCount; footerIndex++) footer += '<th></th>';
+            $("#trTable").html(footer + '</tr></tfoot>');
             reportTable = $("#trTable").DataTable({
                 data: result.Rows,
                 columns: [{ data: null, title: "Process Progress", width: "300px", orderable: false, searchable: false, render: function (_, type, row) { return type === 'display' ? processSummary(row) : processExportSummary(row); } }].concat($.map(result.Columns, function (name) { return { data: function (row) { return row.Values && row.Values[name] || ''; }, title: name, defaultContent: "", className: "text-nowrap" }; })),
                 scrollX: true, scrollY: "58vh", scrollCollapse: true, responsive: false, autoWidth: false,
                 pageLength: 25, lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]], ordering: true,
+                footerCallback: function () { var api = this.api(), count = api.rows({ search: 'applied' }).count(); $(api.column(0).footer()).text('Total: ' + count + ' record(s)'); },
                 dom: "<'row mb-2'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>>" +
                      "<'row'<'col-sm-12'tr>>" +
                      "<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
@@ -83,6 +87,7 @@
                     title: "Tracking Sheet Report - " + projectName,
                     filename: "Tracking_Sheet_Report_" + safeProjectName + "_" + fromDate + "_to_" + toDate,
                     messageTop: "Project: " + projectName + " | Order Date: " + fromDate + " to " + toDate,
+                    footer: true,
                     exportOptions: { columns: ":visible", modifier: { search: "applied", order: "applied", page: "all" } }
                 }]
             });

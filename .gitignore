@@ -381,12 +381,14 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_019_ProductivityTypeWithoutTime.sql
 !/WebPortal/DatabaseScripts/OLTracking_020_HourlyNonTrackingProductivity.sql
 !/WebPortal/DatabaseScripts/OLTracking_021_ProcessCompletionTimeLimits.sql
+!/WebPortal/DatabaseScripts/OLTracking_022_OutOfScopeAndHoldReasons.sql
 !/WebPortal/TrackingSheet/
 /WebPortal/TrackingSheet/*
 !/WebPortal/TrackingSheet/TrackingSheetFeedback.aspx
 !/WebPortal/TrackingSheet/TrackingSheetFeedback.aspx.cs
 !/WebPortal/TrackingSheet/TrackingSheetFeedback.aspx.designer.cs
 !/WebPortal/TrackingSheet/TrackingSheetFeedbackEntry.css
+!/WebPortal/TrackingSheet/ManagerDashboard.Snd.js
 !/WebPortal/Scripts/
 /WebPortal/Scripts/*
 !/WebPortal/Scripts/TrackingSheet/

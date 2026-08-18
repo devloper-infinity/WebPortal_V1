@@ -39,8 +39,8 @@ namespace WebPortal.App_Code.BLL
         public void SaveProcessFlow(int projectId, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, bool isTrackingSheetProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int[] eligibleAfterProcessIds, int[] feedbackAgainstProcessIds, int userId)
         { dal.SaveProcessFlow(projectId, processId, processName, stageNo, mandatory, feedback, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, eligibleAfterProcessIds, feedbackAgainstProcessIds, userId); }
         public int RemoveProcessFlow(int projectId, int processId, int userId) { return dal.RemoveProcessFlow(projectId, processId, userId); }
-        public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int userId)
-        { dal.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, mandatory, feedback, isFinalProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, userId); }
+        public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, bool isOutOfScope, int userId)
+        { dal.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, mandatory, feedback, isFinalProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, isOutOfScope, userId); }
         public DataTable GetOverdueProcesses(int userId) { return dal.GetOverdueProcesses(userId); }
         public DataTable GetCompletionTimeValidation(long assignmentId, int userId) { return dal.GetCompletionTimeValidation(assignmentId, userId); }
         public int AcknowledgeOverdueProcesses(long[] assignmentIds, int userId) { return dal.AcknowledgeOverdueProcesses(assignmentIds, userId); }
@@ -69,6 +69,10 @@ namespace WebPortal.App_Code.BLL
         { return dal.SubmitHourlyProductivity(projectId, processId, dealNumber, durationMinutes, userId); }
         public void StartLoan(long assignmentId, int userId) { dal.StartLoan(assignmentId, userId); }
         public void HoldLoan(long assignmentId, string holdReason, int userId) { dal.HoldLoan(assignmentId, holdReason, userId); }
+        public DataTable GetHoldReasons(bool includeInactive) { return dal.GetHoldReasons(includeInactive); }
+        public bool IsActiveHoldReason(string reasonText) { return dal.IsActiveHoldReason(reasonText); }
+        public int SaveHoldReason(string reasonText, int userId) { return dal.SaveHoldReason(reasonText, userId); }
+        public int SetHoldReasonActive(int holdReasonId, bool isActive, int userId) { return dal.SetHoldReasonActive(holdReasonId, isActive, userId); }
         public void ResumeLoan(long assignmentId, int userId) { dal.ResumeLoan(assignmentId, userId); }
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId) { dal.CompleteLoan(assignmentId, remark, feedbacks, userId); }
         public void SkipLoan(long assignmentId, string remark, int userId) { dal.SkipLoan(assignmentId, remark, userId); }
@@ -103,6 +107,8 @@ namespace WebPortal.App_Code.BLL
 
         public DataTable GetManagerDetail(int projectId, string dealNumber, int processId, int userId, string status, string productivityType, DateTime? fromDate, DateTime? toDate)
         { return dal.GetManagerDetail(projectId, dealNumber, processId, userId, status, productivityType, fromDate, toDate); }
+        public DataSet GetSndManagerDashboard(int projectId, DateTime fromDate, DateTime toDate)
+        { return dal.GetSndManagerDashboard(projectId, fromDate, toDate); }
         public DataTable GetManagerSummary(int projectId, string dealNumber, int processId, int userId, string productivityType, DateTime? fromDate, DateTime? toDate)
         { return dal.GetManagerSummary(projectId, dealNumber, processId, userId, productivityType, fromDate, toDate); }
         public DataTable GetDealDashboard(int projectId, string dealNumber) { return dal.GetDealDashboard(projectId, dealNumber); }

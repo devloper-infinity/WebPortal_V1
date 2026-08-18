@@ -18,6 +18,7 @@ namespace WebPortal.TrackingSheet
         [WebMethod] public static string GetCurrentPseudoName() { return EmployeeInfo.Current == null ? string.Empty : EmployeeInfo.Current.PseudoName; }
         [WebMethod] public static string GetDeals(int projectId) { return OLTrackingWeb.Json(new bllOLTracking().GetSourceDeals(projectId, OLTrackingWeb.UserId)); }
         [WebMethod] public static string GetFlow(int projectId, string dealNumber) { return OLTrackingWeb.Json(new bllOLTracking().GetEffectiveProcessFlow(projectId, dealNumber)); }
+        [WebMethod] public static string GetHoldReasons() { return OLTrackingWeb.Json(new bllOLTracking().GetHoldReasons(false)); }
         [WebMethod] public static string GetOverdueProcesses() { return OLTrackingWeb.Json(new bllOLTracking().GetOverdueProcesses(OLTrackingWeb.UserId)); }
         [WebMethod] public static string AcknowledgeOverdueProcesses(long[] assignmentIds) { return OLTrackingWeb.Ok(new bllOLTracking().AcknowledgeOverdueProcesses(assignmentIds, OLTrackingWeb.UserId)); }
         [WebMethod]
@@ -141,7 +142,7 @@ namespace WebPortal.TrackingSheet
         {
             try
             {
-                if (!IsValidHoldReason(holdReason))
+                if (!new bllOLTracking().IsActiveHoldReason(holdReason))
                     return new TrackingActionResult { Success = false, Message = "Please select a valid hold reason." };
                 new bllOLTracking().HoldLoan(assignmentId, holdReason, OLTrackingWeb.UserId);
                 return new TrackingActionResult { Success = true, Message = "Loan placed on hold successfully." };
@@ -278,21 +279,6 @@ namespace WebPortal.TrackingSheet
             return rows;
         }
 
-        private static bool IsValidHoldReason(string holdReason)
-        {
-            switch ((holdReason ?? string.Empty).Trim())
-            {
-                case "PDF Issue":
-                case "Audit Worksheet Not available in Box":
-                case "Partially Review in Scienna":
-                case "Wrongly pulled in ERP":
-                case "Miscellaneous - Any other issue with comments":
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         private static string UserMessage(Exception exception)
         {
             SqlException sqlException = exception as SqlException;
@@ -312,7 +298,7 @@ namespace WebPortal.TrackingSheet
                 case 50123: return "Feedback is mandatory before completing this process.";
                 case 50124: return "Feedback cannot be added because this loan is no longer in your queue.";
                 case 50125: return "This loan is not currently on hold.";
-                case 50126: return "A hold reason is required.";
+                case 50126: return "Please select an active Hold Reason.";
                 case 50127: return "Resume the loan before completing it.";
                 case 50128: return "One or more selected loans are no longer eligible.";
                 case 50129: return "You already have two Pending/In Process loans. Complete or hold one before resuming this loan.";

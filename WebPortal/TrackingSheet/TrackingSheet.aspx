@@ -294,13 +294,7 @@
                             </select>
                         </div>
                         <div id="holdReasonField" class="olt-field ots-status-control" style="display: none">
-                            <label>Hold Reason</label><select id="holdReason"><option value="">Select</option>
-                                <option>PDF Issue</option>
-                                <option>Audit Worksheet Not available in Box</option>
-                                <option>Partially Review in Scienna</option>
-                                <option>Wrongly pulled in ERP</option>
-                                <option value="Miscellaneous - Any other issue with comments">Miscellaneous &ndash; Any other issue with comments</option>
-                            </select>
+                            <label>Hold Reason</label><select id="holdReason"><option value="">Loading Hold Reasons...</option></select>
                         </div>
                         <div id="statusActions" class="olt-field full olt-actions" style="display:none">
                             <button id="statusContinueButton" type="button" class="olt-btn" onclick="selectCompletionStatus()">Continue</button>

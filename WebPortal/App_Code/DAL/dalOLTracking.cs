@@ -268,9 +268,16 @@ ORDER BY effective.StageNo,effective.ProcessName;") { CommandType = CommandType.
 SELECT ProcessID,MAX(ProcessName) ProcessName
 FROM
 (
-    SELECT ProcessID,ProcessName FROM dbo.OLTracking_ProcessFlow WHERE ProjectID=@ProjectID AND IsActive=1
+    SELECT flow.ProcessID,flow.ProcessName
+    FROM (SELECT DISTINCT DealNumber FROM dbo.OLTracking_Item
+          WHERE ProjectID=@ProjectID AND IsDeleted=0) deal
+    CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(@ProjectID,deal.DealNumber) flow
     UNION ALL
-    SELECT ProcessID,ProcessName FROM dbo.OLTracking_DealProcessFlow WHERE ProjectID=@ProjectID AND IsActive=1
+    SELECT flow.ProcessID,flow.ProcessName
+    FROM dbo.OLTracking_ProcessFlow flow
+    WHERE flow.ProjectID=@ProjectID AND flow.IsActive=1
+      AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Item item
+                     WHERE item.ProjectID=@ProjectID AND item.IsDeleted=0)
 ) configured
 GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -278,7 +285,7 @@ GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
         }
 
         public void SaveDealProcessFlow(int projectId, string dealNumber, int processId, string processName, int stageNo,
-            bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, int userId)
+            bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, bool isOutOfScope, int userId)
         {
             SqlCommand command = Command("OLTracking_SaveDealProcessFlow");
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -293,6 +300,7 @@ GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
             Add(command, "@ExpectedCompletionMinutes", SqlDbType.Int, expectedCompletionMinutes);
             Add(command, "@MinCompletionMinutes", SqlDbType.Int, minCompletionMinutes);
             Add(command, "@MaxCompletionMinutes", SqlDbType.Int, maxCompletionMinutes);
+            Add(command, "@IsOutOfScope", SqlDbType.Bit, isOutOfScope);
             Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
         }
@@ -415,6 +423,9 @@ IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MinCompletionMinutes') IS NULL
     ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MinCompletionMinutes int NULL;
 IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MaxCompletionMinutes') IS NULL
     ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MaxCompletionMinutes int NULL;
+IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','IsOutOfScope') IS NULL
+    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD IsOutOfScope bit NOT NULL
+        CONSTRAINT DF_OLTracking_DealFlow_OutOfScope DEFAULT(0) WITH VALUES;
 IF COL_LENGTH('dbo.OLTracking_Assignment','MaxTimeAcknowledgedDate') IS NULL
     ALTER TABLE dbo.OLTracking_Assignment ADD MaxTimeAcknowledgedDate datetime NULL;
 IF OBJECT_ID('dbo.OLTracking_ProcessDependency','U') IS NULL
@@ -708,6 +719,65 @@ END CATCH") { CommandType = CommandType.Text, CommandTimeout = 90 };
             Add(command, "@HoldReason", SqlDbType.NVarChar, holdReason, 1000);
             Add(command, "@UserID", SqlDbType.Int, userId);
             ExecuteNonQuery(command);
+        }
+
+        public DataTable GetHoldReasons(bool includeInactive)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT HoldReasonID,ReasonText,IsActive,AddedDate,UpdatedDate
+FROM dbo.OLTracking_HoldReason
+WHERE @IncludeInactive=1 OR IsActive=1
+ORDER BY IsActive DESC,ReasonText;") { CommandType = CommandType.Text };
+            Add(command, "@IncludeInactive", SqlDbType.Bit, includeInactive);
+            return Table(command);
+        }
+
+        public bool IsActiveHoldReason(string reasonText)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT CAST(CASE WHEN EXISTS
+(
+    SELECT 1 FROM dbo.OLTracking_HoldReason
+    WHERE IsActive=1 AND ReasonText=LTRIM(RTRIM(@ReasonText))
+) THEN 1 ELSE 0 END AS bit);") { CommandType = CommandType.Text };
+            Add(command, "@ReasonText", SqlDbType.NVarChar, reasonText, 400);
+            DataTable result = Table(command);
+            return result.Rows.Count > 0 && Convert.ToBoolean(result.Rows[0][0]);
+        }
+
+        public int SaveHoldReason(string reasonText, int userId)
+        {
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON;
+DECLARE @Reason nvarchar(400)=LTRIM(RTRIM(@ReasonText));
+IF NULLIF(@Reason,'') IS NULL THROW 50153,'Hold Reason is required.',1;
+IF LEN(@Reason)>400 THROW 50154,'Hold Reason cannot exceed 400 characters.',1;
+IF EXISTS(SELECT 1 FROM dbo.OLTracking_HoldReason WHERE ReasonText=@Reason)
+BEGIN
+    UPDATE dbo.OLTracking_HoldReason SET IsActive=1,UpdatedBy=@UserID,UpdatedDate=GETDATE() WHERE ReasonText=@Reason;
+    SELECT HoldReasonID FROM dbo.OLTracking_HoldReason WHERE ReasonText=@Reason;
+END
+ELSE
+BEGIN
+    INSERT dbo.OLTracking_HoldReason(ReasonText,IsActive,AddedBy) VALUES(@Reason,1,@UserID);
+    SELECT CONVERT(int,SCOPE_IDENTITY());
+END;") { CommandType = CommandType.Text };
+            Add(command, "@ReasonText", SqlDbType.NVarChar, reasonText, 400);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Execute(command);
+        }
+
+        public int SetHoldReasonActive(int holdReasonId, bool isActive, int userId)
+        {
+            SqlCommand command = new SqlCommand(@"
+UPDATE dbo.OLTracking_HoldReason
+SET IsActive=@IsActive,UpdatedBy=@UserID,UpdatedDate=GETDATE()
+WHERE HoldReasonID=@HoldReasonID;
+SELECT @@ROWCOUNT;") { CommandType = CommandType.Text };
+            Add(command, "@HoldReasonID", SqlDbType.Int, holdReasonId);
+            Add(command, "@IsActive", SqlDbType.Bit, isActive);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Execute(command);
         }
 
         public void ResumeLoan(long assignmentId, int userId)
@@ -1348,6 +1418,182 @@ ORDER BY h.EntryDate,h.HourlyEntryID;") { CommandType = CommandType.Text };
             Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@UserID", SqlDbType.Int, userId);
             Add(command, "@Status", SqlDbType.VarChar, status, 20); Add(command, "@FromDate", SqlDbType.Date, fromDate);
             Add(command, "@ProductivityType", SqlDbType.NVarChar, productivityType, 40); Add(command, "@ToDate", SqlDbType.Date, toDate); return Table(command);
+        }
+
+        public DataSet GetSndManagerDashboard(int projectId, DateTime fromDate, DateTime toDate)
+        {
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON;
+DECLARE @PreviousFrom date,@PreviousTo date,@RecentFrom date,@HistoryFrom date;
+SET @PreviousFrom=DATEADD(month,DATEDIFF(month,0,@FromDate)-1,0);
+SET @PreviousTo=DATEADD(day,-1,DATEADD(month,DATEDIFF(month,0,@FromDate),0));
+SET @RecentFrom=DATEADD(day,-60,@FromDate);
+SET @HistoryFrom=CASE WHEN @RecentFrom<@PreviousFrom THEN @RecentFrom ELSE @PreviousFrom END;
+
+SELECT configured.ProcessID,MAX(configured.ProcessName) ProcessName,MIN(configured.StageNo) StageNo
+INTO #Processes
+FROM
+(
+    SELECT flow.ProcessID,flow.ProcessName,flow.StageNo,
+        ISNULL(flow.ProductivityType,N'Loan Based Productivity') ProductivityType
+    FROM (SELECT DISTINCT DealNumber FROM dbo.OLTracking_Item
+          WHERE ProjectID=@ProjectID AND IsDeleted=0) deal
+    CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(@ProjectID,deal.DealNumber) flow
+    UNION ALL
+    SELECT flow.ProcessID,flow.ProcessName,flow.StageNo,
+        ISNULL(flow.ProductivityType,N'Loan Based Productivity') ProductivityType
+    FROM dbo.OLTracking_ProcessFlow flow
+    WHERE flow.ProjectID=@ProjectID AND flow.IsActive=1
+      AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Item item
+                     WHERE item.ProjectID=@ProjectID AND item.IsDeleted=0)
+) configured
+GROUP BY configured.ProcessID
+HAVING MAX(CASE WHEN configured.ProductivityType<>N'Hourly Productivity' THEN 1 ELSE 0 END)=1;
+
+SELECT DISTINCT projectUser.UserID,
+    COALESCE(NULLIF(employeeConfig.PsuedoName,''),NULLIF(employeeConfig.Code,''),NULLIF(employee.Code,''),CONVERT(nvarchar(30),projectUser.UserID)) UserName,
+    COALESCE(NULLIF(employeeConfig.Code,''),NULLIF(employee.Code,''),CONVERT(nvarchar(30),projectUser.UserID)) UserCode
+INTO #Users
+FROM dbo.UserProjectConfiguration projectUser
+JOIN dbo.EmployeeInfo employee ON employee.EmployeeID=projectUser.UserID AND ISNULL(employee.IsDelete,0)=0
+OUTER APPLY
+(
+    SELECT TOP 1 configuration.Code,configuration.PsuedoName
+    FROM dbo.EmployeeConfiguration configuration
+    WHERE configuration.EmployeeID=employee.EmployeeID AND configuration.Code=employee.Code
+      AND configuration.DataSource='ERP' AND configuration.IsDelete=0
+    ORDER BY configuration.EmpConfigrationID DESC
+) employeeConfig
+WHERE projectUser.ProjectID=@ProjectID;
+
+SELECT assignment.AssignmentID,assignment.ItemID,assignment.ProcessID,assignment.UserID,
+    ISNULL(item.DealNumber,'') DealNumber,assignment.AssignmentStatus,assignment.AssignedDate,
+    assignment.StartedDate,assignment.CompletedDate,ISNULL(assignment.CompletedDate,assignment.AssignedDate) ActivityDate
+INTO #Activity
+FROM dbo.OLTracking_Assignment assignment
+JOIN dbo.OLTracking_Item item ON item.ItemID=assignment.ItemID
+CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(assignment.ProjectID,item.DealNumber) flow
+JOIN #Processes process ON process.ProcessID=assignment.ProcessID
+WHERE assignment.ProjectID=@ProjectID AND flow.ProcessID=assignment.ProcessID
+  AND ISNULL(flow.ProductivityType,N'Loan Based Productivity')<>N'Hourly Productivity'
+  AND ISNULL(assignment.CompletedDate,assignment.AssignedDate)>=@HistoryFrom
+  AND ISNULL(assignment.CompletedDate,assignment.AssignedDate)<DATEADD(day,1,@ToDate);
+
+SELECT ProcessID,ProcessName,StageNo FROM #Processes ORDER BY StageNo,ProcessName;
+
+SELECT process.ProcessID,process.ProcessName,
+    COUNT(activity.AssignmentID) TotalAssigned,
+    SUM(CASE WHEN activity.AssignmentStatus='Completed' THEN 1 ELSE 0 END) DoneCount,
+    SUM(CASE WHEN activity.AssignmentID IS NOT NULL AND activity.AssignmentStatus<>'Completed' THEN 1 ELSE 0 END) InProcessCount
+FROM #Processes process
+LEFT JOIN #Activity activity ON activity.ProcessID=process.ProcessID
+    AND activity.ActivityDate>=@FromDate AND activity.ActivityDate<DATEADD(day,1,@ToDate)
+GROUP BY process.ProcessID,process.ProcessName,process.StageNo
+ORDER BY process.StageNo,process.ProcessName;
+
+;WITH Counts AS
+(
+    SELECT users.UserID,users.UserName,
+      SUM(CASE WHEN activity.ActivityDate>=@FromDate AND activity.ActivityDate<DATEADD(day,1,@ToDate) THEN 1 ELSE 0 END) CurrentAssigned,
+      SUM(CASE WHEN activity.AssignmentStatus='Completed' AND activity.CompletedDate>=@FromDate AND activity.CompletedDate<DATEADD(day,1,@ToDate) THEN 1 ELSE 0 END) CurrentDone,
+      SUM(CASE WHEN activity.AssignmentStatus='Completed' AND activity.CompletedDate>=@PreviousFrom AND activity.CompletedDate<DATEADD(day,1,@PreviousTo) THEN 1 ELSE 0 END) PreviousDone,
+      SUM(CASE WHEN activity.ActivityDate>=@RecentFrom AND activity.ActivityDate<DATEADD(day,1,@ToDate) THEN 1 ELSE 0 END) RecentActivity
+    FROM #Users users LEFT JOIN #Activity activity ON activity.UserID=users.UserID
+    GROUP BY users.UserID,users.UserName
+), Ranked AS
+(
+    SELECT *,RANK() OVER(ORDER BY CurrentDone DESC) CurrentRank,
+      RANK() OVER(ORDER BY PreviousDone DESC) PreviousRank
+    FROM Counts
+)
+SELECT UserID,UserName,CurrentAssigned,CurrentDone,PreviousDone,RecentActivity,CurrentRank,PreviousRank
+FROM Ranked ORDER BY CurrentRank,UserName;
+
+;WITH LoanCompletion AS
+(
+    SELECT item.ItemID,ISNULL(item.DealNumber,'') DealNumber,item.AddedDate,
+      ISNULL(requiredProcesses.MandatoryCount,0) MandatoryCount,
+      ISNULL(completedProcesses.CompletedMandatoryCount,0) CompletedMandatoryCount
+    FROM dbo.OLTracking_Item item
+    OUTER APPLY
+    (
+        SELECT COUNT(1) MandatoryCount
+        FROM dbo.OLTracking_EffectiveProcessFlow(item.ProjectID,item.DealNumber) requiredFlow
+        WHERE requiredFlow.IsMandatory=1
+          AND ISNULL(requiredFlow.ProductivityType,N'Loan Based Productivity')<>N'Hourly Productivity'
+    ) requiredProcesses
+    OUTER APPLY
+    (
+        SELECT COUNT(1) CompletedMandatoryCount
+        FROM dbo.OLTracking_EffectiveProcessFlow(item.ProjectID,item.DealNumber) completedFlow
+        WHERE completedFlow.IsMandatory=1
+          AND ISNULL(completedFlow.ProductivityType,N'Loan Based Productivity')<>N'Hourly Productivity'
+          AND EXISTS
+          (
+              SELECT 1 FROM dbo.OLTracking_Assignment completedAssignment
+              WHERE completedAssignment.ItemID=item.ItemID
+                AND completedAssignment.ProcessID=completedFlow.ProcessID
+                AND completedAssignment.AssignmentStatus='Completed'
+          )
+    ) completedProcesses
+    WHERE item.ProjectID=@ProjectID AND ISNULL(item.IsDeleted,0)=0
+)
+SELECT DealNumber,COUNT(1) TotalLoans,
+    SUM(CASE WHEN MandatoryCount>0 AND CompletedMandatoryCount=MandatoryCount THEN 1 ELSE 0 END) CompletedLoans,
+    MAX(AddedDate) LatestActivity
+FROM LoanCompletion
+GROUP BY DealNumber ORDER BY MAX(AddedDate) DESC,DealNumber;
+
+SELECT users.UserID,users.UserName,process.ProcessID,process.ProcessName,
+    ISNULL(userDays.DaysWorked,0) DaysWorked,
+    SUM(CASE WHEN activity.AssignmentStatus='Completed' THEN 1 ELSE 0 END) CompletedCount,
+    COALESCE(NULLIF(userTarget.Target,''),NULLIF(processTarget.Maturity,'')) DailyTarget
+FROM #Users users CROSS JOIN #Processes process
+LEFT JOIN #Activity activity ON activity.UserID=users.UserID AND activity.ProcessID=process.ProcessID
+    AND activity.CompletedDate>=@FromDate AND activity.CompletedDate<DATEADD(day,1,@ToDate)
+OUTER APPLY
+(
+    SELECT COUNT(DISTINCT CONVERT(char(8),worked.CompletedDate,112)) DaysWorked
+    FROM #Activity worked WHERE worked.UserID=users.UserID AND worked.AssignmentStatus='Completed'
+      AND worked.CompletedDate>=@FromDate AND worked.CompletedDate<DATEADD(day,1,@ToDate)
+) userDays
+OUTER APPLY
+(
+    SELECT TOP 1 target.Target FROM dbo.UserTarget target
+    WHERE target.ProjectID=@ProjectID AND target.ProcessID=process.ProcessID
+      AND RTRIM(target.Code)=RTRIM(users.UserCode) AND ISNULL(target.IsDelete,0)=0
+    ORDER BY ISNULL(target.UpdatedDate,target.AddedDate) DESC,target.ID DESC
+) userTarget
+OUTER APPLY
+(
+    SELECT TOP 1 matrix.Maturity FROM dbo.TargetMatrixMaster matrix
+    WHERE matrix.ProjectID=CONVERT(nvarchar(20),@ProjectID)
+      AND matrix.ProcessID=CONVERT(nvarchar(20),process.ProcessID)
+      AND (matrix.ProductID IS NULL OR matrix.ProductID='' OR matrix.ProductID='0')
+    ORDER BY matrix.TargetMatrixID DESC
+) processTarget
+GROUP BY users.UserID,users.UserName,process.ProcessID,process.ProcessName,userDays.DaysWorked,userTarget.Target,processTarget.Maturity,process.StageNo
+HAVING SUM(CASE WHEN activity.AssignmentStatus='Completed' THEN 1 ELSE 0 END)>0
+ORDER BY users.UserName,process.StageNo,process.ProcessName;
+
+SELECT users.UserID,users.UserName,process.ProcessID,process.ProcessName,
+    SUM(CASE WHEN activity.AssignmentStatus='Completed' THEN 1 ELSE 0 END) DoneCount,
+    SUM(CASE WHEN activity.AssignmentStatus='In Process' THEN 1 ELSE 0 END) InProcessCount,
+    SUM(CASE WHEN activity.AssignmentStatus='Pending' THEN 1 ELSE 0 END) PendingCount,
+    COUNT(activity.AssignmentID) TotalCount
+FROM #Users users CROSS JOIN #Processes process
+LEFT JOIN #Activity activity ON activity.UserID=users.UserID AND activity.ProcessID=process.ProcessID
+    AND activity.ActivityDate>=@FromDate AND activity.ActivityDate<DATEADD(day,1,@ToDate)
+GROUP BY users.UserID,users.UserName,process.ProcessID,process.ProcessName,process.StageNo
+HAVING COUNT(activity.AssignmentID)>0
+ORDER BY process.StageNo,process.ProcessName,users.UserName;
+
+DROP TABLE #Activity; DROP TABLE #Users; DROP TABLE #Processes;"
+            ) { CommandType = CommandType.Text, CommandTimeout = 120 };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@FromDate", SqlDbType.Date, fromDate.Date);
+            Add(command, "@ToDate", SqlDbType.Date, toDate.Date);
+            return Set(command);
         }
 
         public DataTable GetManagerSummary(int projectId, string dealNumber, int processId, int userId, string productivityType, DateTime? fromDate, DateTime? toDate)

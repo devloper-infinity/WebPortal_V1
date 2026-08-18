@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
         OLT.options(dailyProcess, r, ['ProcessID'], ['ProcessName'], 'All processes');
     });
     OLT.call(page, 'GetCurrentPseudoName').then(function (r) { processingUserName.value = r || ''; });
+    loadHoldReasons();
 
     project.onchange = loadProject; deal.onchange = selectDeal; process.onchange = selectProcess;
     otherLoanSearch.oninput = applyOtherLoanSearch;
@@ -27,6 +28,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     loadQueue(); loadDaily();
 });
+
+function loadHoldReasons() { OLT.call(page, 'GetHoldReasons').then(function (rows) { OLT.options(holdReason, rows || [], ['ReasonText'], ['ReasonText'], 'Select Hold Reason'); }).catch(function () { holdReason.innerHTML = '<option value="">Unable to load Hold Reasons</option>'; }); }
 
 function bindTabs() { [].slice.call(document.querySelectorAll('.ots-tab')).forEach(function (b) { b.onclick = function () { document.querySelector('.ots-tab.active').classList.remove('active'); document.querySelector('.ots-panel.active').classList.remove('active'); b.classList.add('active'); document.getElementById(b.dataset.panel).classList.add('active'); if (b.dataset.panel === 'status') loadQueue(); if (b.dataset.panel === 'daily') loadDaily(); }; }); }
 

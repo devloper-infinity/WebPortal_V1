@@ -174,11 +174,56 @@
     .mgr-chart canvas { width:100%!important;height:270px!important; }
     @media(max-width:1000px) { .mgr-kpis.extended { grid-template-columns:repeat(2,1fr); } .mgr-charts { grid-template-columns:1fr; } }
 
+    .snd-filter { border-top:4px solid #173b61; }
+    .snd-title { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;background:#173b61;color:#fff;border-radius:8px 8px 0 0; }
+    .snd-title h3 { margin:0;color:#fff;font-size:18px;letter-spacing:.2px; }
+    .snd-title span { font-size:12px;color:#dce9f5; }
+    .snd-process-kpis { display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:16px 0; }
+    .snd-process-card { overflow:hidden;border:1px solid #d5e0eb;border-radius:9px;background:#fff;box-shadow:0 3px 12px rgba(26,55,82,.06); }
+    .snd-process-card h4 { margin:0;padding:10px 13px;background:#236a91;color:#fff;font-size:14px; }
+    .snd-process-values { display:grid;grid-template-columns:repeat(3,1fr); }
+    .snd-process-values div { padding:12px 8px;text-align:center;border-right:1px solid #e5edf4; }
+    .snd-process-values div:last-child { border-right:0; }
+    .snd-process-values span { display:block;color:#718096;font-size:11px;text-transform:uppercase; }
+    .snd-process-values strong { display:block;margin-top:3px;color:#17324d;font-size:21px; }
+    .snd-grand { display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin-bottom:16px; }
+    .snd-grand .mgr-kpi { border-top:4px solid #1b9a83; }
+    .snd-overview-grid { display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px;align-items:start; }
+    .snd-stack { display:grid;gap:16px; }
+    .snd-table-card { overflow:hidden;border:1px solid #d5e0eb;border-radius:9px;background:#fff; }
+    .snd-table-card .olt-card-head { background:#edf3f8;color:#17324d; }
+    .snd-rank { width:42px;text-align:center;font-weight:800;color:#236a91; }
+    .snd-delta.up { color:#16815e; } .snd-delta.down { color:#b34040; } .snd-delta.same { color:#718096; }
+    .snd-progress { min-width:130px; }
+    .snd-progress-track { height:8px;overflow:hidden;background:#e6edf3;border-radius:10px; }
+    .snd-progress-fill { height:100%;background:linear-gradient(90deg,#1b9a83,#4ac8ad);border-radius:10px; }
+    .snd-progress-label { display:block;margin-top:4px;font-size:11px;color:#526a81;text-align:right; }
+    .snd-empty { padding:28px;text-align:center;color:#718096;background:#fff; }
+    .snd-productivity-wrap { overflow:auto;max-height:68vh;border:1px solid #d5e0eb;border-radius:9px;background:#fff; }
+    .snd-productivity-table { min-width:850px; }
+    .snd-productivity-table thead th { position:sticky;top:0;z-index:2;background:#17614e;color:#fff; }
+    .snd-productivity-table tbody tr:nth-child(even) { background:#f4faf7; }
+    .snd-achievement { font-weight:800;white-space:nowrap; }
+    .snd-achievement.good { color:#16815e; } .snd-achievement.watch { color:#b8770b; } .snd-achievement.low { color:#b34040; }
+    .snd-process-sections { display:grid;grid-template-columns:repeat(2,minmax(480px,1fr));gap:16px; }
+    .snd-process-section { overflow:hidden;border:1px solid #ccd9e5;border-radius:9px;background:#fff;box-shadow:0 3px 12px rgba(26,55,82,.05); }
+    .snd-process-section h4 { margin:0;padding:12px 15px;background:#173b61;color:#fff;font-size:15px; }
+    .snd-process-section .olt-table-wrap { max-height:420px;overflow:auto;padding:0; }
+    .snd-process-section thead th { position:sticky;top:0;background:#eaf1f7;z-index:1; }
+    .snd-process-section tfoot td { position:sticky;bottom:0;background:#dce8f2;font-weight:800; }
+    .snd-report-note { margin:10px 0 0;color:#64748b;font-size:12px; }
+    .hold-status { display:inline-block;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:800; }
+    .hold-status.active { background:#dcf5e9;color:#176b41; } .hold-status.inactive { background:#edf1f5;color:#66788a; }
+    .olt-table tfoot td,.olt-table tfoot th { background:#dce8f2;color:#17324d;font-weight:800; }
+    @media(max-width:1100px) { .snd-overview-grid,.snd-process-sections { grid-template-columns:1fr; } }
+    @media(max-width:700px) { .snd-grand { grid-template-columns:repeat(2,1fr); } .snd-title { align-items:flex-start;flex-direction:column; } }
+
     </style>
 
     <script src="OLTracking.js"></script>
     <script src="../plugins/chart.js/Chart.min.js"></script>
-    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260817.1"></script>
+    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260818.1"></script>
+    <script src="ManagerDashboard.Snd.js?v=20260818.1"></script>
 
 </asp:Content>
 
@@ -196,239 +241,80 @@
             </div>--%>
         </div>
         <div id="oltAlert" class="olt-alert"></div>
-        <asp:HiddenField ID="mgrActivePanel" runat="server" ClientIDMode="Static" Value="reportTab" />
+        <div style="display:none" aria-hidden="true">
+            <select id="mgrProject"></select><select id="mgrDeal"></select><select id="mgrProcess"></select><select id="mgrUser"></select>
+            <select id="mgrStatus"></select><select id="mgrProductivityType"></select><select id="dealProject"></select><select id="dealNumber"></select>
+            <select id="hourlyProject"></select><select id="hourlyDeal"></select><input id="mgrFrom" type="date" /><input id="mgrTo" type="date" /><input id="hourlyDate" type="date" />
+        </div>
+        <asp:HiddenField ID="mgrActivePanel" runat="server" ClientIDMode="Static" Value="overviewTab" />
         <div class="mgr-tabs">
-            <button type="button" class="mgr-tab active" data-panel="reportTab">Summary &amp; Details</button>
-            <button type="button" class="mgr-tab" data-panel="dealTab">Deal Dashboard</button>
-            <button type="button" class="mgr-tab" data-panel="hourlyTab">Hourly</button>
+            <button type="button" class="mgr-tab active" data-panel="overviewTab">Executive Overview</button>
+            <button type="button" class="mgr-tab" data-panel="productivityTab">Productivity</button>
+            <button type="button" class="mgr-tab" data-panel="dailyProductionTab">Daily Production</button>
+            <button type="button" class="mgr-tab" data-panel="holdReasonsTab">Hold Reasons</button>
             <button type="button" class="mgr-tab" data-panel="importDataTab">Import Data</button>
             <button type="button" class="mgr-tab" data-panel="allocationTab">Allocation</button>
             <button type="button" class="mgr-tab" data-panel="reallocationTab">Re-Allocation</button>
         </div>
-      
-        <section id="reportTab" class="mgr-panel active">
-            <div class="olt-card">
-                <div class="olt-card-head">Report filters</div>
-                <div class="olt-card-body">
-                    <div class="olt-form">
-                        <div class="olt-field">
-                            <label>Project #</label><select id="mgrProject"><option value="">Select project</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
-                            <label>Process</label><select id="mgrProcess"><option value="0">All processes</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
-                            <label>Deal</label><select id="mgrDeal" disabled><option value="">All deals</option></select>
-                        </div>
-                        <div class="olt-field">
-                            <label>User</label><select id="mgrUser"><option value="0">All users</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
-                            <label>Status</label><select id="mgrStatus"><option value="">All statuses</option>
-                                <option>Pending</option>
-                                <option>In Process</option>
-                                <option>Hold</option>
-                                <option>Completed</option>
-                                <option>Skipped</option>
-                            </select>
-                        </div>
-                        <div class="olt-field"><label>Productivity Type</label><select id="mgrProductivityType"><option value="">All types</option><option value="Hourly Productivity">Hourly Productivity</option><option value="Loan Based Productivity">Loan Based Productivity</option></select></div>
-                        <div class="olt-field">
-                            <label>From date</label><input id="mgrFrom" type="date" />
-                        </div>
-                        <div class="olt-field">
-                            <label>To date</label><input id="mgrTo" type="date" />
-                        </div>
-                        <div class="olt-field full olt-actions">
-                            <button type="button" class="olt-btn" onclick="loadManagerReport()">Apply Filter</button>
-                            <button type="button" class="olt-btn secondary" onclick="resetManagerFilters()">Clear / Reset Filter</button>
-                        </div>
-                    </div>
+
+        <section id="overviewTab" class="mgr-panel active">
+            <div class="snd-title"><h3>SND Tracker -- Executive Overview</h3><span>Live Tracking Sheet data</span></div>
+            <div class="olt-card snd-filter">
+                <div class="olt-card-body"><div class="olt-form">
+                    <div class="olt-field"><label>Project #</label><select id="overviewProject"><option value="">Select project</option></select></div>
+                    <div class="olt-field"><label>From Date</label><input id="overviewFrom" type="date" /></div>
+                    <div class="olt-field"><label>To Date</label><input id="overviewTo" type="date" /></div>
+                    <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="loadOverview()">Apply Filter</button><button type="button" class="olt-btn secondary" onclick="resetSndFilter('overview')">Reset</button></div>
+                </div></div>
+            </div>
+            <div id="overviewProcessKpis" class="snd-process-kpis"><div class="snd-empty">Select a project to view the report.</div></div>
+            <div class="snd-grand">
+                <div class="mgr-kpi"><span>Total Assigned</span><strong id="overviewAssigned">0</strong></div>
+                <div class="mgr-kpi"><span>Done</span><strong id="overviewDone">0</strong></div>
+                <div class="mgr-kpi"><span>In Process</span><strong id="overviewInProcess">0</strong></div>
+                <div class="mgr-kpi"><span>% Completion</span><strong id="overviewPercent">0%</strong></div>
+            </div>
+            <div class="snd-overview-grid">
+                <div class="snd-stack">
+                    <div class="snd-table-card"><div class="olt-card-head">Top 10 Contributors</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>Rank</th><th>Reviewer Name</th><th>Current</th><th>Last Month</th><th>Rank Change</th></tr></thead><tbody id="topContributorRows"><tr><td colspan="5" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td colspan="2">Total</td><td id="topCurrentTotal">0</td><td id="topPreviousTotal">0</td><td>--</td></tr></tfoot></table></div></div>
+                    <div class="snd-table-card"><div class="olt-card-head">Needs Attention -- Lowest Active Producers</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>Rank</th><th>Reviewer Name</th><th>Current</th><th>Last Month</th></tr></thead><tbody id="attentionRows"><tr><td colspan="4" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td colspan="2">Total</td><td id="attentionCurrentTotal">0</td><td id="attentionPreviousTotal">0</td></tr></tfoot></table></div></div>
                 </div>
-            </div>
-            <div class="mgr-kpis extended">
-                <div class="mgr-kpi"><span>Total Loans</span><strong id="kTotal">0</strong></div>
-                <div class="mgr-kpi"><span>Pending</span><strong id="kPending">0</strong></div>
-                <div class="mgr-kpi"><span>In Process</span><strong id="kProcess">0</strong></div>
-                <div class="mgr-kpi"><span>Completed</span><strong id="kCompleted">0</strong></div>
-                <div class="mgr-kpi"><span>Total Users</span><strong id="kUsers">0</strong></div>
-                <div class="mgr-kpi"><span>Total Processes</span><strong id="kProcesses">0</strong></div>
-                <div class="mgr-kpi"><span>Completed Today</span><strong id="kCompletedToday">0</strong></div>
-                <div class="mgr-kpi"><span>Pending Today</span><strong id="kPendingToday">0</strong></div>
-                <div class="mgr-kpi"><span>Avg Processing Time</span><strong id="kAverageTime">00:00</strong></div>
-                <div class="mgr-kpi"><span>Productivity Achievement</span><strong id="kProductivity">—</strong></div>
-                <div class="mgr-kpi"><span>Target Productivity</span><strong id="kTargetProductivity">—</strong></div>
-                <div class="mgr-kpi"><span>Actual Productivity</span><strong id="kActualProductivity">—</strong></div>
-                <div class="mgr-kpi"><span>Productivity Variance</span><strong id="kProductivityVariance">—</strong></div>
-                <div class="mgr-kpi"><span>On Hold</span><strong id="kHold">0</strong></div>
-            </div>
-            <div class="mgr-charts">
-                <div class="mgr-chart"><h4>Project-Wise Loan Status</h4><canvas id="chartProjectStatus"></canvas></div>
-                <div class="mgr-chart"><h4>Deal-Wise Status</h4><canvas id="chartDealStatus"></canvas></div>
-                <div class="mgr-chart"><h4>Process-Wise Productivity</h4><canvas id="chartProcessProductivity"></canvas></div>
-                <div class="mgr-chart"><h4>User-Wise Productivity</h4><canvas id="chartUserProductivity"></canvas></div>
-                <div class="mgr-chart"><h4>Daily Completion Trend</h4><canvas id="chartDailyTrend"></canvas></div>
-                <div class="mgr-chart"><h4>Process Status Distribution</h4><canvas id="chartStatusDistribution"></canvas></div>
-            </div>
-            <div class="olt-card mgr-section">
-                <div class="olt-card-head">Summary report</div>
-                <div class="olt-table-wrap">
-                    <table id="summaryTable" class="olt-table">
-                        <thead>
-                            <tr>
-                                <th>Project</th>
-                                <th>Process</th>
-                                <th>User</th>
-                                <th>Total</th>
-                                <th>Total Hours</th>
-                                <th>Pending</th>
-                                <th>In Process</th>
-                                <th>Hold</th>
-                                <th>Completed</th>
-                                <th>Average TAT</th>
-                                <th>Total Hold TAT</th>
-                            </tr>
-                        </thead>
-                        <tbody id="summaryRows"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="olt-card mgr-section">
-                <div class="olt-card-head">Loan status details</div>
-                <div class="olt-table-wrap">
-                    <table id="detailTable" class="olt-table">
-                        <thead>
-                            <tr>
-                                <th>Project</th>
-                                <th>Deal #</th>
-                                <th>Loan #</th>
-                                <th>Process</th>
-                                <th>User</th>
-                                <th>Status</th>
-                                <th>Assigned Date</th>
-                                <th>Start Date</th>
-                                <th>Start Time</th>
-                                <th>Completion Date</th>
-                                <th>Completion Time</th>
-                                <th>Productivity Type</th>
-                                <th>Target Time / Loans</th>
-                                <th>Productivity %</th>
-                                <th>Hold TAT</th>
-                                <th>Total TAT</th>
-                                <th>Hours Worked</th>
-                                <th>Min Minutes</th>
-                                <th>Max Minutes</th>
-                                <th>Actual Processing Minutes</th>
-                                <th>Time Limit Status</th>
-                                <th>Feedback Status</th>
-                                <th>Remark</th>
-                            </tr>
-                        </thead>
-                        <tbody id="detailRows"></tbody>
-                    </table>
+                <div class="snd-stack">
+                    <div class="snd-table-card"><div class="olt-card-head">Project Progress -- All Deals</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>Deal #</th><th>Loans (Done / Total)</th><th>% Complete</th></tr></thead><tbody id="dealProgressRows"><tr><td colspan="3" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td>Total</td><td id="dealProgressTotal">0 / 0</td><td id="dealProgressPercent">0%</td></tr></tfoot></table></div></div>
+                    <div class="snd-table-card"><div class="olt-card-head">Not Assigned for Selected Period</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>#</th><th>Reviewer Name</th><th>Recent Activity</th></tr></thead><tbody id="notAssignedRows"><tr><td colspan="3" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td colspan="2">Total</td><td id="notAssignedTotal">0</td></tr></tfoot></table></div></div>
                 </div>
             </div>
         </section>
 
-        <section id="dealTab" class="mgr-panel">
-            <div class="olt-card">
-                <div class="olt-card-head">Deal status filters</div>
-                <div class="olt-card-body">
-                    <div class="olt-form">
-                        <div class="olt-field wide">
-                            <label>Project #</label><select id="dealProject"><option value="">Select project</option>
-                            </select>
-                        </div>
-                        <div class="olt-field wide">
-                            <label>Deal #</label><select id="dealNumber" disabled><option value="">All deals</option>
-                            </select>
-                        </div>
-                        <div class="olt-field full olt-actions">
-                            <button type="button" class="olt-btn" onclick="loadDealDashboard()">Refresh</button>
-                            <button type="button" class="olt-btn secondary" onclick="exportTable('dealTable','DealDashboard.csv')">Export to Excel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="olt-card mgr-section">
-                <div class="olt-card-head">Deal dashboard</div>
-                <div class="olt-table-wrap">
-                    <table id="dealTable" class="olt-table">
-                        <thead>
-                            <tr>
-                                <th>Deal #</th>
-                                <th>Deal Count</th>
-                                <th>Received Date</th>
-                                <th>Due Date</th>
-                                <th>Process</th>
-                                <th>Pending</th>
-                                <th>Completed</th>
-                                <th>Hold</th>
-                                <th>Skip</th>
-                                <th>Today In Process</th>
-                                <th>Today Completed</th>
-                                <th>Today Hold</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dealRows"></tbody>
-                    </table>
-                </div>
-            </div>
+        <section id="productivityTab" class="mgr-panel">
+            <div class="snd-title" style="background:#17614e"><h3>Productivity -- Achieved vs Target</h3><span>Daily target calculation from ERP configuration</span></div>
+            <div class="olt-card snd-filter" style="border-top-color:#17614e"><div class="olt-card-body"><div class="olt-form">
+                <div class="olt-field"><label>Project #</label><select id="productivityProject"><option value="">Select project</option></select></div>
+                <div class="olt-field"><label>From Date</label><input id="productivityFrom" type="date" /></div>
+                <div class="olt-field"><label>To Date</label><input id="productivityTo" type="date" /></div>
+                <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="loadProductivity()">Apply Filter</button><button type="button" class="olt-btn secondary" onclick="resetSndFilter('productivity')">Reset</button></div>
+            </div><p class="snd-report-note">% Target = completed loans ÷ (days worked × configured daily targets for processes worked).</p></div></div>
+            <div class="snd-productivity-wrap"><table id="productivityTable" class="olt-table snd-productivity-table"><thead id="productivityHead"><tr><th>Rank</th><th>Reviewer</th><th>Days Worked</th><th>% Target</th></tr></thead><tbody id="productivityRows"><tr><td colspan="4" class="olt-empty">Select a project to view productivity.</td></tr></tbody><tfoot id="productivityFoot"><tr><td colspan="3">Total</td><td>--</td></tr></tfoot></table></div>
         </section>
 
-        <section id="hourlyTab" class="mgr-panel">
-            <div class="olt-card">
-                <div class="olt-card-head">Hourly production filters</div>
-                <div class="olt-card-body">
-                    <div class="olt-form">
-                        <div class="olt-field">
-                            <label>Project #</label><select id="hourlyProject"><option value="">Select project</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
-                            <label>Deal #</label><select id="hourlyDeal" disabled><option value="">All deals</option>
-                            </select>
-                        </div>
-                        <div class="olt-field">
-                            <label>Production date</label><input id="hourlyDate" type="date" />
-                        </div>
-                        <div class="olt-field full olt-actions">
-                            <button type="button" class="olt-btn" onclick="loadHourly()">Refresh</button>
-                            <button type="button" class="olt-btn secondary" onclick="exportTable('hourlyTable','HourlyProduction.csv')">Export to Excel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="olt-card mgr-section">
-                <div class="olt-card-head">Completed orders by two-hour interval</div>
-                <div class="olt-table-wrap">
-                    <table id="hourlyTable" class="olt-table">
-                        <thead>
-                            <tr>
-                                <th>Deal #</th>
-                                <th>Process</th>
-                                <th>10:00 AM</th>
-                                <th>12:00 PM</th>
-                                <th>02:00 PM</th>
-                                <th>04:00 PM</th>
-                                <th>06:00 PM</th>
-                                <th>08:00 PM</th>
-                                <th>10:00 PM</th>
-                                <th>00:00 AM</th>
-                                <th>02:00 AM</th>
-                                <th>04:00 AM</th>
-                                <th>06:00 AM</th>
-                                <th>08:00 AM</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="hourlyRows"></tbody>
-                    </table>
-                </div>
-            </div>
+        <section id="dailyProductionTab" class="mgr-panel">
+            <div class="snd-title"><h3>Daily Production Per Reviewer</h3><span>Process-wise production sections</span></div>
+            <div class="olt-card snd-filter"><div class="olt-card-body"><div class="olt-form">
+                <div class="olt-field"><label>Project #</label><select id="dailyProject"><option value="">Select project</option></select></div>
+                <div class="olt-field"><label>From Date</label><input id="dailyFrom" type="date" /></div>
+                <div class="olt-field"><label>To Date</label><input id="dailyTo" type="date" /></div>
+                <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="loadDailyProduction()">Apply Filter</button><button type="button" class="olt-btn secondary" onclick="resetSndFilter('daily')">Reset</button></div>
+            </div><p class="snd-report-note">All configured loan-based processes are displayed. Hourly Production processes are excluded.</p></div></div>
+            <div id="dailyProcessSections" class="snd-process-sections"><div class="snd-empty">Select a project to view daily production.</div></div>
+        </section>
+
+        <section id="holdReasonsTab" class="mgr-panel">
+            <div class="snd-title"><h3>Hold Reasons</h3><span>Standard reasons used throughout Tracking Sheet processing</span></div>
+            <div class="olt-card snd-filter"><div class="olt-card-body"><div class="olt-form">
+                <div class="olt-field wide"><label>New Hold Reason</label><input id="newHoldReason" maxlength="400" placeholder="Enter a clear standardized reason" /></div>
+                <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="saveHoldReason()">Add Hold Reason</button><button type="button" class="olt-btn secondary" onclick="loadHoldReasonsManager()">Refresh</button></div>
+            </div><p class="snd-report-note">Inactive reasons remain available for audit history but are removed from user Hold Reason dropdowns.</p></div></div>
+            <div class="snd-table-card mgr-section"><div class="olt-card-head">Configured Hold Reasons</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>#</th><th>Hold Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="holdReasonRows"><tr><td colspan="4" class="olt-empty">Loading Hold Reasons...</td></tr></tbody><tfoot><tr><td colspan="3">Total Reasons</td><td id="holdReasonTotal">0</td></tr></tfoot></table></div></div>
         </section>
 
         <section id="importDataTab" class="mgr-panel">

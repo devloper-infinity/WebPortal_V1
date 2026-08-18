@@ -68,6 +68,35 @@ namespace WebPortal.TrackingSheet
             }
             DataSet set = new DataSet(); set.Tables.Add(summary ?? new DataTable()); set.Tables.Add(detail ?? new DataTable()); return OLTrackingWeb.Json(set);
         }
+
+        [WebMethod]
+        public static string GetSndDashboard(int projectId, string fromDate, string toDate)
+        {
+            ProjectIds(projectId);
+            DateTime? from = Date(fromDate), to = Date(toDate);
+            if (!from.HasValue || !to.HasValue || from.Value.Date > to.Value.Date)
+                throw new ArgumentException("Please enter a valid date range.");
+            if ((to.Value.Date - from.Value.Date).TotalDays > 366)
+                throw new ArgumentException("The report date range cannot exceed 366 days.");
+            return OLTrackingWeb.Json(new bllOLTracking().GetSndManagerDashboard(projectId, from.Value, to.Value));
+        }
+
+        [WebMethod] public static string GetHoldReasons() { return OLTrackingWeb.Json(new bllOLTracking().GetHoldReasons(true)); }
+
+        [WebMethod]
+        public static string SaveHoldReason(string reasonText)
+        {
+            string reason = (reasonText ?? string.Empty).Trim();
+            if (reason.Length == 0 || reason.Length > 400) throw new ArgumentException("Enter a Hold Reason up to 400 characters.");
+            return OLTrackingWeb.Ok(new bllOLTracking().SaveHoldReason(reason, OLTrackingWeb.UserId));
+        }
+
+        [WebMethod]
+        public static string SetHoldReasonActive(int holdReasonId, bool isActive)
+        {
+            if (holdReasonId <= 0) throw new ArgumentException("Select a valid Hold Reason.");
+            return OLTrackingWeb.Ok(new bllOLTracking().SetHoldReasonActive(holdReasonId, isActive, OLTrackingWeb.UserId));
+        }
     
         private delegate DataTable Loader(bllOLTracking tracking, int projectId);
      

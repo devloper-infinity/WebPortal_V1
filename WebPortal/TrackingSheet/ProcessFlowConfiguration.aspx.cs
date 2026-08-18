@@ -18,7 +18,7 @@ namespace WebPortal.TrackingSheet
         { ValidateConfiguration(productivityType, minCompletionMinutes, maxCompletionMinutes); new bllOLTracking().SaveProcessFlow(projectId, processId, processName, stageNo, isMandatory, feedbackRequired, isFinalProcess, isTrackingSheetProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, eligibleAfterProcessIds, feedbackAgainstProcessIds, OLTrackingWeb.UserId); return OLTrackingWeb.Ok(true); }
         [WebMethod] public static string RemoveFlow(int projectId, int processId)
         { return OLTrackingWeb.Ok(new bllOLTracking().RemoveProcessFlow(projectId, processId, OLTrackingWeb.UserId)); }
-        [WebMethod] public static string SaveDealFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes)
+        [WebMethod] public static string SaveDealFlow(int projectId, string dealNumber, int processId, string processName, int stageNo, bool isMandatory, bool feedbackRequired, bool isFinalProcess, string productivityType, int expectedCompletionMinutes, int? minCompletionMinutes, int? maxCompletionMinutes, bool isOutOfScope)
         {
             ValidateConfiguration(productivityType, minCompletionMinutes, maxCompletionMinutes);
             bllOLTracking tracking = new bllOLTracking();
@@ -36,11 +36,12 @@ namespace WebPortal.TrackingSheet
                     Convert.ToString(projectRow["ProductivityType"]), Convert.ToInt32(projectRow["ExpectedCompletionMinutes"]),
                     projectRow["MinCompletionMinutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(projectRow["MinCompletionMinutes"]),
                     projectRow["MaxCompletionMinutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(projectRow["MaxCompletionMinutes"]),
+                    false,
                     OLTrackingWeb.UserId);
             }
 
             tracking.SaveDealProcessFlow(projectId, dealNumber, processId, processName, stageNo, isMandatory,
-                feedbackRequired, isFinalProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, OLTrackingWeb.UserId);
+                feedbackRequired, isFinalProcess, productivityType, expectedCompletionMinutes, minCompletionMinutes, maxCompletionMinutes, isOutOfScope, OLTrackingWeb.UserId);
             return OLTrackingWeb.Ok(true);
         }
         [WebMethod] public static string RemoveDealFlow(int projectId, string dealNumber, int processId)
