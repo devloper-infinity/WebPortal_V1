@@ -215,15 +215,34 @@
     .hold-status { display:inline-block;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:800; }
     .hold-status.active { background:#dcf5e9;color:#176b41; } .hold-status.inactive { background:#edf1f5;color:#66788a; }
     .olt-table tfoot td,.olt-table tfoot th { background:#dce8f2;color:#17324d;font-weight:800; }
+    .snd-overview-compact .snd-process-kpis { grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:8px;margin:10px 0; }
+    .snd-overview-compact .snd-process-card { border:0;border-left:4px solid #26769d;border-radius:5px;background:#f6fafc;box-shadow:0 1px 4px rgba(26,55,82,.12); }
+    .snd-overview-compact .snd-process-card h4 { padding:6px 9px;background:transparent;color:#184664;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .snd-overview-compact .snd-process-values div { padding:5px 4px;background:#fff; }
+    .snd-overview-compact .snd-process-values span { font-size:9px;letter-spacing:.25px; }
+    .snd-overview-compact .snd-process-values strong { margin-top:1px;font-size:16px;line-height:1.15; }
+    .snd-overview-compact .snd-grand { gap:8px;margin-bottom:10px; }
+    .snd-overview-compact .mgr-kpi { min-height:0;padding:9px 11px; }
+    .snd-overview-compact .mgr-kpi strong { font-size:22px; }
+    .snd-overview-compact .snd-overview-grid,.snd-overview-compact .snd-stack { gap:10px; }
+    .snd-overview-compact .olt-card-body { padding:10px 14px; }
+    .snd-overview-compact .olt-table th,.snd-overview-compact .olt-table td { padding:7px 9px; }
+    .loan-hold-toolbar { display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:12px;align-items:end; }
+    .loan-hold-actions { display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px; }
+    .loan-hold-actions textarea { min-height:72px;resize:vertical; }
+    .loan-hold-count { color:#526a81;font-weight:700;font-size:12px; }
+    .loan-hold-grid { display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px; }
+    .loan-hold-table { max-height:390px;overflow:auto; }
+    .loan-hold-table thead th { position:sticky;top:0;z-index:2; }
     @media(max-width:1100px) { .snd-overview-grid,.snd-process-sections { grid-template-columns:1fr; } }
-    @media(max-width:700px) { .snd-grand { grid-template-columns:repeat(2,1fr); } .snd-title { align-items:flex-start;flex-direction:column; } }
+    @media(max-width:700px) { .snd-grand { grid-template-columns:repeat(2,1fr); } .snd-title { align-items:flex-start;flex-direction:column; } .loan-hold-toolbar { grid-template-columns:1fr; } }
 
     </style>
 
     <script src="OLTracking.js"></script>
     <script src="../plugins/chart.js/Chart.min.js"></script>
     <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260818.1"></script>
-    <script src="ManagerDashboard.Snd.js?v=20260818.1"></script>
+    <script src="ManagerDashboard.Snd.js?v=20260819.1"></script>
 
 </asp:Content>
 
@@ -252,12 +271,13 @@
             <button type="button" class="mgr-tab" data-panel="productivityTab">Productivity</button>
             <button type="button" class="mgr-tab" data-panel="dailyProductionTab">Daily Production</button>
             <button type="button" class="mgr-tab" data-panel="holdReasonsTab">Hold Reasons</button>
+            <button type="button" class="mgr-tab" data-panel="holdLoansTab">Hold Loans</button>
             <button type="button" class="mgr-tab" data-panel="importDataTab">Import Data</button>
             <button type="button" class="mgr-tab" data-panel="allocationTab">Allocation</button>
             <button type="button" class="mgr-tab" data-panel="reallocationTab">Re-Allocation</button>
         </div>
 
-        <section id="overviewTab" class="mgr-panel active">
+        <section id="overviewTab" class="mgr-panel active snd-overview-compact">
             <div class="snd-title"><h3>SND Tracker -- Executive Overview</h3><span>Live Tracking Sheet data</span></div>
             <div class="olt-card snd-filter">
                 <div class="olt-card-body"><div class="olt-form">
@@ -315,6 +335,39 @@
                 <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="saveHoldReason()">Add Hold Reason</button><button type="button" class="olt-btn secondary" onclick="loadHoldReasonsManager()">Refresh</button></div>
             </div><p class="snd-report-note">Inactive reasons remain available for audit history but are removed from user Hold Reason dropdowns.</p></div></div>
             <div class="snd-table-card mgr-section"><div class="olt-card-head">Configured Hold Reasons</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>#</th><th>Hold Reason</th><th>Status</th><th>Action</th></tr></thead><tbody id="holdReasonRows"><tr><td colspan="4" class="olt-empty">Loading Hold Reasons...</td></tr></tbody><tfoot><tr><td colspan="3">Total Reasons</td><td id="holdReasonTotal">0</td></tr></tfoot></table></div></div>
+        </section>
+
+        <section id="holdLoansTab" class="mgr-panel">
+            <div class="snd-title"><h3>Hold Loans</h3><span>Loan-level HOLD pauses every configured process until RESUME</span></div>
+            <div class="olt-card snd-filter"><div class="olt-card-body">
+                <div class="loan-hold-toolbar">
+                    <div class="olt-field"><label>Project #</label><select id="holdLoanProject"><option value="">Select project</option></select></div>
+                    <div class="olt-field"><label>Deal #</label><select id="holdLoanDeal" disabled><option value="">Select project first</option></select></div>
+                </div>
+                <div class="loan-hold-actions">
+                    <div class="olt-field" style="flex:1 1 420px"><label>Loan Search</label><input id="holdLoanSearch" placeholder="100245, 100278, 100301" autocomplete="off" /><div class="snd-report-note">Enter one or more comma-separated loan numbers. Spaces are ignored.</div></div>
+                    <button id="clearHoldLoanSearch" type="button" class="olt-btn secondary">Clear Search</button>
+                </div>
+            </div></div>
+            <div class="loan-hold-grid">
+                <div class="snd-table-card">
+                    <div class="olt-card-head">Available Loans <span id="holdLoanSelectionCount" class="loan-hold-count">0 loan(s) selected</span></div>
+                    <div class="olt-table-wrap loan-hold-table"><table id="holdLoanAvailableTable" class="olt-table"><thead><tr>
+                        <th><input id="selectAllHoldLoans" type="checkbox" aria-label="Select all visible loans" /></th><th>Loan #</th><th>Deal #</th><th>Loan Status</th><th>Current Process</th><th>Current User</th><th>Process Status</th><th>Added Date</th>
+                    </tr></thead><tbody><tr><td colspan="8" class="olt-empty">Select Project and Deal.</td></tr></tbody></table></div>
+                    <div class="olt-card-body"><div class="loan-hold-actions">
+                        <div class="olt-field" style="flex:1 1 520px"><label>Reason</label><textarea id="holdLoanReason" maxlength="1000" placeholder="Enter the reason for placing the selected loans on HOLD"></textarea></div>
+                        <button type="button" class="olt-btn" onclick="holdSelectedLoans()">HOLD</button>
+                    </div></div>
+                </div>
+                <div class="snd-table-card">
+                    <div class="olt-card-head">Currently Held Loans <span id="resumeLoanSelectionCount" class="loan-hold-count">0 loan(s) selected</span></div>
+                    <div class="olt-table-wrap loan-hold-table"><table id="heldLoanTable" class="olt-table"><thead><tr>
+                        <th><input id="selectAllResumeLoans" type="checkbox" aria-label="Select all held loans" /></th><th>Loan #</th><th>Deal #</th><th>Reason</th><th>Held By</th><th>Held Date</th><th>Current Process/User</th>
+                    </tr></thead><tbody><tr><td colspan="7" class="olt-empty">Select Project and Deal.</td></tr></tbody></table></div>
+                    <div class="olt-card-body"><button type="button" class="olt-btn" onclick="resumeSelectedLoans()">RESUME</button></div>
+                </div>
+            </div>
         </section>
 
         <section id="importDataTab" class="mgr-panel">

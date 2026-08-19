@@ -382,6 +382,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_020_HourlyNonTrackingProductivity.sql
 !/WebPortal/DatabaseScripts/OLTracking_021_ProcessCompletionTimeLimits.sql
 !/WebPortal/DatabaseScripts/OLTracking_022_OutOfScopeAndHoldReasons.sql
+!/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
 !/WebPortal/TrackingSheet/
 /WebPortal/TrackingSheet/*
 !/WebPortal/TrackingSheet/TrackingSheetFeedback.aspx

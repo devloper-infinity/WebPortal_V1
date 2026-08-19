@@ -312,6 +312,7 @@ namespace WebPortal.TrackingSheet
                 case 50148: return "One or more selected Previous Processes are not completed or are not allowed by the feedback routing configuration. Refresh and try again.";
                 case 50149: return "Feedback must be added against every configured Previous Process user before completing the loan.";
                 case 50150: return sqlException.Message;
+                case 50160: return "This loan is on manager hold and cannot be processed until it is resumed.";
                 case 50151: return "Min and Max Completion Minutes must be 0 or greater.";
                 case 50152: return "Maximum completion time cannot be less than the minimum completion time.";
                 case 2601:

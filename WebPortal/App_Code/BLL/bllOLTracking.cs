@@ -73,6 +73,10 @@ namespace WebPortal.App_Code.BLL
         public bool IsActiveHoldReason(string reasonText) { return dal.IsActiveHoldReason(reasonText); }
         public int SaveHoldReason(string reasonText, int userId) { return dal.SaveHoldReason(reasonText, userId); }
         public int SetHoldReasonActive(int holdReasonId, bool isActive, int userId) { return dal.SetHoldReasonActive(holdReasonId, isActive, userId); }
+        public DataTable GetLoanHoldCandidates(int projectId, string dealNumber) { return dal.GetLoanHoldCandidates(projectId, dealNumber); }
+        public DataTable GetHeldLoans(int projectId, string dealNumber) { return dal.GetHeldLoans(projectId, dealNumber); }
+        public int HoldLoans(int projectId, string dealNumber, long[] itemIds, string reason, int userId) { return dal.HoldLoans(projectId, dealNumber, itemIds, reason, userId); }
+        public int ResumeLoans(int projectId, string dealNumber, long[] itemIds, int userId) { return dal.ResumeLoans(projectId, dealNumber, itemIds, userId); }
         public void ResumeLoan(long assignmentId, int userId) { dal.ResumeLoan(assignmentId, userId); }
         public void CompleteLoan(long assignmentId, string remark, string[] feedbacks, int userId) { dal.CompleteLoan(assignmentId, remark, feedbacks, userId); }
         public void SkipLoan(long assignmentId, string remark, int userId) { dal.SkipLoan(assignmentId, remark, userId); }

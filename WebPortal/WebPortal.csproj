@@ -2916,6 +2916,7 @@
     <Content Include="DatabaseScripts\OLTracking_020_HourlyNonTrackingProductivity.sql" />
     <Content Include="DatabaseScripts\OLTracking_021_ProcessCompletionTimeLimits.sql" />
     <Content Include="DatabaseScripts\OLTracking_022_OutOfScopeAndHoldReasons.sql" />
+    <Content Include="DatabaseScripts\OLTracking_023_ManagerLoanHold.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\TrackingSheetFeedbackEntry.css" />

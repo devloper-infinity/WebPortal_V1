@@ -51,7 +51,7 @@ namespace WebPortal.TrackingSheet
         {
             SqlException sql = ex as SqlException;
             if (sql == null) return "The requested allocation could not be completed.";
-            if (sql.Number == 50110 || sql.Number == 50112 || sql.Number == 50128 || sql.Number == 50130 || sql.Number == 50131 || sql.Number == 50134 || sql.Number == 50136 || sql.Number == 50143) return sql.Message;
+            if (sql.Number == 50110 || sql.Number == 50112 || sql.Number == 50128 || sql.Number == 50130 || sql.Number == 50131 || sql.Number == 50134 || sql.Number == 50136 || sql.Number == 50143 || sql.Number == 50160) return sql.Message;
             if (sql.Number == 2601 || sql.Number == 2627) return "The configured unique-field combination is already allocated to another user.";
             return "The requested allocation could not be completed. Please refresh and try again.";
         }

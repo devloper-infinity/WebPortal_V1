@@ -1,15 +1,146 @@
 (function () {
     'use strict';
+    var holdAvailableRows = [], heldRows = [], selectedHoldLoans = {}, selectedResumeLoans = {}, holdSearchLoans = [];
+    var holdAvailableTable = null, heldTable = null;
 
     document.addEventListener('DOMContentLoaded', function () {
         setSndDates();
         OLT.call(page, 'GetProjects').then(function (rows) {
-            [overviewProject, productivityProject, dailyProject].forEach(function (select) {
+            [overviewProject, productivityProject, dailyProject, holdLoanProject].forEach(function (select) {
                 OLT.options(select, rows, ['ProjectID'], ['ProjectName'], 'Select project');
             });
         }).catch(showError);
         loadHoldReasonsManager();
+        holdLoanProject.onchange = loadHoldLoanDeals;
+        holdLoanDeal.onchange = loadLoanHoldData;
+        holdLoanSearch.oninput = applyHoldLoanSearch;
+        clearHoldLoanSearch.onclick = function () { holdLoanSearch.value = ''; applyHoldLoanSearch(); };
+        selectAllHoldLoans.onchange = toggleAllHoldLoans;
+        selectAllResumeLoans.onchange = toggleAllResumeLoans;
+        $('#holdLoanAvailableTable').on('change', '.hold-loan-check', function () { selectedHoldLoans[this.dataset.id] = this.checked; updateLoanHoldCounts(); });
+        $('#heldLoanTable').on('change', '.resume-loan-check', function () { selectedResumeLoans[this.dataset.id] = this.checked; updateLoanHoldCounts(); });
+        if (window.jQuery && $.fn.DataTable) $.fn.dataTable.ext.search.push(function (settings, data, dataIndex, rowData) {
+            if (!settings.nTable || settings.nTable.id !== 'holdLoanAvailableTable' || !holdSearchLoans.length) return true;
+            var loan = String((rowData && rowData.LoanNumber) || data[1] || '').trim().toLowerCase();
+            return holdSearchLoans.indexOf(loan) >= 0;
+        });
     });
+
+    function resetLoanHoldTables(message) {
+        if (holdAvailableTable) { holdAvailableTable.destroy(); holdAvailableTable = null; }
+        if (heldTable) { heldTable.destroy(); heldTable = null; }
+        holdAvailableRows = []; heldRows = []; selectedHoldLoans = {}; selectedResumeLoans = {};
+        $('#holdLoanAvailableTable tbody').html('<tr><td colspan="8" class="olt-empty">' + message + '</td></tr>');
+        $('#heldLoanTable tbody').html('<tr><td colspan="7" class="olt-empty">' + message + '</td></tr>');
+        updateLoanHoldCounts();
+    }
+
+    function loadHoldLoanDeals() {
+        holdLoanDeal.disabled = true;
+        holdLoanDeal.innerHTML = '<option value="">' + (holdLoanProject.value ? 'Loading deals...' : 'Select project first') + '</option>';
+        resetLoanHoldTables('Select Project and Deal.');
+        if (!holdLoanProject.value) return;
+        OLT.call(page, 'GetDeals', { projectId: +holdLoanProject.value }).then(function (rows) {
+            OLT.options(holdLoanDeal, rows || [], ['DealNo', 'DealNumber', 'Deal'], ['DealNo', 'DealNumber', 'Deal'], 'Select deal');
+            holdLoanDeal.disabled = false;
+        }).catch(showError);
+    }
+
+    window.loadLoanHoldData = function () {
+        resetLoanHoldTables('Loading loans...');
+        if (!holdLoanProject.value || !holdLoanDeal.value) { resetLoanHoldTables('Select Project and Deal.'); return; }
+        Promise.all([
+            OLT.call(page, 'GetLoanHoldCandidates', { projectId: +holdLoanProject.value, dealNumber: holdLoanDeal.value }),
+            OLT.call(page, 'GetHeldLoans', { projectId: +holdLoanProject.value, dealNumber: holdLoanDeal.value })
+        ]).then(function (result) {
+            holdAvailableRows = result[0] || []; heldRows = result[1] || [];
+            renderAvailableHoldLoans(); renderHeldLoans();
+        }).catch(showError);
+    };
+
+    function renderAvailableHoldLoans() {
+        selectedHoldLoans = {}; updateLoanHoldCounts();
+        if (holdAvailableTable) holdAvailableTable.destroy();
+        holdAvailableTable = $('#holdLoanAvailableTable').DataTable({
+            data: holdAvailableRows, pageLength: 25, order: [[1, 'asc']], autoWidth: false, dom: 'lrtip',
+            columns: [
+                { data: null, orderable: false, searchable: false, render: function (_, type, row) { return type === 'display' ? '<input type="checkbox" class="hold-loan-check" data-id="' + (+row.ItemID) + '"' + (selectedHoldLoans[row.ItemID] ? ' checked' : '') + ' />' : ''; } },
+                { data: 'LoanNumber', render: holdText }, { data: 'DealNumber', render: holdText },
+                { data: 'LoanStatus', defaultContent: 'Pending', render: holdText },
+                { data: 'ProcessName', defaultContent: '—', render: holdText }, { data: 'UserName', defaultContent: '—', render: holdText },
+                { data: 'AssignmentStatus', defaultContent: 'Not Assigned', render: holdText },
+                { data: 'AddedDate', render: function (value, type) { return type === 'display' ? fmt(value) : (value || ''); } }
+            ],
+            language: { emptyTable: 'No available loans found for this Project and Deal.' },
+            drawCallback: function () { selectAllHoldLoans.checked = false; }
+        });
+        applyHoldLoanSearch();
+    }
+
+    function renderHeldLoans() {
+        selectedResumeLoans = {}; updateLoanHoldCounts();
+        if (heldTable) heldTable.destroy();
+        heldTable = $('#heldLoanTable').DataTable({
+            data: heldRows, pageLength: 25, order: [[5, 'desc']], autoWidth: false, dom: 'lrtip',
+            columns: [
+                { data: null, orderable: false, searchable: false, render: function (_, type, row) { return type === 'display' ? '<input type="checkbox" class="resume-loan-check" data-id="' + (+row.ItemID) + '"' + (selectedResumeLoans[row.ItemID] ? ' checked' : '') + ' />' : ''; } },
+                { data: 'LoanNumber', render: holdText }, { data: 'DealNumber', render: holdText },
+                { data: 'Reason', render: holdText }, { data: 'HeldByName', render: holdText },
+                { data: 'HeldDate', render: function (value, type) { return type === 'display' ? fmt(value) : (value || ''); } },
+                { data: null, render: function (_, type, row) { var value = (row.ProcessName || 'Not Assigned') + (row.UserName ? ' / ' + row.UserName : ''); return type === 'display' ? OLT.esc(value) : value; } }
+            ],
+            language: { emptyTable: 'No currently held loans for this Project and Deal.' },
+            drawCallback: function () { selectAllResumeLoans.checked = false; }
+        });
+    }
+
+    function applyHoldLoanSearch() {
+        holdSearchLoans = String(holdLoanSearch.value || '').split(',').map(function (value) { return value.trim().toLowerCase(); })
+            .filter(function (value, index, values) { return value && values.indexOf(value) === index; });
+        if (holdAvailableTable) holdAvailableTable.draw();
+    }
+
+    function toggleAllHoldLoans() {
+        if (!holdAvailableTable) return;
+        var checked = selectAllHoldLoans.checked;
+        holdAvailableTable.rows({ search: 'applied' }).every(function () { selectedHoldLoans[this.data().ItemID] = checked; });
+        $('#holdLoanAvailableTable tbody .hold-loan-check').prop('checked', checked); updateLoanHoldCounts();
+    }
+
+    function toggleAllResumeLoans() {
+        if (!heldTable) return;
+        var checked = selectAllResumeLoans.checked;
+        heldTable.rows({ search: 'applied' }).every(function () { selectedResumeLoans[this.data().ItemID] = checked; });
+        $('#heldLoanTable tbody .resume-loan-check').prop('checked', checked); updateLoanHoldCounts();
+    }
+
+    function selectedIds(selection) { return Object.keys(selection).filter(function (id) { return selection[id]; }).map(function (id) { return +id; }); }
+    function holdText(value, type) { value = value == null || value === '' ? '—' : String(value); return type === 'display' ? OLT.esc(value) : value; }
+    function updateLoanHoldCounts() {
+        holdLoanSelectionCount.textContent = selectedIds(selectedHoldLoans).length + ' loan(s) selected';
+        resumeLoanSelectionCount.textContent = selectedIds(selectedResumeLoans).length + ' loan(s) selected';
+    }
+
+    window.holdSelectedLoans = function () {
+        var ids = selectedIds(selectedHoldLoans), reason = String(holdLoanReason.value || '').trim();
+        if (!holdLoanProject.value || !holdLoanDeal.value) { OLT.alert('Please select Project # and Deal #.', true); return; }
+        if (!ids.length) { OLT.alert('Select at least one loan to place on HOLD.', true); return; }
+        if (!reason) { OLT.alert('Reason is required.', true); return; }
+        OLT.call(page, 'HoldLoans', { projectId: +holdLoanProject.value, dealNumber: holdLoanDeal.value, itemIds: ids, reason: reason }).then(function (result) {
+            if (!result || result.Success !== true) { OLT.alert(result && result.Message ? result.Message : 'Unable to hold the selected loans.', true); return; }
+            holdLoanReason.value = ''; OLT.alert(result.Message); loadLoanHoldData();
+        }).catch(showError);
+    };
+
+    window.resumeSelectedLoans = function () {
+        var ids = selectedIds(selectedResumeLoans);
+        if (!ids.length) { OLT.alert('Select at least one held loan to RESUME.', true); return; }
+        if (!window.confirm('Resume the selected loan(s) and return them to the normal process flow?')) return;
+        OLT.call(page, 'ResumeHeldLoans', { projectId: +holdLoanProject.value, dealNumber: holdLoanDeal.value, itemIds: ids }).then(function (result) {
+            if (!result || result.Success !== true) { OLT.alert(result && result.Message ? result.Message : 'Unable to resume the selected loans.', true); return; }
+            OLT.alert(result.Message); loadLoanHoldData();
+        }).catch(showError);
+    };
 
     window.setSndDates = function (prefix) {
         var end = new Date(), start = new Date();

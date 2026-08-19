@@ -517,6 +517,11 @@ WHERE @StageNo IS NOT NULL
   AND LTRIM(RTRIM(ISNULL(i.DealNumber, ''))) = LTRIM(RTRIM(ISNULL(@DealNumber, '')))
   AND NOT EXISTS
   (
+      SELECT 1 FROM dbo.OLTracking_LoanHold loanHold
+      WHERE loanHold.ItemID=i.ItemID AND loanHold.ResumedDate IS NULL
+  )
+  AND NOT EXISTS
+  (
       SELECT 1 FROM dbo.OLTracking_Assignment a
       WHERE a.ItemID = i.ItemID AND a.ProcessID = @ProcessID
         AND (a.IsCurrent = 1 OR a.AssignmentStatus IN ('Completed', 'Skipped'))
@@ -780,6 +785,54 @@ SELECT @@ROWCOUNT;") { CommandType = CommandType.Text };
             return Execute(command);
         }
 
+        public DataTable GetLoanHoldCandidates(int projectId, string dealNumber)
+        {
+            SqlCommand command = Command("OLTracking_GetLoanHoldCandidates");
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);
+            return Table(command);
+        }
+
+        public DataTable GetHeldLoans(int projectId, string dealNumber)
+        {
+            SqlCommand command = Command("OLTracking_GetHeldLoans");
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);
+            return Table(command);
+        }
+
+        public int HoldLoans(int projectId, string dealNumber, long[] itemIds, string reason, int userId)
+        {
+            XElement items = ItemXml(itemIds);
+            SqlCommand command = Command("OLTracking_HoldLoans");
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);
+            Add(command, "@ItemXml", SqlDbType.Xml, items.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@Reason", SqlDbType.NVarChar, reason, 1000);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Execute(command);
+        }
+
+        public int ResumeLoans(int projectId, string dealNumber, long[] itemIds, int userId)
+        {
+            XElement items = ItemXml(itemIds);
+            SqlCommand command = Command("OLTracking_ResumeLoans");
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);
+            Add(command, "@ItemXml", SqlDbType.Xml, items.ToString(SaveOptions.DisableFormatting));
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Execute(command);
+        }
+
+        private static XElement ItemXml(long[] itemIds)
+        {
+            XElement items = new XElement("items");
+            if (itemIds != null)
+                foreach (long itemId in itemIds)
+                    if (itemId > 0) items.Add(new XElement("item", itemId));
+            return items;
+        }
+
         public void ResumeLoan(long assignmentId, int userId)
         {
             EnsureSingleInProcessIndex();
@@ -918,6 +971,8 @@ CROSS APPLY
 ) elapsed
 WHERE a.UserID=@UserID AND a.IsCurrent=1 AND a.AssignmentStatus IN('In Process','Hold')
   AND a.StartedDate IS NOT NULL AND flow.ProcessID=a.ProcessID AND flow.MaxCompletionMinutes IS NOT NULL
+  AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_LoanHold loanHold
+                 WHERE loanHold.ItemID=i.ItemID AND loanHold.ResumedDate IS NULL)
   AND elapsed.ElapsedSeconds>=CONVERT(bigint,flow.MaxCompletionMinutes)*60
 ORDER BY IsAcknowledged,a.AssignedDate;") { CommandType = CommandType.Text };
             Add(command, "@UserID", SqlDbType.Int, userId);
@@ -1080,6 +1135,8 @@ DECLARE @StageNo int=(SELECT StageNo FROM dbo.OLTracking_EffectiveProcessFlow(@P
     CROSS APPLY dbo.OLTracking_ProcessDependencyEligibility(@ProjectID,@ProcessID,i.ItemID) dependencyEligibility
     WHERE @StageNo IS NOT NULL AND i.ProjectID=@ProjectID AND i.IsDeleted=0 AND i.RecordSource='Import'
       AND LTRIM(RTRIM(ISNULL(i.DealNumber,'')))=LTRIM(RTRIM(ISNULL(@DealNumber,'')))
+      AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_LoanHold loanHold
+                     WHERE loanHold.ItemID=i.ItemID AND loanHold.ResumedDate IS NULL)
       AND NOT EXISTS
       (
           SELECT 1 FROM dbo.OLTracking_Assignment a
@@ -1136,6 +1193,8 @@ JOIN dbo.OLTracking_ProcessFlow flow ON flow.ProjectID=assignment.ProjectID AND 
 WHERE assignment.ProjectID=@ProjectID AND assignment.ProcessID=@ProcessID AND assignment.UserID=@UserID
   AND assignment.IsCurrent=1 AND assignment.AssignmentStatus IN('Pending','In Process','Hold')
   AND LTRIM(RTRIM(ISNULL(item.DealNumber,'')))=LTRIM(RTRIM(ISNULL(@DealNumber,'')))
+  AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_LoanHold loanHold
+                 WHERE loanHold.ItemID=item.ItemID AND loanHold.ResumedDate IS NULL)
 ORDER BY LoanNo;") { CommandType = CommandType.Text, CommandTimeout = 90 };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber ?? string.Empty, 150);

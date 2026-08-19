@@ -51,7 +51,7 @@ namespace WebPortal.TrackingSheet
             }
             catch (Exception ex)
             {
-                SqlException sql = ex as SqlException; string message = sql != null && sql.Number >= 50110 && sql.Number <= 50136 ? sql.Message : "The selected orders could not be re-allocated.";
+                SqlException sql = ex as SqlException; string message = sql != null && ((sql.Number >= 50110 && sql.Number <= 50136) || sql.Number == 50160) ? sql.Message : "The selected orders could not be re-allocated.";
                 return new ReallocationResult { Success = false, Message = message };
             }
         }
@@ -97,6 +97,59 @@ namespace WebPortal.TrackingSheet
             if (holdReasonId <= 0) throw new ArgumentException("Select a valid Hold Reason.");
             return OLTrackingWeb.Ok(new bllOLTracking().SetHoldReasonActive(holdReasonId, isActive, OLTrackingWeb.UserId));
         }
+
+        [WebMethod]
+        public static string GetLoanHoldCandidates(int projectId, string dealNumber)
+        {
+            ProjectIds(projectId);
+            if (string.IsNullOrWhiteSpace(dealNumber)) throw new ArgumentException("Deal # is required.");
+            return OLTrackingWeb.Json(new bllOLTracking().GetLoanHoldCandidates(projectId, dealNumber.Trim()));
+        }
+
+        [WebMethod]
+        public static string GetHeldLoans(int projectId, string dealNumber)
+        {
+            ProjectIds(projectId);
+            if (string.IsNullOrWhiteSpace(dealNumber)) throw new ArgumentException("Deal # is required.");
+            return OLTrackingWeb.Json(new bllOLTracking().GetHeldLoans(projectId, dealNumber.Trim()));
+        }
+
+        [WebMethod]
+        public static ManagerLoanHoldResult HoldLoans(int projectId, string dealNumber, long[] itemIds, string reason)
+        {
+            try
+            {
+                ProjectIds(projectId);
+                if (string.IsNullOrWhiteSpace(dealNumber)) throw new ArgumentException("Deal # is required.");
+                string cleanReason = (reason ?? string.Empty).Trim();
+                if (cleanReason.Length == 0 || cleanReason.Length > 1000) throw new ArgumentException("Enter a Reason up to 1000 characters.");
+                int count = new bllOLTracking().HoldLoans(projectId, dealNumber.Trim(), itemIds, cleanReason, OLTrackingWeb.UserId);
+                return new ManagerLoanHoldResult { Success = count > 0, AffectedCount = count, Message = count + " loan(s) placed on HOLD." };
+            }
+            catch (Exception exception) { return LoanHoldFailure(exception); }
+        }
+
+        [WebMethod]
+        public static ManagerLoanHoldResult ResumeHeldLoans(int projectId, string dealNumber, long[] itemIds)
+        {
+            try
+            {
+                ProjectIds(projectId);
+                if (string.IsNullOrWhiteSpace(dealNumber)) throw new ArgumentException("Deal # is required.");
+                int count = new bllOLTracking().ResumeLoans(projectId, dealNumber.Trim(), itemIds, OLTrackingWeb.UserId);
+                return new ManagerLoanHoldResult { Success = count > 0, AffectedCount = count, Message = count + " loan(s) resumed." };
+            }
+            catch (Exception exception) { return LoanHoldFailure(exception); }
+        }
+
+        private static ManagerLoanHoldResult LoanHoldFailure(Exception exception)
+        {
+            SqlException sql = exception as SqlException;
+            string message = exception is ArgumentException ? exception.Message :
+                sql != null && sql.Number >= 50160 && sql.Number <= 50165 ? sql.Message :
+                "The loan hold action could not be completed. Please refresh and try again.";
+            return new ManagerLoanHoldResult { Success = false, Message = message };
+        }
     
         private delegate DataTable Loader(bllOLTracking tracking, int projectId);
      
@@ -129,4 +182,5 @@ namespace WebPortal.TrackingSheet
         }
     }
     public sealed class ReallocationResult { public bool Success { get; set; } public int ReallocatedCount { get; set; } public string Message { get; set; } }
+    public sealed class ManagerLoanHoldResult { public bool Success { get; set; } public int AffectedCount { get; set; } public string Message { get; set; } }
 }
