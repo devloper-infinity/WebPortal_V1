@@ -238,7 +238,8 @@ BEGIN
         (
             SELECT 1 FROM @Loans selected
             INNER JOIN dbo.OLTracking_Assignment active WITH(UPDLOCK,HOLDLOCK)
-              ON active.ProjectID=@ProjectID AND active.UniqueCombinationHash=selected.UniqueHash AND active.IsCurrent=1
+              ON active.ProjectID=@ProjectID AND active.ProcessID=@ProcessID
+             AND active.UniqueCombinationHash=selected.UniqueHash AND active.IsCurrent=1
         )
             THROW 50112,'The configured unique loan combination is already allocated to another user.',1;
 
@@ -338,7 +339,7 @@ BEGIN
       AND NOT EXISTS
       (
           SELECT 1 FROM dbo.OLTracking_Assignment active
-          WHERE active.ProjectID=@ProjectID AND active.IsCurrent=1
+          WHERE active.ProjectID=@ProjectID AND active.ProcessID=@ProcessID AND active.IsCurrent=1
             AND active.UniqueCombinationHash=HASHBYTES('SHA2_256',CONVERT(varbinary(max),identityValue.UniqueCombination))
       )
       AND NOT EXISTS

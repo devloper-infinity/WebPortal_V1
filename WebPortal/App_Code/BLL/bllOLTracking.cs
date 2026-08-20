@@ -52,14 +52,7 @@ namespace WebPortal.App_Code.BLL
         public int AllocateLoan(int projectId, int processId, string loanNumber, string dealNumber, int userId) { return dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId); }
         public long StartNonTrackingLoan(int projectId, int processId, string loanNumber, string dealNumber, long assignmentId, int userId)
         {
-            long resolvedAssignmentId = assignmentId;
-            dal.EnsureCanStartNonTrackingLoan(userId, resolvedAssignmentId);
-            if (resolvedAssignmentId <= 0)
-                resolvedAssignmentId = dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId);
-            if (resolvedAssignmentId <= 0)
-                throw new InvalidOperationException("Unable to allocate the selected loan.");
-            dal.StartLoan(resolvedAssignmentId, userId);
-            return resolvedAssignmentId;
+            return dal.StartNonTrackingLoan(projectId, processId, loanNumber, dealNumber, assignmentId, userId);
         }
         public bool IsLoanProcessCurrentlyAllocated(string loanNumber, int processId) { return dal.IsLoanProcessCurrentlyAllocated(loanNumber, processId); }
         public DataTable GetTrackingQueue(int userId) { return dal.GetTrackingQueue(userId); }

@@ -68,12 +68,30 @@ function formatDateTime(value) { if (!value) return ''; var number = parseInt(St
 function fillSelect(element, rows, valueName, textName, placeholder) { element.innerHTML = '<option value="">' + placeholder + '</option>'; rows.forEach(function (row) { var option = document.createElement('option'); option.value = row[valueName]; option.textContent = row[textName]; element.appendChild(option); }); }
 function loadSubcategories() { feedbackSubcategory.innerHTML = '<option value="">Select</option>'; if (!feedbackCategory.value) return Promise.resolve(); return OLT.call(page, 'GetFeedbackSubcategories', { categoryId: +feedbackCategory.value }).then(function (rows) { fillSelect(feedbackSubcategory, rows || [], 'Value', 'Text', 'Select'); }); }
 function selectByText(element, text) { var option = [].slice.call(element.options).filter(function (item) { return item.text.trim().toLowerCase() === text.toLowerCase(); })[0]; if (option) element.value = option.value; return !!option; }
+function configuredNoErrorCategory() {
+    if (!feedbackConfiguredProcesses.length) return '';
+    var category = '';
+    for (var index = 0; index < feedbackConfiguredProcesses.length; index++) {
+        var code = String(feedbackConfiguredProcesses[index].ProcessName || '').toUpperCase().replace(/&/g, 'N').replace(/[^A-Z0-9]/g, '');
+        var current = code === 'SSREVIEW' || code === 'SSQC' || code === 'SSREVIEWANDSSQC' ? 'Servicing' :
+            (code === 'CNCREVIEW' || code === 'CNCQC' || code === 'CNCREVIEWANDCNCQC' ? 'Compliance' : '');
+        if (!current || (category && category !== current)) return '';
+        category = current;
+    }
+    return category;
+}
 function severityChanged() {
-    var noError = feedbackSeverity.value === 'No Error', fields = [feedbackCategory, feedbackSubcategory, feedbackErrorField, feedbackScreen, feedbackErrorType, feedbackType, feedbackFinding, feedbackRca];
-    fields.forEach(function (field) { field.disabled = noError; });
+    var noError = feedbackSeverity.value === 'No Error', categoryName = noError ? configuredNoErrorCategory() : '';
+    [feedbackErrorField, feedbackScreen, feedbackErrorType, feedbackType, feedbackFinding, feedbackRca].forEach(function (field) { field.disabled = noError; });
+    feedbackCategory.disabled = noError && !!categoryName; feedbackSubcategory.disabled = noError && !!categoryName;
     if (!noError) return;
-    if (!selectByText(feedbackCategory, 'Compliance')) { OLT.alert('Compliance category is not configured. Please contact the administrator.', true); feedbackSeverity.value = ''; return severityChanged(); }
-    loadSubcategories().then(function () { if (!selectByText(feedbackSubcategory, 'Compliance')) { OLT.alert('Compliance subcategory is not configured. Please contact the administrator.', true); feedbackSeverity.value = ''; return severityChanged(); } feedbackErrorField.value = 'NA'; feedbackScreen.value = 'NA'; feedbackErrorType.value = 'NA'; feedbackType.value = 'NA'; feedbackFinding.value = 'No Error'; feedbackRca.value = 'No Error'; });
+    feedbackErrorField.value = 'NA'; feedbackScreen.value = 'NA'; feedbackErrorType.value = 'NA'; feedbackType.value = 'NA'; feedbackFinding.value = 'No Error'; feedbackRca.value = 'No Error';
+    if (!categoryName) return;
+    if (!selectByText(feedbackCategory, categoryName)) { OLT.alert(categoryName + ' category is not configured. Please contact the administrator.', true); feedbackSeverity.value = ''; return severityChanged(); }
+    loadSubcategories().then(function () {
+        if (feedbackSeverity.value !== 'No Error') return;
+        if (!selectByText(feedbackSubcategory, categoryName)) { OLT.alert(categoryName + ' subcategory is not configured. Please contact the administrator.', true); feedbackSeverity.value = ''; severityChanged(); }
+    });
 }
 function feedbackModel() { return { AssignmentID: assignmentId, TargetAssignmentIDs: selectedTargetIds.slice(), FeedbackBy: feedbackBy.value, ErrorType: feedbackErrorType.value.trim(), CategoryID: +feedbackCategory.value || 0, Category: feedbackCategory.options[feedbackCategory.selectedIndex] ? feedbackCategory.options[feedbackCategory.selectedIndex].text : '', SubcategoryID: +feedbackSubcategory.value || 0, Subcategory: feedbackSubcategory.options[feedbackSubcategory.selectedIndex] ? feedbackSubcategory.options[feedbackSubcategory.selectedIndex].text : '', Severity: feedbackSeverity.value, ErrorField: feedbackErrorField.value.trim(), Screen: feedbackScreen.value.trim(), FeedbackType: feedbackType.value.trim(), Error: feedbackFinding.value.trim(), ShouldBe: feedbackRca.value.trim(), Remark: '' }; }
 function validate(model) { if (unavailableConfiguredTargets > 0) return 'All configured Previous Processes must be completed before feedback can be added.'; if (!model.TargetAssignmentIDs.length) return 'Select a completed Previous Process.'; if (!model.Severity) return 'Select Severity.'; if (!model.CategoryID) return 'Select Category.'; if (!model.SubcategoryID) return 'Select Subcategory.'; if (!model.ErrorField) return 'Enter Error Field.'; if (!model.Screen) return 'Enter Screen.'; if (!model.ErrorType) return 'Enter Error Type.'; if (!model.FeedbackType) return 'Enter Feedback Type.'; if (!model.Error) return 'Enter Finding.'; if (!model.ShouldBe) return 'Enter RCA.'; return ''; }

@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Web;
 using System.Web.Services;
+using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Reports
@@ -32,6 +33,14 @@ namespace WebPortal.Reports
                     return SalaryReportResponse.Fail(validationMessage);
 
                 DataSet ds = GetSalaryData(fromMonth, fromYear, toMonth, toYear);
+                DataSet previousYearDs = GetPreviousYearComparisonData(ds, fromMonth, fromYear, toMonth, toYear);
+                DataTable employeeDetails = ds.Tables.Count > 2 ? ds.Tables[2] : new DataTable();
+                DataTable previousEmployeeDetails = previousYearDs != null && previousYearDs.Tables.Count > 2
+                    ? previousYearDs.Tables[2]
+                    : new DataTable();
+                int comparisonToMonth = GetMaximumMonthFromEmployeeDetails(employeeDetails, toMonth);
+                DataTable comparison = BuildDepartmentComparisonTable(
+                    employeeDetails, previousEmployeeDetails, fromYear, fromMonth, comparisonToMonth);
 
                 return new SalaryReportResponse
                 {
@@ -39,7 +48,13 @@ namespace WebPortal.Reports
                     Message = "",
                     YearSummary = ds.Tables.Count > 0 ? ToRows(ds.Tables[0]) : new List<Dictionary<string, object>>(),
                     MonthDetails = ds.Tables.Count > 1 ? ToRows(ds.Tables[1]) : new List<Dictionary<string, object>>(),
-                    EmployeeDetails = ds.Tables.Count > 2 ? ToRows(ds.Tables[2]) : new List<Dictionary<string, object>>()
+                    EmployeeDetails = ToRows(employeeDetails),
+                    ComparisonSummary = ToRows(comparison),
+                    ComparisonPeriod = GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear) + " vs " +
+                                       GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear - 1),
+                    CurrentPeriodLabel = GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear),
+                    PreviousPeriodLabel = GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear - 1),
+                    ManagerAnalysisAvailability = GetManagerAnalysisAvailability(employeeDetails)
                 };
             }
             catch (Exception ex)
@@ -83,12 +98,38 @@ namespace WebPortal.Reports
                     DataTable previousEmployeeDetails = previousYearDs != null && previousYearDs.Tables.Count > 2
                         ? previousYearDs.Tables[2]
                         : new DataTable();
+                    int comparisonToMonth = GetMaximumMonthFromEmployeeDetails(employeeDetails, toMonth);
+                    DataTable comparison = BuildDepartmentComparisonTable(
+                        employeeDetails, previousEmployeeDetails, fromYear, fromMonth, comparisonToMonth);
+                    int currentEmployeeId = GetCurrentEmployeeId();
+                    DataTable currentPerformance = GetPerformanceDataForManagers(
+                        new DateTime(fromYear, fromMonth, 1),
+                        new DateTime(fromYear, comparisonToMonth, 1).AddMonths(1).AddDays(-1),
+                        employeeDetails,
+                        currentEmployeeId);
+                    DataTable previousPerformance = GetPerformanceDataForManagers(
+                        new DateTime(fromYear - 1, fromMonth, 1),
+                        new DateTime(fromYear - 1, comparisonToMonth, 1).AddMonths(1).AddDays(-1),
+                        previousEmployeeDetails,
+                        currentEmployeeId);
+                    DataTable attritionDetails = GetAttritionDetails(
+                        new DateTime(fromYear, fromMonth, 1).AddMonths(-1).AddDays(25),
+                        new DateTime(fromYear, comparisonToMonth, 25),
+                        currentEmployeeId);
                     CreateHeadcountTrendSheet(workbook, monthSummary, employeeDetails, previousMonthSummary, previousEmployeeDetails);
                     CreateGrossSalaryTrendSheet(workbook, monthSummary, employeeDetails, previousMonthSummary, previousEmployeeDetails);
                     CreateYearOverYearSalaryDeviationSheet(workbook, employeeDetails, previousEmployeeDetails, fromMonth, fromYear, toMonth, toYear);
                     CreateDashboardDataSheet(workbook, monthSummary, employeeDetails);
                     CreateHorizontalMonthlySheet(workbook, monthSummary, employeeDetails);
-                    CreateYearComparisonSheet(workbook, employeeDetails, previousEmployeeDetails, fromMonth, fromYear, toMonth, toYear);
+                    CreateDepartmentComparisonSheet(workbook, "Department Comparison", comparison,
+                        GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear),
+                        GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear - 1),
+                        GetManagerAnalysisAvailability(employeeDetails));
+                    CreateReferenceYearSummarySheet(workbook, yearSummary, employeeDetails, previousEmployeeDetails,
+                        comparison, currentPerformance, previousPerformance, attritionDetails,
+                        GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear),
+                        GetMonthRangeLabel(fromMonth, comparisonToMonth, fromYear - 1),
+                        GetManagerAnalysisSourceStatus(currentPerformance, previousPerformance, attritionDetails));
                     CreateMonthSummarySheet(workbook, monthSummary, employeeDetails);
                     CreateEmployeeDetailsSheet(workbook, employeeDetails);
 
@@ -600,6 +641,98 @@ namespace WebPortal.Reports
             return ds;
         }
 
+        private static int GetCurrentEmployeeId()
+        {
+            int employeeId;
+            return HttpContext.Current != null && HttpContext.Current.User != null &&
+                   HttpContext.Current.User.Identity != null &&
+                   int.TryParse(HttpContext.Current.User.Identity.Name, out employeeId)
+                ? employeeId
+                : 0;
+        }
+
+        private static DataTable GetPerformanceData(DateTime fromDate, DateTime toDate, int employeeId)
+        {
+            if (employeeId <= 0) return new DataTable();
+            try
+            {
+                return new bllMaster().GetUserPerformanceReport(
+                    fromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    employeeId) ?? new DataTable();
+            }
+            catch
+            {
+                return new DataTable();
+            }
+        }
+
+        private static DataTable GetPerformanceDataForManagers(
+            DateTime fromDate, DateTime toDate, DataTable employeeDetails, int currentEmployeeId)
+        {
+            List<int> employeeIds = new List<int>();
+            HashSet<int> uniqueIds = new HashSet<int>();
+            if (currentEmployeeId > 0 && uniqueIds.Add(currentEmployeeId)) employeeIds.Add(currentEmployeeId);
+
+            bllMaster master = new bllMaster();
+            HashSet<string> managerCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (employeeDetails != null)
+            {
+                foreach (DataRow row in employeeDetails.Rows)
+                {
+                    string code = ExtractManagerCode(GetReportingManager(row));
+                    if (code.Length == 0 || !managerCodes.Add(code)) continue;
+                    try
+                    {
+                        int managerEmployeeId = master.GetEmployeeIdFromCode(code);
+                        if (managerEmployeeId > 0 && uniqueIds.Add(managerEmployeeId)) employeeIds.Add(managerEmployeeId);
+                    }
+                    catch { }
+                }
+            }
+
+            DataTable combined = new DataTable();
+            HashSet<string> rowsAdded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (int employeeId in employeeIds)
+            {
+                DataTable source = GetPerformanceData(fromDate, toDate, employeeId);
+                if (source.Columns.Count == 0) continue;
+                if (combined.Columns.Count == 0) combined = source.Clone();
+                foreach (DataRow row in source.Rows)
+                {
+                    string key = GetStringValue(row, "Code") + "||" + GetStringValue(row, "Month") + "||" + GetStringValue(row, "Year");
+                    if (rowsAdded.Add(key)) combined.ImportRow(row);
+                }
+            }
+            return combined;
+        }
+
+        private static string ExtractManagerCode(string manager)
+        {
+            manager = (manager ?? string.Empty).Trim();
+            if (manager.Length == 0 || manager == "(Not Assigned)") return string.Empty;
+            int separator = manager.IndexOf(':');
+            return (separator < 0 ? manager : manager.Substring(0, separator)).Trim();
+        }
+
+        private static DataTable GetAttritionDetails(DateTime fromDate, DateTime toDate, int employeeId)
+        {
+            if (employeeId <= 0) return new DataTable();
+            try
+            {
+                DataSet data = new bllMaster().GetAttritionReport_ds(
+                    fromDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    toDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    0,
+                    employeeId);
+                return data != null && data.Tables.Count > 0 ? data.Tables[0] : new DataTable();
+            }
+            catch
+            {
+                return new DataTable();
+            }
+        }
+
         private static DataSet GetPreviousYearComparisonData(DataSet currentData, int fromMonth, int fromYear, int toMonth, int toYear)
         {
             // The review workbook asks for a like-for-like Jan-Jul 2026 vs Jan-Jul 2025 comparison.
@@ -644,6 +777,339 @@ namespace WebPortal.Reports
             return fromDate > toDate ? "From Month-Year cannot be greater than To Month-Year." : string.Empty;
         }
 
+
+        private static void CreateDepartmentComparisonSheet(
+            XLWorkbook workbook,
+            string sheetName,
+            DataTable comparison,
+            string currentPeriodLabel,
+            string previousPeriodLabel,
+            string availabilityNote)
+        {
+            IXLWorksheet ws = workbook.Worksheets.Add(sheetName);
+            int columnCount = comparison.Columns.Count;
+            ws.Range(1, 1, 1, Math.Max(columnCount, 1)).Merge();
+            ws.Cell(1, 1).Value = "Manager-clustered Department Salary & Headcount — " + currentPeriodLabel + " vs " + previousPeriodLabel;
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 15;
+            ws.Cell(1, 1).Style.Font.FontColor = XLColor.White;
+            ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#355A8A");
+
+            string[] exportHeaders = {
+                "Manager / Head of Department", "Department",
+                currentPeriodLabel + " Employee Count", currentPeriodLabel + " Total Salary",
+                previousPeriodLabel + " Employee Count", previousPeriodLabel + " Total Salary",
+                "Headcount Deviation", "Salary Deviation INR", "Salary Deviation %",
+                "% of Total Workforce", "% of Total Salary"
+            };
+            for (int column = 0; column < columnCount; column++)
+                ws.Cell(3, column + 1).Value = exportHeaders[column];
+            WriteDataRows(ws, comparison, 4, 1);
+
+            int lastDataRow = comparison.Rows.Count + 3;
+            IXLRange header = ws.Range(3, 1, 3, columnCount);
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            header.Style.Font.FontColor = XLColor.White;
+            header.Style.Font.Bold = true;
+            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            header.Style.Alignment.WrapText = true;
+            if (comparison.Rows.Count > 0)
+            {
+                ws.Range(4, 3, lastDataRow, 3).Style.NumberFormat.Format = "#,##0";
+                ws.Range(4, 4, lastDataRow, 4).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(4, 5, lastDataRow, 5).Style.NumberFormat.Format = "#,##0";
+                ws.Range(4, 6, lastDataRow, 6).Style.NumberFormat.Format = "#,##0.00";
+                ws.Range(4, 7, lastDataRow, 7).Style.NumberFormat.Format = "#,##0;[Red]-#,##0";
+                ws.Range(4, 8, lastDataRow, 8).Style.NumberFormat.Format = "#,##0.00;[Red]-#,##0.00";
+                ws.Range(4, 9, lastDataRow, 11).Style.NumberFormat.Format = "0.00%";
+                ws.Range(4, 7, lastDataRow, 9).AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9"));
+                ws.Range(4, 7, lastDataRow, 9).AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6"));
+                ws.Range(3, 1, lastDataRow, columnCount).SetAutoFilter();
+                ws.Range(3, 1, lastDataRow, columnCount).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                ws.Range(3, 1, lastDataRow, columnCount).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            }
+            int noteRow = Math.Max(lastDataRow + 2, 5);
+            ws.Cell(noteRow, 1).Value = "Manager / PM analysis source status:";
+            ws.Cell(noteRow, 1).Style.Font.Bold = true;
+            ws.Range(noteRow, 2, noteRow + 1, columnCount).Merge();
+            ws.Cell(noteRow, 2).Value = availabilityNote;
+            ws.Cell(noteRow, 2).Style.Alignment.WrapText = true;
+            ws.SheetView.FreezeRows(3);
+            ws.Columns().AdjustToContents(1, 42);
+            ws.Column(1).Width = Math.Max(ws.Column(1).Width, 25);
+            ws.Column(2).Width = Math.Max(ws.Column(2).Width, 22);
+        }
+
+        private static SortedDictionary<string, ManagerAnalysisTotal> BuildManagerAnalysis(
+            DataTable comparison,
+            DataTable currentEmployees,
+            DataTable previousEmployees,
+            DataTable currentPerformance,
+            DataTable previousPerformance,
+            DataTable attritionDetails)
+        {
+            SortedDictionary<string, ManagerAnalysisTotal> totals = new SortedDictionary<string, ManagerAnalysisTotal>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataRow row in comparison.Rows)
+            {
+                string manager = NormalizeManager(Convert.ToString(row["Manager / Head of Department"]));
+                ManagerAnalysisTotal total = GetManagerAnalysisTotal(totals, manager);
+                total.CurrentPeople += Convert.ToInt32(row["Current Employee Count"], CultureInfo.InvariantCulture);
+                total.PreviousPeople += Convert.ToInt32(row["Previous Employee Count"], CultureInfo.InvariantCulture);
+            }
+
+            AddPerformanceToManagerAnalysis(totals, currentPerformance, BuildEmployeeManagerMap(currentEmployees), true);
+            AddPerformanceToManagerAnalysis(totals, previousPerformance, BuildEmployeeManagerMap(previousEmployees), false);
+            AddAttritionToManagerAnalysis(totals, attritionDetails);
+            return totals;
+        }
+
+        private static Dictionary<string, string> BuildEmployeeManagerMap(DataTable employeeDetails)
+        {
+            Dictionary<string, string> managers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, int> latestPeriods = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            if (employeeDetails == null) return managers;
+            foreach (DataRow row in employeeDetails.Rows)
+            {
+                string code = GetStringValue(row, "Code", "EmployeeCode", "EmployeeID").Trim();
+                if (code.Length == 0) continue;
+                int year;
+                int.TryParse(GetStringValue(row, "Year"), out year);
+                int month = GetMonthNumber(row, GetStringValue(row, "MonthYear", "Month"));
+                int period = year * 100 + month;
+                int latest;
+                if (!latestPeriods.TryGetValue(code, out latest) || period >= latest)
+                {
+                    latestPeriods[code] = period;
+                    managers[code] = GetReportingManager(row);
+                }
+            }
+            return managers;
+        }
+
+        private static void AddPerformanceToManagerAnalysis(
+            SortedDictionary<string, ManagerAnalysisTotal> totals,
+            DataTable performance,
+            Dictionary<string, string> employeeManagers,
+            bool currentPeriod)
+        {
+            if (performance == null || performance.Rows.Count == 0) return;
+            foreach (DataRow row in performance.Rows)
+            {
+                string code = GetStringValue(row, "Code", "EmployeeCode").Trim();
+                string manager;
+                if (code.Length == 0 || !employeeManagers.TryGetValue(code, out manager)) continue;
+                ManagerAnalysisTotal total = GetManagerAnalysisTotal(totals, manager);
+                decimal productivity;
+                if (TryGetPercentage(row, out productivity, "ProdPerc", "Productivity", "ProductivityPercent"))
+                {
+                    if (currentPeriod) { total.CurrentProductivity += productivity; total.CurrentProductivityRows++; }
+                    else { total.PreviousProductivity += productivity; total.PreviousProductivityRows++; }
+                }
+                decimal accuracy;
+                if (TryGetPercentage(row, out accuracy, "QualityPerc", "Accuracy", "AccuracyPercent"))
+                {
+                    if (currentPeriod) { total.CurrentAccuracy += accuracy; total.CurrentAccuracyRows++; }
+                    else { total.PreviousAccuracy += accuracy; total.PreviousAccuracyRows++; }
+                }
+            }
+        }
+
+        private static void AddAttritionToManagerAnalysis(
+            SortedDictionary<string, ManagerAnalysisTotal> totals,
+            DataTable attritionDetails)
+        {
+            if (attritionDetails == null || attritionDetails.Rows.Count == 0) return;
+            HashSet<string> processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataRow row in attritionDetails.Rows)
+            {
+                string code = GetStringValue(row, "Code", "EmployeeCode", "EmployeeID").Trim();
+                string manager = NormalizeManager(GetStringValue(row, "ReportingManager", "Reporting Manager"));
+                string uniqueKey = manager + "||" + code;
+                if (code.Length == 0 || !processed.Add(uniqueKey)) continue;
+
+                ManagerAnalysisTotal total = GetManagerAnalysisTotal(totals, manager);
+                total.AttritionCount++;
+                total.AttritionCost += GetDecimalValue(row, "AttritionCost", "Attrition Cost");
+                int tenureMonths = Convert.ToInt32(GetDecimalValue(row, "TenureInMonth", "Tenure In Month"));
+                decimal salary = GetDecimalValue(row, "Salary", "GrossSalary", "Gross Salary");
+                int bucket = tenureMonths < 3 ? 0 : tenureMonths <= 6 ? 1 : tenureMonths <= 12 ? 2 : tenureMonths <= 24 ? 3 : 4;
+                total.TenureCounts[bucket]++;
+                total.TenureSalaryCosts[bucket] += salary;
+            }
+        }
+
+        private static ManagerAnalysisTotal GetManagerAnalysisTotal(
+            SortedDictionary<string, ManagerAnalysisTotal> totals, string manager)
+        {
+            manager = NormalizeManager(manager);
+            ManagerAnalysisTotal total;
+            if (!totals.TryGetValue(manager, out total))
+            {
+                total = new ManagerAnalysisTotal();
+                totals[manager] = total;
+            }
+            return total;
+        }
+
+        private static string NormalizeManager(string manager)
+        {
+            manager = (manager ?? string.Empty).Trim();
+            return manager.Length == 0 ? "(Not Assigned)" : manager;
+        }
+
+        private static bool TryGetPercentage(DataRow row, out decimal result, params string[] columnNames)
+        {
+            result = 0M;
+            string value = GetStringValue(row, columnNames).Replace("%", string.Empty).Trim();
+            decimal parsed;
+            if (!decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed) &&
+                !decimal.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out parsed)) return false;
+            result = Math.Abs(parsed) > 1M ? parsed / 100M : parsed;
+            return true;
+        }
+
+        private sealed class ManagerAnalysisTotal
+        {
+            public ManagerAnalysisTotal() { TenureCounts = new int[5]; TenureSalaryCosts = new decimal[5]; }
+            public int CurrentPeople { get; set; }
+            public int PreviousPeople { get; set; }
+            public decimal CurrentProductivity { get; set; }
+            public int CurrentProductivityRows { get; set; }
+            public decimal PreviousProductivity { get; set; }
+            public int PreviousProductivityRows { get; set; }
+            public decimal CurrentAccuracy { get; set; }
+            public int CurrentAccuracyRows { get; set; }
+            public decimal PreviousAccuracy { get; set; }
+            public int PreviousAccuracyRows { get; set; }
+            public int AttritionCount { get; set; }
+            public decimal AttritionCost { get; set; }
+            public int[] TenureCounts { get; private set; }
+            public decimal[] TenureSalaryCosts { get; private set; }
+        }
+
+        private static void CreateReferenceYearSummarySheet(
+            XLWorkbook workbook,
+            DataTable yearSummary,
+            DataTable employeeDetails,
+            DataTable previousEmployeeDetails,
+            DataTable comparison,
+            DataTable currentPerformance,
+            DataTable previousPerformance,
+            DataTable attritionDetails,
+            string currentPeriodLabel,
+            string previousPeriodLabel,
+            string availabilityNote)
+        {
+            // The reviewed workbook's Year Summary contains the existing wide annual table
+            // followed by a separate PM/manager analysis table.
+            CreateGrossYearSheet(workbook, "Year Summary", yearSummary, employeeDetails);
+            IXLWorksheet ws = workbook.Worksheet("Year Summary");
+            int startRow = 7;
+            const int columnCount = 22;
+
+            ws.Range(startRow, 1, startRow, columnCount).Merge();
+            ws.Cell(startRow, 1).Value = "Project Manager Analysis — " + currentPeriodLabel + " vs " + previousPeriodLabel;
+            ws.Cell(startRow, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            ws.Cell(startRow, 1).Style.Font.FontColor = XLColor.White;
+            ws.Cell(startRow, 1).Style.Font.Bold = true;
+            ws.Cell(startRow, 1).Style.Font.FontSize = 13;
+            int headerRow = startRow + 2;
+            ws.Cell(headerRow, 1).Value = "PM Name";
+            ws.Cell(headerRow, 2).Value = "# of People Managed " + currentPeriodLabel;
+            ws.Cell(headerRow, 3).Value = "# of People Managed " + previousPeriodLabel;
+            ws.Cell(headerRow, 4).Value = "Headcount Deviation";
+            ws.Cell(headerRow, 5).Value = "Productivity vs Target " + currentPeriodLabel;
+            ws.Cell(headerRow, 6).Value = "Productivity vs Target " + previousPeriodLabel;
+            ws.Cell(headerRow, 7).Value = "Productivity Deviation";
+            ws.Cell(headerRow, 8).Value = "Accuracy " + currentPeriodLabel;
+            ws.Cell(headerRow, 9).Value = "Accuracy " + previousPeriodLabel;
+            ws.Cell(headerRow, 10).Value = "Accuracy Deviation";
+            ws.Cell(headerRow, 11).Value = "Attrition Count";
+            ws.Cell(headerRow, 12).Value = "Attrition Cost";
+            string[] tenureGroups = { "Attrition < 3 Months", "Attrition 3 to 6 Months", "Attrition 6 to 12 Months", "Attrition 12 to 24 Months", "Attrition > 24 Months" };
+            for (int group = 0; group < tenureGroups.Length; group++)
+            {
+                int firstColumn = 13 + (group * 2);
+                ws.Range(headerRow, firstColumn, headerRow, firstColumn + 1).Merge();
+                ws.Cell(headerRow, firstColumn).Value = tenureGroups[group];
+                ws.Cell(headerRow + 1, firstColumn).Value = "Employee Count";
+                ws.Cell(headerRow + 1, firstColumn + 1).Value = "Salary Cost";
+            }
+            ws.Range(headerRow, 1, headerRow + 1, 1).Merge();
+            for (int column = 2; column <= 12; column++) ws.Range(headerRow, column, headerRow + 1, column).Merge();
+
+            SortedDictionary<string, ManagerAnalysisTotal> managerTotals = BuildManagerAnalysis(
+                comparison, employeeDetails, previousEmployeeDetails,
+                currentPerformance, previousPerformance, attritionDetails);
+
+            int outputRow = headerRow + 2;
+            foreach (KeyValuePair<string, ManagerAnalysisTotal> item in managerTotals)
+            {
+                ManagerAnalysisTotal total = item.Value;
+                decimal currentProductivity = total.CurrentProductivityRows == 0 ? 0M : total.CurrentProductivity / total.CurrentProductivityRows;
+                decimal previousProductivity = total.PreviousProductivityRows == 0 ? 0M : total.PreviousProductivity / total.PreviousProductivityRows;
+                decimal currentAccuracy = total.CurrentAccuracyRows == 0 ? 0M : total.CurrentAccuracy / total.CurrentAccuracyRows;
+                decimal previousAccuracy = total.PreviousAccuracyRows == 0 ? 0M : total.PreviousAccuracy / total.PreviousAccuracyRows;
+                ws.Cell(outputRow, 1).Value = item.Key;
+                ws.Cell(outputRow, 2).Value = total.CurrentPeople;
+                ws.Cell(outputRow, 3).Value = total.PreviousPeople;
+                ws.Cell(outputRow, 4).Value = total.CurrentPeople - total.PreviousPeople;
+                if (total.CurrentProductivityRows > 0) ws.Cell(outputRow, 5).Value = currentProductivity;
+                if (total.PreviousProductivityRows > 0) ws.Cell(outputRow, 6).Value = previousProductivity;
+                if (total.CurrentProductivityRows > 0 && total.PreviousProductivityRows > 0) ws.Cell(outputRow, 7).Value = currentProductivity - previousProductivity;
+                if (total.CurrentAccuracyRows > 0) ws.Cell(outputRow, 8).Value = currentAccuracy;
+                if (total.PreviousAccuracyRows > 0) ws.Cell(outputRow, 9).Value = previousAccuracy;
+                if (total.CurrentAccuracyRows > 0 && total.PreviousAccuracyRows > 0) ws.Cell(outputRow, 10).Value = currentAccuracy - previousAccuracy;
+                ws.Cell(outputRow, 11).Value = total.AttritionCount;
+                ws.Cell(outputRow, 12).Value = total.AttritionCost;
+                for (int bucket = 0; bucket < 5; bucket++)
+                {
+                    ws.Cell(outputRow, 13 + (bucket * 2)).Value = total.TenureCounts[bucket];
+                    ws.Cell(outputRow, 14 + (bucket * 2)).Value = total.TenureSalaryCosts[bucket];
+                }
+                outputRow++;
+            }
+
+            int lastDataRow = Math.Max(outputRow - 1, headerRow + 1);
+            IXLRange header = ws.Range(headerRow, 1, headerRow + 1, columnCount);
+            header.Style.Fill.BackgroundColor = XLColor.FromHtml("#5A78A8");
+            header.Style.Font.FontColor = XLColor.White;
+            header.Style.Font.Bold = true;
+            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            header.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            header.Style.Alignment.WrapText = true;
+            header.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            header.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+            if (managerTotals.Count > 0)
+            {
+                IXLRange dataRange = ws.Range(headerRow + 2, 1, lastDataRow, columnCount);
+                dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                ws.Range(headerRow + 2, 2, lastDataRow, 4).Style.NumberFormat.Format = "#,##0;[Red]-#,##0";
+                ws.Range(headerRow + 2, 5, lastDataRow, 10).Style.NumberFormat.Format = "0.00%";
+                ws.Range(headerRow + 2, 11, lastDataRow, 11).Style.NumberFormat.Format = "#,##0";
+                ws.Range(headerRow + 2, 12, lastDataRow, 12).Style.NumberFormat.Format = "#,##0.00";
+                for (int bucket = 0; bucket < 5; bucket++)
+                {
+                    ws.Range(headerRow + 2, 13 + (bucket * 2), lastDataRow, 13 + (bucket * 2)).Style.NumberFormat.Format = "#,##0";
+                    ws.Range(headerRow + 2, 14 + (bucket * 2), lastDataRow, 14 + (bucket * 2)).Style.NumberFormat.Format = "#,##0.00";
+                }
+                ws.Range(headerRow + 2, 4, lastDataRow, 4).AddConditionalFormat().WhenGreaterThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#E2F0D9"));
+                ws.Range(headerRow + 2, 4, lastDataRow, 4).AddConditionalFormat().WhenLessThan(0).Fill.SetBackgroundColor(XLColor.FromHtml("#FCE4D6"));
+            }
+
+            int noteRow = lastDataRow + 2;
+            ws.Cell(noteRow, 1).Value = "Manager / PM analysis source status:";
+            ws.Cell(noteRow, 1).Style.Font.Bold = true;
+            ws.Range(noteRow, 2, noteRow + 1, columnCount).Merge();
+            ws.Cell(noteRow, 2).Value = availabilityNote;
+            ws.Cell(noteRow, 2).Style.Alignment.WrapText = true;
+            ws.Row(noteRow).Height = 30;
+            ws.Columns(1, columnCount).AdjustToContents(1, 32);
+            ws.Column(1).Width = Math.Max(ws.Column(1).Width, 22);
+            for (int column = 2; column <= columnCount; column++) ws.Column(column).Width = Math.Max(ws.Column(column).Width, 14);
+        }
 
         private static void CreateYearComparisonSheet(
             XLWorkbook workbook,
@@ -749,6 +1215,210 @@ namespace WebPortal.Reports
             string from = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(fromMonth);
             string to = CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(toMonth);
             return from + " to " + to + " " + year.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static DataTable BuildDepartmentComparisonTable(
+            DataTable currentEmployees,
+            DataTable previousEmployees,
+            int currentYear,
+            int fromMonth,
+            int toMonth)
+        {
+            DataTable result = new DataTable("DepartmentComparison");
+            result.Columns.Add("Manager / Head of Department", typeof(string));
+            result.Columns.Add("Department", typeof(string));
+            result.Columns.Add("Current Employee Count", typeof(int));
+            result.Columns.Add("Current Total Salary", typeof(decimal));
+            result.Columns.Add("Previous Employee Count", typeof(int));
+            result.Columns.Add("Previous Total Salary", typeof(decimal));
+            result.Columns.Add("Headcount Deviation", typeof(int));
+            result.Columns.Add("Salary Deviation INR", typeof(decimal));
+            result.Columns.Add("Salary Deviation %", typeof(decimal));
+            result.Columns.Add("% of Total Workforce", typeof(decimal));
+            result.Columns.Add("% of Total Salary", typeof(decimal));
+
+            Dictionary<string, ComparisonGroupTotal> current = BuildComparisonGroups(
+                currentEmployees, currentYear, fromMonth, toMonth);
+            Dictionary<string, ComparisonGroupTotal> previous = BuildComparisonGroups(
+                previousEmployees, currentYear - 1, fromMonth, toMonth);
+            SortedSet<string> keys = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string key in current.Keys) keys.Add(key);
+            foreach (string key in previous.Keys) keys.Add(key);
+
+            HashSet<string> currentWorkforce = GetPeriodEmployees(currentEmployees, currentYear, fromMonth, toMonth);
+            decimal currentSalary = 0M;
+            foreach (ComparisonGroupTotal total in current.Values) currentSalary += total.Salary;
+
+            foreach (string key in keys)
+            {
+                ComparisonGroupTotal currentValue;
+                ComparisonGroupTotal previousValue;
+                if (!current.TryGetValue(key, out currentValue)) currentValue = new ComparisonGroupTotal();
+                if (!previous.TryGetValue(key, out previousValue)) previousValue = new ComparisonGroupTotal();
+                decimal salaryDeviation = currentValue.Salary - previousValue.Salary;
+
+                DataRow output = result.NewRow();
+                output["Manager / Head of Department"] = GetManagerFromPmDepartmentKey(key);
+                output["Department"] = GetDepartmentFromPmDepartmentKey(key);
+                output["Current Employee Count"] = currentValue.EmployeeCount;
+                output["Current Total Salary"] = currentValue.Salary;
+                output["Previous Employee Count"] = previousValue.EmployeeCount;
+                output["Previous Total Salary"] = previousValue.Salary;
+                output["Headcount Deviation"] = currentValue.EmployeeCount - previousValue.EmployeeCount;
+                output["Salary Deviation INR"] = salaryDeviation;
+                output["Salary Deviation %"] = previousValue.Salary == 0M ? 0M : salaryDeviation / previousValue.Salary;
+                output["% of Total Workforce"] = currentWorkforce.Count == 0 ? 0M : (decimal)currentValue.EmployeeCount / currentWorkforce.Count;
+                output["% of Total Salary"] = currentSalary == 0M ? 0M : currentValue.Salary / currentSalary;
+                result.Rows.Add(output);
+            }
+            return result;
+        }
+
+        private static Dictionary<string, ComparisonGroupTotal> BuildComparisonGroups(
+            DataTable table, int year, int fromMonth, int toMonth)
+        {
+            Dictionary<string, EmployeePeriodTotal> employees = new Dictionary<string, EmployeePeriodTotal>(StringComparer.OrdinalIgnoreCase);
+            if (table == null || !table.Columns.Contains("Year")) return new Dictionary<string, ComparisonGroupTotal>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (DataRow row in table.Rows)
+            {
+                int rowYear;
+                if (!int.TryParse(Convert.ToString(row["Year"]), out rowYear) || rowYear != year) continue;
+                int month = GetMonthNumber(row, GetStringValue(row, "MonthYear", "Month"));
+                if (month < fromMonth || month > toMonth) continue;
+                string employee = GetStringValue(row, "Code", "EmployeeID", "EmployeeCode", "Name").Trim();
+                if (employee.Length == 0) continue;
+
+                EmployeePeriodTotal employeeTotal;
+                if (!employees.TryGetValue(employee, out employeeTotal))
+                {
+                    employeeTotal = new EmployeePeriodTotal();
+                    employees[employee] = employeeTotal;
+                }
+                employeeTotal.Salary += GetTotalSalary(row);
+                int periodKey = rowYear * 100 + month;
+                if (periodKey >= employeeTotal.LatestPeriod)
+                {
+                    employeeTotal.LatestPeriod = periodKey;
+                    employeeTotal.Manager = GetReportingManager(row);
+                    employeeTotal.Department = GetReportingDepartment(row);
+                }
+            }
+
+            Dictionary<string, ComparisonGroupTotal> groups = new Dictionary<string, ComparisonGroupTotal>(StringComparer.OrdinalIgnoreCase);
+            foreach (EmployeePeriodTotal employee in employees.Values)
+            {
+                string key = MakePmDepartmentKey(employee.Manager, employee.Department);
+                ComparisonGroupTotal group;
+                if (!groups.TryGetValue(key, out group))
+                {
+                    group = new ComparisonGroupTotal();
+                    groups[key] = group;
+                }
+                group.EmployeeCount++;
+                group.Salary += employee.Salary;
+            }
+            return groups;
+        }
+
+        private static HashSet<string> GetPeriodEmployees(DataTable table, int year, int fromMonth, int toMonth)
+        {
+            HashSet<string> employees = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (table == null || !table.Columns.Contains("Year")) return employees;
+            foreach (DataRow row in table.Rows)
+            {
+                int rowYear;
+                if (!int.TryParse(Convert.ToString(row["Year"]), out rowYear) || rowYear != year) continue;
+                int month = GetMonthNumber(row, GetStringValue(row, "MonthYear", "Month"));
+                if (month < fromMonth || month > toMonth) continue;
+                string employee = GetStringValue(row, "Code", "EmployeeID", "EmployeeCode", "Name").Trim();
+                if (employee.Length > 0) employees.Add(employee);
+            }
+            return employees;
+        }
+
+        private static string GetReportingManager(DataRow row)
+        {
+            string manager = GetStringValue(row, "Reporting Manager", "ReportingManager", "Project Manager").Trim();
+            return manager.Length == 0 ? "(Not Assigned)" : manager;
+        }
+
+        private static string GetReportingDepartment(DataRow row)
+        {
+            string department = GetStringValue(row, "DepartmentName", "Department").Trim();
+            if (department.Equals("Support", StringComparison.OrdinalIgnoreCase) ||
+                department.Equals("Others", StringComparison.OrdinalIgnoreCase))
+            {
+                string sourceDepartment = GetStringValue(row, "Department", "Domain", "Subdomain").Trim();
+                if (sourceDepartment.Length > 0 &&
+                    !sourceDepartment.Equals("Support", StringComparison.OrdinalIgnoreCase) &&
+                    !sourceDepartment.Equals("Others", StringComparison.OrdinalIgnoreCase))
+                    department = sourceDepartment;
+            }
+            return department.Length == 0 ? "(Not Assigned)" : department;
+        }
+
+        private static decimal GetTotalSalary(DataRow row)
+        {
+            decimal total = GetDecimalValue(row, "GrossSalary", "Gross Salary", "Gross");
+            string[] sideColumns = { "SideRemuneration", "Side Remuneration", "AdditionalRemuneration", "Additional Remuneration", "OtherRemuneration", "Other Remuneration" };
+            foreach (string column in sideColumns)
+                if (row.Table.Columns.Contains(column)) total += ToDecimal(row[column]);
+            return total;
+        }
+
+        private static string GetManagerAnalysisAvailability(DataTable employeeDetails)
+        {
+            List<string> missing = new List<string>();
+            if (!HasAnyColumn(employeeDetails, "Productivity", "DailyTaskProductivity") ||
+                !HasAnyColumn(employeeDetails, "ProductivityTarget", "Productivity Target"))
+                missing.Add("productivity achieved/target");
+            if (!HasAnyColumn(employeeDetails, "Accuracy", "AccuracyAchieved") ||
+                !HasAnyColumn(employeeDetails, "AccuracyTarget", "Accuracy Target"))
+                missing.Add("accuracy achieved/target");
+            if (!HasAnyColumn(employeeDetails, "AttritionCost", "Attrition Cost"))
+                missing.Add("attrition cost and training/PM attribution rules");
+            if (!HasAnyColumn(employeeDetails, "SideRemuneration", "Side Remuneration", "AdditionalRemuneration", "Additional Remuneration", "OtherRemuneration", "Other Remuneration"))
+                missing.Add("separate side-remuneration components");
+            return missing.Count == 0
+                ? "All requested manager-analysis source fields are available."
+                : "Not available from dbo.usp_GetSalaryReportwithSummary result: " + string.Join(", ", missing.ToArray()) + ".";
+        }
+
+        private static string GetManagerAnalysisSourceStatus(
+            DataTable currentPerformance, DataTable previousPerformance, DataTable attritionDetails)
+        {
+            List<string> notes = new List<string>();
+            if (currentPerformance == null || currentPerformance.Rows.Count == 0)
+                notes.Add("current-period productivity/accuracy returned no rows");
+            if (previousPerformance == null || previousPerformance.Rows.Count == 0)
+                notes.Add("prior-period productivity/accuracy returned no rows");
+            if (attritionDetails == null || attritionDetails.Rows.Count == 0)
+                notes.Add("attrition report returned no rows");
+            return notes.Count == 0
+                ? "Productivity/accuracy: Admin/UserPerformanceReport; attrition counts, costs and tenure buckets: Admin/AttritionReport."
+                : "Source status: " + string.Join("; ", notes.ToArray()) + ".";
+        }
+
+        private static bool HasAnyColumn(DataTable table, params string[] names)
+        {
+            if (table == null) return false;
+            foreach (string name in names) if (table.Columns.Contains(name)) return true;
+            return false;
+        }
+
+        private sealed class EmployeePeriodTotal
+        {
+            public int LatestPeriod { get; set; }
+            public string Manager { get; set; }
+            public string Department { get; set; }
+            public decimal Salary { get; set; }
+        }
+
+        private sealed class ComparisonGroupTotal
+        {
+            public int EmployeeCount { get; set; }
+            public decimal Salary { get; set; }
         }
 
         private static Dictionary<string, YearDepartmentTotal> BuildYearDepartmentTotals(DataTable table, int year, int fromMonth, int toMonth)
@@ -2929,6 +3599,11 @@ namespace WebPortal.Reports
         public List<Dictionary<string, object>> YearSummary { get; set; }
         public List<Dictionary<string, object>> MonthDetails { get; set; }
         public List<Dictionary<string, object>> EmployeeDetails { get; set; }
+        public List<Dictionary<string, object>> ComparisonSummary { get; set; }
+        public string ComparisonPeriod { get; set; }
+        public string CurrentPeriodLabel { get; set; }
+        public string PreviousPeriodLabel { get; set; }
+        public string ManagerAnalysisAvailability { get; set; }
 
         public static SalaryReportResponse Fail(string message)
         {
@@ -2938,7 +3613,12 @@ namespace WebPortal.Reports
                 Message = message,
                 YearSummary = new List<Dictionary<string, object>>(),
                 MonthDetails = new List<Dictionary<string, object>>(),
-                EmployeeDetails = new List<Dictionary<string, object>>()
+                EmployeeDetails = new List<Dictionary<string, object>>(),
+                ComparisonSummary = new List<Dictionary<string, object>>(),
+                ComparisonPeriod = string.Empty,
+                CurrentPeriodLabel = string.Empty,
+                PreviousPeriodLabel = string.Empty,
+                ManagerAnalysisAvailability = string.Empty
             };
         }
     }

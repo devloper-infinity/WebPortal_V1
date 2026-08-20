@@ -1826,9 +1826,15 @@ pre {
     }
 
     .table thead th {
-        vertical-align: bottom;
+        /* vertical-align: bottom;
         background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
-        border-bottom: 2px solid #dee2e6;
+        border-bottom: 2px solid #dee2e6;*/
+        padding: 7px 8px;
+        border-color: #315270;
+        background: #092f57;
+        color: #fff;
+        font-weight: 700;
+        vertical-align: middle;
     }
 
     .table tbody + tbody {

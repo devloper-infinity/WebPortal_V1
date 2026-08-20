@@ -92,6 +92,14 @@
     <div class="dashboard-section" style="display:none;">
         <div class="report-section-title">Salary and Headcount Analysis</div>
 
+        <div class="erp-panel">
+            <div class="erp-panel-title">Primary Period Comparison — <span id="lblComparisonPeriod"></span></div>
+            <div class="erp-panel-body">
+                <div class="grid-wrapper"><div class="grid-loader"><div>Loading period comparison...</div></div><table id="tblDepartmentComparison" class="display nowrap table table-bordered table-sm" style="width:100%"></table></div>
+                <div id="lblManagerAnalysisAvailability" class="chart-note mt-2"></div>
+            </div>
+        </div>
+
         <div class="metric-section">
             <div class="metric-section-head"><strong>1. Headcount Analysis</strong><span>Trend chart and Excel-format department table</span></div>
             <div class="metric-chart-wrap">
@@ -210,6 +218,7 @@
                 bindCards(months);
                 bindCharts(months);
                 bindHorizontal(months);
+                bindDepartmentComparison(result.ComparisonSummary || [], result.ComparisonPeriod || '', result.CurrentPeriodLabel || 'Current Period', result.PreviousPeriodLabel || 'Previous Period', result.ManagerAnalysisAvailability || '');
                 bindYearSummary(result.YearSummary || [], result.EmployeeDetails || []);
                 bindMonthTidy(months);
                 bindEmployees(result.EmployeeDetails || []);
@@ -532,6 +541,32 @@
         bindExcelHorizontalTable('#tblDeviationHorizontal', 'deviation', model);
     }
 
+    function bindDepartmentComparison(rows, periodLabel, currentPeriodLabel, previousPeriodLabel, availability) {
+        if ($.fn.DataTable.isDataTable('#tblDepartmentComparison')) $('#tblDepartmentComparison').DataTable().destroy();
+        $('#tblDepartmentComparison').empty();
+        $('#lblComparisonPeriod').text(periodLabel);
+        $('#lblManagerAnalysisAvailability').text(availability);
+        if (!rows.length) { $('#tblDepartmentComparison').html('<thead><tr><th>No comparison data available</th></tr></thead>'); return; }
+        var columns = [
+            { title: 'Manager / Head of Department', data: 'Manager / Head of Department' },
+            { title: 'Department', data: 'Department' },
+            { title: currentPeriodLabel + ' Employee Count', data: 'Current Employee Count', className: 'amount' },
+            { title: currentPeriodLabel + ' Total Salary', data: 'Current Total Salary', render: money, className: 'amount' },
+            { title: previousPeriodLabel + ' Employee Count', data: 'Previous Employee Count', className: 'amount' },
+            { title: previousPeriodLabel + ' Total Salary', data: 'Previous Total Salary', render: money, className: 'amount' },
+            { title: 'Headcount Deviation', data: 'Headcount Deviation', className: 'amount' },
+            { title: 'Salary Deviation INR', data: 'Salary Deviation INR', render: money, className: 'amount' },
+            { title: 'Salary Deviation %', data: 'Salary Deviation %', render: ratio, className: 'amount' },
+            { title: '% of Total Workforce', data: '% of Total Workforce', render: ratio, className: 'amount' },
+            { title: '% of Total Salary', data: '% of Total Salary', render: ratio, className: 'amount' }
+        ];
+        $('#tblDepartmentComparison').DataTable({
+            data: rows, columns: columns, paging: false, searching: true, info: true,
+            scrollX: true, scrollY: '55vh', scrollCollapse: true, fixedHeader: true,
+            fixedColumns: { leftColumns: 2 }, order: [[0, 'asc'], [1, 'asc']]
+        });
+    }
+
     function bindExcelHorizontalTable(selector, type, model) {
         if ($.fn.DataTable.isDataTable(selector)) $(selector).DataTable().destroy();
         $(selector).empty();
@@ -605,10 +640,11 @@
     function getDepartmentsFromYearRows(rows) { var d = []; $.each(rows, function (_, r) { $.each(r, function (k) { var m = k.match(/^(.*) - Gross$/); if (m && d.indexOf(m[1]) < 0) d.push(m[1]); }); }); d.sort(); return d; }
     function findDepartment(list, name) { var n = name.toLowerCase(), found = null; $.each(list, function (_, d) { if (String(d).toLowerCase() === n) found = d; }); return found; }
     function monthNumberFromLabel(label) { if (!label) return 0; var m = String(label).split(/[-\s]/)[0].toLowerCase(), a = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']; return a.indexOf(m.substring(0, 3)) + 1; }
-    function destroyTables() { ['#tblHeadcountHorizontal', '#tblSalaryHorizontal', '#tblDeviationHorizontal', '#tblYearSummary', '#tblMonthTidy', '#tblEmployees'].forEach(function (id) { if ($.fn.DataTable.isDataTable(id)) $(id).DataTable().destroy(); $(id).empty(); }); }
+    function destroyTables() { ['#tblDepartmentComparison', '#tblHeadcountHorizontal', '#tblSalaryHorizontal', '#tblDeviationHorizontal', '#tblYearSummary', '#tblMonthTidy', '#tblEmployees'].forEach(function (id) { if ($.fn.DataTable.isDataTable(id)) $(id).DataTable().destroy(); $(id).empty(); }); }
     function destroyCharts() { $.each(reportCharts, function (_, c) { if (c && c.destroy) c.destroy(); }); reportCharts = {}; }
     function toggleLoader(show) { $('.grid-loader').css('display', show ? 'flex' : 'none'); }
     function deviation(data, type) { if (data === null || data === undefined || data === '') return type === 'display' ? '-' : -999999; var v = num(data); if (type !== 'display') return v; var cls = v > 0 ? 'dev-up' : v < 0 ? 'dev-down' : 'dev-flat'; return '<span class="' + cls + '">' + (v > 0 ? '+' : '') + v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%</span>'; }
+    function ratio(data, type) { var v = num(data); if (type !== 'display') return v; return (v * 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'; }
     function money(data, type) { var v = num(data); return type === 'display' ? formatMoney(v) : v; }
     function compactMoney(v) { var n = Number(v || 0); if (Math.abs(n) >= 10000000) return (n / 10000000).toFixed(1) + ' Cr'; if (Math.abs(n) >= 100000) return (n / 100000).toFixed(1) + ' L'; if (Math.abs(n) >= 1000) return (n / 1000).toFixed(0) + ' K'; return n.toLocaleString('en-IN'); }
     function formatMoney(v) { return Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }

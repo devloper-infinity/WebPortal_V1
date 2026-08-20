@@ -385,10 +385,10 @@ GO
 
 IF EXISTS
 (
-    SELECT ProjectID,UniqueCombinationHash
+    SELECT ProjectID,ProcessID,UniqueCombinationHash
     FROM dbo.OLTracking_Assignment
     WHERE IsCurrent=1 AND UniqueCombinationHash IS NOT NULL
-    GROUP BY ProjectID,UniqueCombinationHash
+    GROUP BY ProjectID,ProcessID,UniqueCombinationHash
     HAVING COUNT(1)>1
 )
     THROW 50112,'Resolve existing duplicate active configured unique combinations before creating the unique index.',1;
@@ -401,7 +401,7 @@ IF NOT EXISTS
       AND name='UX_OLTracking_Assignment_DynamicUnique'
 )
     CREATE UNIQUE INDEX UX_OLTracking_Assignment_DynamicUnique
-        ON dbo.OLTracking_Assignment(ProjectID,UniqueCombinationHash)
+        ON dbo.OLTracking_Assignment(ProjectID,ProcessID,UniqueCombinationHash)
         WHERE IsCurrent=1 AND UniqueCombinationHash IS NOT NULL;
 GO
 
@@ -451,6 +451,7 @@ BEGIN
         FROM @Selected selected
         INNER JOIN dbo.OLTracking_Assignment assignment
           ON assignment.ProjectID=@ProjectID
+         AND assignment.ProcessID=@ProcessID
          AND assignment.UniqueCombinationHash=selected.UniqueHash
          AND assignment.IsCurrent=1
     )
@@ -488,7 +489,7 @@ BEGIN
       AND NOT EXISTS
       (
           SELECT 1 FROM dbo.OLTracking_Assignment active
-          WHERE active.ProjectID=@ProjectID AND active.IsCurrent=1
+          WHERE active.ProjectID=@ProjectID AND active.ProcessID=@ProcessID AND active.IsCurrent=1
             AND active.UniqueCombinationHash=
                 HASHBYTES('SHA2_256',CONVERT(varbinary(max),identityValue.UniqueCombination))
       )
@@ -594,7 +595,7 @@ BEGIN
         (
             SELECT 1 FROM @Loans selected
             INNER JOIN dbo.OLTracking_Assignment active WITH(UPDLOCK,HOLDLOCK)
-              ON active.ProjectID=@ProjectID
+              ON active.ProjectID=@ProjectID AND active.ProcessID=@ProcessID
              AND active.UniqueCombinationHash=selected.UniqueHash
              AND active.IsCurrent=1
         )

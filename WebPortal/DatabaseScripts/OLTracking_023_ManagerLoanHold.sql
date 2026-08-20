@@ -248,6 +248,7 @@ BEGIN
       AND identityValue.UniqueCombination IS NOT NULL
       AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_LoanHold loanHold WHERE loanHold.ItemID=item.ItemID AND loanHold.ResumedDate IS NULL)
       AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Assignment active WHERE active.ProjectID=@ProjectID AND active.IsCurrent=1
+                     AND active.ProcessID=@ProcessID
                      AND active.UniqueCombinationHash=HASHBYTES('SHA2_256',CONVERT(varbinary(max),identityValue.UniqueCombination)))
       AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Assignment previous WHERE previous.ItemID=item.ItemID AND previous.ProcessID=@ProcessID
                      AND previous.AssignmentStatus IN('Completed','Skipped'))
@@ -285,7 +286,7 @@ BEGIN
     IF EXISTS(SELECT 1 FROM @Selected selected JOIN dbo.OLTracking_LoanHold loanHold ON loanHold.ItemID=selected.ItemID WHERE loanHold.ResumedDate IS NULL)
         THROW 50160,'One or more selected loans are on manager hold.',1;
     IF EXISTS(SELECT 1 FROM @Selected WHERE UniqueCombination IS NULL) THROW 50136,'One or more configured Unique Field values are missing for the selected loan.',1;
-    IF EXISTS(SELECT 1 FROM @Selected s JOIN dbo.OLTracking_Assignment a ON a.ProjectID=@ProjectID AND a.UniqueCombinationHash=s.UniqueHash AND a.IsCurrent=1)
+    IF EXISTS(SELECT 1 FROM @Selected s JOIN dbo.OLTracking_Assignment a ON a.ProjectID=@ProjectID AND a.ProcessID=@ProcessID AND a.UniqueCombinationHash=s.UniqueHash AND a.IsCurrent=1)
         THROW 50112,'The configured unique loan combination is already allocated to another user.',1;
 END;
 GO

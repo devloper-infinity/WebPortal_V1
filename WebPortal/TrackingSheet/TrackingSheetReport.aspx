@@ -25,13 +25,6 @@
                 font-size: 22px;
             }
 
-        .tr-head {
-            padding: 14px 20px;
-            background: #f3f7fb;
-            border-bottom: 1px solid #d7e3ef;
-            font-weight: 700
-        } 
-
         .tr-body {
             padding: 20px
         }
@@ -58,6 +51,57 @@
             color: #415d76;
             font-weight: 600
         }
+
+        .tr-view-tabs { display:flex; gap:8px; padding:10px 20px 0; background:#f3f7fb }
+        .tr-view-tab { padding:8px 14px; border:1px solid #cbd9e6; border-bottom:0; border-radius:7px 7px 0 0; background:#eaf1f7; color:#415d76; font-weight:700; cursor:pointer }
+        .tr-view-tab.active { background:#fff; color:#075985 }
+        .tr-deal-view { display:none }
+        .tr-kpis { display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:10px; margin-bottom:12px }
+        .tr-kpi { padding:10px 12px; border:1px solid #d7e3ef; border-radius:8px; background:#f8fbfd }
+        .tr-kpi span { display:block; color:#64748b; font-size:11px; font-weight:700; text-transform:uppercase }
+        .tr-kpi strong { display:block; margin-top:2px; color:#17324d; font-size:20px }
+        .tr-deal-filters { display:grid; grid-template-columns:minmax(220px,360px) 170px; justify-content:end; gap:8px; margin-bottom:10px }
+        .tr-deal-filters .form-control { height:32px; padding:5px 9px; font-size:11px; border-color:#ccd9e7 }
+        .tr-deal-list { display:grid; gap:10px }
+        .tr-deal-card { border:1px solid #d7e3ef; border-radius:7px; overflow:hidden; background:#fff; box-shadow:0 2px 8px rgba(15,42,75,.05) }
+        .tr-deal-overview { display:grid; grid-template-columns:170px 190px minmax(310px,1.3fr) minmax(360px,1.5fr); gap:7px; padding:7px; background:#f8fafc }
+        .tr-deal-identity,.tr-summary-panel { min-width:0; padding:9px 10px; border:1px solid #dbe5ef; border-radius:6px; background:#fff }
+        .tr-deal-identity { display:flex; flex-direction:column; justify-content:center }
+        .tr-deal-title strong { display:block; color:#102b4e; font-size:17px }
+        .tr-deal-title span { display:block; margin-top:8px; color:#285b91; font-size:11px; font-weight:700 }
+        .tr-panel-label { display:block; margin-bottom:7px; color:#17324d; font-size:10px; font-weight:800 }
+        .tr-overall-value { display:flex; justify-content:space-between; align-items:end; margin-bottom:7px }
+        .tr-overall-value strong { color:#07806c; font-size:21px; line-height:1 }
+        .tr-overall-value span { color:#64748b; font-size:9px }
+        .tr-status-counters { display:grid; grid-template-columns:repeat(5,minmax(48px,1fr)); gap:5px }
+        .tr-status-counter { padding:5px 3px; border:1px solid #e2e8f0; border-radius:5px; background:#f8fafc; text-align:center }
+        .tr-status-counter span { display:block; font-size:9px; font-weight:700 }
+        .tr-status-counter strong { display:block; margin-top:2px; color:#17324d; font-size:17px; line-height:1.15 }
+        .tr-status-counter.assigned span,.tr-status-counter.inprocess span { color:#1768c4 }
+        .tr-status-counter.pending { background:#fffbeb }.tr-status-counter.pending span { color:#b7791f }
+        .tr-status-counter.hold span { color:#64748b }.tr-status-counter.completed { background:#f0fdf4 }.tr-status-counter.completed span { color:#15803d }
+        .tr-review-list { display:grid; grid-template-columns:repeat(2,minmax(150px,1fr)); gap:5px 12px }
+        .tr-review-row { display:grid; grid-template-columns:80px 1fr; gap:7px; align-items:center; color:#64748b; font-size:9px; white-space:nowrap }
+        .tr-review-row > strong { overflow:hidden; color:#334e68; text-overflow:ellipsis }
+        .tr-review-counts .done { color:#15803d }.tr-review-counts .active { color:#1768c4 }.tr-review-counts .waiting { color:#b7791f }.tr-review-counts .held { color:#64748b }
+        .tr-deal-toolbar { display:flex; justify-content:space-between; align-items:center; min-height:37px; padding:5px 10px; border-top:1px solid #dbe5ef; border-bottom:1px solid #dbe5ef; background:#fff }
+        .tr-deal-toolbar strong { color:#17324d; font-size:12px }
+        .tr-deal-expand { min-width:86px; padding:4px 9px; white-space:nowrap; font-size:10px }
+        .tr-deal-detail { display:none; padding:0 10px 7px; background:#fff; overflow-x:auto }
+        .tr-deal-detail table { min-width:1050px; margin:7px 0 0; border-collapse:separate; border-spacing:0; background:#fff; font-size:10px }
+        .tr-deal-detail table th { padding:7px 8px; border-color:#315270; background:#092f57; color:#fff; font-weight:700; vertical-align:middle }
+        .tr-deal-detail table td { padding:6px 8px; border-color:#dbe5ef; color:#233f5d; vertical-align:middle }
+        .tr-deal-detail table tbody tr:nth-child(even) { background:#fbfdff }
+        .tr-deal-detail table tbody tr:hover { background:#f0f7ff }
+        .tr-deal-detail table tfoot th { padding:6px 8px; border-color:#dbe5ef; background:#f8fafc; color:#17324d }
+        .tr-loan-link { color:#0969da; font-weight:800 }
+        .tr-loan-completion { color:#075985 }
+        .tr-status { display:inline-block; padding:3px 7px; border-radius:999px; font-size:10px; font-weight:700; white-space:nowrap }
+        .tr-status.completed { background:#eaf8f1; color:#166534 }
+        .tr-status.in-process { background:#e9f6fd; color:#075985 }
+        .tr-status.hold { background:#fff1e8; color:#9a3412 }
+        .tr-status.pending { background:#fff8df; color:#854d0e }
+        .tr-empty { padding:24px; border:1px dashed #cbd5e1; border-radius:8px; text-align:center; color:#64748b }
 
         .tr-wrap {
             width: 100%;
@@ -112,6 +156,7 @@
             .tr-filters {
                 grid-template-columns: 1fr 1fr
             }
+            .tr-deal-overview { grid-template-columns:1fr 1fr }
         }
 
         @media(max-width:600px) {
@@ -121,6 +166,9 @@
             .tr-stage-grid { grid-template-columns:1fr }
             .tr-process-summary { width:210px }
             .tr-flow-detail-head { display:block }
+            .tr-kpis { grid-template-columns:1fr 1fr }
+            .tr-deal-filters,.tr-deal-overview { grid-template-columns:1fr }
+            .tr-review-list { grid-template-columns:1fr }
         }
     </style>
 </asp:Content>
@@ -147,16 +195,34 @@
             </div>
         </div>
         <div id="trResults" class="tr-card tr-results">
-            <div class="tr-head">Report Results</div>
-            <div class="tr-body">
+            <div class="tr-head">Tracking Sheet Report</div>
+            <div class="tr-view-tabs" role="tablist">
+                <button type="button" class="tr-view-tab active" data-view="loan">Loan Wise Report</button>
+                <button type="button" class="tr-view-tab" data-view="deal">Deal Wise Status</button>
+            </div>
+            <div id="trLoanView" class="tr-body">
                 <div id="trSummary" class="tr-summary"></div>
                 <div class="tr-legend"><span class="tr-process-step completed"><span class="tr-status-dot"></span>Completed</span><span class="tr-process-step pending"><span class="tr-status-dot"></span>Pending</span><span class="tr-process-step skipped"><span class="tr-status-dot"></span>Skipped</span><span class="tr-process-step in-process current"><span class="tr-status-dot"></span>Current process</span></div>
                 <div class="tr-wrap">
                     <table id="trTable" class="table table-bordered table-striped table-hover"></table>
                 </div>
             </div>
+            <div id="trDealView" class="tr-body tr-deal-view">
+                <div id="trDealKpis" class="tr-kpis"></div>
+                <div class="tr-deal-filters">
+                    <input type="search" id="trDealSearch" class="form-control" placeholder="Search Deal" aria-label="Search Deal" />
+                    <select id="trDealStatus" class="form-control" aria-label="Deal Status">
+                        <option value="">All statuses</option>
+                        <option value="Completed">Completed</option>
+                        <option value="In Process">In Process</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Hold">Hold</option>
+                    </select>
+                </div>
+                <div id="trDealList" class="tr-deal-list"></div>
+            </div>
         </div>
     </div>
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/TrackingSheet/TrackingSheetReport.js?v=20260816.2"></script>
+    <script src="../Scripts/TrackingSheet/TrackingSheetReport.js?v=20260819.2"></script>
 </asp:Content>

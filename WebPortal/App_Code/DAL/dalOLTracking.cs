@@ -606,6 +606,8 @@ BEGIN TRY
 END TRY
 BEGIN CATCH
     IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;
+    IF ERROR_NUMBER() IN (2601,2627)
+        THROW 50112,'This loan and process combination is already allocated to another user.',1;
     THROW;
 END CATCH") { CommandType = CommandType.Text, CommandTimeout = 90 };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
@@ -618,10 +620,15 @@ END CATCH") { CommandType = CommandType.Text, CommandTimeout = 90 };
 
         public long StartNonTrackingLoan(int projectId, int processId, string loanNumber, string dealNumber, long assignmentId, int userId)
         {
+            EnsureSingleInProcessIndex();
             SqlCommand command = new SqlCommand(@"
 SET NOCOUNT ON; SET XACT_ABORT ON;
 BEGIN TRY
     BEGIN TRANSACTION;
+    DECLARE @LockResult int,@LockResource nvarchar(255)=N'OLTracking_InProcess_User_'+CONVERT(nvarchar(20),@UserID);
+    EXEC @LockResult=sys.sp_getapplock @Resource=@LockResource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+    IF @LockResult<0 THROW 50132,'Unable to verify the active loan. Please try again.',1;
+
     IF NOT EXISTS
     (
         SELECT 1 FROM dbo.OLTracking_ProcessFlow
@@ -630,6 +637,15 @@ BEGIN TRY
         THROW 50138,'The selected process uses the standard Tracking Sheet workflow.',1;
 
     DECLARE @ResolvedAssignmentID bigint=@AssignmentID;
+    IF EXISTS
+    (
+        SELECT 1 FROM dbo.OLTracking_Assignment activeAssignment WITH(UPDLOCK,HOLDLOCK)
+        WHERE activeAssignment.UserID=@UserID AND activeAssignment.IsCurrent=1
+          AND activeAssignment.AssignmentStatus='In Process'
+          AND (ISNULL(@ResolvedAssignmentID,0)<=0 OR activeAssignment.AssignmentID<>@ResolvedAssignmentID)
+    )
+        THROW 50132,'Another loan is already in process.',1;
+
     IF ISNULL(@ResolvedAssignmentID,0)<=0
     BEGIN
         DECLARE @Allocated table(AssignmentID bigint);
@@ -1166,10 +1182,8 @@ SELECT CAST(NULL AS bigint) AssignmentID,a.LoanNo,a.DealNo,@UserName UserName,
        CAST(CASE WHEN EXISTS
        (
            SELECT 1 FROM dbo.OLTracking_Assignment activeAssignment
-           JOIN dbo.OLTracking_ProcessFlow activeFlow ON activeFlow.ProjectID=activeAssignment.ProjectID
-                AND activeFlow.ProcessID=activeAssignment.ProcessID AND activeFlow.IsActive=1
            WHERE activeAssignment.UserID=@UserID AND activeAssignment.IsCurrent=1
-             AND activeAssignment.AssignmentStatus='In Process' AND activeFlow.IsTrackingSheetProcess=0
+             AND activeAssignment.AssignmentStatus='In Process'
        ) THEN 1 ELSE 0 END AS bit) StartBlocked
 FROM Available a
 JOIN dbo.OLTracking_ProcessFlow f ON f.ProjectID=@ProjectID AND f.ProcessID=@ProcessID AND f.IsActive=1
@@ -1181,10 +1195,8 @@ SELECT assignment.AssignmentID,item.ItemNumber LoanNo,ISNULL(item.DealNumber,'')
        CAST(CASE WHEN EXISTS
        (
            SELECT 1 FROM dbo.OLTracking_Assignment activeAssignment
-           JOIN dbo.OLTracking_ProcessFlow activeFlow ON activeFlow.ProjectID=activeAssignment.ProjectID
-                AND activeFlow.ProcessID=activeAssignment.ProcessID AND activeFlow.IsActive=1
            WHERE activeAssignment.UserID=@UserID AND activeAssignment.IsCurrent=1
-             AND activeAssignment.AssignmentStatus='In Process' AND activeFlow.IsTrackingSheetProcess=0
+             AND activeAssignment.AssignmentStatus='In Process'
              AND activeAssignment.AssignmentID<>assignment.AssignmentID
        ) THEN 1 ELSE 0 END AS bit) StartBlocked
 FROM dbo.OLTracking_Assignment assignment
@@ -1211,10 +1223,8 @@ IF EXISTS
 (
     SELECT 1
     FROM dbo.OLTracking_Assignment activeAssignment WITH(UPDLOCK,HOLDLOCK)
-    JOIN dbo.OLTracking_ProcessFlow activeFlow ON activeFlow.ProjectID=activeAssignment.ProjectID
-         AND activeFlow.ProcessID=activeAssignment.ProcessID AND activeFlow.IsActive=1
     WHERE activeAssignment.UserID=@UserID AND activeAssignment.IsCurrent=1
-      AND activeAssignment.AssignmentStatus='In Process' AND activeFlow.IsTrackingSheetProcess=0
+      AND activeAssignment.AssignmentStatus='In Process'
       AND (@AssignmentID<=0 OR activeAssignment.AssignmentID<>@AssignmentID)
 )
     THROW 50132,'Complete or place the current In Process loan on hold before starting another loan.',1;")
