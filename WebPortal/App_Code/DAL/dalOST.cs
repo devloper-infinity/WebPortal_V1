@@ -1,10 +1,10 @@
-﻿using DocumentFormat.OpenXml.Office.Word;
+﻿//using DocumentFormat.OpenXml.Office.Word;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
+//using System.Linq;
 using System.Web;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;

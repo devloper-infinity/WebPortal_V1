@@ -14,7 +14,8 @@
         queueLoaded: false,
         pendingRequests: 0,
         processOrder: null,
-        statusOrder: null
+        statusOrder: null,
+        product_Type: null
     };
 
     $(initialize);
@@ -153,6 +154,9 @@
     }
 
     function renderOrderSummary(row) {
+
+        product_Type = pick(row, 'ProductType');
+
         var fields = [
             ['Project #', pick(row, 'ProjectNumber')],
             ['Product Type', pick(row, 'ProductType')],
@@ -218,6 +222,7 @@
         form.append('searchCost', stripMoney($('#vmSearchCost').val()));
         form.append('copyCost', stripMoney($('#vmCopyCost').val()));
         form.append('total', stripMoney($('#vmTotalCost').val()));
+        form.append('ProductType', product_Type);
 
         if (mode === 'Offline') {
             if (!$('#vmFullAbstractor').val()) {

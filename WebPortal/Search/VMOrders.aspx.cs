@@ -1,3 +1,4 @@
+using AjaxControlToolkit.HTMLEditor.ToolbarButton;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Text;
 using System.Web;
@@ -21,6 +23,7 @@ namespace WebPortal.Search
 {
     public partial class VMOrders : Page
     {
+        static DataRow order_row = null;
         protected void Page_Load(object sender, EventArgs e)
         {
             string action = Request.QueryString["action"];
@@ -100,7 +103,14 @@ namespace WebPortal.Search
 
             DataTable order = ost.GetAbstractorCoverageDetails(orderId);
 
-            if (order == null || order.Rows.Count == 0) throw new InvalidOperationException("The selected order was not found.");
+            if (order == null || order.Rows.Count == 0)
+            {
+                throw new InvalidOperationException("The selected order was not found.");
+            }
+            else
+            {
+                order_row = order.Rows[0];
+            }
 
             string project = Value(order.Rows[0], "ProjectNumber");
             string product = Value(order.Rows[0], "ProductType");
@@ -109,6 +119,8 @@ namespace WebPortal.Search
                 Order = First(order),
                 Documents = Rows(ost.GetAllDocAndProductRelatedToProject(project, product))
             };
+
+            // return "";
         }
 
         [WebMethod(EnableSession = true)]
@@ -135,12 +147,12 @@ namespace WebPortal.Search
 
             if (selectedView.Equals("allProjects", StringComparison.OrdinalIgnoreCase))
             {
-              //  if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all projects.");
+                //  if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all projects.");
                 table = GetAllProjectQueue();
             }
             else if (selectedView.Equals("all", StringComparison.OrdinalIgnoreCase))
             {
-               // if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all orders.");
+                // if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all orders.");
                 if (string.IsNullOrWhiteSpace(project) || project.Equals("Select", StringComparison.OrdinalIgnoreCase))
                     throw new ArgumentException("Please select project.");
                 table = vendors.GetAllInfinityOrderTraking_VM(
@@ -563,11 +575,11 @@ namespace WebPortal.Search
             bllOST ost = new bllOST();
             DataTable orderTable = ost.GetOrderByID_VM(orderId);
 
-            if (orderTable == null || orderTable.Rows.Count == 0)
-                return Result(false, "The selected order was not found.");
+            //if (orderTable == null || orderTable.Rows.Count == 0)
+            //    return Result(false, "The selected order was not found.");
+            //DataRow order = orderTable.Rows[0];
 
-            DataRow order = orderTable.Rows[0];
-            string product = Value(order, "ProductType");
+            string product = (Request.Form["ProductType"] ?? string.Empty).Trim();
             string searchCost = MoneyText(Request.Form["searchCost"]);
             string copyCost = MoneyText(Request.Form["copyCost"]);
             string total = MoneyText(Request.Form["total"]);
@@ -580,6 +592,7 @@ namespace WebPortal.Search
                 if (abstractorId <= 0) return Result(false, "Please select company name.");
 
                 allocatedTo = (Request.Form["abstractorName"] ?? string.Empty).Trim();
+
                 inserted += InsertAbstractorTask(ost, orderId, product, processId, "Offline", 0, abstractorId,
                     Request.Form["deliveryMethod"] ?? string.Empty, Request.Form["eta"] ?? string.Empty,
                     searchCost, copyCost, total, addedBy);
@@ -621,10 +634,10 @@ namespace WebPortal.Search
             SaveOptionalAttachment(ost, orderId, processId, addedBy, "VM Order Allocation");
             string comment = mode == "Offline" ? "Order Allocate to " + allocatedTo + " Abstractor" : "Order Allocated to Abstractor.";
 
-            ost.InsertCommentOrder(orderId, 0, "Auto", comment, addedBy);
+            //ost.InsertCommentOrder(orderId, 0, "Auto", comment, addedBy);
 
             if (mode == "Offline")
-                TrySendAllocationMail(order, allocatedTo, addedBy);
+                TrySendAllocationMail(order_row, allocatedTo, addedBy);
 
             return Result(true, "Order allocated successfully.", inserted);
         }
@@ -645,7 +658,7 @@ namespace WebPortal.Search
             values["SeachCost"] = searchCost;
             values["CopyCost"] = copyCost;
             values["Total"] = total;
-            return ost.InsertOrderTaskForAbstractor(values) > 0 ? 1 : 0;
+            return 10;// ost.InsertOrderTaskForAbstractor(values) > 0 ? 1 : 0;
         }
 
         private VmResult ImportOrders()
@@ -962,21 +975,104 @@ namespace WebPortal.Search
                 body.Append("</table><br/><br/><table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
                 body.Append("<tr><td>Thanks,<br/>Infinity ERP</td></tr></table>");
 
-                using (MailMessage message = new MailMessage())
-                {
-                    message.From = new MailAddress("ack@infinityinternationals.us", "Orders");
-                    message.To.Add("josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
-                    message.Subject = "A new Order(" + orderNo + " )has been assigned to Abstractor : " + abstractor;
-                    message.Body = body.ToString();
-                    message.IsBodyHtml = true;
-                    using (SmtpClient client = new SmtpClient()) client.Send(message);
-                }
+                string ToAddress = "b.shubhangi@infinityinternationals.us"; // "josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
+                string ToCC = "";
+                string ToBCC = "";
+                string Subject = "A new Order(" + orderNo + " )has been assigned to Abstractor : " + abstractor;
+                string strPassword = new bllMaster().GetPassword("ackdata");
+
+                //using (MailMessage message = new MailMessage())
+                //{
+                //    message.From = new MailAddress("ack@infinityinternationals.us", "Orders");
+                //    message.To.Add(ToAddress);
+                //    message.Subject = "A new Order(" + orderNo + " )has been assigned to Abstractor : " + abstractor;
+                //    message.Body = body.ToString();
+                //    message.IsBodyHtml = true;
+                //    using (SmtpClient client = new SmtpClient()) client.Send(message);
+                //}
+
+                sendMail_Vendor(ToAddress, ToCC, ToBCC, Subject, body, strPassword);
             }
             catch
             {
                 // Allocation remains successful when the notification service is unavailable, as in the ERP workflow.
             }
         }
+
+        public static bool sendMail_Vendor(string ToAddress, string ToCC, string ToBCC, string Subject, StringBuilder htmlBody, string Pwd)
+        {
+            MailMessage mail = null;
+            SmtpClient client = null;
+            try
+            {
+                String Body = htmlBody.ToString();
+                StringBuilder template = new StringBuilder();
+                template.Append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /></head><body style=\"margin:0;padding:0;background-color:#eef2f7;\">");
+                //template.Append("<img src=\"http://www.infinity-data.com/images/TemplateHeader.png\" /><br />");
+                template.Append(Body);
+                //template.Append("<br /><img src=\"http://www.infinity-data.com/images/TemplateFooter.png\" />");
+                template.Append("</body></html>");
+                mail = new MailMessage();
+                mail.To.Add(ToAddress);
+                if (ToCC != "")
+                    mail.CC.Add(ToCC);
+                if (ToBCC != "")
+                    mail.Bcc.Add(ToBCC);
+                mail.From = new MailAddress("ack@infinity-data.com", "Orders", System.Text.Encoding.UTF8);
+                mail.Subject = Subject;
+                mail.SubjectEncoding = System.Text.Encoding.UTF8;
+                mail.Body = template.ToString();
+                mail.BodyEncoding = System.Text.Encoding.UTF8;
+                mail.IsBodyHtml = true;
+
+                //if (Path != "")
+                //{
+                //    Attachment at = new Attachment(Path);
+                //    at.Name = Subject + " All Orders" + ".xlsx";
+                //    mail.Attachments.Add(at);
+                //}
+
+                //if (!string.IsNullOrWhiteSpace(ZipPath) && File.Exists(ZipPath))
+                //{
+                //    Attachment zipAttachment = new Attachment(ZipPath);
+                //    zipAttachment.Name = Subject + " Cost Approval Attachments.zip";
+                //    mail.Attachments.Add(zipAttachment);
+                //}
+
+                mail.Priority = System.Net.Mail.MailPriority.High;
+                client = new SmtpClient();
+                client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", Pwd);
+
+                client.Host = "smtp.office365.com";  //Gmail works on Server Secured Layer
+                client.Port = 587;
+                client.EnableSsl = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+
+                client.EnableSsl = true;
+                client.Send(mail);
+                htmlBody.Remove(0, htmlBody.Length);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                //lblError.Text = ex.ToString();
+                return false;
+            }
+            finally
+            {
+                if (mail != null)
+                {
+                    mail.Dispose();
+                }
+
+                if (client != null)
+                {
+                    client.Dispose();
+                }
+            }
+        }
+
 
         private static void AppendAllocationMailRow(StringBuilder body, string label, string value)
         {
