@@ -233,7 +233,7 @@ namespace WebPortal.Admin
                 }
 
                 // Remove columns that should not be exported.
-                RemoveColumnIfExists(dt, "FeedbackID");
+                //RemoveColumnIfExists(dt, "FeedbackID");
 
                 ExportDataTableToExcel(dt, "Feedback_Details");
 
@@ -262,6 +262,7 @@ namespace WebPortal.Admin
             gvExport.GridLines = GridLines.Both;
 
             // Match Excel headers with table_InfinityFeedback headers
+            AddExportColumn(gvExport, "FeedbackID", "FeedbackID");
             AddExportColumn(gvExport, "LoanNumber", "Loan Number");
             AddExportColumn(gvExport, "Client", "Client");
             AddExportColumn(gvExport, "UWName", "UW Name");
