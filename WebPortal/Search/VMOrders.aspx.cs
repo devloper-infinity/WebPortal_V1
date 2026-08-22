@@ -16,6 +16,7 @@ using System.Web.Script.Serialization;
 using System.Web.Script.Services;
 using System.Web.Services;
 using System.Web.UI;
+using WebPortal.App_Code.Class;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.DAL;
 
@@ -23,7 +24,6 @@ namespace WebPortal.Search
 {
     public partial class VMOrders : Page
     {
-        static DataRow order_row = null;
         protected void Page_Load(object sender, EventArgs e)
         {
             string action = Request.QueryString["action"];
@@ -109,7 +109,6 @@ namespace WebPortal.Search
             }
             else
             {
-                order_row = order.Rows[0];
             }
 
             string project = Value(order.Rows[0], "ProjectNumber");
@@ -155,9 +154,7 @@ namespace WebPortal.Search
                 // if (!isPm) throw new InvalidOperationException("Only a VM Project Manager can view all orders.");
                 if (string.IsNullOrWhiteSpace(project) || project.Equals("Select", StringComparison.OrdinalIgnoreCase))
                     throw new ArgumentException("Please select project.");
-                table = vendors.GetAllInfinityOrderTraking_VM(
-                    from.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture),
-                    to.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture), project);
+                table = vendors.GetAllInfinityOrderTraking_VM(from.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture), to.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture), project);
             }
             else
             {
@@ -197,33 +194,45 @@ namespace WebPortal.Search
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static object GetCommentData(int orderId)
         {
-            bllVendors vendors = new bllVendors();
-            DataTable order = vendors.GetOrderByID_VM(orderId);
+            if (orderId <= 0) throw new ArgumentException("Select a valid order.");
+            return BuildFollowUpData(orderId);
+        }
+
+        private static object BuildFollowUpData(int orderId)
+        {
+            bllOST ost = new bllOST();
+            DataTable order = ost.GetOrderByID_VM(orderId);
             Dictionary<string, object> first = First(order);
+            DataTable comments = ost.GetAllCommentOrderwise_VM(orderId);
             return new
             {
+                OrderId = Pick(first, "OrderID", "OrderId"),
                 OrderNo = Pick(first, "ClientOrderNo", "OrderNumber"),
                 OrderDate = Pick(first, "OrderDate", "Orderdate"),
                 VM = Pick(first, "VM", "VMName"),
                 Abstractor = Pick(first, "Abstractor", "AbstractorName"),
-                Comments = Rows(vendors.GetAllCommentOrderwise_VM(orderId))
+                CommentCount = comments == null ? 0 : comments.Rows.Count,
+                Comments = Rows(comments)
             };
         }
 
         [WebMethod(EnableSession = true)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        public static List<Dictionary<string, object>> SaveComment(int orderId, string type, string comment)
+        public static object SaveComment(int orderId, string type, string comment)
         {
             if (orderId <= 0) throw new ArgumentException("Select a valid order.");
+            if (string.IsNullOrWhiteSpace(type) || type.Equals("Select", StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Please select Type.");
             if (string.IsNullOrWhiteSpace(comment)) throw new ArgumentException("Please enter comment.");
+            if (comment.Trim().Length > 40000) throw new ArgumentException("Comment cannot exceed 40000 characters.");
             Hashtable values = new Hashtable();
             values["OrderId"] = orderId;
-            values["Type"] = string.IsNullOrWhiteSpace(type) ? "Connect With Abstractor" : type.Trim();
+            values["Type"] = type.Trim();
             values["Comment"] = comment.Trim();
             values["AddedBy"] = CurrentUserId();
-            bllVendors vendors = new bllVendors();
-            if (vendors.InsertFollowUp(values) <= 0) throw new InvalidOperationException("Comment was not saved.");
-            return Rows(vendors.GetAllCommentOrderwise_VM(orderId));
+            bllOST ost = new bllOST();
+            if (ost.InsertFollowUp(values) <= 0) throw new InvalidOperationException("Follow-up comment was not saved.");
+            return BuildFollowUpData(orderId);
         }
 
         [WebMethod(EnableSession = true)]
@@ -274,6 +283,8 @@ namespace WebPortal.Search
 
         public class ChangeStatusRequest
         {
+            public string OrderId { get; set; }
+            public string Action { get; set; }
             public string ProjectNumber { get; set; }
             public string OrderNumber { get; set; }
             public string OrderDate { get; set; }
@@ -336,7 +347,7 @@ namespace WebPortal.Search
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static List<VendorDto> GetVendors()
         {
-            DataTable table = new bllVendors().BindChangeOrderStatus("Vendor");
+            DataTable table = new bllOST().GetAllAbsRegistration();
             List<VendorDto> result = new List<VendorDto>();
             if (table == null) return result;
 
@@ -344,8 +355,8 @@ namespace WebPortal.Search
             {
                 result.Add(new VendorDto
                 {
-                    EmployeeID = Convert.ToString(row["EmployeeID"]),
-                    FullName = Convert.ToString(row["FullName"])
+                    EmployeeID = GetColumnValue(row, "AbstractorID", "EmployeeID"),
+                    FullName = GetColumnValue(row, "AbstractorCode", "FullName")
                 });
             }
             return result;
@@ -361,7 +372,7 @@ namespace WebPortal.Search
 
             try
             {
-                DataTable table = new bllVendors().GetOrderByID_VM(parsedOrderId);
+                DataTable table = new bllOST().GetOrderByID_VM(parsedOrderId);
                 if (table == null || table.Rows.Count == 0)
                     return ApiResult.Fail("Order details were not found.");
 
@@ -399,59 +410,44 @@ namespace WebPortal.Search
 
             try
             {
+                int orderId;
+                if (!int.TryParse(request.OrderId, out orderId) || orderId <= 0)
+                    return ApiResult.Fail("Select a valid order.");
                 if (string.IsNullOrWhiteSpace(request.OrderNo))
                     return ApiResult.Fail("Order number is required.");
                 if (string.IsNullOrWhiteSpace(request.FileName) || string.IsNullOrWhiteSpace(request.FileBase64))
                     return ApiResult.Fail("Please select the completed file.");
-                if (Path.GetFileName(request.FileName).IndexOf(request.OrderNo, StringComparison.OrdinalIgnoreCase) < 0)
-                    return ApiResult.Fail("Order number and attachment filename must match.");
+                if (string.IsNullOrWhiteSpace(request.Remark))
+                    return ApiResult.Fail("Please enter remark.");
 
                 int addedBy = CurrentUserId();
                 byte[] file = Convert.FromBase64String(request.FileBase64);
                 string safeFileName = Path.GetFileName(request.FileName);
-                string folder = HttpContext.Current.Server.MapPath(
-                    "~/Vendor/VM/" + DateTime.Now.ToString("dd-MMM-yyyy") + "/" + SafeName(request.OrderNo) + "/");
-                Directory.CreateDirectory(folder);
-                File.WriteAllBytes(Path.Combine(folder, safeFileName), file);
+                if (string.IsNullOrWhiteSpace(safeFileName))
+                    return ApiResult.Fail("Please select a valid completed file.");
 
-                bllVendors tracking = new bllVendors();
                 Hashtable status = new Hashtable();
-                status["OrderID"] = request.OrderNo;
-                status["Remark"] = request.Remark ?? string.Empty;
+                status["OrderID"] = orderId;
+                status["Reamrk"] = request.Remark.Trim();
                 status["AddedBy"] = addedBy;
-
-                int statusResult = request.ProjectNumber == "736-002"
-                    ? UpdateTaskStatusDateForAbstractor(request.OrderId, request.Remark, addedBy)
-                    : tracking.UpdateTaskStatusDateForAbstractor(status);
+                int statusResult = new bllOST().UpdateTaskStatusDateForAbstractor(status);
                 if (statusResult <= 0)
                     return ApiResult.Fail("Unable to update the order status.");
 
-                Hashtable fileUpdate = new Hashtable();
-                fileUpdate["OrderID"] = request.OrderNo;
-                fileUpdate["CompleteFile"] = file;
-                if (tracking.UpdateTaskStatusAbstractorFile(fileUpdate, file.Length) <= 0)
-                    return ApiResult.Fail("Unable to save the completed file.");
-
-                int completeResult = request.ProjectNumber == "736-002"
-                    ? CompleteAllocateOrderToVendorInTrackingSheet(
-                        request.ProjectNumber, request.OrderNo, request.OrderDate, addedBy, request.Process)
-                    : tracking.CompleteAllocateOrderToVendorInTrackingSheet(
-                        request.ProjectNumber, request.OrderNo, request.OrderDate, addedBy);
-                if (completeResult <= 0)
-                    return ApiResult.Fail("Unable to complete the order in the tracking sheet.");
+                string relativeFolder = "~/OSTAttachment/VM/" + DateTime.Now.ToString("dd-MMM-yyyy") + "/" + orderId + "/";
+                string folder = HttpContext.Current.Server.MapPath(relativeFolder);
+                Directory.CreateDirectory(folder);
+                File.WriteAllBytes(Path.Combine(folder, safeFileName), file);
 
                 Hashtable attachment = new Hashtable();
-                attachment["ProjectNumber"] = request.ProjectNumber;
-                attachment["Process"] = request.Process;
-                attachment["OrderNumber"] = request.OrderNo;
-                attachment["OrderDate"] = request.OrderDate;
-                attachment["UserName"] = request.VendorName;
-                attachment["FileExtension"] = Path.GetExtension(safeFileName);
-                attachment["Remark"] = request.Remark ?? string.Empty;
-                attachment["File"] = file;
+                attachment["OrderId"] = orderId;
+                attachment["Process"] = 1;
+                attachment["DocId"] = 2;
+                attachment["Path"] = relativeFolder.Replace('/', '\\') + safeFileName;
+                attachment["PathFrom"] = "VM Process Completed";
                 attachment["AddedBy"] = addedBy;
-                if (tracking.InsertFileForOrder(attachment, file.Length) <= 0)
-                    return ApiResult.Fail("Order was completed, but the attachment entry could not be saved.");
+                if (new bllOST().InsertOrderAttachment(attachment) <= 0)
+                    return ApiResult.Fail("Order was completed, but the attachment record could not be saved.");
 
                 return ApiResult.Ok("Order completed successfully.");
             }
@@ -466,36 +462,34 @@ namespace WebPortal.Search
         public static ApiResult ChangeOrderStatus(ChangeStatusRequest request)
         {
             if (request == null) return ApiResult.Fail("Invalid request.");
-            if (string.IsNullOrWhiteSpace(request.NewVendorId))
-                return ApiResult.Fail("Please select the new vendor.");
+            int orderId;
+            int newAbstractorId;
+            if (!int.TryParse(request.OrderId, out orderId) || orderId <= 0)
+                return ApiResult.Fail("Select a valid order.");
+            if (request.Action != "Re-Allocate" && request.Action != "Multi-Allocate")
+                return ApiResult.Fail("Please select a valid status action.");
+            if (!int.TryParse(request.NewVendorId, out newAbstractorId) || newAbstractorId <= 0)
+                return ApiResult.Fail("Please select the new abstractor.");
+            if (string.IsNullOrWhiteSpace(request.Remark))
+                return ApiResult.Fail("Please enter remark.");
 
             try
             {
-                int addedBy = CurrentUserId();
-                bllVendors tracking = new bllVendors();
-                Hashtable values = new Hashtable();
-                values["ProjectNumber"] = request.ProjectNumber;
-                values["OrderNumber"] = request.OrderNumber;
-                values["TaskAssignIdAbs"] = request.NewVendorId;
-                values["Remark"] = request.Remark ?? string.Empty;
-                values["AddedBy"] = addedBy;
+                if (request.Action == "Multi-Allocate")
+                    return ApiResult.Fail("Multi-Allocate is not active in the reference workflow.");
 
-                int inserted = tracking.InsertChangeOrderStatus(values);
-                if (inserted <= 0)
+                int addedBy = CurrentUserId();
+                Hashtable values = new Hashtable();
+                values["Orderid"] = orderId;
+                values["TaskAssignedId"] = newAbstractorId;
+                values["Remark"] = request.Remark.Trim();
+                int updated = new bllOST().UpdateOrderTaskForAbstractor(values);
+                if (updated <= 0)
                     return ApiResult.Fail("Unable to change the order status.");
 
-                values["OrderDate"] = request.OrderDate;
-                values["Process"] = request.Process;
-                values["VM"] = request.VM;
-                values["Vendor"] = request.CurrentVendor;
-                values["NewVendor"] = request.NewVendorName;
+                TrySendReallocationMail(request);
 
-                int completed = tracking.CompleteAllocateOrderToVendorInTrackingSheet(
-                    request.ProjectNumber, request.OrderNumber, request.OrderDate, addedBy);
-                if (completed <= 0)
-                    return ApiResult.Fail("Status was saved, but the existing allocation could not be completed.");
-
-                return ApiResult.Ok("Order status updated successfully.");
+                return ApiResult.Ok("Change order status completed successfully.");
             }
             catch (Exception ex)
             {
@@ -526,23 +520,6 @@ namespace WebPortal.Search
             }
         }
 
-        private static int UpdateTaskStatusDateForAbstractor(string orderId, string remark, int addedBy)
-        {
-            using (SqlCommand command = SQLHelper.GetCommand(
-                CommandType.StoredProcedure, "usp_Vendor_UpdateTaskStatusDateForAbstractor_1"))
-            {
-                SQLHelper.AddParamToSQLCmd(command, "@OrderID", SqlDbType.NVarChar, 4000,
-                    ParameterDirection.Input, orderId);
-                SQLHelper.AddParamToSQLCmd(command, "@Remark", SqlDbType.NVarChar, 4000,
-                    ParameterDirection.Input, remark ?? string.Empty);
-                SQLHelper.AddParamToSQLCmd(command, "@AddedBy", SqlDbType.Int, 0,
-                    ParameterDirection.Input, addedBy);
-                SQLHelper.AddParamToSQLCmd(command, "@ReturnValue", SqlDbType.BigInt, 0,
-                    ParameterDirection.ReturnValue, null);
-                SQLHelper.ExecuteNonQueryCmd(command);
-                return Convert.ToInt32(command.Parameters["@ReturnValue"].Value);
-            }
-        }
 
         private static string GetColumnValue(DataRow row, params string[] names)
         {
@@ -573,11 +550,7 @@ namespace WebPortal.Search
                 return Result(false, "Select an allocation mode.");
 
             bllOST ost = new bllOST();
-            DataTable orderTable = ost.GetOrderByID_VM(orderId);
 
-            //if (orderTable == null || orderTable.Rows.Count == 0)
-            //    return Result(false, "The selected order was not found.");
-            //DataRow order = orderTable.Rows[0];
 
             string product = (Request.Form["ProductType"] ?? string.Empty).Trim();
             string searchCost = MoneyText(Request.Form["searchCost"]);
@@ -634,10 +607,10 @@ namespace WebPortal.Search
             SaveOptionalAttachment(ost, orderId, processId, addedBy, "VM Order Allocation");
             string comment = mode == "Offline" ? "Order Allocate to " + allocatedTo + " Abstractor" : "Order Allocated to Abstractor.";
 
-            //ost.InsertCommentOrder(orderId, 0, "Auto", comment, addedBy);
+            ost.InsertCommentOrder(orderId, 0, "Auto", comment, addedBy);
 
             if (mode == "Offline")
-                TrySendAllocationMail(order_row, allocatedTo, addedBy);
+                TrySendAllocationMail(orderId, allocatedTo, addedBy, product);
 
             return Result(true, "Order allocated successfully.", inserted);
         }
@@ -658,7 +631,7 @@ namespace WebPortal.Search
             values["SeachCost"] = searchCost;
             values["CopyCost"] = copyCost;
             values["Total"] = total;
-            return 10;// ost.InsertOrderTaskForAbstractor(values) > 0 ? 1 : 0;
+            return ost.InsertOrderTaskForAbstractor(values) > 0 ? 1 : 0;
         }
 
         private VmResult ImportOrders()
@@ -948,54 +921,112 @@ namespace WebPortal.Search
             return value;
         }
 
-        private static void TrySendAllocationMail(DataRow order, string abstractor, int addedBy)
+        private static void TrySendAllocationMail(int orderID, string abstractor, int addedBy, string submittedProductType)
+        {
+            DataTable orderTable = new bllOST().GetOrderByID_VM(orderID);
+            if (orderTable.Rows.Count > 0)
+            {
+                DataRow order = orderTable.Rows[0];
+
+                try
+                {
+                    string orderNo = GetColumnValue(order, "ClientOrderNo", "OrderNumber", "OrderNo");
+                    DataTable userTable = new bllLogin().GetUserInformation(addedBy);
+                    string vmCode = userTable != null && userTable.Rows.Count > 0 ? Value(userTable.Rows[0], "Code") : string.Empty;
+                    string vmName = userTable != null && userTable.Rows.Count > 0 ? Value(userTable.Rows[0], "FullName") : string.Empty;
+                    string project = GetColumnValue(order, "ProjectNumber", "Project", "ProjectNo");
+                    string productType = GetColumnValue(order, "ProductType", "Product");
+                    if (string.IsNullOrWhiteSpace(productType)) productType = submittedProductType;
+                    string orderDate = GetColumnValue(order, "OrderDate", "CreatedDate", "ReceivedDate");
+                    string vmDisplay = string.IsNullOrWhiteSpace(vmCode) ? vmName : vmCode + " · " + vmName;
+
+                    StringBuilder body = new StringBuilder();
+                    body.Append("<div style='display:none;max-height:0;overflow:hidden;color:#eef2f7;'>A new order has been assigned to your team.</div>");
+                    body.Append("<table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0' style='width:100%;background:#eef2f7;font-family:Arial,Helvetica,sans-serif;color:#1e293b;'>");
+                    body.Append("<tr><td align='left' style='padding:28px 12px;text-align:left;'>");
+                    body.Append("<table role='presentation' width='680' cellspacing='0' cellpadding='0' border='0' style='width:100%;max-width:680px;background:#ffffff;border:1px solid #dbe4ea;border-radius:14px;overflow:hidden;'>");
+                    body.Append("<tr><td style='padding:26px 30px;background:#0f766e;color:#ffffff;'>");
+                    //body.Append("<div style='font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ccfbf1;'>Infinity WebPortal</div>");
+                    body.Append("<div style='margin-top:7px;font-size:25px;line-height:32px;font-weight:700;'>New Order Assigned</div>");
+                    body.Append("<div style='margin-top:7px;font-size:13px;line-height:20px;color:#d5f5ef;'>Search allocation notification</div>");
+                    body.Append("</td></tr>");
+                    body.Append("<tr><td style='padding:28px 30px 10px;'>");
+                    body.Append("<div style='font-size:16px;line-height:24px;font-weight:700;color:#0f172a;'>Hello " + HttpUtility.HtmlEncode(abstractor) + ",</div>");
+                    body.Append("<div style='margin-top:10px;font-size:14px;line-height:22px;color:#475569;'>A new order has been assigned to your team. The assignment details are provided below.</div>");
+                    if (!string.IsNullOrWhiteSpace(orderNo))
+                        body.Append("<div style='margin-top:16px;display:inline-block;padding:7px 12px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:999px;font-size:12px;font-weight:700;color:#047857;'>Order " + HttpUtility.HtmlEncode(orderNo) + "</div>");
+                    body.Append("</td></tr>");
+                    body.Append("<tr><td style='padding:18px 30px 8px;font-size:12px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:#64748b;'>Assignment details</td></tr>");
+                    body.Append("<tr><td style='padding:0 30px 24px;'>");
+                    body.Append("<table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0' style='width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;border-spacing:0;overflow:hidden;'>");
+                    AppendAllocationMailRow(body, "Project #", project);
+                    AppendAllocationMailRow(body, "Order #", orderNo);
+                    AppendAllocationMailRow(body, "Order Date", orderDate);
+                    AppendAllocationMailRow(body, "Product Type", productType);
+                    AppendAllocationMailRow(body, "Process", "Search");
+                    AppendAllocationMailRow(body, "Assigned by", EmployeeInfo.Current.PseudoName);
+                    AppendAllocationMailRow(body, "Abstractor", abstractor);
+                    body.Append("</table>");
+                    body.Append("<div style='margin-top:18px;padding:14px 16px;background:#f8fafc;border-left:4px solid #14b8a6;border-radius:6px;font-size:13px;line-height:20px;color:#475569;'>Please review the order in WebPortal and proceed according to the assigned search workflow.</div>");
+                    body.Append("</td></tr>");
+                    body.Append("<tr><td style='padding:18px 30px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:11px;line-height:18px;color:#64748b;'>This is an automated notification from <strong style='color:#334155;'>Infinity WebPortal</strong>. Please do not reply to this email.</td></tr>");
+                    body.Append("</table></td></tr></table>");
+
+                    string ToAddress = "t.jason@infinityinternationals.us,e.mike@infinityinternationals.us,m.jacob@infinityinternationals.us"; // "josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
+                    string ToCC = "";
+                    string ToBCC = "b.shubhangi@infinityinternationals.us";
+                    string Subject = "New order assigned" + (string.IsNullOrWhiteSpace(orderNo) ? string.Empty : " | " + orderNo) + " | " + abstractor;
+                    string strPassword = new bllMaster().GetPassword("ackdata");
+
+                    sendMail_Vendor(ToAddress, ToCC, ToBCC, Subject, body, strPassword);
+                }
+                catch
+                {
+                    // Allocation remains successful when the notification service is unavailable, as in the ERP workflow.
+                }
+            }
+        }
+
+        private static void TrySendReallocationMail(ChangeStatusRequest request)
         {
             try
             {
-                string orderNo = Value(order, "ClientOrderNo");
-                DataTable userTable = new bllLogin().GetUserInformation(addedBy);
-                string vmCode = userTable != null && userTable.Rows.Count > 0 ? Value(userTable.Rows[0], "Code") : string.Empty;
-                string vmName = userTable != null && userTable.Rows.Count > 0 ? Value(userTable.Rows[0], "FullName") : string.Empty;
-                string project = Value(order, "ProjectNumber");
-                if (string.IsNullOrWhiteSpace(project)) project = Value(order, "Project");
-
                 StringBuilder body = new StringBuilder();
-                body.Append("<table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
-                body.Append("<tr><td><b>Dear " + HttpUtility.HtmlEncode(abstractor) + ",</b></td></tr></table><br/>");
-                body.Append("<table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
-                body.Append("<tr><td>New order has been assigned '" + HttpUtility.HtmlEncode(orderNo) + "'</td></tr></table><br/>");
-                body.Append("<table cellspacing='7' cellpadding='5' width='700' border='1' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
-                AppendAllocationMailRow(body, "Project #", project);
-                AppendAllocationMailRow(body, "Order #", orderNo);
-                AppendAllocationMailRow(body, "Order Date", Value(order, "OrderDate"));
+                body.Append("<div style='display:none;max-height:0;overflow:hidden;color:#eef2f7;'>An order has been re-allocated to a new abstractor.</div>");
+                body.Append("<table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0' style='width:100%;background:#eef2f7;font-family:Arial,Helvetica,sans-serif;color:#1e293b;'>");
+                body.Append("<tr><td align='left' style='padding:28px 12px;text-align:left;'>");
+                body.Append("<table role='presentation' width='680' cellspacing='0' cellpadding='0' border='0' style='width:100%;max-width:680px;background:#ffffff;border:1px solid #dbe4ea;border-radius:14px;overflow:hidden;'>");
+                body.Append("<tr><td style='padding:26px 30px;background:#0f766e;color:#ffffff;'>");
+                body.Append("<div style='font-size:25px;line-height:32px;font-weight:700;'>Order Re-Allocated</div>");
+                body.Append("<div style='margin-top:7px;font-size:13px;line-height:20px;color:#d5f5ef;'>Search allocation status notification</div></td></tr>");
+                body.Append("<tr><td style='padding:28px 30px 10px;'>");
+                body.Append("<div style='font-size:16px;line-height:24px;font-weight:700;color:#0f172a;'>Hello " + HttpUtility.HtmlEncode(request.NewVendorName) + ",</div>");
+                body.Append("<div style='margin-top:10px;font-size:14px;line-height:22px;color:#475569;'>The following order has been re-allocated to you.</div></td></tr>");
+                body.Append("<tr><td style='padding:18px 30px 24px;'><table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0' style='width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;border-spacing:0;overflow:hidden;'>");
+                AppendAllocationMailRow(body, "Project #", request.ProjectNumber);
+                AppendAllocationMailRow(body, "Order #", request.OrderNumber);
+                AppendAllocationMailRow(body, "Order Date", request.OrderDate);
                 AppendAllocationMailRow(body, "Process", "Search");
-                AppendAllocationMailRow(body, "VM", string.IsNullOrWhiteSpace(vmCode) ? vmName : vmCode + ":" + vmName);
-                AppendAllocationMailRow(body, "Abstractor", abstractor);
-                AppendAllocationMailRow(body, "Remark", string.Empty);
-                body.Append("</table><br/><br/><table cellspacing='7' cellpadding='3' width='700' style='font-family:Verdana;font-size:12px;border-collapse:collapse'>");
-                body.Append("<tr><td>Thanks,<br/>Infinity ERP</td></tr></table>");
+                AppendAllocationMailRow(body, "Old Abstractor", request.CurrentVendor);
+                AppendAllocationMailRow(body, "New Abstractor", request.NewVendorName);
+                AppendAllocationMailRow(body, "Remark", request.Remark);
+                body.Append("</table></td></tr>");
+                body.Append("<tr><td style='padding:18px 30px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:11px;line-height:18px;color:#64748b;'>This is an automated notification from <strong style='color:#334155;'>Infinity WebPortal</strong>. Please do not reply to this email.</td></tr>");
+                body.Append("</table></td></tr></table>");
 
-                string ToAddress = "b.shubhangi@infinityinternationals.us"; // "josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
-                string ToCC = "";
-                string ToBCC = "";
-                string Subject = "A new Order(" + orderNo + " )has been assigned to Abstractor : " + abstractor;
-                string strPassword = new bllMaster().GetPassword("ackdata");
-
-                //using (MailMessage message = new MailMessage())
-                //{
-                //    message.From = new MailAddress("ack@infinityinternationals.us", "Orders");
-                //    message.To.Add(ToAddress);
-                //    message.Subject = "A new Order(" + orderNo + " )has been assigned to Abstractor : " + abstractor;
-                //    message.Body = body.ToString();
-                //    message.IsBodyHtml = true;
-                //    using (SmtpClient client = new SmtpClient()) client.Send(message);
-                //}
-
-                sendMail_Vendor(ToAddress, ToCC, ToBCC, Subject, body, strPassword);
+                string subject = "Order re-allocated" + (string.IsNullOrWhiteSpace(request.OrderNumber) ? string.Empty : " | " + request.OrderNumber) + " | " + request.NewVendorName;
+                string password = new bllMaster().GetPassword("ackdata");
+                sendMail_Vendor(
+                    "josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us",
+                    string.Empty,
+                    "n.nilkanth@infinityinternationals.us,p.kedar@infinityinternationals.us",
+                    subject,
+                    body,
+                    password);
             }
             catch
             {
-                // Allocation remains successful when the notification service is unavailable, as in the ERP workflow.
+                // Re-allocation remains successful when the notification service is unavailable, as in the ERP workflow.
             }
         }
 
@@ -1024,20 +1055,6 @@ namespace WebPortal.Search
                 mail.Body = template.ToString();
                 mail.BodyEncoding = System.Text.Encoding.UTF8;
                 mail.IsBodyHtml = true;
-
-                //if (Path != "")
-                //{
-                //    Attachment at = new Attachment(Path);
-                //    at.Name = Subject + " All Orders" + ".xlsx";
-                //    mail.Attachments.Add(at);
-                //}
-
-                //if (!string.IsNullOrWhiteSpace(ZipPath) && File.Exists(ZipPath))
-                //{
-                //    Attachment zipAttachment = new Attachment(ZipPath);
-                //    zipAttachment.Name = Subject + " Cost Approval Attachments.zip";
-                //    mail.Attachments.Add(zipAttachment);
-                //}
 
                 mail.Priority = System.Net.Mail.MailPriority.High;
                 client = new SmtpClient();
@@ -1076,8 +1093,11 @@ namespace WebPortal.Search
 
         private static void AppendAllocationMailRow(StringBuilder body, string label, string value)
         {
-            body.Append("<tr><td style='width:200px'>" + HttpUtility.HtmlEncode(label) +
-                " :</td><td style='width:200px'>" + HttpUtility.HtmlEncode(value ?? string.Empty) + "</td></tr>");
+            string displayValue = string.IsNullOrWhiteSpace(value) ? "—" : value;
+            body.Append("<tr>" +
+                "<td width='36%' style='width:36%;padding:12px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:700;color:#64748b;'>" + HttpUtility.HtmlEncode(label) + "</td>" +
+                "<td style='padding:12px 14px;background:#ffffff;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:600;color:#1e293b;'>" + HttpUtility.HtmlEncode(displayValue) + "</td>" +
+                "</tr>");
         }
 
         private void WriteJson(VmResult result)

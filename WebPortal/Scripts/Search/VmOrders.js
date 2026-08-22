@@ -21,6 +21,7 @@
     $(initialize);
 
     function initialize() {
+        enhanceFileUploads();
         wireEvents();
         setDefaultDates();
         loadBootstrap();
@@ -33,7 +34,26 @@
             else adjustTables();
         });
         $('#vmAllocationTab').on('shown.bs.tab', adjustTables);
-        $('#vmOpenImport').on('click', function () { $('#vmImportMessage').empty(); $('#vmImportModal').modal('show'); });
+        $('#vmOpenImport').on('click', function () {
+            $('#vmImportMessage').empty();
+            $('#vmImportFile').val('');
+            updateImportFileName();
+            $('#vmImportModal').modal('show');
+        });
+        $('#vmImportFile').on('change', updateImportFileName);
+        $('#vmImportUpload').on('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                $('#vmImportFile').trigger('click');
+            }
+        });
+        $('.vm-file-upload-input').on('change', function () { updateFileUpload(this); });
+        $('.vm-file-upload').on('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                $(this).find('.vm-file-upload-input').trigger('click');
+            }
+        });
         $('#vmImportOrders').on('click', importOrders);
         $('#vmBackToAllocation').on('click', showAllocationList);
         $('#vmViewCoverage').on('click', openCoverage);
@@ -148,18 +168,18 @@
 
     function showAllocationList() {
         state.selectedOrder = null;
+        state.product_Type = null;
         $('#vmAllocationEditor').hide();
         $('#vmAllocationList').show();
         adjustTables();
     }
 
     function renderOrderSummary(row) {
-
-        product_Type = pick(row, 'ProductType');
+        state.product_Type = pick(row, 'ProductType');
 
         var fields = [
             ['Project #', pick(row, 'ProjectNumber')],
-            ['Product Type', pick(row, 'ProductType')],
+            ['Product Type', state.product_Type],
             ['Client Order #', pick(row, 'ClientOrderNo', 'OrderNumber')],
             ['Borrower Name', pick(row, 'BName', 'BorrowerName')],
             ['Order Date', formatValue(pick(row, 'OrderDate'))],
@@ -171,6 +191,7 @@
             return '<div class="vm-summary-item"><div class="vm-summary-label">' + escapeHtml(field[0]) +
                 '</div><div class="vm-summary-value">' + escapeHtml(field[1]) + '</div></div>';
         }).join(''));
+
     }
 
     function renderDocumentLists(rows) {
@@ -187,7 +208,7 @@
         $('#vmFullAbstractor,#vmPartialAbstractor1,#vmPartialAbstractor2').val('');
         $('#vmFullEta,#vmPartialEta1,#vmPartialEta2').val('');
         $('input[name="vmDeliveryMethod"]').prop('checked', false);
-        $('#vmFullAttachment,#vmPartialAttachment').val('');
+        $('#vmFullAttachment,#vmPartialAttachment').val('').trigger('change');
         $('#vmSearchCost,#vmCopyCost,#vmTotalCost').val('0.00');
         $('#vmPartialPanel input[type="checkbox"],#vmFullOfflinePanel input[type="checkbox"]').prop('checked', false);
         toggleAllocationMode();
@@ -222,7 +243,7 @@
         form.append('searchCost', stripMoney($('#vmSearchCost').val()));
         form.append('copyCost', stripMoney($('#vmCopyCost').val()));
         form.append('total', stripMoney($('#vmTotalCost').val()));
-        form.append('ProductType', product_Type);
+        form.append('ProductType', state.product_Type || '');
 
         if (mode === 'Offline') {
             if (!$('#vmFullAbstractor').val()) {
@@ -266,18 +287,24 @@
             appendFile(form, $('#vmPartialAttachment')[0]);
         }
 
-        if (!window.confirm('Allocate the selected order to the configured abstractor(s)?')) return;
+        confirmAction(
+            'Allocate this order?',
+            'The order will be allocated to the configured abstractor and an email notification will be sent.',
+            'Yes, allocate order'
+        ).then(function (result) {
+            if (!(result.isConfirmed || result.value)) return;
 
-        busy(true);
-        uploadAction('allocate', form).done(function (result) {
-            if (!result || !result.Success) {
-                notify(result && result.Message ? result.Message : 'Order allocation was not saved.');
-                return;
-            }
-            notify(result.Message);
-            showAllocationList();
-            reloadAllocationOrders();
-        }).fail(showAjaxError).always(function () { busy(false); });
+            busy(true, 'Allocating order and sending email...');
+            uploadAction('allocate', form).done(function (response) {
+                if (!response || !response.Success) {
+                    notify(response && response.Message ? response.Message : 'Order allocation was not saved.', 'error', 'Allocation failed');
+                    return;
+                }
+                notify(response.Message, 'success', 'Order allocated');
+                showAllocationList();
+                reloadAllocationOrders();
+            }).fail(showAjaxError).always(function () { busy(false); });
+        });
     }
 
     function reloadAllocationOrders() {
@@ -341,8 +368,13 @@
     }
 
     function bindQueueTable(rows) {
+        $.each(rows || [], function (_, row) {
+            row.ClientOrderNo = pick(row, 'ClientOrderNo', 'OrderNo', 'OrderNumber', 'ClientOrderNumber');
+        });
         var keys = orderedKeys(rows, ['OrderId', 'ProjectNumber', 'ClientOrderNo', 'OrderDate', 'ProductType', 'BName', 'State', 'County', 'OnOffLine', 'ProcessStatus', 'SearchBy', 'SearchDate', 'ReSearchBy', 'ReSearchDate', 'TypingBy', 'TypingDate', 'QABy', 'QADate', 'DispBy', 'DispDate', 'Remark']);
-        keys = $.grep(keys, function (key) { return key !== 'TaskAssignedId'; });
+        keys = $.grep(keys, function (key) {
+            return key !== 'TaskAssignedId' && key !== 'OrderNo' && key !== 'OrderNumber' && key !== 'ClientOrderNumber';
+        });
         var columns = [{
             title: 'Actions', data: null, orderable: false, searchable: false,
             render: function (_, type, row) { return type === 'display' ? queueActions(row) : ''; }
@@ -402,12 +434,53 @@
         $('#vmCommentType').val('Select');
         $('#vmCommentModal').modal('show');
         pageMethod('GetCommentData', { orderId: id }).done(function (data) {
-            $('#vmCommentOrderNo').val(data.OrderNo || '');
-            $('#vmCommentOrderDate').val(data.OrderDate || '');
-            $('#vmCommentVm').val(data.VM || '');
-            $('#vmCommentAbstractor').val(data.Abstractor || '');
-            $('#vmCommentsContent').html(commentHistoryTable(data.Comments || []));
+            bindFollowUpData(data);
         }).fail(showAjaxError);
+    }
+
+    function updateImportFileName() {
+        var input = $('#vmImportFile')[0];
+        var hasFile = !!(input && input.files && input.files.length);
+        $('#vmImportFileName').text(hasFile ? input.files[0].name : 'Choose an Excel file');
+        $('#vmImportUpload').toggleClass('is-selected', hasFile);
+    }
+
+    function enhanceFileUploads() {
+        $('.vm-file').each(function () {
+            var input = $(this);
+            var id = input.attr('id');
+            if (!id || input.parent().hasClass('vm-file-upload')) return;
+
+            input.removeClass('vm-file w-100').addClass('vm-import-file-input vm-file-upload-input');
+            input.wrap('<label class="vm-import-upload vm-file-upload" for="' + escapeAttr(id) + '" tabindex="0"></label>');
+            input.after(
+                '<span class="vm-import-upload-icon"><i class="fas fa-paperclip"></i></span>' +
+                '<span class="vm-import-upload-copy">' +
+                    '<span class="vm-import-file-name">Choose a file</span>' +
+                    '<span class="vm-import-file-hint">Any required attachment format is allowed</span>' +
+                '</span>' +
+                '<span class="vm-import-browse">Browse</span>'
+            );
+            updateFileUpload(this);
+        });
+    }
+
+    function updateFileUpload(input) {
+        var wrapper = $(input).closest('.vm-file-upload');
+        var hasFile = !!(input && input.files && input.files.length);
+        var fileName = hasFile ? input.files[0].name : 'Choose a file';
+        wrapper.toggleClass('is-selected', hasFile);
+        wrapper.find('.vm-import-file-name').text(fileName).attr('title', fileName);
+    }
+
+    function bindFollowUpData(data) {
+        data = data || {};
+        $('#vmCommentOrderNo').val(data.OrderNo || '');
+        $('#vmCommentOrderDate').val(data.OrderDate || '');
+        $('#vmCommentVm').val(data.VM || '');
+        $('#vmCommentAbstractor').val(data.Abstractor || '');
+        $('#vmCommentRecordCount').text('Total No of Records: ' + Number(data.CommentCount || 0));
+        $('#vmCommentsContent').html(commentHistoryTable(data.Comments || []));
     }
 
     function saveComment() {
@@ -415,13 +488,13 @@
         var text = $.trim($('#vmCommentText').val());
         if (!type || type === 'Select') return notify('Please select Type.', 'warning', 'Validation');
         if (!text) return notify('Please Enter Remark.', 'warning', 'Validation');
-        busy(true);
+        busy(true, 'Saving follow-up comment...');
         pageMethod('SaveComment', {
             orderId: Number($('#vmCommentOrderId').val()), type: type, comment: text
-        }).done(function (rows) {
+        }).done(function (data) {
             $('#vmCommentText').val('');
             $('#vmCommentType').val('Connect With Abstractor');
-            $('#vmCommentsContent').html(commentHistoryTable(rows || []));
+            bindFollowUpData(data);
             if (state.queueLoaded) loadQueue();
         }).fail(showAjaxError).always(function () { busy(false); });
     }
@@ -449,7 +522,7 @@
         state.processOrder = null;
         $('#vmOrderProcessTaskId').val('');
         $('#vmOrderProcessProject,#vmOrderProcessOrderNo,#vmOrderProcessDate,#vmOrderProcessName,#vmOrderProcessVm,#vmOrderProcessAbstractor,#vmOrderProcessRemark').val('');
-        $('#vmOrderProcessFile').val('');
+        $('#vmOrderProcessFile').val('').trigger('change');
         busy(true);
         pageMethod('GetOrderDetails', { orderId: String(orderId) }).done(function (order) {
             if (!order) return notify('Order details were not found.', 'warning', 'Validation');
@@ -474,15 +547,13 @@
         if (!remark) return notify('Please enter remark.', 'warning', 'Validation');
 
         var file = fileInput.files[0];
-        if (file.name.toLowerCase().indexOf(String(state.processOrder.OrderNo).toLowerCase()) < 0)
-            return notify('Order number and attachment filename must match.', 'warning', 'Validation');
 
         var reader = new FileReader();
         reader.onload = function (event) {
-            busy(true);
+            busy(true, 'Completing order and saving attachment...');
             pageMethod('CompleteOrder', {
                 request: {
-                    OrderId: $('#vmOrderProcessTaskId').val(),
+                    OrderId: state.processOrder.OrderId,
                     OrderNo: state.processOrder.OrderNo,
                     ProjectNumber: state.processOrder.ProjectNumber,
                     OrderDate: state.processOrder.OrderDate,
@@ -508,6 +579,7 @@
         state.statusOrder = null;
         $('#vmOrderStatusTaskId').val('');
         $('#vmOrderStatusProject,#vmOrderStatusOrderNo,#vmOrderStatusDate,#vmOrderStatusAbstractor,#vmOrderStatusRemark').val('');
+        $('#vmOrderStatusAction').val('Re-Allocate');
         $('#vmOrderStatusVendor').empty().append('<option value="">Select</option>');
         busy(true);
         $.when(
@@ -525,7 +597,6 @@
             $.each(vendors || [], function (_, vendor) {
                 select.append($('<option/>').val(vendor.EmployeeID).text(vendor.FullName));
             });
-            select.append($('<option/>').val('0').text('Cancel'));
             $('#vmOrderStatusModal').modal('show');
         }).fail(showAjaxError).always(function () { busy(false); });
     }
@@ -533,13 +604,17 @@
     function updateVendorOrderStatus() {
         if (!state.statusOrder) return notify('Order details are not loaded.', 'warning', 'Validation');
         var vendorId = $('#vmOrderStatusVendor').val();
+        var action = $('#vmOrderStatusAction').val();
         var remark = $.trim($('#vmOrderStatusRemark').val());
+        if (!action) return notify('Please select the status action.', 'warning', 'Validation');
         if (!vendorId) return notify('Please select the new vendor.', 'warning', 'Validation');
         if (!remark) return notify('Please enter remark.', 'warning', 'Validation');
 
-        busy(true);
+        busy(true, 'Updating order status and sending email...');
         pageMethod('ChangeOrderStatus', {
             request: {
+                OrderId: state.statusOrder.OrderId,
+                Action: action,
                 ProjectNumber: state.statusOrder.ProjectNumber,
                 OrderNumber: state.statusOrder.OrderNo,
                 OrderDate: state.statusOrder.OrderDate,
@@ -573,7 +648,7 @@
             renderProcessTasks(data.Tasks || []);
             $('#vmProcessAction').val('Complete').trigger('change');
             $('#vmProcessRemark,#vmCancelledBy,#vmCancelReason').val('');
-            $('#vmProcessFile').val('');
+            $('#vmProcessFile').val('').trigger('change');
             $('#vmTaxCalling,#vmAudit,#vmOffline,#vmDispatch,#vmNoFeedback').prop('checked', false);
             $('#vmProcessModal').modal('show');
         }).fail(showAjaxError).always(function () { busy(false); });
@@ -696,7 +771,9 @@
             $.each(row, function (key) { if ($.inArray(key, found) < 0) found.push(key); });
         });
         var result = [];
-        $.each(preferred || [], function (_, key) { if ($.inArray(key, result) < 0) result.push(key); });
+        $.each(preferred || [], function (_, key) {
+            if ($.inArray(key, found) >= 0 && $.inArray(key, result) < 0) result.push(key);
+        });
         $.each(found, function (_, key) { if ($.inArray(key, result) < 0) result.push(key); });
         return result;
     }
@@ -748,9 +825,10 @@
         });
     }
 
-    function busy(show) {
+    function busy(show, message) {
         state.pendingRequests += show ? 1 : -1;
         if (state.pendingRequests < 0) state.pendingRequests = 0;
+        if (show) $('#vmLoaderMessage').text(message || 'Please wait while your request is being processed...');
         $('#vmLoader').toggleClass('active', state.pendingRequests > 0);
     }
 
@@ -838,15 +916,26 @@
     function monthName(index) { return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][index]; }
     function notify(message, icon, title) {
         var text = message || 'Unable to process request.';
-        if (window.Swal && typeof window.Swal.fire === 'function') {
-            return window.Swal.fire({
-                icon: icon || 'info',
-                title: title || (icon === 'warning' ? 'Validation' : icon === 'error' ? 'Error' : 'Information'),
-                text: text,
-                confirmButtonColor: '#0f766e'
-            });
-        }
-        return window.alert(text);
+        return window.Swal.fire({
+            icon: icon || 'info',
+            title: title || (icon === 'warning' ? 'Validation' : icon === 'error' ? 'Error' : 'Information'),
+            text: text,
+            confirmButtonColor: '#0f766e'
+        });
+    }
+    function confirmAction(title, text, confirmText) {
+        return window.Swal.fire({
+            icon: 'question',
+            title: title,
+            text: text,
+            showCancelButton: true,
+            confirmButtonText: confirmText || 'Confirm',
+            cancelButtonText: 'Cancel',
+            confirmButtonColor: '#0f766e',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true,
+            focusCancel: true
+        });
     }
     function showAjaxError(xhr) {
         var message = 'Unable to process request.';

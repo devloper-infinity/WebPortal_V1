@@ -108,6 +108,7 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+
         public int InsertOrderTask(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertOrderTask");
@@ -815,6 +816,53 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetAllAbstractorProfile");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
+        }
+
+        public DataTable GetAllCommentOrderwise_VM(int orderId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetAllCommentOrderwise_VM");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, orderId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public int InsertFollowUp(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_InsertCommentOrder_VM");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderId", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["OrderId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["Type"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Comment", System.Data.SqlDbType.NVarChar, 40000, System.Data.ParameterDirection.Input, htParam["Comment"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
+        }
+
+        public int UpdateTaskStatusDateForAbstractor(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_UpdateTaskStatusDateForAbstractor");
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Reamrk", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["Reamrk"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
+        }
+
+        public int UpdateOrderTaskForAbstractor(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_UpdateOrderTaskForAbstractor");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Orderid", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["Orderid"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskAssignIdAbs", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["TaskAssignedId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
         }
 
         public DataTable GetMaxOrderID()

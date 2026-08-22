@@ -505,6 +505,109 @@
             background: #fff;
         }
 
+        .vm-field label.vm-import-upload {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            min-height: 54px;
+            margin: 0;
+            padding: 8px 12px;
+            border: 1px dashed #74b8ae;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 72%);
+            cursor: pointer;
+            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+
+            .vm-field label.vm-import-upload:hover,
+            .vm-field label.vm-import-upload:focus-within {
+                border-color: #0f8a7c;
+                box-shadow: 0 5px 16px rgba(15, 138, 124, .13);
+                transform: translateY(-1px);
+            }
+
+            .vm-field label.vm-import-upload.is-selected {
+                border-style: solid;
+                border-color: #0f8a7c;
+                background: #ecfdf8;
+            }
+
+        .vm-import-file-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .vm-import-upload-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 38px;
+            width: 38px;
+            height: 38px;
+            margin-right: 10px;
+            border-radius: 9px;
+            color: #fff;
+            background: linear-gradient(135deg, #0f8a7c, #22b8a7);
+            box-shadow: 0 5px 12px rgba(15, 138, 124, .22);
+            font-size: 16px;
+        }
+
+        .vm-import-upload-copy {
+            display: block;
+            flex: 1 1 auto;
+            min-width: 0;
+            line-height: 1.25;
+        }
+
+        .vm-import-file-name {
+            display: block;
+            overflow: hidden;
+            color: #163f4a;
+            font-size: 12px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .vm-import-file-hint {
+            display: block;
+            margin-top: 3px;
+            color: #6b7f89;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .vm-import-browse {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            margin-left: auto;
+            padding: 7px 11px;
+            border: 1px solid #b9dcd6;
+            border-radius: 7px;
+            color: #0f766e;
+            background: #fff;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .vm-import-action .vm-btn {
+            min-height: 54px;
+            justify-content: center;
+            border-radius: 9px;
+        }
+
+        .vm-col-3 .vm-file-upload .vm-import-browse,
+        .vm-col-3 .vm-file-upload .vm-import-file-hint {
+            display: none;
+        }
+
         .vm-table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -636,6 +739,7 @@
             align-items: center;
             justify-content: center;
             background: rgba(248,250,252,.76);
+            backdrop-filter: blur(2px);
         }
 
             #vmLoader.active {
@@ -649,6 +753,33 @@
             border-top-color: var(--vm-primary);
             border-radius: 50%;
             animation: vmSpin .75s linear infinite;
+        }
+
+        .vm-loader-card {
+            min-width: 310px;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1px solid #dbe4ea;
+            border-radius: 14px;
+            box-shadow: 0 18px 45px rgba(15,23,42,.16);
+            text-align: center;
+        }
+
+        .vm-loader-message {
+            max-width: 300px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .vm-loader-note {
+            color: #64748b;
+            font-size: 11px;
         }
 
         @keyframes vmSpin {
@@ -696,7 +827,11 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div id="vmLoader">
-        <div class="vm-spinner"></div>
+        <div class="vm-loader-card" role="status" aria-live="polite">
+            <div class="vm-spinner"></div>
+            <div id="vmLoaderMessage" class="vm-loader-message">Please wait while your request is being processed...</div>
+            <div class="vm-loader-note">Please do not close or refresh this page.</div>
+        </div>
     </div>
     <main class="vm-page">
         <div class="vm-shell">
@@ -924,7 +1059,7 @@
     </div>
 
     <div class="modal fade" id="vmImportModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Import Bulk VM Orders</h5>
@@ -933,12 +1068,21 @@
                 <div class="modal-body">
                     <div class="vm-grid">
                         <div class="vm-col-6 vm-field">
-                            <label class="required">Excel File</label><input id="vmImportFile" type="file" accept=".xls,.xlsx" class="vm-file w-100" />
+                            <label class="required">Excel File</label>
+                            <label id="vmImportUpload" class="vm-import-upload" for="vmImportFile" tabindex="0">
+                                <input id="vmImportFile" type="file" accept=".xls,.xlsx" class="vm-import-file-input" />
+                                <span class="vm-import-upload-icon"><i class="fas fa-file-excel"></i></span>
+                                <span class="vm-import-upload-copy">
+                                    <span id="vmImportFileName" class="vm-import-file-name">Choose an Excel file</span>
+                                    <span class="vm-import-file-hint">Supported formats: .xls and .xlsx</span>
+                                </span>
+                                <span class="vm-import-browse">Browse</span>
+                            </label>
                         </div>
-                        <div class="vm-col-3">
+                        <div class="vm-col-3 vm-import-action">
                             <button type="button" id="vmImportOrders" class="vm-btn vm-btn-primary w-100"><i class="fas fa-upload"></i>Import Excel</button>
                         </div>
-                        <div class="vm-col-3"><a href="../VMExcel.xlsx" class="vm-btn vm-btn-light w-100"><i class="fas fa-download"></i>Download Format</a></div>
+                        <div class="vm-col-3 vm-import-action"><a href="../VMExcel.xlsx" class="vm-btn vm-btn-light w-100"><i class="fas fa-download"></i>Download Format</a></div>
                     </div>
                     <div id="vmImportMessage" class="mt-3"></div>
                     <div class="vm-table-wrap mt-3">
@@ -1002,13 +1146,14 @@
                                 </select>
                             </div>
                             <div class="vm-col-8 vm-field">
-                                <label class="required">Remark</label><textarea id="vmCommentText" class="vm-control"></textarea>
+                                <label class="required">Remark</label><textarea id="vmCommentText" class="vm-control" maxlength="40000"></textarea>
                             </div>
                             <div class="vm-col-12 vm-comment-actions" style="text-align: right !important;">
                                 <button id="vmSaveComment" type="button" class="vm-btn vm-btn-primary"><i class="fas fa-paper-plane"></i>Submit</button>
                             </div>
                         </div>
                     </div>
+                    <div id="vmCommentRecordCount" class="text-muted mb-2"></div>
                     <div id="vmCommentsContent" class="vm-comment-history"></div>
                 </div>
             </div>
@@ -1085,7 +1230,8 @@
                             <label>Abstractor</label><input id="vmOrderStatusAbstractor" class="vm-control" readonly />
                         </div>
                         <div class="vm-col-6 vm-field">
-                            <label>Select</label><select id="vmOrderStatusAction" class="vm-control"><option>Re-Allocate</option>
+                            <label class="required">Select</label><select id="vmOrderStatusAction" class="vm-control"><option value="Re-Allocate">Re-Allocate</option>
+                                <option value="Multi-Allocate">Multi-Allocate</option>
                             </select>
                         </div>
                         <div class="vm-col-6 vm-field">
@@ -1157,5 +1303,5 @@
     </div>
 
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/Search/VmOrders.js?v=5"></script>
+    <script src="../Scripts/Search/VmOrders.js?v=11"></script>
 </asp:Content>

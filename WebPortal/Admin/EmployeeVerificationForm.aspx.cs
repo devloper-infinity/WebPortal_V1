@@ -144,6 +144,7 @@ namespace WebPortal.Admin
             }
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             returnvalue = new bllMaster().InsertEmployeePreVerificationInfo(htParam);
+           
             if (returnvalue > 0)
             {
                 int returnemil = SendVerificationEmail(EmployeeID, CandidateName, EmployeeCode, Salary, CompanyName, EmployeePeriod, Designation, ReportingManagerName, ReportingManagerDesignation, ReportingManagerContact, HRName, HRContact, ReasonforLeaving, ExitFormality, Eligibilitytorehire, VerifiedBy, ReceiverEmail);

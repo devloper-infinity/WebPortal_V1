@@ -393,6 +393,26 @@ namespace WebPortal.App_Code.BLL
             return dalOst.GetAllAbsRegistration();
         }
 
+        public DataTable GetAllCommentOrderwise_VM(int orderId)
+        {
+            return dalOst.GetAllCommentOrderwise_VM(orderId);
+        }
+
+        public int InsertFollowUp(Hashtable htParam)
+        {
+            return dalOst.InsertFollowUp(htParam);
+        }
+
+        public int UpdateTaskStatusDateForAbstractor(Hashtable htParam)
+        {
+            return dalOst.UpdateTaskStatusDateForAbstractor(htParam);
+        }
+
+        public int UpdateOrderTaskForAbstractor(Hashtable htParam)
+        {
+            return dalOst.UpdateOrderTaskForAbstractor(htParam);
+        }
+
         public int InsertReAllocation(Hashtable htParam)
         {
             return dalOst.InsertReAllocation(htParam);
