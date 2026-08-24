@@ -353,16 +353,14 @@ namespace WebPortal.Admin
 
             StringBuilder body = new StringBuilder();
             body.Append("<html><head></head><body>");
-            body.Append("<table style=\"width:802px;font-family:biome; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>");
+
             body.Append(GetIntroTable(request, employee));
-            body.Append("<table border=\"0\" style=\"width:800px;font-family:biome; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">");
-            body.Append("<tr><td style=\"border:solid 1px Gray; width:100px!important;\" colspan=\"2\"><b>Employee Details</b></td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray; width:100px!important;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;\">" + Convert.ToString(employee.Rows[0]["CodeName"]) + "</td></tr>");
+            AppendDetailsSectionStart(body, "Employee Details");
+            AppendDetailRow(body, "Name:", employee.Rows[0]["CodeName"]);
             AppendCommonEmployeeRows(body, employee, primaryProject, primaryProcess, domainHead, locationHead);
+            body.Append("</table>");
             AppendAttendanceRows(body, request, inTime, outTime);
-            body.Append("<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>");
-            body.Append("<tr><td style=\"text-align:left; font-size:10px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>");
-            body.Append("</table></body></html>");
+            body.Append("</body></html>");
 
             string pass = new bllMaster().GetPassword("ackdata");
             using (MailMessage mail = new MailMessage())
@@ -372,8 +370,17 @@ namespace WebPortal.Admin
                 AddRecipients(mail.To, Convert.ToString(emailInfo.Rows[0]["ToAttendance"]));
                 AddRecipients(mail.CC, Convert.ToString(emailInfo.Rows[0]["CCAtt"]));
                 AddRecipients(mail.Bcc, Convert.ToString(emailInfo.Rows[0]["BCC"]));
+
+                //string To = "b.shubhangi@infinityinternationals.us";
+                //string CC = "b.shubhangi@infinityinternationals.us";
+                //string BCC = "b.shubhangi@infinityinternationals.us";
+
+                //AddRecipients(mail.To, To);
+                //AddRecipients(mail.CC, CC);
+                //AddRecipients(mail.Bcc, BCC);
+
                 mail.Subject = subject;
-                mail.Body = body.ToString();
+                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(body.ToString(), "Attendance correction request", true);
                 mail.IsBodyHtml = true;
                 mail.Priority = MailPriority.High;
 
@@ -414,7 +421,7 @@ namespace WebPortal.Admin
             totalHours = Convert.ToString(timeDiff.Hours) + ":" + Convert.ToString(timeDiff.Minutes);
 
             Hashtable attendance = BuildAttendanceHash(request, code, inTime, outTime, inDateParam, outDateParam, userReason, true);
-            int result = SaveHash(request.Mode, attendance);
+            int result =   SaveHash(request.Mode, attendance);
             if (result > 0)
             {
                 SendSaveEmail(request, code, inDateParam, inTime, outDateParam, outTime, totalHours, userReason);
@@ -581,43 +588,60 @@ namespace WebPortal.Admin
 
         private static void AppendCommonEmployeeRows(StringBuilder body, DataTable employee, string primaryProject, string primaryProcess, string domainHead, string locationHead)
         {
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Joining Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["JoiningDate"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Job Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["JobType"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Department:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["DepartmentName"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Designation:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["DesignationName"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Location:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["WorkingBranchName"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["ReportingManager"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(employee.Rows[0]["SubDomain"]) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Project:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(primaryProject) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Process:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(primaryProcess) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Domain Head:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(domainHead) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Location Head:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(locationHead) + "</td></tr>");
+            AppendDetailRow(body, "Joining Date:", employee.Rows[0]["JoiningDate"]);
+            AppendDetailRow(body, "Job Type:", employee.Rows[0]["JobType"]);
+            AppendDetailRow(body, "Department:", employee.Rows[0]["DepartmentName"]);
+            AppendDetailRow(body, "Designation:", employee.Rows[0]["DesignationName"]);
+            AppendDetailRow(body, "Location:", employee.Rows[0]["WorkingBranchName"]);
+            AppendDetailRow(body, "Reporting Manager:", employee.Rows[0]["ReportingManager"]);
+            AppendDetailRow(body, "Domain:", employee.Rows[0]["SubDomain"]);
+            AppendDetailRow(body, "Project:", primaryProject);
+            AppendDetailRow(body, "Process:", primaryProcess);
+            AppendDetailRow(body, "Domain Head:", domainHead);
+            AppendDetailRow(body, "Location Head:", locationHead);
         }
 
         private static void AppendAttendanceRows(StringBuilder body, AttendanceEmailRequest request, string inTime, string outTime)
         {
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\" colspan=\"2\"><b>Attendance Correction Details:</b></td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason Type:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.ReasonType) + "</td></tr>");
+            AppendDetailsSectionStart(body, "Attendance Correction Details:");
+            AppendDetailRow(body, "Reason Type:", request.ReasonType);
 
             if (request.Mode != AttendanceEmailMode.SelfRequest)
-                body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.UserReason) + "</td></tr>");
+                AppendDetailRow(body, "Reason:", request.UserReason);
 
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>In Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.InDate) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>In Time:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(inTime) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Out Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.OutDate) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Out Time:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(outTime) + "</td></tr>");
-            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Total Hours:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.TotalHours) + "</td></tr>");
+            AppendDetailRow(body, "In Date:", request.InDate);
+            AppendDetailRow(body, "In Time:", inTime);
+            AppendDetailRow(body, "Out Date:", request.OutDate);
+            AppendDetailRow(body, "Out Time:", outTime);
+            AppendDetailRow(body, "Total Hours:", request.TotalHours);
 
             if (request.Mode == AttendanceEmailMode.SelfRequest)
-                body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.Reason) + "</td></tr>");
+                AppendDetailRow(body, "Reason:", request.Reason);
             else
-                body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(request.Reason) + "</td></tr>");
+                AppendDetailRow(body, "Remark:", request.Reason);
 
             if (request.Mode == AttendanceEmailMode.Decision)
             {
                 DataTable updatedBy = new bllLogin().GetUserInformation(CurrentUserId());
-                body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Updated By:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + Convert.ToString(updatedBy.Rows[0]["FirstName"]) + " " + Convert.ToString(updatedBy.Rows[0]["lastName"]) + " </td></tr>");
+                AppendDetailRow(body, "Updated By:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + Convert.ToString(updatedBy.Rows[0]["FirstName"]) + " " + Convert.ToString(updatedBy.Rows[0]["lastName"]) + " ");
             }
+
+            body.Append("</table>");
+        }
+
+        private static void AppendDetailsSectionStart(StringBuilder body, string heading)
+        {
+            body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;\">" +
+                "<tr><td height=\"18\" style=\"height:18px;font-size:0;line-height:18px;\">&nbsp;</td></tr>" +
+                "<tr><td style=\"color:#0f172a;font-size:15px;font-weight:700;line-height:20px;\">" + heading + "</td></tr>" +
+                "<tr><td height=\"8\" style=\"height:8px;font-size:0;line-height:8px;\">&nbsp;</td></tr></table>");
+            body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">");
+        }
+
+        private static void AppendDetailRow(StringBuilder body, string label, object value)
+        {
+            body.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\">" + label + "</td>" +
+                "<td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(value) + "</td></tr>");
         }
 
         private static void AddRecipients(MailAddressCollection collection, string recipients)

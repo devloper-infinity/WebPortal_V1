@@ -320,7 +320,7 @@ namespace WebPortal.IT
 
                 mail.Subject = Subject;
 
-                mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Ticket approval");
 
                 mail.IsBodyHtml = true;
                 if (Attachment != "")

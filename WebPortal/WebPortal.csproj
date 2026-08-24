@@ -3177,6 +3177,7 @@
     <Compile Include="App_Code\BLL\bllLegacyImportBilling.cs" />
     <Compile Include="App_Code\BLL\bllVendors.cs" />
     <Compile Include="App_Code\Class\HelpdeskJson.cs" />
+    <Compile Include="App_Code\Class\SelfLeavesEmailTemplate.cs" />
     <Compile Include="App_Code\DAL\dalFeedback.cs" />
     <Compile Include="App_Code\DAL\dalProjectTracking.cs" />
     <Compile Include="App_Code\DAL\dalOLTracking.cs" />

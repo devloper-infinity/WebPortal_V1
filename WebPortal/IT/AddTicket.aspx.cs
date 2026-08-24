@@ -579,7 +579,7 @@ namespace WebPortal.IT
                     
                     }
                     mail.Subject = Subject;
-                    mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Helpdesk ticket");
                     mail.IsBodyHtml = true;
                     if (Attachment != "")
                         mail.Attachments.Add(new Attachment(Attachment));
@@ -971,7 +971,7 @@ namespace WebPortal.IT
                     if (BCC != "")
                         mail.Bcc.Add(BCC);
                     mail.Subject = Subject;
-                    mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Helpdesk ticket");
                     mail.IsBodyHtml = true;
                     if (Attachment != "")
                         mail.Attachments.Add(new Attachment(Attachment));

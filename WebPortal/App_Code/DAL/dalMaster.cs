@@ -1,13 +1,13 @@
-﻿using DocumentFormat.OpenXml.Office.Word;
-using DocumentFormat.OpenXml.VariantTypes;
-using DocumentFormat.OpenXml.Wordprocessing;
+﻿//using DocumentFormat.OpenXml.Office.Word;
+//using DocumentFormat.OpenXml.VariantTypes;
+//using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 //using System.Activities.Statements;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
+//using System.Linq;
 using System.Web;
 using System.Web.DynamicData;
 using WebPortal.Admin;

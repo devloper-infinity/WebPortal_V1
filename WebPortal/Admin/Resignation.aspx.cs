@@ -257,7 +257,7 @@ namespace WebPortal.Admin
             htParam.Add("UnitHeadRemark", "");
             htParam.Add("UnitHead", int.Parse("0"));
             int returnvalue = 0;
-            returnvalue = new bllMaster().InitiateResignation(htParam);
+            returnvalue =  new bllMaster().InitiateResignation(htParam);
             if (returnvalue > 0)
             {
                 SendStep1Email(EmployeeID, Code, ResignationType, ResignationDate, LastWorkingDate, ReasonToTerminate, Remark, LastLoginDate, NoOfDays);
@@ -308,12 +308,12 @@ namespace WebPortal.Admin
                         else
                             contentHeader = ResignationType;
 
-                        head.Append("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body style=\"margin:0;padding:0;background-color:#f3f6fa;\">");
-                        body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f3f6fa;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#25324b;\"><tr><td align=\"left\">" +
-                            "<table role=\"presentation\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #dfe6ef;border-radius:12px;overflow:hidden;\">" +
-                            "<tr><td style=\"padding:26px 32px;background-color:#174a7e;border-bottom:4px solid #2ea3f2;\"><div style=\"font-size:24px;line-height:30px;font-weight:bold;color:#ffffff;letter-spacing:.2px;\">Infinity IPS</div></td></tr>" +
-                            "<tr><td style=\"padding:30px 32px 18px 32px;\"><h1 style=\"margin:0 0 10px 0;font-size:23px;line-height:31px;color:#172b4d;font-weight:600;\">" + Convert.ToString(contentHeader) + " initiated</h1><p style=\"margin:0;font-size:15px;line-height:24px;color:#52637a;\">Dear Sir/Madam,</p><p style=\"margin:8px 0 0 0;font-size:15px;line-height:24px;color:#52637a;\">The " + Convert.ToString(contentHeader).ToLower() + " process for <strong style=\"color:#25324b;\">" + Convert.ToString(dt.Rows[0]["FullName"]) + "</strong> has been initiated. The relevant employee and request details are provided below for your review.</p></td></tr>" +
-                            "<tr><td style=\"padding:10px 32px 30px 32px;\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #dfe6ef;border-radius:8px;border-collapse:separate;overflow:hidden;\">" +
+                        head.Append("<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head><body style=\"margin:0;padding:0;background-color:#f1f5f9;color:#1e293b;text-align:left;\">");
+                        body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f1f5f9;font-family:Arial,'Helvetica Neue',sans-serif;color:#1e293b;text-align:left;\"><tr><td align=\"left\" style=\"padding:20px 16px;text-align:left;\">" +
+                            "<table role=\"presentation\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;\">" +
+                            "<tr><td bgcolor=\"#173b70\" style=\"padding:15px 24px;background-color:#173b70;border-bottom:3px solid #2f80ed;text-align:left;\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#173b70;\"><tr><td bgcolor=\"#173b70\" style=\"color:#bfdbfe;font-size:10px;font-weight:700;line-height:14px;letter-spacing:1.2px;text-transform:uppercase;mso-line-height-rule:exactly;\">INFINITY IPS &nbsp;/&nbsp; HRMS</td></tr><tr><td height=\"4\" bgcolor=\"#173b70\" style=\"height:4px;font-size:0;line-height:4px;mso-line-height-rule:exactly;\">&nbsp;</td></tr><tr><td bgcolor=\"#173b70\" style=\"color:#ffffff;font-size:22px;font-weight:700;line-height:27px;mso-line-height-rule:exactly;\">Resignation</td></tr></table></td></tr>" +
+                            "<tr><td style=\"padding:24px 24px 18px;\"><h1 style=\"margin:0 0 10px 0;font-size:23px;line-height:31px;color:#172b4d;font-weight:600;\">" + Convert.ToString(contentHeader) + " initiated</h1><p style=\"margin:0;font-size:15px;line-height:24px;color:#52637a;\">Dear Sir/Madam,</p><p style=\"margin:8px 0 0 0;font-size:15px;line-height:24px;color:#52637a;\">The " + Convert.ToString(contentHeader).ToLower() + " process for <strong style=\"color:#25324b;\">" + Convert.ToString(dt.Rows[0]["FullName"]) + "</strong> has been initiated. The relevant employee and request details are provided below for your review.</p></td></tr>" +
+                            "<tr><td style=\"padding:10px 24px 24px;\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">" +
                             "<tr><td colspan=\"2\" style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\">Employee Information</td></tr>" +
                             "<tr><td width=\"38%\" style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Employee</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(Code) + " &nbsp;|&nbsp; " + Convert.ToString(dt.Rows[0]["FullName"]) + "</td></tr>" +
                             "<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Working Branch</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr>" +
@@ -344,9 +344,9 @@ namespace WebPortal.Admin
                             body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;border-bottom:1px solid #e6ebf1;font-size:13px;font-weight:bold;color:#52637a;\">Step 1 Remark</td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtInit.Rows[0]["Code"]) + " &nbsp;|&nbsp; " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + "<br />" + Convert.ToString(Remark) + "</td></tr>");
                         }
                         body.Append("<tr><td style=\"padding:11px 16px;background-color:#f8fafc;font-size:13px;font-weight:bold;color:#52637a;\">Latest Login Date</td><td style=\"padding:11px 16px;font-size:13px;color:#25324b;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>" +
-                        "</table></td></tr>" +
-                        "<tr><td style=\"padding:0 32px 28px 32px;\"><p style=\"margin:0;font-size:14px;line-height:22px;color:#52637a;\">Regards,<br /><strong style=\"color:#25324b;\">Infinity IPS</strong></p></td></tr>" +
-                        "<tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e6ebf1;text-align:center;font-size:11px;line-height:17px;color:#7b8798;\">This is an automated notification from Infinity IPS. Please do not reply to this email.</td></tr>" +
+                        "</table>" +
+                        "<p style=\"margin:26px 0 0;color:#475569;font-size:13px;line-height:20px;\">Regards,<br><strong style=\"color:#0f172a;\">Infinity IPS</strong></p></td></tr>" +
+                        "<tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;line-height:17px;text-align:center;\">This is an automated notification from HRMS. Please do not reply to this email.</td></tr>" +
                         "</table></td></tr></table>");
                         footer.Append("</body></html>");
 
@@ -465,7 +465,7 @@ namespace WebPortal.Admin
                 htParam.Add("ResignationReceivedThrough", ResignationReceivedThrough);
                 htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-                ReturnValue = new bllMaster().UpdateResignation(htParam);
+                ReturnValue =  new bllMaster().UpdateResignation(htParam);
 
                 if (ReturnValue > 0)
                     SendStep2Email(dt, UHReamrk, Status);
@@ -1505,11 +1505,11 @@ namespace WebPortal.Admin
 
         private static string GetProfessionalResignationEmailHead()
         {
-            return "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">" +
+            return "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
                 "<style type=\"text/css\">" +
-                "body{margin:0!important;padding:0!important;background-color:#f3f6fa!important;}" +
-                ".email-background{width:100%!important;background-color:#f3f6fa!important;font-family:Arial,Helvetica,sans-serif!important;color:#25324b!important;}" +
-                ".email-card{width:100%!important;max-width:680px!important;background-color:#ffffff!important;border:1px solid #dfe6ef!important;border-radius:12px!important;}" +
+                "body{margin:0!important;padding:0!important;background-color:#f1f5f9!important;}" +
+                ".email-background{width:100%!important;background-color:#f1f5f9!important;font-family:Arial,'Helvetica Neue',sans-serif!important;color:#1e293b!important;}" +
+                ".email-card{width:100%!important;max-width:680px!important;background-color:#ffffff!important;border:1px solid #e2e8f0!important;border-radius:16px!important;}" +
                 ".email-details{width:100%!important;border:1px solid #dfe6ef!important;border-radius:8px!important;border-collapse:separate!important;border-spacing:0!important;font-family:Arial,Helvetica,sans-serif!important;}" +
                 ".email-details td{padding:11px 16px!important;border:0!important;border-bottom:1px solid #e6ebf1!important;font-family:Arial,Helvetica,sans-serif!important;font-size:13px!important;line-height:20px!important;color:#25324b!important;text-align:left!important;}" +
                 ".email-details td:first-child:not([colspan]){width:38%!important;background-color:#f8fafc!important;font-weight:bold!important;color:#52637a!important;}" +
@@ -1522,17 +1522,16 @@ namespace WebPortal.Admin
 
         private static string GetProfessionalResignationEmailHeader()
         {
-            return "<table role=\"presentation\" class=\"email-background\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f3f6fa;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;color:#25324b;\"><tr><td align=\"left\">" +
-                "<table role=\"presentation\" class=\"email-card\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #dfe6ef;border-radius:12px;overflow:hidden;\">" +
-                "<tr><td style=\"padding:26px 32px;background-color:#174a7e;border-bottom:4px solid #2ea3f2;\"><div style=\"font-size:24px;line-height:30px;font-weight:bold;color:#ffffff;letter-spacing:.2px;\">Infinity IPS</div></td></tr>" +
-                "<tr><td style=\"padding:30px 32px;\"><table role=\"presentation\" class=\"email-details\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #dfe6ef;border-radius:8px;border-collapse:separate;border-spacing:0;font-family:Arial,Helvetica,sans-serif;\">";
+            return "<table role=\"presentation\" class=\"email-background\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f1f5f9;font-family:Arial,'Helvetica Neue',sans-serif;color:#1e293b;\"><tr><td align=\"left\" style=\"padding:20px 16px;text-align:left;\">" +
+                "<table role=\"presentation\" class=\"email-card\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;\">" +
+                "<tr><td bgcolor=\"#173b70\" style=\"padding:15px 24px;background-color:#173b70;border-bottom:3px solid #2f80ed;text-align:left;\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#173b70;\"><tr><td bgcolor=\"#173b70\" style=\"color:#bfdbfe;font-size:10px;font-weight:700;line-height:14px;letter-spacing:1.2px;text-transform:uppercase;mso-line-height-rule:exactly;\">INFINITY IPS &nbsp;/&nbsp; HRMS</td></tr><tr><td height=\"4\" bgcolor=\"#173b70\" style=\"height:4px;font-size:0;line-height:4px;mso-line-height-rule:exactly;\">&nbsp;</td></tr><tr><td bgcolor=\"#173b70\" style=\"color:#ffffff;font-size:22px;font-weight:700;line-height:27px;mso-line-height-rule:exactly;\">Resignation</td></tr></table></td></tr>" +
+                "<tr><td style=\"padding:24px;\"><table role=\"presentation\" class=\"email-details\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;border-spacing:0;font-family:Arial,'Helvetica Neue',sans-serif;\">";
         }
 
         private static string GetProfessionalResignationEmailFooter()
         {
-            return "</td></tr>" +
-                "<tr><td style=\"padding:0 32px 28px 32px;font-family:Arial,Helvetica,sans-serif;\"><p style=\"margin:0;font-size:14px;line-height:22px;color:#52637a;\">Regards,<br /><strong style=\"color:#25324b;\">Infinity IPS</strong></p></td></tr>" +
-                "<tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e6ebf1;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;color:#7b8798;\">This is an automated notification from Infinity IPS. Please do not reply to this email.</td></tr>" +
+            return "<p style=\"margin:26px 0 0;color:#475569;font-family:Arial,'Helvetica Neue',sans-serif;font-size:13px;line-height:20px;\">Regards,<br><strong style=\"color:#0f172a;\">Infinity IPS</strong></p></td></tr>" +
+                "<tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;color:#94a3b8;font-family:Arial,'Helvetica Neue',sans-serif;font-size:11px;line-height:17px;text-align:center;\">This is an automated notification from HRMS. Please do not reply to this email.</td></tr>" +
                 "</table></td></tr></table></body></html>";
         }
     }

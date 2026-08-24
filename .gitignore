@@ -383,6 +383,11 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_021_ProcessCompletionTimeLimits.sql
 !/WebPortal/DatabaseScripts/OLTracking_022_OutOfScopeAndHoldReasons.sql
 !/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
+!/WebPortal/App_Code/
+/WebPortal/App_Code/*
+!/WebPortal/App_Code/Class/
+/WebPortal/App_Code/Class/*
+!/WebPortal/App_Code/Class/SelfLeavesEmailTemplate.cs
 !/WebPortal/TrackingSheet/
 /WebPortal/TrackingSheet/*
 !/WebPortal/TrackingSheet/TrackingSheetFeedback.aspx

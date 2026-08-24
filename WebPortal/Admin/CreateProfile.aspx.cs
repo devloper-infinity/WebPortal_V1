@@ -363,7 +363,7 @@ namespace WebPortal.Admin
 
             if (BankName != "" && IFSCCode != "")
             {
-               new bllMaster().InsertBankAccountNo(htParam);
+                new bllMaster().InsertBankAccountNo(htParam);
             }
 
             returnvalue = new bllMaster().InsertEmployeeInfo(htParam);
@@ -485,40 +485,70 @@ namespace WebPortal.Admin
 
             #endregion
 
-            ReturnValue = new bllMaster().UpdateEmployeeInfo(htParam);
+            ReturnValue =  new bllMaster().UpdateEmployeeInfo(htParam);
 
             if (ReturnValue > 0)
             {
                 ReturnValue = new bllMaster().InsertEmployeeInfo_Old(htParam);
             }
 
-            //if (BankAccNo == ReBankAccNo && IFSCCode == ReIFSCCode)
-            //{
-            //    if (NewFileName != "")
-            //    {
-            //        string CodeDate = Code + "_" + DateTime.Now.ToString("ddMMyyyyHHMMSS");
-            //        FolderPath = FolderPath + "\\" + DateTime.Now.ToString("dd-MMM-yyyy") + "\\" + CodeDate;
-            //        if (!Directory.Exists(FolderPath))
-            //        {
-            //            Directory.CreateDirectory(FolderPath);
-            //        }
-            //        File.Copy(NewFileName, FolderPath + "\\" + GUIDFile);
-            //        htParam.Add("Attachment", FolderPath + "\\" + GUIDFile);
-            //    }
-            //    else
-            //    {
-            //        htParam.Add("Attachment", "");
-            //    }
+            /*---------------- Testing Purpose ---------------*/
+            //if (Convert.ToString(htParam["WorkingBranchName"]) == "Solapur" || Convert.ToString(htParam["WorkingBranchName"]) == "SolapurInf")
+            //    ProfileCreationMail(htParam, "Create Profile Solapur", Convert.ToString(htParam["Code"]));
+            //else
+            //    ProfileCreationMail(htParam, "Create Profile", Convert.ToString(htParam["Code"]));
+            //ProfileCreationMail_ToCM(htParam, Convert.ToString(htParam["Code"]));
 
-            //    if (BankName != OldBankAcc && IFSCCode != OldBankIFSC)
-            //    {
-            //        ReturnValue = new bllMaster().InsertBankAccountNo(htParam);
-            //    }
-            //}
             return ReturnValue;
         }
 
         #region Email 
+
+        private static string BuildProfileEmailContent(Hashtable profile, DataTable createdBy, string domainHead, bool includeSalary)
+        {
+            StringBuilder email = new StringBuilder();
+            email.Append("<p style=\"margin:0 0 6px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">Dear Sir/Madam,</p>" +
+                "<p style=\"margin:0 0 24px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">New user " + Convert.ToString(profile["FirstName"]) + " " + Convert.ToString(profile["MiddleName"]) + " " + Convert.ToString(profile["lastName"]) + "  has joined & below are the credentials.</p>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;\"><tr><td height=\"18\" style=\"height:18px;font-size:0;line-height:18px;\">&nbsp;</td></tr><tr><td style=\"color:#0f172a;font-size:15px;font-weight:700;line-height:20px;\">Employee Basic Details</td></tr><tr><td height=\"8\" style=\"height:8px;font-size:0;line-height:8px;\">&nbsp;</td></tr></table>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">");
+
+            AppendProfileDetailRow(email, "Code:", Convert.ToString(profile["Code"]).ToUpper() + " ");
+            AppendProfileDetailRow(email, "Name:", Convert.ToString(profile["FirstName"]) + " " + Convert.ToString(profile["MiddleName"]) + " " + Convert.ToString(profile["lastName"]));
+            AppendProfileDetailRow(email, "Date of birth:", Convert.ToDateTime(profile["DateOfBirth"]).ToString("dd-MMM-yyyy"));
+            AppendProfileDetailRow(email, "Working Branch:", profile["WorkingBranchName"]);
+            AppendProfileDetailRow(email, "Joining Date:", Convert.ToDateTime(profile["JoiningDate"]).ToString("dd-MMM-yyyy"));
+
+            if (includeSalary)
+                AppendProfileDetailRow(email, "Salary:", profile["Salary"]);
+
+            AppendProfileDetailRow(email, "Job Type:", profile["JobType"]);
+            AppendProfileDetailRow(email, "Domain:", profile["DomainName"]);
+            AppendProfileDetailRow(email, "Subdomain:", profile["SubDomain"]);
+            AppendProfileDetailRow(email, "Department:", profile["DepartmentName"]);
+            AppendProfileDetailRow(email, "Designation:", profile["DesignationName"]);
+            AppendProfileDetailRow(email, "Shift:", Convert.ToString(profile["ShiftOld"]) + "&nbsp;&nbsp;<b>Cut Off Time:</b>&nbsp;" + Convert.ToString(profile["CutOffTime"]));
+
+            if (Convert.ToString(profile["DomainName"]) != "Support")
+            {
+                AppendProfileDetailRow(email, "Project assigned:", profile["ProjectName"]);
+                AppendProfileDetailRow(email, "Process assigned:", profile["ProcessName"]);
+            }
+
+            AppendProfileDetailRow(email, "Reporting Manager:", profile["ProjectManagerName"]);
+            AppendProfileDetailRow(email, "Domain Head:", domainHead);
+            AppendProfileDetailRow(email, "Employee Remark:", profile["EmployeeRemark"]);
+            AppendProfileDetailRow(email, "Salary Justification:", profile["SalaryJustification"]);
+            AppendProfileDetailRow(email, "Created By:", Convert.ToString(createdBy.Rows[0]["FirstName"]) + " " + Convert.ToString(createdBy.Rows[0]["lastName"]) + " on " + DateTime.Now.ToString("dd-MMM-yyyy"));
+            email.Append("</table>");
+
+            return email.ToString();
+        }
+
+        private static void AppendProfileDetailRow(StringBuilder email, string label, object value)
+        {
+            email.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\">" + label + "</td>" +
+                "<td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(value) + "</td></tr>");
+        }
 
         [WebMethod]
         public static int ProfileCreationMail_ToCM(Hashtable htParam, string Code)
@@ -591,8 +621,12 @@ namespace WebPortal.Admin
                 mail.To.Add("k.sagar@infinity-data.com");
                 mail.Bcc.Add("n.nilkanth@infinity-data.com");
 
+                //ToAddress = "b.shubhangi@infinityinternationals.us";
+                //mail.To.Add(ToAddress);
+                //mail.Bcc.Add("n.nilkanth@infinity-data.com");
+
                 mail.Subject = "New User " + Convert.ToString(htParam["Code"]).ToUpper() + " has joined.";
-                mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(BuildProfileEmailContent(htParam, dtInit, DomainHead, true), "Employee profile", true);
                 mail.IsBodyHtml = true;
                 mail.Priority = System.Net.Mail.MailPriority.High;
                 SmtpClient client = new SmtpClient();
@@ -630,16 +664,6 @@ namespace WebPortal.Admin
             string ToBCC = string.Empty;
             string ToCC = string.Empty;
 
-            //DataTable dtdom = new bllMaster().GetDomainHeadInfo(EmployeeID);
-            //if (dtdom != null)
-            //{
-            //    if (dtdom.Rows.Count > 0)
-            //    {
-            //        DomainHead = Convert.ToString(dtdom.Rows[0]["DomainHeadName"]);
-            //        DomainEmailID = Convert.ToString(dtdom.Rows[0]["DomainHeadEmailID"]);
-            //    }
-            //}
-
             DataTable dtEmail = new bllLogin().GetUserPmDomainLocationEmailInfo(EmployeeID, EmailType);
             if (dtEmail != null)
             {
@@ -647,7 +671,6 @@ namespace WebPortal.Admin
                 {
                     DomainHead = Convert.ToString(dtEmail.Rows[0]["DomainHeadName"]);
                     DomainEmailID = Convert.ToString(dtEmail.Rows[0]["DomainHeadEmail"]);
-
                 }
             }
 
@@ -700,8 +723,12 @@ namespace WebPortal.Admin
                 mail.To.Add(ToCC);
                 mail.Bcc.Add(ToBCC);
 
+                //ToAddress = "b.shubhangi@infinityinternationals.us";
+                //mail.To.Add(ToAddress);
+                //mail.Bcc.Add("n.nilkanth@infinity-data.com");
+
                 mail.Subject = "New User " + Convert.ToString(htParam["Code"]).ToUpper() + " has joined.";
-                mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(BuildProfileEmailContent(htParam, dtInit, DomainHead, false), "Employee profile", true);
                 mail.IsBodyHtml = true;
                 mail.Priority = System.Net.Mail.MailPriority.High;
                 SmtpClient client = new SmtpClient();

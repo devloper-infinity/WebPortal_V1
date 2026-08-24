@@ -54,7 +54,7 @@ namespace WebPortal.Admin
 
             bool status = ToBeStatus == "Activated" ? true : false;
 
-            returnvalue = new bllMaster().InsertEmployeeLogInHistory(Code, status, Remark, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            returnvalue =  new bllMaster().InsertEmployeeLogInHistory(Code, status, Remark, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
             if (returnvalue > 0)
             {
@@ -133,7 +133,7 @@ namespace WebPortal.Admin
                         Subject = "enabled";
 
                     head.Append("<html><head></head><body>");
-                    body.Append("<table style=\"width:802px;font-family:biome; font-size:10px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>");
+                    //body.Append("<table style=\"width:802px;font-family:biome; font-size:10px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>");
                     body.Append("<table border =\"0\" style=\"width:800px;font-family:verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
                     "<tr><td style=\"text-align:left; font-size:11px;\" colspan=\"2\"><b>Dear Sir/Madam,<br />User " + Convert.ToString(dt1.Rows[0]["FirstName"]) + " " + Convert.ToString(dt1.Rows[0]["MiddleName"]) + " " + Convert.ToString(dt1.Rows[0]["lastName"]) + " rights has been " + Subject + ".<br /><br /></b></td></tr>" +
                     "<tr><td style=\"border:solid 1px Gray; text-align:center;\" colspan=\"2\"><b>Employee Basic Details</b></td></tr>" +
@@ -159,6 +159,8 @@ namespace WebPortal.Admin
 
                     string Pass = new bllMaster().GetPassword("ackdata");
 
+                    //ToAddress = "b.shubhangi@infinityinternationals.us";
+
                     MailMessage mail = new MailMessage();
                     mail.From = new MailAddress("ack@infinity-data.com", "Profile Notifications", System.Text.Encoding.UTF8);
                     mail.To.Add(ToAddress);
@@ -166,7 +168,9 @@ namespace WebPortal.Admin
                     mail.Bcc.Add(ToBCC);
 
                     mail.Subject = " User rights has been " + Subject + "-User " + Code;
-                    mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(
+                        BuildLoginDetailsEmailContent(dt1, i, Code, Subject, PrimaryProject, PrimaryProcess, DomainHead, LocationHead, Status, Remark, AddedBy, BlockedRemark),
+                        "User access update", true);
                     mail.IsBodyHtml = true;
                     mail.Priority = System.Net.Mail.MailPriority.High;
                     SmtpClient client = new SmtpClient();
@@ -187,6 +191,42 @@ namespace WebPortal.Admin
                 }
             }
             return returnvalue;
+        }
+
+        private static string BuildLoginDetailsEmailContent(DataTable employee, int rowIndex, string code, string subject, string primaryProject, string primaryProcess, string domainHead, string locationHead, string status, string remark, string addedBy, string blockedRemark)
+        {
+            StringBuilder email = new StringBuilder();
+            email.Append("<p style=\"margin:0 0 6px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">Dear Sir/Madam,</p>" +
+                "<p style=\"margin:0 0 24px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">User " + Convert.ToString(employee.Rows[0]["FirstName"]) + " " + Convert.ToString(employee.Rows[0]["MiddleName"]) + " " + Convert.ToString(employee.Rows[0]["lastName"]) + " rights has been " + subject + ".</p>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;\"><tr><td height=\"18\" style=\"height:18px;font-size:0;line-height:18px;\">&nbsp;</td></tr><tr><td style=\"color:#0f172a;font-size:15px;font-weight:700;line-height:20px;\">Employee Basic Details</td></tr><tr><td height=\"8\" style=\"height:8px;font-size:0;line-height:8px;\">&nbsp;</td></tr></table>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">");
+
+            AppendLoginDetailRow(email, "Code:", code.ToUpper() + " ");
+            AppendLoginDetailRow(email, "Working Branch:", Convert.ToString(employee.Rows[rowIndex]["WorkingBranchName"]) + " ");
+            AppendLoginDetailRow(email, "Joining Date:", Convert.ToString(employee.Rows[rowIndex]["JoiningDate"]) + " ");
+            AppendLoginDetailRow(email, "Job Type:", Convert.ToString(employee.Rows[rowIndex]["JobType"]) + " ");
+            AppendLoginDetailRow(email, "Department:", Convert.ToString(employee.Rows[rowIndex]["DepartmentName"]) + " ");
+            AppendLoginDetailRow(email, "Designation:", Convert.ToString(employee.Rows[rowIndex]["DesignationName"]) + " ");
+            AppendLoginDetailRow(email, "Domain:", Convert.ToString(employee.Rows[rowIndex]["SubDomain"]) + " ");
+            AppendLoginDetailRow(email, "Project:", primaryProject + " ");
+            AppendLoginDetailRow(email, "Process:", primaryProcess + " ");
+            AppendLoginDetailRow(email, "Domain Head:", domainHead + " ");
+            AppendLoginDetailRow(email, "Location Head:", locationHead + " ");
+
+            if (blockedRemark != "")
+                AppendLoginDetailRow(email, "Blocked Remark:", blockedRemark + " ");
+
+            AppendLoginDetailRow(email, "Status:", status + " ");
+            AppendLoginDetailRow(email, "Remark:", addedBy + "::" + DateTime.Now.ToString("dd-MMM-yyyy") + "::" + remark);
+            email.Append("</table>");
+
+            return email.ToString();
+        }
+
+        private static void AppendLoginDetailRow(StringBuilder email, string label, object value)
+        {
+            email.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\">" + label + "</td>" +
+                "<td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(value) + "</td></tr>");
         }
     }
 }
