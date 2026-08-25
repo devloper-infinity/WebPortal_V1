@@ -298,17 +298,11 @@ function choliday_updateShiftText() {
 /*-------- For Submit  --------*/
 
 function choliday_InsertHoliday() {
-
-    // alert($("#choliday_date").val());
-
     const requestData = {
         EmpIDs: choliday_getSelectedEmployees() || [],
         Date: $("#choliday_date").val(),
-        Remark: $.trim($$("#choliday_desc").val())
+        Remark: $.trim($("#choliday_desc").val() || "")
     };
-
-    // alert(EmpIDs);
-    // alert(requestData.Date);
 
     if (requestData.EmpIDs.length === 0) {
         Swal.fire({

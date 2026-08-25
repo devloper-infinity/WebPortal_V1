@@ -163,7 +163,8 @@ namespace WebPortal.Admin
 
                     dataRangeHiring = book.Worksheets["Details"].Range["A1:L" + book.Worksheets["Details"].LastRow];
                     cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                    ptHiring = sheet.PivotTables.Add("Domain", sheet.Range["A" + (sheet.LastRow + 2)], cacheHiring);
+                    // Pivot table names must be unique when the workbook is reopened by ClosedXML.
+                    ptHiring = sheet.PivotTables.Add("DomainHead", sheet.Range["A" + (sheet.LastRow + 2)], cacheHiring);
 
                     rHiring = ptHiring.PivotFields["Domain Head"];
                     rHiring.Axis = AxisTypes.Row;
