@@ -118,7 +118,7 @@ namespace WebPortal.IT
 
             }
 
-            ReturnValue = new bllAsset().UpdateTicketRemark(htTicket);
+            ReturnValue =  new bllAsset().UpdateTicketRemark(htTicket);
 
             if (ReturnValue > 0)
                 SendClosedTicketEmail(htTicket, ReturnValue);
@@ -362,15 +362,18 @@ namespace WebPortal.IT
 
                     MailMessage mail = new MailMessage();
                     mail.From = new MailAddress("ack@infinity-data.com", "Helpdesk Notifications", System.Text.Encoding.UTF8);
-                    //mail.To.Add("b.shubhangi@infinityinternationals.us");
+
+                    // mail.To.Add("b.shubhangi@infinityinternationals.us");
+
                     if (To != "")
                         mail.To.Add(To);
                     if (CC != "")
                         mail.CC.Add(CC);
                     if (BCC != "")
                         mail.Bcc.Add(BCC);
+
                     mail.Subject = Subject;
-                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Helpdesk ticket update");
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(BuildTicketUpdateEmailContent(dt, htTicket), "Helpdesk ticket update", true);
                     mail.IsBodyHtml = true;
                     if (Attachment != "")
                         mail.Attachments.Add(new Attachment(Attachment));
@@ -397,6 +400,53 @@ namespace WebPortal.IT
 
             }
             return returnvalue;
+        }
+
+        private static string BuildTicketUpdateEmailContent(DataTable ticket, Hashtable ticketUpdate)
+        {
+            DataRow row = ticket.Rows[0];
+            StringBuilder email = new StringBuilder();
+            email.Append("<p style=\"margin:0 0 24px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">Dear " + Convert.ToString(row["DepartmentName"]).Trim() + " Team,</p>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">");
+
+            AppendTicketUpdateDetailRow(email, "Ticket #:", Convert.ToString(row["TicketNo"]).Trim());
+            AppendTicketUpdateDetailRow(email, "Desk #:", row["DeskNo"]);
+            AppendTicketUpdateDetailRow(email, "Request By:", row["Employee"]);
+            AppendTicketUpdateDetailRow(email, "Working Branch:", row["WorkingBranch"]);
+            AppendTicketUpdateDetailRow(email, "Reporting Manager:", Convert.ToString(row["ReportingManager"]).Trim());
+
+            string onBehalf = Convert.ToString(row["RequestOnBehalf"]).Trim();
+            if (onBehalf != "")
+                AppendTicketUpdateDetailRow(email, "Request On Behalf:", onBehalf);
+
+            AppendTicketUpdateDetailRow(email, "Request:", Convert.ToString(row["RequestB"]).Trim());
+            AppendTicketUpdateDetailRow(email, "Subject:", Convert.ToString(row["Subject"]).Trim());
+            AppendTicketUpdateDetailRow(email, "Posted on:", Convert.ToString(row["RequestDateTime"]).Trim());
+            AppendTicketUpdateDetailRow(email, "Description:", row["Description"]);
+            AppendTicketUpdateDetailRow(email, "Expected TAT:", Convert.ToString(row["ExpectedTAT"]).Trim());
+            AppendTicketUpdateDetailRow(email, "Status:", ticketUpdate["NextState"]);
+            AppendTicketUpdateDetailRow(email, "Remark:", ticketUpdate["Description"]);
+
+            if (Convert.ToString(ticketUpdate["NextState"]) == "Open")
+            {
+                AppendTicketUpdateDetailRow(email, "Remark Addded By:", row["NewRemarkAddedBy"]);
+                AppendTicketUpdateDetailRow(email, "Remark Addded Date:", row["NewAddedDate"]);
+            }
+            else if (Convert.ToString(ticketUpdate["NextState"]) == "Closed")
+            {
+                AppendTicketUpdateDetailRow(email, "Closed By:", row["ClosedBy"]);
+                AppendTicketUpdateDetailRow(email, "Closed Date:", row["ClosedDate"]);
+                AppendTicketUpdateDetailRow(email, "Actual TAT:", Convert.ToString(row["ClosedTAT"]).Trim());
+            }
+
+            email.Append("</table>");
+            return email.ToString();
+        }
+
+        private static void AppendTicketUpdateDetailRow(StringBuilder email, string label, object value)
+        {
+            email.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\">" + label + "</td>" +
+                "<td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(value) + "</td></tr>");
         }
 
     }

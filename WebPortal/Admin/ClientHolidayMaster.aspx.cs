@@ -102,7 +102,7 @@ namespace WebPortal.Admin
 
                 foreach (int empId in EmpIDs)
                 {
-                    ReturnValue = new bllMaster().InsertEmpHoliday(empId, Date, "", "", Remark, int.Parse(HttpContext.Current.User.Identity.Name));
+                    ReturnValue =  new bllMaster().InsertEmpHoliday(empId, Date, "", "", Remark, int.Parse(HttpContext.Current.User.Identity.Name));
                 }
 
                 if (ReturnValue > 0)

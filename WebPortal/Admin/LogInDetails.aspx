@@ -3,8 +3,6 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
-
-
     <style>
         body {
             background: #f4f7fb;
@@ -134,14 +132,12 @@
                             <label class="btn btn-abscond">
                                 <input type="radio" name="status" value="abscond">
                                 Absconded
-                           
                             </label>
 
                         </div>
                         <div style="text-align: right;">
                             <button type="button" class="btn btn-soft" onclick="refershGrid(); return false;">
                                 <i class="fas fa-sync-alt"></i>&nbsp; Refresh
-                           
                             </button>
                         </div>
                     </div>

@@ -137,10 +137,43 @@ namespace WebPortal.IT
             }
             htTicket["Attachment"] = UniquePath;
 
-            ReturnValue = new bllAsset().InsertTicketApproval(htTicket);
+            ReturnValue =  new bllAsset().InsertTicketApproval(htTicket);
             if (ReturnValue > 0)
                 SendMailTicketApproval(htTicket, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             return ReturnValue;
+        }
+
+        private static string BuildTicketApprovalEmailContent(DataTable ticket, Hashtable approval, string approvalAddedBy, string expectedTat)
+        {
+            DataRow row = ticket.Rows[0];
+            StringBuilder email = new StringBuilder();
+            email.Append("<p style=\"margin:0 0 24px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">Dear " + Convert.ToString(row["DepartmentName"]).Trim() + " Team,</p>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">");
+
+            AppendTicketApprovalDetailRow(email, "Ticket #:", Convert.ToString(row["TicketNo"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Desk #:", row["DeskNo"]);
+            AppendTicketApprovalDetailRow(email, "Request By:", row["Employee"]);
+            AppendTicketApprovalDetailRow(email, "Working Branch:", row["WorkingBranch"]);
+            AppendTicketApprovalDetailRow(email, "Reporting Manager:", Convert.ToString(row["ReportingManager"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Job Type:", row["JobType"]);
+            AppendTicketApprovalDetailRow(email, "Request:", Convert.ToString(row["RequestB"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Subject:", Convert.ToString(row["Subject"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Posted on:", Convert.ToString(row["RequestDateTime"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Description:", Convert.ToString(row["Description"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Approval Status:", Convert.ToString(approval["Status"]).Trim());
+            AppendTicketApprovalDetailRow(email, "Approval Added By:", approvalAddedBy);
+            AppendTicketApprovalDetailRow(email, "Approval Date:", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
+            AppendTicketApprovalDetailRow(email, "Expected TAT:", Convert.ToString(expectedTat).Trim().Replace("\r\n", "<br />"));
+            AppendTicketApprovalDetailRow(email, "Remark:", Convert.ToString(approval["Remark"]).Trim().Replace("\r\n", "<br />"));
+            email.Append("</table>");
+
+            return email.ToString();
+        }
+
+        private static void AppendTicketApprovalDetailRow(StringBuilder email, string label, object value)
+        {
+            email.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\">" + label + "</td>" +
+                "<td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(value) + "</td></tr>");
         }
 
         [WebMethod]
@@ -310,7 +343,9 @@ namespace WebPortal.IT
                 string BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
                 MailMessage mail = new MailMessage();
                 mail.From = new MailAddress("ack@infinity-data.com", "Helpdesk Notifications", System.Text.Encoding.UTF8);
+                
                 //mail.To.Add("b.shubhangi@infinityinternationals.us");
+
                 if (OfficialIdDoaminHead != "")
                     mail.To.Add(OfficialIdDoaminHead);
                 if (CC != "")
@@ -320,7 +355,9 @@ namespace WebPortal.IT
 
                 mail.Subject = Subject;
 
-                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Ticket approval");
+                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(
+                    BuildTicketApprovalEmailContent(dt, htTicket, ApprovalAddedBy, ExpectedTAT),
+                    "Ticket approval", true);
 
                 mail.IsBodyHtml = true;
                 if (Attachment != "")

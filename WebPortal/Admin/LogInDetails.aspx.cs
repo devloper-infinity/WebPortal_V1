@@ -162,7 +162,7 @@ namespace WebPortal.Admin
                     //ToAddress = "b.shubhangi@infinityinternationals.us";
 
                     MailMessage mail = new MailMessage();
-                    mail.From = new MailAddress("ack@infinity-data.com", "Profile Notifications", System.Text.Encoding.UTF8);
+                    mail.From = new MailAddress("ack@infinity-data.com", "Auto Block Unblock", System.Text.Encoding.UTF8);
                     mail.To.Add(ToAddress);
                     mail.To.Add(ToCC);
                     mail.Bcc.Add(ToBCC);

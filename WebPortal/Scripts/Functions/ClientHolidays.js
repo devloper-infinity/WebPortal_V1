@@ -299,11 +299,16 @@ function choliday_updateShiftText() {
 
 function choliday_InsertHoliday() {
 
+    // alert($("#choliday_date").val());
+
     const requestData = {
         EmpIDs: choliday_getSelectedEmployees() || [],
         Date: $("#choliday_date").val(),
         Remark: $.trim($$("#choliday_desc").val())
     };
+
+    // alert(EmpIDs);
+    // alert(requestData.Date);
 
     if (requestData.EmpIDs.length === 0) {
         Swal.fire({
@@ -314,6 +319,8 @@ function choliday_InsertHoliday() {
         return false;
     }
 
+    // alert(requestData.EmpIDs.lengt);
+
     if (!requestData.Date) {
         Swal.fire({
             icon: "warning",
@@ -322,6 +329,9 @@ function choliday_InsertHoliday() {
         });
         return false;
     }
+
+    // alert(requestData.Date);
+
 
     $.ajax({
         type: "POST",
@@ -431,8 +441,8 @@ function choliday_getSelectedEmployees() {
     $(".chkItem:checked").each(function () {
         empIds.push($(this).val());
     });
-
-    return empIds;
+      
+        return empIds;
 }
 
 function choliday_getuserslist() {

@@ -234,8 +234,7 @@ namespace WebPortal.IT
                 htTicket["Attachment"] = FolderPath + "\\" + DateTime.Now.ToString("dd-MMM-yyyy") + "*" + NewFileName.Substring(NewFileName.LastIndexOf("\\") + 1);
             }
 
-            ReturnValue = new bllAsset().InsertTicketForSoftware(htTicket);
-
+            ReturnValue =  new bllAsset().InsertTicketForSoftware(htTicket);
 
             if (ReturnValue > 0)
             {
@@ -303,7 +302,7 @@ namespace WebPortal.IT
 
             }
 
-            ReturnValue =   new bllAsset().InsertRemark(htTicket);
+            ReturnValue = new bllAsset().InsertRemark(htTicket);
 
             if (ReturnValue > 0)
             {
@@ -344,8 +343,80 @@ namespace WebPortal.IT
             return ReturnValue;
         }
 
+        private static string BuildTicketEmailContent(DataTable ticket, string expectedTat)
+        {
+            DataRow row = ticket.Rows[0];
+            StringBuilder email = new StringBuilder();
+            email.Append("<p style=\"margin:0 0 24px;color:#0f172a;font-size:14px;font-weight:700;line-height:20px;\">Dear " + Convert.ToString(row["DepartmentName"]).Trim() + " Team,</p>" +
+                "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">");
+
+            AppendTicketDetailRow(email, "Ticket #:", Convert.ToString(row["TicketNo"]).Trim());
+            AppendTicketDetailRow(email, "Desk #:", row["DeskNo"]);
+            AppendTicketDetailRow(email, "Request By:", row["Employee"]);
+            AppendTicketDetailRow(email, "Working Branch:", row["WorkingBranch"]);
+            AppendTicketDetailRow(email, "Reporting Manager:", Convert.ToString(row["ReportingManager"]).Trim());
+
+            string onBehalf = Convert.ToString(row["RequestOnBehalf"]).Trim();
+            if (onBehalf != "")
+                AppendTicketDetailRow(email, "Request On Behalf:", onBehalf);
+
+            AppendTicketDetailRow(email, "Request:", Convert.ToString(row["RequestB"]).Trim());
+            AppendTicketDetailRow(email, "Subject:", Convert.ToString(row["Subject"]).Trim());
+            AppendTicketDetailRow(email, "Posted on:", Convert.ToString(row["RequestDateTime"]).Trim());
+            AppendTicketDetailRow(email, "Description:", row["Description"]);
+            AppendTicketDetailRow(email, "Expected TAT:", expectedTat);
+            email.Append("</table>");
+
+            return email.ToString();
+        }
+
+        private static void AppendTicketDetailRow(StringBuilder email, string label, object value)
+        {
+            email.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\">" + label + "</td>" +
+                "<td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(value) + "</td></tr>");
+        }
+
+        private static string GetTicketOfficialEmail(int employeeId)
+        {
+            DataTable employee = new bllAsset().GetOfficialMailIdOfEmployee(employeeId);
+            return employee.Rows.Count > 0 ? Convert.ToString(employee.Rows[0]["OfficialEmailID"]) : "";
+        }
+
+        private static string BuildTicketCcAddresses(string reportingManagerEmail, string onBehalfEmail, DataTable requestByInfo)
+        {
+            string requestByEmail = "";
+            string ticketCc = "";
+
+            if (requestByInfo.Rows.Count > 0)
+            {
+                requestByEmail = Convert.ToString(requestByInfo.Rows[0]["OfficialEmailID"]);
+                if (reportingManagerEmail == "")
+                    ticketCc = onBehalfEmail + "," + requestByEmail;
+                if (onBehalfEmail == "")
+                    ticketCc = reportingManagerEmail + "," + requestByEmail;
+                if (reportingManagerEmail != "" && onBehalfEmail != "")
+                    ticketCc = reportingManagerEmail + "," + onBehalfEmail + "," + requestByEmail;
+                if (requestByEmail == "")
+                    ticketCc = reportingManagerEmail + "," + onBehalfEmail;
+                if (onBehalfEmail == "" && requestByEmail == "")
+                    ticketCc = reportingManagerEmail;
+            }
+            else
+            {
+                ticketCc = reportingManagerEmail + "," + onBehalfEmail;
+                if (reportingManagerEmail == "")
+                    ticketCc = onBehalfEmail;
+                if (onBehalfEmail == "")
+                    ticketCc = reportingManagerEmail;
+                if (reportingManagerEmail != "" && onBehalfEmail != "")
+                    ticketCc = reportingManagerEmail + "," + onBehalfEmail;
+            }
+
+            return ticketCc;
+        }
+
         [WebMethod]
-        public static int SendTicketEmail(Hashtable htTicket, int ReturnValue) // string OffID, string GroupOffID)
+        public static int Core_SendTicketEmail(Hashtable htTicket, int ReturnValue) // string OffID, string GroupOffID)
         {
             int returnvalue = 0;
             string To = "";
@@ -567,19 +638,21 @@ namespace WebPortal.IT
                     //mail.To.Add("b.shubhangi@infinityinternationals.us");
                     try
                     {
+                        To = "b.shubhangi@infinityinternationals.us";
+
                         if (To != "")
                             mail.To.Add(To);
-                        if (CC != "")
-                            mail.CC.Add(CC);
-                        if (BCC != "")
-                            mail.Bcc.Add(BCC);
+                        //if (CC != "")
+                        //    mail.CC.Add(CC);
+                        //if (BCC != "")
+                        //    mail.Bcc.Add(BCC);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                    
+
                     }
                     mail.Subject = Subject;
-                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Helpdesk ticket");
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(BuildTicketEmailContent(dt, ExpectedTAT), "Helpdesk ticket", true);
                     mail.IsBodyHtml = true;
                     if (Attachment != "")
                         mail.Attachments.Add(new Attachment(Attachment));
@@ -608,395 +681,155 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
-        public static int SendTicketEmail_Prev(Hashtable htTicket, int ReturnValue, string OffID, string GroupOffID)
+        public static int SendTicketEmail(Hashtable htTicket, int ReturnValue) // string OffID, string GroupOffID)
         {
             int returnvalue = 0;
             string To = "";
             string CC = "";
             string BCC = "";
-            string contentHeader = "";
             string Attachment = "";
-            StringBuilder head = new StringBuilder();
-            StringBuilder body = new StringBuilder();
-            StringBuilder footer = new StringBuilder();
 
             DataTable dt = new bllAsset().GetTicketNoSendMail(ReturnValue);
             try
             {
-                if (dt.Rows.Count > 0)
+                if (dt.Rows.Count == 0)
+                    return returnvalue;
+
+                DataRow ticket = dt.Rows[0];
+                string Subject = "";
+                string ExpectedTAT = Convert.ToString(ticket["ExpectedTAT"]).Trim();
+                int Department = Convert.ToInt32(ticket["Department"].ToString());
+                int RequestOnBehalf = Convert.ToInt32(ticket["RequestOnBehalf1"]);
+                int ReportingManager = Convert.ToInt32(ticket["ReportingManager1"]);
+                string standardBcc = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
+                string standardSubject = Convert.ToString(ticket["TicketNo"]) + " : " + Convert.ToString(ticket["Subject"]);
+                string pendingApprovalSubject = standardSubject + " : Pending for Approval";
+                string requestedAttachment = Convert.ToString(htTicket["Attachment1"]).Trim();
+
+                string OfficialIdDoaminHead = "";
+                try
                 {
-                    string path = HttpContext.Current.Request.Url.AbsolutePath;
-                    string Subject = "";
+                    int DomainHeadId = Convert.ToInt32(ticket["DomainHead"]);
+                    DataTable DomainHead = new bllAsset().GetOfficialMailIdOfEmployee(DomainHeadId);
 
-                    head.Append("<html><head></head><body>");
-                    body.Append("<table style=\"width:802px;font-family:verdana; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>");
-                    body.Append("<table border=\"0\" style=\"width:800px;font-family:verdana; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
-                            "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear " + Convert.ToString(dt.Rows[0]["DepartmentName"]).Trim() + " Team,</b></td></tr></table>" +
-                            "<table border=\"0\" style=\"width:800px;font-family:verdana; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
-                            "<tr><td style=\"border:solid 1px Gray; width:100px!important;\"><b>Ticket #:</b></td><td style=\"border:solid 1px Gray;\">" + Convert.ToString(dt.Rows[0]["TicketNo"]).Trim() + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Desk #:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DeskNo"]) + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Request By:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Employee"]) + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Working Branch:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["WorkingBranch"]) + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reporting Manager:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ReportingManager"]).Trim() + "</td></tr>");
-                    string OnBehalf = Convert.ToString(dt.Rows[0]["RequestOnBehalf"]).Trim();
-                    string ExpectedTAT = Convert.ToString(dt.Rows[0]["ExpectedTAT"]).Trim();
-                    if (OnBehalf != "")
+                    if (DomainHead.Rows.Count > 0)
                     {
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Request On Behalf:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["RequestOnBehalf"]).Trim() + "</td></tr>");
+                        OfficialIdDoaminHead = Convert.ToString(DomainHead.Rows[0]["OfficialEmailID"]);
+                        if (DomainHeadId == 216)
+                            OfficialIdDoaminHead += ",alex@infinityinternationals.us";
                     }
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Request:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["RequestB"]).Trim() + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Subject:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Subject"]).Trim() + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Posted on:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["RequestDateTime"]).Trim() + "</td></tr>");
+                }
+                catch
+                {
+                }
 
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Description:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Description"]) + "</td></tr>");
-                    body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Expected TAT:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ExpectedTAT) + "</td></tr>");
+                string OfficialId = GetTicketOfficialEmail(ReportingManager);
+                string OfficialId1 = GetTicketOfficialEmail(RequestOnBehalf);
+                int RequestBy = Convert.ToInt32(ticket["RequestBy"]);
+                DataTable dtReqBy = new bllAsset().GetOfficialMailIdOfEmployee(RequestBy);
+                string TicketCC = BuildTicketCcAddresses(OfficialId, OfficialId1, dtReqBy);
 
-                    body.Append("<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:10px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                        "</table>");
-                    footer.Append("</body></html>");
+                if (Department == 7) /*------ IT Department ------*/
+                {
+                    BCC = standardBcc;
+                    Attachment = requestedAttachment;
 
-                    int Department = Convert.ToInt32(dt.Rows[0]["Department"].ToString());
-                    int RequestOnBehalf = Convert.ToInt32(dt.Rows[0]["RequestOnBehalf1"]);
-                    int ReportingManager = Convert.ToInt32(dt.Rows[0]["ReportingManager1"]);
-                    string OfficialIdDoaminHead = "";
-                    try
+                    if (RequestBy == 12 || RequestBy == 216 || RequestBy == 285 || RequestBy == 5 || RequestBy == 8128)
                     {
-                        int DomainHeadId = Convert.ToInt32(dt.Rows[0]["DomainHead"]);
-
-                        DataTable DomainHead = new bllAsset().GetOfficialMailIdOfEmployee(DomainHeadId);
-                        if (DomainHead.Rows.Count > 0)
-                        {
-                            if (DomainHeadId == 216)
-                            {
-                                OfficialIdDoaminHead = Convert.ToString(DomainHead.Rows[0]["OfficialEmailID"]) + "," + "alex@infinityinternationals.us";
-                            }
-                            else if (DomainHeadId == 12)
-                            {
-                                OfficialIdDoaminHead = Convert.ToString(DomainHead.Rows[0]["OfficialEmailID"]);
-                            }
-                            else
-                            {
-                                OfficialIdDoaminHead = Convert.ToString(DomainHead.Rows[0]["OfficialEmailID"]);
-                            }
-                        }
-                        else
-                        {
-                            OfficialIdDoaminHead = "";
-                        }
+                        To = "support@infinityinternationals.us";
+                        CC = TicketCC + ",hetal@infinity-data.com";
+                        Subject = standardSubject;
                     }
-                    catch (Exception ex)
+                    else if (ticket["Request"].ToString() == "19" || ticket["Request"].ToString() == "24")
                     {
+                        To = OfficialIdDoaminHead;
+                        CC = "";
+                        Subject = pendingApprovalSubject;
                     }
-
-                    DataTable dtMgr = new bllAsset().GetOfficialMailIdOfEmployee(ReportingManager);
-                    string OfficialId = "";
-                    string OfficialId1 = "";
-
-                    if (dtMgr.Rows.Count > 0)
+                    else if (ticket["Request"].ToString() == "39" || ticket["Request"].ToString() == "38" || ticket["Request"].ToString() == "22" || ticket["Request"].ToString() == "3")
                     {
-                        OfficialId = Convert.ToString(dtMgr.Rows[0]["OfficialEmailID"]);
+                        To = OfficialIdDoaminHead + "," + OfficialId;
+                        CC = "";
+                        Subject = pendingApprovalSubject;
                     }
                     else
                     {
-                        OfficialId = "";
+                        To = "support@infinityinternationals.us";
+                        CC = TicketCC + ",hetal@infinity-data.com";
+                        Subject = standardSubject;
                     }
-                    DataTable dtInfo = new bllAsset().GetOfficialMailIdOfEmployee(RequestOnBehalf);
-                    if (dtInfo.Rows.Count > 0)
-                    {
-                        OfficialId1 = Convert.ToString(dtInfo.Rows[0]["OfficialEmailID"]);
-                    }
-                    else
-                    {
-                        OfficialId1 = "";
-                    }
-                    string OfficialId2 = "";
-                    string TicketCC = "";
-                    int RequestBy = Convert.ToInt32(dt.Rows[0]["RequestBy"]);
-                    DataTable dtReqBy = new bllAsset().GetOfficialMailIdOfEmployee(RequestBy);
-                    if (dtReqBy.Rows.Count > 0)
-                    {
-                        OfficialId2 = Convert.ToString(dtReqBy.Rows[0]["OfficialEmailID"]);
-                        if (OfficialId == "")
-                        {
-                            TicketCC = OfficialId1 + "," + OfficialId2;
-                        }
-                        if (OfficialId1 == "")
-                        {
-                            TicketCC = OfficialId + "," + OfficialId2;
-                        }
+                }
+                else if (Department == 1) //--- Admin Department
+                {
+                    To = "admin-dept@infinityinternationals.us";
+                    CC = TicketCC + ",hetal@infinity-data.com";
+                    BCC = standardBcc;
+                    Subject = standardSubject;
+                    Attachment = requestedAttachment;
+                }
+                else if (Department == 12) //--- Software Department
+                {
+                    To = "n.nilkanth@infinityinternationals.us";
+                    CC = TicketCC;
+                    BCC = standardBcc;
+                    Subject = standardSubject;
+                    Attachment = requestedAttachment;
+                }
+                else if (Department == 6) //--- HR Department
+                {
+                    To = "hr@infinityinternationals.us";
+                    CC = TicketCC;
+                    BCC = standardBcc;
+                    Subject = standardSubject;
+                    Attachment = requestedAttachment;
+                }
 
-                        if (OfficialId != "" && OfficialId1 != "")
-                        {
-                            TicketCC = OfficialId + "," + OfficialId1 + "," + OfficialId2;
-                        }
-                        if (OfficialId2 == "")
-                        {
-                            TicketCC = OfficialId + "," + OfficialId1;
-                        }
-                        if (OfficialId1 == "" && OfficialId2 == "")
-                        {
-                            TicketCC = OfficialId;
-                        }
-                    }
-                    else
-                    {
-                        OfficialId2 = "";
-                        TicketCC = OfficialId + "," + OfficialId1;
-                        if (OfficialId == "")
-                        {
-                            TicketCC = OfficialId1;
-                        }
-                        if (OfficialId1 == "")
-                        {
-                            TicketCC = OfficialId;
-                        }
-                        if (OfficialId != "" && OfficialId1 != "")
-                        {
-                            TicketCC = OfficialId + "," + OfficialId1;
-                        }
-                    }
+                string Pass = new bllMaster().GetPassword("ackdata");
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress("ack@infinity-data.com", "Helpdesk Notifications", System.Text.Encoding.UTF8);
 
-                    if (Department == 7) //IT Department
-                    {
-                        int RequestBy1 = Convert.ToInt32(dt.Rows[0]["RequestBy"]);
+                //mail.To.Add("b.shubhangi@infinityinternationals.us");
 
-                        if (RequestBy1 == 12 || RequestBy1 == 216 || RequestBy1 == 285 || RequestBy1 == 5 || RequestBy1 == 8128)
-                        {
-                            if (OffID != "" && GroupOffID != "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + "," + OffID + "," + GroupOffID + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                            else if (OffID != "" && GroupOffID == "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + "," + OffID + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                            else if (GroupOffID != "" && OffID == "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + "," + GroupOffID + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                            else if (OffID == "" && GroupOffID == "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-
-
-                        } // end of RequestBy
-
-                        else if (dt.Rows[0]["Request"].ToString() == "19" || dt.Rows[0]["Request"].ToString() == "24")
-                        {
-                            To = OfficialIdDoaminHead;
-                            CC = "";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]) + " : Pending for Approval";
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-
-                        else if (dt.Rows[0]["Request"].ToString() == "39" || dt.Rows[0]["Request"].ToString() == "38" || dt.Rows[0]["Request"].ToString() == "22" || dt.Rows[0]["Request"].ToString() == "3")
-                        {
-                            To = OfficialIdDoaminHead + "," + OfficialId;
-                            CC = "";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]) + " : Pending for Approval";
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else
-                        {
-                            if (OffID != "" && GroupOffID != "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + "," + OffID + "," + GroupOffID + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                            else if (OffID != "" && GroupOffID == "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + "," + OffID + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                            else if (GroupOffID != "" && OffID == "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + "," + GroupOffID + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                            else if (OffID == "" && GroupOffID == "")
-                            {
-                                To = "support@infinityinternationals.us";
-                                CC = TicketCC + ",hetal@infinity-data.com";
-                                BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                                Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                                Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                            }
-                        } //end of Request..
-                    }
-                    else if (Department == 1) //Admin Department
-                    {
-                        if (OffID != "" && GroupOffID != "")
-                        {
-                            To = "admin-dept@infinityinternationals.us";
-                            CC = TicketCC + "," + OffID + "," + GroupOffID + ",hetal@infinity-data.com";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (OffID != "" && GroupOffID == "")
-                        {
-                            To = "admin-dept@infinityinternationals.us";
-                            CC = TicketCC + "," + OffID + ",hetal@infinity-data.com";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (GroupOffID != "" && OffID == "")
-                        {
-                            To = "admin-dept@infinityinternationals.us";
-                            CC = TicketCC + "," + GroupOffID + ",hetal@infinity-data.com";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (OffID == "" && GroupOffID == "")
-                        {
-                            To = "admin-dept@infinityinternationals.us";
-                            CC = TicketCC + ",hetal@infinity-data.com";
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-
-                    }
-                    else if (Department == 12) //Software Department
-                    {
-                        if (OffID != "" && GroupOffID != "")
-                        {
-                            To = "n.nilkanth@infinityinternationals.us";
-                            CC = TicketCC + "," + OffID + "," + GroupOffID;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (OffID != "" && GroupOffID == "")
-                        {
-                            To = "n.nilkanth@infinityinternationals.us";
-                            CC = TicketCC + "," + OffID;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (GroupOffID != "" && OffID == "")
-                        {
-                            To = "n.nilkanth@infinityinternationals.us";
-                            CC = TicketCC + "," + GroupOffID;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (OffID == "" && GroupOffID == "")
-                        {
-                            To = "n.nilkanth@infinityinternationals.us";
-                            CC = TicketCC;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                    }
-                    else if (Department == 6) //HR Department
-                    {
-                        if (OffID != "" && GroupOffID != "")
-                        {
-                            To = "hr@infinityinternationals.us";
-                            CC = TicketCC + "," + OffID + "," + GroupOffID;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (OffID != "" && GroupOffID == "")
-                        {
-                            To = "hr@infinityinternationals.us";
-                            CC = TicketCC + "," + OffID;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (GroupOffID != "" && OffID == "")
-                        {
-                            To = "hr@infinityinternationals.us";
-                            CC = TicketCC + "," + GroupOffID;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                        else if (OffID == "" && GroupOffID == "")
-                        {
-                            To = "hr@infinityinternationals.us";
-                            CC = TicketCC;
-                            BCC = "p.kedar@infinityinternationals.us,n.nilkanth@infinityinternationals.us";
-                            Subject = Convert.ToString(dt.Rows[0]["TicketNo"]) + " : " + Convert.ToString(dt.Rows[0]["Subject"]);
-                            Attachment = Convert.ToString(htTicket["Attachment1"]).Trim();
-                        }
-                    }
-
-                    string Pass = new bllMaster().GetPassword("ackdata");
-
-                    MailMessage mail = new MailMessage();
-                    mail.From = new MailAddress("ack@infinity-data.com", "Helpdesk Notifications", System.Text.Encoding.UTF8);
-                    //mail.To.Add("b.shubhangi@infinityinternationals.us");
+                try
+                {
                     if (To != "")
                         mail.To.Add(To);
                     if (CC != "")
                         mail.CC.Add(CC);
                     if (BCC != "")
                         mail.Bcc.Add(BCC);
-                    mail.Subject = Subject;
-                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(head.ToString() + body.ToString() + footer.ToString(), "Helpdesk ticket");
-                    mail.IsBodyHtml = true;
-                    if (Attachment != "")
-                        mail.Attachments.Add(new Attachment(Attachment));
-                    
-                    mail.Priority = System.Net.Mail.MailPriority.High;
-                    SmtpClient client = new SmtpClient();
-                    client.UseDefaultCredentials = false;
-                    client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", Pass);
+                }
+                catch (Exception ex)
+                {
+                }
 
-                    client.Host = "smtp.office365.com";  //Gmail works on Server Secured Layer
-                    client.Port = 587;
-                    client.EnableSsl = true;
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                    
-                    try
-                    {
-                        client.Send(mail);
-                        return 1;
-                    }
-                    catch (Exception ex) { return 0; }
+                mail.Subject = Subject;
+                mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(BuildTicketEmailContent(dt, ExpectedTAT), "Helpdesk ticket", true);
+                mail.IsBodyHtml = true;
+                if (Attachment != "")
+                    mail.Attachments.Add(new Attachment(Attachment));
+                mail.Priority = System.Net.Mail.MailPriority.High;
 
+                SmtpClient client = new SmtpClient();
+                client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", Pass);
+                client.Host = "smtp.office365.com";  //Gmail works on Server Secured Layer
+                client.Port = 587;
+                client.EnableSsl = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
+                try
+                {
+                    client.Send(mail);
+                    return 1;
+                }
+                catch
+                {
+                    return 0;
                 }
             }
-            catch (Exception ex) { }
+            catch (Exception ex)
+            {
+            }
 
             return returnvalue;
         }

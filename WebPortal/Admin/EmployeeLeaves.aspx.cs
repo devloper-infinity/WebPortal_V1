@@ -144,6 +144,7 @@ namespace WebPortal.Admin
             htTeamLeaves.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
             returnvalue = new bllMaster().InsertTeamLeavesByPM(htTeamLeaves);
+
             if (returnvalue > 0)
             {
                 if (PaidStatus == "Paid")
@@ -180,6 +181,7 @@ namespace WebPortal.Admin
         public static int ExtendShortenLeaves(int LeaveID, string Code, string LeaveStatus, string FromDate, string ToDate, int Days, string Remark)
         {
             int returnvalue = 0;
+
             Hashtable htExtend = new Hashtable();
             htExtend.Add("LeaveID", LeaveID);
             htExtend.Add("LeaveStatus", LeaveStatus);
