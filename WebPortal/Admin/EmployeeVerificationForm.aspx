@@ -332,6 +332,8 @@
     </style>
 
     <script>
+        var exEmpFormUploadInProgress = false;
+
         window.onload = function () {
             var uploadInput = document.getElementById('ExEmpForm_attachment');
             if (uploadInput) {
@@ -355,10 +357,25 @@
 
             const xhr = new XMLHttpRequest();
 
+            exEmpFormUploadInProgress = true;
+            var submitButton = document.getElementById("ExEmpForm_btnSubmit");
+            if (submitButton) submitButton.disabled = true;
+
             xhr.onload = () => {
+                exEmpFormUploadInProgress = false;
+                if (submitButton) submitButton.disabled = false;
+
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    // Upload completed
+                    return;
                 }
+
+                showExEmpFormMessage("The attachment could not be uploaded. Please select it again.", true);
+            };
+
+            xhr.onerror = () => {
+                exEmpFormUploadInProgress = false;
+                if (submitButton) submitButton.disabled = false;
+                showExEmpFormMessage("The attachment could not be uploaded. Please check your connection and try again.", true);
             };
 
             var url = window.location.href;

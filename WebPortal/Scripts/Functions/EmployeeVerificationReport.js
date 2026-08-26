@@ -329,8 +329,18 @@ function docs_download(path, index) {
 }
 
 function ExEmpForm_SubmitData() {
+    if (typeof exEmpFormUploadInProgress !== "undefined" && exEmpFormUploadInProgress) {
+        showExEmpFormMessage("Please wait for the attachment upload to finish.", true);
+        return false;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
-    const EmployeeID = urlParams.get('Emp');
+    const EmployeeID = parseInt(urlParams.get('Emp'), 10);
+    if (!Number.isInteger(EmployeeID) || EmployeeID <= 0) {
+        showExEmpFormMessage("A valid employee was not selected. Please return to the verification report and try again.", true);
+        return false;
+    }
+
     var ExEmpForm_name = document.getElementById("ExEmpForm_name").value;
     var ExEmpForm_organizationname = document.getElementById("ExEmpForm_organizationname").value;
     var ExEmpForm_candidatename = document.getElementById("ExEmpForm_candidatename").value;
@@ -350,20 +360,31 @@ function ExEmpForm_SubmitData() {
     var ExEmpForm_receiver = document.getElementById("ExEmpForm_receiver").value;
     var DutiesAndResponsibilitiesl = "";
 
+    if (!ExEmpForm_candidatename.trim() || !ExEmpForm_organizationname.trim() || !ExEmpForm_receiver.trim()) {
+        showExEmpFormMessage("Candidate name, organization name, and receiver email are required.", true);
+        return false;
+    }
+
+    var receiverInput = document.getElementById("ExEmpForm_receiver");
+    if (!receiverInput.checkValidity()) {
+        showExEmpFormMessage("Please enter a valid receiver email address.", true);
+        receiverInput.focus();
+        return false;
+    }
+
+    setExEmpFormSubmitting(true);
     PageMethods.InsertVerificationInformation(EmployeeID, ExEmpForm_candidatename, ExEmpForm_employeeid, ExEmpForm_salary, ExEmpForm_organizationname, ExEmpForm_employmentperiod, ExEmpForm_designation, ExEmpForm_reportingmanager,
         ExEmpForm_reportingdesignation, ExEmpForm_reportingmanageremail, ExEmpForm_hrname, ExEmpForm_hremail, ExEmpForm_reasonforleaving, ExEmpForm_exitformality, ExEmpForm_eligibility, ExEmpForm_verifiedby, ExEmpForm_receiver, DutiesAndResponsibilitiesl, OnSuccessExEmpForm, OnErrorExEmpForm)
     return false;
 }
 
 function OnSuccessExEmpForm(result) {
+    setExEmpFormSubmitting(false);
     if (result > 0) {
-        document.getElementById("form_errmsg").innerHTML = "Information submitted successfully!";
-        $('#form_dverror').modal('show');
+        showExEmpFormMessage("Information submitted successfully!", false);
     }
     else {
-        document.getElementById("form_errmsg").innerHTML = "Oops! Error occured while submitting information. Please contact administrator!";
-        document.getElementById("form_errmsg").style.color = 'red';
-        $('#form_dverror').modal('show');
+        showExEmpFormMessage("The information could not be submitted. Please contact the administrator.", true);
         return false;
     }
     //location.reload();
@@ -371,7 +392,30 @@ function OnSuccessExEmpForm(result) {
 }
 
 function OnErrorExEmpForm(error) {
-    alert(error);
+    setExEmpFormSubmitting(false);
+    var message = error && error.get_message ? error.get_message() : "The information could not be submitted. Please try again.";
+    showExEmpFormMessage(message, true);
+}
+
+function setExEmpFormSubmitting(isSubmitting) {
+    var submitButton = document.getElementById("ExEmpForm_btnSubmit");
+    if (submitButton) {
+        submitButton.disabled = isSubmitting;
+    }
+
+    if (isSubmitting) {
+        $('#load1').show();
+    }
+    else {
+        $('#load1').hide();
+    }
+}
+
+function showExEmpFormMessage(message, isError) {
+    var messageElement = document.getElementById("form_errmsg");
+    messageElement.textContent = message;
+    messageElement.style.color = isError ? 'red' : '';
+    $('#form_dverror').modal('show');
 }
 
 function ExEmployer_ResendEmail() {
