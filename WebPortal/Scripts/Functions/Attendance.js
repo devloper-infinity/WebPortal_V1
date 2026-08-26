@@ -1,5 +1,4 @@
 ﻿var pmatt_table;
-var pmatt_html;
 var selfatt_table;
 var selfatt_html;
 var attnEmpReasonType;
@@ -868,58 +867,115 @@ function pmatt_submit() {
     return false;
 }
 
+function parseAttendanceJsonDate(value) {
+    var match = /\/Date\((\d+)(?:[+-]\d+)?\)\//.exec(blankForNull(value));
+    if (!match) return null;
+
+    var date = new Date(parseInt(match[1], 10));
+    return isNaN(date.getTime()) ? null : date;
+}
+
+function formatAttendanceJsonDate(value) {
+    var date = parseAttendanceJsonDate(value);
+    return date ? date.toLocaleDateString("en-US") : "";
+}
+
+function attendanceDaysSinceJsonDate(value) {
+    var addedDate = parseAttendanceJsonDate(value);
+    if (!addedDate) return null;
+
+    var today = new Date();
+    var todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+    var addedDateUtc = Date.UTC(addedDate.getFullYear(), addedDate.getMonth(), addedDate.getDate());
+
+    return Math.floor((todayUtc - addedDateUtc) / 86400000);
+}
+
+function pmatt_showApprovalUnavailable(daysSinceAddedDate) {
+    var message = "Approval is unavailable because the Added Date is invalid.";
+
+    if (daysSinceAddedDate > 7) {
+        message = "Approval period has expired. This request must be approved within 7 days from the Added Date.";
+    }
+    else if (daysSinceAddedDate < 0) {
+        message = "Approval is unavailable because the Added Date is in the future.";
+    }
+
+    showAttendanceMessage("warning", "Approval unavailable", message);
+    return false;
+}
+
 function pmatt_BindGrid() {
     $('#load1').show();
 
-    pmatt_html = '';
     $.ajax({
         url: "AttendanceCorrectionpm.aspx/GetAllAttendanceRequest",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
-                var addeddate = eval(value.AddedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
-                var appdate = '';
-                if (blankForNull(value.ApprovedDate) != '' && blankForNull(value.ApprovedDate) != null)
-                    appdate = eval(value.ApprovedDate.replace(/\/Date\((\d+)\)\//gi, "new Date($1).toLocaleDateString(\"en-US\")"));
-                pmatt_html += '<tr>';
-                if (blankForNull(value.Approved) == "Pending for approval")
-                    pmatt_html += '<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item" href="EditAttendanceCorrectionRequest.aspx?AttendanceCorrectRequestID=' + blankForNull(value.AttendanceCorrectRequestID) + '" id="Actions"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>';
-                else
-                    pmatt_html += '<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item isDisabled" href="#!" id="Actions" onclick="AddRemark(' + value.VerID + ',' + index + ',1);"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>';
-                pmatt_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.InDate) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.InTime) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.OutDate) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.OutTime) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.Reason) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(addeddate) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.Approved) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.ApprovedByName) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(appdate) + '</td>';
-                pmatt_html += '<td style="text-wrap: nowrap; ">' + blankForNull(value.RequestRemark) + '</td>';
+            var dataArray = JSON.parse(data.d || "[]");
+            var loginId = attendanceValue("attlbl_loginID");
+            var rows = [];
 
-                pmatt_html += '</tr>';
+            $.each(dataArray, function (index, value) {
+                var pmId = String(blankForNull(value.Pm)).trim();
+                var approved = blankForNull(value.Approved);
+                var isPendingApproval = approved === "Pending for approval";
+                var daysSinceAddedDate = isPendingApproval ? attendanceDaysSinceJsonDate(value.AddedDate) : null;
+                var isWithinApprovalPeriod = isPendingApproval && daysSinceAddedDate !== null && daysSinceAddedDate >= 0 && daysSinceAddedDate <= 7;
+                var rowClasses = [];
+                var cells = [];
+
+                if (loginId !== "" && loginId === pmId) {
+                    rowClasses.push("pmatt-current-manager-row");
+                }
+                if (isPendingApproval && !isWithinApprovalPeriod) {
+                    rowClasses.push("pmatt-approval-disabled-row");
+                }
+
+                if (isWithinApprovalPeriod) {
+                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item" href="EditAttendanceCorrectionRequest.aspx?AttendanceCorrectRequestID=' + blankForNull(value.AttendanceCorrectRequestID) + '"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
+                }
+                else if (isPendingApproval) {
+                    var unavailableDays = daysSinceAddedDate === null ? "null" : daysSinceAddedDate;
+                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item pmatt-approval-disabled-action" href="#!" role="button" aria-disabled="true" title="Approval period over" onclick="return pmatt_showApprovalUnavailable(' + unavailableDays + ');"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
+                }
+                else {
+                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item isDisabled" href="#!" onclick="AddRemark(' + value.VerID + ',' + index + ',1);"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
+                }
+
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.EmpName) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.InDate) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.InTime) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.OutDate) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.OutTime) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.Reason) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + formatAttendanceJsonDate(value.AddedDate) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + approved + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.ApprovedByName) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + formatAttendanceJsonDate(value.ApprovedDate) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.RequestRemark) + '</td>');
+
+                var rowClass = rowClasses.length ? ' class="' + rowClasses.join(" ") + '"' : "";
+                rows.push('<tr' + rowClass + '>' + cells.join("") + '</tr>');
             });
 
             if ($.fn.dataTable.isDataTable('#pmatt_table')) {
                 pmatt_table.destroy();
             }
-            $('#pmatt_table tbody').html(pmatt_html);
-            //else
+            $('#pmatt_table tbody').html(rows.join(""));
+
             pmatt_table = $('#pmatt_table').DataTable({
                 dom: 'ftipl',
                 scrollX: true,
-                destroy: true,
-                "paging": true,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
+                paging: true,
+                autoWidth: true,
+                ordering: false,
                 processing: true,
-                'select': {
-                    'style': 'single'
+                select: {
+                    style: 'single'
                 },
 
                 initComplete: function () {
@@ -928,12 +984,19 @@ function pmatt_BindGrid() {
 
                 buttons: [
                     {
-                        extend: 'excelHtml5', title: 'Attendance Correction Report', autoFilter: true,
-                    },
+                        extend: 'excelHtml5',
+                        title: 'Attendance Correction Report',
+                        autoFilter: true
+                    }
+                ]
+            });
 
-
-                ],
-
+            $('#pmatt_table').off('user-select.dt.pmattApproval');
+            pmatt_table.on('user-select.pmattApproval', function (event, dataTable, type, cell) {
+                var row = dataTable.row(cell.index().row).node();
+                if ($(row).hasClass('pmatt-approval-disabled-row')) {
+                    event.preventDefault();
+                }
             });
         },
         error: function (error) {

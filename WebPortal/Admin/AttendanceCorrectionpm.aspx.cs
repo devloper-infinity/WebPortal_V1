@@ -24,7 +24,7 @@ namespace WebPortal.Admin
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            attlbl_loginID.InnerHtml = HttpContext.Current.User.Identity.Name.ToString();
         }
 
         [WebMethod]

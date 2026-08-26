@@ -234,16 +234,39 @@
             border-spacing: 0;
         }
 
+            #ExEmployerVerification thead tr,
+            .dataTables_scrollHead table.dataTable thead tr {
+                background: linear-gradient(120deg, #123a63 0%, #1d4ed8 72%, #0891b2 100%);
+            }
+
             #ExEmployerVerification thead th,
-            .table.dataTable th {
-                background: #edf3f6 !important;
-                color: #0f172a !important;
-                height: 42px;
+            .dataTables_scrollHead table.dataTable thead th {
+                height: 46px;
+              /*  padding: 12px 14px !important;*/
                 vertical-align: middle;
+                background: transparent !important;
+                border: 0 !important;
+                border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+                border-bottom: 3px solid #22c1dc !important;
+                color: #ffffff !important;
                 font-size: 12px;
                 font-weight: 800;
+                line-height: 18px;
+                letter-spacing: 0.15px;
+                text-align: left;
                 white-space: nowrap;
-                border-bottom: 1px solid #dbe4ee !important;
+                box-shadow: none !important;
+            }
+
+            #ExEmployerVerification thead th:nth-child(3),
+            .dataTables_scrollHead table.dataTable thead th:nth-child(3) {
+                border-top-left-radius: 10px;
+            }
+
+            #ExEmployerVerification thead th:nth-child(14),
+            .dataTables_scrollHead table.dataTable thead th:nth-child(14) {
+                border-right: 0 !important;
+                border-top-right-radius: 10px;
             }
 
             #ExEmployerVerification tbody td {

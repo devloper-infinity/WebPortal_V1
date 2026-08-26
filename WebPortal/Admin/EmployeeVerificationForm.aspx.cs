@@ -99,6 +99,7 @@ namespace WebPortal.Admin
             int returnvalue = 0;
             Hashtable htParam = new Hashtable();
             string attachmentPath = "";
+            CandidateName = ResolveCandidateName(EmployeeID, CandidateName);
 
             htParam["EmployeeID"] = EmployeeID;
             htParam["CandidateName"] = CandidateName;
@@ -145,8 +146,8 @@ namespace WebPortal.Admin
             }
 
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            returnvalue = 10;// new bllMaster().InsertEmployeePreVerificationInfo(htParam);
-           
+            returnvalue =  new bllMaster().InsertEmployeePreVerificationInfo(htParam);
+
             if (returnvalue > 0)
             {
                 session.Remove(VerificationUploadPathKey);
@@ -161,23 +162,22 @@ namespace WebPortal.Admin
                 catch (IOException) { }
                 catch (UnauthorizedAccessException) { }
 
-                int returnemil = 0;
-                try
+                int VerificationID = new bllMaster().GetVerificationIDFromEmployeeID(EmployeeID);
+                if (VerificationID > 0)
                 {
-                    returnemil = SendVerificationEmailInternal(EmployeeID, CandidateName, EmployeeCode, Salary, CompanyName, EmployeePeriod, Designation, ReportingManagerName, ReportingManagerDesignation, ReportingManagerContact, HRName, HRContact, ReasonforLeaving, ExitFormality, Eligibilitytorehire, VerifiedBy, ReceiverEmail, attachmentPath);
-                }
-                catch (Exception) { }
+                    Hashtable htVerify = new Hashtable();
+                    htVerify.Add("VerificationID", Convert.ToInt32(VerificationID));
+                    htVerify.Add("SenderID", ReceiverEmail);
+                    htVerify.Add("MailSendBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                    int ReturnValue = new bllMaster().InsertEmployeeVerificationEmailDetails(htVerify);
 
-                if (returnemil > 0)
-                {
-                    int VerificationID = new bllMaster().GetVerificationIDFromEmployeeID(EmployeeID);
-                    if (VerificationID > 0)
+                    if (ReturnValue > 0)
                     {
-                        Hashtable htVerify = new Hashtable();
-                        htVerify.Add("VerificationID", Convert.ToInt32(VerificationID));
-                        htVerify.Add("SenderID", ReceiverEmail);
-                        htVerify.Add("MailSendBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        int ReturnValue = new bllMaster().InsertEmployeeVerificationEmailDetails(htVerify);
+                        try
+                        {
+                            ReturnValue = SendVerificationEmailInternal(EmployeeID, CandidateName, EmployeeCode, Salary, CompanyName, EmployeePeriod, Designation, ReportingManagerName, ReportingManagerDesignation, ReportingManagerContact, HRName, HRContact, ReasonforLeaving, ExitFormality, Eligibilitytorehire, VerifiedBy, ReceiverEmail, attachmentPath);
+                        }
+                        catch (Exception) { }
                     }
                 }
             }
@@ -199,6 +199,8 @@ namespace WebPortal.Admin
             StringBuilder head = new StringBuilder();
             StringBuilder body = new StringBuilder();
             StringBuilder footer = new StringBuilder();
+            string candidateName = ResolveCandidateName(EmployeeID, CandidateName);
+            string candidateNameHtml = HttpUtility.HtmlEncode(candidateName);
 
             head.Append("<!DOCTYPE html><html><head>" +
                 "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />" +
@@ -217,24 +219,23 @@ namespace WebPortal.Admin
                 "</style></head>" +
                 "<body style=\"margin:0;padding:0;background-color:#eef2f7;color:#1f2937;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;\">" +
                 "<div style=\"display:none;font-size:1px;color:#eef2f7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;\">" +
-                "Employment verification request for " + Convert.ToString(CandidateName) + "." +
+                "Employment verification request for " + candidateNameHtml + "." +
                 "</div>");
 
             body.Append("<table role=\"presentation\" width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"width:100%;background-color:#eef2f7;\">" +
-                "<tr><td align=\"center\" style=\"padding:32px 12px;\">" +
+                "<tr><td align=\"left\" style=\"padding:32px 12px;text-align:left;\">" +
                 "<!--[if mso]><table role=\"presentation\" width=\"680\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td><![endif]-->" +
                 "<table role=\"presentation\" class=\"email-container\" width=\"680\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #dbe3ee;\">" +
                 "<tr><td style=\"height:6px;background-color:#22b8cf;font-size:0;line-height:0;\">&nbsp;</td></tr>" +
                 "<tr><td class=\"mobile-padding\" style=\"padding:34px 38px 30px;background-color:#123a63;\">" +
                 "<table role=\"presentation\" width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">" +
-                "<tr><td style=\"padding:0 0 16px;color:#a9dded;font-size:11px;font-weight:bold;line-height:16px;letter-spacing:1.4px;text-transform:uppercase;\">Infinity Data Technologies Pvt. Ltd.</td></tr>" +
                 "<tr><td class=\"email-title\" style=\"padding:0;color:#ffffff;font-size:28px;font-weight:bold;line-height:34px;\">Employment Verification Request</td></tr>" +
-                "<tr><td style=\"padding:12px 0 0;color:#d6e4f0;font-size:14px;line-height:21px;\">Previous employment details for <strong style=\"color:#ffffff;\">" + Convert.ToString(CandidateName) + "</strong></td></tr>" +
+                "<tr><td style=\"padding:12px 0 0;color:#d6e4f0;font-size:14px;line-height:21px;\">Previous employment details for <strong style=\"color:#ffffff;\">" + candidateNameHtml + "</strong></td></tr>" +
                 "</table></td></tr>" +
                 "<tr><td class=\"mobile-padding\" style=\"padding:34px 38px 12px;\">" +
                 "<p style=\"margin:0 0 18px;color:#172033;font-size:15px;font-weight:bold;line-height:23px;\">Dear HR Team,</p>" +
                 "<p style=\"margin:0 0 16px;color:#4b5563;font-size:14px;line-height:23px;\">Greetings from <strong style=\"color:#172033;\">Infinity Data Technologies Pvt. Ltd.</strong> We hope you are doing well.</p>" +
-                "<p style=\"margin:0 0 16px;color:#4b5563;font-size:14px;line-height:23px;\">As part of our joining process, we carry out a reference check with a candidate's previous employer. Your former employee <strong style=\"color:#172033;\">\"" + Convert.ToString(CandidateName) + "\"</strong> has provided the information listed below.</p>" +
+                "<p style=\"margin:0 0 16px;color:#4b5563;font-size:14px;line-height:23px;\">As part of our joining process, we carry out a reference check with a candidate's previous employer. Your former employee <strong style=\"color:#172033;\">\"" + candidateNameHtml + "\"</strong> has provided the information listed below.</p>" +
                 "<table role=\"presentation\" width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\"width:100%;margin:24px 0;background-color:#eff8fc;border-left:4px solid #22b8cf;\">" +
                 "<tr><td style=\"padding:18px 20px;\">" +
                 "<p style=\"margin:0 0 5px;color:#123a63;font-size:13px;font-weight:bold;line-height:19px;text-transform:uppercase;letter-spacing:.5px;\">Action requested</p>" +
@@ -249,6 +250,7 @@ namespace WebPortal.Admin
                 "<td class=\"verification-cell\" width=\"33%\" valign=\"middle\" style=\"padding:13px 11px;background-color:#123a63;color:#ffffff;font-size:12px;font-weight:bold;line-height:17px;text-align:left;\">Details Provided By Company</td>" +
                 "</tr>");
 
+            AppendVerificationRow(body, "Candidate Name:", candidateNameHtml);
             AppendVerificationRow(body, "Name of Organization:", Convert.ToString(CompanyName));
             AppendVerificationRow(body, "Employee ID/Code:", Convert.ToString(EmployeeCode));
             AppendVerificationRow(body, "Designation:", Convert.ToString(Designation));
@@ -272,11 +274,10 @@ namespace WebPortal.Admin
                 "<p style=\"margin:0;color:#172033;font-size:14px;line-height:22px;\">Regards,<br /><strong>HR Team</strong><br />Infinity Data Technologies Pvt. Ltd.</p>" +
                 "</td></tr>" +
                 "<tr><td class=\"mobile-padding\" style=\"padding:20px 38px;background-color:#f5f7fa;border-top:1px solid #e1e7ef;\">" +
-                "<p style=\"margin:0;color:#6b7280;font-size:11px;line-height:18px;text-align:center;\">This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</p>" +
+                /*"<p style=\"margin:0;color:#6b7280;font-size:11px;line-height:18px;text-align:center;\">This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</p>"+*/ 
                 "</td></tr>" +
                 "</table>" +
-                "<!--[if mso]></td></tr></table><![endif]-->" +
-                "</td></tr></table>");
+                "<!--[if mso]></td></tr></table><![endif]-->" +"</td></tr></table>");
 
             footer.Append("</body></html>");
 
@@ -284,15 +285,11 @@ namespace WebPortal.Admin
 
             MailMessage mail = new MailMessage();
             mail.From = new MailAddress("verification@infinityinternationals.us", "Employment Verification", System.Text.Encoding.UTF8);
-            // mail.To.Add("n.nilkanth@infinityinternationals.us,b.shubhangi@infinityinternationals.us"); //("n.nilkanth@infinityinternationals.us");
-            // mail.CC.Add("n.nilkanth@infinityinternationals.us");//,b.shubhangi@infinityinternationals.us");
-
-            ReceiverEmail = "b.shubhangi@infinityinternationals.us";
-
+           
             mail.To.Add(ReceiverEmail);
-            //mail.CC.Add("k.sagar@infinity-data.com,g.trupti@infinityinternationals.us");
+            mail.CC.Add("k.sagar@infinity-data.com,g.trupti@infinityinternationals.us");
             mail.Bcc.Add("n.nilkanth@infinity-data.com,b.shubhangi@infinityinternationals.us");
-            mail.Subject = "Ex Employer Verification – Infinity Data Technologies Pvt. Ltd. – " + CandidateName;
+            mail.Subject = "Ex Employer Verification – Infinity Data Technologies Pvt. Ltd. – " + candidateName;
             mail.Body = head.ToString() + body.ToString() + footer.ToString();
             mail.IsBodyHtml = true;
 
@@ -315,6 +312,30 @@ namespace WebPortal.Admin
             catch (Exception ex) { return 0; }
 
             return returnvalue;
+        }
+
+        private static string ResolveCandidateName(int employeeId, string candidateName)
+        {
+            string resolvedName = Convert.ToString(candidateName).Trim();
+            bool requiresFallback = string.IsNullOrWhiteSpace(resolvedName) ||
+                resolvedName.Equals("Candidate Name", StringComparison.OrdinalIgnoreCase);
+
+            if (!requiresFallback)
+            {
+                return resolvedName;
+            }
+
+            DataTable employee = new bllLogin().GetUserInformation(employeeId);
+            if (employee != null && employee.Rows.Count > 0 && employee.Columns.Contains("FullName"))
+            {
+                string fullName = Convert.ToString(employee.Rows[0]["FullName"]).Trim();
+                if (!string.IsNullOrWhiteSpace(fullName))
+                {
+                    return fullName;
+                }
+            }
+
+            return resolvedName;
         }
 
         private static void AppendVerificationRow(StringBuilder body, string label, string value)

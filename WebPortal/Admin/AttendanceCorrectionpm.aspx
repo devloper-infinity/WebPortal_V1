@@ -272,6 +272,29 @@
                 background: #f8fbfd !important;
             }
 
+            .attendance-data-table tbody tr.pmatt-current-manager-row td,
+            table.dataTable tbody tr.pmatt-current-manager-row td {
+                background: #C1F5C1 !important;
+            }
+
+            .attendance-data-table tbody tr.pmatt-current-manager-row:hover td,
+            table.dataTable tbody tr.pmatt-current-manager-row:hover td {
+                background: #C1F5C1 !important;
+            }
+
+            .attendance-data-table tbody tr.pmatt-approval-disabled-row td,
+            .attendance-data-table tbody tr.pmatt-approval-disabled-row:hover td,
+            table.dataTable tbody tr.pmatt-approval-disabled-row td,
+            table.dataTable tbody tr.pmatt-approval-disabled-row:hover td {
+                background: #f2f4f7 !important;
+                color: #8a94a3;
+            }
+
+            .attendance-data-table tbody tr.pmatt-approval-disabled-row td:not(:first-child),
+            table.dataTable tbody tr.pmatt-approval-disabled-row td:not(:first-child) {
+                pointer-events: none;
+            }
+
         .dataTables_scrollBody {
             min-height: 100px !important;
             height: auto;
@@ -355,6 +378,12 @@
         #pmatt_table .isDisabled {
             opacity: 0.45;
             pointer-events: none;
+        }
+
+        #pmatt_table .pmatt-approval-disabled-action {
+            background: #eef0f3;
+            cursor: not-allowed;
+            opacity: 0.55;
         }
 
         .attendance-modal .modal-content {
@@ -477,6 +506,7 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <label id="attlbl_loginID" runat="server" ClientIDMode="Static" style="display: none;"></label>
     <div class="loading" id="load1">
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
@@ -567,6 +597,7 @@
                             <tr>
                                 <th>Actions</th>
                                 <th>Code</th>
+                                <th>Name</th>
                                 <th>In Date</th>
                                 <th>In Time</th>
                                 <th>Out Date</th>
