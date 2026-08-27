@@ -380,7 +380,11 @@ function ExEmpForm_SubmitData() {
 
 function OnSuccessExEmpForm(result) {
     setExEmpFormSubmitting(false);
-    if (result > 0) {
+    var responseCode = result && typeof result === "object" && result.d !== undefined
+        ? Number(result.d)
+        : Number(result);
+
+    if (responseCode > 0) {
         showExEmpFormMessage("Information submitted successfully!", false);
     }
     else {

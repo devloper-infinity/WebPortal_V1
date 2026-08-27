@@ -227,6 +227,7 @@
                 <asp:ScriptReference Path="~/Scripts/Search/ProcessOrder.js" />
                 <asp:ScriptReference Path="~/Scripts/Search/OrderAllocation.js" />
                 <asp:ScriptReference Path="~/Scripts/Search/OSTReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Search/SummaryReport.js" />
                 <asp:ScriptReference Path="~/Scripts/Search/ViewBilling.js" />
                 <asp:ScriptReference Path="~/Scripts/Search/ProjectTrackingReport.js" />
                 <asp:ScriptReference Path="~/Scripts/Search/OrderEntry.js" />

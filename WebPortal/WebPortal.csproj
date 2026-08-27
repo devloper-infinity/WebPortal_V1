@@ -2864,6 +2864,7 @@
     <Content Include="Scripts\Search\OrderAllocation.js" />
     <Content Include="Scripts\Search\OrderEntry.js" />
     <Content Include="Scripts\Search\OSTReport.js" />
+    <Content Include="Scripts\Search\SummaryReport.js" />
     <Content Include="Scripts\Search\ProcessOrders.js" />
     <Content Include="Scripts\Search\ProjectTrackingReport.js" />
     <Content Include="Scripts\Search\SearchDashboard.js" />
@@ -2892,10 +2893,12 @@
     <Content Include="Search\OrderAllocation.aspx" />
     <Content Include="Search\OrderEntry.aspx" />
     <Content Include="Search\OSTReport.aspx" />
+    <Content Include="Search\SummaryReport.aspx" />
     <Content Include="Search\ProcessOrders.aspx" />
     <Content Include="Search\ProjectTrackingReport.aspx" />
     <Content Include="Search\VerifyBilling.aspx" />
     <Content Include="Search\ViewBilling.aspx" />
+    <Content Include="Handler\SummaryReportDownload.ashx" />
     <Content Include="DatabaseScripts\NonProductiveHours.sql" />
     <Content Include="DatabaseScripts\OLTracking_003_ImportFacility.sql" />
     <Content Include="DatabaseScripts\OLTracking_004_CompleteLoan.sql" />
@@ -5265,6 +5268,16 @@
     </Compile>
     <Compile Include="Search\OSTReport.aspx.designer.cs">
       <DependentUpon>OSTReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Search\SummaryReport.aspx.cs">
+      <DependentUpon>SummaryReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Search\SummaryReport.aspx.designer.cs">
+      <DependentUpon>SummaryReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Handler\SummaryReportDownload.ashx.cs">
+      <DependentUpon>SummaryReportDownload.ashx</DependentUpon>
     </Compile>
     <Compile Include="Search\ProcessOrders.aspx.cs">
       <DependentUpon>ProcessOrders.aspx</DependentUpon>

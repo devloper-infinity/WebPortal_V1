@@ -660,6 +660,64 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetOSTProjectPerformance(string FromDate, string ToDate, string ProjectNo)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_DateWise");
+            SQLHelper.AddParamToSQLCmd(cmd, "@CurrentDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ProjectNo);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOSTProjectSummary(string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus");
+            SQLHelper.AddParamToSQLCmd(cmd, "@CurrentDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ToDate);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOSTUserSummary(string FromDate, string ToDate, string ProjectNo)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_UserWise");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ProjectNo);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOSTOrderStatus(string ProjectNo, string FromDate, string ToDate, string Status)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetInfinityOrders_All_Test_Status");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ProjectNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 1000, ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", SqlDbType.NVarChar, 100, ParameterDirection.Input, Status);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOSTStatuses()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityStatus");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOSTCurrentStatus()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_Infinity_OST_CurrentStatus");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetOSTUserDetail(string FromDate, string ToDate, string Type, string UserId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_UserWise_Popup");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.NVarChar, 50, ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 50, ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", SqlDbType.NVarChar, 12, ParameterDirection.Input, Type);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserId", SqlDbType.NVarChar, 50, ParameterDirection.Input, UserId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public int UpdateBillingRemark(int OrderID, string Remark, string Cost)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_UpdateBillingRemark");

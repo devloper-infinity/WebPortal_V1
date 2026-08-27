@@ -146,42 +146,51 @@ namespace WebPortal.Admin
             }
 
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            returnvalue =  new bllMaster().InsertEmployeePreVerificationInfo(htParam);
+            returnvalue = new bllMaster().InsertEmployeePreVerificationInfo(htParam);
 
-            if (returnvalue > 0)
+            if (returnvalue <= 0)
             {
-                session.Remove(VerificationUploadPathKey);
-                session.Remove(VerificationUploadNameKey);
-                try
-                {
-                    if (!string.IsNullOrWhiteSpace(uploadedFilePath) && File.Exists(uploadedFilePath))
-                    {
-                        File.Delete(uploadedFilePath);
-                    }
-                }
-                catch (IOException) { }
-                catch (UnauthorizedAccessException) { }
+                return returnvalue;
+            }
 
-                int VerificationID = new bllMaster().GetVerificationIDFromEmployeeID(EmployeeID);
-                if (VerificationID > 0)
+            session.Remove(VerificationUploadPathKey);
+            session.Remove(VerificationUploadNameKey);
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(uploadedFilePath) && File.Exists(uploadedFilePath))
                 {
-                    Hashtable htVerify = new Hashtable();
-                    htVerify.Add("VerificationID", Convert.ToInt32(VerificationID));
-                    htVerify.Add("SenderID", ReceiverEmail);
-                    htVerify.Add("MailSendBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                    int ReturnValue = new bllMaster().InsertEmployeeVerificationEmailDetails(htVerify);
-
-                    if (ReturnValue > 0)
-                    {
-                        try
-                        {
-                            ReturnValue = SendVerificationEmailInternal(EmployeeID, CandidateName, EmployeeCode, Salary, CompanyName, EmployeePeriod, Designation, ReportingManagerName, ReportingManagerDesignation, ReportingManagerContact, HRName, HRContact, ReasonforLeaving, ExitFormality, Eligibilitytorehire, VerifiedBy, ReceiverEmail, attachmentPath);
-                        }
-                        catch (Exception) { }
-                    }
+                    File.Delete(uploadedFilePath);
                 }
             }
-            return returnvalue;
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+
+            int verificationId = new bllMaster().GetVerificationIDFromEmployeeID(EmployeeID);
+            if (verificationId <= 0)
+            {
+                return 0;
+            }
+
+            Hashtable htVerify = new Hashtable();
+            htVerify.Add("VerificationID", verificationId);
+            htVerify.Add("SenderID", ReceiverEmail);
+            htVerify.Add("MailSendBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+            int emailDetailsResult = new bllMaster().InsertEmployeeVerificationEmailDetails(htVerify);
+            if (emailDetailsResult <= 0)
+            {
+                return 0;
+            }
+
+            try
+            {
+                int emailResult = SendVerificationEmailInternal(EmployeeID, CandidateName, EmployeeCode, Salary, CompanyName, EmployeePeriod, Designation, ReportingManagerName, ReportingManagerDesignation, ReportingManagerContact, HRName, HRContact, ReasonforLeaving, ExitFormality, Eligibilitytorehire, VerifiedBy, ReceiverEmail, attachmentPath);
+                return emailResult > 0 ? 1 : 0;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         [WebMethod]

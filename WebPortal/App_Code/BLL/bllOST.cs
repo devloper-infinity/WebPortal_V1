@@ -383,6 +383,41 @@ namespace WebPortal.App_Code.BLL
             return dalOst.GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
         }
 
+        public DataTable GetOSTProjectPerformance(string FromDate, string ToDate, string ProjectNo)
+        {
+            return dalOst.GetOSTProjectPerformance(FromDate, ToDate, ProjectNo);
+        }
+
+        public DataTable GetOSTProjectSummary(string FromDate, string ToDate)
+        {
+            return dalOst.GetOSTProjectSummary(FromDate, ToDate);
+        }
+
+        public DataTable GetOSTUserSummary(string FromDate, string ToDate, string ProjectNo)
+        {
+            return dalOst.GetOSTUserSummary(FromDate, ToDate, ProjectNo);
+        }
+
+        public DataTable GetOSTOrderStatus(string ProjectNo, string FromDate, string ToDate, string Status)
+        {
+            return dalOst.GetOSTOrderStatus(ProjectNo, FromDate, ToDate, Status);
+        }
+
+        public DataTable GetOSTStatuses()
+        {
+            return dalOst.GetOSTStatuses();
+        }
+
+        public DataTable GetOSTCurrentStatus()
+        {
+            return dalOst.GetOSTCurrentStatus();
+        }
+
+        public DataTable GetOSTUserDetail(string FromDate, string ToDate, string Type, string UserId)
+        {
+            return dalOst.GetOSTUserDetail(FromDate, ToDate, Type, UserId);
+        }
+
         public DataTable TMMGetProjectWiseOrderDetailsForBilling(string Project, string FromDate, string ToDate)
         {
             return dalOst.TMMGetProjectWiseOrderDetailsForBilling(Project, FromDate, ToDate);

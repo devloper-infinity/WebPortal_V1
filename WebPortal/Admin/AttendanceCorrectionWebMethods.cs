@@ -603,11 +603,12 @@ namespace WebPortal.Admin
 
         private static void AppendAttendanceRows(StringBuilder body, AttendanceEmailRequest request, string inTime, string outTime)
         {
+            DataTable updatedBy = new bllLogin().GetUserInformation(CurrentUserId());
             AppendDetailsSectionStart(body, "Attendance Correction Details:");
-            AppendDetailRow(body, "Reason Type:", request.ReasonType);
+            AppendDetailRow(body, "Reason Type:",  request.ReasonType);
 
             if (request.Mode != AttendanceEmailMode.SelfRequest)
-                AppendDetailRow(body, "Reason:", request.UserReason);
+                AppendDetailRow(body, "Reason:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy") + " : " + request.UserReason);
 
             AppendDetailRow(body, "In Date:", request.InDate);
             AppendDetailRow(body, "In Time:", inTime);
@@ -616,14 +617,13 @@ namespace WebPortal.Admin
             AppendDetailRow(body, "Total Hours:", request.TotalHours);
 
             if (request.Mode == AttendanceEmailMode.SelfRequest)
-                AppendDetailRow(body, "Reason:", request.Reason);
+                AppendDetailRow(body, "Reason:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy") + " : " + request.Reason);
             else
-                AppendDetailRow(body, "Remark:", request.Reason);
+                AppendDetailRow(body, "Remark:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy") + " : " + request.Reason);
 
             if (request.Mode == AttendanceEmailMode.Decision)
             {
-                DataTable updatedBy = new bllLogin().GetUserInformation(CurrentUserId());
-                AppendDetailRow(body, "Updated By:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + Convert.ToString(updatedBy.Rows[0]["FirstName"]) + " " + Convert.ToString(updatedBy.Rows[0]["lastName"]) + " ");
+               AppendDetailRow(body, "Updated By:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + Convert.ToString(updatedBy.Rows[0]["FirstName"]) + " " + Convert.ToString(updatedBy.Rows[0]["lastName"]) + " ");
             }
 
             body.Append("</table>");
