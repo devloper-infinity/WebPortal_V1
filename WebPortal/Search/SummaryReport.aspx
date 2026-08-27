@@ -3,7 +3,7 @@
 <asp:Content ID="SummaryHead" ContentPlaceHolderID="head" runat="server">
     <style>
         :root { --sr-primary:#0f766e; --sr-dark:#115e59; --sr-ink:#1f2937; --sr-muted:#64748b; --sr-line:#dbe4ea; --sr-soft:#f3f7f8; }
-        .sr-page { padding:18px 0 28px; color:var(--sr-ink); }
+        .sr-page {  color:var(--sr-ink); }
         .sr-header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 18px; margin-bottom:14px; background:#fff; border:1px solid var(--sr-line); border-left:4px solid var(--sr-primary); border-radius:10px; box-shadow:0 8px 24px rgba(15,23,42,.06); }
         .sr-heading { display:flex; align-items:center; gap:12px; }
         .sr-heading-icon { display:grid; place-items:center; width:40px; height:40px; color:#fff; background:var(--sr-primary); border-radius:9px; }
