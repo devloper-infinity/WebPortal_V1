@@ -402,70 +402,70 @@ COMMIT TRANSACTION;") { CommandType = CommandType.Text };
 
         private static void EnsureProcessFlowColumns()
         {
-            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
-            using (SqlCommand command = new SqlCommand(@"
-IF COL_LENGTH('dbo.OLTracking_ProcessFlow','IsFinalProcess') IS NULL
-    ALTER TABLE dbo.OLTracking_ProcessFlow ADD IsFinalProcess bit NOT NULL
-        CONSTRAINT DF_OLTracking_ProcessFlow_Final DEFAULT(0) WITH VALUES;
-IF COL_LENGTH('dbo.OLTracking_ProcessFlow','IsTrackingSheetProcess') IS NULL
-    ALTER TABLE dbo.OLTracking_ProcessFlow ADD IsTrackingSheetProcess bit NOT NULL
-        CONSTRAINT DF_OLTracking_ProcessFlow_TrackingSheet DEFAULT(1) WITH VALUES;
-IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ProductivityType') IS NULL
-    ALTER TABLE dbo.OLTracking_ProcessFlow ADD ProductivityType nvarchar(40) NOT NULL
-        CONSTRAINT DF_OLTracking_ProcessFlow_ProductivityType DEFAULT('Loan Based Productivity') WITH VALUES;
-IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ExpectedCompletionMinutes') IS NULL
-    ALTER TABLE dbo.OLTracking_ProcessFlow ADD ExpectedCompletionMinutes int NULL;
-IF COL_LENGTH('dbo.OLTracking_ProcessFlow','MinCompletionMinutes') IS NULL
-    ALTER TABLE dbo.OLTracking_ProcessFlow ADD MinCompletionMinutes int NULL;
-IF COL_LENGTH('dbo.OLTracking_ProcessFlow','MaxCompletionMinutes') IS NULL
-    ALTER TABLE dbo.OLTracking_ProcessFlow ADD MaxCompletionMinutes int NULL;
-IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MinCompletionMinutes') IS NULL
-    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MinCompletionMinutes int NULL;
-IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MaxCompletionMinutes') IS NULL
-    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MaxCompletionMinutes int NULL;
-IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','IsOutOfScope') IS NULL
-    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD IsOutOfScope bit NOT NULL
-        CONSTRAINT DF_OLTracking_DealFlow_OutOfScope DEFAULT(0) WITH VALUES;
-IF COL_LENGTH('dbo.OLTracking_Assignment','MaxTimeAcknowledgedDate') IS NULL
-    ALTER TABLE dbo.OLTracking_Assignment ADD MaxTimeAcknowledgedDate datetime NULL;
-IF OBJECT_ID('dbo.OLTracking_ProcessDependency','U') IS NULL
-BEGIN
-    CREATE TABLE dbo.OLTracking_ProcessDependency
-    (
-        DependencyID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_OLTracking_ProcessDependency PRIMARY KEY,
-        ProjectID int NOT NULL,ProcessID int NOT NULL,PredecessorProcessID int NOT NULL,
-        IsActive bit NOT NULL CONSTRAINT DF_OLTracking_ProcessDependency_Active DEFAULT(1),
-        AddedBy int NOT NULL,AddedDate datetime NOT NULL CONSTRAINT DF_OLTracking_ProcessDependency_Added DEFAULT(GETDATE()),
-        UpdatedBy int NULL,UpdatedDate datetime NULL,
-        CONSTRAINT UQ_OLTracking_ProcessDependency UNIQUE(ProjectID,ProcessID,PredecessorProcessID),
-        CONSTRAINT CK_OLTracking_ProcessDependency_Self CHECK(ProcessID<>PredecessorProcessID)
-    );
-END;
-IF OBJECT_ID('dbo.OLTracking_ProcessFeedbackTarget','U') IS NULL
-BEGIN
-    CREATE TABLE dbo.OLTracking_ProcessFeedbackTarget
-    (
-        FeedbackTargetID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_OLTracking_ProcessFeedbackTarget PRIMARY KEY,
-        ProjectID int NOT NULL,ProcessID int NOT NULL,TargetProcessID int NOT NULL,
-        IsActive bit NOT NULL CONSTRAINT DF_OLTracking_ProcessFeedbackTarget_Active DEFAULT(1),
-        AddedBy int NOT NULL,AddedDate datetime NOT NULL CONSTRAINT DF_OLTracking_ProcessFeedbackTarget_Added DEFAULT(GETDATE()),
-        UpdatedBy int NULL,UpdatedDate datetime NULL,
-        CONSTRAINT UQ_OLTracking_ProcessFeedbackTarget UNIQUE(ProjectID,ProcessID,TargetProcessID),
-        CONSTRAINT CK_OLTracking_ProcessFeedbackTarget_Self CHECK(ProcessID<>TargetProcessID)
-    );
-END;
-IF COL_LENGTH('dbo.OLTracking_Feedback','FeedbackAgainstAssignmentID') IS NULL
-    ALTER TABLE dbo.OLTracking_Feedback ADD FeedbackAgainstAssignmentID bigint NULL;
-IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_Feedback') AND name='IX_OLTracking_Feedback_AgainstAssignment')
-    EXEC(N'CREATE INDEX IX_OLTracking_Feedback_AgainstAssignment ON dbo.OLTracking_Feedback(AssignmentID,FeedbackAgainstAssignmentID,IsDeleted);');
-IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_ProcessFlow') AND name='UX_OLTracking_ProcessFlow_Final')
-    EXEC(N'CREATE UNIQUE INDEX UX_OLTracking_ProcessFlow_Final
-        ON dbo.OLTracking_ProcessFlow(ProjectID)
-        WHERE IsFinalProcess=1 AND IsActive=1;');", connection))
-            {
-                connection.Open();
-                command.ExecuteNonQuery();
-            }
+//            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+//            using (SqlCommand command = new SqlCommand(@"
+//IF COL_LENGTH('dbo.OLTracking_ProcessFlow','IsFinalProcess') IS NULL
+//    ALTER TABLE dbo.OLTracking_ProcessFlow ADD IsFinalProcess bit NOT NULL
+//        CONSTRAINT DF_OLTracking_ProcessFlow_Final DEFAULT(0) WITH VALUES;
+//IF COL_LENGTH('dbo.OLTracking_ProcessFlow','IsTrackingSheetProcess') IS NULL
+//    ALTER TABLE dbo.OLTracking_ProcessFlow ADD IsTrackingSheetProcess bit NOT NULL
+//        CONSTRAINT DF_OLTracking_ProcessFlow_TrackingSheet DEFAULT(1) WITH VALUES;
+//IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ProductivityType') IS NULL
+//    ALTER TABLE dbo.OLTracking_ProcessFlow ADD ProductivityType nvarchar(40) NOT NULL
+//        CONSTRAINT DF_OLTracking_ProcessFlow_ProductivityType DEFAULT('Loan Based Productivity') WITH VALUES;
+//IF COL_LENGTH('dbo.OLTracking_ProcessFlow','ExpectedCompletionMinutes') IS NULL
+//    ALTER TABLE dbo.OLTracking_ProcessFlow ADD ExpectedCompletionMinutes int NULL;
+//IF COL_LENGTH('dbo.OLTracking_ProcessFlow','MinCompletionMinutes') IS NULL
+//    ALTER TABLE dbo.OLTracking_ProcessFlow ADD MinCompletionMinutes int NULL;
+//IF COL_LENGTH('dbo.OLTracking_ProcessFlow','MaxCompletionMinutes') IS NULL
+//    ALTER TABLE dbo.OLTracking_ProcessFlow ADD MaxCompletionMinutes int NULL;
+//IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MinCompletionMinutes') IS NULL
+//    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MinCompletionMinutes int NULL;
+//IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','MaxCompletionMinutes') IS NULL
+//    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD MaxCompletionMinutes int NULL;
+//IF COL_LENGTH('dbo.OLTracking_DealProcessFlow','IsOutOfScope') IS NULL
+//    ALTER TABLE dbo.OLTracking_DealProcessFlow ADD IsOutOfScope bit NOT NULL
+//        CONSTRAINT DF_OLTracking_DealFlow_OutOfScope DEFAULT(0) WITH VALUES;
+//IF COL_LENGTH('dbo.OLTracking_Assignment','MaxTimeAcknowledgedDate') IS NULL
+//    ALTER TABLE dbo.OLTracking_Assignment ADD MaxTimeAcknowledgedDate datetime NULL;
+//IF OBJECT_ID('dbo.OLTracking_ProcessDependency','U') IS NULL
+//BEGIN
+//    CREATE TABLE dbo.OLTracking_ProcessDependency
+//    (
+//        DependencyID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_OLTracking_ProcessDependency PRIMARY KEY,
+//        ProjectID int NOT NULL,ProcessID int NOT NULL,PredecessorProcessID int NOT NULL,
+//        IsActive bit NOT NULL CONSTRAINT DF_OLTracking_ProcessDependency_Active DEFAULT(1),
+//        AddedBy int NOT NULL,AddedDate datetime NOT NULL CONSTRAINT DF_OLTracking_ProcessDependency_Added DEFAULT(GETDATE()),
+//        UpdatedBy int NULL,UpdatedDate datetime NULL,
+//        CONSTRAINT UQ_OLTracking_ProcessDependency UNIQUE(ProjectID,ProcessID,PredecessorProcessID),
+//        CONSTRAINT CK_OLTracking_ProcessDependency_Self CHECK(ProcessID<>PredecessorProcessID)
+//    );
+//END;
+//IF OBJECT_ID('dbo.OLTracking_ProcessFeedbackTarget','U') IS NULL
+//BEGIN
+//    CREATE TABLE dbo.OLTracking_ProcessFeedbackTarget
+//    (
+//        FeedbackTargetID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_OLTracking_ProcessFeedbackTarget PRIMARY KEY,
+//        ProjectID int NOT NULL,ProcessID int NOT NULL,TargetProcessID int NOT NULL,
+//        IsActive bit NOT NULL CONSTRAINT DF_OLTracking_ProcessFeedbackTarget_Active DEFAULT(1),
+//        AddedBy int NOT NULL,AddedDate datetime NOT NULL CONSTRAINT DF_OLTracking_ProcessFeedbackTarget_Added DEFAULT(GETDATE()),
+//        UpdatedBy int NULL,UpdatedDate datetime NULL,
+//        CONSTRAINT UQ_OLTracking_ProcessFeedbackTarget UNIQUE(ProjectID,ProcessID,TargetProcessID),
+//        CONSTRAINT CK_OLTracking_ProcessFeedbackTarget_Self CHECK(ProcessID<>TargetProcessID)
+//    );
+//END;
+//IF COL_LENGTH('dbo.OLTracking_Feedback','FeedbackAgainstAssignmentID') IS NULL
+//    ALTER TABLE dbo.OLTracking_Feedback ADD FeedbackAgainstAssignmentID bigint NULL;
+//IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_Feedback') AND name='IX_OLTracking_Feedback_AgainstAssignment')
+//    EXEC(N'CREATE INDEX IX_OLTracking_Feedback_AgainstAssignment ON dbo.OLTracking_Feedback(AssignmentID,FeedbackAgainstAssignmentID,IsDeleted);');
+//IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.OLTracking_ProcessFlow') AND name='UX_OLTracking_ProcessFlow_Final')
+//    EXEC(N'CREATE UNIQUE INDEX UX_OLTracking_ProcessFlow_Final
+//        ON dbo.OLTracking_ProcessFlow(ProjectID)
+//        WHERE IsFinalProcess=1 AND IsActive=1;');", connection))
+//            {
+//                connection.Open();
+//                command.ExecuteNonQuery();
+//            }
         }
 
         public int RemoveProcessFlow(int projectId, int processId, int userId)

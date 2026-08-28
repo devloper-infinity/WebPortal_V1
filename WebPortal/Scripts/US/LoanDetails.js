@@ -8,6 +8,8 @@ var usfeedbackStartDatetime = "";
 var usfeedbackLastProcessID = "";
 var usfeedbackLastProcessName = "";
 var usfeedbackRecordCount = 0;
+var canopyfeedbackGridRows = [];
+var feedbackdetailsGridRows = [];
 
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
@@ -1518,6 +1520,9 @@ function usfeedback_bindProcessTask(Projectid) {
 
 function getTaskwiseDetails(ddl) {
 
+    if (usfeedback_isCanopyPage()) canopyfeedback_cancelEdit();
+    else feedbackdetails_cancelEdit();
+
     var value = ddl.options[ddl.selectedIndex].text;
     var id = ddl.options[ddl.selectedIndex].value;
 
@@ -1579,6 +1584,8 @@ function usfeedback_atr_bindgrid(type, processid) {
         data: JSON.stringify(feedbackRequest),
         success: function (data) {
             var dataArray = JSON.parse(data.d);//
+            canopyfeedbackGridRows = type === "Other" ? (dataArray || []) : [];
+            feedbackdetailsGridRows = !usfeedback_isCanopyPage() && type === "Other" ? (dataArray || []) : [];
             usfeedbackRecordCount = dataArray ? dataArray.length : 0;
             var feedbackTableSelector = "#" + usfeedback_pageId("usfeedback_table");
             if ($.fn.DataTable.isDataTable(feedbackTableSelector)) {
@@ -1592,6 +1599,30 @@ function usfeedback_atr_bindgrid(type, processid) {
                     my_item.title = key;
                     columns.push(my_item);
                 });
+                if (usfeedback_isCanopyPage() && type === "Other") {
+                    columns.unshift({
+                        data: null,
+                        title: "Actions",
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, renderType, row, meta) {
+                            return '<button type="button" class="feedback-row-action" title="Edit feedback" aria-label="Edit feedback" onclick="return canopyfeedback_editFeedback(' + meta.row + ');"><i class="fas fa-edit"></i></button>' +
+                                '<button type="button" class="feedback-row-action delete" title="Delete feedback" aria-label="Delete feedback" onclick="return canopyfeedback_deleteFeedback(' + meta.row + ');"><i class="fas fa-trash-alt"></i></button>';
+                        }
+                    });
+                }
+                else if (type === "Other") {
+                    columns.unshift({
+                        data: null,
+                        title: "Actions",
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, renderType, row, meta) {
+                            return '<button type="button" class="feedback-row-action" title="Edit feedback" aria-label="Edit feedback" onclick="return feedbackdetails_editFeedback(' + meta.row + ');"><i class="fas fa-edit"></i></button>' +
+                                '<button type="button" class="feedback-row-action delete" title="Delete feedback" aria-label="Delete feedback" onclick="return feedbackdetails_deleteFeedback(' + meta.row + ');"><i class="fas fa-trash-alt"></i></button>';
+                        }
+                    });
+                }
                 $(feedbackTableSelector).DataTable({
                     dom: 'lBftip',
                     destroy: true,
@@ -1610,6 +1641,9 @@ function usfeedback_atr_bindgrid(type, processid) {
                     "serverSide": false,
                     "data": dataArray,
                     columns: columns,
+                    columnDefs: usfeedback_isCanopyPage() && type === "Other"
+                        ? [{ targets: 1, visible: false, searchable: false }]
+                        : [],
                     fnCreatedRow: function (nRow, aData, iDataIndex) {
                         $(nRow).children("td").css("text-wrap", "nowrap");
                     },
@@ -1921,6 +1955,33 @@ function canopyfeedback_submitFeedback() {
         return false;
     }
 
+    var feedbackKey = usfeedback_getElement("editkey").value;
+    if (feedbackKey) {
+        PageMethods.UpdateOtherFeedback(
+            feedbackKey,
+            parseInt(projectid, 10) || 0,
+            parseInt(processid, 10) || 0,
+            dealno,
+            loanno,
+            findings,
+            severity,
+            script,
+            function (result) {
+                if (result > 0) {
+                    canopyfeedback_cancelEdit();
+                    usfeedback_atr_bindgrid("Other", processid);
+                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback updated successfully.' });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Not updated', text: 'The feedback was not found or you do not have permission to update it.' });
+                }
+            },
+            function (error) {
+                Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+            }
+        );
+        return false;
+    }
+
     usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
         function (result) {
             if (result > 0) {
@@ -1948,6 +2009,43 @@ function canopyfeedback_submitFeedback() {
         }
     );
 
+    return false;
+}
+
+function canopyfeedback_editFeedback(index) {
+    var row = canopyfeedbackGridRows[index];
+    if (!row) return false;
+    usfeedback_getElement("editkey").value = row["Feedback Key"] || "";
+    usfeedback_select("usfeedback_severity").val(row.Severity || "");
+    usfeedback_select("usfeedback_finding").val(row.Finding || "");
+    usfeedback_select("btnsubmit").html('<i class="fas fa-save"></i>&nbsp; Update');
+    usfeedback_select("btncanceledit").show();
+    usfeedback_getElement("usfeedback_severity").focus();
+    $('html, body').animate({ scrollTop: usfeedback_select("trOther").offset().top - 20 }, 250);
+    return false;
+}
+
+function canopyfeedback_cancelEdit() {
+    var key = usfeedback_getElement("editkey");
+    if (!key) return false;
+    key.value = "";
+    usfeedback_select("usfeedback_severity").val("");
+    usfeedback_select("usfeedback_finding").val("");
+    usfeedback_select("btnsubmit").html('<i class="fas fa-plus"></i>&nbsp; Add');
+    usfeedback_select("btncanceledit").hide();
+    return false;
+}
+
+function canopyfeedback_deleteFeedback(index) {
+    var row = canopyfeedbackGridRows[index], ddl = usfeedback_getElement("usfeedback_task"), payload = us_getFeedbackPayload() || {};
+    if (!row || !ddl) return false;
+    Swal.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
+        if (!choice.isConfirmed) return;
+        PageMethods.DeleteOtherFeedback(row["Feedback Key"] || "", parseInt(usfeedback_getElement("usfeedback_projectid").value, 10) || 0,
+            parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value, usfeedback_getElement("usfeedback_loanno").value, payload.script || "",
+            function (result) { if (result > 0) { canopyfeedback_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); Swal.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else Swal.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
+            function (error) { Swal.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
+    });
     return false;
 }
 
@@ -2048,6 +2146,33 @@ function usfeedback_submit() {
             return false;
         }
 
+        var originalFinding = usfeedback_getElement("editfinding").value;
+        var originalSeverity = usfeedback_getElement("editseverity").value;
+        if (originalFinding || originalSeverity) {
+            PageMethods.UpdateOtherFeedback(
+                parseInt(processid, 10) || 0,
+                dealno,
+                loanno,
+                findings,
+                severity,
+                originalFinding,
+                originalSeverity,
+                function (result) {
+                    if (result > 0) {
+                        feedbackdetails_cancelEdit();
+                        usfeedback_atr_bindgrid("Other", processid);
+                        Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback updated successfully.' });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Not updated', text: 'The feedback was not found or you do not have permission to update it.' });
+                    }
+                },
+                function (error) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+                }
+            );
+            return false;
+        }
+
         usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
             function (result) {
                 if (result > 0) {
@@ -2079,6 +2204,53 @@ function usfeedback_submit() {
         return false;
 
     }
+    return false;
+}
+
+function feedbackdetails_editFeedback(index) {
+    var row = feedbackdetailsGridRows[index];
+    if (!row) return false;
+    usfeedback_getElement("editfinding").value = row.Finding || "";
+    usfeedback_getElement("editseverity").value = row.Severity || "";
+    usfeedback_select("usfeedback_severity").val(row.Severity || "");
+    usfeedback_select("usfeedback_finding").val(row.Finding || "");
+    usfeedback_select("btnsubmit").html('<i class="fas fa-save"></i>&nbsp; Update');
+    usfeedback_select("btncanceledit").show();
+    usfeedback_getElement("usfeedback_severity").focus();
+    $('html, body').animate({ scrollTop: usfeedback_select("trOther").offset().top - 20 }, 250);
+    return false;
+}
+
+function feedbackdetails_cancelEdit() {
+    var finding = usfeedback_getElement("editfinding");
+    var severity = usfeedback_getElement("editseverity");
+    if (!finding || !severity) return false;
+    finding.value = ""; severity.value = "";
+    usfeedback_select("usfeedback_severity").val("");
+    usfeedback_select("usfeedback_finding").val("");
+    usfeedback_select("btnsubmit").html('<i class="fas fa-plus"></i>&nbsp; Add');
+    usfeedback_select("btncanceledit").hide();
+    return false;
+}
+
+function feedbackdetails_deleteFeedback(index) {
+    var row = feedbackdetailsGridRows[index], ddl = usfeedback_getElement("usfeedback_task");
+    if (!row || !ddl) return false;
+    Swal.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
+        if (!choice.isConfirmed) return;
+        PageMethods.DeleteOtherFeedback(parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value,
+            usfeedback_getElement("usfeedback_loanno").value, row.Finding || "", row.Severity || "",
+            function (result) { if (result > 0) { feedbackdetails_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); Swal.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else Swal.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
+            function (error) { Swal.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
+    });
+    return false;
+}
+
+function usfeedback_syncNoErrorFinding() {
+    var severity = usfeedback_getElement("usfeedback_severity"), finding = usfeedback_getElement("usfeedback_finding");
+    if (!severity || !finding) return false;
+    if (severity.value === "No Error") finding.value = "No Error";
+    else if ($.trim(finding.value) === "No Error") finding.value = "";
     return false;
 }
 

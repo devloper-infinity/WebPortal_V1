@@ -197,6 +197,11 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.InsertOnShoreUSFeedbacks(htParam);
         }
+        public int UpdateOnShoreUSFeedbacks(Hashtable htParam)
+        {
+            return dalUS.UpdateOnShoreUSFeedbacks(htParam);
+        }
+        public int DeleteOnShoreUSFeedbacks(Hashtable htParam) { return dalUS.DeleteOnShoreUSFeedbacks(htParam); }
 
         public int InsertOnShoreUSFeedbacksCanopy(Hashtable htParam)
         {
@@ -212,6 +217,11 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.InsertOnShoreUSATRFeedbacksCanopy(htParam);
         }
+        public int UpdateOnShoreUSFeedbacksCanopy(Hashtable htParam)
+        {
+            return dalUS.UpdateOnShoreUSFeedbacksCanopy(htParam);
+        }
+        public int DeleteOnShoreUSFeedbacksCanopy(Hashtable htParam) { return dalUS.DeleteOnShoreUSFeedbacksCanopy(htParam); }
         public int InsertOnShoreProduction(Hashtable htParam)
         {
             return dalUS.InsertOnShoreProduction(htParam);

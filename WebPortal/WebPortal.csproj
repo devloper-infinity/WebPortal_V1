@@ -135,6 +135,7 @@
     <Content Include="Accounts\ESIPFDeductionReport.aspx" />
     <Content Include="Accounts\ImportCCStatement.aspx" />
     <Content Include="Accounts\IncentiveMaster.aspx" />
+    <Content Include="Accounts\IncrementProposal.aspx" />
     <Content Include="Accounts\IncrementReport.aspx" />
     <Content Include="Accounts\PrepareCheques.aspx" />
     <Content Include="Accounts\SalaryReport_DepartmentWise.aspx" />
@@ -202,6 +203,7 @@
     <Content Include="Assets\ViewAssets.aspx" />
     <Content Include="Assets\ViewPurchaseOrders.aspx" />
     <Content Include="Assets\WarrantyExpiryReport.aspx" />
+    <Content Include="Content\software-requests.css" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
     <Content Include="CRM\Contacts.aspx" />
@@ -862,10 +864,12 @@
     <Content Include="Scripts\Functions\ProjectEmailConfiguration.js" />
     <Content Include="Scripts\Search\VmOrders.js" />
     <Content Include="Scripts\Search\VMReport.js" />
+    <Content Include="Scripts\Software\Software.js" />
     <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
+    <Content Include="SoftwareRequests\Dashboard.aspx" />
     <Content Include="TrackingSheet\ManagerDashboard.Snd.js" />
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\UpdateBillingParameters.js" />
@@ -2855,6 +2859,7 @@
     <Content Include="Scripts\Reports\CreditUtilizationReport.js" />
     <Content Include="Scripts\Reports\DetailedFeedbackOutput.js" />
     <Content Include="Scripts\Reports\IncrementProposal.js" />
+    <Content Include="Scripts\Reports\IncrementProposalAccounts.js" />
     <Content Include="Scripts\Reports\MonthlyIncrements.js" />
     <Content Include="Scripts\Reports\Performance.js" />
     <Content Include="Scripts\Reports\ServicingConsolidatedReports.js" />
@@ -2921,6 +2926,8 @@
     <Content Include="DatabaseScripts\OLTracking_022_OutOfScopeAndHoldReasons.sql" />
     <Content Include="DatabaseScripts\OLTracking_023_ManagerLoanHold.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
+    <Content Include="DatabaseScripts\SoftwareRequests_001_FullModule.sql" />
+    <Content Include="DatabaseScripts\SoftwareRequests_002_TaskAllocationImport.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\TrackingSheetFeedbackEntry.css" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.aspx" />
@@ -3034,6 +3041,13 @@
     </Compile>
     <Compile Include="Accounts\Dashboard.aspx.designer.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\IncrementProposal.aspx.cs">
+      <DependentUpon>IncrementProposal.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\IncrementProposal.aspx.designer.cs">
+      <DependentUpon>IncrementProposal.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\ESIPFDeductionReport.aspx.cs">
       <DependentUpon>ESIPFDeductionReport.aspx</DependentUpon>
@@ -3189,6 +3203,10 @@
     <Compile Include="App_Code\DAL\dalLegacyImportBilling.cs" />
     <Compile Include="App_Code\DAL\dalVendors.cs" />
     <Compile Include="App_Code\OLTrackingWeb.cs" />
+    <Compile Include="App_Code\SoftwareRequestBasePage.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="App_Code\SoftwareRequestRepository.cs" />
     <Compile Include="Helpdesk\Administration.aspx.cs">
       <DependentUpon>Administration.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3229,6 +3247,10 @@
     </Compile>
     <Compile Include="Search\VMReport.aspx.designer.cs">
       <DependentUpon>VMReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="SoftwareRequests\Dashboard.aspx.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="TrackingSheet\ProjectTrackingFieldConfiguration.aspx.cs">
       <DependentUpon>ProjectTrackingFieldConfiguration.aspx</DependentUpon>
@@ -5985,6 +6007,7 @@
     <Content Include="Tracking\Tracking.Master" />
     <Content Include="Vendor\VendorMaster.Master" />
     <Content Include="TrackingSheet\TrackingSheetMaster.Master" />
+    <Content Include="SoftwareRequests\README.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -5997,6 +6020,7 @@
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />
     <Folder Include="SearchDocuments\" />
+    <Folder Include="SoftwareRequests\Configuration\" />
     <Folder Include="TempFiles\" />
   </ItemGroup>
   <ItemGroup>

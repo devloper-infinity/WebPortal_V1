@@ -261,6 +261,10 @@
             flex-wrap: wrap;
         }
 
+        .feedback-row-action { border: 0; border-radius: 8px; padding: 6px 9px; color: #fff; background: #2563eb; cursor: pointer; }
+        .feedback-row-action:hover { background: #1d4ed8; }
+        .feedback-row-action.delete { margin-left: 5px; background: #dc2626; }
+
         .drop-zone {
             /* min-height: 126px;*/
             border: 1.5px dashed #8ab4ff;
@@ -609,7 +613,7 @@
                     <div id="trOther" class="my-row" style="display: none;">
                         <div class="my-col-6">
                             <label><b>Severity <span class="req">*</span></b></label>
-                            <select id="usfeedback_severity" name="usfeedback_severity" class="my-select form-control" required="required" aria-required="true">
+                            <select id="usfeedback_severity" name="usfeedback_severity" class="my-select form-control" required="required" aria-required="true" onchange="return usfeedback_syncNoErrorFinding();">
                                 <option value="">Select</option>
                                 <option value="Critical">Critical</option>
                                 <option value="Non-Critical">Non-Critical</option>
@@ -700,8 +704,13 @@
                         </div>
                         <div class="my-row">
                             <div class="my-col-12 action-row">
+                                <input type="hidden" id="usfeedback_editfinding" value="" />
+                                <input type="hidden" id="usfeedback_editseverity" value="" />
                                 <button type="button" id="usfeedback_btnsubmit" name="usfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return GlobalSearchFeedback.submit();">
                                     <i class="fas fa-plus"></i>&nbsp; Add
+                                </button>
+                                <button type="button" id="usfeedback_btncanceledit" class="my-btn btn btn-secondary" style="display:none" onclick="return feedbackdetails_cancelEdit();">
+                                    <i class="fas fa-times"></i>&nbsp; Cancel Edit
                                 </button>
                                 <button type="button" id="usfeedback_btncomplete" name="usfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return GlobalSearchFeedback.complete();">
                                     <i class="fas fa-check"></i>&nbsp; Complete Loan

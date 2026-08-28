@@ -599,7 +599,8 @@ BEGIN
 END
 ELSE
 BEGIN
-    SELECT DealNo AS [Deal #], LoanNo AS [Loan #], Severity, Finding
+    SELECT CONVERT(nvarchar(33), AddedDate, 126) AS [Feedback Key],
+           DealNo AS [Deal #], LoanNo AS [Loan #], Severity, Finding
     FROM dbo.OnShoreFeedbacks
     WHERE DealNo = @DealNo AND LoanNo = @LoanNo AND ProcessID = @ProcessID
       AND ISNULL(Script, '') = ISNULL(@Script, '');
@@ -998,6 +999,41 @@ SELECT 1;");
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+        public int UpdateOnShoreUSFeedbacks(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+UPDATE TOP (1) dbo.OnShoreFeedbacks
+SET Finding=@Finding, Severity=@Severity
+WHERE DealNo=@DealNo AND LoanNo=@LoanNo AND ProcessID=@ProcessID AND AddedBy=@AddedBy
+AND ISNULL(Finding,'')=ISNULL(@OriginalFinding,'') AND ISNULL(Severity,'')=ISNULL(@OriginalSeverity,'');
+SELECT @@ROWCOUNT;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.Int, 0, ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Severity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OriginalFinding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["OriginalFinding"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OriginalSeverity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["OriginalSeverity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            object result = SQLHelper.ExecuteScalarCmd(cmd); cmd.Dispose();
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+        public int DeleteOnShoreUSFeedbacks(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+DELETE TOP (1) FROM dbo.OnShoreFeedbacks
+WHERE DealNo=@DealNo AND LoanNo=@LoanNo AND ProcessID=@ProcessID AND AddedBy=@AddedBy
+AND ISNULL(Finding,'')=ISNULL(@Finding,'') AND ISNULL(Severity,'')=ISNULL(@Severity,''); SELECT @@ROWCOUNT;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.Int, 0, ParameterDirection.Input, htParam["ProcessID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["LoanNo"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Severity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
+            object result = SQLHelper.ExecuteScalarCmd(cmd); cmd.Dispose(); return result == null ? 0 : Convert.ToInt32(result);
+        }
+
         public int InsertOnShoreUSFeedbacksCanopy(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
@@ -1066,6 +1102,32 @@ SELECT CAST(SCOPE_IDENTITY() AS int);");
             object result = SQLHelper.ExecuteScalarCmd(cmd);
             cmd.Dispose();
             return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+        public int UpdateOnShoreUSFeedbacksCanopy(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+UPDATE dbo.OnShoreFeedbacks SET Finding=@Finding, Severity=@Severity
+WHERE DealNo=@DealNo AND LoanNo=@LoanNo AND ProcessID=@ProcessID
+AND ISNULL(Script,'')=ISNULL(@Script,'') AND AddedBy=@AddedBy
+AND AddedDate=CONVERT(datetime2,@FeedbackKey,126); SELECT @@ROWCOUNT;");
+            AddCanopyFeedbackCommonParameters(cmd, htParam);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackKey", SqlDbType.NVarChar, 33, ParameterDirection.Input, htParam["FeedbackKey"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Severity"]);
+            object result = SQLHelper.ExecuteScalarCmd(cmd); cmd.Dispose();
+            return result == null ? 0 : Convert.ToInt32(result);
+        }
+
+        public int DeleteOnShoreUSFeedbacksCanopy(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+DELETE FROM dbo.OnShoreFeedbacks WHERE DealNo=@DealNo AND LoanNo=@LoanNo AND ProcessID=@ProcessID
+AND ISNULL(Script,'')=ISNULL(@Script,'') AND AddedBy=@AddedBy
+AND AddedDate=CONVERT(datetime2,@FeedbackKey,126); SELECT @@ROWCOUNT;");
+            AddCanopyFeedbackCommonParameters(cmd, htParam);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackKey", SqlDbType.NVarChar, 33, ParameterDirection.Input, htParam["FeedbackKey"]);
+            object result = SQLHelper.ExecuteScalarCmd(cmd); cmd.Dispose(); return result == null ? 0 : Convert.ToInt32(result);
         }
 
         private static void AddCanopyFeedbackCommonParameters(SqlCommand cmd, Hashtable htParam)

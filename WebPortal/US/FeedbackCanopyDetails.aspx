@@ -261,6 +261,10 @@
             flex-wrap: wrap;
         }
 
+        .feedback-row-action { border: 0; border-radius: 8px; padding: 6px 9px; color: #fff; background: #2563eb; cursor: pointer; }
+        .feedback-row-action:hover { background: #1d4ed8; }
+        .feedback-row-action.delete { margin-left: 5px; background: #dc2626; }
+
         .drop-zone {
             /* min-height: 126px;*/
             border: 1.5px dashed #8ab4ff;
@@ -618,7 +622,7 @@
                     <div id="canopyfeedback_trOther" class="my-row" style="display: none;">
                         <div class="my-col-6">
                             <label><b>Severity <span class="req">*</span></b></label>
-                            <select id="canopyfeedback_severity" name="canopyfeedback_severity" class="my-select form-control" required="required" aria-required="true">
+                            <select id="canopyfeedback_severity" name="canopyfeedback_severity" class="my-select form-control" required="required" aria-required="true" onchange="return usfeedback_syncNoErrorFinding();">
                                 <option value="">Select</option>
                                 <option value="Critical">Critical</option>
                                 <option value="Non-Critical">Non-Critical</option>
@@ -709,8 +713,12 @@
                         </div>
                         <div class="my-row">
                             <div class="my-col-12 action-row">
+                                <input type="hidden" id="canopyfeedback_editkey" value="" />
                                 <button type="button" id="canopyfeedback_btnsubmit" name="canopyfeedback_btnsubmit" class="my-btn primary btn btn-primary" onclick="return CanopySearchFeedback.submit();">
                                     <i class="fas fa-plus"></i>&nbsp; Add
+                                </button>
+                                <button type="button" id="canopyfeedback_btncanceledit" class="my-btn btn btn-secondary" style="display:none" onclick="return canopyfeedback_cancelEdit();">
+                                    <i class="fas fa-times"></i>&nbsp; Cancel Edit
                                 </button>
                                 <button type="button" id="canopyfeedback_btncomplete" name="canopyfeedback_btncomplete" class="my-btn primary btn btn-primary" onclick="return CanopySearchFeedback.complete();">
                                     <i class="fas fa-check"></i>&nbsp; Complete Loan

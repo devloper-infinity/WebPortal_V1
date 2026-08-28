@@ -64,7 +64,7 @@ namespace WebPortal.US
                 return -1;
             }
 
-            if (Severity == "No Error")
+            if (Severity == "No Error" && string.IsNullOrWhiteSpace(Finding))
             {
                 Finding = "No Error";
             }
@@ -222,6 +222,29 @@ namespace WebPortal.US
             NewFileName = "";
             returnvalue = new bllUS().InsertOnShoreUSFeedbacks(htParam);
             return returnvalue;
+        }
+
+        [WebMethod]
+        public static int UpdateOtherFeedback(int ProcessID, string DealNo, string LoanNo, string Finding, string Severity, string OriginalFinding, string OriginalSeverity)
+        {
+            Finding = (Finding ?? "").Trim(); Severity = (Severity ?? "").Trim();
+            if (Finding.Length == 0 || Severity.Length == 0) return -1;
+            Hashtable values = new Hashtable();
+            values.Add("ProcessID", ProcessID); values.Add("DealNo", DealNo); values.Add("LoanNo", LoanNo);
+            values.Add("Finding", Finding); values.Add("Severity", Severity);
+            values.Add("OriginalFinding", OriginalFinding ?? ""); values.Add("OriginalSeverity", OriginalSeverity ?? "");
+            values.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name));
+            return new bllUS().UpdateOnShoreUSFeedbacks(values);
+        }
+
+        [WebMethod]
+        public static int DeleteOtherFeedback(int ProcessID, string DealNo, string LoanNo, string Finding, string Severity)
+        {
+            Hashtable values = new Hashtable();
+            values.Add("ProcessID", ProcessID); values.Add("DealNo", DealNo); values.Add("LoanNo", LoanNo);
+            values.Add("Finding", Finding ?? ""); values.Add("Severity", Severity ?? "");
+            values.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name));
+            return new bllUS().DeleteOnShoreUSFeedbacks(values);
         }
 
         [WebMethod]

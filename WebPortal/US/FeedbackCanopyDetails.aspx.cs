@@ -64,7 +64,7 @@ namespace WebPortal.US
                 return -1;
             }
 
-            if (Severity == "No Error")
+            if (Severity == "No Error" && string.IsNullOrWhiteSpace(Finding))
             {
                 Finding = "No Error";
             }
@@ -254,6 +254,32 @@ namespace WebPortal.US
 
             returnvalue = new bllUS().InsertOnShoreUSATRFeedbacksCanopy(htParam);
             return returnvalue;
+        }
+
+        [WebMethod]
+        public static int UpdateOtherFeedback(string FeedbackKey, int ProjectID, int ProcessID, string DealNo, string LoanNo, string Finding, string Severity, string Script)
+        {
+            Finding = (Finding ?? "").Trim(); Severity = (Severity ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(FeedbackKey) || Finding.Length == 0 || Severity.Length == 0) return -1;
+            Hashtable values = CanopyUpdateValues(FeedbackKey, ProjectID, ProcessID, DealNo, LoanNo, Script);
+            values.Add("Finding", Finding); values.Add("Severity", Severity);
+            return new bllUS().UpdateOnShoreUSFeedbacksCanopy(values);
+        }
+
+        [WebMethod]
+        public static int DeleteOtherFeedback(string FeedbackKey, int ProjectID, int ProcessID, string DealNo, string LoanNo, string Script)
+        {
+            if (string.IsNullOrWhiteSpace(FeedbackKey)) return -1;
+            return new bllUS().DeleteOnShoreUSFeedbacksCanopy(CanopyUpdateValues(FeedbackKey, ProjectID, ProcessID, DealNo, LoanNo, Script));
+        }
+
+        private static Hashtable CanopyUpdateValues(string feedbackKey, int projectID, int processID, string dealNo, string loanNo, string script)
+        {
+            Hashtable values = new Hashtable();
+            values.Add("FeedbackKey", feedbackKey); values.Add("ProjectID", projectID); values.Add("ProcessID", processID);
+            values.Add("DealNo", dealNo); values.Add("LoanNo", loanNo); values.Add("Script", script ?? "");
+            values.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name));
+            return values;
         }
 
         [WebMethod]
