@@ -53,7 +53,7 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate)
+        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate, int ProcessID)
         {
             int ReturnValue = 0;
 
@@ -69,7 +69,8 @@ namespace WebPortal.US
                 Finding = "No Error";
             }
 
-            string QCName = "";
+            string QCName = (UWName ?? string.Empty).Trim();
+            UWName = string.Empty;
 
             Hashtable htParam = new Hashtable();
             htParam.Add("LoanNo", LoanNo);
@@ -83,6 +84,7 @@ namespace WebPortal.US
             htParam.Add("Source", Source);
             htParam.Add("FeedbackReceivedDate", FeedbackReceivedDate);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            htParam.Add("ProcessID", ProcessID);
 
             ReturnValue = new bllUS().InsertUSImportedFeedback_NewERP(htParam);
 
@@ -238,11 +240,12 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int DeleteOtherFeedback(int ProcessID, string DealNo, string LoanNo, string Finding, string Severity)
+        public static int DeleteOtherFeedback(int ProcessID, string DealNo, string LoanNo, string Client, string QCName, string Finding, string Severity)
         {
             Hashtable values = new Hashtable();
             values.Add("ProcessID", ProcessID); values.Add("DealNo", DealNo); values.Add("LoanNo", LoanNo);
             values.Add("Finding", Finding ?? ""); values.Add("Severity", Severity ?? "");
+            values.Add("Client", Client ?? ""); values.Add("QCName", QCName ?? "");
             values.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name));
             return new bllUS().DeleteOnShoreUSFeedbacks(values);
         }

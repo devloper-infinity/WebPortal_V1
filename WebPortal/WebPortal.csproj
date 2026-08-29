@@ -864,6 +864,7 @@
     <Content Include="Scripts\Functions\ProjectEmailConfiguration.js" />
     <Content Include="Scripts\Search\VmOrders.js" />
     <Content Include="Scripts\Search\VMReport.js" />
+    <Content Include="Scripts\software-requests.js" />
     <Content Include="Scripts\Software\Software.js" />
     <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
@@ -2978,6 +2979,7 @@
     <Content Include="US\MyQueue.aspx" />
     <Content Include="US\NonProductiveHours.aspx" />
     <Content Include="US\ProductionReport.aspx" />
+    <Content Include="US\ProjectProcessLoanReport.aspx" />
     <Content Include="US\ProductionSummary.aspx" />
     <Content Include="US\UserPerformanceReport.aspx" />
     <Content Include="Vendor\OrderAllocation.aspx" />
@@ -5581,6 +5583,13 @@
     <Compile Include="US\ProductionReport.aspx.cs">
       <DependentUpon>ProductionReport.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\ProjectProcessLoanReport.aspx.cs">
+      <DependentUpon>ProjectProcessLoanReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\ProjectProcessLoanReport.aspx.designer.cs">
+      <DependentUpon>ProjectProcessLoanReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\ProductionReport.aspx.designer.cs">
       <DependentUpon>ProductionReport.aspx</DependentUpon>

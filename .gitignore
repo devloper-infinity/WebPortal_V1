@@ -383,6 +383,12 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_021_ProcessCompletionTimeLimits.sql
 !/WebPortal/DatabaseScripts/OLTracking_022_OutOfScopeAndHoldReasons.sql
 !/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
+!/WebPortal/DatabaseScripts/USFeedback_002_AddProcessID.sql
+!/WebPortal/US/
+/WebPortal/US/*
+!/WebPortal/US/ProjectProcessLoanReport.aspx
+!/WebPortal/US/ProjectProcessLoanReport.aspx.cs
+!/WebPortal/US/ProjectProcessLoanReport.aspx.designer.cs
 !/WebPortal/App_Code/
 /WebPortal/App_Code/*
 !/WebPortal/App_Code/Class/

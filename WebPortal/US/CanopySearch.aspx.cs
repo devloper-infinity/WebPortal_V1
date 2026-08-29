@@ -61,6 +61,8 @@ namespace WebPortal.US
             DataTable statuses = new bllUS().GetCanopySearchProcessStatuses();
             Dictionary<string, DataRow> exact = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
             Dictionary<string, DataRow> byDealLoanScript = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> completedQc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> occupiedQc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (DataRow status in statuses.Rows)
             {
@@ -68,8 +70,23 @@ namespace WebPortal.US
                 string script = Convert.ToString(status["Script"]).Trim();
                 SetBestStatus(exact, StatusKey(Convert.ToString(status["ProjectNumber"]), Convert.ToString(status["DealNo"]), loan, script), status);
                 SetBestStatus(byDealLoanScript, DealLoanScriptKey(Convert.ToString(status["DealNo"]), loan, script), status);
+                string process = Convert.ToString(status["ProcessName"]).Trim();
+                if (string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase)
+                    && (string.Equals(process, "Credit QC", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(process, "Compliance QC", StringComparison.OrdinalIgnoreCase)))
+                {
+                    completedQc.Add(StatusKey(Convert.ToString(status["ProjectNumber"]), Convert.ToString(status["DealNo"]), loan, script) + "\u001f" + process);
+                    completedQc.Add(DealLoanScriptKey(Convert.ToString(status["DealNo"]), loan, script) + "\u001f" + process);
+                }
+                if (string.Equals(process, "Credit QC", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(process, "Compliance QC", StringComparison.OrdinalIgnoreCase))
+                {
+                    occupiedQc.Add(StatusKey(Convert.ToString(status["ProjectNumber"]), Convert.ToString(status["DealNo"]), loan, script) + "\u001f" + process);
+                    occupiedQc.Add(DealLoanScriptKey(Convert.ToString(status["DealNo"]), loan, script) + "\u001f" + process);
+                }
             }
 
+            List<DataRow> completedLoans = new List<DataRow>();
             foreach (DataRow row in loans.Rows)
             {
                 string project = Value(row, "Client", "ProjectNumber", "ProjectNo", "Project No", "Project #");
@@ -91,7 +108,18 @@ namespace WebPortal.US
                 row["_ProcessStatusDate"] = status == null ? "" : Convert.ToString(status["ProcessStatusDate"]);
                 bool isCompleted = status != null && string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase);
                 row["_CanStart"] = !isCompleted || processEmployeeId == currentEmployeeId;
+
+                string exactKey = StatusKey(project, deal, loan, script) + "\u001f";
+                string fallbackKey = DealLoanScriptKey(deal, loan, script) + "\u001f";
+                bool creditCompleted = completedQc.Contains(exactKey + "Credit QC") || completedQc.Contains(fallbackKey + "Credit QC");
+                bool complianceCompleted = completedQc.Contains(exactKey + "Compliance QC") || completedQc.Contains(fallbackKey + "Compliance QC");
+                bool creditOccupied = occupiedQc.Contains(exactKey + "Credit QC") || occupiedQc.Contains(fallbackKey + "Credit QC");
+                bool complianceOccupied = occupiedQc.Contains(exactKey + "Compliance QC") || occupiedQc.Contains(fallbackKey + "Compliance QC");
+                if (creditOccupied && complianceOccupied) row["_CanStart"] = false;
+                if (creditCompleted && complianceCompleted) completedLoans.Add(row);
             }
+
+            foreach (DataRow row in completedLoans) loans.Rows.Remove(row);
         }
 
         private static void SetBestStatus(Dictionary<string, DataRow> lookup, string key, DataRow candidate)

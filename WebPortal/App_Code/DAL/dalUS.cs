@@ -61,11 +61,35 @@ SELECT
 FROM dbo.USLoanProductionTrack
 WHERE EmployeeID = @EmployeeID
     AND EndDatetime IS NULL
+    AND UPPER(ISNULL([Status], '')) <> 'COMPLETED'
 ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
 
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, EmployeeID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
+        }
+
+        public DataTable GetProjectProcessLoanReport(string projectNumber)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+;WITH Latest AS
+(
+ SELECT track.LoanNo,ISNULL(track.ProcessID,0) ProcessID,ISNULL(track.[Process],'') ProcessName,
+ COALESCE(NULLIF(LTRIM(RTRIM(track.Review)),''),
+          NULLIF(LTRIM(RTRIM(ISNULL(employee.FirstName,'')+' '+ISNULL(employee.LastName,''))),''),
+          CONVERT(varchar(20),track.EmployeeID)) Employee,
+ CONVERT(varchar(19),track.StartDatetime,120) StartDate,
+ CONVERT(varchar(19),track.EndDatetime,120) EndDate,
+ CASE WHEN track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status],''))='COMPLETED' THEN 'Completed'
+      WHEN track.StartDatetime IS NOT NULL THEN 'Started' ELSE ISNULL(track.[Status],'') END [Status],
+ ROW_NUMBER() OVER(PARTITION BY track.LoanNo,track.[Process] ORDER BY track.ProductionTrackID DESC) RowNo
+ FROM dbo.USLoanProductionTrack track
+ LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID=track.EmployeeID
+ WHERE track.ProjectNumber=@ProjectNumber AND NULLIF(LTRIM(RTRIM(track.[Process])), '') IS NOT NULL
+)
+SELECT LoanNo,ProcessID,ProcessName,Employee,StartDate,EndDate,[Status] FROM Latest WHERE RowNo=1 ORDER BY LoanNo,ProcessName;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", SqlDbType.NVarChar, 500, ParameterDirection.Input, projectNumber);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
         public DataTable GetLoanDetails_RemoteUW_ByID(int ProcessID)
@@ -196,21 +220,13 @@ OPTION (RECOMPILE);");
         public bool CanStartCanopyLoan(string DealNo, string LoanNo, string Script, int EmployeeID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
-SELECT TOP (1)
-    CASE
-        WHEN (track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status], '')) = 'COMPLETED')
-             AND ISNULL(track.EmployeeID, 0) <> @EmployeeID THEN 0
-        ELSE 1
-    END AS CanStart
+SELECT CASE WHEN COUNT(DISTINCT UPPER(LTRIM(RTRIM(track.[Process])))) >= 2 THEN 0 ELSE 1 END AS CanStart
 FROM dbo.USLoanProductionTrack track
 WHERE track.SourcePage = 'CanopySearch'
   AND ISNULL(track.DealNo, '') = ISNULL(@DealNo, '')
   AND ISNULL(track.LoanNo, '') = ISNULL(@LoanNo, '')
   AND ISNULL(track.Script, '') = ISNULL(@Script, '')
-ORDER BY
-    CASE WHEN track.EndDatetime IS NOT NULL OR UPPER(ISNULL(track.[Status], '')) = 'COMPLETED' THEN 0 ELSE 1 END,
-    ISNULL(track.EndDatetime, ISNULL(track.StartDatetime, track.AddedDate)) DESC,
-    track.ProductionTrackID DESC;");
+  AND UPPER(LTRIM(RTRIM(ISNULL(track.[Process], '')))) IN ('CREDIT QC', 'COMPLIANCE QC');");
 
             SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 200, ParameterDirection.Input, DealNo);
             SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 200, ParameterDirection.Input, LoanNo);
@@ -562,12 +578,13 @@ SELECT CONVERT(int,SCOPE_IDENTITY());");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
-        public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script)
+        public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script, string TaskName)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUSLoanDetails_Canopy");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUSLoanDetails_Canopy_Revised");
             SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, DealNo);
             SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, LoanNo);
             SQLHelper.AddParamToSQLCmd(cmd, "@Process", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Script);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TaskName", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, TaskName);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
@@ -656,6 +673,7 @@ END");
             SQLHelper.AddParamToSQLCmd(cmd, "@Severity", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Severity"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Source", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Source"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam.ContainsKey("ProcessID") ? htParam["ProcessID"] : 0);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
@@ -667,7 +685,7 @@ END");
         {
             string query = @"
                 SET NOCOUNT ON;
-                IF @Client = '561'
+                IF @Client IN ('561','2104')
                     UPDATE ImportedFeedbacks_Servicing
                     SET Finding = @Finding, Severity = @Severity
                     WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
@@ -692,18 +710,25 @@ END");
         {
             string query = @"
                 SET NOCOUNT ON;
-                IF @Client = '561'
+                IF @Client IN ('561','2104')
                     DELETE FROM ImportedFeedbacks_Servicing
                     WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
-                      AND Client = @Client AND AddedBy = @AddedBy;
+                      AND Client = @Client AND ISNULL([QC Name],'') = ISNULL(NULLIF(@QCName,''),(SELECT TOP 1 PsuedoName FROM EmployeeConfiguration WHERE EmployeeID=@AddedBy AND DataSource='ERP'))
+                      AND AddedBy = @AddedBy AND ISNULL(Severity,'') = ISNULL(@Severity,'')
+                      AND ISNULL(Finding,'') = ISNULL(@Finding,'');
                 ELSE
                     DELETE FROM ImportedFeedbacks
                     WHERE FeedbackID = @FeedbackID AND [Loan Number] = @LoanNo
-                      AND Client = @Client AND AddedBy = @AddedBy;
+                      AND Client = @Client AND ISNULL([QC Name],'') = ISNULL(NULLIF(@QCName,''),(SELECT TOP 1 PsuedoName FROM EmployeeConfiguration WHERE EmployeeID=@AddedBy AND DataSource='ERP'))
+                      AND AddedBy = @AddedBy AND ISNULL(Severity,'') = ISNULL(@Severity,'')
+                      AND ISNULL(Finding,'') = ISNULL(@Finding,'');
                 SET @RowsAffected = @@ROWCOUNT;";
 
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, query);
             AddFeedbackMutationParameters(cmd, htParam, false);
+            SQLHelper.AddParamToSQLCmd(cmd, "@QCName", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["QCName"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Severity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@RowsAffected", SqlDbType.Int, 0, ParameterDirection.Output, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
             int rowsAffected = Convert.ToInt32(cmd.Parameters["@RowsAffected"].Value);
@@ -817,17 +842,21 @@ BEGIN
     BEGIN
         SELECT TOP 1 @TrackID = ProductionTrackID
         FROM dbo.USLoanProductionTrack
-        WHERE EmployeeID = @EmployeeID
+        WHERE (EmployeeID = @EmployeeID
+               OR (UPPER(ISNULL(@SourcePage, '')) = 'CANOPYSEARCH'
+                   AND NULLIF(LTRIM(RTRIM(ISNULL([Process], ''))), '') IS NULL))
             AND EndDatetime IS NULL
             AND DealNo = @DealNo
             AND LoanNo = @LoanNo
             AND ISNULL(Script, '') = ISNULL(@Script, '')
             AND (
                 (@ProcessID > 0 AND (ProcessID = @ProcessID OR ISNULL(ProcessID, 0) = 0))
+                OR (UPPER(ISNULL(@SourcePage, '')) = 'CANOPYSEARCH' AND NULLIF(LTRIM(RTRIM(ISNULL([Process], ''))), '') IS NULL)
                 OR (@ProcessID <= 0 AND ISNULL(ProcessID, 0) = 0 AND ISNULL([Process], '') = ISNULL(@Process, ''))
             )
         ORDER BY
             CASE WHEN @ProcessID > 0 AND ProcessID = @ProcessID THEN 0 ELSE 1 END,
+            CASE WHEN NULLIF(LTRIM(RTRIM(ISNULL([Process], ''))), '') IS NULL THEN 0 ELSE 1 END,
             ProductionTrackID DESC;
     END
 
@@ -868,6 +897,8 @@ BEGIN
             END,
             EmployeeID = CASE
                 WHEN UPPER(ISNULL(@SourcePage, '')) = 'MYTASK' THEN @EmployeeID
+                WHEN UPPER(ISNULL(@SourcePage, '')) = 'CANOPYSEARCH'
+                     AND NULLIF(LTRIM(RTRIM(ISNULL([Process], ''))), '') IS NULL THEN @EmployeeID
                 ELSE EmployeeID
             END,
             [Status] = 'Started',
@@ -1022,14 +1053,35 @@ SELECT @@ROWCOUNT;");
         public int DeleteOnShoreUSFeedbacks(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SET XACT_ABORT ON; BEGIN TRAN; DECLARE @Rows int=0, @ImportedID int;
 DELETE TOP (1) FROM dbo.OnShoreFeedbacks
 WHERE DealNo=@DealNo AND LoanNo=@LoanNo AND ProcessID=@ProcessID AND AddedBy=@AddedBy
-AND ISNULL(Finding,'')=ISNULL(@Finding,'') AND ISNULL(Severity,'')=ISNULL(@Severity,''); SELECT @@ROWCOUNT;");
+AND ISNULL(Finding,'')=ISNULL(@Finding,'') AND ISNULL(Severity,'')=ISNULL(@Severity,'');
+SET @Rows=@@ROWCOUNT;
+IF @Rows>0
+BEGIN
+ IF @Client IN ('561','2104')
+ BEGIN
+  SELECT TOP (1) @ImportedID=FeedbackID FROM dbo.ImportedFeedbacks_Servicing
+  WHERE Client=@Client AND [Loan Number]=@LoanNo AND ISNULL([QC Name],'')=ISNULL(NULLIF(@QCName,''),(SELECT TOP 1 PsuedoName FROM EmployeeConfiguration WHERE EmployeeID=@AddedBy AND DataSource='ERP'))
+  AND AddedBy=@AddedBy AND ISNULL(Severity,'')=ISNULL(@Severity,'') AND ISNULL(Finding,'')=ISNULL(@Finding,'') ORDER BY AddedDate DESC;
+  DELETE FROM dbo.ImportedFeedbacks_Servicing WHERE FeedbackID=@ImportedID;
+ END ELSE BEGIN
+  SELECT TOP (1) @ImportedID=FeedbackID FROM dbo.ImportedFeedbacks
+  WHERE Client=@Client AND [Loan Number]=@LoanNo AND ISNULL([QC Name],'')=ISNULL(NULLIF(@QCName,''),(SELECT TOP 1 PsuedoName FROM EmployeeConfiguration WHERE EmployeeID=@AddedBy AND DataSource='ERP'))
+  AND AddedBy=@AddedBy AND ISNULL(Severity,'')=ISNULL(@Severity,'') AND ISNULL(Finding,'')=ISNULL(@Finding,'') ORDER BY AddedDate DESC;
+  DELETE FROM dbo.ImportedFeedbacks WHERE FeedbackID=@ImportedID;
+ END
+ SET @Rows=@Rows+@@ROWCOUNT;
+END
+COMMIT; SELECT @Rows;");
             SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.Int, 0, ParameterDirection.Input, htParam["ProcessID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["DealNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["LoanNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Severity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Client"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@QCName", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["QCName"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, htParam["AddedBy"]);
             object result = SQLHelper.ExecuteScalarCmd(cmd); cmd.Dispose(); return result == null ? 0 : Convert.ToInt32(result);
         }
@@ -1122,11 +1174,34 @@ AND AddedDate=CONVERT(datetime2,@FeedbackKey,126); SELECT @@ROWCOUNT;");
         public int DeleteOnShoreUSFeedbacksCanopy(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SET XACT_ABORT ON; BEGIN TRAN; DECLARE @Rows int=0, @ImportedID int;
 DELETE FROM dbo.OnShoreFeedbacks WHERE DealNo=@DealNo AND LoanNo=@LoanNo AND ProcessID=@ProcessID
 AND ISNULL(Script,'')=ISNULL(@Script,'') AND AddedBy=@AddedBy
-AND AddedDate=CONVERT(datetime2,@FeedbackKey,126); SELECT @@ROWCOUNT;");
+AND AddedDate=CONVERT(datetime2,@FeedbackKey,126);
+SET @Rows=@@ROWCOUNT;
+IF @Rows>0
+BEGIN
+ IF @Client IN ('561','2104')
+ BEGIN
+  SELECT TOP (1) @ImportedID=FeedbackID FROM dbo.ImportedFeedbacks_Servicing
+  WHERE Client=@Client AND [Loan Number]=@LoanNo AND ISNULL([QC Name],'')=ISNULL(NULLIF(@QCName,''),(SELECT TOP 1 PsuedoName FROM EmployeeConfiguration WHERE EmployeeID=@AddedBy AND DataSource='ERP'))
+  AND AddedBy=@AddedBy AND ISNULL(Severity,'')=ISNULL(@Severity,'') AND ISNULL(Finding,'')=ISNULL(@Finding,'') ORDER BY AddedDate DESC;
+  DELETE FROM dbo.ImportedFeedbacks_Servicing WHERE FeedbackID=@ImportedID;
+ END ELSE BEGIN
+  SELECT TOP (1) @ImportedID=FeedbackID FROM dbo.ImportedFeedbacks
+  WHERE Client=@Client AND [Loan Number]=@LoanNo AND ISNULL([QC Name],'')=ISNULL(NULLIF(@QCName,''),(SELECT TOP 1 PsuedoName FROM EmployeeConfiguration WHERE EmployeeID=@AddedBy AND DataSource='ERP'))
+  AND AddedBy=@AddedBy AND ISNULL(Severity,'')=ISNULL(@Severity,'') AND ISNULL(Finding,'')=ISNULL(@Finding,'') ORDER BY AddedDate DESC;
+  DELETE FROM dbo.ImportedFeedbacks WHERE FeedbackID=@ImportedID;
+ END
+ SET @Rows=@Rows+@@ROWCOUNT;
+END
+COMMIT; SELECT @Rows;");
             AddCanopyFeedbackCommonParameters(cmd, htParam);
             SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackKey", SqlDbType.NVarChar, 33, ParameterDirection.Input, htParam["FeedbackKey"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Client", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Client"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@QCName", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["QCName"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Finding", SqlDbType.NVarChar, 5000, ParameterDirection.Input, htParam["Finding"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Severity", SqlDbType.NVarChar, 100, ParameterDirection.Input, htParam["Severity"]);
             object result = SQLHelper.ExecuteScalarCmd(cmd); cmd.Dispose(); return result == null ? 0 : Convert.ToInt32(result);
         }
 

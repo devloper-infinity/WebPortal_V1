@@ -124,9 +124,9 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.GetLoanDetailsbyLoanNo(DealNo, LoanNo);
         }
-        public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script)
+        public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script, string TaskName)
         {
-            return dalUS.GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script);
+            return dalUS.GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script, TaskName);
         }
 
         public DataTable GetATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID)
@@ -147,6 +147,10 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetUSProcessList(int ProjectID)
         {
             return dalUS.GetUSProcessList(ProjectID);
+        }
+        public DataTable GetProjectProcessLoanReport(string projectNumber)
+        {
+            return dalUS.GetProjectProcessLoanReport(projectNumber);
         }
 
         public DataTable GetAllTempReQC1(int ReQC)

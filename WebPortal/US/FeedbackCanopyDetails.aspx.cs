@@ -53,7 +53,7 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate)
+        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate, int ProcessID)
         {
             int ReturnValue = 0;
 
@@ -83,6 +83,7 @@ namespace WebPortal.US
             htParam.Add("Source", Source);
             htParam.Add("FeedbackReceivedDate", FeedbackReceivedDate);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            htParam.Add("ProcessID", ProcessID);
 
             ReturnValue = new bllUS().InsertUSImportedFeedback_NewERP(htParam);
 
@@ -90,9 +91,9 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static string GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script)
+        public static string GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script, string TaskName)
         {
-            DataTable dt1 = new bllUS().GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script);
+            DataTable dt1 = new bllUS().GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script, TaskName);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -130,13 +131,32 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static string GetUSProcessTask(int ProjectID)
+        public static string GetUSProcessTask(int ProjectID, string DealNo, string LoanNo, string Script)
         {
             DataTable dt1 = new bllUS().GetUSProcessList(ProjectID);
+            DataTable statuses = new bllUS().GetCanopySearchProcessStatuses();
+            HashSet<string> unavailableQc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name);
+            foreach (DataRow status in statuses.Rows)
+            {
+                string process = Convert.ToString(status["ProcessName"]).Trim();
+                if (string.Equals(Convert.ToString(status["DealNo"]).Trim(), (DealNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["LoanNo"]).Trim(), (LoanNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["Script"]).Trim(), (Script ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && (string.Equals(process, "Credit QC", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(process, "Compliance QC", StringComparison.OrdinalIgnoreCase)))
+                {
+                    bool completed = string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase);
+                    int ownerId = Convert.ToInt32(status["ProcessEmployeeID"]);
+                    if (completed || ownerId != currentEmployeeId) unavailableQc.Add(process);
+                }
+            }
+
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
             {
+                if (dt1.Columns.Contains("ProcessName") && unavailableQc.Contains(Convert.ToString(dr["ProcessName"]).Trim())) continue;
                 row = new Dictionary<string, object>();
                 foreach (DataColumn col in dt1.Columns)
                 {
@@ -179,6 +199,16 @@ namespace WebPortal.US
             if (string.IsNullOrEmpty(Finding) || string.IsNullOrEmpty(Severity))
             {
                 return -1;
+            }
+
+            DataTable existingFeedback = new bllUS().GetCanopyATRDetailsbyLoanNo(DealNo, LoanNo, "Other", ProcessID, Script);
+            bool addingNoError = string.Equals(Severity, "No Error", StringComparison.OrdinalIgnoreCase);
+            foreach (DataRow existing in existingFeedback.Rows)
+            {
+                bool existingNoError = existingFeedback.Columns.Contains("Severity")
+                    && string.Equals(Convert.ToString(existing["Severity"]).Trim(), "No Error", StringComparison.OrdinalIgnoreCase);
+                if (existingNoError) return -3;
+                if (addingNoError) return -4;
             }
 
             Hashtable htParam = new Hashtable();
@@ -267,10 +297,13 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int DeleteOtherFeedback(string FeedbackKey, int ProjectID, int ProcessID, string DealNo, string LoanNo, string Script)
+        public static int DeleteOtherFeedback(string FeedbackKey, int ProjectID, int ProcessID, string DealNo, string LoanNo, string Client, string Finding, string Severity, string Script)
         {
             if (string.IsNullOrWhiteSpace(FeedbackKey)) return -1;
-            return new bllUS().DeleteOnShoreUSFeedbacksCanopy(CanopyUpdateValues(FeedbackKey, ProjectID, ProcessID, DealNo, LoanNo, Script));
+            Hashtable values = CanopyUpdateValues(FeedbackKey, ProjectID, ProcessID, DealNo, LoanNo, Script);
+            values.Add("Client", Client ?? ""); values.Add("QCName", "");
+            values.Add("Finding", Finding ?? ""); values.Add("Severity", Severity ?? "");
+            return new bllUS().DeleteOnShoreUSFeedbacksCanopy(values);
         }
 
         private static Hashtable CanopyUpdateValues(string feedbackKey, int projectID, int processID, string dealNo, string loanNo, string script)
@@ -285,7 +318,7 @@ namespace WebPortal.US
         [WebMethod]
         public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, string StartDatetime, string Script)
         {
-            if (ProcessID <= 0)
+            if (ProcessID <= 0 || !CanAccessCanopyTask(DealNo, OrderNumber, Script, Process))
             {
                 return 0;
             }
@@ -335,7 +368,7 @@ namespace WebPortal.US
         [WebMethod]
         public static int CompleteLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, string StartDatetime, string Script)
         {
-            if (ProcessID <= 0)
+            if (ProcessID <= 0 || !CanAccessCanopyTask(DealNo, OrderNumber, Script, Process))
             {
                 return 0;
             }
@@ -354,6 +387,12 @@ namespace WebPortal.US
             }
 
             string endDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+            string completedBy = HttpContext.Current.User.Identity.Name;
+            DataTable user = new bllLogin().GetUserInformation(int.Parse(completedBy));
+            if (user.Rows.Count > 0 && user.Columns.Contains("FullName") && !string.IsNullOrWhiteSpace(Convert.ToString(user.Rows[0]["FullName"])))
+            {
+                completedBy = Convert.ToString(user.Rows[0]["FullName"]).Trim();
+            }
 
             int ReturnValue = 0;
             try
@@ -383,12 +422,29 @@ namespace WebPortal.US
                 OrderDate,
                 Process,
                 Script,
-                Review,
+                completedBy,
                 startDateTime,
                 endDateTime
             );
 
             return trackReturnValue > 0 ? trackReturnValue : ReturnValue;
+        }
+
+        private static bool CanAccessCanopyTask(string dealNo, string loanNo, string script, string process)
+        {
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);
+            foreach (DataRow status in new bllUS().GetCanopySearchProcessStatuses().Rows)
+            {
+                if (string.Equals(Convert.ToString(status["DealNo"]).Trim(), (dealNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["LoanNo"]).Trim(), (loanNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["Script"]).Trim(), (script ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["ProcessName"]).Trim(), (process ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return !string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase)
+                        && Convert.ToInt32(status["ProcessEmployeeID"]) == employeeId;
+                }
+            }
+            return true;
         }
 
         private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)

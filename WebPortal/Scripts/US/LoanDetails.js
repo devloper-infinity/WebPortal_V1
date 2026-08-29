@@ -709,6 +709,8 @@ function DeleteFeedback(index) {
             feedbackId,
             loanNo,
             client,
+            row.Finding || '',
+            row.Severity || '',
             function (deleteResult) {
                 if (deleteResult > 0) {
                     if ((parseInt($('#USFeedback_EditId').val(), 10) || 0) === feedbackId) {
@@ -1251,6 +1253,7 @@ function usfeedback_insertExistingFeedback(feedback, onSuccess) {
         feedback.severity,
         feedback.source,
         currentDate,
+        parseInt(feedback.processId, 10) || 0,
         function (result) {
             // -1 means the record already exists in the legacy feedback table.
             if (result > 0 || result === -1) {
@@ -1422,7 +1425,8 @@ function bindloanDetails_feedback() {
         data: JSON.stringify({
             DealNo: decoded.dn,
             LoanNo: decoded.ln,
-            Script: decoded.script || decoded.process || ""
+            Script: decoded.script || decoded.process || "",
+            TaskName: ""
         }),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
@@ -1436,10 +1440,10 @@ function bindloanDetails_feedback() {
                 var qcerName = usfeedback_getElement("usfeedback_qcername");
                 var qcerDate = usfeedback_getElement("usfeedback_qcerdate");
                 if (qcerName) {
-                    qcerName.value = blankForNull(value.taskAssignedUser);
+                    qcerName.value = usfeedback_isCanopyPage() ? "" : blankForNull(value.taskAssignedUser);
                     document.getElementById("clientinfocanopy").innerHTML = "Feedback Information for - <b style='color:green;'>" + value.ClientName + "</b>";
                 }
-                if (qcerDate) qcerDate.value = blankForNull(value.completedDate);
+                if (qcerDate) qcerDate.value = usfeedback_isCanopyPage() ? "" : blankForNull(value.completedDate);
 
 
                 usfeedback_bindProcessTask(value.ProjectID);
@@ -1462,12 +1466,20 @@ function usfeedback_bindProcessTask(Projectid) {
     usfeedback_select("usfeedback_task").empty()
         .append('<option value="">Select</option>');
 
+    var processRequest = { ProjectID: Projectid };
+    if (usfeedback_isCanopyPage()) {
+        var payload = us_getFeedbackPayload() || {};
+        processRequest.DealNo = payload.dn || usfeedback_getElement("usfeedback_dealno").value || "";
+        processRequest.LoanNo = payload.ln || usfeedback_getElement("usfeedback_loanno").value || "";
+        processRequest.Script = payload.script || payload.process || "";
+    }
+
     $.ajax({
         type: "POST",
         url: us_getFeedbackDetailsEndpoint("GetUSProcessTask"),
         dataType: "json",
         contentType: "application/json",
-        data: JSON.stringify({ ProjectID: Projectid }),
+        data: JSON.stringify(processRequest),
 
         success: function (res) {
 
@@ -1527,6 +1539,7 @@ function getTaskwiseDetails(ddl) {
     var id = ddl.options[ddl.selectedIndex].value;
 
     if (value == "" || value == "Select") {
+        if (usfeedback_isCanopyPage()) usfeedback_bindCanopyReviewer("");
         usfeedback_getElement("trOther").style.display = 'none';
         usfeedback_getElement("tratr1").style.display = 'none';
         usfeedback_getElement("tratr2").style.display = 'none';
@@ -1535,6 +1548,7 @@ function getTaskwiseDetails(ddl) {
         usfeedback_getElement("tratr5").style.display = 'none';
     }
     else if (value == "ATR Review") {
+        if (usfeedback_isCanopyPage()) usfeedback_bindCanopyReviewer(value);
         usfeedback_getElement("trOther").style.display = 'none';
         usfeedback_getElement("tratr1").style.display = '';
         usfeedback_getElement("tratr2").style.display = '';
@@ -1554,6 +1568,7 @@ function getTaskwiseDetails(ddl) {
         usfeedback_atr_bindgrid("ATR", id);
     }
     else {
+        if (usfeedback_isCanopyPage()) usfeedback_bindCanopyReviewer(value);
         usfeedback_getElement("trOther").style.display = '';
         usfeedback_getElement("tratr1").style.display = 'none';
         usfeedback_getElement("tratr2").style.display = 'none';
@@ -1564,6 +1579,34 @@ function getTaskwiseDetails(ddl) {
         usfeedback_atr_bindgrid("Other", id);
 
     }
+}
+
+function usfeedback_bindCanopyReviewer(processName) {
+    var reviewer = usfeedback_getElement("usfeedback_qcername");
+    var reviewedDate = usfeedback_getElement("usfeedback_qcerdate");
+    if (reviewer) reviewer.value = "";
+    if (reviewedDate) reviewedDate.value = "";
+    if (!processName) return;
+
+    var payload = us_getFeedbackPayload() || {};
+    $.ajax({
+        url: us_getFeedbackDetailsEndpoint("GetLoanDetailsbyLoanNo_Canopy"),
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            DealNo: usfeedback_getElement("usfeedback_dealno").value,
+            LoanNo: usfeedback_getElement("usfeedback_loanno").value,
+            Script: payload.script || payload.process || "",
+            TaskName: processName
+        }),
+        success: function (data) {
+            var rows = JSON.parse(data.d);
+            if (!rows || !rows.length) return;
+            if (reviewer) reviewer.value = blankForNull(rows[0].taskAssignedUser);
+            if (reviewedDate) reviewedDate.value = blankForNull(rows[0].completedDate);
+        }
+    });
 }
 
 function usfeedback_atr_bindgrid(type, processid) {
@@ -1984,6 +2027,12 @@ function canopyfeedback_submitFeedback() {
 
     usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
         function (result) {
+            if (result === -3 || result === -4) {
+                Swal.fire('Validation', result === -3
+                    ? 'No Error feedback already exists. Additional feedback cannot be added.'
+                    : 'Other feedback already exists. No Error feedback cannot be added.', 'warning');
+                return;
+            }
             if (result > 0) {
                 usfeedback_insertExistingFeedback({
                     loanNo: loanno,
@@ -1993,6 +2042,7 @@ function canopyfeedback_submitFeedback() {
                     finding: findings,
                     severity: severity,
                     source: "ReQC"
+                    , processId: processid
                 }, function () {
                     usfeedback_setLastProcess(processid, value);
                     Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
@@ -2042,7 +2092,8 @@ function canopyfeedback_deleteFeedback(index) {
     Swal.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
         if (!choice.isConfirmed) return;
         PageMethods.DeleteOtherFeedback(row["Feedback Key"] || "", parseInt(usfeedback_getElement("usfeedback_projectid").value, 10) || 0,
-            parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value, usfeedback_getElement("usfeedback_loanno").value, payload.script || "",
+            parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value, usfeedback_getElement("usfeedback_loanno").value,
+            usfeedback_getElement("usfeedback_projectno").value, row.Finding || "", row.Severity || "", payload.script || "",
             function (result) { if (result > 0) { canopyfeedback_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); Swal.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else Swal.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
             function (error) { Swal.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
     });
@@ -2146,8 +2197,10 @@ function usfeedback_submit() {
             return false;
         }
 
-        var originalFinding = usfeedback_getElement("editfinding").value;
-        var originalSeverity = usfeedback_getElement("editseverity").value;
+        var originalFindingElement = usfeedback_getElement("usfeedback_editfinding");
+        var originalSeverityElement = usfeedback_getElement("usfeedback_editseverity");
+        var originalFinding = originalFindingElement ? originalFindingElement.value : "";
+        var originalSeverity = originalSeverityElement ? originalSeverityElement.value : "";
         if (originalFinding || originalSeverity) {
             PageMethods.UpdateOtherFeedback(
                 parseInt(processid, 10) || 0,
@@ -2184,6 +2237,7 @@ function usfeedback_submit() {
                         finding: findings,
                         severity: severity,
                         source: "ReQC"
+                        , processId: processid
                     }, function () {
                         usfeedback_setLastProcess(processid, value);
                         Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
@@ -2210,26 +2264,26 @@ function usfeedback_submit() {
 function feedbackdetails_editFeedback(index) {
     var row = feedbackdetailsGridRows[index];
     if (!row) return false;
-    usfeedback_getElement("editfinding").value = row.Finding || "";
-    usfeedback_getElement("editseverity").value = row.Severity || "";
+    usfeedback_getElement("usfeedback_editfinding").value = row.Finding || "";
+    usfeedback_getElement("usfeedback_editseverity").value = row.Severity || "";
     usfeedback_select("usfeedback_severity").val(row.Severity || "");
     usfeedback_select("usfeedback_finding").val(row.Finding || "");
-    usfeedback_select("btnsubmit").html('<i class="fas fa-save"></i>&nbsp; Update');
-    usfeedback_select("btncanceledit").show();
+    usfeedback_select("usfeedback_btnsubmit").html('<i class="fas fa-save"></i>&nbsp; Update');
+    usfeedback_select("usfeedback_btncanceledit").show();
     usfeedback_getElement("usfeedback_severity").focus();
     $('html, body').animate({ scrollTop: usfeedback_select("trOther").offset().top - 20 }, 250);
     return false;
 }
 
 function feedbackdetails_cancelEdit() {
-    var finding = usfeedback_getElement("editfinding");
-    var severity = usfeedback_getElement("editseverity");
+    var finding = usfeedback_getElement("usfeedback_editfinding");
+    var severity = usfeedback_getElement("usfeedback_editseverity");
     if (!finding || !severity) return false;
     finding.value = ""; severity.value = "";
     usfeedback_select("usfeedback_severity").val("");
     usfeedback_select("usfeedback_finding").val("");
-    usfeedback_select("btnsubmit").html('<i class="fas fa-plus"></i>&nbsp; Add');
-    usfeedback_select("btncanceledit").hide();
+    usfeedback_select("usfeedback_btnsubmit").html('<i class="fas fa-plus"></i>&nbsp; Add');
+    usfeedback_select("usfeedback_btncanceledit").hide();
     return false;
 }
 
@@ -2239,7 +2293,8 @@ function feedbackdetails_deleteFeedback(index) {
     Swal.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
         if (!choice.isConfirmed) return;
         PageMethods.DeleteOtherFeedback(parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value,
-            usfeedback_getElement("usfeedback_loanno").value, row.Finding || "", row.Severity || "",
+            usfeedback_getElement("usfeedback_loanno").value, usfeedback_getElement("usfeedback_projectno").value,
+            usfeedback_getElement("usfeedback_reviewer").value, row.Finding || "", row.Severity || "",
             function (result) { if (result > 0) { feedbackdetails_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); Swal.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else Swal.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
             function (error) { Swal.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
     });

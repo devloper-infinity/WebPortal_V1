@@ -146,7 +146,7 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=20260828.1" />
+                <asp:ScriptReference Path="~/Scripts/US/LoanDetails.js?v=20260829.2" />
                 <asp:ScriptReference Path="~/Scripts/US/UserPerformanceReport.js" />
                 <asp:ScriptReference Path="~/Scripts/US/ConsolidatedReports.js" />
                 <asp:ScriptReference Path="~/Scripts/US/ReQcUtility.js" />
@@ -198,6 +198,7 @@
                                 <a id="reportsus" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Reports</a>
                                 <ul aria-labelledby="reports" class="dropdown-menu border-0 shadow">
                                     <li><a href="UserPerformanceReport.aspx" class="dropdown-item">User Performance Report</a></li>
+                                    <li><a href="ProjectProcessLoanReport.aspx" class="dropdown-item">Project Process Loan Report</a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -263,6 +264,7 @@
                                                     <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Reports</b></h6>
                                                 </div>
                                                 <a href="UserPerformanceReport.aspx" class="dropdown-item">User Performance Report</a>
+                                                <a href="ProjectProcessLoanReport.aspx" class="dropdown-item">Project Process Loan Report</a>
                                                 <li><a href="AttritionReport.aspx" id="attritionReport" runat="server" class="dropdown-item">Attrition Report</a></li>
 
                                                 <%-- <div class="callout callout-info" style="margin-bottom: 10px!important; padding: 0px 5px!important;">

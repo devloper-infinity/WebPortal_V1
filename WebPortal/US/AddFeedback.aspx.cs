@@ -180,13 +180,16 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int DeleteUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client)
+        public static int DeleteUSImportedFeedback_NewERP(int FeedbackID, string LoanNo, string Client, string Finding, string Severity)
         {
             Hashtable htParam = new Hashtable();
             htParam.Add("FeedbackID", FeedbackID);
             htParam.Add("LoanNo", LoanNo);
             htParam.Add("Client", Client);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            htParam.Add("QCName", "");
+            htParam.Add("Finding", Finding ?? "");
+            htParam.Add("Severity", Severity ?? "");
 
             return new bllUS().DeleteUSImportedFeedback_NewERP(htParam);
         }

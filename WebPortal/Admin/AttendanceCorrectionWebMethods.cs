@@ -421,7 +421,7 @@ namespace WebPortal.Admin
             totalHours = Convert.ToString(timeDiff.Hours) + ":" + Convert.ToString(timeDiff.Minutes);
 
             Hashtable attendance = BuildAttendanceHash(request, code, inTime, outTime, inDateParam, outDateParam, userReason, true);
-            int result =   SaveHash(request.Mode, attendance);
+            int result = SaveHash(request.Mode, attendance);
             if (result > 0)
             {
                 SendSaveEmail(request, code, inDateParam, inTime, outDateParam, outTime, totalHours, userReason);
@@ -433,7 +433,7 @@ namespace WebPortal.Admin
         private static int SaveInOnly(AttendanceSaveRequest request, string code, string inDateParam, string totalHours, string userReason, string inTime)
         {
             Hashtable attendance = BuildAttendanceHash(request, code, inTime, "", inDateParam, "Select", userReason, false);
-            int result =  SaveHash(request.Mode, attendance);
+            int result = SaveHash(request.Mode, attendance);
             if (result > 0)
             {
                 SendSaveEmail(request, code, inDateParam, inTime, "", "", totalHours, userReason);
@@ -607,8 +607,12 @@ namespace WebPortal.Admin
             AppendDetailsSectionStart(body, "Attendance Correction Details:");
             AppendDetailRow(body, "Reason Type:",  request.ReasonType);
 
-            if (request.Mode != AttendanceEmailMode.SelfRequest)
-                AppendDetailRow(body, "Reason:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy") + " : " + request.UserReason);
+            if (request.Mode == AttendanceEmailMode.Decision)
+                AppendDetailRow(body, "Reason:", Convert.ToString(request.Code)  + " :: " + request.UserReason);
+            else if (request.Mode == AttendanceEmailMode.PmRequest)
+                AppendDetailRow(body, "Reason:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " :: " + request.UserReason);
+            else
+                AppendDetailRow(body, "Reason:", Convert.ToString(request.Code) + " :: " + request.UserReason);
 
             AppendDetailRow(body, "In Date:", request.InDate);
             AppendDetailRow(body, "In Time:", inTime);
@@ -617,9 +621,9 @@ namespace WebPortal.Admin
             AppendDetailRow(body, "Total Hours:", request.TotalHours);
 
             if (request.Mode == AttendanceEmailMode.SelfRequest)
-                AppendDetailRow(body, "Reason:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy") + " : " + request.Reason);
+                AppendDetailRow(body, "Reason:", Convert.ToString(updatedBy.Rows[0]["Code"])  + " :: " + request.Reason);
             else
-                AppendDetailRow(body, "Remark:", Convert.ToString(updatedBy.Rows[0]["Code"]) + " : " + DateTime.Now.ToString("dd-MMM-yyyy") + " : " + request.Reason);
+                AppendDetailRow(body, "Remark:", Convert.ToString(updatedBy.Rows[0]["Code"])  + " :: " + request.Reason);
 
             if (request.Mode == AttendanceEmailMode.Decision)
             {
