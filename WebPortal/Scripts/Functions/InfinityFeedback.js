@@ -205,6 +205,51 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                             defaultContent: ""
                         },
                         {
+                            data: "ErrorType1Name",
+                            title: "Error Type 1",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType2Name",
+                            title: "Error Type 2",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType3Name",
+                            title: "Error Type 3",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType4Name",
+                            title: "Error Type 4",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType5Name",
+                            title: "Error Type 5",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType6Name",
+                            title: "Error Type 6",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType7Name",
+                            title: "Error Type 7",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType8Name",
+                            title: "Error Type 8",
+                            defaultContent: ""
+                        },
+                        {
+                            data: "ErrorType9Name",
+                            title: "Error Type 9",
+                            defaultContent: ""
+                        },
+                        {
                             data: "Finding",
                             title: "Finding",
                             defaultContent: ""
@@ -232,7 +277,16 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                         {
                             data: "RebuttalStatus",
                             title: "Onshore Rebuttal Response",
-                            defaultContent: ""
+                            defaultContent: "",
+                            createdCell: function (cell, value) {
+                                var status = (value || "").toString().trim().toLowerCase();
+                                if (status === "rebuttal") {
+                                    $(cell).addClass("rebuttal-status");
+                                }
+                                else if (status === "agree") {
+                                    $(cell).addClass("agree-status");
+                                }
+                            }
                         },
                         {
                             data: "RebuttalRemark",
@@ -278,19 +332,9 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
 
                         if (rebuttalStatus === "rebuttal") {
                             $(row).addClass("row-rebuttal");
-
-                            /*
-                             * RebuttalStatus is the 19th visible table cell when
-                             * FeedbackID is hidden, so index 17 is correct.
-                             */
-                            $('td:eq(17)', row)
-                                .addClass('rebuttal-status');
                         }
                         else if (rebuttalStatus === "agree") {
                             $(row).addClass("row-rebuttal");
-
-                            $('td:eq(17)', row)
-                                .addClass('agree-status');
                         }
                     },
 

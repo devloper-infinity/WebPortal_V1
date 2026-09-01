@@ -20,7 +20,7 @@ BEGIN
     IF COL_LENGTH(N'dbo.vw_GetLiveProject_ForReport', N'Flag') IS NOT NULL
         SET @CreditPredicate = N'v.Flag = N''Credit''';
     ELSE IF COL_LENGTH(N'dbo.vw_GetLiveProject_ForReport', N'Credit') IS NOT NULL
-        SET @CreditPredicate = N'ISNULL(TRY_CONVERT(int, v.Credit), 0) = 1';
+        SET @CreditPredicate = N'LTRIM(RTRIM(CONVERT(nvarchar(20), v.Credit))) IN (N''1'', N''True'', N''Yes'')';
     ELSE IF COL_LENGTH(N'dbo.vw_GetLiveProject_ForReport', N'SubDomain') IS NOT NULL
         SET @CreditPredicate = N'v.SubDomain = N''Credit''';
     ELSE

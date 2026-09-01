@@ -285,6 +285,10 @@ function edit_OnClickAddFeedback() {
 
     var IsDisplayInERP = true;
 
+    if (Severity == "" || Severity == "Select") {
+        return showValidation("Please select Severity.", "infFeedback_Severity");
+    }
+
     var rcaIds = [];
     for (var rcaIndex = 1; rcaIndex <= 9; rcaIndex++) {
         var rcaValue = Number($('#infFeedback_ErrorType' + rcaIndex).val() || 0);
@@ -293,10 +297,6 @@ function edit_OnClickAddFeedback() {
             return showValidation('Please select Error Type ' + rcaIndex + '.', 'infFeedback_ErrorType' + rcaIndex);
     }
 
-
-    if (Severity == "" || Severity == "Select") {
-        return showValidation("Please select Severity.", "infFeedback_Severity");
-    }
 
     if (!isNoError) {
         if (!infinityRcaEligible && Category == "") {
@@ -578,6 +578,60 @@ function BindFeedbackHistory_Grid(feedbackId, subdomain) {
                     {
                         data: "Error Type",
                         title: "Error Type",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType1Name",
+                        title: "Error Type 1",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType2Name",
+                        title: "Error Type 2",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType3Name",
+                        title: "Error Type 3",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType4Name",
+                        title: "Error Type 4",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType5Name",
+                        title: "Error Type 5",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType6Name",
+                        title: "Error Type 6",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType7Name",
+                        title: "Error Type 7",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType8Name",
+                        title: "Error Type 8",
+                        className: "nowrap",
+                        defaultContent: ""
+                    },
+                    {
+                        data: "ErrorType9Name",
+                        title: "Error Type 9",
                         className: "nowrap",
                         defaultContent: ""
                     },
