@@ -160,12 +160,10 @@
     function clearReport(prefix) {
         if (prefix === 'overview') {
             overviewProcessKpis.innerHTML = '<div class="snd-empty">Select a project to view the report.</div>';
-            overviewAssigned.textContent = overviewDone.textContent = overviewInProcess.textContent = '0';
-            overviewPercent.textContent = '0%';
+            overviewSelectedProcessKpis.innerHTML = '<div class="snd-empty">Select a project to view the report.</div>';
             topContributorRows.innerHTML = '<tr><td colspan="5" class="olt-empty">No data loaded.</td></tr>';
-            attentionRows.innerHTML = '<tr><td colspan="4" class="olt-empty">No data loaded.</td></tr>';
             dealProgressRows.innerHTML = notAssignedRows.innerHTML = '<tr><td colspan="3" class="olt-empty">No data loaded.</td></tr>';
-            topCurrentTotal.textContent = topPreviousTotal.textContent = attentionCurrentTotal.textContent = attentionPreviousTotal.textContent = notAssignedTotal.textContent = '0';
+            topCurrentTotal.textContent = topPreviousTotal.textContent = notAssignedTotal.textContent = '0';
             dealProgressTotal.textContent = '0 / 0'; dealProgressPercent.textContent = '0%';
         } else if (prefix === 'productivity') {
             productivityHead.innerHTML = '<tr><th>Rank</th><th>Reviewer</th><th>Days Worked</th><th>% Target</th></tr>';
@@ -202,11 +200,22 @@
                 '<div><span>Done</span><strong>' + (+row.DoneCount || 0) + '</strong></div>' +
                 '<div><span>In Process</span><strong>' + (+row.InProcessCount || 0) + '</strong></div></div></div>';
         }).join('') : '<div class="snd-empty">No loan-based processes are configured for this project.</div>';
-
-        var assigned = total(summary, 'TotalAssigned'), done = total(summary, 'DoneCount');
-        overviewAssigned.textContent = assigned; overviewDone.textContent = done;
-        overviewInProcess.textContent = Math.max(0, assigned - done);
-        overviewPercent.textContent = assigned ? (done / assigned * 100).toFixed(1) + '%' : '0%';
+        var requiredProcesses = ['ccreview', 'ccqc', 'ssreview', 'ssqc'];
+        var processSummary = requiredProcesses.map(function (name) {
+            return summary.filter(function (row) {
+                return String(row.ProcessName || '').toLowerCase().replace(/[^a-z0-9]/g, '') === name;
+            })[0];
+        }).filter(Boolean);
+        overviewSelectedProcessKpis.innerHTML = processSummary.length ? processSummary.map(function (row) {
+            var assigned = +row.TotalAssigned || 0, done = +row.DoneCount || 0;
+            var inProcess = row.InProcessCount == null ? Math.max(0, assigned - done) : (+row.InProcessCount || 0);
+            var donePercent = assigned ? (done / assigned * 100).toFixed(1) : '0.0';
+            var inProcessPercent = assigned ? (inProcess / assigned * 100).toFixed(1) : '0.0';
+            return '<div class="snd-process-card"><h4>' + esc(row.ProcessName) + '</h4>' +
+                '<div class="snd-process-total"><strong>' + assigned + '</strong><span>Total Assigned</span></div>' +
+                '<div class="snd-process-values"><div class="snd-process-done"><strong>' + done + '</strong><span>Done</span><small>' + donePercent + '%</small></div>' +
+                '<div class="snd-process-pending"><strong>' + inProcess + '</strong><span>In Process</span><small>' + inProcessPercent + '%</small></div></div></div>';
+        }).join('') : '<div class="snd-empty">No loan-based processes are configured for this project.</div>';
 
         var active = contributors.filter(function (row) { return +row.CurrentDone > 0; });
         var topRows = active.slice(0, 10);
@@ -217,14 +226,6 @@
             return '<tr><td class="snd-rank">' + row.CurrentRank + '</td><td>' + esc(row.UserName) + '</td><td>' + row.CurrentDone + '</td><td>' + row.PreviousDone + '</td><td class="snd-delta ' + css + '">' + label + '</td></tr>';
         }).join('') || '<tr><td colspan="5" class="olt-empty">No completed production found.</td></tr>';
         topCurrentTotal.textContent = total(topRows, 'CurrentDone'); topPreviousTotal.textContent = total(topRows, 'PreviousDone');
-
-        var attention = active.slice().sort(function (a, b) {
-            return (+a.CurrentDone - +b.CurrentDone) || String(a.UserName).localeCompare(String(b.UserName));
-        }).slice(0, 5);
-        attentionRows.innerHTML = attention.map(function (row, index) {
-            return '<tr><td class="snd-rank">' + (index + 1) + '</td><td>' + esc(row.UserName) + '</td><td>' + row.CurrentDone + '</td><td>' + row.PreviousDone + '</td></tr>';
-        }).join('') || '<tr><td colspan="4" class="olt-empty">No active producers found.</td></tr>';
-        attentionCurrentTotal.textContent = total(attention, 'CurrentDone'); attentionPreviousTotal.textContent = total(attention, 'PreviousDone');
 
         var notAssigned = contributors.filter(function (row) { return +row.CurrentAssigned === 0 && +row.RecentActivity > 0; });
         notAssignedRows.innerHTML = notAssigned.map(function (row, index) {

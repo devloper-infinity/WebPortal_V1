@@ -202,6 +202,33 @@ namespace WebPortal.US
             }
         }
 
+        [WebMethod(EnableSession = true)]
+        public static List<string> GetBulkAllocationEmployees()
+        {
+            DataTable table = new bllTracking().GetBulkAllocationEmployees();
+            List<string> employees = new List<string>();
+            foreach (DataRow row in table.Rows)
+                employees.Add(Clean(row["Employee"]));
+            return employees;
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static TrackingListResponse GetBulkAllocationLoanStatus(string employee, string fromDate, string toDate)
+        {
+            DateTime from;
+            DateTime to;
+            if (!DateTime.TryParseExact(fromDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out from)
+                || !DateTime.TryParseExact(toDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out to)
+                || from > to)
+                return TrackingListResponse.Fail("Please select a valid date range.");
+
+            DataTable table = new bllTracking().GetBulkAllocationLoanStatus((employee ?? "").Trim(), from, to);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            foreach (DataRow row in table.Rows)
+                rows.Add(RowToDictionary(row));
+            return TrackingListResponse.Ok(rows);
+        }
+
         private static List<Dictionary<string, object>> ToAllocatedOrderRows(DataTable table)
         {
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();

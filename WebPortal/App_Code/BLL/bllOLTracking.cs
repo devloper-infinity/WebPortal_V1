@@ -49,6 +49,10 @@ namespace WebPortal.App_Code.BLL
         {
             return dal.GetNextEligibleImportedLoan(projectId, dealNumber, processId);
         }
+        public DataTable GetAvailableLoans(int projectId, string dealNumber, int processId, string processName, int userId)
+        {
+            return dal.GetEligibleImportedLoans(projectId, dealNumber, processId);
+        }
         public int AllocateLoan(int projectId, int processId, string loanNumber, string dealNumber, int userId) { return dal.AllocateLoan(projectId, processId, loanNumber, dealNumber, userId); }
         public long StartNonTrackingLoan(int projectId, int processId, string loanNumber, string dealNumber, long assignmentId, int userId)
         {

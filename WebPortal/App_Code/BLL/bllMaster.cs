@@ -1217,6 +1217,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllBirthdays();
         }
 
+        public DataTable GetMonthlyBirthdays(int month, int branchId, int domainId)
+        {
+            return dalMaster.GetMonthlyBirthdays(month, branchId, domainId);
+        }
+
         public DataTable GetAllBirthdayMessages(int EmployeeID)
         {
             return dalMaster.GetAllBirthdayMessages(EmployeeID);

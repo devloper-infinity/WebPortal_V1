@@ -155,18 +155,6 @@
             display: none !important;
         }
 
-        .inf-rca-taxonomy[hidden] {
-            display: none !important;
-        }
-
-        .inf-rca-taxonomy {
-            margin-bottom: 14px;
-        }
-
-        .inf-legacy-category-field[hidden] {
-            display: none !important;
-        }
-
         .inf-field-wide {
             grid-column: span 3;
         }
@@ -435,52 +423,12 @@
                 </div>
 
                 <div class="inf-section-title"><i class="fas fa-triangle-exclamation"></i>Feedback Classification</div>
-                <div id="infinityRcaTaxonomySection" class="inf-rca-taxonomy" hidden="hidden">
-                    <div class="inf-form-grid">
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType1">Error Type 1 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType1" class="form-control"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType2">Error Type 2 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType2" class="form-control" disabled="disabled"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType3">Error Type 3 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType3" class="form-control" disabled="disabled"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType4">Error Type 4 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType4" class="form-control"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType5">Error Type 5 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType5" class="form-control"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType6">Error Type 6 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType6" class="form-control" disabled="disabled"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType7">Error Type 7 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType7" class="form-control" disabled="disabled"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType8">Error Type 8 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType8" class="form-control"><option value="">Select</option></select>
-                        </div>
-                        <div class="inf-field">
-                            <label for="infFeedback_ErrorType9">Error Type 9 <span aria-hidden="true">*</span></label>
-                            <select id="infFeedback_ErrorType9" class="form-control"><option value="">Select</option></select>
-                        </div>
-                    </div>
-                </div>
                 <div class="inf-form-grid">
-                    <div class="inf-field inf-severity-dependent inf-legacy-category-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_Category">Category</label>
                         <input type="text" id="infFeedback_Category" name="infFeedback_Category" class="form-control" />
                     </div>
-                    <div class="inf-field inf-severity-dependent inf-legacy-category-field">
+                    <div class="inf-field inf-severity-dependent">
                         <label for="infFeedback_SubCategory">Sub Category</label>
                         <input type="text" id="infFeedback_SubCategory" name="infFeedback_SubCategory" class="form-control" />
                     </div>

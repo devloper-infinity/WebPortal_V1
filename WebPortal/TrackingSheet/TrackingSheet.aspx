@@ -117,7 +117,7 @@
    <%-- <script src="OLTracking.js"></script>--%>
    <%-- <script src="../Scripts/TrackingSheet/TrackingSheet.js"></script>--%>
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260817.2"></script>
+    <script src="../Scripts/TrackingSheet/TrackingSheet.js?v=20260901.1"></script>
 </asp:Content>
 
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -151,11 +151,11 @@
                             </select>
                         </div>
                         <div id="loanField" class="olt-field wide">
-                            <label>Loan #</label><select id="loan" class="ots-disabled" disabled><option value="">Select project, deal and process</option>
+                            <label>Loan #</label><select id="loan" disabled><option value="">Select project, deal and process</option>
                             </select>
                         </div>
                         <div id="legacyAllocationActions" class="olt-field full">
-                            <div class="ots-note">The first eligible loan is populated automatically and cannot be changed. Only one loan can be In Process at a time. Place it on Hold or complete it before starting another loan.</div>
+                            <div class="ots-note">Select an eligible loan for allocation. Only one loan can be In Process at a time. Place it on Hold or complete it before starting another loan.</div>
                             <button type="button" class="olt-btn" onclick="allocateLoan()">Allocate</button>
                         </div>
                     </div>

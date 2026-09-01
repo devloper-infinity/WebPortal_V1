@@ -3,7 +3,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-    <script src="../Scripts/US/BulkOrderAllocation.js?v=1.5"></script>
+    <script src="../Scripts/US/BulkOrderAllocation.js?v=1.9"></script>
     <style>
         .content .container { max-width: 1500px; }
         .tracking-page { color: #1f2937; padding-top: 18px; }
@@ -219,6 +219,11 @@
                         <i class="fas fa-list-alt mr-1"></i>Allocated Orders
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="boa_loan_status_tab" data-toggle="tab" href="#boa_loan_status" role="tab">
+                        <i class="fas fa-chart-line mr-1"></i>Loan Status
+                    </a>
+                </li>
             </ul>
         </section>
 
@@ -269,6 +274,44 @@
                 <div class="tracking-panel-body">
                     <div class="tracking-table-wrap">
                         <table id="oa_allocated_orders" class="table table-bordered table-hover table-sm"></table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tab-pane fade" id="boa_loan_status" role="tabpanel">
+            <div class="tracking-panel">
+                <div class="tracking-panel-head">
+                    <div>
+                        <h2>Bulk Allocation Loan Status</h2>
+                        <span>Track assigned, in-process and completed bulk-uploaded loans.</span>
+                    </div>
+                </div>
+                <div class="tracking-panel-body">
+                    <div class="row">
+                        <div class="col-md-4 tracking-field">
+                            <label for="oa_status_employee">Employee</label>
+                            <select id="oa_status_employee" class="form-control"><option value="">All Employees</option></select>
+                        </div>
+                        <div class="col-md-3 tracking-field">
+                            <label for="oa_status_from">From Date</label>
+                            <input type="date" id="oa_status_from" class="form-control" />
+                        </div>
+                        <div class="col-md-3 tracking-field">
+                            <label for="oa_status_to">To Date</label>
+                            <input type="date" id="oa_status_to" class="form-control" />
+                        </div>
+                        <div class="col-md-2 tracking-field d-flex align-items-end">
+                            <button type="button" class="tracking-btn primary w-100 justify-content-center" id="oa_search_loan_status">
+                                <i class="fas fa-search"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                    <div id="oa_loan_status_loading" class="text-center py-4" style="display:none;">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>Loading report...
+                    </div>
+                    <div class="tracking-table-wrap">
+                        <table id="oa_loan_status" class="table table-bordered table-hover table-sm"></table>
                     </div>
                 </div>
             </div>

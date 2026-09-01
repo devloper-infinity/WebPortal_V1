@@ -205,7 +205,7 @@ namespace WebPortal.TrackingSheet
                         TotalLoans = loans.Count,
                         Assigned = loans.Count(row => row.Processes.Any(process => process.HasAssignment)),
                         InProcess = loans.Count(row => CurrentStatus(row) == "In Process"),
-                        Hold = loans.Count(row => CurrentStatus(row) == "Hold"),
+                        Hold = loans.Count(row => CurrentStatus(row) == "Hold" || CurrentStatus(row) == "Hold by PM"),
                         Completed = loans.Count(row => CurrentStatus(row) == "Completed"),
                         CompletionPercent = loans.Count == 0 ? 0 : Math.Round(loans.Average(row => (decimal)row.CompletionPercent), 1),
                         Loans = loans.Select(BuildDealLoan).OrderBy(loan => loan.LoanNumber).ToList()
@@ -247,7 +247,7 @@ namespace WebPortal.TrackingSheet
 
         private static string CurrentStatus(ReportRow row)
         {
-            if (row.Processes.Any(process => process.IsLoanHeld)) return "Hold";
+            if (row.Processes.Any(process => process.IsLoanHeld)) return "Hold by PM";
             if (row.CompletionPercent == 100) return "Completed";
             ProcessView current = row.Processes.FirstOrDefault(process => process.IsCurrent);
             return current == null ? "Pending" : NormalizeStatus(current.Status);

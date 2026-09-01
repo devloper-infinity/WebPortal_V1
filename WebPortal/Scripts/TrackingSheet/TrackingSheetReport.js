@@ -55,7 +55,7 @@
         var normalized = String(status || 'Pending').toLowerCase(), css = normalized.replace(/\s+/g, '-'), icon = '○';
         if (normalized === 'completed') icon = '✓';
         else if (normalized === 'in process') icon = '●';
-        else if (normalized === 'hold' || normalized === 'on hold') { icon = '⏸'; css = 'hold'; }
+        else if (normalized === 'hold' || normalized === 'on hold' || normalized === 'hold by pm') { icon = '⏸'; css = 'hold'; }
         else css = 'pending';
         return '<span class="tr-status ' + css + '">' + icon + ' ' + escapeHtml(status || 'Pending') + '</span>';
     }

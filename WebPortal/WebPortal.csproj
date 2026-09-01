@@ -147,6 +147,7 @@
     <Content Include="All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
+    <Content Include="Admin\MonthlyBirthdays.aspx" />
     <Content Include="Admin\BranchAndDateWiseAttendanceReport.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
     <Content Include="Admin\FileDownload.aspx" />
@@ -865,12 +866,14 @@
     <Content Include="Scripts\Search\VmOrders.js" />
     <Content Include="Scripts\Search\VMReport.js" />
     <Content Include="Scripts\software-requests.js" />
+    <Content Include="Scripts\software-new-request.js" />
     <Content Include="Scripts\Software\Software.js" />
     <Content Include="Scripts\TrackingSheet\ProjectTrackingFieldConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
     <Content Include="SoftwareRequests\Dashboard.aspx" />
+    <Content Include="SoftwareRequests\NewRequest.aspx" />
     <Content Include="TrackingSheet\ManagerDashboard.Snd.js" />
     <Content Include="Scripts\TrackingSheet\ProcessFlowConfiguration.js" />
     <Content Include="Scripts\TrackingSheet\UpdateBillingParameters.js" />
@@ -2906,6 +2909,7 @@
     <Content Include="Search\ViewBilling.aspx" />
     <Content Include="Handler\SummaryReportDownload.ashx" />
     <Content Include="DatabaseScripts\NonProductiveHours.sql" />
+    <Content Include="DatabaseScripts\MonthlyBirthdays_001_Report.sql" />
     <Content Include="DatabaseScripts\OLTracking_003_ImportFacility.sql" />
     <Content Include="DatabaseScripts\OLTracking_004_CompleteLoan.sql" />
     <Content Include="DatabaseScripts\OLTracking_005_ParallelBranchEligibility.sql" />
@@ -2929,6 +2933,9 @@
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_001_FullModule.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_002_TaskAllocationImport.sql" />
+    <Content Include="DatabaseScripts\SoftwareRequests_003_DeveloperActivity.sql" />
+    <Content Include="DatabaseScripts\SoftwareRequests_004_PriorityImpact.sql" />
+    <Content Include="DatabaseScripts\SoftwareRequests_005_MultipleTaskOwners.sql" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.css" />
     <Content Include="TrackingSheet\TrackingSheetFeedbackEntry.css" />
     <Content Include="TrackingSheet\TrackingSheetFeedback.aspx" />
@@ -3118,6 +3125,13 @@
     <Compile Include="Admin\Birthday.aspx.designer.cs">
       <DependentUpon>Birthday.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\MonthlyBirthdays.aspx.cs">
+      <DependentUpon>MonthlyBirthdays.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\MonthlyBirthdays.aspx.designer.cs">
+      <DependentUpon>MonthlyBirthdays.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\DomainHealthReport.aspx.cs">
       <DependentUpon>DomainHealthReport.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3249,6 +3263,10 @@
     </Compile>
     <Compile Include="Search\VMReport.aspx.designer.cs">
       <DependentUpon>VMReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="SoftwareRequests\NewRequest.aspx.cs">
+      <DependentUpon>NewRequest.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="SoftwareRequests\Dashboard.aspx.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
@@ -5076,6 +5094,7 @@
       <DependentUpon>ViewSelectedCandidates.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Code\BLL\bllLogin.cs" />
+    <Compile Include="App_Code\BLL\bllInfinityFeedbackRca.cs" />
     <Compile Include="App_Code\BLL\bllMaster.cs" />
     <Compile Include="App_Code\BLL\bllOST.cs" />
     <Compile Include="App_Code\BLL\bllRequisition.cs" />
@@ -5107,6 +5126,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="App_Code\DAL\dalLogin.cs" />
+    <Compile Include="App_Code\DAL\dalInfinityFeedbackRca.cs" />
     <Compile Include="App_Code\DAL\dalMaster.cs" />
     <Compile Include="App_Code\DAL\dalOST.cs" />
     <Compile Include="App_Code\DAL\dalRequisition.cs" />

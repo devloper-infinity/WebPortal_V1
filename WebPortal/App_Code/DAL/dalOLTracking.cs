@@ -501,11 +501,20 @@ ORDER BY ItemID;") { CommandType = CommandType.Text };
 
         public DataTable GetNextEligibleImportedLoan(int projectId, string dealNumber, int processId)
         {
+            DataTable loans = GetEligibleImportedLoans(projectId, dealNumber, processId);
+            if (loans.Rows.Count <= 1) return loans;
+            DataTable firstLoan = loans.Clone();
+            firstLoan.ImportRow(loans.Rows[0]);
+            return firstLoan;
+        }
+
+        public DataTable GetEligibleImportedLoans(int projectId, string dealNumber, int processId)
+        {
             EnsureImportSourceColumn();
             SqlCommand command = new SqlCommand(@"
 DECLARE @StageNo int = (SELECT StageNo FROM dbo.OLTracking_EffectiveProcessFlow(@ProjectID,@DealNumber) WHERE ProcessID=@ProcessID);
 
-SELECT TOP (1)
+SELECT
     i.ItemNumber AS LoanNumber,
     ISNULL(i.DealNumber, '') AS DealNumber
 FROM dbo.OLTracking_Item i

@@ -2462,6 +2462,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetMonthlyBirthdays(int month, int branchId, int domainId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetMonthlyBirthdays]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.TinyInt, 0, System.Data.ParameterDirection.Input, month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BranchID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, branchId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DomainID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, domainId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public DataTable GetAllBirthdayMessages(int EmployeeID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_getAllWishListByEmployee]");

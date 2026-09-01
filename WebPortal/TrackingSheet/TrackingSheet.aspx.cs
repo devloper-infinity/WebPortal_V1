@@ -64,6 +64,11 @@ namespace WebPortal.TrackingSheet
             };
         }
         [WebMethod]
+        public static string GetAvailableLoans(int projectId, string dealNumber, int processId, string processName)
+        {
+            return OLTrackingWeb.Json(new bllOLTracking().GetAvailableLoans(projectId, dealNumber, processId, processName, OLTrackingWeb.UserId));
+        }
+        [WebMethod]
         public static TrackingActionResult Allocate(int projectId, int processId, string loanNumber, string dealNumber)
         {
             try

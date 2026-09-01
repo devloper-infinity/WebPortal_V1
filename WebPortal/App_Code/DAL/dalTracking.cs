@@ -635,6 +635,81 @@ ORDER BY ProcessDate DESC, LoanNo;");
             return dt;
         }
 
+        public DataTable GetBulkAllocationEmployees()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT DISTINCT LTRIM(RTRIM(UserCode)) AS Employee
+FROM
+(
+    SELECT UserCode FROM Underwriting.dbo.WBT_TrackingsheetOrderProcessQueue
+    WHERE [Process] IN ('PH ReQC', 'ATR Review')
+    UNION ALL
+    SELECT UserCode FROM Underwriting.dbo.WBT_TrackingsheetOrderProcessHistory
+    WHERE [Process] IN ('PH ReQC', 'ATR Review')
+) allocations
+WHERE NULLIF(LTRIM(RTRIM(UserCode)), '') IS NOT NULL
+  AND LTRIM(RTRIM(UserCode)) IN ('Corey Daise', 'Lynn Hott', 'Dawn Hott', 'Nicole Womack')
+ORDER BY Employee;");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        public DataTable GetBulkAllocationLoanStatus(string employee, DateTime fromDate, DateTime toDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+;WITH AllocationEvents AS
+(
+    SELECT ProcessID, ProjectId, ProjectNo, DealNo, OrderNumber, UserCode, [Process], OrderStatus, AddedDate, ProcessDate, 0 SourcePriority
+    FROM Underwriting.dbo.WBT_TrackingsheetOrderProcessQueue
+    WHERE [Process] IN ('PH ReQC', 'ATR Review')
+    UNION ALL
+    SELECT ProcessID, ProjectId, ProjectNo, DealNo, OrderNumber, UserCode, [Process], OrderStatus, AddedDate, ProcessDate, 1 SourcePriority
+    FROM Underwriting.dbo.WBT_TrackingsheetOrderProcessQueue_History
+    WHERE [Process] IN ('PH ReQC', 'ATR Review')
+),
+LatestAllocation AS
+(
+    SELECT *, ROW_NUMBER() OVER
+    (
+        PARTITION BY ProjectId, DealNo, OrderNumber, UserCode, [Process]
+        ORDER BY SourcePriority, ProcessDate DESC, ProcessID DESC
+    ) RowNumber
+    FROM AllocationEvents
+    WHERE AddedDate >= @FromDate
+      AND AddedDate < DATEADD(DAY, 1, @ToDate)
+      AND LTRIM(RTRIM(UserCode)) IN ('Corey Daise', 'Lynn Hott', 'Dawn Hott', 'Nicole Womack')
+      AND (@Employee = '' OR LTRIM(RTRIM(UserCode)) = @Employee)
+)
+SELECT
+    allocation.UserCode AS Employee,
+    allocation.OrderNumber AS LoanNo,
+    allocation.[Process],
+    COALESCE(production.EndDatetime,
+        CASE WHEN UPPER(ISNULL(allocation.OrderStatus, '')) = 'COMPLETED' THEN allocation.ProcessDate END) AS ProcessDate,
+    CASE
+        WHEN production.EndDatetime IS NOT NULL OR UPPER(ISNULL(production.[Status], '')) = 'COMPLETED'
+             OR UPPER(ISNULL(allocation.OrderStatus, '')) = 'COMPLETED' THEN 'Completed'
+        WHEN production.StartDatetime IS NOT NULL OR UPPER(ISNULL(allocation.OrderStatus, '')) IN ('STARTED', 'IN PROCESS') THEN 'In Process'
+        ELSE 'Assigned'
+    END AS [Status]
+FROM LatestAllocation allocation
+OUTER APPLY
+(
+    SELECT TOP (1) track.StartDatetime, track.EndDatetime, track.[Status]
+    FROM dbo.USLoanProductionTrack track
+    WHERE LTRIM(RTRIM(ISNULL(track.ProjectNumber, ''))) = LTRIM(RTRIM(ISNULL(allocation.ProjectNo, '')))
+      AND LTRIM(RTRIM(ISNULL(track.DealNo, ''))) = LTRIM(RTRIM(ISNULL(allocation.DealNo, '')))
+      AND LTRIM(RTRIM(ISNULL(track.LoanNo, ''))) = LTRIM(RTRIM(ISNULL(allocation.OrderNumber, '')))
+      AND LTRIM(RTRIM(ISNULL(track.[Process], ''))) = LTRIM(RTRIM(ISNULL(allocation.[Process], '')))
+    ORDER BY track.ProductionTrackID DESC
+) production
+WHERE allocation.RowNumber = 1
+ORDER BY allocation.UserCode, allocation.OrderNumber, allocation.[Process];");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Employee", SqlDbType.NVarChar, 500, ParameterDirection.Input, employee ?? "");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.Date, 0, ParameterDirection.Input, fromDate.Date);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.Date, 0, ParameterDirection.Input, toDate.Date);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"

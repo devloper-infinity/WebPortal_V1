@@ -131,7 +131,7 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static string GetUSProcessTask(int ProjectID, string DealNo, string LoanNo, string Script)
+        public static string GetUSProcessTask(int ProjectID, string DealNo, string LoanNo, string Script, bool FromMyQueue)
         {
             DataTable dt1 = new bllUS().GetUSProcessList(ProjectID);
             DataTable statuses = new bllUS().GetCanopySearchProcessStatuses();
@@ -148,7 +148,7 @@ namespace WebPortal.US
                 {
                     bool completed = string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase);
                     int ownerId = Convert.ToInt32(status["ProcessEmployeeID"]);
-                    if (completed || ownerId != currentEmployeeId) unavailableQc.Add(process);
+                    if (completed || !FromMyQueue || ownerId != currentEmployeeId) unavailableQc.Add(process);
                 }
             }
 
@@ -386,7 +386,7 @@ namespace WebPortal.US
                 startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
             }
 
-            string endDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+            string endDateTime = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
             string completedBy = HttpContext.Current.User.Identity.Name;
             DataTable user = new bllLogin().GetUserInformation(int.Parse(completedBy));
             if (user.Rows.Count > 0 && user.Columns.Contains("FullName") && !string.IsNullOrWhiteSpace(Convert.ToString(user.Rows[0]["FullName"])))
@@ -497,7 +497,8 @@ namespace WebPortal.US
 
         private static string NormalizeDateTime(string value)
         {
-            return string.IsNullOrWhiteSpace(value) ? "" : value.Replace("T", " ");
+            DateTime parsed;
+            return DateTime.TryParse(value, out parsed) ? parsed.ToString("yyyy-MM-ddTHH:mm:ss") : "";
         }
     }
 }

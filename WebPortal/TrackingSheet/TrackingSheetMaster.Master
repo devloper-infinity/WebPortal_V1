@@ -201,7 +201,7 @@ function renderMegaSections(children) {
             <!-- Navbar -->
             <nav class="main-header navbar navbar-expand-md navbar-dark professional-navbar">
                 <div class="container">
-                    <a href="DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
+                    <a href="../Admin/DashboardEmployee.aspx" class="navbar-brand" id="aLogo">
                         <img src="../images/logo-login.png" style="height: 50px;" />
                     </a>
 

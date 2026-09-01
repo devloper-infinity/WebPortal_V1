@@ -5,118 +5,6 @@ var UwName = '';
 var productionData_table;
 var productionData_html;
 var feedbackHistory_table;
-var infinityRcaEligible = false;
-
-function applyInfinityRcaEligibilityUi(isEligible) {
-    infinityRcaEligible = !!isEligible;
-    $('.inf-legacy-category-field')
-        .prop('hidden', infinityRcaEligible)
-        .attr('aria-hidden', infinityRcaEligible ? 'true' : 'false');
-    if (infinityRcaEligible) {
-        $('#infFeedback_Category, #infFeedback_SubCategory').val('');
-    }
-    refreshInfinityRcaVisibility();
-}
-
-function refreshInfinityRcaVisibility() {
-    var shouldShow = infinityRcaEligible && !isNoErrorSeverityValue($('#infFeedback_Severity').val());
-    $('#infinityRcaTaxonomySection').prop('hidden', !shouldShow).attr('aria-hidden', shouldShow ? 'false' : 'true');
-    if (!shouldShow && isNoErrorSeverityValue($('#infFeedback_Severity').val())) {
-        $('#infinityRcaTaxonomySection').find('select').val('');
-    }
-}
-
-function resetRcaSelect(selector, disabled) {
-    $(selector).empty().append($('<option></option>').val('').text('Select')).prop('disabled', !!disabled);
-}
-
-function populateRcaSelect(selector, rows, selectedValue) {
-    resetRcaSelect(selector, false);
-    $.each(rows || [], function (_, row) {
-        $(selector).append($('<option></option>').val(row.ID).text(row.Name));
-    });
-    if (selectedValue) $(selector).val(String(selectedValue));
-}
-
-function getRcaChildren(errorType, parentId, selector) {
-    resetRcaSelect(selector, true);
-    if (!parentId) return $.Deferred().resolve([]).promise();
-
-    return $.ajax({
-        url: 'EditInfinityFeedback.aspx/GetInfinityFeedbackRcaChildren',
-        type: 'POST',
-        data: JSON.stringify({ ErrorType: errorType, ParentID: Number(parentId) }),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json'
-    }).then(function (response) {
-        var rows = JSON.parse(response.d || '[]');
-        populateRcaSelect(selector, rows, 0);
-        return rows;
-    });
-}
-
-function wireRcaCascades() {
-    $('#infFeedback_ErrorType1').off('change.rca').on('change.rca', function () {
-        resetRcaSelect('#infFeedback_ErrorType2', true);
-        resetRcaSelect('#infFeedback_ErrorType3', true);
-        getRcaChildren(2, this.value, '#infFeedback_ErrorType2');
-    });
-    $('#infFeedback_ErrorType2').off('change.rca').on('change.rca', function () {
-        resetRcaSelect('#infFeedback_ErrorType3', true);
-        getRcaChildren(3, this.value, '#infFeedback_ErrorType3');
-    });
-    $('#infFeedback_ErrorType5').off('change.rca').on('change.rca', function () {
-        resetRcaSelect('#infFeedback_ErrorType6', true);
-        resetRcaSelect('#infFeedback_ErrorType7', true);
-        getRcaChildren(6, this.value, '#infFeedback_ErrorType6');
-    });
-    $('#infFeedback_ErrorType6').off('change.rca').on('change.rca', function () {
-        resetRcaSelect('#infFeedback_ErrorType7', true);
-        getRcaChildren(7, this.value, '#infFeedback_ErrorType7');
-    });
-}
-
-function bindInfinityRcaTaxonomy(feedbackId, subdomain) {
-    applyInfinityRcaEligibilityUi(false);
-    $('#infinityRcaTaxonomySection').prop('hidden', true);
-    wireRcaCascades();
-
-    return $.ajax({
-        url: 'EditInfinityFeedback.aspx/GetInfinityFeedbackRcaBootstrap',
-        type: 'POST',
-        data: JSON.stringify({ FeedbackID: Number(feedbackId), Subdomain: subdomain }),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json'
-    }).then(function (response) {
-        var rows = JSON.parse(response.d || '[]');
-        var meta = $.grep(rows, function (row) { return row.OptionType === 'META'; })[0] || {};
-        applyInfinityRcaEligibilityUi(meta.IsEligible === true || meta.IsEligible === 1 || meta.IsEligible === '1');
-        if (!infinityRcaEligible) return;
-
-        function options(type) { return $.grep(rows, function (row) { return row.OptionType === type; }); }
-        populateRcaSelect('#infFeedback_ErrorType1', options('ET1'), meta.ErrorType1ID);
-        populateRcaSelect('#infFeedback_ErrorType4', options('ET4'), meta.ErrorType4ID);
-        populateRcaSelect('#infFeedback_ErrorType5', options('ET5'), meta.ErrorType5ID);
-        populateRcaSelect('#infFeedback_ErrorType8', options('ET8'), meta.ErrorType8ID);
-        populateRcaSelect('#infFeedback_ErrorType9', options('ET9'), meta.ErrorType9ID);
-        refreshInfinityRcaVisibility();
-
-        var et123 = getRcaChildren(2, meta.ErrorType1ID, '#infFeedback_ErrorType2').then(function () {
-            $('#infFeedback_ErrorType2').val(String(meta.ErrorType2ID || ''));
-            return getRcaChildren(3, meta.ErrorType2ID, '#infFeedback_ErrorType3');
-        }).then(function () { $('#infFeedback_ErrorType3').val(String(meta.ErrorType3ID || '')); });
-
-        var et567 = getRcaChildren(6, meta.ErrorType5ID, '#infFeedback_ErrorType6').then(function () {
-            $('#infFeedback_ErrorType6').val(String(meta.ErrorType6ID || ''));
-            return getRcaChildren(7, meta.ErrorType6ID, '#infFeedback_ErrorType7');
-        }).then(function () { $('#infFeedback_ErrorType7').val(String(meta.ErrorType7ID || '')); });
-
-        return $.when(et123, et567);
-    }, function (xhr) {
-        console.error('Unable to load Infinity RCA taxonomy.', xhr.responseText);
-        $('#infinityRcaTaxonomySection').prop('hidden', true);
-    });
-}
 
 function isNoErrorSeverityValue(severity) {
     return $.trim(severity).toLowerCase() === "no error";
@@ -135,11 +23,7 @@ function toggleSeverityDependentFields() {
     var $feedbackStatusField = $(".inf-feedback-status-field");
 
     $dependentFields.prop("hidden", shouldHide).attr("aria-hidden", shouldHide ? "true" : "false");
-    $('.inf-legacy-category-field')
-        .prop('hidden', shouldHide || infinityRcaEligible)
-        .attr('aria-hidden', (shouldHide || infinityRcaEligible) ? 'true' : 'false');
     $feedbackStatusField.prop("hidden", !shouldShowFeedbackStatus).attr("aria-hidden", shouldShowFeedbackStatus ? "false" : "true");
-    refreshInfinityRcaVisibility();
 
     if (shouldHide) {
         $dependentFields.find(":input").val("");
@@ -160,7 +44,6 @@ function BindInfinityFeedback(FeedbackID, subdomain) {
 
     FeedbackID_1 = FeedbackID;
     subdomain_new = subdomain;
-    bindInfinityRcaTaxonomy(FeedbackID, subdomain);
     $.ajax({
         url: "EditInfinityFeedback.aspx/GetFeedbackDetailsByID_NewFormat",
         type: "POST",
@@ -266,11 +149,6 @@ function edit_OnClickAddFeedback() {
     var FeedbackStatus = document.getElementById("infFeedback_FeedbackStatus").value.trim();
     var isNoError = isNoErrorSeverityValue(Severity);
 
-    if (infinityRcaEligible) {
-        Category = "";
-        SubCategory = "";
-    }
-
     if (isNoError) {
         Category = "";
         SubCategory = "";
@@ -285,26 +163,18 @@ function edit_OnClickAddFeedback() {
 
     var IsDisplayInERP = true;
 
-    var rcaIds = [];
-    for (var rcaIndex = 1; rcaIndex <= 9; rcaIndex++) {
-        var rcaValue = Number($('#infFeedback_ErrorType' + rcaIndex).val() || 0);
-        rcaIds.push(rcaValue);
-        if (infinityRcaEligible && !isNoError && rcaValue <= 0)
-            return showValidation('Please select Error Type ' + rcaIndex + '.', 'infFeedback_ErrorType' + rcaIndex);
-    }
-
 
     if (Severity == "" || Severity == "Select") {
         return showValidation("Please select Severity.", "infFeedback_Severity");
     }
 
     if (!isNoError) {
-        if (!infinityRcaEligible && Category == "") {
+        if (Category == "") {
             document.getElementById("infFeedback_Category").focus();
             return showValidation("Please enter Category.", "infFeedback_Category");
         }
 
-        if (!infinityRcaEligible && SubCategory == "") {
+        if (SubCategory == "") {
             document.getElementById("infFeedback_SubCategory").focus();
             return showValidation("Please enter Sub-Category.", "infFeedback_SubCategory");
         }
@@ -363,7 +233,6 @@ function edit_OnClickAddFeedback() {
     });
 
     PageMethods.UpdateInfinityImportedFeedback_NewERP(FeedbackID_1, ProdIDs, Category, SubCategory, ErrorField, Screen, ErrorType, Finding, FeedbackType, Severity, FeedbackStatus, RCA, Source, FeedbackRecDate, IsDisplayInERP, subdomain_new,
-        rcaIds[0], rcaIds[1], rcaIds[2], rcaIds[3], rcaIds[4], rcaIds[5], rcaIds[6], rcaIds[7], rcaIds[8],
 
         function (result) {
 

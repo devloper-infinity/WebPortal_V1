@@ -372,8 +372,14 @@ FodyWeavers.xsd
 # Keep versioned database migrations visible even though this legacy project root is ignored.
 !/WebPortal/
 /WebPortal/*
+!/WebPortal/Admin/
+/WebPortal/Admin/*
+!/WebPortal/Admin/MonthlyBirthdays.aspx
+!/WebPortal/Admin/MonthlyBirthdays.aspx.cs
+!/WebPortal/Admin/MonthlyBirthdays.aspx.designer.cs
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
+!/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql
 !/WebPortal/DatabaseScripts/OLTracking_015_ProductivityAndCollectionComments.sql
 !/WebPortal/DatabaseScripts/OLTracking_016_ManagerOperationalDashboard.sql
 !/WebPortal/DatabaseScripts/OLTracking_017_ProcessSpecificEligibility.sql
@@ -391,6 +397,14 @@ FodyWeavers.xsd
 !/WebPortal/US/ProjectProcessLoanReport.aspx.designer.cs
 !/WebPortal/App_Code/
 /WebPortal/App_Code/*
+!/WebPortal/App_Code/BLL/
+!/WebPortal/App_Code/DAL/
+/WebPortal/App_Code/BLL/*
+/WebPortal/App_Code/DAL/*
+!/WebPortal/App_Code/BLL/bllInfinityFeedbackRca.cs
+!/WebPortal/App_Code/DAL/dalInfinityFeedbackRca.cs
+!/WebPortal/DatabaseScripts/InfinityRCA/
+!/WebPortal/DatabaseScripts/InfinityRCA/**
 !/WebPortal/App_Code/Class/
 /WebPortal/App_Code/Class/*
 !/WebPortal/App_Code/Class/SelfLeavesEmailTemplate.cs

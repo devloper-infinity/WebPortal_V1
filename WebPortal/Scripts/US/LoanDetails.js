@@ -1472,6 +1472,7 @@ function usfeedback_bindProcessTask(Projectid) {
         processRequest.DealNo = payload.dn || usfeedback_getElement("usfeedback_dealno").value || "";
         processRequest.LoanNo = payload.ln || usfeedback_getElement("usfeedback_loanno").value || "";
         processRequest.Script = payload.script || payload.process || "";
+        processRequest.FromMyQueue = payload.src === "MyQueue";
     }
 
     $.ajax({

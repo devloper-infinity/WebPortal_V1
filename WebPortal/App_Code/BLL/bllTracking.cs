@@ -353,6 +353,16 @@ namespace WebPortal.App_Code.BLL
             return dalTracking.GetBulkAllocatedOrders();
         }
 
+        public DataTable GetBulkAllocationEmployees()
+        {
+            return dalTracking.GetBulkAllocationEmployees();
+        }
+
+        public DataTable GetBulkAllocationLoanStatus(string employee, DateTime fromDate, DateTime toDate)
+        {
+            return dalTracking.GetBulkAllocationLoanStatus(employee, fromDate, toDate);
+        }
+
 
         public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
         {

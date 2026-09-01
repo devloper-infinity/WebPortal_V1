@@ -62,7 +62,6 @@ namespace WebPortal.Admin
         public static string GetCreditAndServicingFeedbackHistory(int FeedbackID, string SubDomain)
         {
             DataTable dt1 = new bllMaster().GetCreditAndServicingFeedbackHistory(FeedbackID, SubDomain);
-            new bllInfinityFeedbackRca().AppendReportColumns(dt1);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
 
@@ -118,47 +117,9 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string GetInfinityFeedbackRcaBootstrap(long FeedbackID, string Subdomain)
-        {
-            return SerializeTable(new bllInfinityFeedbackRca().GetBootstrap(FeedbackID, Subdomain));
-        }
-
-        [WebMethod]
-        public static string GetInfinityFeedbackRcaChildren(int ErrorType, int ParentID)
-        {
-            if ((ErrorType != 2 && ErrorType != 3 && ErrorType != 6 && ErrorType != 7) || ParentID <= 0)
-                throw new ArgumentException("Invalid RCA hierarchy request.");
-
-            return SerializeTable(new bllInfinityFeedbackRca().GetChildren(ErrorType, ParentID));
-        }
-
-        private static string SerializeTable(DataTable table)
-        {
-            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            if (table != null)
-            {
-                foreach (DataRow dataRow in table.Rows)
-                {
-                    Dictionary<string, object> row = new Dictionary<string, object>();
-                    foreach (DataColumn column in table.Columns)
-                        row.Add(column.ColumnName, dataRow[column]);
-                    rows.Add(row);
-                }
-            }
-
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            serializer.MaxJsonLength = int.MaxValue;
-            return serializer.Serialize(rows);
-        }
-
-        [WebMethod]
-        public static int UpdateInfinityImportedFeedback_NewERP(int FeedbackID, string ProdIDs, string Category, string SubCategory, string ErrorField, string Screen, string ErrorType, string Finding, string FeedbackType, string Severity, string FeedbackStatus, string RCA, string Source, string FeedbackReceivedDate, bool IsDisplayInERP, string Subdomain, int ErrorType1ID, int ErrorType2ID, int ErrorType3ID, int ErrorType4ID, int ErrorType5ID, int ErrorType6ID, int ErrorType7ID, int ErrorType8ID, int ErrorType9ID)
+        public static int UpdateInfinityImportedFeedback_NewERP(int FeedbackID, string ProdIDs, string Category, string SubCategory, string ErrorField, string Screen, string ErrorType, string Finding, string FeedbackType, string Severity, string FeedbackStatus, string RCA, string Source, string FeedbackReceivedDate, bool IsDisplayInERP, string Subdomain)
         {
             int ReturnValue = 0;
-            int[] rcaIds = { ErrorType1ID, ErrorType2ID, ErrorType3ID, ErrorType4ID, ErrorType5ID, ErrorType6ID, ErrorType7ID, ErrorType8ID, ErrorType9ID };
-            bool isNoError = string.Equals(Severity, "No Error", StringComparison.OrdinalIgnoreCase);
-            if (!isNoError)
-                new bllInfinityFeedbackRca().ValidateSelections(FeedbackID, Subdomain, rcaIds);
 
             bool requiresFeedbackStatus = string.Equals(Severity, "Critical", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(Severity, "Non-Critical", StringComparison.OrdinalIgnoreCase);
@@ -196,18 +157,6 @@ namespace WebPortal.Admin
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
             ReturnValue = new bllMaster().UpdateInfinityImportedFeedback_NewERP(htParam);
-
-            if (ReturnValue > 0)
-            {
-                if (isNoError)
-                    ReturnValue = new bllInfinityFeedbackRca().ClearSelections(FeedbackID, Subdomain);
-                else
-                    ReturnValue = new bllInfinityFeedbackRca().SaveSelections(
-                        FeedbackID,
-                        Subdomain,
-                        rcaIds,
-                        int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            }
 
             if (ProdIDs != "0")
             {

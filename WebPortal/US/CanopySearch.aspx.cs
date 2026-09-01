@@ -189,7 +189,7 @@ namespace WebPortal.US
                 Process,
                 Script,
                 Review,
-                startDateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                startDateTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                 ""
             );
 

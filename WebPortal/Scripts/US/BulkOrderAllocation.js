@@ -233,6 +233,71 @@
         return '<span class="badge ' + badgeClass + '">' + escapeHtml(status || "N/A") + "</span>";
     }
 
+    function initializeLoanStatusFilters() {
+        var now = new Date();
+        var first = new Date(now.getFullYear(), now.getMonth(), 1);
+        $("#oa_status_from").val(formatInputDate(first));
+        $("#oa_status_to").val(formatInputDate(now));
+
+        pageMethod("GetBulkAllocationEmployees").done(function (employees) {
+            var $employee = $("#oa_status_employee").empty().append('<option value="">All Employees</option>');
+            $.each(employees || [], function (_, employee) {
+                $employee.append($("<option></option>").val(employee).text(employee));
+            });
+        });
+    }
+
+    function formatInputDate(date) {
+        return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+    }
+
+    function loadLoanStatus() {
+        var $button = $("#oa_search_loan_status").prop("disabled", true);
+        $("#oa_loan_status_loading").show();
+        pageMethod("GetBulkAllocationLoanStatus", {
+            employee: $("#oa_status_employee").val() || "",
+            fromDate: $("#oa_status_from").val() || "",
+            toDate: $("#oa_status_to").val() || ""
+        }).done(function (res) {
+            if (!res.Success) {
+                notify("warning", "Loan Status", res.Message || "Unable to load loan status.");
+                return;
+            }
+            renderLoanStatus(res.Rows || []);
+        }).fail(function () {
+            notify("error", "Loan Status", "Unable to load loan status.");
+        }).always(function () {
+            $button.prop("disabled", false);
+            $("#oa_loan_status_loading").hide();
+        });
+    }
+
+    function renderLoanStatus(rows) {
+        var selector = "#oa_loan_status";
+        if ($.fn.DataTable && $.fn.DataTable.isDataTable(selector)) $(selector).DataTable().clear().destroy();
+        var table = $(selector).empty().DataTable({
+            data: rows || [], destroy: true, scrollX: true, autoWidth: false, pageLength: 25,
+            dom: "Bfrtip", buttons: ["excel", "csv"], order: [],
+            language: { emptyTable: "No bulk-allocated loans found." },
+            columns: [
+                { title: "Employee", data: "Employee" },
+                { title: "Loan #", data: "LoanNo" },
+                { title: "Process", data: "Process" },
+                { title: "Process Date", data: "ProcessDate", render: renderDateTime },
+                { title: "Status", data: "Status", render: renderStatus }
+            ]
+        });
+        setTimeout(function () { table.columns.adjust().draw(false); }, 0);
+    }
+
+    function renderDateTime(value, type) {
+        if (!value) return "";
+        if (type !== "display") return value;
+        var match = /\/Date\((\d+)\)\//.exec(String(value));
+        var date = match ? new Date(parseInt(match[1], 10)) : new Date(value);
+        return isNaN(date.getTime()) ? escapeHtml(value) : date.toLocaleString();
+    }
+
     function escapeHtml(value) {
         return $("<div/>").text(value === null || value === undefined ? "" : value).html();
     }
@@ -241,9 +306,12 @@
         $("#oa_import_allocation").on("click", importOrders);
         $("#oa_template_allocation").on("click", downloadTemplate);
         $("#oa_refresh_status").on("click", loadAllocatedOrders);
+        $("#oa_search_loan_status").on("click", loadLoanStatus);
         $("#boa_status_tab").on("shown.bs.tab", function () {
             loadAllocatedOrders();
         });
+        $("#boa_loan_status_tab").on("shown.bs.tab", loadLoanStatus);
+        initializeLoanStatusFilters();
         renderResult({ TotalRows: 0, SuccessRows: 0, FailedRows: 0, NotAddedRows: [] });
     });
 })();

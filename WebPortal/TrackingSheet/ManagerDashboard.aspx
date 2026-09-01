@@ -186,6 +186,18 @@
     .snd-process-values div:last-child { border-right:0; }
     .snd-process-values span { display:block;color:#718096;font-size:11px;text-transform:uppercase; }
     .snd-process-values strong { display:block;margin-top:3px;color:#17324d;font-size:21px; }
+    .snd-selected-processes { display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:8px;margin:0 0 16px; }
+    .snd-selected-processes .snd-process-card h4 { text-align:center;background:#173b61; }
+    .snd-selected-processes .snd-process-card:nth-child(2) h4 { background:#974b00; }
+    .snd-selected-processes .snd-process-card:nth-child(3) h4 { background:#315c24; }
+    .snd-selected-processes .snd-process-card:nth-child(4) h4 { background:#633273; }
+    .snd-selected-processes .snd-process-total { padding:6px 8px 4px;text-align:center;border-bottom:1px solid #e5edf4; }
+    .snd-selected-processes .snd-process-total strong { display:block;color:#174f7a;font-size:30px;line-height:30px; }
+    .snd-selected-processes .snd-process-total span { display:block;color:#59636d;font-size:11px;font-weight:700;text-transform:uppercase; }
+    .snd-selected-processes .snd-process-values { grid-template-columns:repeat(2,1fr); }
+    .snd-selected-processes small { display:block;margin-top:2px;font-size:11px;font-weight:700; }
+    .snd-selected-processes .snd-process-done { background:#e6f6e4; }
+    .snd-selected-processes .snd-process-pending { background:#fde8e8; }
     .snd-grand { display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin-bottom:16px; }
     .snd-grand .mgr-kpi { border-top:4px solid #1b9a83; }
     .snd-overview-grid { display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px;align-items:start; }
@@ -221,6 +233,18 @@
     .snd-overview-compact .snd-process-values div { padding:5px 4px;background:#fff; }
     .snd-overview-compact .snd-process-values span { font-size:9px;letter-spacing:.25px; }
     .snd-overview-compact .snd-process-values strong { margin-top:1px;font-size:16px;line-height:1.15; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card { border-left-color:#173b61;background:#fff; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card h4 { background:#173b61;color:#fff;font-size:13px;font-weight:700;text-align:center; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card:nth-child(2) { border-left-color:#a65300; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card:nth-child(2) h4 { background:#a65300;color:#fff; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card:nth-child(3) { border-left-color:#315f29; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card:nth-child(3) h4 { background:#315f29;color:#fff; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card:nth-child(4) { border-left-color:#663477; }
+    .snd-overview-compact .snd-selected-processes .snd-process-card:nth-child(4) h4 { background:#663477;color:#fff; }
+    .snd-overview-compact .snd-selected-processes .snd-process-values .snd-process-done { background:#e1f5df;color:#176b22; }
+    .snd-overview-compact .snd-selected-processes .snd-process-values .snd-process-pending { background:#fde5e5;color:#bd2026; }
+    .snd-overview-compact .snd-selected-processes .snd-process-values .snd-process-done span,
+    .snd-overview-compact .snd-selected-processes .snd-process-values .snd-process-pending span { color:inherit; }
     .snd-overview-compact .snd-grand { gap:8px;margin-bottom:10px; }
     .snd-overview-compact .mgr-kpi { min-height:0;padding:9px 11px; }
     .snd-overview-compact .mgr-kpi strong { font-size:22px; }
@@ -288,16 +312,10 @@
                 </div></div>
             </div>
             <div id="overviewProcessKpis" class="snd-process-kpis"><div class="snd-empty">Select a project to view the report.</div></div>
-            <div class="snd-grand">
-                <div class="mgr-kpi"><span>Total Assigned</span><strong id="overviewAssigned">0</strong></div>
-                <div class="mgr-kpi"><span>Done</span><strong id="overviewDone">0</strong></div>
-                <div class="mgr-kpi"><span>In Process</span><strong id="overviewInProcess">0</strong></div>
-                <div class="mgr-kpi"><span>% Completion</span><strong id="overviewPercent">0%</strong></div>
-            </div>
+            <div id="overviewSelectedProcessKpis" class="snd-selected-processes"><div class="snd-empty">Select a project to view the report.</div></div>
             <div class="snd-overview-grid">
                 <div class="snd-stack">
                     <div class="snd-table-card"><div class="olt-card-head">Top 10 Contributors</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>Rank</th><th>Reviewer Name</th><th>Current</th><th>Last Month</th><th>Rank Change</th></tr></thead><tbody id="topContributorRows"><tr><td colspan="5" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td colspan="2">Total</td><td id="topCurrentTotal">0</td><td id="topPreviousTotal">0</td><td>--</td></tr></tfoot></table></div></div>
-                    <div class="snd-table-card"><div class="olt-card-head">Needs Attention -- Lowest Active Producers</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>Rank</th><th>Reviewer Name</th><th>Current</th><th>Last Month</th></tr></thead><tbody id="attentionRows"><tr><td colspan="4" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td colspan="2">Total</td><td id="attentionCurrentTotal">0</td><td id="attentionPreviousTotal">0</td></tr></tfoot></table></div></div>
                 </div>
                 <div class="snd-stack">
                     <div class="snd-table-card"><div class="olt-card-head">Project Progress -- All Deals</div><div class="olt-table-wrap"><table class="olt-table"><thead><tr><th>Deal #</th><th>Loans (Done / Total)</th><th>% Complete</th></tr></thead><tbody id="dealProgressRows"><tr><td colspan="3" class="olt-empty">No data loaded.</td></tr></tbody><tfoot><tr><td>Total</td><td id="dealProgressTotal">0 / 0</td><td id="dealProgressPercent">0%</td></tr></tfoot></table></div></div>

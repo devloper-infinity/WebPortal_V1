@@ -33,12 +33,14 @@ function loadHoldReasons() { OLT.call(page, 'GetHoldReasons').then(function (row
 
 function bindTabs() { [].slice.call(document.querySelectorAll('.ots-tab')).forEach(function (b) { b.onclick = function () { document.querySelector('.ots-tab.active').classList.remove('active'); document.querySelector('.ots-panel.active').classList.remove('active'); b.classList.add('active'); document.getElementById(b.dataset.panel).classList.add('active'); if (b.dataset.panel === 'status') loadQueue(); if (b.dataset.panel === 'daily') loadDaily(); }; }); }
 
-function loadProject() { resetProcessDisplay(); process.disabled = true; process.innerHTML = '<option value="">Select deal first</option>'; loan.innerHTML = '<option value="">Select deal and process</option>'; deal.innerHTML = '<option value="">Select deal</option>'; if (!project.value) return; OLT.call(page, 'GetDeals', { projectId: +project.value }).then(function (r) { OLT.options(deal, r, ['DealNo', 'DealNumber', 'Deal'], ['DealNo', 'DealNumber', 'Deal'], 'Select deal'); }).catch(showError); }
+function loadProject() { resetProcessDisplay(); process.disabled = true; process.innerHTML = '<option value="">Select deal first</option>'; loan.disabled = true; loan.innerHTML = '<option value="">Select deal and process</option>'; deal.innerHTML = '<option value="">Select deal</option>'; if (!project.value) return; OLT.call(page, 'GetDeals', { projectId: +project.value }).then(function (r) { OLT.options(deal, r, ['DealNo', 'DealNumber', 'Deal'], ['DealNo', 'DealNumber', 'Deal'], 'Select deal'); }).catch(showError); }
 
-function selectDeal() { resetProcessDisplay(); process.disabled = true; process.innerHTML = '<option value="">Loading configured flow...</option>'; loan.innerHTML = '<option value="">Select process</option>'; if (!deal.value) return; OLT.call(page, 'GetFlow', { projectId: +project.value, dealNumber: deal.value }).then(function (r) { flow = r || []; OLT.options(process, flow, ['ProcessID'], ['ProcessName'], 'Select process'); process.disabled = false; }).catch(showError); }
+function selectDeal() { resetProcessDisplay(); process.disabled = true; process.innerHTML = '<option value="">Loading configured flow...</option>'; loan.disabled = true; loan.innerHTML = '<option value="">Select process</option>'; if (!deal.value) return; OLT.call(page, 'GetFlow', { projectId: +project.value, dealNumber: deal.value }).then(function (r) { flow = r || []; OLT.options(process, flow, ['ProcessID'], ['ProcessName'], 'Select process'); process.disabled = false; }).catch(showError); }
 
 function selectProcess() {
     resetProcessDisplay();
+    loan.disabled = true;
+    loan.innerHTML = '<option value="">' + (process.value ? 'Checking eligibility...' : 'Select process') + '</option>';
     if (!project.value || !deal.value || !process.value) return;
     OLT.call(page, 'GetProcessEntryMode', { projectId: +project.value, dealNumber: deal.value, processId: +process.value })
         .then(function (mode) {
@@ -65,7 +67,7 @@ function resetProcessDisplay() {
     otherLoanRows = []; selectedOtherLoans = {}; updateOtherSelectionCount();
 }
 
-function tryLoadLoan() { if (!project.value || !process.value || !deal.value) return; var selected = process.options[process.selectedIndex]; loan.innerHTML = '<option value="">Checking eligibility...</option>'; OLT.call(page, 'GetAvailableLoan', { projectId: +project.value, dealNumber: deal.value, processId: +process.value, processName: selected.text }).then(function (r) { if (typeof r === 'string') { try { r = JSON.parse(r); } catch (e) { r = { LoanNumber: r }; } } var number = r && r.LoanNumber ? String(r.LoanNumber) : ''; loan.innerHTML = ''; var option = document.createElement('option'); option.value = number; option.textContent = number || 'No eligible loan available'; loan.appendChild(option); }).catch(showError); }
+function tryLoadLoan() { if (!project.value || !process.value || !deal.value) return; var selected = process.options[process.selectedIndex]; loan.disabled = true; loan.innerHTML = '<option value="">Checking eligibility...</option>'; OLT.call(page, 'GetAvailableLoans', { projectId: +project.value, dealNumber: deal.value, processId: +process.value, processName: selected.text }).then(function (r) { r = typeof r === 'string' ? JSON.parse(r) : (r || []); OLT.options(loan, r, ['LoanNumber'], ['LoanNumber'], r.length ? 'Select loan' : 'No eligible loan available'); loan.disabled = !r.length; }).catch(function (error) { loan.disabled = true; showError(error); }); }
 
 function loadNonTrackingLoans() {
     if (!isOtherProcess || !project.value || !deal.value || !process.value) return;

@@ -111,6 +111,7 @@ namespace WebPortal.Admin
                 Sub_Domain = SubDomain;
 
                 DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(formattedFromDate,formattedToDate,SubDomain);
+                new bllInfinityFeedbackRca().AppendReportColumns(dt);
 
                 List<Dictionary<string, object>> gridRows = new List<Dictionary<string, object>>();
 
@@ -274,6 +275,15 @@ namespace WebPortal.Admin
             AddExportColumn(gvExport, "ErrorField", "Error Field");
             AddExportColumn(gvExport, "Screen", "Screen");
             AddExportColumn(gvExport, "ErrorType", "Error Type");
+            AddExportColumn(gvExport, "ErrorType1Name", "Error Type 1");
+            AddExportColumn(gvExport, "ErrorType2Name", "Error Type 2");
+            AddExportColumn(gvExport, "ErrorType3Name", "Error Type 3");
+            AddExportColumn(gvExport, "ErrorType4Name", "Error Type 4");
+            AddExportColumn(gvExport, "ErrorType5Name", "Error Type 5");
+            AddExportColumn(gvExport, "ErrorType6Name", "Error Type 6");
+            AddExportColumn(gvExport, "ErrorType7Name", "Error Type 7");
+            AddExportColumn(gvExport, "ErrorType8Name", "Error Type 8");
+            AddExportColumn(gvExport, "ErrorType9Name", "Error Type 9");
             AddExportColumn(gvExport, "Finding", "Finding");
             AddExportColumn(gvExport, "FeedbackType", "Feedback Type");
             AddExportColumn(gvExport, "Severity", "Severity");
