@@ -680,24 +680,68 @@ ORDER BY CAST([Date] AS DATETIME);";
 
         [WebMethod]
         public static List<EmpWorkAnniversary> GetEmpWorkAnniversary()
-        {
+      {
             List<EmpWorkAnniversary> list = new List<EmpWorkAnniversary>();
-
             DataTable dt = new bllMaster().GetWorkAnniversary();
+
+            int currentEmployeeId;
+            if (!int.TryParse(HttpContext.Current.User.Identity.Name, out currentEmployeeId))
+                return list;
+
+            DataTable currentEmployee = new bllLogin().GetUserInformation(currentEmployeeId);
+            if (currentEmployee == null || currentEmployee.Rows.Count == 0)
+                return list;
+
+            string currentDomain = Convert.ToString(GetValue(currentEmployee, currentEmployee.Rows[0], "Domain", "DomainID")).Trim();
+            if (string.IsNullOrWhiteSpace(currentDomain))
+                return list;
 
             foreach (DataRow dr in dt.Rows)
             {
+                int anniversaryEmployeeId;
+                if (!int.TryParse(Convert.ToString(GetValue(dt, dr, "EmployeeID")), out anniversaryEmployeeId))
+                    continue;
+
+                DataTable anniversaryEmployee = new bllLogin().GetUserInformation(anniversaryEmployeeId);
+                if (anniversaryEmployee == null || anniversaryEmployee.Rows.Count == 0)
+                    continue;
+
+                DataRow employeeRow = anniversaryEmployee.Rows[0];
+                string employeeDomain = Convert.ToString(GetValue(anniversaryEmployee, employeeRow, "Domain", "DomainID")).Trim();
+
+                if (!string.Equals(currentDomain, employeeDomain, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                string joiningDate = FormatAnniversaryDate(GetValue(anniversaryEmployee, employeeRow, "JoiningDate"));
+
                 list.Add(new EmpWorkAnniversary
                 {
-                    EmployeeId = Convert.ToInt32(dr["EmployeeID"]),
-                    EmpName = dr["EmpName"].ToString(),
-                    Designation = dr["DesignationName"].ToString(),
-                    //PhotoPath = dr["PhotoPath"].ToString(),
-                    YearsCompleted = dr["YearsCompleted"].ToString()
+                    EmployeeId = anniversaryEmployeeId,
+                    EmpName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "EmpName", "EmployeeName", "EmpFullName"),
+                    Designation = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "DesignationName", "Designation"),
+                    DepartmentName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "DepartmentName", "Department"),
+                    DomainName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "DomainName"),
+                    JoiningDate = joiningDate,
+                    ReportingManager = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "ReportingManager", "ProjectManagerName"),
+                    YearsCompleted = Convert.ToString(GetValue(dt, dr, "YearsCompleted"))
                 });
             }
 
             return list;
+        }
+
+        private static string AnniversaryValue(DataTable anniversaryTable, DataRow anniversaryRow, DataTable employeeTable, DataRow employeeRow, params string[] columnNames)
+        {
+            string value = Convert.ToString(GetValue(anniversaryTable, anniversaryRow, columnNames)).Trim();
+            return string.IsNullOrWhiteSpace(value)
+                ? Convert.ToString(GetValue(employeeTable, employeeRow, columnNames)).Trim()
+                : value;
+        }
+
+        private static string FormatAnniversaryDate(object value)
+        {
+            DateTime date;
+            return DateTime.TryParse(Convert.ToString(value), out date) ? date.ToString("dd MMM yyyy") : Convert.ToString(value);
         }
 
         [System.Web.Services.WebMethod]
@@ -1503,7 +1547,10 @@ ORDER BY CAST([Date] AS DATETIME);";
             public int EmployeeId { get; set; }
             public string EmpName { get; set; }
             public string Designation { get; set; }
-            //public string PhotoPath { get; set; }
+            public string DepartmentName { get; set; }
+            public string DomainName { get; set; }
+            public string JoiningDate { get; set; }
+            public string ReportingManager { get; set; }
             public string YearsCompleted { get; set; }
         }
     }

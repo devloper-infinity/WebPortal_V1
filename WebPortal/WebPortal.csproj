@@ -885,7 +885,6 @@
     <Content Include="Scripts\US\CanopySearchFeedback.js" />
     <Content Include="Scripts\US\GlobalSearchFeedback.js" />
     <Content Include="Search\SearchDashboard.aspx" />
-    <Content Include="Search\DevelopmentTracking.aspx" />
     <Content Include="Search\VMOrders.aspx" />
     <Content Include="Search\VMReport.aspx" />
     <Content Include="SessionKeepAlive.aspx" />
@@ -2880,7 +2879,6 @@
     <Content Include="Scripts\Search\ProcessOrders.js" />
     <Content Include="Scripts\Search\ProjectTrackingReport.js" />
     <Content Include="Scripts\Search\SearchDashboard.js" />
-    <Content Include="Scripts\Search\DevelopmentTracking.js" />
     <Content Include="Scripts\Search\VerifyBilling.js" />
     <Content Include="Scripts\Search\ViewBilling.js" />
     <Content Include="Scripts\SessionHandler.js" />
@@ -2914,8 +2912,6 @@
     <Content Include="Handler\SummaryReportDownload.ashx" />
     <Content Include="DatabaseScripts\NonProductiveHours.sql" />
     <Content Include="DatabaseScripts\MonthlyBirthdays_001_Report.sql" />
-    <Content Include="DatabaseScripts\DevelopmentTracking_001_Feature.sql" />
-    <Content Include="DatabaseScripts\DevelopmentTracking_002_SearchHistorySeed.sql" />
     <Content Include="DatabaseScripts\OLTracking_003_ImportFacility.sql" />
     <Content Include="DatabaseScripts\OLTracking_004_CompleteLoan.sql" />
     <Content Include="DatabaseScripts\OLTracking_005_ParallelBranchEligibility.sql" />
@@ -3251,13 +3247,6 @@
     </Compile>
     <Compile Include="Search\SearchDashboard.aspx.designer.cs">
       <DependentUpon>SearchDashboard.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="Search\DevelopmentTracking.aspx.cs">
-      <DependentUpon>DevelopmentTracking.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Search\DevelopmentTracking.aspx.designer.cs">
-      <DependentUpon>DevelopmentTracking.aspx</DependentUpon>
     </Compile>
     <Compile Include="Search\VMOrders.Actions.cs">
       <DependentUpon>VMOrders.aspx</DependentUpon>

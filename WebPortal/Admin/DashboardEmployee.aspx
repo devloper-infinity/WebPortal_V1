@@ -1411,7 +1411,7 @@
     <script>
 
         $(document).ready(function () {
-            // New_workAnniversary();
+            New_workAnniversary();
             var userId = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
             window.dashboardShouldLoadProductiveInsights = userId !== "10161";
             window.dashboardProductiveInsightsRequested = false;
@@ -1438,80 +1438,99 @@
 
 
         function New_workAnniversary() {
-
-            // alert('1');
-
-            // $('#anniversaryModal').modal('show');
-
             $.ajax({
                 type: "POST",
                 url: "DashboardEmployee.aspx/GetEmpWorkAnniversary",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-
                 success: function (response) {
-                    // alert('2');
-                    new_renderWorkAnniversary(response.d); // ✅ CLEAN
+                    new_renderWorkAnniversary(response.d);
                 },
-
                 error: function () {
                     console.error("Anniversary API error");
-
                 }
             });
         }
 
-        function new_renderWorkAnniversary(data) {
+        function dash_escapeAnniversary(value) {
+            return $("<div>").text(value == null ? "" : value).html();
+        }
 
+        function dash_anniversaryInitials(name) {
+            var parts = $.trim(name || "").split(/\s+/).filter(Boolean);
+            if (!parts.length) return "IP";
+            return (parts[0].charAt(0) + (parts.length > 1 ? parts[parts.length - 1].charAt(0) : "")).toUpperCase();
+        }
+
+        function new_renderWorkAnniversary(data) {
             if (!data || data.length === 0) {
-                if (typeof callback === "function") {
-                    callback();
-                }
                 return false;
             }
 
-            var firstEmp = data[0];
-            var jubilee = getJubileeDetails(25);
+            var cards = $.map(data, function (emp, index) {
+                var name = dash_escapeAnniversary(emp.EmpName || "Employee");
+                var designation = dash_escapeAnniversary(emp.Designation || "—");
+                var department = dash_escapeAnniversary(emp.DepartmentName || "—");
+                var manager = dash_escapeAnniversary(emp.ReportingManager || "—");
+                var joiningDate = dash_escapeAnniversary(emp.JoiningDate || "—");
+                var domain = dash_escapeAnniversary(emp.DomainName || "");
+                var years = parseInt(emp.YearsCompleted, 10) || 0;
+                var yearLabel = years === 1 ? "YEAR" : "YEARS";
+                var nextMilestone = Math.max(5, Math.ceil(years / 5) * 5);
+                return '<div class="carousel-item' + (index === 0 ? ' active' : '') + '">' +
+                    '<article class="anniv-profile">' +
+                    '<div class="anniv-profile-left">' +
+                        '<span class="anniv-panel-orb anniv-panel-orb-top"></span>' +
+                        '<span class="anniv-panel-orb anniv-panel-orb-bottom"></span>' +
+                        '<span class="anniv-panel-orb anniv-panel-orb-corner"></span>' +
+                        '<span class="anniv-brand">INFINITY IPS</span>' +
+                        '<span class="anniv-ribbon">CONGRATULATIONS!</span>' +
+                        '<span class="anniv-confetti anniv-confetti-one"></span>' +
+                        '<span class="anniv-confetti anniv-confetti-two"></span>' +
+                        '<div class="anniv-avatar"><span class="anniv-camera" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><path d="M16 14l3-5h10l3 5h6a4 4 0 014 4v18a4 4 0 01-4 4H10a4 4 0 01-4-4V18a4 4 0 014-4h6zm8 20a8 8 0 100-16 8 8 0 000 16z"/><circle cx="24" cy="26" r="5"/></svg></span><small>ADD EMPLOYEE PHOTO</small></div>' +
+                        '<h3>[' + name + ']</h3>' +
+                        '<p>[' + designation + '] <b>•</b> [' + department + ']</p>' +
+                        '<span class="anniv-balloons" aria-hidden="true"><i></i><i></i></span>' +
+                        '<div class="anniv-service-badge"><span class="anniv-trophy-mark">♛</span><strong>[' + years + ' / ' + nextMilestone + ']</strong><span>YEARS</span></div>' +
+                    '</div>' +
+                    '<div class="anniv-profile-right">' +
+                        '<span class="anniv-kicker">✦ CELEBRATION TIME</span>' +
+                        '<h2>HAPPY WORK<br><em>ANNIVERSARY!</em></h2>' +
+                        '<p class="anniv-intro">Today we celebrate <strong>' + name + '</strong> and ' + years + ' ' + yearLabel.toLowerCase() + ' of dedication, growth, and outstanding contribution to our team.</p>' +
+                        '<div class="anniv-details">' +
+                            '<div><i>▣</i><span><small>DATE OF JOINING</small><strong>' + joiningDate + '</strong></span></div>' +
+                            '<div><i>▥</i><span><small>CURRENT ROLE</small><strong>' + designation + '</strong></span></div>' +
+                            '<div><i>♧</i><span><small>DEPARTMENT</small><strong>' + department + '</strong></span></div>' +
+                            '<div><i>●</i><span><small>REPORTING MANAGER</small><strong>' + manager + '</strong></span></div>' +
+                            // (domain ? '<div><i>◇</i><span><small>DOMAIN</small><strong>' + domain + '</strong></span></div>' : '') +
+                        '</div>' +
+                        '<div class="anniv-thanks">✦ <span>Thank you for being an invaluable part of the Infinity IPS family. Here’s to many more years of success together!</span></div>' +
+                    '</div>' +
+                    '</article>' +
+                '</div>';
+            }).join("");
 
-            var headerHtml = "";
+            var indicators = $.map(data, function (emp, index) {
+                var label = "Show " + (emp.EmpName || ("employee " + (index + 1)));
+                return '<button type="button" class="anniv-carousel-dot' + (index === 0 ? ' active' : '') + '" data-target="#dash_anniversaryCarousel" data-slide-to="' + index + '" aria-label="' + dash_escapeAnniversary(label) + '"></button>';
+            }).join("");
 
-            if (jubilee && jubilee.title) {
-                headerHtml =
-                    // '<b>💐 WORK ANNIVERSARY - ' +'<span style="color:' + jubilee.color + '; font-weight:bold;">' +jubilee.title + ' 💐' + '</span></b>';
-                    '<b>WORK ANNIVERSARY - ' + '<span style="color:' + jubilee.color + '; font-weight:bold;">' + jubilee.title + '</span></b>'
-            }
-            else {
-                // headerHtml = '<b>💐 WORK ANNIVERSARY 💐</b>';
-                headerHtml = '<b>WORK ANNIVERSARY</b>';
-            }
+            $("#dash_anniversaryList").html(cards);
+            $("#dash_anniversaryIndicators").html(indicators);
+            $("#dash_anniversaryCount").text(data.length === 1 ? "Celebrating one team member today" : "Celebrating " + data.length + " team members from your domain today");
+            $("#dash_anniversaryCarouselNav").toggle(data.length > 1);
+            $("#dash_anniversaryPosition").text("1 / " + data.length);
 
-            $("#workAnn_header").html(headerHtml);
-
-            var emp = firstEmp;
-            var jubileeEach = getJubileeDetails(25);
-
-            $("#name_header").html(emp.EmpName || "");
-            $("#designation_header").html(emp.Designation || "");
-            $("#years_header").html((emp.YearsCompleted || "0") + " Years of Excellence");
-
-            $("#message_header").html(
-                (jubileeEach && jubileeEach.message)
-                    ? jubileeEach.message
-                    : getAnniversaryMessage(25)
-            );
+            var $carousel = $("#dash_anniversaryCarousel");
+            $carousel.carousel({ interval: false, wrap: true, keyboard: true });
+            $carousel.carousel(0);
+            $carousel.off("slide.bs.carousel.workAnniversary").on("slide.bs.carousel.workAnniversary", function (event) {
+                var nextIndex = typeof event.to === "number" ? event.to : 0;
+                $("#dash_anniversaryPosition").text((nextIndex + 1) + " / " + data.length);
+                $("#dash_anniversaryIndicators .anniv-carousel-dot").removeClass("active").eq(nextIndex).addClass("active");
+            });
 
             $("#dash_anniversaryModal").modal("show");
-
-            startConfetti();
-
-            $("#dash_anniversaryModal")
-                .off("hidden.bs.modal.workAnniversary")
-                .on("hidden.bs.modal.workAnniversary", function () {
-                    if (typeof callback === "function") {
-                        callback();
-                    }
-                });
-
             return false;
         }
 
@@ -2382,21 +2401,27 @@
     </div>
 
 
-    <!-------------- Work Annivesary ------------->
-    <div class="modal fade" id="dash_anniversaryModal">
-        <div class="modal-dialog modal-dialog-centered custom-modal-width">
+    <!-------------- Work Anniversary ------------->
+    <div class="modal fade" id="dash_anniversaryModal" tabindex="-1" role="dialog" aria-labelledby="dash_anniversaryTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered anniversary-dialog" role="document">
             <div class="modal-content workanniversary-modal">
-                <div class="anniv-card">
-                    <div class="anniv-bg-sparkles"></div>
-                    <h1 class="anniv-main-title"><span id="workAnn_header"></span></h1>
-
-                    <div class="anniv-inner-card">
-                        <div class="anniv-trophy">🏆</div>
-                        <h2 class="anniv-name"><span id="name_header"></span></h2>
-                        <div class="anniv-designation"><span id="designation_header"></span></div>
-                        <div class="anniv-years">⭐ <span id="years_header"></span>⭐</div>
-                        <div class="anniv-divider"></div>
-                        <p class="anniv-message"><span id="message_header"></span></p>
+                <button type="button" class="anniv-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <div class="anniv-modal-heading">
+                    <span>WORK ANNIVERSARY</span>
+                    <h4 id="dash_anniversaryTitle">Celebrating Our People</h4>
+                    <p id="dash_anniversaryCount"></p>
+                </div>
+                <div class="modal-body anniv-modal-body">
+                    <div id="dash_anniversaryCarousel" class="carousel slide anniv-carousel" data-interval="false" data-wrap="true">
+                        <div id="dash_anniversaryList" class="carousel-inner"></div>
+                        <div id="dash_anniversaryCarouselNav" class="anniv-carousel-nav">
+                            <button type="button" class="anniv-carousel-arrow anniv-carousel-prev" data-target="#dash_anniversaryCarousel" data-slide="prev" aria-label="Previous employee"><span aria-hidden="true">&#8249;</span></button>
+                            <div class="anniv-carousel-progress">
+                                <div id="dash_anniversaryIndicators" class="anniv-carousel-indicators"></div>
+                                <span id="dash_anniversaryPosition" class="anniv-carousel-position"></span>
+                            </div>
+                            <button type="button" class="anniv-carousel-arrow anniv-carousel-next" data-target="#dash_anniversaryCarousel" data-slide="next" aria-label="Next employee"><span aria-hidden="true">&#8250;</span></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2407,17 +2432,6 @@
 
 
     <!-------------- Employee's Birthday ------------->
-    <%-- <div class="modal fade" id="dash_birthdayModal_all">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5>🎉 Today's Birthdays</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div class="modal-body" id="dash_birthdayList"></div>
-            </div>
-        </div>
-    </div>--%>
     <div class="modal fade" id="dash_birthdayModal_all">
         <div class="modal-dialog modal-dialog-centered birthday-list-dialog">
             <div class="modal-content birthday-list-popup">
@@ -3305,6 +3319,494 @@
             .balloons {
                 opacity: .25;
             }
+        }
+
+        .anniversary-dialog {
+            width: min(940px, calc(100% - 32px));
+            max-width: 940px;
+            margin: 18px auto;
+        }
+
+        .workanniversary-modal {
+            position: relative;
+            overflow: hidden;
+            border: 0;
+            border-radius: 22px;
+            background: #f5f6f8;
+            box-shadow: 0 28px 75px rgba(15, 29, 74, .28);
+        }
+
+        .anniv-close {
+            position: absolute;
+            z-index: 20;
+            top: 14px;
+            right: 16px;
+            display: grid;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            place-items: center;
+            border: 1px solid rgba(23, 39, 92, .12);
+            border-radius: 50%;
+            color: #17275c;
+            background: rgba(255, 255, 255, .94);
+            font-size: 25px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 5px 16px rgba(23, 39, 92, .12);
+        }
+
+        .anniv-close:hover,
+        .anniv-close:focus {
+            color: #fff;
+            background: #17275c;
+            outline: 0;
+        }
+
+        .anniv-modal-heading {
+            padding: 15px 62px 13px 24px;
+            color: #fff;
+            background: linear-gradient(115deg, #121c4d 0%, #202d6c 62%, #29387e 100%);
+        }
+
+        .anniv-modal-heading > span {
+            display: block;
+            margin-bottom: 3px;
+            color: #f0c643;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 2.2px;
+        }
+
+        .anniv-modal-heading h4 {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .anniv-modal-heading p {
+            margin: 4px 0 0;
+            color: rgba(255, 255, 255, .72);
+            font-size: 12px;
+        }
+
+        .anniv-modal-body {
+            padding: 14px;
+            overflow: hidden;
+        }
+
+        .anniv-carousel {
+            position: relative;
+            padding-bottom: 48px;
+        }
+
+        .anniv-carousel .carousel-inner {
+            overflow: hidden;
+            border-radius: 2px;
+        }
+
+        .anniv-carousel .carousel-item {
+            transition: transform .65s cubic-bezier(.22, .61, .36, 1), opacity .45s ease;
+        }
+
+        .anniv-carousel-nav {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            display: flex;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+        }
+
+        .anniv-carousel-arrow {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            padding: 0 0 3px;
+            place-items: center;
+            border: 1px solid #d8deeb;
+            border-radius: 50%;
+            color: #17265e;
+            background: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(23, 38, 94, .12);
+            transition: transform .2s ease, color .2s ease, background .2s ease;
+        }
+
+        .anniv-carousel-arrow:hover,
+        .anniv-carousel-arrow:focus {
+            color: #fff;
+            background: #17265e;
+            outline: 0;
+            transform: translateY(-2px);
+        }
+
+        .anniv-carousel-progress {
+            display: flex;
+            min-width: 150px;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .anniv-carousel-indicators {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .anniv-carousel-dot {
+            width: 8px;
+            height: 8px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: #c7cddd;
+            cursor: pointer;
+            transition: width .25s ease, border-radius .25s ease, background .25s ease;
+        }
+
+        .anniv-carousel-dot.active {
+            width: 24px;
+            border-radius: 10px;
+            background: #d5a91f;
+        }
+
+        .anniv-carousel-dot:focus {
+            outline: 2px solid rgba(23, 38, 94, .28);
+            outline-offset: 2px;
+        }
+
+        .anniv-carousel-position {
+            color: #70798f;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.1px;
+        }
+
+        .anniv-profile {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(245px, 37%) 1fr;
+            min-height: 378px;
+            overflow: hidden;
+            border: 1px solid #d9dce4;
+            background: #fff;
+            box-shadow: 0 13px 35px rgba(27, 39, 83, .12);
+        }
+
+        .anniv-profile-left {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow: hidden;
+            padding: 76px 20px 18px;
+            color: #fff;
+            text-align: center;
+            background: #202b69;
+        }
+
+        .anniv-profile-left::before,
+        .anniv-profile-left::after { display: none; }
+
+        .anniv-panel-orb {
+            position: absolute;
+            z-index: 0;
+            display: block;
+            border-radius: 50%;
+            background: #111944;
+        }
+
+        .anniv-panel-orb-top { top: -54px; left: -43px; width: 112px; height: 112px; }
+        .anniv-panel-orb-bottom { bottom: -60px; left: -48px; width: 118px; height: 118px; }
+        .anniv-panel-orb-corner { right: -29px; bottom: -35px; width: 69px; height: 69px; }
+
+        .anniv-brand {
+            position: absolute;
+            z-index: 2;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-32%);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+            opacity: .9;
+            white-space: nowrap;
+        }
+
+        .anniv-ribbon {
+            position: absolute;
+            z-index: 4;
+            top: 28px;
+            left: -37px;
+            width: 165px;
+            padding: 8px 4px;
+            transform: rotate(-40deg);
+            color: #fff;
+            background: #ff5c68;
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, .18);
+        }
+
+        .anniv-avatar {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            width: 132px;
+            height: 132px;
+            margin-bottom: 12px;
+            place-content: center;
+            border: 3px solid #f0c83d;
+            border-radius: 50%;
+            background: #111944;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, .22), 0 12px 24px rgba(0, 0, 0, .2);
+        }
+
+        .anniv-camera {
+            display: block;
+            width: 35px;
+            height: 35px;
+            margin: 0 auto;
+        }
+
+        .anniv-camera svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            fill: none;
+            stroke: #dbe3ff;
+            stroke-width: 2.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .anniv-avatar small {
+            display: block;
+            margin-top: 13px;
+            color: #fff;
+            font-size: 6px;
+            font-weight: 800;
+            letter-spacing: .35px;
+        }
+
+        .anniv-profile-left h3 {
+            position: relative;
+            z-index: 2;
+            max-width: 100%;
+            margin: 0 0 4px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .anniv-profile-left p {
+            position: relative;
+            z-index: 2;
+            min-height: 15px;
+            margin: 0;
+            color: #dbe2ff;
+            font-size: 8px;
+            line-height: 1.35;
+        }
+
+        .anniv-profile-left p b { padding: 0 3px; color: #f0c83d; }
+
+        .anniv-service-badge {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            width: 64px;
+            height: 64px;
+            margin-top: 16px;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            border: 0;
+            border-radius: 50%;
+            color: #162256;
+            background: #e2b735;
+            box-shadow: 0 0 0 4px #202b69;
+        }
+
+        .anniv-service-badge::before {
+            content: "";
+            position: absolute;
+            inset: -7px;
+            border: 1px dashed #e2b735;
+            border-radius: 50%;
+        }
+
+        .anniv-service-badge strong { font-size: 12px; line-height: 1; }
+        .anniv-service-badge span { margin-top: 2px; font-size: 6px; font-weight: 900; letter-spacing: 1px; }
+        .anniv-service-badge .anniv-trophy-mark { margin: 0 0 3px; font-size: 15px; line-height: 1; letter-spacing: 0; }
+
+        .anniv-balloons {
+            position: absolute;
+            z-index: 3;
+            right: 54px;
+            bottom: 72px;
+            width: 30px;
+            height: 46px;
+        }
+
+        .anniv-balloons i {
+            position: absolute;
+            top: 0;
+            width: 11px;
+            height: 16px;
+            border-radius: 50% 50% 48% 48%;
+            background: #e2b735;
+            transform: rotate(-12deg);
+        }
+
+        .anniv-balloons i:first-child { left: 2px; }
+        .anniv-balloons i:last-child { top: 7px; right: 2px; transform: rotate(13deg); }
+        .anniv-balloons i::after { content: ""; position: absolute; top: 15px; left: 5px; width: 1px; height: 24px; background: #e2b735; transform: rotate(-13deg); transform-origin: top; }
+
+        .anniv-confetti {
+            position: absolute;
+            z-index: 1;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #f2c943;
+            box-shadow: 46px 33px 0 #ff6670, 90px -18px 0 #60c4da, 132px 40px 0 #fff, 23px 120px 0 #50acbe, 155px 155px 0 #f2c943, 72px 195px 0 #ff6670;
+        }
+
+        .anniv-confetti-one { top: 75px; left: 38px; }
+        .anniv-confetti-two { right: 42px; bottom: 75px; transform: rotate(55deg); }
+
+        .anniv-profile-right {
+            position: relative;
+            padding: 29px 36px 24px;
+            color: #243052;
+            background: radial-gradient(circle at 90% 9%, rgba(242, 201, 67, .18) 0 3px, transparent 4px), radial-gradient(circle at 83% 19%, rgba(51, 142, 177, .28) 0 2px, transparent 3px), #fff;
+        }
+
+        .anniv-kicker {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: #bc9213;
+            background: #fbf2d4;
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+        }
+
+        .anniv-profile-right h2 {
+            margin: 10px 0 9px;
+            color: #17265e;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 27px;
+            font-weight: 800;
+            line-height: 1.06;
+        }
+
+        .anniv-profile-right h2 em {
+            color: #d5a91f;
+            font-style: normal;
+        }
+
+        .anniv-intro {
+            max-width: 610px;
+            margin-bottom: 15px;
+            color: #526078;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .anniv-details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 18px;
+        }
+
+        .anniv-details > div {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .anniv-details i {
+            display: grid;
+            width: 27px;
+            height: 27px;
+            flex: 0 0 27px;
+            place-items: center;
+            border-radius: 50%;
+            color: #c79d1f;
+            background: #fbf2d4;
+            font-size: 12px;
+            font-style: normal;
+        }
+
+        .anniv-details span { min-width: 0; }
+
+        .anniv-details small {
+            display: block;
+            margin-bottom: 2px;
+            color: #7b8296;
+            font-size: 7px;
+            font-weight: 900;
+            letter-spacing: 1.2px;
+        }
+
+        .anniv-details strong {
+            display: block;
+            overflow: hidden;
+            color: #1f2a50;
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .anniv-thanks {
+            display: flex;
+            margin-top: 50px;
+            padding: 10px 13px;
+            align-items: flex-start;
+            gap: 10px;
+            border-radius: 8px;
+            color: #606779;
+            background: #f7f4ed;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 11px;
+            font-style: italic;
+            line-height: 1.5;
+            font-weight:bold;
+            /*padding-top:20px;*/
+            
+        }
+
+        .anniv-thanks:first-letter { color: #d5a91f; }
+
+        @media (max-width: 767px) {
+            .anniversary-dialog { width: calc(100% - 18px); margin: 9px auto; }
+            .anniv-modal-body { padding: 12px; }
+            .anniv-modal-heading { padding: 18px 54px 14px 18px; }
+            .anniv-carousel { padding-bottom: 54px; }
+            .anniv-profile { grid-template-columns: 1fr; }
+            .anniv-profile-left { min-height: 395px; padding: 58px 22px 28px; }
+            .anniv-profile-right { padding: 32px 24px 28px; }
+            .anniv-profile-right h2 { font-size: 28px; }
+            .anniv-details { grid-template-columns: 1fr; }
+            .anniv-details strong { white-space: normal; }
         }
     </style>
 

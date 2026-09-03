@@ -185,6 +185,7 @@ namespace WebPortal.Admin
                 Subject = Type + " - " + Title;
             else if (Type == "DisciplinaryAction")
                 Subject = count + " Warning Letter - " + Title;
+               // Subject = "1st Warning Letter - " + Title;
             else if (Type == "PerformanceImprovementPlan")
                 Subject = count + " PIP - " + Title;
 
@@ -202,7 +203,7 @@ namespace WebPortal.Admin
             {
                 Description = s;
             }
-            returnvalue = new bllMaster().InsertSetAppreciationDisplinaryAction(ApprDescId, EmployeeID, Type, Title, Description, Editor, Subject, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Period);
+            returnvalue =  new bllMaster().InsertSetAppreciationDisplinaryAction(ApprDescId, EmployeeID, Type, Title, Description, Editor, Subject, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Period);
             if (returnvalue > 0)
             {
                 SendAppreciationEmail(Subject, EmployeeID, Description, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
