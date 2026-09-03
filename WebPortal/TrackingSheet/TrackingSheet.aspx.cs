@@ -222,13 +222,14 @@ namespace WebPortal.TrackingSheet
         {
             try
             {
-                string validation = ValidateFeedback(model);
+                int userId = OLTrackingWeb.UserId;
+                string validation = ValidateFeedback(model, userId);
                 if (validation.Length > 0) return new FeedbackSaveResult { Success = false, Message = validation };
 
                 DataTable saved = new bllOLTracking().SaveFeedbackForTargets(model.AssignmentID, model.TargetAssignmentIDs,
                     model.FeedbackBy, model.ErrorType, model.CategoryID, model.Category, model.SubcategoryID,
                     model.Subcategory, model.Severity, model.ErrorField, model.Screen, model.FeedbackType, model.Error,
-                    model.ShouldBe, model.Remark, OLTrackingWeb.UserId);
+                    model.ShouldBe, model.Remark, userId);
                 int savedTargetCount = saved.Rows.Count == 0 ? 0 : Convert.ToInt32(saved.Rows[0]["SavedTargetCount"]);
                 return new FeedbackSaveResult
                 {
@@ -342,7 +343,7 @@ namespace WebPortal.TrackingSheet
             return result;
         }
 
-        private static string ValidateFeedback(TrackingFeedbackModel model)
+        private static string ValidateFeedback(TrackingFeedbackModel model, int userId)
         {
             if (model == null) return "Invalid feedback data.";
             if (model.TargetAssignmentIDs == null || model.TargetAssignmentIDs.Length == 0) return "Please select at least one Previous Process.";
@@ -358,12 +359,45 @@ namespace WebPortal.TrackingSheet
             if (string.IsNullOrWhiteSpace(model.FeedbackType)) return "Please enter Feedback Type.";
             if (string.IsNullOrWhiteSpace(model.Error)) return "Please enter Finding.";
             if (string.IsNullOrWhiteSpace(model.ShouldBe)) return "Please enter RCA.";
-            if (model.Severity.Equals("No Error", StringComparison.OrdinalIgnoreCase) &&
-                (!model.Category.Equals("Compliance", StringComparison.OrdinalIgnoreCase) ||
-                 !model.Subcategory.Equals("Compliance", StringComparison.OrdinalIgnoreCase) ||
-                 model.ErrorField != "NA" || model.Screen != "NA" || model.ErrorType != "NA" ||
-                 model.FeedbackType != "NA" || model.Error != "No Error" || model.ShouldBe != "No Error"))
-                return "No Error feedback must use the configured Compliance defaults.";
+            if (model.Severity.Equals("No Error", StringComparison.OrdinalIgnoreCase))
+            {
+                string configuredCategory = GetConfiguredNoErrorCategory(model.AssignmentID, userId);
+                if (!string.IsNullOrEmpty(configuredCategory) &&
+                    (!model.Category.Equals(configuredCategory, StringComparison.OrdinalIgnoreCase) ||
+                     !model.Subcategory.Equals(configuredCategory, StringComparison.OrdinalIgnoreCase)))
+                    return "No Error feedback must use the configured " + configuredCategory + " defaults.";
+
+                if (model.ErrorField != "NA" || model.Screen != "NA" || model.ErrorType != "NA" ||
+                    model.FeedbackType != "NA" || model.Error != "No Error" || model.ShouldBe != "No Error")
+                    return "No Error feedback must use the configured default values.";
+            }
+            return string.Empty;
+        }
+
+        private static string GetConfiguredNoErrorCategory(long assignmentId, int userId)
+        {
+            DataSet defaults = new bllOLTracking().GetFeedbackDefaults(assignmentId, userId, string.Empty);
+            if (defaults.Tables.Count <= 4 || defaults.Tables[4].Rows.Count == 0) return string.Empty;
+
+            string configuredCategory = string.Empty;
+            foreach (DataRow row in defaults.Tables[4].Rows)
+            {
+                string processCategory = GetNoErrorCategoryForProcess(Convert.ToString(row["ProcessName"]));
+                if (string.IsNullOrEmpty(processCategory) ||
+                    (!string.IsNullOrEmpty(configuredCategory) &&
+                     !configuredCategory.Equals(processCategory, StringComparison.OrdinalIgnoreCase)))
+                    return string.Empty;
+                configuredCategory = processCategory;
+            }
+            return configuredCategory;
+        }
+
+        private static string GetNoErrorCategoryForProcess(string processName)
+        {
+            string code = (processName ?? string.Empty).ToUpperInvariant()
+                .Replace("&", "N").Replace(" ", string.Empty).Replace("-", string.Empty).Replace("_", string.Empty);
+            if (code == "SSREVIEW" || code == "SSQC" || code == "SSREVIEWANDSSQC") return "Servicing";
+            if (code == "CNCREVIEW" || code == "CNCQC" || code == "CNCREVIEWANDCNCQC") return "Compliance";
             return string.Empty;
         }
     }

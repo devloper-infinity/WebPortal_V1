@@ -5783,6 +5783,10 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedCount", System.Data.SqlDbType.Decimal, 18, System.Data.ParameterDirection.Input, htParam["ApprovedCount"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htParam["Date"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ActualCount", System.Data.SqlDbType.Decimal, 18, System.Data.ParameterDirection.Input, htParam["ActualCount"]);
+            SqlParameter averageFteParameter = cmd.Parameters.Add("@AverageFTE", System.Data.SqlDbType.Decimal);
+            averageFteParameter.Precision = 18;
+            averageFteParameter.Scale = 2;
+            averageFteParameter.Value = htParam["AverageFTE"] ?? DBNull.Value;
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);

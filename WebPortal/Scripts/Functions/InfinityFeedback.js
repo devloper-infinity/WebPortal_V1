@@ -204,6 +204,15 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                             title: "Error Type",
                             defaultContent: ""
                         },
+                        { data: "ErrorType1Name", title: "Error Type 1", defaultContent: "" },
+                        { data: "ErrorType2Name", title: "Error Type 2", defaultContent: "" },
+                        { data: "ErrorType3Name", title: "Error Type 3", defaultContent: "" },
+                        { data: "ErrorType4Name", title: "Error Type 4", defaultContent: "" },
+                        { data: "ErrorType5Name", title: "Error Type 5", defaultContent: "" },
+                        { data: "ErrorType6Name", title: "Error Type 6", defaultContent: "" },
+                        { data: "ErrorType7Name", title: "Error Type 7", defaultContent: "" },
+                        { data: "ErrorType8Name", title: "Error Type 8", defaultContent: "" },
+                        { data: "ErrorType9Name", title: "Error Type 9", defaultContent: "" },
                         {
                             data: "ErrorType1Name",
                             title: "Error Type 1",

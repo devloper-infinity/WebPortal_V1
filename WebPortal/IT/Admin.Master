@@ -397,6 +397,7 @@
                                                     <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Asset Reports</b></h6>
                                                 </div>
                                                 <a href="../IT/AssetMasterReport.aspx" class="dropdown-item">Asset Master Report</a>
+                                                <a href="../IT/TicketReport.aspx" class="dropdown-item">Ticket Report</a>
                                                 <%--<a href="AssetMasterReport.aspx" class="dropdown-item">View/ Update Assets</a>--%>
                                             </div>
 

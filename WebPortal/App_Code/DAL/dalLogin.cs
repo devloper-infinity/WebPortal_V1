@@ -169,6 +169,16 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public string GetEmployeeSegment(int employeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text,
+                "SELECT ISNULL(Segment, '') FROM dbo.EmployeeInfo WHERE EmployeeID = @EmployeeID;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.Int, 0, ParameterDirection.Input, employeeID);
+            object value = SQLHelper.ExecuteScalarCmd(cmd);
+            cmd.Dispose();
+            return value == null || value == DBNull.Value ? "" : Convert.ToString(value).Trim();
+        }
+
         public DataTable GetUserInformation_ByCode(string Code)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUserInformation_ByCode");

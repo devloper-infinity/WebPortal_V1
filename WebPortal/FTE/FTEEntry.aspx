@@ -48,6 +48,10 @@
             color: #000;
         }
 
+        #table_FTEDataEntry thead th {
+            color: #fff !important;
+        }
+
         .table.dataTable tr td {
             background: none !important;
             background-color: #fff !important;
@@ -196,6 +200,10 @@
                         <label for="fteEntry_ActualTotalFteCnt">Actual Total FTE Count</label>
                         <input type="number" id="fteEntry_ActualTotalFteCnt" class="form-control" />
                     </div>
+                    <div class="fte-entry-field" id="fteEntry_averageFteField" style="display: none;">
+                        <label for="fteEntry_AverageFTE">Average FTE</label>
+                        <input type="number" id="fteEntry_AverageFTE" class="form-control" step="0.01" min="0" />
+                    </div>
                 </div>
 
                 <div class="fte-entry-actions">
@@ -217,6 +225,8 @@
                                 <th class="sort border-top">Approved FTE Count</th>
                                 <th class="sort border-top">Date</th>
                                 <th class="sort border-top">Actual FTE Count</th>
+                                <th class="sort border-top">Average FTE</th>
+                                <th class="sort border-top">Billed FTE</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

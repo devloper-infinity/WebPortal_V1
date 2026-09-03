@@ -37,10 +37,36 @@
         rows.forEach(function (row) { var option = document.createElement('option'); option.value = val(row, idNames); option.textContent = val(row, textNames); element.appendChild(option); });
     }
     function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]; }); }
+    var alertTimer = 0, alertDismissTimer = 0, alertDismissHandler = null;
+    function removeAlertDismissHandler() {
+        if (!alertDismissHandler) return;
+        ['pointerdown', 'keydown', 'input', 'change'].forEach(function (name) { document.removeEventListener(name, alertDismissHandler, true); });
+        alertDismissHandler = null;
+    }
+    function hideAlert(element) {
+        element.style.display = 'none';
+        removeAlertDismissHandler();
+    }
     function alertBox(message, error) {
         var element = document.getElementById('oltAlert'); if (!element) { window.alert(message); return; }
+        window.clearTimeout(alertTimer); window.clearTimeout(alertDismissTimer); removeAlertDismissHandler();
         element.textContent = message; element.className = 'olt-alert' + (error ? ' error' : ''); element.style.display = 'block';
-        window.setTimeout(function () { element.style.display = 'none'; }, 5000);
+        element.setAttribute('role', error ? 'alert' : 'status');
+        element.setAttribute('aria-live', error ? 'assertive' : 'polite');
+        if (!error) { alertTimer = window.setTimeout(function () { hideAlert(element); }, 5000); return; }
+
+        element.setAttribute('tabindex', '-1');
+        window.requestAnimationFrame(function () {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus({ preventScroll: true });
+        });
+        alertDismissTimer = window.setTimeout(function () {
+            alertDismissHandler = function (event) {
+                if (element.contains(event.target)) return;
+                hideAlert(element);
+            };
+            ['pointerdown', 'keydown', 'input', 'change'].forEach(function (name) { document.addEventListener(name, alertDismissHandler, true); });
+        }, 0);
     }
     window.addEventListener('pageshow', function () { hideLoading(true); });
     w.OLT = { call: call, val: val, options: options, esc: esc, alert: alertBox, showLoading: showLoading, hideLoading: hideLoading };

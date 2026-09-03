@@ -53,8 +53,9 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate, int ProcessID)
+        public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate, int ProcessID, int ProjectID)
         {
+            if (!IsProcessAllowedForEmployee(ProjectID, ProcessID)) return -5;
             int ReturnValue = 0;
 
             Severity = (Severity ?? string.Empty).Trim();
@@ -93,6 +94,7 @@ namespace WebPortal.US
         [WebMethod]
         public static string GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script, string TaskName)
         {
+            if (!string.IsNullOrWhiteSpace(TaskName) && !IsTaskAllowedForEmployee(TaskName)) return "[]";
             DataTable dt1 = new bllUS().GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script, TaskName);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -136,6 +138,8 @@ namespace WebPortal.US
             DataTable dt1 = new bllUS().GetUSProcessList(ProjectID);
             DataTable statuses = new bllUS().GetCanopySearchProcessStatuses();
             HashSet<string> unavailableQc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> allowedTasks = GetAllowedCanopyTasks();
+            string ownedStartedTask = "";
             int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name);
             foreach (DataRow status in statuses.Rows)
             {
@@ -149,6 +153,7 @@ namespace WebPortal.US
                     bool completed = string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase);
                     int ownerId = Convert.ToInt32(status["ProcessEmployeeID"]);
                     if (completed || !FromMyQueue || ownerId != currentEmployeeId) unavailableQc.Add(process);
+                    if (!completed && ownerId == currentEmployeeId && string.IsNullOrEmpty(ownedStartedTask)) ownedStartedTask = process;
                 }
             }
 
@@ -156,7 +161,9 @@ namespace WebPortal.US
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
             {
-                if (dt1.Columns.Contains("ProcessName") && unavailableQc.Contains(Convert.ToString(dr["ProcessName"]).Trim())) continue;
+                string processName = dt1.Columns.Contains("ProcessName") ? Convert.ToString(dr["ProcessName"]).Trim() : "";
+                if (!allowedTasks.Contains(processName) || unavailableQc.Contains(processName)
+                    || (!string.IsNullOrEmpty(ownedStartedTask) && !string.Equals(processName, ownedStartedTask, StringComparison.OrdinalIgnoreCase))) continue;
                 row = new Dictionary<string, object>();
                 foreach (DataColumn col in dt1.Columns)
                 {
@@ -170,8 +177,9 @@ namespace WebPortal.US
         }
 
         [WebMethod]
-        public static string GetATRDetails(string DealNo, string LoanNo, string Type, int ProcessID, string Script)
+        public static string GetATRDetails(int ProjectID, string DealNo, string LoanNo, string Type, int ProcessID, string Script)
         {
+            if (!IsProcessAllowedForEmployee(ProjectID, ProcessID)) return "[]";
             DataTable dt1 = new bllUS().GetCanopyATRDetailsbyLoanNo(DealNo, LoanNo, Type, ProcessID, Script);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -192,6 +200,7 @@ namespace WebPortal.US
         [WebMethod]
         public static int InsertOtherFeedbacks(int ProjectID, int ProcessID, string DealNo, string LoanNo, string Finding, string Severity, string Script)
         {
+            if (!IsProcessAllowedForEmployee(ProjectID, ProcessID)) return -5;
             int returnvalue = 0;
 
             Finding = (Finding ?? string.Empty).Trim();
@@ -260,6 +269,7 @@ namespace WebPortal.US
            string ReviewFindings, string SellerDisclosedDTIIssue, string NoOfBorrowers, string HighestBorrowerIncomeType, string NoOfSEBusiness,
            string NoOfRentalProperties, string Comments, string Script)
         {
+            if (!IsProcessAllowedForEmployee(ProjectID, ProcessID)) return -5;
             int returnvalue = 0;
             bool isATRSupported = ATRSupported == "Yes" ? true : false;
             
@@ -289,6 +299,7 @@ namespace WebPortal.US
         [WebMethod]
         public static int UpdateOtherFeedback(string FeedbackKey, int ProjectID, int ProcessID, string DealNo, string LoanNo, string Finding, string Severity, string Script)
         {
+            if (!IsProcessAllowedForEmployee(ProjectID, ProcessID)) return -5;
             Finding = (Finding ?? "").Trim(); Severity = (Severity ?? "").Trim();
             if (string.IsNullOrWhiteSpace(FeedbackKey) || Finding.Length == 0 || Severity.Length == 0) return -1;
             Hashtable values = CanopyUpdateValues(FeedbackKey, ProjectID, ProcessID, DealNo, LoanNo, Script);
@@ -299,6 +310,7 @@ namespace WebPortal.US
         [WebMethod]
         public static int DeleteOtherFeedback(string FeedbackKey, int ProjectID, int ProcessID, string DealNo, string LoanNo, string Client, string Finding, string Severity, string Script)
         {
+            if (!IsProcessAllowedForEmployee(ProjectID, ProcessID)) return -5;
             if (string.IsNullOrWhiteSpace(FeedbackKey)) return -1;
             Hashtable values = CanopyUpdateValues(FeedbackKey, ProjectID, ProcessID, DealNo, LoanNo, Script);
             values.Add("Client", Client ?? ""); values.Add("QCName", "");
@@ -432,19 +444,51 @@ namespace WebPortal.US
 
         private static bool CanAccessCanopyTask(string dealNo, string loanNo, string script, string process)
         {
+            if (!IsTaskAllowedForEmployee(process)) return false;
             int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);
             foreach (DataRow status in new bllUS().GetCanopySearchProcessStatuses().Rows)
             {
                 if (string.Equals(Convert.ToString(status["DealNo"]).Trim(), (dealNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
                     && string.Equals(Convert.ToString(status["LoanNo"]).Trim(), (loanNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(Convert.ToString(status["Script"]).Trim(), (script ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(Convert.ToString(status["ProcessName"]).Trim(), (process ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+                    && string.Equals(Convert.ToString(status["Script"]).Trim(), (script ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
                 {
-                    return !string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase)
-                        && Convert.ToInt32(status["ProcessEmployeeID"]) == employeeId;
+                    string existingProcess = Convert.ToString(status["ProcessName"]).Trim();
+                    bool completed = string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase);
+                    int ownerId = Convert.ToInt32(status["ProcessEmployeeID"]);
+                    if (!completed && ownerId == employeeId
+                        && (string.Equals(existingProcess, "Credit QC", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(existingProcess, "Compliance QC", StringComparison.OrdinalIgnoreCase))
+                        && !string.Equals(existingProcess, process, StringComparison.OrdinalIgnoreCase)) return false;
+                    if (string.Equals(existingProcess, process, StringComparison.OrdinalIgnoreCase))
+                        return !completed && ownerId == employeeId;
                 }
             }
             return true;
+        }
+
+        private static bool IsProcessAllowedForEmployee(int projectID, int processID)
+        {
+            DataTable processes = new bllUS().GetUSProcessList(projectID);
+            foreach (DataRow process in processes.Rows)
+            {
+                if (Convert.ToInt32(process["ProcessID"]) == processID)
+                    return IsTaskAllowedForEmployee(Convert.ToString(process["ProcessName"]));
+            }
+            return false;
+        }
+
+        private static bool IsTaskAllowedForEmployee(string taskName)
+        {
+            return GetAllowedCanopyTasks().Contains((taskName ?? "").Trim());
+        }
+
+        private static HashSet<string> GetAllowedCanopyTasks()
+        {
+            HashSet<string> tasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string segment = new bllLogin().GetEmployeeSegment(int.Parse(HttpContext.Current.User.Identity.Name));
+            if (string.Equals(segment, "Credit QC - Canopy", StringComparison.OrdinalIgnoreCase) || string.Equals(segment, "Management", StringComparison.OrdinalIgnoreCase)) tasks.Add("Credit QC");
+            if (string.Equals(segment, "Compliance QC - Canopy", StringComparison.OrdinalIgnoreCase) || string.Equals(segment, "Management", StringComparison.OrdinalIgnoreCase)) tasks.Add("Compliance QC");
+            return tasks;
         }
 
         private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)

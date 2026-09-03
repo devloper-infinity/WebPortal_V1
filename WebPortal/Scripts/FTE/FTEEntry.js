@@ -64,6 +64,7 @@ function BindFteProcess(ProjectID) {
 function getfteProcess(Project) {
 
     var ProjectID = Project.options[Project.selectedIndex].value;
+    toggleAverageFteField();
 
     $("#fteEntry_appFTEcount").val("");
     $("#fteEntry_process").html('<option value="Select">Select</option>');
@@ -134,6 +135,8 @@ function BindGrid_FTEEntry(ProjectID, ProcessID) {
                 FTEDataEntry_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ApprovedCount) + '</td>';
                 FTEDataEntry_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Date) + '</td>';
                 FTEDataEntry_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.ActualCount) + '</td>';
+                FTEDataEntry_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.AverageFTE) + '</td>';
+                FTEDataEntry_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.BilledFTE) + '</td>';
                 FTEDataEntry_html += '</tr>';
 
             });
@@ -245,6 +248,21 @@ function prj_EditFteEntry(index) {
     $("#fteEntry_Date").val(actualdate);
 
     $("#fteEntry_ActualTotalFteCnt").val(rows[8]);
+    $("#fteEntry_AverageFTE").val(rows[9]);
+    toggleAverageFteField();
+}
+
+function isAverageFteProject() {
+    var projectText = $("#fteEntry_project option:selected").text() || "";
+    return projectText.indexOf("757-004") !== -1 || projectText.indexOf("757-005") !== -1;
+}
+
+function toggleAverageFteField() {
+    var showAverageFte = isAverageFteProject();
+    $("#fteEntry_averageFteField").toggle(showAverageFte);
+    if (!showAverageFte) {
+        $("#fteEntry_AverageFTE").val("");
+    }
 }
 
 function btnFteEntrySubmitData() {
@@ -258,6 +276,7 @@ function btnFteEntrySubmitData() {
     var ApprovedFTECount = document.getElementById("fteEntry_appFTEcount").value;
     var Date = document.getElementById("fteEntry_Date").value;
     var ActualTotalFteCnt = document.getElementById("fteEntry_ActualTotalFteCnt").value;
+    var AverageFTE = document.getElementById("fteEntry_AverageFTE").value;
 
     prjID = ProjectID;
     prcID = ProcessID;
@@ -282,8 +301,12 @@ function btnFteEntrySubmitData() {
         alert("Please select Actual Total FTE Count.");
         return false;
     }
+    if (isAverageFteProject() && (AverageFTE == "" || isNaN(AverageFTE) || parseFloat(AverageFTE) < 0)) {
+        alert("Please enter a valid Average FTE.");
+        return false;
+    }
 
-    PageMethods.InsertFTEEntry(ProjectID, ProcessID, ApprovedFTECount, Date, ActualTotalFteCnt, OnSuccessFteEntrySubmit, OnErrorFteEntrySubmit);
+    PageMethods.InsertFTEEntry(ProjectID, ProcessID, ApprovedFTECount, Date, ActualTotalFteCnt, AverageFTE, OnSuccessFteEntrySubmit, OnErrorFteEntrySubmit);
     return false;
 }
 
@@ -324,6 +347,8 @@ function resetFteEntryForm() {
     $("#fteEntry_appFTEcount").val("");
     $("#fteEntry_Date").val("");
     $("#fteEntry_ActualTotalFteCnt").val("");
+    $("#fteEntry_AverageFTE").val("");
+    $("#fteEntry_averageFteField").hide();
     clearFteEntryGrid();
     return false;
 }

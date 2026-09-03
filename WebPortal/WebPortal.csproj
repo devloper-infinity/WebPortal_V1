@@ -272,6 +272,7 @@
     <Content Include="Admin\DynamicReportFinal.aspx" />
     <Content Include="Admin\EditAttendanceCorrectionRequest.aspx" />
     <Content Include="Admin\EditInfinityFeedback.aspx" />
+    <Content Include="Admin\ErrorTypeMaster.aspx" />
     <Content Include="Admin\EditSecuritizationTracking.aspx" />
     <Content Include="Admin\EmployeeDocuments.aspx" />
     <Content Include="Admin\EmployeeInformation.aspx" />
@@ -717,6 +718,7 @@
     <Content Include="InvoiceDocuments\123\ThanksGivingDay.jpg" />
     <Content Include="IT\README_Changes.txt" />
     <Content Include="IT\StockReport.aspx" />
+    <Content Include="IT\TicketReport.aspx" />
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
     <Content Include="Scripts\Functions\HelpdeskModule.js" />
@@ -4100,6 +4102,10 @@
       <DependentUpon>EditInfinityFeedback.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="Admin\ErrorTypeMaster.aspx.cs">
+      <DependentUpon>ErrorTypeMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Admin\EditSecuritizationTracking.aspx.cs">
       <DependentUpon>EditSecuritizationTracking.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4823,6 +4829,13 @@
     </Compile>
     <Compile Include="IT\StockReport.aspx.designer.cs">
       <DependentUpon>StockReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="IT\TicketReport.aspx.cs">
+      <DependentUpon>TicketReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="IT\TicketReport.aspx.designer.cs">
+      <DependentUpon>TicketReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="IT\HostingMaster.aspx.cs">
       <DependentUpon>HostingMaster.aspx</DependentUpon>

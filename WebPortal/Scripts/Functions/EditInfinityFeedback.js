@@ -581,6 +581,15 @@ function BindFeedbackHistory_Grid(feedbackId, subdomain) {
                         className: "nowrap",
                         defaultContent: ""
                     },
+                    { data: "ErrorType1Name", title: "Error Type 1", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType2Name", title: "Error Type 2", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType3Name", title: "Error Type 3", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType4Name", title: "Error Type 4", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType5Name", title: "Error Type 5", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType6Name", title: "Error Type 6", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType7Name", title: "Error Type 7", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType8Name", title: "Error Type 8", className: "nowrap", defaultContent: "" },
+                    { data: "ErrorType9Name", title: "Error Type 9", className: "nowrap", defaultContent: "" },
                     {
                         data: "ErrorType1Name",
                         title: "Error Type 1",

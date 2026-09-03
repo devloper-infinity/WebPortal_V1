@@ -20,7 +20,7 @@
     var logoutUrl = new URL("Logout.aspx", applicationRoot).toString();
     var storageKey = "webportal-session-deadline:" + applicationRoot.pathname.toLowerCase();
 
-    var fallbackTimeoutSeconds = 20 * 60;
+    var fallbackTimeoutSeconds = 90 * 60;
     var timeoutSeconds = fallbackTimeoutSeconds;
     var warningSeconds = 2 * 60;
     var heartbeatSeconds = 5 * 60;

@@ -209,6 +209,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetDepartmentWiseTicketReport(int employeeId, string fromDate, string toDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UserTicketReprot_1");
+            SQLHelper.AddParamToSQLCmd(cmd, "@RequestBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, employeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, fromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, toDate);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public DataTable ViewRequestTicket(int TicketId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_ViewRequestDetails");
