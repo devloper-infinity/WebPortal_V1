@@ -238,22 +238,26 @@ namespace WebPortal.Admin
                         DataTable dtEmailConfig = new bllMaster().getEmailConfigrationInfo(EmailType);
 
 
-                        head.Append("<html><head></head><body>");
-                        body.Append("<table style=\"width:802px;font-family:biome; font-size:12px; border-radius:10px;\"  bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>");
-                        body.Append("<table border=\"0\" style=\"width:800px;font-family:biome; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
-                                "<tr><td style=\"border:solid 1px Gray; width:100px!important;\"><b>Code:</b></td><td style=\"border:solid 1px Gray;\">" + Convert.ToString(dt.Rows[0]["Code"]) + "</td></tr>");
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Name:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["FirstName"]) + " " + Convert.ToString(dt.Rows[0]["MiddleName"]) + " " + Convert.ToString(dt.Rows[0]["lastName"]) + "</td></tr>");
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Joining Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>");
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Location:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr></table>");
-                        body.Append("<br />");
-                        body.Append("<table border=\"0\" style=\"width:800px;font-family:biome; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
-                            "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><b>Dear " + Convert.ToString(dt.Rows[0]["FirstName"]) + "<br /></b></td></tr></table>");
-                        body.Append("<table border=\"0\" style=\"width:800px;font-family:biome; font-size:12px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">");
-                        body.Append("<tr><td style= colspan=\"2\">" + Convert.ToString(Description) + "</td></tr>");
-                        body.Append("<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><br /><br />Thanks,<br />" + CurrentUserName + "  <br />" + Convert.ToString(dt.Rows[0]["CompanyName"]) + "</td></tr>" +
-                            "<tr><td style=\"text-align:left; font-size:10px; border-top:none!important;\" colspan=\"2\"><br /><br /><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                            "</table>");
-                        footer.Append("</body></html>");
+                        head.Append("<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
+                            "<style>body,table,td{font-family:Arial,'Helvetica Neue',sans-serif!important;text-align:left}.email-shell{width:100%!important;max-width:680px!important}.detail-label{width:34%!important}@media only screen and (max-width:620px){.outer-pad{padding:10px!important}.content-pad{padding:20px 16px!important}.detail-label{width:38%!important}}</style>" +
+                            "</head><body style=\"margin:0;padding:0;background-color:#f1f5f9;color:#1e293b;text-align:left;\">");
+                        body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#f1f5f9;text-align:left;\"><tr><td class=\"outer-pad\" align=\"left\" style=\"padding:20px 16px;text-align:left;\">" +
+                            "<table role=\"presentation\" class=\"email-shell\" width=\"680\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;max-width:680px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;\">" +
+                            "<tr><td bgcolor=\"#173b70\" style=\"padding:15px 24px;background-color:#173b70;border-bottom:3px solid #2f80ed;text-align:left;\"><table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;background-color:#173b70;\"><tr><td bgcolor=\"#173b70\" style=\"color:#bfdbfe;font-size:10px;font-weight:700;line-height:14px;letter-spacing:1.2px;text-transform:uppercase;mso-line-height-rule:exactly;\"></td></tr><tr><td height=\"4\" bgcolor=\"#173b70\" style=\"height:4px;font-size:0;line-height:4px;mso-line-height-rule:exactly;\">&nbsp;</td></tr><tr><td bgcolor=\"#173b70\" style=\"color:#ffffff;font-size:22px;font-weight:700;line-height:27px;mso-line-height-rule:exactly;\">" + Convert.ToString(MailSubject) + "</td></tr></table></td></tr>" +
+                            "<tr><td class=\"content-pad\" style=\"padding:24px;text-align:left;\">");
+                        body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;\"><tr><td style=\"padding:0 0 8px;color:#0f172a;font-size:15px;font-weight:700;line-height:20px;\">Employee Details</td></tr></table>" +
+                            "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">" +
+                            "<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\"><b>Code:</b></td><td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(dt.Rows[0]["Code"]) + "</td></tr>");
+                        body.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\"><b>Name:</b></td><td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(dt.Rows[0]["FirstName"]) + " " + Convert.ToString(dt.Rows[0]["MiddleName"]) + " " + Convert.ToString(dt.Rows[0]["lastName"]) + "</td></tr>");
+                        body.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\"><b>Joining Date:</b></td><td style=\"padding:11px 14px;border-bottom:1px solid #e2e8f0;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(dt.Rows[0]["JoiningDate"]) + "</td></tr>");
+                        body.Append("<tr><td class=\"detail-label\" style=\"width:34%;padding:11px 14px;color:#64748b;font-size:12px;font-weight:700;line-height:18px;vertical-align:top;\"><b>Location:</b></td><td style=\"padding:11px 14px;color:#1e293b;font-size:13px;font-weight:600;line-height:18px;vertical-align:top;\">" + Convert.ToString(dt.Rows[0]["WorkingBranchName"]) + "</td></tr></table>");
+                        body.Append("<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;\"><tr><td height=\"22\" style=\"height:22px;font-size:0;line-height:22px;\">&nbsp;</td></tr>" +
+                            "<tr><td style=\"padding:0;color:#1e293b;font-size:14px;font-weight:700;line-height:21px;text-align:left;\"><b>Dear " + Convert.ToString(dt.Rows[0]["FirstName"]) + "<br /></b></td></tr>" +
+                            "<tr><td height=\"14\" style=\"height:14px;font-size:0;line-height:14px;\">&nbsp;</td></tr>" +
+                            "<tr><td style=\"padding:0;color:#1e293b;font-size:14px;line-height:22px;text-align:left;\">" + Convert.ToString(Description) + "</td></tr>" +
+                            "<tr><td style=\"padding:26px 0 0;color:#475569;font-size:13px;line-height:20px;text-align:left;\">Thanks,<br /><strong style=\"color:#0f172a;\">" + CurrentUserName + "</strong><br />" + Convert.ToString(dt.Rows[0]["CompanyName"]) + "</td></tr></table>");
+                        footer.Append("</td></tr><tr><td style=\"padding:18px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:11px;line-height:17px;text-align:center;\">This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
+                            "</table></td></tr></table></body></html>");
 
                         string Pass = new bllMaster().GetPassword("ackdata");
 
@@ -277,7 +281,7 @@ namespace WebPortal.Admin
 
                         try
                         {
-                            // client.Send(mail);
+                            client.Send(mail);
                         }
                         catch { }
                     }

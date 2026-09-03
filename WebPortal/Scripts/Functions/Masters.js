@@ -604,6 +604,9 @@ function setappr_BindUsers() {
             $.each(dataArray, function (data, value) {
                 $("#setappr_employee").append($("<option></option>").val(value.Code).html(value.Code + ' : ' + value.Name));
             })
+        },
+        error: function () {
+            setappr_showMessage("Unable to load employees.<br />Please try again.", true, false);
         }
 
     });
@@ -637,6 +640,9 @@ function setappr_getEmpInfo(ddlemp) {
                 document.getElementById("setappr_tdeffectivedaterow").style.display = "none";
                 
             })
+        },
+        error: function () {
+            setappr_showMessage("Unable to load employee information.<br />Please try again.", true, false);
         }
 
     });
@@ -690,6 +696,9 @@ function setappr_getApprTitle(ddltype) {
                 $.each(dataArray, function (data, value) {
                     $("#setappr_title").append($("<option></option>").val(value.Title).html(value.Title));
                 })
+            },
+            error: function () {
+                setappr_showMessage("Unable to load action titles.<br />Please try again.", true, false);
             }
 
         });
@@ -764,6 +773,9 @@ function setappr_getApprDesc(ddltitle) {
                 }
                 document.getElementById("setappr_apprid").innerHTML = blankForNull(value.AppreciationDisciplinaryID);
             })
+        },
+        error: function () {
+            setappr_showMessage("Unable to load the selected letter content.<br />Please try again.", true, false);
         }
 
     });
@@ -785,18 +797,36 @@ function setappr_editorData() {
 }
 
 function setappr_showMessage(message, isError, reloadOnClose) {
-    var button = $("#setappr_btnMessage");
-    $("#setappr_errmsg")
-        .html(message)
-        .css("color", isError ? "#fee2e2" : "#fff");
+    var plainMessage = $("<div>").html(message).text();
+    var isValidation = isError && /^Please\s/i.test(plainMessage);
 
-    button.off("click").on("click", function () {
+    if (window.Swal && typeof window.Swal.fire === "function") {
+        return window.Swal.fire({
+            icon: isError ? (isValidation ? "warning" : "error") : "success",
+            title: isError ? (isValidation ? "Action Required" : "Something Went Wrong") : "Success",
+            html: message,
+            confirmButtonText: "OK",
+            confirmButtonColor: isError ? (isValidation ? "#d97706" : "#dc2626") : "#1d4ed8",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            customClass: {
+                popup: "setappr-swal-popup",
+                confirmButton: "setappr-swal-confirm"
+            }
+        }).then(function () {
+            if (reloadOnClose) {
+                location.reload();
+            }
+        });
+    }
+
+    $("#setappr_errmsg").html(message);
+    $("#setappr_btnMessage").off("click").on("click", function () {
         $("#setappr_dverror").modal("hide");
         if (reloadOnClose) {
             location.reload();
         }
     });
-
     $("#setappr_dverror").modal("show");
 }
 
@@ -886,6 +916,9 @@ function setappr_validateAction(requireDescription) {
 function setappr_preview() {
     var title;
     var type;
+    var employeeSelect;
+    var employeeText;
+    var employeeSeparator;
 
     if (!setappr_validateAction(true)) {
         return false;
@@ -893,9 +926,12 @@ function setappr_preview() {
 
     title = setappr_selectedValue("setappr_title");
     type = setappr_selectedValue("setappr_type");
+    employeeSelect = document.getElementById("setappr_employee");
+    employeeText = employeeSelect.options[employeeSelect.selectedIndex].text;
+    employeeSeparator = employeeText.indexOf(" : ");
 
-    document.getElementById("setappr_popname").innerHTML = document.getElementById("setappr_empname").innerHTML;
-    document.getElementById("setappr_popdoj").innerHTML = document.getElementById("setappr_joiningdate").innerHTML;
+    document.getElementById("setappr_popname").textContent = employeeSeparator >= 0 ? employeeText.substring(employeeSeparator + 3) : employeeText;
+    document.getElementById("setappr_popdoj").textContent = document.getElementById("setappr_joiningdate").value;
     document.getElementById("setappr_popsubject").innerHTML = setappr_subject(type, title);
     document.getElementById("setappr_popdesc").innerHTML = setappr_editorData();
     document.getElementById("setappr_popdate").innerHTML = new Date().toLocaleDateString("en-US");
@@ -1309,11 +1345,7 @@ function setappr_binddetailsbyType(empid, type) {
         error: function () {
             $('#load1').hide();
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Unable to load selected details."
-            });
+            setappr_showMessage("Unable to load selected details.", true, false);
         }
     });
 

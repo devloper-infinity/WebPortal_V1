@@ -656,8 +656,13 @@ function socialsite_submit() {
 }
 
 function socialsite_OnSuccess(result) {
+
     if (result > 0) {
         document.getElementById("socialsite_errmsg").innerHTML = "Data saved successfully!";
+        $('#socialsite_dverror').modal('show');
+    }
+    else if (result == -1) {
+        document.getElementById("socialsite_errmsg").innerHTML = "Data already exists for the selected employee, month, and year.";
         $('#socialsite_dverror').modal('show');
     }
     else {

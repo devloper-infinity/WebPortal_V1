@@ -436,7 +436,17 @@
             background: #fff;
         }
 
-        .setappr-preview-document,
+        .setappr-preview-document {
+            max-width: 920px;
+            min-height: 340px;
+            margin: 0 auto;
+            border: 1px solid #dce6f2;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 22px 55px rgba(15, 23, 42, .12);
+        }
+
         .setappr-slide-card {
             max-width: 1000px;
             min-height: 340px;
@@ -448,7 +458,145 @@
             box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
         }
 
-        .setappr-preview-meta,
+        .setappr-preview-banner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 24px 28px;
+            color: #fff;
+            background: linear-gradient(135deg, #173b70 0%, #1d4ed8 62%, #0f766e 100%);
+        }
+
+            .setappr-preview-banner::after {
+                content: "";
+                position: absolute;
+                right: -45px;
+                bottom: -72px;
+                width: 190px;
+                height: 190px;
+                border: 28px solid rgba(255,255,255,.08);
+                border-radius: 50%;
+                pointer-events: none;
+            }
+
+        .setappr-preview-brand {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .setappr-preview-brand-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 12px;
+            background: rgba(255,255,255,.14);
+            color: #fff;
+            font-size: 19px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+        }
+
+        .setappr-preview-eyebrow {
+            display: block;
+            margin-bottom: 3px;
+            color: #bfdbfe;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+        }
+
+        .setappr-preview-brand h3 {
+            margin: 0;
+            color: #fff;
+            font-size: 21px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .setappr-preview-date {
+            position: relative;
+            z-index: 1;
+            min-width: 132px;
+            padding: 9px 13px;
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 10px;
+            background: rgba(15, 23, 42, .2);
+            color: #dbeafe;
+            font-size: 11px;
+            font-weight: 800;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+            .setappr-preview-date label {
+                display: block;
+                margin: 2px 0 0;
+                color: #fff;
+                font-size: 13px;
+            }
+
+        .setappr-preview-body {
+            padding: 28px;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        }
+
+        .setappr-preview-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .setappr-preview-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+            .setappr-preview-meta-item i {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 34px;
+                width: 34px;
+                height: 34px;
+                border-radius: 9px;
+                background: #e8f1ff;
+                color: #1d4ed8;
+            }
+
+            .setappr-preview-meta-item span {
+                display: block;
+                margin-bottom: 2px;
+                color: #64748b;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: .55px;
+                text-transform: uppercase;
+            }
+
+            .setappr-preview-meta-item label {
+                display: block;
+                margin: 0;
+                color: #172033;
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1.4;
+                word-break: break-word;
+            }
+
         .setappr-slide-meta {
             display: flex;
             justify-content: space-between;
@@ -460,14 +608,32 @@
             line-height: 1.7;
         }
 
-        .setappr-preview-date,
         .setappr-slide-date {
             min-width: 170px;
             text-align: right;
             white-space: nowrap;
         }
 
-        .setappr-preview-subject,
+        .setappr-preview-subject {
+            margin: 20px 0 18px;
+            padding: 15px 18px;
+            border: 1px solid #d8e5f4;
+            border-left: 4px solid #1d4ed8;
+            border-radius: 10px;
+            background: #f4f8ff;
+            text-align: left;
+        }
+
+            .setappr-preview-subject span {
+                display: block;
+                margin-bottom: 4px;
+                color: #64748b;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: .7px;
+                text-transform: uppercase;
+            }
+
         .setappr-slide-subject {
             margin: 24px 0 18px;
             padding: 16px 20px;
@@ -476,7 +642,14 @@
             text-align: center;
         }
 
-            .setappr-preview-subject h5,
+            .setappr-preview-subject h5 {
+                margin: 0;
+                color: #173b70;
+                font-size: 16px;
+                font-weight: 800;
+                line-height: 1.45;
+            }
+
             .setappr-slide-subject h5 {
                 margin: 0;
                 color: #193b72;
@@ -485,7 +658,19 @@
                 line-height: 1.4;
             }
 
-        .setappr-preview-content,
+        .setappr-preview-content {
+            min-height: 180px;
+            padding: 20px 22px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            color: #1f2937;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.8;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .04);
+        }
+
         .setappr-slide-content {
             color: #1f2937;
             font-size: 14px;
@@ -499,6 +684,17 @@
                 margin: 0;
                 max-width: 100%;
             }
+
+        .setappr-swal-popup {
+            border-radius: 16px !important;
+            box-shadow: 0 28px 80px rgba(15, 23, 42, .24) !important;
+        }
+
+        .setappr-swal-confirm {
+            min-width: 104px;
+            border-radius: 8px !important;
+            font-weight: 800 !important;
+        }
 
         #setappr_viewdetails .carousel {
             padding: 0 50px 34px;
@@ -665,18 +861,41 @@
                 padding: 14px;
             }
 
-            .setappr-preview-document,
+            .setappr-preview-document {
+                min-height: 0;
+                border-radius: 12px;
+            }
+
             .setappr-slide-card {
                 min-height: 0;
                 padding: 20px 16px;
             }
 
-            .setappr-preview-meta,
+            .setappr-preview-banner {
+                align-items: flex-start;
+                padding: 20px;
+            }
+
+            .setappr-preview-brand h3 {
+                font-size: 17px;
+            }
+
+            .setappr-preview-date {
+                min-width: 110px;
+            }
+
+            .setappr-preview-body {
+                padding: 18px;
+            }
+
+            .setappr-preview-meta {
+                grid-template-columns: 1fr;
+            }
+
             .setappr-slide-meta {
                 display: block;
             }
 
-            .setappr-preview-date,
             .setappr-slide-date {
                 margin-top: 10px;
                 text-align: left;
@@ -966,42 +1185,56 @@
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title"><i class="fas fa-file-alt"></i>Preview</h4>
+                    <div class="modal-title"><i class="fas fa-file-alt"></i>Letter Preview</div>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="setappr-preview-document">
-                        <div class="setappr-preview-meta">
-                            <div>
-                                <div style="display: none;">
-                                    <b>Code:</b>
-                                    <label id="setappr_popcode"></label>
-                                </div>
+                        <div class="setappr-preview-banner">
+                            <div class="setappr-preview-brand">
+                                <span class="setappr-preview-brand-icon"><i class="fas fa-envelope-open-text"></i></span>
                                 <div>
-                                    <b>Name:</b>
-                                    <label id="setappr_popname"></label>
-                                </div>
-                                <div>
-                                    <b>Joining Date:</b>
-                                    <label id="setappr_popdoj"></label>
-                                </div>
-                                <div style="display: none;">
-                                    <b>Location:</b>
-                                    <label id="setappr_poplocation"></label>
+                                    <span class="setappr-preview-eyebrow">Infinity IPS / HRMS</span>
+                                    <h3>Employee Action Letter</h3>
                                 </div>
                             </div>
                             <div class="setappr-preview-date">
-                                <b>Date:</b>
+                                <span>Date</span>
                                 <label id="setappr_popdate"></label>
                             </div>
                         </div>
-                        <div class="setappr-preview-subject">
-                            <h5 id="setappr_popsubject"></h5>
-                        </div>
-                        <div class="setappr-preview-content">
-                            <label id="setappr_popdesc"></label>
+                        <div class="setappr-preview-body">
+                            <div class="setappr-preview-meta">
+                                <div style="display: none;">
+                                    <label id="setappr_popcode"></label>
+                                </div>
+                                <div class="setappr-preview-meta-item">
+                                    <i class="fas fa-user"></i>
+                                    <div>
+                                        <span>Employee Name</span>
+                                        <label id="setappr_popname"></label>
+                                    </div>
+                                </div>
+                                <div style="display: none;">
+                                    <label id="setappr_poplocation"></label>
+                                </div>
+                                <div class="setappr-preview-meta-item">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <div>
+                                        <span>Joining Date</span>
+                                        <label id="setappr_popdoj"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="setappr-preview-subject">
+                                <span>Subject</span>
+                                <h5 id="setappr_popsubject"></h5>
+                            </div>
+                            <div class="setappr-preview-content">
+                                <label id="setappr_popdesc"></label>
+                            </div>
                         </div>
                     </div>
                 </div>
