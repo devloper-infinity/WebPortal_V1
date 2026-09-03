@@ -125,6 +125,11 @@ namespace WebPortal.App_Code.BLL
             return dalLogin.GetUserInformation(EmployeeID);
         }
 
+        public string GetEmployeeSegment(int employeeID)
+        {
+            return dalLogin.GetEmployeeSegment(employeeID);
+        }
+
         public DataTable GetUserPmDomainLocationEmailInfo(int EmployeeID, string EmailType)
         {
             return dalLogin.GetUserPmDomainLocationEmailInfo(EmployeeID,  EmailType);

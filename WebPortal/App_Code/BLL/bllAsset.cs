@@ -98,6 +98,11 @@ namespace WebPortal.App_Code.BLL
             return dalAsset.GetAllTicketDepartmentwise(EmployeeID);
         }
 
+        public DataTable GetDepartmentWiseTicketReport(int employeeId, string fromDate, string toDate)
+        {
+            return dalAsset.GetDepartmentWiseTicketReport(employeeId, fromDate, toDate);
+        }
+
         public DataTable ViewRequestTicket(int TicketId)
         {
             return dalAsset.ViewRequestTicket(TicketId);

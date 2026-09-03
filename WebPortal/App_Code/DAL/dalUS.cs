@@ -806,7 +806,8 @@ BEGIN
 END
 ELSE
 BEGIN
-    SET @StartValue = NULL;
+    SET @StartValue = CASE WHEN UPPER(ISNULL(@Action, '')) = 'START'
+                                AND UPPER(ISNULL(@SourcePage, '')) = 'CANOPYSEARCH' THEN GETDATE() ELSE NULL END;
 END
 
 DECLARE @EndValue DATETIME;
@@ -817,7 +818,8 @@ BEGIN
 END
 ELSE
 BEGIN
-    SET @EndValue = NULL;
+    SET @EndValue = CASE WHEN UPPER(ISNULL(@Action, '')) <> 'START'
+                              AND UPPER(ISNULL(@SourcePage, '')) = 'CANOPYSEARCH' THEN GETDATE() ELSE NULL END;
 END
 
 DECLARE @TrackID BIGINT;

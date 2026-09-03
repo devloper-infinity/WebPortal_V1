@@ -8,6 +8,8 @@ Run the scripts in numeric order against `InfinityERP`:
 4. `004_Taxonomy_Mappings.sql`
 5. `005_Stored_Procedures.sql`
 6. `006_Fix_Project_Eligibility.sql` only when upgrading an already-executed initial deployment
+7. `007_No_Error_And_Report_Values.sql`
+8. `008_Error_Type_Master_Admin.sql`
 7. `007_Clear_And_Report_Procedures.sql`
 
 Source reconciliation: 9 taxonomy values, 2 ET1 values, 5 ET2 parent relationships,

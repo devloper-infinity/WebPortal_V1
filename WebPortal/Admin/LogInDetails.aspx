@@ -62,8 +62,12 @@
                 PMCode = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
             else
                 PMCode = Code;
-
-            let date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+            const d = new Date();
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            let date = String(d.getDate()).padStart(2, '0') + '-' +
+                months[d.getMonth()] + '-' +
+                d.getFullYear();
 
             New_BindLogGrid(date, PMCode);
         }

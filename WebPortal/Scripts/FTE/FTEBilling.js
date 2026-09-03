@@ -85,7 +85,8 @@ function BindBillingPeriod(billingCycle) {
             $.each(periods, function (_index, value) {
                 var billingPeriod = getFteBillingValue(value, ["BillingPeriod", "Period", "DateRange"]);
                 if (billingPeriod) {
-                    $period.append($("<option></option>").val(billingPeriod).html(billingPeriod));
+                    var formattedPeriod = formatFteBillingPeriod(billingPeriod);
+                    $period.append($("<option></option>").val(formattedPeriod).html(formattedPeriod));
                 }
             });
         }
@@ -345,6 +346,45 @@ function formatFteBillingValue(value) {
     }
 
     return text;
+}
+
+function formatFteBillingPeriod(value) {
+    var monthNames = {
+        jan: "Jan", january: "Jan",
+        feb: "Feb", february: "Feb",
+        mar: "Mar", march: "Mar",
+        apr: "Apr", april: "Apr",
+        may: "May",
+        jun: "Jun", june: "Jun",
+        jul: "Jul", july: "Jul",
+        aug: "Aug", august: "Aug",
+        sep: "Sep", sept: "Sep", september: "Sep",
+        oct: "Oct", october: "Oct",
+        nov: "Nov", november: "Nov",
+        dec: "Dec", december: "Dec"
+    };
+    var parts = String(value).trim().split(/\s+(?:to|~)\s+/i);
+
+    if (parts.length !== 2) {
+        return String(value);
+    }
+
+    function formatDatePart(dateText, fallbackYear) {
+        var match = dateText.trim().match(/^(\d{1,2})[-\/]([A-Za-z]+)[-\/](\d{2}|\d{4})$/);
+        if (!match) {
+            return null;
+        }
+
+        var month = monthNames[match[2].toLowerCase()];
+        var year = match[3].length === 4 ? match[3] : fallbackYear;
+        return month && year ? ("0" + match[1]).slice(-2) + "-" + month + "-" + year : null;
+    }
+
+    var fromYearMatch = parts[0].match(/(\d{4})\s*$/);
+    var fromYear = fromYearMatch ? fromYearMatch[1] : null;
+    var fromDate = formatDatePart(parts[0], null);
+    var toDate = formatDatePart(parts[1], fromYear);
+    return fromDate && toDate ? fromDate + " ~ " + toDate : String(value);
 }
 
 function escapeFteBillingHtml(value) {

@@ -84,7 +84,7 @@ namespace WebPortal.FTE
         }
 
         [WebMethod]
-        public static int InsertFTEEntry(int ProjectID, int ProcessID, string ApprovedFTECount, string Date, string ActualTotalFteCnt)
+        public static int InsertFTEEntry(int ProjectID, int ProcessID, string ApprovedFTECount, string Date, string ActualTotalFteCnt, string AverageFTE)
         {
             int ReturnValue = 0;
 
@@ -99,6 +99,8 @@ namespace WebPortal.FTE
             htParam.Add("ApprovedCount", ApprovedFTECount);
             htParam.Add("Date", Date);
             htParam.Add("ActualCount", ActualTotalFteCnt);
+            decimal averageFte;
+            htParam.Add("AverageFTE", decimal.TryParse(AverageFTE, out averageFte) ? (object)averageFte : DBNull.Value);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
             ReturnValue = new bllMaster().InsertFTEEntry(htParam);

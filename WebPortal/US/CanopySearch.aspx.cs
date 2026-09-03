@@ -30,7 +30,7 @@ namespace WebPortal.US
             }
 
             DataTable orders = dataSet.Tables[0];
-            AddProcessStatus(orders, currentEmployeeId);
+            AddProcessStatus(orders, currentEmployeeId, GetAllowedCanopyTasks());
 
             DataColumn[] columns = orders.Columns.Cast<DataColumn>().ToArray();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>(orders.Rows.Count);
@@ -47,7 +47,7 @@ namespace WebPortal.US
             return rows;
         }
 
-        private static void AddProcessStatus(DataTable loans, int currentEmployeeId)
+        private static void AddProcessStatus(DataTable loans, int currentEmployeeId, HashSet<string> allowedTasks)
         {
             if (loans == null) return;
 
@@ -61,7 +61,6 @@ namespace WebPortal.US
             DataTable statuses = new bllUS().GetCanopySearchProcessStatuses();
             Dictionary<string, DataRow> exact = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
             Dictionary<string, DataRow> byDealLoanScript = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
-            HashSet<string> completedQc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             HashSet<string> occupiedQc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (DataRow status in statuses.Rows)
@@ -71,13 +70,6 @@ namespace WebPortal.US
                 SetBestStatus(exact, StatusKey(Convert.ToString(status["ProjectNumber"]), Convert.ToString(status["DealNo"]), loan, script), status);
                 SetBestStatus(byDealLoanScript, DealLoanScriptKey(Convert.ToString(status["DealNo"]), loan, script), status);
                 string process = Convert.ToString(status["ProcessName"]).Trim();
-                if (string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase)
-                    && (string.Equals(process, "Credit QC", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(process, "Compliance QC", StringComparison.OrdinalIgnoreCase)))
-                {
-                    completedQc.Add(StatusKey(Convert.ToString(status["ProjectNumber"]), Convert.ToString(status["DealNo"]), loan, script) + "\u001f" + process);
-                    completedQc.Add(DealLoanScriptKey(Convert.ToString(status["DealNo"]), loan, script) + "\u001f" + process);
-                }
                 if (string.Equals(process, "Credit QC", StringComparison.OrdinalIgnoreCase)
                     || string.Equals(process, "Compliance QC", StringComparison.OrdinalIgnoreCase))
                 {
@@ -86,7 +78,7 @@ namespace WebPortal.US
                 }
             }
 
-            List<DataRow> completedLoans = new List<DataRow>();
+            List<DataRow> unavailableLoans = new List<DataRow>();
             foreach (DataRow row in loans.Rows)
             {
                 string project = Value(row, "Client", "ProjectNumber", "ProjectNo", "Project No", "Project #");
@@ -111,15 +103,15 @@ namespace WebPortal.US
 
                 string exactKey = StatusKey(project, deal, loan, script) + "\u001f";
                 string fallbackKey = DealLoanScriptKey(deal, loan, script) + "\u001f";
-                bool creditCompleted = completedQc.Contains(exactKey + "Credit QC") || completedQc.Contains(fallbackKey + "Credit QC");
-                bool complianceCompleted = completedQc.Contains(exactKey + "Compliance QC") || completedQc.Contains(fallbackKey + "Compliance QC");
                 bool creditOccupied = occupiedQc.Contains(exactKey + "Credit QC") || occupiedQc.Contains(fallbackKey + "Credit QC");
                 bool complianceOccupied = occupiedQc.Contains(exactKey + "Compliance QC") || occupiedQc.Contains(fallbackKey + "Compliance QC");
-                if (creditOccupied && complianceOccupied) row["_CanStart"] = false;
-                if (creditCompleted && complianceCompleted) completedLoans.Add(row);
+                bool canStartCredit = allowedTasks.Contains("Credit QC") && !creditOccupied;
+                bool canStartCompliance = allowedTasks.Contains("Compliance QC") && !complianceOccupied;
+                row["_CanStart"] = canStartCredit || canStartCompliance;
+                if (!canStartCredit && !canStartCompliance) unavailableLoans.Add(row);
             }
 
-            foreach (DataRow row in completedLoans) loans.Rows.Remove(row);
+            foreach (DataRow row in unavailableLoans) loans.Rows.Remove(row);
         }
 
         private static void SetBestStatus(Dictionary<string, DataRow> lookup, string key, DataRow candidate)
@@ -152,7 +144,8 @@ namespace WebPortal.US
             }
 
             int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-            if (!new bllUS().CanStartCanopyLoan(DealNo, OrderNumber, Script, currentEmployeeId))
+            if (!new bllUS().CanStartCanopyLoan(DealNo, OrderNumber, Script, currentEmployeeId)
+                || !HasAvailableAllowedTask(DealNo, OrderNumber, Script))
             {
                 return 0;
             }
@@ -194,6 +187,28 @@ namespace WebPortal.US
             );
 
             return trackReturnValue > 0 ? trackReturnValue : ReturnValue;
+        }
+
+        private static HashSet<string> GetAllowedCanopyTasks()
+        {
+            HashSet<string> tasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string segment = new bllLogin().GetEmployeeSegment(int.Parse(HttpContext.Current.User.Identity.Name));
+            if (string.Equals(segment, "Credit QC - Canopy", StringComparison.OrdinalIgnoreCase) || string.Equals(segment, "Management", StringComparison.OrdinalIgnoreCase)) tasks.Add("Credit QC");
+            if (string.Equals(segment, "Compliance QC - Canopy", StringComparison.OrdinalIgnoreCase) || string.Equals(segment, "Management", StringComparison.OrdinalIgnoreCase)) tasks.Add("Compliance QC");
+            return tasks;
+        }
+
+        private static bool HasAvailableAllowedTask(string dealNo, string loanNo, string script)
+        {
+            HashSet<string> available = GetAllowedCanopyTasks();
+            foreach (DataRow status in new bllUS().GetCanopySearchProcessStatuses().Rows)
+            {
+                if (string.Equals(Convert.ToString(status["DealNo"]).Trim(), (dealNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["LoanNo"]).Trim(), (loanNo ?? "").Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(Convert.ToString(status["Script"]).Trim(), (script ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+                    available.Remove(Convert.ToString(status["ProcessName"]).Trim());
+            }
+            return available.Count > 0;
         }
 
         private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)

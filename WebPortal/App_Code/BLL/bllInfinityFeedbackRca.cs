@@ -70,5 +70,10 @@ namespace WebPortal.App_Code.BLL
                     target["ErrorType" + index + "Name"] = source["ErrorType" + index + "Name"];
             }
         }
+
+        public DataTable GetAdminList(int errorType) { return dal.GetAdminList(errorType); }
+        public DataTable GetAdminParents(int errorType) { return dal.GetAdminParents(errorType); }
+        public int AddMaster(int errorType, string name, int parentId, int displayOrder, int addedBy) { return dal.AddMaster(errorType, name, parentId, displayOrder, addedBy); }
+        public int SetMasterActive(int errorType, int id, bool isActive) { return dal.SetMasterActive(errorType, id, isActive); }
     }
 }
