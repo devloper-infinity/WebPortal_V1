@@ -383,6 +383,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/MonthlyBirthdays.aspx
 !/WebPortal/Admin/MonthlyBirthdays.aspx.cs
 !/WebPortal/Admin/MonthlyBirthdays.aspx.designer.cs
+!/WebPortal/Admin/EmployeeLogReport.aspx
+!/WebPortal/Admin/EmployeeLogReport.aspx.cs
+!/WebPortal/Admin/EmployeeLogReport.aspx.designer.cs
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
 !/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql

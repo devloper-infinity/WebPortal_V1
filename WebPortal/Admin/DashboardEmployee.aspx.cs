@@ -720,6 +720,7 @@ ORDER BY CAST([Date] AS DATETIME);";
                     EmpName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "EmpName", "EmployeeName", "EmpFullName"),
                     Designation = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "DesignationName", "Designation"),
                     DepartmentName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "DepartmentName", "Department"),
+                    BranchName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "BranchName", "Branch"),
                     DomainName = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "DomainName"),
                     JoiningDate = joiningDate,
                     ReportingManager = AnniversaryValue(dt, dr, anniversaryEmployee, employeeRow, "ReportingManager", "ProjectManagerName"),
@@ -1548,6 +1549,7 @@ ORDER BY CAST([Date] AS DATETIME);";
             public string EmpName { get; set; }
             public string Designation { get; set; }
             public string DepartmentName { get; set; }
+            public string BranchName { get; set; }
             public string DomainName { get; set; }
             public string JoiningDate { get; set; }
             public string ReportingManager { get; set; }

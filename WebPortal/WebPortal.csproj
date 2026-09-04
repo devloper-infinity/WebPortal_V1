@@ -759,6 +759,7 @@
     <Content Include="Admin\ViewBirthdays.aspx" />
     <Content Include="Admin\ViewEmployee.aspx" />
     <Content Include="Admin\ViewLog.aspx" />
+    <Content Include="Admin\EmployeeLogReport.aspx" />
     <Content Include="Admin\ViewSelectedCandidates.aspx" />
     <Content Include="App_Code\CodeGeneration.asmx" />
     <Content Include="BankAccDetails\20-Jan-2024\ACF_200120241501SS\ACF-Bank details.jpg" />
@@ -5098,6 +5099,13 @@
     </Compile>
     <Compile Include="Admin\ViewLog.aspx.designer.cs">
       <DependentUpon>ViewLog.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\EmployeeLogReport.aspx.cs">
+      <DependentUpon>EmployeeLogReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\EmployeeLogReport.aspx.designer.cs">
+      <DependentUpon>EmployeeLogReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\ViewSelectedCandidates.aspx.cs">
       <DependentUpon>ViewSelectedCandidates.aspx</DependentUpon>

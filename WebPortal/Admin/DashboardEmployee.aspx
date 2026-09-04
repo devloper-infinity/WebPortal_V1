@@ -1411,8 +1411,13 @@
     <script>
 
         $(document).ready(function () {
-            New_workAnniversary();
             var userId = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
+
+            $("#dash_anniversaryModal")
+                .off("hidden.bs.modal.anniversaryDismiss")
+                .on("hidden.bs.modal.anniversaryDismiss", dash_rememberAnniversaryDismissal);
+
+            New_workAnniversary();
             window.dashboardShouldLoadProductiveInsights = userId !== "10161";
             window.dashboardProductiveInsightsRequested = false;
 
@@ -1437,7 +1442,39 @@
         });
 
 
+        function dash_anniversaryDismissalKey() {
+            return "dashboardWorkAnniversaryDismissed_" + '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
+        }
+
+        function dash_anniversaryTodayKey() {
+            var today = new Date();
+            return today.getFullYear() + "-" +
+                ("0" + (today.getMonth() + 1)).slice(-2) + "-" +
+                ("0" + today.getDate()).slice(-2);
+        }
+
+        function dash_anniversaryWasDismissedToday() {
+            try {
+                return window.localStorage.getItem(dash_anniversaryDismissalKey()) === dash_anniversaryTodayKey();
+            }
+            catch (ex) {
+                return false;
+            }
+        }
+
+        function dash_rememberAnniversaryDismissal() {
+            try {
+                window.localStorage.setItem(dash_anniversaryDismissalKey(), dash_anniversaryTodayKey());
+            }
+            catch (ex) {
+            }
+        }
+
         function New_workAnniversary() {
+            if (dash_anniversaryWasDismissedToday()) {
+                return;
+            }
+
             $.ajax({
                 type: "POST",
                 url: "DashboardEmployee.aspx/GetEmpWorkAnniversary",
@@ -1462,6 +1499,23 @@
             return (parts[0].charAt(0) + (parts.length > 1 ? parts[parts.length - 1].charAt(0) : "")).toUpperCase();
         }
 
+        function dash_completedServiceYears(joiningDate, yearsCompleted) {
+            var years = parseInt(yearsCompleted, 10);
+            var joined = new Date(joiningDate);
+
+            if (!isNaN(joined.getTime())) {
+                var today = new Date();
+                years = today.getFullYear() - joined.getFullYear();
+
+                if (today.getMonth() < joined.getMonth() ||
+                    (today.getMonth() === joined.getMonth() && today.getDate() < joined.getDate())) {
+                    years--;
+                }
+            }
+
+            return Math.max(0, isNaN(years) ? 0 : years);
+        }
+
         function new_renderWorkAnniversary(data) {
             if (!data || data.length === 0) {
                 return false;
@@ -1471,12 +1525,12 @@
                 var name = dash_escapeAnniversary(emp.EmpName || "Employee");
                 var designation = dash_escapeAnniversary(emp.Designation || "—");
                 var department = dash_escapeAnniversary(emp.DepartmentName || "—");
+                var branch = dash_escapeAnniversary(emp.BranchName || "—");
                 var manager = dash_escapeAnniversary(emp.ReportingManager || "—");
                 var joiningDate = dash_escapeAnniversary(emp.JoiningDate || "—");
                 var domain = dash_escapeAnniversary(emp.DomainName || "");
-                var years = parseInt(emp.YearsCompleted, 10) || 0;
+                var years = dash_completedServiceYears(emp.JoiningDate, emp.YearsCompleted);
                 var yearLabel = years === 1 ? "YEAR" : "YEARS";
-                var nextMilestone = Math.max(5, Math.ceil(years / 5) * 5);
                 return '<div class="carousel-item' + (index === 0 ? ' active' : '') + '">' +
                     '<article class="anniv-profile">' +
                     '<div class="anniv-profile-left">' +
@@ -1489,9 +1543,9 @@
                         '<span class="anniv-confetti anniv-confetti-two"></span>' +
                         '<div class="anniv-avatar"><span class="anniv-camera" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><path d="M16 14l3-5h10l3 5h6a4 4 0 014 4v18a4 4 0 01-4 4H10a4 4 0 01-4-4V18a4 4 0 014-4h6zm8 20a8 8 0 100-16 8 8 0 000 16z"/><circle cx="24" cy="26" r="5"/></svg></span><small>ADD EMPLOYEE PHOTO</small></div>' +
                         '<h3>[' + name + ']</h3>' +
-                        '<p>[' + designation + '] <b>•</b> [' + department + ']</p>' +
+                        '<p>[Location: ' + branch + ']</p>' +
                         '<span class="anniv-balloons" aria-hidden="true"><i></i><i></i></span>' +
-                        '<div class="anniv-service-badge"><span class="anniv-trophy-mark">♛</span><strong>[' + years + ' / ' + nextMilestone + ']</strong><span>YEARS</span></div>' +
+                        '<div class="anniv-service-badge"><span class="anniv-trophy-mark">♛</span><strong>' + years + ' ' + yearLabel.charAt(0) + yearLabel.slice(1).toLowerCase() + '</strong></div>' +
                     '</div>' +
                     '<div class="anniv-profile-right">' +
                         '<span class="anniv-kicker">✦ CELEBRATION TIME</span>' +
@@ -1517,7 +1571,6 @@
 
             $("#dash_anniversaryList").html(cards);
             $("#dash_anniversaryIndicators").html(indicators);
-            $("#dash_anniversaryCount").text(data.length === 1 ? "Celebrating one team member today" : "Celebrating " + data.length + " team members from your domain today");
             $("#dash_anniversaryCarouselNav").toggle(data.length > 1);
             $("#dash_anniversaryPosition").text("1 / " + data.length);
 
@@ -2402,15 +2455,10 @@
 
 
     <!-------------- Work Anniversary ------------->
-    <div class="modal fade" id="dash_anniversaryModal" tabindex="-1" role="dialog" aria-labelledby="dash_anniversaryTitle" aria-hidden="true">
+    <div class="modal fade" id="dash_anniversaryModal" tabindex="-1" role="dialog" aria-label="Work anniversary" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered anniversary-dialog" role="document">
             <div class="modal-content workanniversary-modal">
                 <button type="button" class="anniv-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <div class="anniv-modal-heading">
-                    <span>WORK ANNIVERSARY</span>
-                    <h4 id="dash_anniversaryTitle">Celebrating Our People</h4>
-                    <p id="dash_anniversaryCount"></p>
-                </div>
                 <div class="modal-body anniv-modal-body">
                     <div id="dash_anniversaryCarousel" class="carousel slide anniv-carousel" data-interval="false" data-wrap="true">
                         <div id="dash_anniversaryList" class="carousel-inner"></div>
@@ -3363,47 +3411,18 @@
             outline: 0;
         }
 
-        .anniv-modal-heading {
-            padding: 15px 62px 13px 24px;
-            color: #fff;
-            background: linear-gradient(115deg, #121c4d 0%, #202d6c 62%, #29387e 100%);
-        }
-
-        .anniv-modal-heading > span {
-            display: block;
-            margin-bottom: 3px;
-            color: #f0c643;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 2.2px;
-        }
-
-        .anniv-modal-heading h4 {
-            margin: 0;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 19px;
-            font-weight: 700;
-        }
-
-        .anniv-modal-heading p {
-            margin: 4px 0 0;
-            color: rgba(255, 255, 255, .72);
-            font-size: 12px;
-        }
-
         .anniv-modal-body {
-            padding: 14px;
+            padding: 50px 58px 14px;
             overflow: hidden;
         }
 
         .anniv-carousel {
             position: relative;
-            padding-bottom: 48px;
+            padding-bottom: 78px;
         }
 
         .anniv-carousel .carousel-inner {
-            overflow: hidden;
-            border-radius: 2px;
+            overflow: visible;
         }
 
         .anniv-carousel .carousel-item {
@@ -3412,14 +3431,12 @@
 
         .anniv-carousel-nav {
             position: absolute;
-            right: 0;
-            bottom: 0;
-            left: 0;
+            z-index: 12;
+            inset: 0;
             display: flex;
-            height: 40px;
             align-items: center;
-            justify-content: center;
-            gap: 18px;
+            justify-content: space-between;
+            pointer-events: none;
         }
 
         .anniv-carousel-arrow {
@@ -3438,6 +3455,7 @@
             cursor: pointer;
             box-shadow: 0 6px 16px rgba(23, 38, 94, .12);
             transition: transform .2s ease, color .2s ease, background .2s ease;
+            pointer-events: auto;
         }
 
         .anniv-carousel-arrow:hover,
@@ -3449,12 +3467,17 @@
         }
 
         .anniv-carousel-progress {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
             display: flex;
             min-width: 150px;
             align-items: center;
             flex-direction: column;
             justify-content: center;
             gap: 5px;
+            pointer-events: auto;
         }
 
         .anniv-carousel-indicators {
@@ -3496,12 +3519,15 @@
         .anniv-profile {
             position: relative;
             display: grid;
-            grid-template-columns: minmax(245px, 37%) 1fr;
-            min-height: 378px;
-            overflow: hidden;
-            border: 1px solid #d9dce4;
+            grid-template-columns: 246px minmax(0, 1fr);
+            width: 100%;
+            max-width: 760px;
+            min-height: 360px;
+            margin: 0 auto;
+            overflow: visible;
+            border: 0;
             background: #fff;
-            box-shadow: 0 13px 35px rgba(27, 39, 83, .12);
+            box-shadow: none;
         }
 
         .anniv-profile-left {
@@ -3510,7 +3536,7 @@
             align-items: center;
             flex-direction: column;
             justify-content: flex-start;
-            overflow: hidden;
+            overflow: visible;
             padding: 76px 20px 18px;
             color: #fff;
             text-align: center;
@@ -3528,16 +3554,16 @@
             background: #111944;
         }
 
-        .anniv-panel-orb-top { top: -54px; left: -43px; width: 112px; height: 112px; }
-        .anniv-panel-orb-bottom { bottom: -60px; left: -48px; width: 118px; height: 118px; }
-        .anniv-panel-orb-corner { right: -29px; bottom: -35px; width: 69px; height: 69px; }
+        .anniv-panel-orb-top { top: -33px; left: -28px; width: 106px; height: 106px; }
+        .anniv-panel-orb-bottom { bottom: -67px; left: -52px; width: 96px; height: 96px; }
+        .anniv-panel-orb-corner { right: 10px; bottom: -34px; width: 58px; height: 58px; }
 
         .anniv-brand {
             position: absolute;
             z-index: 2;
-            top: 24px;
+            top: 26px;
             left: 50%;
-            transform: translateX(-32%);
+            transform: translateX(-50%);
             font-size: 8px;
             font-weight: 800;
             letter-spacing: 2.5px;
@@ -3548,14 +3574,14 @@
         .anniv-ribbon {
             position: absolute;
             z-index: 4;
-            top: 28px;
-            left: -37px;
-            width: 165px;
-            padding: 8px 4px;
+            top: 13px;
+            left: -22px;
+            width: 140px;
+            padding: 7px 4px;
             transform: rotate(-40deg);
             color: #fff;
             background: #ff5c68;
-            font-size: 8px;
+            font-size: 7px;
             font-weight: 900;
             letter-spacing: 1.2px;
             box-shadow: 0 6px 14px rgba(0, 0, 0, .18);
@@ -3567,7 +3593,7 @@
             display: grid;
             width: 132px;
             height: 132px;
-            margin-bottom: 12px;
+            margin: 0 0 12px;
             place-content: center;
             border: 3px solid #f0c83d;
             border-radius: 50%;
@@ -3608,9 +3634,10 @@
             max-width: 100%;
             margin: 0 0 4px;
             font-family: Georgia, "Times New Roman", serif;
-            font-size: 17px;
+            font-size: 14px;
             font-weight: 700;
             line-height: 1.2;
+            white-space: nowrap;
         }
 
         .anniv-profile-left p {
@@ -3650,15 +3677,15 @@
             border-radius: 50%;
         }
 
-        .anniv-service-badge strong { font-size: 12px; line-height: 1; }
+        .anniv-service-badge strong { font-size: 10px; line-height: 1.1; }
         .anniv-service-badge span { margin-top: 2px; font-size: 6px; font-weight: 900; letter-spacing: 1px; }
         .anniv-service-badge .anniv-trophy-mark { margin: 0 0 3px; font-size: 15px; line-height: 1; letter-spacing: 0; }
 
         .anniv-balloons {
             position: absolute;
             z-index: 3;
-            right: 54px;
-            bottom: 72px;
+            right: 35px;
+            bottom: 54px;
             width: 30px;
             height: 46px;
         }
@@ -3712,7 +3739,7 @@
             margin: 10px 0 9px;
             color: #17265e;
             font-family: Georgia, "Times New Roman", serif;
-            font-size: 27px;
+            font-size: 24px;
             font-weight: 800;
             line-height: 1.06;
         }
@@ -3732,8 +3759,8 @@
 
         .anniv-details {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px 18px;
+            grid-template-columns: 1fr;
+            gap: 8px;
         }
 
         .anniv-details > div {
@@ -3778,7 +3805,7 @@
 
         .anniv-thanks {
             display: flex;
-            margin-top: 50px;
+            margin-top: 12px;
             padding: 10px 13px;
             align-items: flex-start;
             gap: 10px;
@@ -3798,9 +3825,8 @@
 
         @media (max-width: 767px) {
             .anniversary-dialog { width: calc(100% - 18px); margin: 9px auto; }
-            .anniv-modal-body { padding: 12px; }
-            .anniv-modal-heading { padding: 18px 54px 14px 18px; }
-            .anniv-carousel { padding-bottom: 54px; }
+            .anniv-modal-body { padding: 46px 28px 12px; }
+            .anniv-carousel { padding-bottom: 74px; }
             .anniv-profile { grid-template-columns: 1fr; }
             .anniv-profile-left { min-height: 395px; padding: 58px 22px 28px; }
             .anniv-profile-right { padding: 32px 24px 28px; }
