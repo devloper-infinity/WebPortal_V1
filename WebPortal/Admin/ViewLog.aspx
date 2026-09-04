@@ -135,7 +135,7 @@
             .vl-hero .vl-btn-primary:active {
                 transform: translateY(0);
             }
-  
+
         .vl-filter-card,
         .vl-table-card {
             margin-top: 24px;
@@ -243,11 +243,11 @@
             }
 
             #tblLog tbody td {
-               /* padding: 10px 8px !important;*/
+                /* padding: 10px 8px !important;*/
                 border-color: var(--vl-border) !important;
                 color: #1e293b;
                 font-size: 13px;
-               /* font-weight: 500 !important;*/
+                /* font-weight: 500 !important;*/
                 text-align: center;
                 vertical-align: middle;
             }
@@ -283,10 +283,10 @@
             color: #b91c1c !important;
         }
 
-         .row-current td {
-     background: #d9ead3  !important;
-     color: #274e13 !important;
- }
+        .row-current td {
+            background: #d9ead3 !important;
+            color: #274e13 !important;
+        }
 
         .vl-loader {
             display: none;
@@ -357,6 +357,174 @@
         }
     </style>
 
+    <style>
+        .vl-summary-card {
+            margin-top: 24px;
+            padding: 22px;
+            border: 1px solid var(--vl-border);
+            border-radius: 22px;
+            background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: var(--vl-shadow);
+        }
+
+        .vl-summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .vl-summary-title {
+            margin: 0;
+            color: var(--vl-text);
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .vl-summary-subtitle {
+            margin: 5px 0 0;
+            color: var(--vl-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .vl-summary-period {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 14px;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .vl-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(135px, 1fr));
+            gap: 12px;
+            overflow-x: auto;
+            padding: 2px 2px 8px;
+            scrollbar-color: #bfdbfe transparent;
+            scrollbar-width: thin;
+        }
+
+        .vl-stat-card {
+            --stat-accent: #2563eb;
+            --stat-soft: #eff6ff;
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
+            min-height: 108px;
+            padding: 15px;
+            border: 1px solid #e7ecf4;
+            border-radius: 17px;
+            background: rgba(255, 255, 255, .92);
+            box-shadow: 0 7px 22px rgba(15, 23, 42, .055);
+            transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+        }
+
+            .vl-stat-card::after {
+                content: "";
+                position: absolute;
+                right: -24px;
+                bottom: -35px;
+                width: 88px;
+                height: 88px;
+                border-radius: 50%;
+                background: var(--stat-soft);
+                opacity: .7;
+                pointer-events: none;
+            }
+
+            .vl-stat-card:hover {
+                transform: translateY(-2px);
+                border-color: var(--stat-accent);
+                box-shadow: 0 12px 28px rgba(15, 23, 42, .1);
+            }
+
+        .vl-stat-icon {
+            position: absolute;
+            top: 13px;
+            right: 13px;
+            z-index: 1;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            background: var(--stat-soft);
+            color: var(--stat-accent);
+            font-size: 15px;
+        }
+
+        .vl-stat-content {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            padding-top: 2px;
+        }
+
+        .stat-label {
+            display: block;
+            min-height: 32px;
+            margin: 0 38px 9px 0;
+            color: var(--vl-muted);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .025em;
+            line-height: 1.3;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            display: block;
+            overflow: hidden;
+            color: var(--vl-text);
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -.035em;
+            line-height: 1.05;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .vl-stat-amber { --stat-accent: #d97706; --stat-soft: #fffbeb; }
+        .vl-stat-rose { --stat-accent: #e11d48; --stat-soft: #fff1f2; }
+        .vl-stat-emerald { --stat-accent: #059669; --stat-soft: #ecfdf5; }
+        .vl-stat-violet { --stat-accent: #7c3aed; --stat-soft: #f5f3ff; }
+        .vl-stat-cyan { --stat-accent: #0891b2; --stat-soft: #ecfeff; }
+        .vl-stat-teal { --stat-accent: #0f766e; --stat-soft: #f0fdfa; }
+        .vl-stat-pink { --stat-accent: #db2777; --stat-soft: #fdf2f8; }
+
+        @media (max-width: 575px) {
+            .vl-summary-card {
+                padding: 18px;
+            }
+
+            .vl-summary-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .vl-stat-grid {
+                grid-template-columns: repeat(8, 138px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .vl-stat-card {
+                transition: none;
+            }
+        }
+    </style>
 
     <script type="text/javascript">
         var logTable = null;
@@ -368,6 +536,58 @@
 
         function displayValue(data) {
             return data === null || data === undefined ? "" : data;
+        }
+
+        function getSelectedFilters() {
+            return {
+                Code: getQueryStringValue("Code"),
+                Month: $("#<%= ddlMonth.ClientID %>").val(),
+                Year: $("#<%= ddlYear.ClientID %>").val()
+            };
+        }
+
+        function getSalaryValue(data, fieldName) {
+            var value = data && data[fieldName];
+            return value === null || value === undefined || value === "" ? "0" : value;
+        }
+
+        function resetSalaryInfo() {
+            $("#<%= lblFullDays.ClientID %>, #<%= lblPartialDays.ClientID %>, #<%= lblLatemarkCount.ClientID %>, " +
+                "#<%= lblTotalDays.ClientID %>, #<%= lblTotalDaysWithExtra.ClientID %>, #<%= lblExtraDays.ClientID %>, " +
+                "#<%= lblExtraDaysSalary.ClientID %>, #<%= lblIncentive.ClientID %>").text("0");
+        }
+
+        function bindSalaryInfo() {
+            resetSalaryInfo();
+
+            var request = getSelectedFilters();
+            $("#salarySummaryPeriod").text(request.Month + " " + request.Year);
+
+            $.ajax({
+                type: "POST",
+                url: "ViewLog.aspx/BindSalaryInfo",
+                data: JSON.stringify(request),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    var data = response && response.d ? response.d : {};
+                    data = typeof data === "string" ? JSON.parse(data) : data;
+
+                    $("#<%= lblFullDays.ClientID %>").text(getSalaryValue(data, "FullDay"));
+                    $("#<%= lblPartialDays.ClientID %>").text(getSalaryValue(data, "PartialDay"));
+                    $("#<%= lblLatemarkCount.ClientID %>").text(getSalaryValue(data, "LateMark"));
+                    $("#<%= lblTotalDays.ClientID %>").text(getSalaryValue(data, "TotalDays"));
+                    $("#<%= lblTotalDaysWithExtra.ClientID %>").text(getSalaryValue(data, "TotalDaysWithExtra"));
+                    $("#<%= lblExtraDays.ClientID %>").text(getSalaryValue(data, "ExtraDays"));
+                    $("#<%= lblExtraDaysSalary.ClientID %>").text(getSalaryValue(data, "ExtraDaysSalary"));
+                    $("#<%= lblIncentive.ClientID %>").text(getSalaryValue(data, "Incentive"));
+                },
+                error: function (xhr, status, error) {
+                    console.log("Salary AJAX Status:", status);
+                    console.log("Salary AJAX Error:", error);
+                    console.log("Salary Response Text:", xhr.responseText);
+                }
+            });
         }
 
         function applyStatusClass(row, data) {
@@ -390,11 +610,7 @@
         }
 
         function bindLogTable() {
-            var request = {
-                Code: getQueryStringValue("Code"),
-                Month: $("#<%= ddlMonth.ClientID %>").val(),
-                Year: $("#<%= ddlYear.ClientID %>").val()
-            };
+            var request = getSelectedFilters();
 
             if ($.fn.DataTable.isDataTable("#tblLog")) {
                 logTable.clear().destroy();
@@ -467,8 +683,12 @@
         $(document).ajaxStop(function () { $("#load1").fadeOut(120); });
 
         $(document).ready(function () {
-             bindLogTable();
-            $("#btnLoadLogs").on("click", bindLogTable);
+            bindLogTable();
+            bindSalaryInfo();
+            $("#btnLoadLogs").on("click", function () {
+                bindLogTable();
+                bindSalaryInfo();
+            });
         });
     </script>
 
@@ -486,7 +706,7 @@
         <section class="vl-hero">
             <div class="vl-hero-left">
                 <div class="vl-hero-content">
-                    <h1 class="vl-title"><i class="fas fa-calendar-check"></i> &nbsp; &nbsp;Employee Daily Log Details</h1>
+                    <h1 class="vl-title"><i class="fas fa-calendar-check"></i>&nbsp; &nbsp;Employee Daily Log Details</h1>
                     <p class="vl-subtitle">
                         View monthly attendance logs, break hours, extra hours and day status.
                     </p>
@@ -497,7 +717,7 @@
                 <a href="ProposedSalaryReport.aspx"
                     id="aProposed"
                     runat="server"
-                    class="vl-btn vl-btn-primary" style=" background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%)!important;">
+                    class="vl-btn vl-btn-primary" style="background: linear-gradient(90deg, #1f3c88 0%, #2575fc 55%, #1bc5e8 100%)!important;">
                     <i class="fas fa-file-invoice-dollar"></i>
                     <span>Proposed Salary</span>
                 </a>
@@ -548,6 +768,85 @@
                     <label>&nbsp;</label>
                     <button type="button" id="btnLoadLogs" class="vl-btn vl-btn-primary"><i class="fas fa-search"></i>Show</button>
                 </div>
+            </div>
+        </section>
+
+        <section class="vl-summary-card" aria-labelledby="salarySummaryTitle">
+            <div class="vl-summary-header">
+                <div>
+                    <h2 class="vl-summary-title" id="salarySummaryTitle">Attendance &amp; salary summary</h2>
+                    <p class="vl-summary-subtitle">Key totals for the selected payroll period</p>
+                </div>
+                <div class="vl-summary-period">
+                    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                    <span id="salarySummaryPeriod">Current period</span>
+                </div>
+            </div>
+
+            <div class="vl-stat-grid">
+                <article class="vl-stat-card">
+                    <span class="vl-stat-icon"><i class="fas fa-calendar-check" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Full days</span>
+                        <strong class="stat-value" id="lblFullDays" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-amber">
+                    <span class="vl-stat-icon"><i class="fas fa-clock" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Partial days</span>
+                        <strong class="stat-value" id="lblPartialDays" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-rose">
+                    <span class="vl-stat-icon"><i class="fas fa-user-clock" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Late marks</span>
+                        <strong class="stat-value" id="lblLatemarkCount" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-emerald">
+                    <span class="vl-stat-icon"><i class="fas fa-calendar-day" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Total days</span>
+                        <strong class="stat-value" id="lblTotalDays" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-violet">
+                    <span class="vl-stat-icon"><i class="fas fa-calendar-plus" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Total days + extra</span>
+                        <strong class="stat-value" id="lblTotalDaysWithExtra" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-cyan">
+                    <span class="vl-stat-icon"><i class="fas fa-business-time" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Extra days</span>
+                        <strong class="stat-value" id="lblExtraDays" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-teal">
+                    <span class="vl-stat-icon"><i class="fas fa-coins" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Extra salary</span>
+                        <strong class="stat-value" id="lblExtraDaysSalary" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
+
+                <article class="vl-stat-card vl-stat-pink">
+                    <span class="vl-stat-icon"><i class="fas fa-award" aria-hidden="true"></i></span>
+                    <div class="vl-stat-content">
+                        <span class="stat-label">Incentive</span>
+                        <strong class="stat-value" id="lblIncentive" runat="server" aria-live="polite">0</strong>
+                    </div>
+                </article>
             </div>
         </section>
 

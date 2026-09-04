@@ -41,6 +41,27 @@ namespace WebPortal.Admin
             ddlYear.SelectedValue = DateTime.Now.Year.ToString();
         }
 
+
+        [WebMethod]
+        public static Dictionary<string, object> BindSalaryInfo(string Code, string Month, string Year)
+        {
+            DataTable dt = new bllSalary().GetSalaryDetails_CurrentMonth(Code, Month, Year);
+
+            Dictionary<string, object> salaryInfo = new Dictionary<string, object>();
+
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                foreach (DataColumn column in dt.Columns)
+                {
+                    object value = dt.Rows[0][column];
+                    salaryInfo[column.ColumnName] = value == DBNull.Value ? "" : value;
+                }
+            }
+
+            return salaryInfo;
+        }
+
+
         public void BindUserInfo(string Code)
         {
             int EmployeeID = new bllMaster().GetEmployeeIdFromCode(Code);
@@ -177,4 +198,4 @@ namespace WebPortal.Admin
 
         #endregion
     }
- }
+}

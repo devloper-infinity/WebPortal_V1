@@ -42,6 +42,11 @@ namespace WebPortal.App_Code.BLL
             return dalSalary.getSalaryDetails(Code);
         }
 
+        public DataTable GetSalaryDetails_CurrentMonth(string Code, string Month, string Year)
+        {
+           return dalSalary.GetSalaryDetails_CurrentMonth(Code, Month, Year);
+        }
+
         public DataTable GetViewTDSDeclaration_OLD(string TaxYear, int EmployeeID)
         {
             return dalSalary.GetViewTDSDeclaration_OLD(TaxYear, EmployeeID);

@@ -51,6 +51,16 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetSalaryDetails_CurrentMonth(string Code, string Month, string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetSalaryDetails_CurrentMonth");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 10, System.Data.ParameterDirection.Input, Code);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetViewTDSDeclaration_OLD(string TaxYear, int EmployeeID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TDS_GetManualTDSData_Revised_ForUser_1_22"); //usp_TDS_GetManualTDSData_ForUser//usp_GetViewAllTDSDeclaration
