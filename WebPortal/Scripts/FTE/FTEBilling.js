@@ -2,6 +2,7 @@ var fteBillingTable;
 var fteBillingRows = [];
 var fteBillingLoadingDepth = 0;
 var fteBillingLoadingGuard = null;
+var fteBillingReportTitle = "";
 
 function BindBillingProject() {
     if (!document.getElementById("fte_billingProject") || typeof PageMethods === "undefined" || !PageMethods.GetAllProjects) {
@@ -113,6 +114,7 @@ function btnShowFteBilling() {
         try {
             var report = parseFteBillingPayload(result);
             fteBillingRows = report.Rows || [];
+            fteBillingReportTitle = report.ReportTitle || "";
             renderFteBillingSummary(report.Summary || {});
             initializeFteBillingTable(fteBillingRows);
             showFteBillingMessage("Billing report loaded.", "success");
@@ -164,6 +166,7 @@ function btnSubmitSendToAccounts() {
 function initializeFteBillingTable(rows) {
     var columns = rows && rows.length ? Object.keys(rows[0]) : [];
     var $table = $("#tableFteBilling");
+    $table.find("caption").remove();
 
     if ($.fn.dataTable.isDataTable("#tableFteBilling")) {
         fteBillingTable.destroy();
@@ -174,6 +177,10 @@ function initializeFteBillingTable(rows) {
         $table.find("tbody").html('<tr><td class="text-center text-muted">No billing data available</td></tr>');
         $("#billingRecordLabel").text("Current records");
         return;
+    }
+
+    if (fteBillingReportTitle) {
+        $table.prepend('<caption class="fte-average-billing-title">' + escapeFteBillingHtml(fteBillingReportTitle) + '</caption>');
     }
 
     var thead = "<tr>";
@@ -203,7 +210,7 @@ function initializeFteBillingTable(rows) {
         dom: "<'row align-items-center mb-2'<'col-md-4'l><'col-md-4 text-center'B><'col-md-4'f>>" +
             "rt<'row align-items-center mt-2'<'col-md-5'i><'col-md-7'p>>",
         buttons: [
-            { extend: "excelHtml5", text: '<i class="fas fa-file-excel"></i> Excel', className: "btn btn-sm" },
+            { extend: "excelHtml5", title: fteBillingReportTitle || null, text: '<i class="fas fa-file-excel"></i> Excel', className: "btn btn-sm" },
             { extend: "print", text: '<i class="fas fa-print"></i> Print', className: "btn btn-sm" }
         ]
     });
@@ -231,6 +238,7 @@ function resetFteBilling() {
 
 function resetFteBillingReport() {
     fteBillingRows = [];
+    fteBillingReportTitle = "";
     renderFteBillingSummary({});
     initializeFteBillingTable([]);
 }
