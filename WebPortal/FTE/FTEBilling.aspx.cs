@@ -129,9 +129,9 @@ namespace WebPortal.FTE
                 DataTable billingData = DictionaryListToDataTable(report.Rows);
                 DataTable attendanceData = GetBillingAttendance(ProjectID, NormalizePeriod(BillingPeriod));
 
-                string billingFile = WriteBillingExcelFile(ProjectName, BillingPeriod, "FTE Billing Details", billingData);
+                string billingFile = WriteBillingExcelFile(ProjectName, BillingPeriod, "FTE Billing Details", billingData, IsAverageFteBillingProject(ProjectID));
                 string attendanceFile = attendanceData != null && attendanceData.Rows.Count > 0
-                    ? WriteBillingExcelFile(ProjectName, BillingPeriod, "FTE Billing Attendance", attendanceData)
+                    ? WriteBillingExcelFile(ProjectName, BillingPeriod, "FTE Billing Attendance", attendanceData, false)
                     : string.Empty;
 
                 BillingDelayInfo delayInfo = GetBillingDelayInfo(ProjectID, BillingPeriod);
@@ -175,10 +175,122 @@ namespace WebPortal.FTE
             AppendExtraFteOperatorColumns(dt, projectID, normalizedPeriod);
 
             BillingReportResult result = new BillingReportResult();
-            result.Rows = DataTableToDictionaryList(dt);
             result.Summary = BuildSummary(projectID, normalizedPeriod, dt);
-            result.RecordCount = dt == null ? 0 : dt.Rows.Count;
+            DataTable displayData = IsAverageFteBillingProject(projectID)
+                ? BuildAverageFteBillingData(dt, projectID, normalizedPeriod)
+                : dt;
+            result.Rows = DataTableToDictionaryList(displayData);
+            result.RecordCount = displayData == null ? 0 : displayData.Rows.Count;
+            result.ReportTitle = IsAverageFteBillingProject(projectID) ? GetBillingMonthTitle(normalizedPeriod) : string.Empty;
             return result;
+        }
+
+        private static bool IsAverageFteBillingProject(int projectID)
+        {
+            return projectID == 203 || projectID == 400;
+        }
+
+        private static DataTable BuildAverageFteBillingData(DataTable source, int projectID, string billingPeriod)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("S.No");
+            result.Columns.Add("Date");
+            result.Columns.Add("Target Assigned");
+            result.Columns.Add("Total invoices");
+            result.Columns.Add("Average FTE");
+            result.Columns.Add("Billed FTE");
+
+            if (source == null || source.Rows.Count == 0) return result;
+
+            DataTable averageData = GetAverageFteBillingDetails(projectID, billingPeriod);
+            Dictionary<string, DataRow> averages = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
+            if (averageData != null)
+            {
+                foreach (DataRow averageRow in averageData.Rows)
+                {
+                    DateTime averageDate;
+                    object averageDateValue = averageRow["Date"];
+                    bool hasAverageDate = averageDateValue != DBNull.Value && averageDateValue is DateTime;
+                    if (hasAverageDate)
+                    {
+                        averageDate = ((DateTime)averageDateValue).Date;
+                    }
+                    else
+                    {
+                        hasAverageDate = TryParseBillingDate(Convert.ToString(averageDateValue), out averageDate);
+                    }
+
+                    if (hasAverageDate)
+                        averages[BuildAverageFteKey(averageDate, Convert.ToString(averageRow["ProcessName"]))] = averageRow;
+                }
+            }
+
+            int serialNumber = 1;
+            foreach (DataRow sourceRow in source.Rows)
+            {
+                DataRow row = result.NewRow();
+                DateTime workDate;
+                bool hasDate = TryParseBillingDate(GetDataRowText(sourceRow, "Date"), out workDate);
+                string target = GetDataRowText(sourceRow, "AssignTarget");
+                string invoices = GetDataRowText(sourceRow, "TotalInvoices");
+                bool isHoliday = string.Equals(target, "Holiday", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(invoices, "Holiday", StringComparison.OrdinalIgnoreCase);
+
+                row["S.No"] = serialNumber++;
+                row["Date"] = hasDate ? workDate.ToString("d-MMM-yy", CultureInfo.InvariantCulture) : GetDataRowText(sourceRow, "Date");
+                row["Target Assigned"] = isHoliday ? "Holiday" : target;
+                row["Total invoices"] = isHoliday ? "Holiday" : FormatBillingCount(invoices);
+
+                DataRow averageRow;
+                string key = hasDate ? BuildAverageFteKey(workDate, GetDataRowText(sourceRow, "Process")) : string.Empty;
+                if (isHoliday)
+                {
+                    row["Average FTE"] = "Holiday";
+                    row["Billed FTE"] = "Holiday";
+                }
+                else if (averages.TryGetValue(key, out averageRow) && averageRow["AverageFTE"] != DBNull.Value)
+                {
+                    decimal averageFte = Convert.ToDecimal(averageRow["AverageFTE"]);
+                    row["Average FTE"] = averageFte.ToString("0.00", CultureInfo.InvariantCulture);
+                    row["Billed FTE"] = Convert.ToDecimal(averageRow["BilledFTE"]).ToString("0", CultureInfo.InvariantCulture);
+                }
+
+                result.Rows.Add(row);
+            }
+            return result;
+        }
+
+        private static DataTable GetAverageFteBillingDetails(int projectID, string billingPeriod)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetFTEAverageBillingData");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 10, ParameterDirection.Input, projectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", SqlDbType.NVarChar, 500, ParameterDirection.Input, billingPeriod);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        private static string BuildAverageFteKey(DateTime date, string processName)
+        {
+            return date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "|" + Convert.ToString(processName).Trim();
+        }
+
+        private static string GetDataRowText(DataRow row, string columnName)
+        {
+            return row != null && row.Table.Columns.Contains(columnName) ? Convert.ToString(row[columnName]) : string.Empty;
+        }
+
+        private static string FormatBillingCount(string value)
+        {
+            decimal number;
+            return decimal.TryParse(value, out number) ? number.ToString("0.##", CultureInfo.InvariantCulture) : value;
+        }
+
+        private static string GetBillingMonthTitle(string billingPeriod)
+        {
+            string[] parts = Convert.ToString(billingPeriod).Split('~');
+            DateTime fromDate;
+            return parts.Length > 0 && TryParseBillingDate(parts[0], out fromDate)
+                ? fromDate.ToString("MMM-yy", CultureInfo.InvariantCulture)
+                : string.Empty;
         }
 
         private static Dictionary<string, object> BuildSummary(int projectID, string normalizedPeriod, DataTable dt)
@@ -445,7 +557,7 @@ namespace WebPortal.FTE
             return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
 
-        private static string WriteBillingExcelFile(string projectName, string billingPeriod, string reportName, DataTable data)
+        private static string WriteBillingExcelFile(string projectName, string billingPeriod, string reportName, DataTable data, bool useAverageFteLayout)
         {
             string root = HttpContext.Current.Server.MapPath("~/WBT/Billing/");
             string folder = Path.Combine(root, CleanFileName(projectName), CleanFileName(billingPeriod));
@@ -455,7 +567,13 @@ namespace WebPortal.FTE
             string filePath = Path.Combine(folder, fileName);
 
             StringBuilder html = new StringBuilder();
-            html.Append("<html><head><meta charset=\"utf-8\" /></head><body><table border=\"1\">");
+            html.Append("<html><head><meta charset=\"utf-8\" /></head><body><table border=\"1\" style=\"border-collapse:collapse;\">");
+            if (useAverageFteLayout)
+            {
+                html.Append("<tr><th colspan=\"6\" style=\"background:#d9d9d9;text-align:center;font-weight:bold;\">");
+                html.Append(HttpUtility.HtmlEncode(GetBillingMonthTitle(NormalizePeriod(billingPeriod))));
+                html.Append("</th></tr>");
+            }
             html.Append("<thead><tr>");
 
             foreach (DataColumn column in data.Columns)
@@ -759,6 +877,7 @@ namespace WebPortal.FTE
             public List<Dictionary<string, object>> Rows { get; set; }
             public Dictionary<string, object> Summary { get; set; }
             public int RecordCount { get; set; }
+            public string ReportTitle { get; set; }
         }
 
         private class BillingActionResult

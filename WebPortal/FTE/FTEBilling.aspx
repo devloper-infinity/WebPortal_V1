@@ -220,6 +220,17 @@
             white-space: nowrap;
         }
 
+        #tableFteBilling caption.fte-average-billing-title {
+            caption-side: top;
+            padding: 8px;
+            border: 1px solid #6b7280;
+            border-bottom: 0;
+            background: #d9d9d9;
+            color: #111827;
+            font-weight: 800;
+            text-align: center;
+        }
+
         .dataTables_wrapper {
             width: 100%;
         }
