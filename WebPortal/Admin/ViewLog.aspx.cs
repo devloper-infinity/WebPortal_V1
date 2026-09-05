@@ -1,4 +1,5 @@
 ﻿using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.DAL;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Microsoft.Ajax.Utilities;
 
 namespace WebPortal.Admin
 {
@@ -45,10 +47,15 @@ namespace WebPortal.Admin
         [WebMethod]
         public static Dictionary<string, object> BindSalaryInfo(string Code, string Month, string Year)
         {
-            DataTable dt = new bllSalary().GetSalaryDetails_CurrentMonth(Code, Month, Year);
+            DataTable dt = null;
+            if (Month == DateTime.Now.ToString("MMMM") && Year == DateTime.Now.ToString("yyyy"))
+                dt = new dalMaster().GetAllWorkingDetails(Code);
+            else
+                dt = new bllSalary().GetSalaryDetails_CurrentMonth(Code, Month, Year);
+
 
             Dictionary<string, object> salaryInfo = new Dictionary<string, object>();
-
+                
             if (dt != null && dt.Rows.Count > 0)
             {
                 foreach (DataColumn column in dt.Columns)

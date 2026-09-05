@@ -404,6 +404,9 @@ FodyWeavers.xsd
 !/WebPortal/US/ProjectProcessLoanReport.aspx
 !/WebPortal/US/ProjectProcessLoanReport.aspx.cs
 !/WebPortal/US/ProjectProcessLoanReport.aspx.designer.cs
+!/WebPortal/US/ResetPasswordSegment.aspx
+!/WebPortal/US/ResetPasswordSegment.aspx.cs
+!/WebPortal/US/ResetPasswordSegment.aspx.designer.cs
 !/WebPortal/App_Code/
 /WebPortal/App_Code/*
 !/WebPortal/App_Code/BLL/
@@ -426,6 +429,9 @@ FodyWeavers.xsd
 !/WebPortal/TrackingSheet/ManagerDashboard.Snd.js
 !/WebPortal/Scripts/
 /WebPortal/Scripts/*
+!/WebPortal/Scripts/US/
+/WebPortal/Scripts/US/*
+!/WebPortal/Scripts/US/ResetPasswordSegment.js
 !/WebPortal/Scripts/Search/
 /WebPortal/Scripts/Search/*
 !/WebPortal/Scripts/Search/SummaryReport.js

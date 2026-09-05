@@ -72,6 +72,11 @@ namespace WebPortal.App_Code.BLL
 
         }
 
+        public int UpdateResetPassword(string code, string password)
+        {
+            return dalMaster.UpdateResetPassword(code, password);
+        }
+
         public int InsertResearchBilling_NewERP(int ProjectID, string BillingPeriod, int AddedBy)
         {
             return dalMaster.InsertResearchBilling_NewERP(ProjectID, BillingPeriod, AddedBy);

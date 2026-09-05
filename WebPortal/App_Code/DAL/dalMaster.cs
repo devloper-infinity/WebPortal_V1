@@ -321,6 +321,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+
+        public DataTable GetAllWorkingDetails(string Code)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllWorkingDetails");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, Code);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetProductivityforDashboard_Employee(string code)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetProductivityPerc_Dashboard_KRL");//GetProductivityPerc_Dashboard
@@ -5335,6 +5344,21 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
+
+        public int UpdateResetPassword(string code, string password)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "UpdateResetPassword");
+            SQLHelper.AddParamToSQLCmd(cmd, "@code", System.Data.SqlDbType.NVarChar, 10, System.Data.ParameterDirection.Input, code);
+            SQLHelper.AddParamToSQLCmd(cmd, "@password", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, password);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
 
         public int InsertUserDomain(Hashtable htParam)
         {

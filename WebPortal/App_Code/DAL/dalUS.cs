@@ -21,13 +21,19 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetUSEmployees_Onshore()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUSEmployees_Onshore");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         public DataTable GetAllUSAssets()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllUSAssets");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
-
 
         public DataTable GetLoanDetails_RemoteUW_REQC(int EmpID)
         {
@@ -117,6 +123,7 @@ SELECT LoanNo,ProcessID,ProcessName,Employee,StartDate,EndDate,[Status] FROM Lat
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
         public DataTable GetDatewiseOnShoreProduction_Monthly_Report(string Month, string Year)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetDatewiseOnShoreProduction_Monthly_Report");
@@ -340,7 +347,8 @@ OPTION (RECOMPILE);");
             }
             return result;
         }
-public DataTable GetGlobalSearchReQcStatuses_OLD(IEnumerable<string> loanNumbers)
+
+        public DataTable GetGlobalSearchReQcStatuses_OLD(IEnumerable<string> loanNumbers)
         {
             DataTable result = new DataTable();
             result.Columns.Add("ProjectNumber", typeof(string)); result.Columns.Add("DealNo", typeof(string)); result.Columns.Add("LoanNo", typeof(string));
@@ -459,6 +467,7 @@ WHERE RowNumber = 1;");
             }
             return result;
         }
+
         public DataTable GetOverAllUserPerformance_credit_Greg(int EmployeeID, string FromDate, string ToDate)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOverAllUserPerformance_credit_Greg");
@@ -488,7 +497,6 @@ WHERE RowNumber = 1;");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
-
 
         public DataTable GetUSImportedFeedback_ByUser_NewERP(string LoanNo, int EmployeeID)
         {
@@ -578,6 +586,7 @@ SELECT CONVERT(int,SCOPE_IDENTITY());");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
         public DataTable GetLoanDetailsbyLoanNo_Canopy(string DealNo, string LoanNo, string Script, string TaskName)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUSLoanDetails_Canopy_Revised");
@@ -1450,7 +1459,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SaveInfinityFeedbackOnshoreRemark_1");
             SQLHelper.AddParamToSQLCmd(cmd, "@FeedbackID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, FeedbackID);
             SQLHelper.AddParamToSQLCmd(cmd, "@Client", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Client);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Remark); 
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, Remark);
             SQLHelper.AddParamToSQLCmd(cmd, "@RebuttalStatus", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, RebuttalStatus);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, AddedBy);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);

@@ -205,13 +205,15 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int InsertSocialSiteVisitors(int EmployeeID, string SocialSite, string DateVisited)
+        public static int InsertSocialSiteVisitors(int EmployeeID, string SocialSite, string DateVisited, string Month, string Year)
         {
             int returnvalue = 0;
             Hashtable htParam = new Hashtable();
             htParam.Add("EmployeeID", EmployeeID);
             htParam.Add("SocialSite", SocialSite);
             htParam.Add("DateVisited", Convert.ToDateTime(DateVisited).ToString("dd-MMM-yyyy"));
+            htParam.Add("Month", Month);
+            htParam.Add("Year", Year);
 
             if (NewFileName != "")
             {

@@ -638,6 +638,9 @@ function socialsite_submit() {
     var socialsite_site = ddlsite.options[ddlsite.selectedIndex].value;
     var socialsite_datevisited = document.getElementById("socialsite_datevisited").value;
 
+    var year = $("#socialsite_year").val();
+    var month = $("#socialsite_month").val();
+
     if (socialsite_employee == "") {
         alert("Please select employee");
         return false;
@@ -651,7 +654,7 @@ function socialsite_submit() {
         return false;
     }
 
-    PageMethods.InsertSocialSiteVisitors(socialsite_employee, socialsite_site, socialsite_datevisited, socialsite_OnSuccess, socialsite_OnError);
+    PageMethods.InsertSocialSiteVisitors(socialsite_employee, socialsite_site, socialsite_datevisited, month, year, socialsite_OnSuccess, socialsite_OnError);
     return false;
 }
 

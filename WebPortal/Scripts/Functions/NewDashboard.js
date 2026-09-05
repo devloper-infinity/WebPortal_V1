@@ -907,12 +907,10 @@ function renderWorkAnniversary(data, callback) {
     $("#years_header").html((emp.YearsCompleted || "0") + " Years of Excellence");
 
     $("#message_header").html(
-        (jubileeEach && jubileeEach.message)
-            ? jubileeEach.message
-            : getAnniversaryMessage(emp.YearsCompleted)
+        (jubileeEach && jubileeEach.message)? jubileeEach.message: getAnniversaryMessage(emp.YearsCompleted)
     );
 
-    $("#dash_anniversaryModal").modal("show");
+    // $("#dash_anniversaryModal").modal("show");
 
     startConfetti();
 

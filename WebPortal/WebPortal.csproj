@@ -875,6 +875,7 @@
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
+    <Content Include="Scripts\US\ResetPasswordSegment.js" />
     <Content Include="SoftwareRequests\Dashboard.aspx" />
     <Content Include="SoftwareRequests\NewRequest.aspx" />
     <Content Include="TrackingSheet\ManagerDashboard.Snd.js" />
@@ -2979,6 +2980,7 @@
     <Content Include="US\CreditConsolidatedReport.aspx" />
     <Content Include="US\Dashboard.aspx" />
     <Content Include="US\CanopySearch.aspx" />
+    <Content Include="US\ResetPasswordSegment.aspx" />
     <Content Include="US\USDashboard.aspx" />
     <Content Include="US\InfinityFeedbackOnshore.aspx" />
     <Content Include="US\ReQcUtility.aspx" />
@@ -5557,6 +5559,13 @@
     </Compile>
     <Compile Include="US\CanopySearch.aspx.designer.cs">
       <DependentUpon>CanopySearch.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\ResetPasswordSegment.aspx.cs">
+      <DependentUpon>ResetPasswordSegment.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\ResetPasswordSegment.aspx.designer.cs">
+      <DependentUpon>ResetPasswordSegment.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\USDashboard.aspx.cs">
       <DependentUpon>USDashboard.aspx</DependentUpon>
