@@ -974,7 +974,7 @@ namespace WebPortal.Search
 
                     string ToAddress = "t.jason@infinityinternationals.us,e.mike@infinityinternationals.us,m.jacob@infinityinternationals.us"; // "josh@infinityinternationals.us,shaun@infinityinternationals.us,n.prasad@infinityinternationals.us");
                     string ToCC = "";
-                    string ToBCC = "b.shubhangi@infinityinternationals.us";
+                    string ToBCC = ""; //"b.shubhangi@infinityinternationals.us";
                     string Subject = "New order assigned" + (string.IsNullOrWhiteSpace(orderNo) ? string.Empty : " | " + orderNo) + " | " + abstractor;
                     string strPassword = new bllMaster().GetPassword("ackdata");
 

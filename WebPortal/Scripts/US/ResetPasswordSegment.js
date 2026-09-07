@@ -2,7 +2,7 @@
     "use strict";
 
     var rpsEmployeeTable = null;
-    var rpsPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    var rpsPasswordPattern = /^(?!.*%)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
 
     $(document).ready(function () {
         rps_bindTabs();

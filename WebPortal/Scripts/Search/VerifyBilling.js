@@ -507,8 +507,6 @@ function verifyBilling_addRemark(orderid, index) {
 
 function btnverfybilling_AddRemark() {
 
-    alert("");
-
     var orderCost = $('#vrbil_orderCost').val();
     var remark = $('#vrbil_remark').val().trim();
 

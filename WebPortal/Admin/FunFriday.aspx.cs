@@ -110,7 +110,7 @@ namespace WebPortal.Admin
                     row = new Dictionary<string, object>();
                     foreach (DataColumn col in dt1.Columns)
                     {
-                        row.Add(col.ColumnName, dr[col]);
+                        row.Add(col.ColumnName, GetClientValue(dr, col));
                     }
                     rows.Add(row);
                 }
@@ -133,7 +133,7 @@ namespace WebPortal.Admin
                     row = new Dictionary<string, object>();
                     foreach (DataColumn col in dt1.Columns)
                     {
-                        row.Add(col.ColumnName, dr[col]);
+                        row.Add(col.ColumnName, GetClientValue(dr, col));
                     }
                     rows.Add(row);
                 }
@@ -141,6 +141,69 @@ namespace WebPortal.Admin
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        private static object GetClientValue(DataRow dataRow, DataColumn column)
+        {
+            object value = dataRow[column];
+            if (value == DBNull.Value)
+            {
+                return value;
+            }
+
+            if (column.ColumnName.Equals("Path1", StringComparison.OrdinalIgnoreCase) ||
+                column.ColumnName.Equals("Snaps", StringComparison.OrdinalIgnoreCase))
+            {
+                return ConvertSnapPathsToUrls(Convert.ToString(value));
+            }
+
+            return value;
+        }
+
+        private static string ConvertSnapPathsToUrls(string storedPaths)
+        {
+            if (String.IsNullOrWhiteSpace(storedPaths))
+            {
+                return String.Empty;
+            }
+
+            const string documentFolder = "BillingDocuments/";
+            List<string> publicUrls = new List<string>();
+
+            foreach (string storedPath in storedPaths.Split(','))
+            {
+                string path = storedPath.Trim().Replace('\\', '/');
+                if (path.Length == 0)
+                {
+                    continue;
+                }
+
+                Uri absoluteUri;
+                if (Uri.TryCreate(path, UriKind.Absolute, out absoluteUri) &&
+                    (absoluteUri.Scheme == Uri.UriSchemeHttp || absoluteUri.Scheme == Uri.UriSchemeHttps))
+                {
+                    publicUrls.Add(path);
+                    continue;
+                }
+
+                int folderIndex = path.IndexOf(documentFolder, StringComparison.OrdinalIgnoreCase);
+                if (folderIndex < 0)
+                {
+                    // Do not expose an unrecognized physical server path to the browser.
+                    continue;
+                }
+
+                string relativePath = path.Substring(folderIndex);
+                string[] segments = relativePath.Split('/');
+                for (int index = 0; index < segments.Length; index++)
+                {
+                    segments[index] = Uri.EscapeDataString(segments[index]);
+                }
+
+                publicUrls.Add(VirtualPathUtility.ToAbsolute("~/" + String.Join("/", segments)));
+            }
+
+            return String.Join(",", publicUrls);
         }
 
         [WebMethod]

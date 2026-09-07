@@ -210,6 +210,7 @@ namespace WebPortal.US
         {
             return !string.IsNullOrWhiteSpace(password)
                 && password.Length >= 8
+                && !password.Contains("%")
                 && Regex.IsMatch(password, "[A-Z]")
                 && Regex.IsMatch(password, "[a-z]")
                 && Regex.IsMatch(password, "[0-9]")

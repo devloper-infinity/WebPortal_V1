@@ -298,7 +298,7 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static int AddRemark_VerifyBilling(int Project, string BillingPeriod, int OrderID, string OrderCost, string Remark, bool IsMailInput, decimal CostDiff, string EmailInput, string AttachmentPath)
+        public static int AddRemark_VerifyBilling(int Project, string BillingPeriod, int OrderID, string OrderCost, string Remark, bool IsMailInput, string CostDiff, string EmailInput, string AttachmentPath)
         {
             int returnValue =  new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
 

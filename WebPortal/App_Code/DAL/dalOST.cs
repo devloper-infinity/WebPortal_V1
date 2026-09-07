@@ -738,7 +738,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input,htDetails["Project"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htDetails["BillingPeriod"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input,  htDetails["OrderID"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@CostDiff", System.Data.SqlDbType.Decimal, 0, System.Data.ParameterDirection.Input, htDetails["CostDiff"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CostDiff", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["CostDiff"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmailNote", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["EmailNote"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AttachmentPath", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDetails["AttachmentPath"]);
 
