@@ -125,6 +125,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Accounts\BranchwiseSalaryAnalysis.aspx" />
     <Content Include="Accounts\AdvanceMaster.aspx" />
     <Content Include="Accounts\BonusMaster.aspx" />
     <Content Include="Accounts\CompareReportDueSalary.aspx" />
@@ -132,6 +133,7 @@
     <Content Include="Accounts\CreditCardMonthlyTransaction.aspx" />
     <Content Include="Accounts\Dashboard.aspx" />
     <Content Include="Accounts\AccountsModern.css" />
+    <Content Include="Accounts\DownloadForm16.aspx" />
     <Content Include="Accounts\ESIPFDeductionReport.aspx" />
     <Content Include="Accounts\ImportCCStatement.aspx" />
     <Content Include="Accounts\IncentiveMaster.aspx" />
@@ -141,8 +143,11 @@
     <Content Include="Accounts\SalaryReport_DepartmentWise.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\All.aspx" />
+    <Content Include="Admin\ExcelCrossCheck.aspx" />
     <Content Include="Admin\FeedbackPerformanceReport.aspx" />
+    <Content Include="Admin\IDCardProcedure.aspx" />
     <Content Include="Admin\ProjectEmailConfiguration.aspx" />
     <Content Include="All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
@@ -204,6 +209,7 @@
     <Content Include="Assets\ViewAssets.aspx" />
     <Content Include="Assets\ViewPurchaseOrders.aspx" />
     <Content Include="Assets\WarrantyExpiryReport.aspx" />
+    <Content Include="Content\erp-modern-common.css" />
     <Content Include="Content\software-requests.css" />
     <Content Include="CRM\Accounts.aspx" />
     <Content Include="CRM\Activities.aspx" />
@@ -277,6 +283,8 @@
     <Content Include="Admin\EmployeeDocuments.aspx" />
     <Content Include="Admin\EmployeeInformation.aspx" />
     <Content Include="Admin\EmployeeKYC.aspx" />
+    <Content Include="Admin\EmployeeKYCReport.aspx" />
+    <Content Include="Admin\RecruitmentReport.aspx" />
     <Content Include="Admin\EmployeeLeaves.aspx" />
     <Content Include="Admin\ExcelBillingReport.aspx" />
     <Content Include="Admin\GenerateEmpDocs.aspx" />
@@ -706,9 +714,16 @@
     <Content Include="FTE\ProjectMonthlyOperatorHours.aspx" />
     <Content Include="Helpdesk\Administration.aspx" />
     <Content Include="Content\Helpdesk.css" />
-    <Content Include="Helpdesk\Home.aspx" />
-    <Content Include="Helpdesk\Ticket.aspx" />
-    <Content Include="Helpdesk\Workbench.aspx" />
+    <Content Include="Helpdesk\Dashboard.aspx" />
+    <Content Include="Helpdesk\helpdesk.css" />
+    <Content Include="Helpdesk\helpdesk.js" />
+    <Content Include="Helpdesk\HelpdeskPerformance.aspx" />
+    <Content Include="Helpdesk\IHMS_Database.sql" />
+    <Content Include="Helpdesk\MyHelpdeskTickets.aspx" />
+    <Content Include="Helpdesk\MyTickets.aspx" />
+    <Content Include="Helpdesk\TicketApproval.aspx" />
+    <Content Include="Helpdesk\TicketDetails.aspx" />
+    <Content Include="Helpdesk\TicketReport.aspx" />
     <Content Include="images\InfinityWatermark.JPG" />
     <Content Include="images\logo-login.png" />
     <Content Include="images\Welcome to POSH Awareness Training.mp4" />
@@ -3056,6 +3071,10 @@
     <Compile Include="Accounts\Dashboard.aspx.designer.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Accounts\DownloadForm16.aspx.cs">
+      <DependentUpon>DownloadForm16.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Accounts\IncrementProposal.aspx.cs">
       <DependentUpon>IncrementProposal.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3130,6 +3149,18 @@
     <Compile Include="Admin\Birthday.aspx.designer.cs">
       <DependentUpon>Birthday.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\ExcelCrossCheck.aspx.cs">
+      <DependentUpon>ExcelCrossCheck.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ExcelCrossCheckEngine.cs" />
+    <Compile Include="Admin\IDCardProcedure.aspx.cs">
+      <DependentUpon>IDCardProcedure.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\IDCardProcedure.aspx.designer.cs">
+      <DependentUpon>IDCardProcedure.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\MonthlyBirthdays.aspx.cs">
       <DependentUpon>MonthlyBirthdays.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3150,6 +3181,20 @@
     </Compile>
     <Compile Include="Admin\BranchAndDateWiseAttendanceReport.aspx.designer.cs">
       <DependentUpon>BranchAndDateWiseAttendanceReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\BuybackSettlement.aspx.cs">
+      <DependentUpon>BuybackSettlement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\BuybackSettlement.aspx.designer.cs">
+      <DependentUpon>BuybackSettlement.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.cs">
+      <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.designer.cs">
+      <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\EditInfinityFeedbackHelpers.cs" />
     <Compile Include="Admin\FeedbackPerformanceExcelExporter.cs" />
@@ -3232,16 +3277,37 @@
       <DependentUpon>Administration.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Helpdesk\Home.aspx.cs">
-      <DependentUpon>Home.aspx</DependentUpon>
+    <Compile Include="Helpdesk\Dashboard.aspx.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Helpdesk\Ticket.aspx.cs">
-      <DependentUpon>Ticket.aspx</DependentUpon>
+    <Compile Include="Helpdesk\HelpdeskPerformance.aspx.cs">
+      <DependentUpon>HelpdeskPerformance.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Helpdesk\Workbench.aspx.cs">
-      <DependentUpon>Workbench.aspx</DependentUpon>
+    <Compile Include="Helpdesk\HelpdeskRepository.cs" />
+    <Compile Include="Helpdesk\IHMSPage.Master.cs">
+      <DependentUpon>IHMSPage.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\MyHelpdeskTickets.aspx.cs">
+      <DependentUpon>MyHelpdeskTickets.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\MyTickets.aspx.cs">
+      <DependentUpon>MyTickets.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\TicketApproval.aspx.cs">
+      <DependentUpon>TicketApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\TicketDetails.aspx.cs">
+      <DependentUpon>TicketDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Helpdesk\TicketReport.aspx.cs">
+      <DependentUpon>TicketReport.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Search\SearchDashboard.aspx.cs">
@@ -4125,6 +4191,20 @@
     </Compile>
     <Compile Include="Admin\EmployeeKYC.aspx.designer.cs">
       <DependentUpon>EmployeeKYC.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\EmployeeKYCReport.aspx.cs">
+      <DependentUpon>EmployeeKYCReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\EmployeeKYCReport.aspx.designer.cs">
+      <DependentUpon>EmployeeKYCReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\RecruitmentReport.aspx.cs">
+      <DependentUpon>RecruitmentReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\RecruitmentReport.aspx.designer.cs">
+      <DependentUpon>RecruitmentReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\EmployeeLeaves.aspx.cs">
       <DependentUpon>EmployeeLeaves.aspx</DependentUpon>
@@ -5894,8 +5974,9 @@
     <Content Include="Feedback\Feedback.Master" />
     <Content Include="Assets\Templates\AssetImportTemplate.csv" />
     <Content Include="Assets\Admin.Master" />
-    <Content Include="Helpdesk\PROCESS-FLOW.md" />
     <Content Include="ReportTemplates\Feedback_Performance_Template.xlsx" />
+    <Content Include="Helpdesk\IHMSPage.Master" />
+    <Content Include="Helpdesk\README.md" />
     <None Include="packages.config" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.css.map" />
     <Content Include="plugins\bootstrap-colorpicker\css\bootstrap-colorpicker.min.css.map" />

@@ -1,6 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ESIPFInformation.aspx.cs" Inherits="WebPortal.Admin.ESIPFInformation" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <link rel="stylesheet" href="../Content/erp-modern-common.css" />
     <style>
         .loading {
             display: none;
@@ -180,15 +181,16 @@
         <img src="../images/Load_1.gif" />
         <div style="font-size: 12px; font-weight: bold;">One moment, please . . . .</div>
     </div>
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>ESI and PF Information for KYC</b></h6>
+    <div class="container-fluid">
+        <div class="erp-dashboard-header">
+            <div class="erp-dashboard-header-content">
+                <div class="erp-dashboard-icon"><i class="fas fa-copy"></i></div>
+                <div>
+                    <h1 class="erp-dashboard-title">ESI and PF Information for KYC</h1>
+                    <p class="erp-dashboard-subtitle">View and export employee ESI/PF and KYC information.</p>
                 </div>
             </div>
         </div>
-        <!-- /.container-fluid -->
     </div>
     <div class="col-lg-12" id="mainleaveuser">
         <div class="card">
