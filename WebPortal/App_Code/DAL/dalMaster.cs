@@ -4738,10 +4738,11 @@ namespace WebPortal.App_Code.DAL
 
         public DataSet GetReportingManagerWiseAttrition(Hashtable htParam)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetPMWiseAttrition");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetDomainWiseAttrition_YTU");/*usp_GetPMWiseAttrition*/
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@PMID", System.Data.SqlDbType.Int, 100, System.Data.ParameterDirection.Input, htParam["PMID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DomainID", System.Data.SqlDbType.BigInt, 100, System.Data.ParameterDirection.Input, htParam["DomainID"]);
+            //SQLHelper.AddParamToSQLCmd(cmd, "@PMID", System.Data.SqlDbType.Int, 100, System.Data.ParameterDirection.Input, htParam["PMID"]);
             DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
             return dt;
         }

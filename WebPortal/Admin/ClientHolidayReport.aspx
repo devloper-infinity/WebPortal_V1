@@ -16,10 +16,14 @@
 
         body { background: var(--chr-bg); }
 
-        .loading {
+        #chreport_loader {
             display: none;
             position: fixed;
             inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             z-index: 99999;
             background: rgba(255,255,255,.72);
             backdrop-filter: blur(3px);
@@ -29,9 +33,9 @@
             text-align: center;
         }
 
-        .loading img { width: 70px; height: 70px; }
+        #chreport_loader img { width: 70px; height: 70px; }
 
-        .loading div {
+        #chreport_loader div {
             margin-top: 10px;
             color: var(--chr-text);
             font-size: 12px;
@@ -305,6 +309,7 @@
         var chreportTable = null;
 
         $(document).ready(function () {
+            $("#chreport_loader").appendTo(document.body);
             chreportBindHoliday();
             chreportBindYear();
             chreportInitEmptyTable();
@@ -319,7 +324,7 @@
                 success: function (response) {
                     var ddl = $("#chreport_holiday");
                     ddl.empty();
-                    ddl.append($("<option></option>").val("").text("All Holidays"));
+                    ddl.append($("<option></option>").val("").text("Select Holiday"));
 
                     var data = chreportParseResponse(response);
                     $.each(data, function (_i, item) {
@@ -350,12 +355,17 @@
                 Year: $("#chreport_year").val()
             };
 
+            if (!requestData.HolidayFor) {
+                chreportNotify("Please select holiday.");
+                return false;
+            }
+
             if (!requestData.Year) {
                 chreportNotify("Please select year.");
                 return false;
             }
 
-            $("#load1").css("display", "flex");
+            $("#chreport_loader").css("display", "flex");
 
             $.ajax({
                 type: "POST",
@@ -372,7 +382,7 @@
                     chreportNotify("Unable to load client holiday report.");
                 },
                 complete: function () {
-                    $("#load1").hide();
+                    $("#chreport_loader").hide();
                 }
             });
 
@@ -400,9 +410,13 @@
                 autoWidth: false,
                 columns: [
                     { data: "SrNo", className: "text-center" },
-                    { data: "EmployeeID", className: "text-center", render: chreportRenderText },
-                    { data: "HolidayDate", className: "text-center", render: chreportRenderText },
-                    { data: "HolidayFor", render: chreportRenderText },
+                    { data: "Name", render: chreportRenderText },
+                    { data: "Date", className: "text-center", render: chreportRenderText },
+                    { data: "Remark", render: chreportRenderText },
+                    { data: "ProjectManagerName", render: chreportRenderText },
+                    { data: "DesignationName", render: chreportRenderText },
+                    { data: "DepartmentName", render: chreportRenderText },
+                    { data: "DomainName", render: chreportRenderText },
                     { data: "AddedBy", render: chreportRenderText },
                     { data: "AddedDate", className: "text-center", render: chreportRenderText }
                 ]
@@ -453,7 +467,7 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="loading" id="load1">
+    <div id="chreport_loader" role="status" aria-live="polite">
         <img src="../images/Load_1.gif" />
         <div>One moment, please...</div>
     </div>
@@ -501,9 +515,13 @@
                     <thead>
                         <tr>
                             <th>Sr. #</th>
-                            <th>Employee ID</th>
+                            <th>Employee</th>
                             <th>Holiday Date</th>
                             <th>Holiday For</th>
+                            <th>Project Manager</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+                            <th>Domain</th>
                             <th>Added By</th>
                             <th>Added Date</th>
                         </tr>

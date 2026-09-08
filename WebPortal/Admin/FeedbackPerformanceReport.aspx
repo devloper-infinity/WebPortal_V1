@@ -4,7 +4,7 @@
    
     <style>
         body { background: #f4f6f9; color: #263238; }
-        .report-page { padding: 18px; }
+        /*.report-page { padding: 18px; }*/
         .page-hero {
             background: linear-gradient(135deg, #1f4e78, #2f75b5);
             color: #fff; border-radius: 8px; padding: 18px 22px; margin-bottom: 16px;

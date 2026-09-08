@@ -30,7 +30,7 @@
         .fb-page {
             color: #172737;
             font-size: 13px;
-            padding: 0px 0 28px;
+           /* padding: 0px 0 28px;*/
         }
 
         .fb-hero {

@@ -395,6 +395,8 @@
 
             hr_buildSheetList();
             hr_resetProgress();
+            $("#hr_exportError").hide().text("");
+            $("#hr_closeProgress").hide();
             hr_showWaitingPanel();
 
             hr_runSheet(0, month, year);
@@ -448,18 +450,20 @@
             };
 
             var error = function (err) {
-                hr_hideWaitingPanel();
-
                 var msg = "Something went wrong.";
                 if (err && typeof err.get_message === "function") {
                     msg = err.get_message();
                 }
-
-                Swal.fire({
-                    icon: "error",
-                    title: "Sheet Generation Failed",
-                    html: "<b>" + sheet.name + "</b><br/>" + msg
-                });
+                if (err && typeof err.get_timedOut === "function" && err.get_timedOut()) {
+                    msg = "The server request timed out. Please ask the administrator to check the report query and server logs.";
+                }
+                var item = $("#hr_sheet_" + index);
+                item.removeClass("active");
+                item.find(".hr-sheet-icon").html('<i class="fas fa-exclamation-triangle"></i>');
+                item.find(".hr-sheet-state").text("Failed");
+                $("#spntext").text("Export stopped at " + sheet.name + ".");
+                $("#hr_exportError").text(sheet.name + ": " + msg).show();
+                $("#hr_closeProgress").show();
             };
 
             if (!PageMethods[sheet.method]) {
@@ -661,6 +665,8 @@
                 </div>
 
                 <div id="hr_sheetList" class="hr-sheet-list"></div>
+                <div id="hr_exportError" role="alert" class="alert alert-danger" style="display: none; margin-top: 12px; white-space: pre-wrap;"></div>
+                <button id="hr_closeProgress" type="button" class="btn btn-secondary" style="display: none;" onclick="hr_hideWaitingPanel();">Close</button>
 
             </div>
         </div>

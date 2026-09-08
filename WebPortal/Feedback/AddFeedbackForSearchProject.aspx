@@ -5,7 +5,7 @@
         .fb-page {
             color: #172737;
             font-size: 13px;
-            padding: 18px 0 28px;
+          /*  padding: 18px 0 28px;*/
         }
 
         .fb-hero {

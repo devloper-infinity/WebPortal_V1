@@ -13,6 +13,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.App_Code.Class;
 
 namespace WebPortal.Admin
 {
@@ -47,14 +48,14 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string GetReportingManagerWiseAttrition(string FromDate, string ToDate, int PMID)
+        public static string GetReportingManagerWiseAttrition(string FromDate, string ToDate, int DomainID)
         {
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             Hashtable htParam = new Hashtable();
             htParam.Add("FromDate", FromDate);
             htParam.Add("ToDate", ToDate);
-            htParam.Add("PMID", PMID);
+            htParam.Add("DomainID", DomainID);
             DataSet ds = new bllMaster().GetReportingManagerWiseAttrition(htParam);
             if (ds != null)
             {
@@ -163,7 +164,7 @@ namespace WebPortal.Admin
             Hashtable htParam = new Hashtable();
             htParam.Add("FromDate", FromDate);
             htParam.Add("ToDate", ToDate);
-            htParam.Add("PMID", pm);
+            htParam.Add("DomainID", pm);
             string FileName = Server.MapPath(@"~\ReportDocument\PM_Attrition_Report_" + Convert.ToString(FromDate) + "-" + Convert.ToString(ToDate) + DateTime.Now.ToString("hhmmss") + ".xlsx");
             Workbook book = new Workbook();
             //book.LoadFromFile(FileName);

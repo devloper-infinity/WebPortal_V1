@@ -1084,22 +1084,12 @@ namespace WebPortal.Admin
             #region PM-Skip Level
             sheet = book.Worksheets.Add("Skip - Ratings");
             DataSet dsSkip = new bllMaster().GetSkiplevelDetails(Month, Year);
-            if (dsSkip != null)
+            if (dsSkip == null || dsSkip.Tables.Count == 0)
+                throw new InvalidOperationException("Skip Level Details did not return the expected report table.");
+
+            if (dsSkip.Tables.Count > 0)
             {
-
-                int RowCount = 0;
-                int ColumnCount = 0;
-                DataTable dtProd = dsSkip.Tables[1];
-                dtProd.Columns[0].Caption = "Branch";
-                dtProd.AcceptChanges();
-                DataTable dtQual = dsSkip.Tables[2];
-                dtQual.Columns[0].Caption = "Branch";
-                dtQual.AcceptChanges();
-                DataTable dtAtt = dsSkip.Tables[2];
-                dtAtt.Columns[0].Caption = "Branch";
-                dtAtt.AcceptChanges();
-                sheet.DeleteColumn(1, 10000);
-
+                // Only the detail table is used; summaries are built from it below.
                 DataTable dtDetails = dsSkip.Tables[0];
                 if (dtDetails.Rows.Count > 0)
                 {
