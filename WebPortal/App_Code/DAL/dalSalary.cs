@@ -11,6 +11,13 @@ namespace WebPortal.App_Code.DAL
 {
     public class dalSalary
     {
+        public DataSet GetBranchwiseSalaryAnalysis(int branchId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_getBranchwiseSalaryAnalysis");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", SqlDbType.Int, 0, ParameterDirection.Input, branchId);
+            return SQLHelper.ExecuteDataSetCmd(cmd);
+        }
+
         public DataTable GetSalaryIncrementDue(string Month)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "getincrementDetails_New_Revised");

@@ -16,6 +16,11 @@ namespace WebPortal.App_Code.BLL
     {
         dalSalary dalSalary = new dalSalary();
 
+        public DataSet GetBranchwiseSalaryAnalysis(int branchId)
+        {
+            return dalSalary.GetBranchwiseSalaryAnalysis(branchId);
+        }
+
         public DataTable GetSalaryIncrementDue(string Month)
         {
             return dalSalary.GetSalaryIncrementDue(Month);

@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.34301.259
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebPortal", "WebPortal\WebPortal.csproj", "{21AE573F-CB8E-4DE8-A997-DB70674E4720}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IHMS.EmailService", "IHMS.EmailService\IHMS.EmailService.csproj", "{DA30C391-95C4-49DB-8BED-1CCACED7C103}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{21AE573F-CB8E-4DE8-A997-DB70674E4720}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21AE573F-CB8E-4DE8-A997-DB70674E4720}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21AE573F-CB8E-4DE8-A997-DB70674E4720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA30C391-95C4-49DB-8BED-1CCACED7C103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA30C391-95C4-49DB-8BED-1CCACED7C103}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA30C391-95C4-49DB-8BED-1CCACED7C103}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA30C391-95C4-49DB-8BED-1CCACED7C103}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

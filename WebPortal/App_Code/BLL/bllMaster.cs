@@ -1637,6 +1637,13 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetKYCInfoByEmployee(Code);
         }
 
+        public DataTable GetAllEmployeeKYC()
+        {
+            return dalMaster.GetAllEmployeeKYC();
+        }
+        public DataTable GetEmployeeForIDCard(){return dalMaster.GetEmployeeForIDCard();} public DataTable GetEmployeeForInProcessIDCard(){return dalMaster.GetEmployeeForInProcessIDCard();} public DataTable GetEmployeeForProvidedIDCard(){return dalMaster.GetEmployeeForProvidedIDCard();} public DataTable GetDropOutEmployeeForIDCard(){return dalMaster.GetDropOutEmployeeForIDCard();} public DataTable GetEmployeesIDCardDetailsForReport(){return dalMaster.GetEmployeesIDCardDetailsForReport();} public int InsertIDCardDetails(Hashtable h){return dalMaster.InsertIDCardDetails(h);}
+        public DataTable GetViewRecruitmentReport(string f,string t){return dalMaster.GetViewRecruitmentReport(f,t);} public DataTable GetRecruitementReport_FinalSummary_LocationWise(string f,string t){return dalMaster.GetRecruitementReport_FinalSummary_LocationWise(f,t);} public DataTable GetRecruitementReport_FinalSummary_LocationWithPosition(string f,string t){return dalMaster.GetRecruitementReport_FinalSummary_LocationWithPosition(f,t);} public DataTable GetRecruitementReport_FinalSummary(string f,string t){return dalMaster.GetRecruitementReport_FinalSummary(f,t);} public DataTable BindgrdCandidateDetails(string f,string t){return dalMaster.BindgrdCandidateDetails(f,t);} public DataTable BindgrdCandidateSummary(string f,string t){return dalMaster.BindgrdCandidateSummary(f,t);}
+
         public int InsertEmployeeInfo_Old(Hashtable htParam)
         {
             return dalMaster.InsertEmployeeInfo_Old(htParam);
@@ -2714,5 +2721,9 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllUserERPLoginDetails();
 
         }
+
+        public DataTable GetBuybackSettlements() { return dalMaster.GetBuybackSettlements(); }
+        public DataTable GetBuybackSettlementForEmployee(int employeeId) { return dalMaster.GetBuybackSettlementForEmployee(employeeId); }
+        public int SaveBuybackSettlement(Hashtable values) { return dalMaster.SaveBuybackSettlement(values); }
     }
 }
