@@ -1,0 +1,1 @@
+using System;using System.Web.Services;namespace WebPortal.Helpdesk{public partial class MyTickets:HelpdeskPage{protected void Page_Load(object sender,EventArgs e){}[WebMethod]public static string Get(string scope,string status){return Json(new HelpdeskRepository().Tickets(UserId,scope,status,null,null,null,null,null,null,null,null));}}}

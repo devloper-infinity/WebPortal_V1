@@ -470,3 +470,9 @@ FodyWeavers.xsd
 /WebPortal/Admin/BranchAndDateWiseAttendanceReport.aspx
 /WebPortal/Admin/HRReportInput.aspx
 /.erp-com-fix-build
+/IHMS.EmailService/IHMS.EmailService.csproj
+/.gitignore
+/IHMS.EmailService/App.config
+/IHMS.EmailService/Program.cs
+/.gitignore
+/IHMS.EmailService/IHMS.EmailService.csproj
