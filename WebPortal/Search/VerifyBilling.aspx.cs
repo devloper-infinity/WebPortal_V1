@@ -29,6 +29,11 @@ namespace WebPortal.Search
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Request.QueryString["viewRemarkAttachment"] != null)
+            {
+                DownloadRemarkAttachment();
+                return;
+            }
             if (string.Equals(Request.QueryString["uploadVerifyBillingAttachment"], "1", StringComparison.OrdinalIgnoreCase))
             {
                 UploadVerifyBillingAttachment();
@@ -38,12 +43,37 @@ namespace WebPortal.Search
 
         protected override void Render(HtmlTextWriter writer)
         {
+            if (Request.QueryString["viewRemarkAttachment"] != null) return;
             if (string.Equals(Request.QueryString["uploadVerifyBillingAttachment"], "1", StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
             base.Render(writer);
+        }
+
+        private void DownloadRemarkAttachment()
+        {
+            if (!User.Identity.IsAuthenticated) throw new HttpException(401, "Please sign in again.");
+            string filePath;
+            try
+            {
+                byte[] token = HttpServerUtility.UrlTokenDecode(Request.QueryString["viewRemarkAttachment"]);
+                filePath = Encoding.UTF8.GetString(System.Web.Security.MachineKey.Unprotect(
+                    token, "VerifyBillingAttachment", User.Identity.Name));
+                filePath = Path.GetFullPath(filePath);
+            }
+            catch { throw new HttpException(400, "Invalid attachment link."); }
+            string root = Path.GetFullPath(Server.MapPath("~/OSTAttachment")) + Path.DirectorySeparatorChar;
+            if (!filePath.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(filePath))
+                throw new HttpException(404, "Attachment is no longer available.");
+            Response.Clear();
+            Response.ContentType = "application/octet-stream";
+            Response.AddHeader("Content-Disposition", "attachment; filename*=UTF-8''" + Uri.EscapeDataString(Path.GetFileName(filePath)));
+            Response.AddHeader("X-Content-Type-Options", "nosniff");
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.TransmitFile(filePath);
+            Context.ApplicationInstance.CompleteRequest();
         }
 
         private void UploadVerifyBillingAttachment()
@@ -295,6 +325,72 @@ namespace WebPortal.Search
             }
 
             return returnValue;
+        }
+
+        [WebMethod]
+        public static object ViewRemark_VerifyBilling(int Project, string BillingPeriod, int OrderID)
+        {
+            int userId;
+            if (!HttpContext.Current.User.Identity.IsAuthenticated ||
+                !int.TryParse(HttpContext.Current.User.Identity.Name, out userId))
+                throw new HttpException(401, "Please sign in again.");
+
+            var service = new bllOST();
+            DataTable projects = service.GetAllProject(userId);
+            DataRow project = projects == null ? null : projects.AsEnumerable()
+                .FirstOrDefault(row => GetDataRowValue(row, "ProjectID") == Project.ToString());
+            if (project == null)
+                throw new HttpException(403, "Project is not available for the current user.");
+
+            string[] dates = (BillingPeriod ?? string.Empty).Split('~');
+            if (OrderID <= 0 || dates.Length != 2)
+                throw new ArgumentException("Please select a valid order and billing period.");
+
+            DataTable orders = service.GetProjectWiseOrderDetailsForBilling_ForVerification(
+                GetDataRowValue(project, "ProjectName"), dates[0].Trim(), dates[1].Trim());
+            DataRow order = orders == null ? null : orders.AsEnumerable()
+                .FirstOrDefault(row => GetDataRowValue(row, "OrderID") == OrderID.ToString());
+            if (order == null)
+                throw new HttpException(404, "Order is not available for this project and billing period.");
+
+            var remarks = orders.AsEnumerable()
+                .Where(row => GetDataRowValue(row, "OrderID") == OrderID.ToString())
+                .Select(row => new {
+                    OrderNo = GetDataRowValue(row, "ClientOrderNo"),
+                    Remark = GetDataRowValue(row, "Remark"),
+                    OrderCost = GetDataRowValue(row, "OrderCost")
+                }).ToList();
+            var details = new List<Dictionary<string, object>>();
+            DataTable storedDetails = service.GetCostEmailDetails(Project, BillingPeriod);
+            if (storedDetails != null)
+            {
+                foreach (DataRow row in storedDetails.Rows)
+                {
+                    if (GetDataRowValue(row, "OrderID") != OrderID.ToString())
+                        continue;
+                    var detail = new Dictionary<string, object>();
+                    foreach (DataColumn column in storedDetails.Columns)
+                        detail[column.ColumnName] = row[column] == DBNull.Value ? "" : row[column];
+                    DataTable attachmentRow = storedDetails.Clone();
+                    attachmentRow.ImportRow(row);
+                    detail["Attachments"] = GetValidCostEmailAttachmentFiles(attachmentRow).Select(file => new {
+                        Name = Path.GetFileName(file.Value),
+                        Url = "VerifyBilling.aspx?viewRemarkAttachment=" + HttpServerUtility.UrlTokenEncode(
+                            System.Web.Security.MachineKey.Protect(Encoding.UTF8.GetBytes(file.Value),
+                                "VerifyBillingAttachment", HttpContext.Current.User.Identity.Name))
+                    }).ToList();
+                    details.Add(detail);
+                }
+            }
+            return new
+            {
+                OrderNo = GetDataRowValue(order, "ClientOrderNo"),
+                Remark = GetDataRowValue(order, "Remark"),
+                OrderCost = GetDataRowValue(order, "OrderCost"),
+                BillingPeriod = BillingPeriod,
+                Remarks = remarks,
+                Details = details
+            };
         }
 
         [WebMethod]

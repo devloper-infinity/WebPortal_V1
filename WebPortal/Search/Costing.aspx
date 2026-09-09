@@ -1021,7 +1021,7 @@
             </button>
         </div>
 
-        <div id="costingAlert" class="alert costing-alert" role="alert"></div>
+        <div id="costingAlert" class="alert costing-alert" role="alert" tabindex="-1" aria-atomic="true"></div>
 
         <div class="costing-shell">
             <section class="costing-section">

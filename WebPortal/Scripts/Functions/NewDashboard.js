@@ -910,7 +910,7 @@ function renderWorkAnniversary(data, callback) {
         (jubileeEach && jubileeEach.message)? jubileeEach.message: getAnniversaryMessage(emp.YearsCompleted)
     );
 
-    // $("#dash_anniversaryModal").modal("show");
+     $("#dash_anniversaryModal").modal("show");
 
     startConfetti();
 

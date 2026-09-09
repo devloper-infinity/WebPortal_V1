@@ -1,4 +1,4 @@
-﻿
+
 var title;
 var remark_orderid = 0;
 var verifyBillingSummaryRequest = null;
@@ -303,6 +303,10 @@ function updateCounts() {
 
 
 function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
+    var remarkContext = {
+        Project: Number($('#VerifyOrdres_projectno').val()),
+        BillingPeriod: $('#VerifyOrdres_dateperild option:selected').text()
+    };
     $('#load1').show();
     var visibleRows = 0;
     var table;
@@ -323,6 +327,7 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
                 $('#VerifyOrders_Search_Billing').DataTable().clear().destroy();
             }
 
+            $('#VerifyOrders_Search_Billing').data('remark-context', remarkContext);
             table = $('#VerifyOrders_Search_Billing').DataTable({
                 dom: 'Bftp',
                 data: dataArray,
@@ -381,7 +386,10 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
 
                             var rowIndex = meta.row; // 0-based index
 
-                            return `<a class="dropdown-item" href="#!" onclick="verifyBilling_addRemark(${row.OrderID}, ${rowIndex});"><span style="color: #0f766e;"><i class="uil fs-0 me-2 uil-pen"></i></span>&nbsp;&nbsp;</a>`;
+                            return `<div class="btn-group vrbil-remark-actions" role="group" aria-label="Remark actions">
+                                <button type="button" class="btn btn-sm vrbil-action-add" onclick="verifyBilling_addRemark(${Number(row.OrderID)}, ${rowIndex});"><i class="fas fa-plus" aria-hidden="true"></i><span>Add Remark</span></button>
+                                <button type="button" class="btn btn-sm vrbil-action-view" onclick="verifyBilling_viewRemark(${Number(row.OrderID)}, this);"><i class="fas fa-eye" aria-hidden="true"></i><span>View Remark</span></button>
+                            </div>`;
                         }
                     },
                     {
@@ -474,6 +482,104 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
         }
     });
     return false;
+}
+
+var verifyBillingRemarkRequest = null;
+var verifyBillingRemarkVersion = 0;
+
+function verifyBilling_clearRemarkTables() {
+    ['#vrbil_remarkTable', '#vrbil_additionalTable'].forEach(function (selector) {
+        if ($.fn.DataTable.isDataTable(selector)) $(selector).DataTable().destroy();
+    });
+}
+
+function verifyBilling_renderRemarks(result) {
+    verifyBilling_clearRemarkTables();
+    var $body = $('#vrbil_viewRemarkBody').empty();
+    $('#vrbil_viewRemarkTitle').text('View Remark : ' + result.OrderNo);
+    $('#vrbil_viewRemarkPeriod').text('Billing Period: ' + result.BillingPeriod);
+    function textCell(value, type) {
+        var text = value == null || value === '' ? 'Not provided' : String(value);
+        return type === 'display' ? $('<span>').text(text).html() : text;
+    }
+    function addTable(id, heading, records, columns) {
+        var $section = $('<section>').addClass('vrbil-detail-card').appendTo($body);
+        $('<h6>').text(heading + ' (' + records.length + ')').appendTo($section);
+        var $table = $('<table>').attr('id', id).addClass('table table-bordered table-striped').css('width', '100%').appendTo($section);
+        $table.DataTable({
+            data: records, columns: columns, autoWidth: false,
+            dom: '<"vrbil-table-scroll"t>',
+            paging: false, lengthChange: false, ordering: false,
+            searching: false, info: false, language: { emptyTable: 'No ' + heading.toLowerCase() + ' records available.' }
+        });
+    }
+    addTable('vrbil_remarkTable', 'Remark', result.Remarks || [], [
+        { title: 'Order No', data: 'OrderNo', width: '22%', render: textCell },
+        { title: 'Remark', data: 'Remark', width: '58%', render: textCell },
+        { title: 'Order Cost', data: 'OrderCost', width: '20%', className: 'vrbil-amount', render: textCell }
+    ]);
+    var records = result.Details || [];
+    var columns = [
+        { title: 'Email Note / Additional Details', data: 'EmailInput', width: '45%', defaultContent: '', render: textCell },
+        { title: 'Cost Difference / Amount', data: 'CostDiff', width: '25%', className: 'vrbil-amount', defaultContent: '', render: textCell },
+        { title: 'Attachment', data: null, width: '30%', render: function (record, type) {
+            var attachments = record.Attachments || [];
+            if (type !== 'display') return attachments.map(function (file) { return file.Name; }).join(', ');
+            if (!attachments.length) return record.AttachmentPath ? 'Attachment unavailable' : 'No attachment';
+            var $links = $('<div>');
+            attachments.forEach(function (file) {
+                var $line = $('<div>').addClass('vrbil-attachment-link').appendTo($links);
+                $('<span>').text(file.Name).appendTo($line);
+                $('<a>').attr({ href: file.Url, target: '_blank', rel: 'noopener' })
+                    .addClass('btn btn-sm btn-outline-info').text('View / Download').appendTo($line);
+            });
+            return $links.html();
+        } }
+    ];
+    var known = ['Project', 'OrderID', 'BillingPeriod', 'EmailInput', 'CostDiff', 'AttachmentPath', 'Attachments'];
+    records.forEach(function (record) {
+        Object.keys(record).forEach(function (key) {
+            if (known.indexOf(key) !== -1) return;
+            known.push(key);
+            columns.push({ title: key.replace(/([a-z])([A-Z])/g, '$1 $2'), data: key, defaultContent: '', render: textCell });
+        });
+    });
+    addTable('vrbil_additionalTable', 'Additional Details', records, columns);
+}
+function verifyBilling_viewRemark(orderId, trigger) {
+    var context = $('#VerifyOrders_Search_Billing').data('remark-context');
+    if (!context) return;
+    var version = ++verifyBillingRemarkVersion;
+    if (verifyBillingRemarkRequest) verifyBillingRemarkRequest.abort();
+    var $modal = $('#vrbil_viewRemark');
+    $('#vrbil_viewRemarkTitle').text('View Remark');
+    $('#vrbil_viewRemarkPeriod').text('Billing Period: ' + context.BillingPeriod);
+    verifyBilling_clearRemarkTables();
+    $('#vrbil_viewRemarkBody').text('Loading remarks and additional details...');
+    $modal.off('.remarkView')
+        .on('shown.bs.modal.remarkView', function () {
+            $(this).find('[data-dismiss="modal"]').first().trigger('focus');
+            ['#vrbil_remarkTable', '#vrbil_additionalTable'].forEach(function (selector) {
+                if ($.fn.DataTable.isDataTable(selector)) $(selector).DataTable().columns.adjust();
+            });
+        })
+        .on('hidden.bs.modal.remarkView', function () {
+            ++verifyBillingRemarkVersion;
+            if (verifyBillingRemarkRequest) verifyBillingRemarkRequest.abort();
+            if (trigger && document.body.contains(trigger)) trigger.focus();
+        }).modal('show');
+    verifyBillingRemarkRequest = $.ajax({
+        type: 'POST', url: 'VerifyBilling.aspx/ViewRemark_VerifyBilling',
+        contentType: 'application/json; charset=utf-8', dataType: 'json',
+        data: JSON.stringify({ Project: context.Project, BillingPeriod: context.BillingPeriod, OrderID: orderId })
+    }).done(function (response) {
+        if (version !== verifyBillingRemarkVersion) return;
+        verifyBilling_renderRemarks(response.d);
+    }).fail(function (_xhr, status) {
+        if (status === 'abort' || version !== verifyBillingRemarkVersion) return;
+        $('#vrbil_viewRemarkBody').empty().append($('<div>').addClass('alert alert-danger').attr('role', 'alert')
+            .text('Unable to load remarks. Please close this window and try again.'));
+    });
 }
 
 function verifyBilling_addRemark(orderid, index) {

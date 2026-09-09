@@ -977,6 +977,25 @@ function showCostingAjaxError(error, fallbackMessage) {
     showCostingMessage('danger', message);
 }
 
+var costingMessageFocusTimer = null;
+var costingMessageFocusPending = false;
+
+function focusCostingMessage() {
+    window.clearTimeout(costingMessageFocusTimer);
+    costingMessageFocusTimer = window.setTimeout(function () {
+        var $alert = $('#costingAlert');
+        // AJAX completion hides the overlay after displaying the result.
+        if (!costingMessageFocusPending || !$alert.is(':visible') || $('#load1').is(':visible')) {
+            return;
+        }
+
+        costingMessageFocusPending = false;
+        var messageArea = $alert[0];
+        messageArea.focus({ preventScroll: true });
+        messageArea.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
+    }, 0);
+}
+
 function showCostingMessage(type, message) {
     var $alert = $('#costingAlert');
     if (!$alert.length) {
@@ -987,11 +1006,17 @@ function showCostingMessage(type, message) {
     $alert
         .removeClass('alert-success alert-danger alert-warning alert-info')
         .addClass('alert-' + type)
+        .attr('tabindex', '-1')
         .text(message)
         .show();
+
+    costingMessageFocusPending = true;
+    focusCostingMessage();
 }
 
 function clearCostingMessage() {
+    window.clearTimeout(costingMessageFocusTimer);
+    costingMessageFocusPending = false;
     $('#costingAlert').hide().text('');
 }
 
@@ -1005,6 +1030,9 @@ function showCostingLoader(show) {
         $loader.css('display', 'flex');
     } else {
         $loader.hide();
+        if (costingMessageFocusPending) {
+            focusCostingMessage();
+        }
     }
 }
 

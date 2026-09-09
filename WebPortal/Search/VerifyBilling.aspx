@@ -1002,6 +1002,52 @@
         </div>
     </div>
 
+    <style>
+        .vrbil-remark-actions { display: inline-flex; align-items: center; gap: 4px; padding: 4px; white-space: nowrap; background: #f0f7f8; border: 1px solid #d4e7e9; border-radius: 12px; box-shadow: 0 2px 5px rgba(15, 76, 81, .06); }
+        .vrbil-remark-actions.btn-group > .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 32px; margin: 0; padding: 7px 11px; border: 0; border-radius: 8px !important; font-size: 12px; line-height: 1.4; font-weight: 600; transition: background-color .18s ease, box-shadow .18s ease; }
+        .vrbil-remark-actions .vrbil-action-add { color: #fff; background: linear-gradient(135deg, #0d9488, #0f766e); box-shadow: 0 2px 4px rgba(15, 118, 110, .18); }
+        .vrbil-remark-actions .vrbil-action-add:hover { color: #fff; background: #0f766e; box-shadow: 0 3px 7px rgba(15, 118, 110, .25); }
+        .vrbil-remark-actions .vrbil-action-view { color: #18586a; background: #fff; }
+        .vrbil-remark-actions .vrbil-action-view:hover { color: #124653; background: #deeff2; }
+        .vrbil-remark-actions .btn:focus-visible { outline: 2px solid #155e75; outline-offset: 2px; z-index: 1; }
+        .vrbil-remark-actions .btn i { font-size: 11px; }
+        @media (prefers-reduced-motion: reduce) { .vrbil-remark-actions.btn-group > .btn { transition: none; } }
+        #vrbil_viewRemark .modal-content { border: 0; border-radius: 18px; overflow: hidden; }
+        #vrbil_viewRemark .modal-header, #vrbil_viewRemark .modal-footer { background: #f3f8fc; padding: 20px; }
+        #vrbil_viewRemark .modal-body { max-height: 65vh; overflow-y: auto; padding: 24px; }
+        #vrbil_viewRemark .vrbil-detail-card { border: 1px solid #d6e2ee; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+        #vrbil_viewRemarkPeriod { color: #0f766e; font-size: 15px; font-weight: 700; margin-top: 8px; }
+        #vrbil_viewRemark .vrbil-table-scroll { overflow-x: auto; clear: both; border: 1px solid #d6e2ee; border-radius: 8px; }
+        #vrbil_viewRemark table.dataTable { width: 100% !important; min-width: 600px; margin: 0 !important; border-collapse: collapse !important; table-layout: fixed; border: 0; }
+        #vrbil_viewRemark table.dataTable th,
+        #vrbil_viewRemark table.dataTable td { padding: 12px 14px !important; text-align: left; vertical-align: top; border: 1px solid #e1e8ef; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+        #vrbil_viewRemark table.dataTable td { white-space: pre-wrap; color: #334155; }
+        #vrbil_viewRemark table.dataTable th { background: #edf5f8; color: #334e68; white-space: normal; font-weight: 700; }
+        #vrbil_viewRemark table.dataTable .vrbil-amount { text-align: right; font-variant-numeric: tabular-nums; }
+        #vrbil_viewRemark table.dataTable td.dataTables_empty { text-align: center; padding: 22px 14px !important; color: #64748b; }
+        #vrbil_viewRemark .dataTables_wrapper { min-height: 0; }
+        #vrbil_viewRemark .dataTables_filter { float: none; text-align: right; margin-bottom: 12px; }
+        #vrbil_viewRemark .dataTables_filter label { margin: 0; }
+        #vrbil_viewRemark .dataTables_filter input { border: 1px solid #d6e2ee; border-radius: 7px; padding: 6px 10px; max-width: 180px; }
+        #vrbil_viewRemark .dataTables_info { float: none; padding-top: 10px; color: #64748b; font-size: 12px; }
+        #vrbil_viewRemark .vrbil-attachment-link { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+        #vrbil_viewRemark h6 { color: #0f766e; margin-bottom: 16px; font-weight: 700; }
+        @media (max-width: 576px) { #vrbil_viewRemark .modal-body { padding: 12px; } #vrbil_viewRemark .vrbil-detail-card { padding: 10px; } }
+    </style>
+    <div class="modal fade" id="vrbil_viewRemark" tabindex="-1" role="dialog" aria-labelledby="vrbil_viewRemarkTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div><h5 class="modal-title" id="vrbil_viewRemarkTitle">View Remark</h5>
+                    <div id="vrbil_viewRemarkPeriod"></div></div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body" id="vrbil_viewRemarkBody" aria-live="polite"></div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button></div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="popUp_viewBilling_addRemark" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content vrbil-modal-content">
