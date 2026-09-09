@@ -2725,5 +2725,32 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetBuybackSettlements() { return dalMaster.GetBuybackSettlements(); }
         public DataTable GetBuybackSettlementForEmployee(int employeeId) { return dalMaster.GetBuybackSettlementForEmployee(employeeId); }
         public int SaveBuybackSettlement(Hashtable values) { return dalMaster.SaveBuybackSettlement(values); }
+
+
+        /*----- From Aarti (YTU) -----*/
+        public DataTable GetYearWiseTotalLeaves(string Year)
+        {
+            return dalMaster.GetYearWiseTotalLeaves(Year);
+        }
+
+        public DataSet GetYearWiseTotalLeavesSummary(string Year)
+        {
+            return dalMaster.GetYearWiseTotalLeavesSummary(Year);
+        }
+        public DataTable GetYearWiseAbscondingEmployees(string Year)
+        {
+            return dalMaster.GetYearWiseAbscondingEmployees(Year);
+        }
+        public DataSet GetYearWiseAbscondingEmployeesSummary(string Year)
+        {
+            return dalMaster.GetYearWiseAbscondingEmployeesSummary(Year);
+        }
+
+        public DataSet GetUserWiseLeaveDetails(string FromDate, string ToDate, int EmployeeID)
+        {
+            return dalMaster.GetUserWiseLeaveDetails(FromDate, ToDate, EmployeeID);
+        }
+
+
     }
 }

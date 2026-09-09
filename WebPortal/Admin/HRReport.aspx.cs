@@ -1078,11 +1078,49 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int SkipLevelDetails()
+        public static object SkipLevelDetails()
+        {
+            string stage = "starting the worksheet";
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                return BuildSkipLevelDetails(value => stage = value);
+            }
+            catch (Exception ex)
+            {
+                string reference = Guid.NewGuid().ToString("N");
+                string diagnostic = string.Format(
+                    "UTC: {0:o}\r\nReference: {1}\r\nStage: {2}\r\nElapsed: {3}\r\nPeriod: {4} {5}\r\n64-bit: {6}\r\nExcel library: {7}\r\n{8}",
+                    DateTime.UtcNow, reference, stage, timer.Elapsed, Month, Year,
+                    Environment.Is64BitProcess, typeof(Spire.Xls.Workbook).Assembly.FullName, ex);
+                bool logged = false;
+                try
+                {
+                    string directory = HttpContext.Current.Server.MapPath("~/App_Data/HRReportErrors");
+                    Directory.CreateDirectory(directory);
+                    File.WriteAllText(Path.Combine(directory, reference + ".log"), diagnostic);
+                    logged = true;
+                }
+                catch (Exception logError)
+                {
+                    System.Diagnostics.Trace.TraceError("{0}\r\nCould not write report log: {1}", diagnostic, logError);
+                }
+                // Return a safe error envelope so production customErrors cannot hide the stage.
+                return new
+                {
+                    Success = false,
+                    Message = "Failed while " + stage + ". Reference: " + reference +
+                        (logged ? ". See App_Data/HRReportErrors on the server." : ". The diagnostic file could not be written; check server tracing and App_Data write permissions.")
+                };
+            }
+        }
+
+        private static int BuildSkipLevelDetails(Action<string> setStage)
         {
             int returnvalue = 1;
             #region PM-Skip Level
             sheet = book.Worksheets.Add("Skip - Ratings");
+            setStage("reading Skip Level data from SQL");
             DataSet dsSkip = new bllMaster().GetSkiplevelDetails(Month, Year);
             if (dsSkip == null || dsSkip.Tables.Count == 0)
                 throw new InvalidOperationException("Skip Level Details did not return the expected report table.");
@@ -1093,6 +1131,7 @@ namespace WebPortal.Admin
                 DataTable dtDetails = dsSkip.Tables[0];
                 if (dtDetails.Rows.Count > 0)
                 {
+                    setStage("preparing Skip Level columns");
                     dtDetails.Columns.Remove(dtDetails.Columns["EmployeeID"]);
                     dtDetails.Columns.Remove(dtDetails.Columns["Status1"]);
                     dtDetails.Columns["Code"].SetOrdinal(0);
@@ -1248,6 +1287,7 @@ namespace WebPortal.Admin
                     sheet.Range[1, 19, 1, 21].Style.Font.IsBold = true;
 
                     //int ColumnCountStart = sheet.LastColumn;
+                    setStage("inserting Skip Level data into Excel");
                     sheet.InsertDataTable(dtDetails, true, 2, 1);
 
                     sheet.Range[1, 1, sheet.LastRow, sheet.LastColumn].Style.Borders.LineStyle = LineStyleType.Thin;
@@ -1265,6 +1305,7 @@ namespace WebPortal.Admin
 
                     sheet.InsertRow(1, 33);
 
+                    setStage("building the Production pivot table");
                     CellRange dataRangeProduction = sheet.Range["A35:" + lastcolname + "" + sheet.LastRow];
                     Spire.Xls.PivotCache cacheProduction = book.PivotCaches.Add(dataRangeProduction);
                     PivotTable ptProduction = sheet.PivotTables.Add("SkipDetails_Production", sheet.Range["B1"], cacheProduction);
@@ -1281,6 +1322,7 @@ namespace WebPortal.Admin
                     ptProduction.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
                     ptProduction.CalculateData();
 
+                    setStage("building the Quality pivot table");
                     CellRange dataRangeQuality = sheet.Range["A35:" + lastcolname + "" + sheet.LastRow];
                     Spire.Xls.PivotCache cacheQuality = book.PivotCaches.Add(dataRangeQuality);
                     PivotTable ptQuality = sheet.PivotTables.Add("SkipDetails_Quality", sheet.Range["B11"], cacheQuality);
@@ -1297,6 +1339,7 @@ namespace WebPortal.Admin
                     ptQuality.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
                     ptQuality.CalculateData();
 
+                    setStage("building the Attendance pivot table");
                     CellRange dataRangeAttendance = sheet.Range["A35:" + lastcolname + "" + sheet.LastRow];
                     Spire.Xls.PivotCache cacheAttendance = book.PivotCaches.Add(dataRangeAttendance);
                     PivotTable ptAttendance = sheet.PivotTables.Add("SkipDetails_Attendance", sheet.Range["B21"], cacheAttendance);
@@ -1314,13 +1357,16 @@ namespace WebPortal.Admin
                     ptAttendance.CalculateData();
 
 
+                    setStage("formatting Skip Level fonts");
                     sheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
                     sheet.AllocatedRange.Style.Font.Size = 10;
                 }
             }
+            setStage("sizing Skip Level columns and rows");
             sheet.AllocatedRange.AutoFitColumns();
             sheet.AllocatedRange.AutoFitRows();
             #endregion
+            setStage("finishing the Skip Level worksheet");
             return FinishCurrentSheet(returnvalue);
         }
 

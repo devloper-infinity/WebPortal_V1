@@ -2605,11 +2605,22 @@ namespace WebPortal.App_Code.DAL
 
         public DataSet GetSkiplevelDetails(string Month, string Year)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta_ICG]");
-            SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
-            DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
-            return dt;
+            using (SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta_ICG]"))
+            {
+                SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
+                SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
+                // Preserve SQL exceptions for report diagnostics; the shared helper returns null.
+                using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+                using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                {
+                    cmd.Connection = connection;
+                    cmd.CommandTimeout = 0;
+                    connection.Open();
+                    DataSet result = new DataSet();
+                    adapter.Fill(result);
+                    return result;
+                }
+            }
         }
 
         public int InsertStampPaperDetails(Hashtable htParam)
@@ -6133,6 +6144,54 @@ namespace WebPortal.App_Code.DAL
         {
             SqlCommand cmd=SQLHelper.GetCommand(CommandType.StoredProcedure,"usp_InsertBuybackSettlement");
             SQLHelper.AddParamToSQLCmd(cmd,"@EmployeeID",SqlDbType.BigInt,0,ParameterDirection.Input,values["EmployeeID"]); SQLHelper.AddParamToSQLCmd(cmd,"@ActualNoticePeriod",SqlDbType.NVarChar,100,ParameterDirection.Input,values["ActualNoticePeriod"]); SQLHelper.AddParamToSQLCmd(cmd,"@BuybackNoticePeriod",SqlDbType.NVarChar,100,ParameterDirection.Input,values["BuybackNoticePeriod"]); SQLHelper.AddParamToSQLCmd(cmd,"@OriginalSalary",SqlDbType.NVarChar,100,ParameterDirection.Input,values["OriginalSalary"]); SQLHelper.AddParamToSQLCmd(cmd,"@BuybackAmount",SqlDbType.NVarChar,100,ParameterDirection.Input,values["BuybackAmount"]); SQLHelper.AddParamToSQLCmd(cmd,"@InfinityPaidAmount",SqlDbType.NVarChar,100,ParameterDirection.Input,values["InfinityPaidAmount"]); SQLHelper.AddParamToSQLCmd(cmd,"@InfinityPaidDate",SqlDbType.NVarChar,100,ParameterDirection.Input,values["InfinityPaidDate"]); SQLHelper.AddParamToSQLCmd(cmd,"@Remark",SqlDbType.NVarChar,4000,ParameterDirection.Input,values["Remark"]); SQLHelper.AddParamToSQLCmd(cmd,"@SalarySlipPath",SqlDbType.NVarChar,4000,ParameterDirection.Input,values["SalarySlipPath"]); SQLHelper.AddParamToSQLCmd(cmd,"@AmountPath",SqlDbType.NVarChar,4000,ParameterDirection.Input,values["AmountPath"]); SQLHelper.AddParamToSQLCmd(cmd,"@AddedBy",SqlDbType.BigInt,0,ParameterDirection.Input,values["AddedBy"]); SQLHelper.AddParamToSQLCmd(cmd,"@ReturnValue",SqlDbType.BigInt,0,ParameterDirection.ReturnValue,null); SQLHelper.ExecuteNonQueryCmd(cmd); return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+
+
+        /*----- From Aarti (YTU) -----*/
+        public DataTable GetYearWiseTotalLeaves(string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetTotalLeavesReportYearwise_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Year);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataSet GetYearWiseTotalLeavesSummary(string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLeavesDetailsReportYearwise_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Year);
+            DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
+            return ds;
+        }
+
+
+        public DataTable GetYearWiseAbscondingEmployees(string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetTotalAbscondingReportYearwise_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Year);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataSet GetYearWiseAbscondingEmployeesSummary(string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAbscondingDetailsReportYearWise_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Year);
+            DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
+            return ds;
+        }
+
+        public DataSet GetUserWiseLeaveDetails(string FromDate, string ToDate, int EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUserWiseLeaveDetails_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, ToDate);
+
+            // Use ExecuteDataSetCmd instead of ExecuteDataTableCmd
+            DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
+            return ds;
         }
     }
 }

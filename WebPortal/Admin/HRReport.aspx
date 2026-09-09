@@ -438,6 +438,10 @@
             hr_setProgress(Math.round((index / hrSheets.length) * 100), runningText);
 
             var success = function (result) {
+                if (result && result.Success === false) {
+                    error({ get_message: function () { return result.Message; } });
+                    return;
+                }
                 var isEmpty = parseInt(result, 10) === 0;
                 hr_markSheetDone(index, isEmpty);
 
@@ -1017,6 +1021,10 @@
         }
         //Background Verification
         function SkipLevelDetails_OnSuccess(result) {
+            if (result && result.Success === false) {
+                SkipLevelDetails_OnError({ get_message: function () { return result.Message; } });
+                return false;
+            }
             document.getElementById("spntext").innerHTML = "Preparing sheet : Background Verification . . . ";
             PageMethods.BackgroundVerification(BackgroundVerification_OnSuccess, BackgroundVerification_OnError);
             return false;
