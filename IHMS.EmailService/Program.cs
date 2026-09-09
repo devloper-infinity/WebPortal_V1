@@ -8,8 +8,10 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Script.Serialization;
 namespace IHMS.EmailService
 {
@@ -52,7 +54,7 @@ namespace IHMS.EmailService
         }
         static async Task ReadMessages()
         {
-            string url = "https://graph.microsoft.com/v1.0/users/" + Uri.EscapeDataString(Mailbox) + "/mailFolders/inbox/messages?$filter=isRead%20eq%20false&$top=25&$select=id,internetMessageId,subject,body,from,receivedDateTime,hasAttachments"; while (!String.IsNullOrEmpty(url))
+            string url = "https://graph.microsoft.com/v1.0/users/" + Uri.EscapeDataString(Mailbox) + "/mailFolders/inbox/messages?$filter=isRead%20eq%20false&$top=25&$select=id,internetMessageId,subject,body,uniqueBody,from,receivedDateTime,hasAttachments"; while (!String.IsNullOrEmpty(url))
             {
                 var root = Parse(await Ensure(await Http.GetAsync(url))); foreach (object item in Values(root, "value"))
                 {
@@ -70,11 +72,14 @@ namespace IHMS.EmailService
         static long Ingest(Dictionary<string, object> m)
         {
             var from = (Dictionary<string, object>)((Dictionary<string, object>)m["from"])["emailAddress"];
-            var body = (Dictionary<string, object>)m["body"]; using (var c = Proc("IHMS_Email_Ingest"))
+            object bodyValue;
+            var body = m.TryGetValue("uniqueBody", out bodyValue) && bodyValue is Dictionary<string, object>
+                ? (Dictionary<string, object>)bodyValue : (Dictionary<string, object>)m["body"];
+            using (var c = Proc("IHMS_Email_Ingest"))
             {
                 Add(c, "@GraphMessageID", m["id"]); Add(c, "@InternetMessageID", m["internetMessageId"]);
                 Add(c, "@FromAddress", from["address"]); Add(c, "@FromName", from["name"]); Add(c, "@Subject", m["subject"]);
-                Add(c, "@Body", body["content"]); Add(c, "@ReceivedDate", DateTime.Parse(Convert.ToString(m["receivedDateTime"])).ToUniversalTime());
+                Add(c, "@Body", CleanEmailBody(Convert.ToString(body["content"]), Convert.ToString(body["contentType"]))); Add(c, "@ReceivedDate", DateTime.Parse(Convert.ToString(m["receivedDateTime"])).ToUniversalTime());
                 using (var r = c.ExecuteReader()) { r.Read(); return r.GetInt64(0); }
             }
         }
@@ -166,6 +171,24 @@ namespace IHMS.EmailService
             var enumerable = items as IEnumerable;
             if (enumerable == null) throw new InvalidOperationException("Graph response property '" + key + "' is not a collection.");
             return enumerable;
+        }
+        static string CleanEmailBody(string content, string contentType)
+        {
+            var text = content ?? "";
+            if (String.Equals(contentType, "html", StringComparison.OrdinalIgnoreCase) || Regex.IsMatch(text, "<[^>]+>"))
+            {
+                text = Regex.Replace(text, @"<(head|style|script)[^>]*>[\s\S]*?</\1>", "", RegexOptions.IgnoreCase);
+                text = Regex.Replace(text, @"<(br\s*/?|/p|/div|/li|/tr)>|<li[^>]*>", "\n", RegexOptions.IgnoreCase);
+                text = Regex.Replace(text, @"<[^>]+>", " ");
+                text = HttpUtility.HtmlDecode(text);
+            }
+            text = text.Replace('\u00a0', ' ').Replace("\r\n", "\n").Replace('\r', '\n');
+            var quoted = Regex.Match(text, @"(?im)^\s*(?:-{2,}\s*Original Message\s*-{2,}|On .+ wrote:|From:\s).*$|\bFrom:\s.+?\bSent:\s");
+            if (quoted.Success && quoted.Index > 0) text = text.Substring(0, quoted.Index);
+            text = Regex.Replace(text, @"[ \t]+", " ");
+            text = Regex.Replace(text, @" *\n *", "\n");
+            text = Regex.Replace(text, @"\n{3,}", "\n\n").Trim();
+            return String.IsNullOrWhiteSpace(text) ? "Email received without readable body content." : text;
         }
         static async Task<string> Ensure(HttpResponseMessage r)
         {
