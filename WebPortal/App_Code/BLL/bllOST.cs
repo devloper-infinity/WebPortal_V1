@@ -352,9 +352,14 @@ namespace WebPortal.App_Code.BLL
             return dalOst.ProjectEmailConfiguration(ProjectID);
         }
 
-        public DataTable GetCostEmailDetails(int projectId, string billingPeriod)
+        public DataTable GetCostEmailDetails(int projectId, string billingPeriod, bool includeRecordId = false)
         {
-            return dalOst.GetCostEmailDetails(projectId, billingPeriod);
+            return dalOst.GetCostEmailDetails(projectId, billingPeriod, includeRecordId);
+        }
+
+        public void DeleteCostEmailDetails(long costEmailId, long deletedBy)
+        {
+            dalOst.DeleteCostEmailDetails(costEmailId, deletedBy);
         }
 
         public int UpdateBillingRemark(int OrderID, string Remark, string Cost)

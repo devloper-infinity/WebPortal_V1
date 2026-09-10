@@ -2214,7 +2214,7 @@ namespace WebPortal.Admin
 
                         rowCount++;
 
-                        string Location = Convert.ToString(dtRnRSnap.Rows[i]["Quarter"]);
+                        string Location = Convert.ToString(dtRnRSnap.Rows[i]["Location"]) + " ~ " + Convert.ToString(dtRnRSnap.Rows[i]["Quarter"]);
                         sheet.Range[(rowCount + 1), 1].Value = Location;
                         sheet.Range[(rowCount + 1), 1, (rowCount + 1), 5].Merge();
                         sheet.Range[(rowCount + 1), 1, (rowCount + 1), 5].Style.Borders.LineStyle = LineStyleType.Thin;

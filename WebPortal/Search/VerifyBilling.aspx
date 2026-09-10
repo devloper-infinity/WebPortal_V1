@@ -1009,6 +1009,8 @@
         .vrbil-remark-actions .vrbil-action-add:hover { color: #fff; background: #0f766e; box-shadow: 0 3px 7px rgba(15, 118, 110, .25); }
         .vrbil-remark-actions .vrbil-action-view { color: #18586a; background: #fff; }
         .vrbil-remark-actions .vrbil-action-view:hover { color: #124653; background: #deeff2; }
+        #VerifyOrders_Search_Billing .vrbil-action-view.vrbil-action-view-details { color: #fff; background: #155e75; box-shadow: 0 2px 4px rgba(21, 94, 117, .18); }
+        #VerifyOrders_Search_Billing .vrbil-action-view.vrbil-action-view-details:hover { color: #fff; background: #164e63; }
         .vrbil-remark-actions .btn:focus-visible { outline: 2px solid #155e75; outline-offset: 2px; z-index: 1; }
         .vrbil-remark-actions .btn i { font-size: 11px; }
         @media (prefers-reduced-motion: reduce) { .vrbil-remark-actions.btn-group > .btn { transition: none; } }
@@ -1018,6 +1020,8 @@
         #vrbil_viewRemark .vrbil-detail-card { border: 1px solid #d6e2ee; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
         #vrbil_viewRemarkPeriod { color: #0f766e; font-size: 15px; font-weight: 700; margin-top: 8px; }
         #vrbil_viewRemark .vrbil-table-scroll { overflow-x: auto; clear: both; border: 1px solid #d6e2ee; border-radius: 8px; }
+        #vrbil_additionalTable .vrbil-detail-action { min-width: 90px; white-space: nowrap; }
+        #vrbil_additionalTable .vrbil-delete-detail { white-space: nowrap; }
         #vrbil_viewRemark table.dataTable { width: 100% !important; min-width: 600px; margin: 0 !important; border-collapse: collapse !important; table-layout: fixed; border: 0; }
         #vrbil_viewRemark table.dataTable th,
         #vrbil_viewRemark table.dataTable td { padding: 12px 14px !important; text-align: left; vertical-align: top; border: 1px solid #e1e8ef; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
