@@ -6226,6 +6226,13 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Target Name="CheckHRReportRequestTimeout" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <HRReportSourceText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\Admin\HRReport.aspx.cs'))</HRReportSourceText>
+    </PropertyGroup>
+    <Error Condition="!$(HRReportSourceText.Contains('HttpContext.Current.Server.ScriptTimeout = 600;'))"
+           Text="HR Report timeout protection is missing. Restore the 600-second ScriptTimeout in SkipLevelDetails before building/publishing; otherwise live exports can abort while SQL is running." />
+  </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

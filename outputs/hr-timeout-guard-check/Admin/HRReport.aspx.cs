@@ -1,0 +1,1 @@
+// Timeout intentionally absent in this test fixture.
