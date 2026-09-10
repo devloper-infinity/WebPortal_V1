@@ -724,8 +724,6 @@ function BindYear_AbscondingLeave() {
 
     $("#ableave_year").append($("<option></option>").val("").html("Select"));
     for (var i = start; i > start - 5; i--) {
-
-        console.log(i);
         $("#ableave_year").append($("<option></option>").val(i).html(i));
     }
 }
