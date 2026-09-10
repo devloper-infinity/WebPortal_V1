@@ -65,6 +65,133 @@ namespace WebPortal.Admin
             return ser.Serialize(rows);
         }
 
+
+        //Arti Changes
+
+        [WebMethod]
+        public static string GetYearWiseTotalLeaves(string Year)
+        {
+            DataTable dt1 = new bllMaster().GetYearWiseTotalLeaves(Year);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+
+        [WebMethod]
+        public static string GetYearWiseAbscondingEmployees(string Year)
+        {
+            DataTable dt1 = new bllMaster().GetYearWiseAbscondingEmployees(Year);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static string GetYearWiseTotalLeavesSummary(string Year)
+        {
+            DataSet ds = new bllMaster().GetYearWiseTotalLeavesSummary(Year);
+
+            var allTablesData = new List<List<Dictionary<string, object>>>();
+
+            foreach (DataTable dt in ds.Tables)
+            {
+                Dictionary<string, Dictionary<string, object>> tableMap = new Dictionary<string, Dictionary<string, object>>();
+
+                foreach (DataRow dr in dt.Rows)
+                {
+                    string rowKey = dr[0].ToString();
+                    string monthName = dr["LeaveMonth"].ToString();
+
+                    if (!tableMap.ContainsKey(rowKey))
+                    {
+                        tableMap[rowKey] = new Dictionary<string, object>();
+                        tableMap[rowKey]["RowName"] = rowKey;
+                    }
+
+                    tableMap[rowKey][monthName + "_EmployeeCount"] = dr[2];
+                    tableMap[rowKey][monthName + "_ForDays"] = dr[3];
+                }
+
+                allTablesData.Add(new List<Dictionary<string, object>>(tableMap.Values));
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(allTablesData);
+        }
+
+        [WebMethod]
+        public static string GetYearWiseAbscondingEmployeesSummary(string Year)
+        {
+            DataSet ds = new bllMaster().GetYearWiseAbscondingEmployeesSummary(Year);
+
+            var allTablesData = new List<List<Dictionary<string, object>>>();
+
+            for (int t = 0; t < ds.Tables.Count; t++)
+            {
+                DataTable dt = ds.Tables[t];
+                Dictionary<string, Dictionary<string, object>> tableMap = new Dictionary<string, Dictionary<string, object>>();
+
+                foreach (DataRow dr in dt.Rows)
+                {
+                    string rowKey = dr[0].ToString();
+
+                    if (t == 2)
+                    {
+                        string monthName = dr["Month"].ToString();
+                        string locationName = dr["Location"].ToString();
+                        string dynamicKey = monthName + "_" + locationName + "_AbscondingCount";
+
+                        if (!tableMap.ContainsKey(rowKey))
+                        {
+                            tableMap[rowKey] = new Dictionary<string, object>();
+                            tableMap[rowKey]["RowName"] = rowKey;
+                        }
+                        tableMap[rowKey][dynamicKey] = dr["AbscondingCount"];
+                    }
+                    else
+                    {
+                        string monthName = dr["Month"].ToString();
+                        if (!tableMap.ContainsKey(rowKey))
+                        {
+                            tableMap[rowKey] = new Dictionary<string, object>();
+                            tableMap[rowKey]["RowName"] = rowKey;
+                        }
+                        tableMap[rowKey][monthName + "_AbscondingCount"] = dr["AbscondingCount"];
+                    }
+                }
+
+                allTablesData.Add(new List<Dictionary<string, object>>(tableMap.Values));
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(allTablesData);
+        }
+
         static string GetColumnName(int index)
         {
             const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -121,6 +248,7 @@ namespace WebPortal.Admin
         {
             string Month = Convert.ToString(Request.Form["ableave_month"]);
             string Year = Convert.ToString(Request.Form["ableave_year"]);
+            Year = Year.Replace(",", "");
             FileName = Server.MapPath(@"~\ReportDocument\Absconding_And_Leaves_Report_" + Convert.ToString(Month) + "-" + Convert.ToString(Year) + DateTime.Now.ToString("hhmmss") + ".xlsx");
             FormatExcel(FileName, Month, Year);
             string filePath = FileName;
