@@ -594,7 +594,7 @@ function savePolicyInfo() {
 
         success: function (res) {
 
-            alert(res.d);
+           
 
             if (res.d > 0) {
 

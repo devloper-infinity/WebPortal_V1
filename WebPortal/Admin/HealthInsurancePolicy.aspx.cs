@@ -157,6 +157,7 @@ namespace WebPortal.Admin
                 htParam["ContributionCategory"] = contributionCategory;
                 htParam["ContributionType"] = contributionType;
                 htParam["PercFixAmount"] = percFixAmount;
+                htParam["PolicyID"] = policyId;
                 htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
 
                 ReturnValue =  new bllMaster().InsertEmployeeGroupPolicy(htParam);
