@@ -287,10 +287,19 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static string GetDataForBilling(string ProjectNo, string FromDate, string ToDate)
+        public static string GetDataForBilling(string ProjectNo, string FromDate, string ToDate, int Project, string BillingPeriod)
         {
             DataTable dt1 = new bllOST().GetProjectWiseOrderDetailsForBilling_ForVerification(ProjectNo, FromDate, ToDate);
             dtRecords = dt1;
+            // Use the same project/period details as View Remark; fetch once for all orders.
+            var ordersWithDetails = new HashSet<string>();
+            if (dt1 != null && dt1.Rows.Count > 0)
+            {
+                DataTable details = new bllOST().GetCostEmailDetails(Project, BillingPeriod);
+                if (details != null)
+                    foreach (DataRow detail in details.Rows)
+                        ordersWithDetails.Add(GetDataRowValue(detail, "OrderID"));
+            }
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             if (dt1 != null)
@@ -302,6 +311,7 @@ namespace WebPortal.Search
                     {
                         row.Add(col.ColumnName, dr[col]);
                     }
+                    row["HasAdditionalDetails"] = ordersWithDetails.Contains(GetDataRowValue(dr, "OrderID"));
                     rows.Add(row);
                 }
             }
@@ -361,7 +371,7 @@ namespace WebPortal.Search
                     OrderCost = GetDataRowValue(row, "OrderCost")
                 }).ToList();
             var details = new List<Dictionary<string, object>>();
-            DataTable storedDetails = service.GetCostEmailDetails(Project, BillingPeriod);
+            DataTable storedDetails = service.GetCostEmailDetails(Project, BillingPeriod, true);
             if (storedDetails != null)
             {
                 foreach (DataRow row in storedDetails.Rows)
@@ -371,6 +381,8 @@ namespace WebPortal.Search
                     var detail = new Dictionary<string, object>();
                     foreach (DataColumn column in storedDetails.Columns)
                         detail[column.ColumnName] = row[column] == DBNull.Value ? "" : row[column];
+                    // Preserve BIGINT precision in the browser.
+                    detail["CostEmailID"] = GetDataRowValue(row, "CostEmailID");
                     DataTable attachmentRow = storedDetails.Clone();
                     attachmentRow.ImportRow(row);
                     detail["Attachments"] = GetValidCostEmailAttachmentFiles(attachmentRow).Select(file => new {
@@ -394,6 +406,30 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
+        public static object DeleteAdditionalDetails_VerifyBilling(int Project, string BillingPeriod, int OrderID, string CostEmailID)
+        {
+            // Reuse View Remark's authenticated project/order access checks before any mutation.
+            ViewRemark_VerifyBilling(Project, BillingPeriod, OrderID);
+            long id;
+            long deletedBy;
+            if (!long.TryParse(CostEmailID, out id) || id <= 0 ||
+                !long.TryParse(HttpContext.Current.User.Identity.Name, out deletedBy))
+                throw new HttpException(400, "Invalid additional details record.");
+            var service = new bllOST();
+            DataTable details = service.GetCostEmailDetails(Project, BillingPeriod, true);
+            if (details == null || !details.AsEnumerable().Any(row =>
+                GetDataRowValue(row, "CostEmailID") == id.ToString() &&
+                GetDataRowValue(row, "OrderID") == OrderID.ToString()))
+                throw new HttpException(404, "Additional details record is not available for this order.");
+
+            service.DeleteCostEmailDetails(id, deletedBy);
+            DataTable remaining = service.GetCostEmailDetails(Project, BillingPeriod, true);
+            if (remaining == null || remaining.AsEnumerable().Any(row => GetDataRowValue(row, "CostEmailID") == id.ToString()))
+                throw new HttpException(500, "Deletion could not be verified. Refresh the details and try again.");
+            return ViewRemark_VerifyBilling(Project, BillingPeriod, OrderID);
+        }
+
+        [WebMethod]
         public static int AddRemark_VerifyBilling(int Project, string BillingPeriod, int OrderID, string OrderCost, string Remark, bool IsMailInput, string CostDiff, string EmailInput, string AttachmentPath)
         {
             int returnValue =  new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
@@ -407,6 +443,7 @@ namespace WebPortal.Search
                 htDetails["CostDiff"] = CostDiff;
                 htDetails["EmailNote"] = EmailInput;
                 htDetails["AttachmentPath"] = AttachmentPath ?? string.Empty;
+                htDetails["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
 
                 returnValue = new bllOST().InsertCostEmailDetails(htDetails);
             }

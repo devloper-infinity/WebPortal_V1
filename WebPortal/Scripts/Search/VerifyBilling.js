@@ -132,7 +132,8 @@ function Bind_SearchBilling_Grid_1(prjno, fromdate, todate) {
     $.ajax({
         url: "VerifyBilling.aspx/GetDataForBilling",
         type: "POST",
-        data: "{ProjectNo:'" + prjno + "',FromDate:'" + fromdate + "',ToDate:'" + todate + "'}",
+        data: JSON.stringify({ ProjectNo: prjno, FromDate: fromdate, ToDate: todate,
+            Project: Number($('#VerifyOrdres_projectno').val()), BillingPeriod: $('#VerifyOrdres_dateperild option:selected').text() }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
@@ -302,6 +303,14 @@ function updateCounts() {
 }
 
 
+function verifyBilling_rebindOrders() {
+    var project = $('#VerifyOrdres_projectno');
+    var period = $('#VerifyOrdres_dateperild');
+    var dates = period.find('option:selected').text().split('~');
+    if (!project.val() || !period.val() || dates.length !== 2) return;
+    Bind_SearchBilling_Grid(project.find('option:selected').text(), dates[0].trim(), dates[1].trim());
+}
+
 function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
     var remarkContext = {
         Project: Number($('#VerifyOrdres_projectno').val()),
@@ -314,7 +323,8 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
     $.ajax({
         url: "VerifyBilling.aspx/GetDataForBilling",
         type: "POST",
-        data: "{ProjectNo:'" + prjno + "',FromDate:'" + fromdate + "',ToDate:'" + todate + "'}",
+        data: JSON.stringify({ ProjectNo: prjno, FromDate: fromdate, ToDate: todate,
+            Project: remarkContext.Project, BillingPeriod: remarkContext.BillingPeriod }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
@@ -385,10 +395,12 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
                         render: function (data, type, row, meta) {
 
                             var rowIndex = meta.row; // 0-based index
+                            var detailIndicator = row.HasAdditionalDetails === true ? ' vrbil-action-view-details' : '';
+                            var detailTitle = row.HasAdditionalDetails === true ? ' title="Additional details available"' : '';
 
                             return `<div class="btn-group vrbil-remark-actions" role="group" aria-label="Remark actions">
                                 <button type="button" class="btn btn-sm vrbil-action-add" onclick="verifyBilling_addRemark(${Number(row.OrderID)}, ${rowIndex});"><i class="fas fa-plus" aria-hidden="true"></i><span>Add Remark</span></button>
-                                <button type="button" class="btn btn-sm vrbil-action-view" onclick="verifyBilling_viewRemark(${Number(row.OrderID)}, this);"><i class="fas fa-eye" aria-hidden="true"></i><span>View Remark</span></button>
+                                <button type="button" class="btn btn-sm vrbil-action-view${detailIndicator}"${detailTitle} onclick="verifyBilling_viewRemark(${Number(row.OrderID)}, this);"><i class="fas fa-eye" aria-hidden="true"></i><span>View Remark</span></button>
                             </div>`;
                         }
                     },
@@ -536,7 +548,7 @@ function verifyBilling_renderRemarks(result) {
             return $links.html();
         } }
     ];
-    var known = ['Project', 'OrderID', 'BillingPeriod', 'EmailInput', 'CostDiff', 'AttachmentPath', 'Attachments'];
+    var known = ['CostEmailID', 'Project', 'OrderID', 'BillingPeriod', 'EmailInput', 'CostDiff', 'AttachmentPath', 'Attachments'];
     records.forEach(function (record) {
         Object.keys(record).forEach(function (key) {
             if (known.indexOf(key) !== -1) return;
@@ -544,7 +556,64 @@ function verifyBilling_renderRemarks(result) {
             columns.push({ title: key.replace(/([a-z])([A-Z])/g, '$1 $2'), data: key, defaultContent: '', render: textCell });
         });
     });
+    columns.unshift({ title: 'Action', data: null, width: '90px', className: 'vrbil-detail-action', orderable: false, render: function (record, type) {
+        if (type !== 'display') return '';
+        var id = String(record.CostEmailID || '');
+        if (!/^[1-9][0-9]*$/.test(id)) return '';
+        return '<button type="button" class="btn btn-sm btn-outline-danger vrbil-delete-detail" data-detail-id="' + id +
+            '" title="Delete additional details"><i class="fas fa-trash-alt" aria-hidden="true"></i> Delete</button>';
+    } });
     addTable('vrbil_additionalTable', 'Additional Details', records, columns);
+    $('#vrbil_additionalTable').on('click', '.vrbil-delete-detail', function () {
+        verifyBilling_deleteAdditionalDetail($(this).attr('data-detail-id'), this);
+    });
+}
+
+function verifyBilling_deleteAdditionalDetail(id, button) {
+    var context = $('#vrbil_viewRemark').data('delete-detail-context');
+    if (!context || button.disabled) return;
+    var version = verifyBillingRemarkVersion;
+    button.disabled = true;
+    Swal.fire({
+        icon: 'warning', title: 'Delete Additional Details?',
+        text: 'This will delete the selected Additional Details record.',
+        showCancelButton: true, confirmButtonText: 'Yes, delete', cancelButtonText: 'Cancel',
+        confirmButtonColor: '#dc3545'
+    }).then(function (confirmation) {
+        if (!confirmation.isConfirmed || version !== verifyBillingRemarkVersion) {
+            button.disabled = false;
+            return;
+        }
+        $.ajax({
+            type: 'POST', url: 'VerifyBilling.aspx/DeleteAdditionalDetails_VerifyBilling',
+            contentType: 'application/json; charset=utf-8', dataType: 'json',
+            data: JSON.stringify({ Project: context.Project, BillingPeriod: context.BillingPeriod,
+                OrderID: context.OrderID, CostEmailID: id })
+        }).done(function (response) {
+            var result = response.d;
+            if (!result || !Array.isArray(result.Details)) {
+                Swal.fire('Unable to confirm deletion', 'Refresh the details to check the record status.', 'error');
+                return;
+            }
+            var gridContext = $('#VerifyOrders_Search_Billing').data('remark-context');
+            if (gridContext && gridContext.Project === context.Project && gridContext.BillingPeriod === context.BillingPeriod &&
+                $.fn.DataTable.isDataTable('#VerifyOrders_Search_Billing')) {
+                $('#VerifyOrders_Search_Billing').DataTable().rows().every(function () {
+                    var row = this.data();
+                    if (String(row.OrderID) !== String(context.OrderID)) return;
+                    row.HasAdditionalDetails = result.Details.length > 0;
+                    $(this.node()).find('.vrbil-action-view')
+                        .toggleClass('vrbil-action-view-details', row.HasAdditionalDetails)
+                        .attr('title', row.HasAdditionalDetails ? 'Additional details available' : null);
+                });
+            }
+            if (version === verifyBillingRemarkVersion) verifyBilling_renderRemarks(result);
+            verifyBilling_rebindOrders();
+            Swal.fire('Deleted', 'Additional Details deleted successfully.', 'success');
+        }).fail(function () {
+            Swal.fire('Delete failed', 'Unable to delete or confirm deletion. Refresh the details and try again.', 'error');
+        }).always(function () { button.disabled = false; });
+    });
 }
 function verifyBilling_viewRemark(orderId, trigger) {
     var context = $('#VerifyOrders_Search_Billing').data('remark-context');
@@ -552,6 +621,7 @@ function verifyBilling_viewRemark(orderId, trigger) {
     var version = ++verifyBillingRemarkVersion;
     if (verifyBillingRemarkRequest) verifyBillingRemarkRequest.abort();
     var $modal = $('#vrbil_viewRemark');
+    $modal.data('delete-detail-context', { Project: context.Project, BillingPeriod: context.BillingPeriod, OrderID: orderId });
     $('#vrbil_viewRemarkTitle').text('View Remark');
     $('#vrbil_viewRemarkPeriod').text('Billing Period: ' + context.BillingPeriod);
     verifyBilling_clearRemarkTables();
@@ -717,6 +787,7 @@ function btnverfybilling_AddRemark() {
             dataType: "json",
             success: function () {
                 Swal.close();
+                verifyBilling_rebindOrders();
                 Swal.fire({
                     icon: "success", title: "Success", text: "Remark and details saved successfully!", confirmButtonText: "OK"
                 }).then(function () {

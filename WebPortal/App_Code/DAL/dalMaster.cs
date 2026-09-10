@@ -2614,7 +2614,8 @@ namespace WebPortal.App_Code.DAL
                 using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
                 {
                     cmd.Connection = connection;
-                    cmd.CommandTimeout = 0;
+                    // Fail before the report's 600-second request limit so the error can be logged and returned.
+                    cmd.CommandTimeout = 540;
                     connection.Open();
                     DataSet result = new DataSet();
                     adapter.Fill(result);

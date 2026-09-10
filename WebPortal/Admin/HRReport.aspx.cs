@@ -1084,15 +1084,18 @@ namespace WebPortal.Admin
             var timer = System.Diagnostics.Stopwatch.StartNew();
             try
             {
+                // Keep this limit above the 540-second SQL command timeout.
+                HttpContext.Current.Server.ScriptTimeout = 600;
                 return BuildSkipLevelDetails(value => stage = value);
             }
             catch (Exception ex)
             {
                 string reference = Guid.NewGuid().ToString("N");
                 string diagnostic = string.Format(
-                    "UTC: {0:o}\r\nReference: {1}\r\nStage: {2}\r\nElapsed: {3}\r\nPeriod: {4} {5}\r\n64-bit: {6}\r\nExcel library: {7}\r\n{8}",
+                    "UTC: {0:o}\r\nReference: {1}\r\nStage: {2}\r\nElapsed: {3}\r\nPeriod: {4} {5}\r\n64-bit: {6}\r\nExcel library: {7}\r\nRequest timeout (seconds): {9}\r\nBuild ID: {10}\r\n{8}",
                     DateTime.UtcNow, reference, stage, timer.Elapsed, Month, Year,
-                    Environment.Is64BitProcess, typeof(Spire.Xls.Workbook).Assembly.FullName, ex);
+                    Environment.Is64BitProcess, typeof(Spire.Xls.Workbook).Assembly.FullName, ex,
+                    HttpContext.Current.Server.ScriptTimeout, typeof(HRReport).Module.ModuleVersionId);
                 bool logged = false;
                 try
                 {
@@ -2214,7 +2217,7 @@ namespace WebPortal.Admin
 
                         rowCount++;
 
-                        string Location = Convert.ToString(dtRnRSnap.Rows[i]["Quarter"]);
+                        string Location = Convert.ToString(dtRnRSnap.Rows[i]["Location"]) + " ~ " + Convert.ToString(dtRnRSnap.Rows[i]["Quarter"]);
                         sheet.Range[(rowCount + 1), 1].Value = Location;
                         sheet.Range[(rowCount + 1), 1, (rowCount + 1), 5].Merge();
                         sheet.Range[(rowCount + 1), 1, (rowCount + 1), 5].Style.Borders.LineStyle = LineStyleType.Thin;

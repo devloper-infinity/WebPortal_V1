@@ -745,26 +745,26 @@ namespace WebPortal.App_Code.DAL
         #region New Section for Detailed Feedback Report - Servicing
         public DataTable WeeklyGraphicalView_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_WeeklyGraphicalView_QCDate_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_WeeklyGraphicalView_QCDate_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable ClientwiseErrorTrending_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ClientwiseErrorTrending_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ClientwiseErrorTrending_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable ReviewerwiseErrorTrending_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewerwiseErrorTrending_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewerwiseErrorTrending_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable ReviewerVsQcerErrorCounts_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewVsQCCount_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewVsQCCount_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
@@ -777,20 +777,20 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable Reviewerwiseclientwiseerrors_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_Reviewerwiseclientwiseerror_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_Reviewerwiseclientwiseerror_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable ReviewerQCClientwiseerrors_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewerwiseQCwiseclientwiseerror_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewerwiseQCwiseclientwiseerror_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable QCersPerformance_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_WeeklyQCerDetails_Servicing_Infinity]");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_WeeklyQCerDetails_Servicing_Infinity_Dispatched_Loans]");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }

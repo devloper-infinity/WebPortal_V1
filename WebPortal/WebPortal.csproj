@@ -146,6 +146,7 @@
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\All.aspx" />
     <Content Include="Admin\ExcelCrossCheck.aspx" />
+    <Content Include="Admin\DashboardValidator.aspx" />
     <Content Include="Admin\FeedbackPerformanceReport.aspx" />
     <Content Include="Admin\IDCardProcedure.aspx" />
     <Content Include="Admin\ProjectEmailConfiguration.aspx" />
@@ -3154,6 +3155,11 @@
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\ExcelCrossCheckEngine.cs" />
+    <Compile Include="Admin\DashboardValidator.aspx.cs">
+      <DependentUpon>DashboardValidator.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\DashboardValidatorEngine.cs" />
     <Compile Include="Admin\IDCardProcedure.aspx.cs">
       <DependentUpon>IDCardProcedure.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -6099,6 +6105,7 @@
     <Content Include="Templates\Offer Letter.dotx" />
     <Content Include="Templates\Appointment Letter.dotx" />
     <Content Include="Templates\Confirmation letter1.dotx" />
+    <Content Include="Templates\DashboardValidatorTemplate.xlsx" />
     <Content Include="Templates\IdemnityBond.dotx" />
     <Content Include="Templates\Appendix-A-Version1.dotx" />
     <Content Include="Templates\Employee Agreement Version 3-2023 ForAll.dotx" />
@@ -6226,6 +6233,13 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Target Name="CheckHRReportRequestTimeout" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <HRReportSourceText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\Admin\HRReport.aspx.cs'))</HRReportSourceText>
+    </PropertyGroup>
+    <Error Condition="!$(HRReportSourceText.Contains('HttpContext.Current.Server.ScriptTimeout = 600;'))"
+           Text="HR Report timeout protection is missing. Restore the 600-second ScriptTimeout in SkipLevelDetails before building/publishing; otherwise live exports can abort while SQL is running." />
+  </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

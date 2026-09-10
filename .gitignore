@@ -407,6 +407,12 @@ FodyWeavers.xsd
 !/WebPortal/Admin/BuybackSettlement.aspx
 !/WebPortal/Admin/BuybackSettlement.aspx.cs
 !/WebPortal/Admin/BuybackSettlement.aspx.designer.cs
+!/WebPortal/Admin/DashboardValidator.aspx
+!/WebPortal/Admin/DashboardValidator.aspx.cs
+!/WebPortal/Admin/DashboardValidatorEngine.cs
+!/WebPortal/Templates/
+/WebPortal/Templates/*
+!/WebPortal/Templates/DashboardValidatorTemplate.xlsx
 !/WebPortal/Content/
 /WebPortal/Content/*
 !/WebPortal/Content/erp-modern-common.css
@@ -479,4 +485,5 @@ FodyWeavers.xsd
 /IHMS.EmailService/App.config
 /IHMS.EmailService/Program.cs
 /.gitignore
+/IHMS.EmailService/IHMS.EmailService.csproj
 /IHMS.EmailService/IHMS.EmailService.csproj

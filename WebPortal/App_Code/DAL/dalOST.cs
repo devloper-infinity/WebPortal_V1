@@ -741,7 +741,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@CostDiff", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["CostDiff"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmailNote", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["EmailNote"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AttachmentPath", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDetails["AttachmentPath"]);
-
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htDetails["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
@@ -750,10 +750,10 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
-        public DataTable GetCostEmailDetails(int projectId, string billingPeriod)
+        public DataTable GetCostEmailDetails(int projectId, string billingPeriod, bool includeRecordId = false)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
-                @"SELECT Project, BillingPeriod, OrderID, CostDifference AS CostDiff,
+                "SELECT " + (includeRecordId ? "CostEmailID, " : "") + @"Project, BillingPeriod, OrderID, CostDifference AS CostDiff,
                          EmailNote AS EmailInput, AttachmentPath
                     FROM Order_CostEmailDetails
                    WHERE Project = @ProjectID
@@ -765,6 +765,20 @@ namespace WebPortal.App_Code.DAL
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
+
+        public void DeleteCostEmailDetails(long costEmailId, long deletedBy)
+        {
+            using (SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "[dbo].[usp_Order_CostEmailDetails_Delete]"))
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            {
+                SQLHelper.AddParamToSQLCmd(cmd, "@CostEmailID", SqlDbType.BigInt, 0, ParameterDirection.Input, costEmailId);
+                SQLHelper.AddParamToSQLCmd(cmd, "@DeletedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, deletedBy);
+                cmd.Connection = connection;
+                connection.Open();
+                // Propagate database errors to the endpoint instead of swallowing them.
+                cmd.ExecuteNonQuery();
+            }
+        }
 
         public int UpdateBillingInBillingDB(int ProjectID, string period, string BillingCycle, int BillingBy, string ProductionBillingDate, string BillingDate, bool isdelay, string remark, string BillingStatus)
         {
