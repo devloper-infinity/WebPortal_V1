@@ -11,12 +11,69 @@
             color: #6c757d;
         }
 
-        .page-title-box {
-            background: #fff;
-            border-left: 4px solid #047edf;
-            padding: 12px 18px;
-            border-radius: 1px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+        .insurance-hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            min-height: 78px;
+            padding: 16px 18px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #172554 0%, #2457e6 55%, #0891b2 100%);
+            color: #fff;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, .12);
+        }
+
+        .insurance-hero-title {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .insurance-hero-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: rgba(255,255,255,.15);
+            font-size: 18px;
+        }
+
+        .insurance-hero h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.15;
+        }
+
+        .insurance-hero p {
+            margin: 4px 0 0;
+            color: rgba(255,255,255,.82);
+            font-size: 12px;
+        }
+
+        .insurance-hero-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 999px;
+            background: rgba(255,255,255,.14);
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 575px) {
+            .insurance-hero {
+                align-items: flex-start;
+                flex-direction: column;
+            }
         }
 
         .btn-gradient-primary {
@@ -82,16 +139,6 @@
         .form-control {
             height: 38px;
             border-radius: 5px;
-        }
-
-        .table th {
-            background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
-            color: #000;
-            white-space: nowrap;
-        }
-
-        th, td {
-            white-space: nowrap;
         }
 
         .badge-pending {
@@ -249,10 +296,12 @@
                 getAmountDistributionPercentage();
             });
 
-            $(document).on('keyup change', '#insurance_txtApproxPremium', function () {
-                if ($('#insurance_ddlContriType').val() !== '') {
-                    getAmountDistributionPercentage();
-                }
+            $(document).on('keyup', '#insurance_txtEmployeeSearch', function () {
+                bindLeftEmployeeList();
+            });
+
+            $(document).on('change', '#insurance_ddlEmployeeStatus', function () {
+                bindLeftEmployeeList();
             });
 
             $(document).on('change', '#insurance_ddlContriCategory', function () {
@@ -281,9 +330,6 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
-    <!-- jQuery -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
@@ -294,15 +340,17 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
     <div class="content-header">
-        <div class="container-fluid">
-            <div class="page-title-box">
-                <h6 class="m-0">
-                    <i class="fas fa-shield-alt"></i>&nbsp;&nbsp;
-               
-                    <b>Health Insurance Policy Management</b>
-                </h6>
-                <small class="text-muted">Select employees, assign policy, manage family details and active insurance records.</small>
-            </div>
+        <div class="container">
+            <header class="insurance-hero">
+                <div class="insurance-hero-title">
+                    <span class="insurance-hero-icon"><i class="fas fa-shield-alt"></i></span>
+                    <div>
+                        <h1>Health Insurance Policy Management</h1>
+                        <p>Select employees, assign policy, manage family details and active insurance records.</p>
+                    </div>
+                </div>
+                <span class="insurance-hero-chip"><i class="fas fa-layer-group"></i> Insurance Policy</span>
+            </header>
         </div>
     </div>
 
@@ -454,6 +502,13 @@
                                     </div>
                                 </div>
                                 <div class="section-title">Selected Employees</div>
+
+                                <input type="text" class="form-control mb-2" id="insurance_txtEmployeeSearch" placeholder="Search employees" />
+                                <select class="form-control mb-2" id="insurance_ddlEmployeeStatus">
+                                    <option value="All">All</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Policy Applied">Policy Applied</option>
+                                </select>
 
                                 <!-- JS will bind selected employees here -->
                                 <div class="employee-list-box" id="selectedEmployeeList">
@@ -705,11 +760,5 @@
             </div>
         </div>
     </div>
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css" />
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 
 </asp:Content>

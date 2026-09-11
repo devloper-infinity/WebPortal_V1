@@ -65,10 +65,139 @@ namespace WebPortal.Admin
             return ser.Serialize(rows);
         }
 
+
+        //Arti Changes
+
+        [WebMethod]
+        public static string GetYearWiseTotalLeaves(string Year)
+        {
+            DataTable dt1 = new bllMaster().GetYearWiseTotalLeaves(Year);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+
+        [WebMethod]
+        public static string GetYearWiseAbscondingEmployees(string Year)
+        {
+            DataTable dt1 = new bllMaster().GetYearWiseAbscondingEmployees(Year);
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
+            foreach (DataRow dr in dt1.Rows)
+            {
+                row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static string GetYearWiseTotalLeavesSummary(string Year)
+        {
+            DataSet ds = new bllMaster().GetYearWiseTotalLeavesSummary(Year);
+
+            var allTablesData = new List<List<Dictionary<string, object>>>();
+
+            foreach (DataTable dt in ds.Tables)
+            {
+                Dictionary<string, Dictionary<string, object>> tableMap = new Dictionary<string, Dictionary<string, object>>();
+
+                foreach (DataRow dr in dt.Rows)
+                {
+                    string rowKey = dr[0].ToString();
+                    string monthName = dr["LeaveMonth"].ToString();
+
+                    if (!tableMap.ContainsKey(rowKey))
+                    {
+                        tableMap[rowKey] = new Dictionary<string, object>();
+                        tableMap[rowKey]["RowName"] = rowKey;
+                    }
+
+                    tableMap[rowKey][monthName + "_EmployeeCount"] = dr[2];
+                    tableMap[rowKey][monthName + "_ForDays"] = dr[3];
+                }
+
+                allTablesData.Add(new List<Dictionary<string, object>>(tableMap.Values));
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(allTablesData);
+        }
+
+        [WebMethod]
+        public static string GetYearWiseAbscondingEmployeesSummary(string Year)
+        {
+            DataSet ds = new bllMaster().GetYearWiseAbscondingEmployeesSummary(Year);
+
+            var allTablesData = new List<List<Dictionary<string, object>>>();
+
+            for (int t = 0; t < ds.Tables.Count; t++)
+            {
+                DataTable dt = ds.Tables[t];
+                Dictionary<string, Dictionary<string, object>> tableMap = new Dictionary<string, Dictionary<string, object>>();
+
+                foreach (DataRow dr in dt.Rows)
+                {
+                    string rowKey = dr[0].ToString();
+
+                    if (t == 2)
+                    {
+                        string monthName = dr["Month"].ToString();
+                        string locationName = dr["Location"].ToString();
+                        string dynamicKey = monthName + "_" + locationName + "_AbscondingCount";
+
+                        if (!tableMap.ContainsKey(rowKey))
+                        {
+                            tableMap[rowKey] = new Dictionary<string, object>();
+                            tableMap[rowKey]["RowName"] = rowKey;
+                        }
+                        tableMap[rowKey][dynamicKey] = dr["AbscondingCount"];
+                    }
+                    else
+                    {
+                        string monthName = dr["Month"].ToString();
+                        if (!tableMap.ContainsKey(rowKey))
+                        {
+                            tableMap[rowKey] = new Dictionary<string, object>();
+                            tableMap[rowKey]["RowName"] = rowKey;
+                        }
+                        tableMap[rowKey][monthName + "_AbscondingCount"] = dr["AbscondingCount"];
+                    }
+                }
+
+                allTablesData.Add(new List<Dictionary<string, object>>(tableMap.Values));
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(allTablesData);
+        }
+
         static string GetColumnName(int index)
         {
-            const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            // Jar index 1-based asel (1 = A, 2 = B...) tr hya formula madhe 1 kami kara:
+            index = index - 1;
 
+            const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             var value = "";
 
             if (index >= letters.Length)
@@ -101,411 +230,170 @@ namespace WebPortal.Admin
             range.Style.HorizontalAlignment = HorizontalAlignType.Center;
         }
 
-        static void releaseObject(object obj)
-        {
-            try
-            {
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
-                obj = null;
-            }
-            catch
-            {
-            }
-            finally
-            {
-                GC.Collect();
-            }
-        }
-
         protected void btn1_Click(object sender, EventArgs e)
         {
             string Month = Convert.ToString(Request.Form["ableave_month"]);
             string Year = Convert.ToString(Request.Form["ableave_year"]);
+            Year = Year.Replace(",", "");
+
             FileName = Server.MapPath(@"~\ReportDocument\Absconding_And_Leaves_Report_" + Convert.ToString(Month) + "-" + Convert.ToString(Year) + DateTime.Now.ToString("hhmmss") + ".xlsx");
-            FormatExcel(FileName, Month, Year);
-            string filePath = FileName;
-            string outputPath = FileName;
 
-            // Zero-based index: e.g., index 0 = first sheet
-            int sheetIndexToDelete = 1;
+            FormatExcel_Core(FileName, Month, Year);
 
-            using (var workbook = new XLWorkbook(filePath))
-            {
-                // Check if index is within bounds
-                if (sheetIndexToDelete >= 0 && sheetIndexToDelete < workbook.Worksheets.Count)
-                {
-                    var worksheet = workbook.Worksheet(1);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                    worksheet = workbook.Worksheet(1);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                    worksheet = workbook.Worksheet(1);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                    worksheet = workbook.Worksheet(6);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                }
-                else
-                {
-
-                }
-
-                // Save the updated workbook
-                workbook.SaveAs(outputPath);
-
-            }
-           
             Response.Clear();
             Response.Buffer = false;
             Response.AppendHeader("Content-Type", "application/xlsx");
             Response.AppendHeader("Content-Transfer-Encoding", "binary");
             Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(FileName));
+            using (var workbook = new ClosedXML.Excel.XLWorkbook(FileName))
+            {
+                var evalSheet = workbook.Worksheets.FirstOrDefault(w => w.Name.IndexOf("Evaluation", StringComparison.OrdinalIgnoreCase) >= 0);
+
+                if (evalSheet != null)
+                {
+                    workbook.Worksheets.Delete(evalSheet.Name);
+                    workbook.Save();
+                }
+            }
             Response.TransmitFile(FileName);
             Response.End();
         }
-
-        public void FormatExcel(string FileName, string Month, string Year)
-        {
-            Workbook book = new Workbook();
-            book.DefaultFontSize = 10;
-            book.DefaultFontName = "Aptos Narrow";
-
-            Worksheet detailSheet = book.Worksheets.Add("Absconding Details");
-            Worksheet summarySheet = book.Worksheets.Add("Absconding Summary");
-
-            DataTable dt = new bllMaster().GetTotalAbscondingEmployees(Month, Year);
-
-            if (dt == null || dt.Rows.Count == 0)
-                return;
-
-            // Ensure AbscondedDate is DateTime
-            foreach (DataRow row in dt.Rows)
-            {
-                if (row["AbscondedDate"] != DBNull.Value)
-                    row["AbscondedDate"] = Convert.ToDateTime(row["AbscondedDate"]);
-            }
-
-            // 🔥 Create Month-Year Column manually
-            if (!dt.Columns.Contains("MonthYear"))
-                dt.Columns.Add("MonthYear", typeof(string));
-
-            foreach (DataRow row in dt.Rows)
-            {
-                if (row["AbscondedDate"] != DBNull.Value)
-                {
-                    DateTime d = Convert.ToDateTime(row["AbscondedDate"]);
-                    row["MonthYear"] = d.ToString("MMM-yy");
-                }
-            }
-
-            // 🔥 Get latest 4 months
-            var lastFourMonths = dt.AsEnumerable()
-                .Where(r => r["AbscondedDate"] != DBNull.Value)
-                .OrderByDescending(r => Convert.ToDateTime(r["AbscondedDate"]))
-                .Select(r => Convert.ToDateTime(r["AbscondedDate"]).ToString("MMM-yy"))
-                .Distinct()
-                .Take(4)
-                .ToList();
-
-            DataTable filteredDt = dt.AsEnumerable()
-                .Where(r => lastFourMonths.Contains(r["MonthYear"].ToString()))
-                .CopyToDataTable();
-
-            filteredDt.Columns.Remove("EmployeeID");
-
-            // Insert details
-            detailSheet.InsertDataTable(filteredDt, true, 1, 1);
-
-            detailSheet.AllocatedRange.AutoFitColumns();
-            detailSheet.AllocatedRange.AutoFitRows();
-
-            int lastRow = detailSheet.LastRow;
-            int lastCol = detailSheet.LastColumn;
-            string lastColLetter = GetColumnName(lastCol);
-
-            // =====================================================
-            // DOMAIN WISE PIVOT
-            // =====================================================
-
-            CellRange dataRange = detailSheet.Range["A1:" + lastColLetter + lastRow];
-            PivotCache cache = book.PivotCaches.Add(dataRange);
-
-            PivotTable pt = summarySheet.PivotTables.Add("DomainWise",
-                            summarySheet.Range["A1"], cache);
-
-            // Row = Domain
-            var rowField = pt.PivotFields["Domain"];
-            rowField.Axis = AxisTypes.Row;
-
-            // Column = MonthYear (manual column)
-            var colField = pt.PivotFields["MonthYear"];
-            colField.Axis = AxisTypes.Column;
-
-            // Values
-            pt.DataFields.Add(pt.PivotFields["Code"],"Employee Count",SubtotalTypes.Count);
-
-            pt.BuiltInStyle = PivotBuiltInStyles.PivotStyleMedium9;
-            pt.CalculateData();
-
-            // =====================================================
-            // PROFESSIONAL FORMATTING
-            // =====================================================
-
-            summarySheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
-            summarySheet.AllocatedRange.Style.Font.Size = 10;
-            summarySheet.AllocatedRange.Style.HorizontalAlignment = HorizontalAlignType.Center;
-
-            CellRange header = summarySheet.Range["A1:" +
-                GetColumnName(summarySheet.LastColumn) + "1"];
-
-            header.Style.Color = System.Drawing.Color.FromArgb(47, 85, 151);
-            header.Style.Font.Color = System.Drawing.Color.White;
-            header.Style.Font.IsBold = true;
-
-            summarySheet.AllocatedRange.AutoFitColumns();
-            summarySheet.AllocatedRange.AutoFitRows();
-
-            summarySheet.FreezePanes(2, 1);
-
-            // =====================================================
-            // SAVE
-            // =====================================================
-
-            if (File.Exists(FileName))
-            {
-                try { File.Delete(FileName); }
-                catch { }
-            }
-
-            book.SaveToFile(FileName, ExcelVersion.Version2010);
-        }
-
-
         public void FormatExcel_Core(string FileName, string Month, string Year)
         {
             Workbook book = new Workbook();
-            //book.LoadFromFile(FileName);
             book.DefaultFontSize = 10;
             book.DefaultFontName = "Aptos Narrow";
-            int rowcount = 0;
+
+            book.Worksheets.Clear();
+
+            Worksheet sheetAbsDetails = book.Worksheets.Add("Absconding Details");
+            Worksheet sheetAbsSummary = book.Worksheets.Add("Absconding Summary");
+            Worksheet sheetLeaveDetails = book.Worksheets.Add("Leave Details");
+            Worksheet sheetLeaveSummary = book.Worksheets.Add("Leave Summary");
+
             int mainrowcount = 0;
-            int colcount = 0;
-            Worksheet sheet = book.Worksheets.Add("Absconding Summary");
-            sheet = book.Worksheets.Add("Absconding Details");
-            
+
+            #region 1. Absconding Data & Summary
             DataTable dt = new bllMaster().GetTotalAbscondingEmployees(Month, Year);
-            if (dt != null)
+            if (dt != null && dt.Rows.Count > 0)
             {
-                if (dt.Rows.Count > 0)
-                {
+                if (dt.Columns.Contains("EmployeeID"))
                     dt.Columns.Remove("EmployeeID");
-                    sheet.InsertDataTable(dt, true, 1, 1);
-                    string Col = GetColumnName(dt.Columns.Count - 1);
-                    CellRange range = sheet.Range["A1:" + Col + "1"];
+
+                sheetAbsDetails.InsertDataTable(dt, true, 1, 1);
+
+                string Col = GetColumnName(dt.Columns.Count);
+
+                CellRange range = sheetAbsDetails.Range["A1:" + Col + "1"];
+                HeaderFormat(range);
+                range = sheetAbsDetails.Range["A1:" + Col + (dt.Rows.Count + 1)];
+                AllBorder(range);
+                ContentCenter(range);
+
+                mainrowcount = sheetAbsDetails.LastRow;
+
+                sheetAbsDetails.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
+                sheetAbsDetails.AllocatedRange.Style.Font.Size = 10;
+                sheetAbsDetails.AllocatedRange.AutoFitColumns();
+                sheetAbsDetails.AllocatedRange.AutoFitRows();
+
+                // Absconding Summary (Pivot Tables)
+                #region Domain wise
+                CellRange dataRange = sheetAbsDetails.Range["A1:" + Col + mainrowcount];
+                PivotCache cache = book.PivotCaches.Add(dataRange);
+                PivotTable pt = sheetAbsSummary.PivotTables.Add("Domain", sheetAbsSummary.Range["A1"], cache);
+
+                var rField = pt.PivotFields["Domain"];
+                rField.Axis = AxisTypes.Row;
+                pt.Options.RowHeaderCaption = "Domain";
+                pt.DataFields.Add(pt.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
+                pt.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
+                pt.CalculateData();
+                #endregion
+
+                int rowcount = sheetAbsSummary.LastRow + 2;
+
+                #region Location wise
+                pt = sheetAbsSummary.PivotTables.Add("Branch", sheetAbsSummary.Range["A" + rowcount], cache);
+                rField = pt.PivotFields["Branch"];
+                rField.Axis = AxisTypes.Row;
+                pt.Options.RowHeaderCaption = "Location";
+                pt.DataFields.Add(pt.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
+                pt.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
+                pt.CalculateData();
+                #endregion
+
+                sheetAbsSummary.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
+                sheetAbsSummary.AllocatedRange.Style.Font.Size = 10;
+                sheetAbsSummary.AllocatedRange.AutoFitColumns();
+                sheetAbsSummary.AllocatedRange.AutoFitRows();
+            }
+            #endregion
+
+            #region 2. Leave Data & Summary
+            DataSet ds = new bllMaster().GetTotalLeaves_Revised(Month, Year);
+            if (ds != null && ds.Tables.Count > 0)
+            {
+                DataTable dt1 = ds.Tables[0];
+                if (dt1 != null && dt1.Rows.Count > 0)
+                {
+                    sheetLeaveDetails.InsertDataTable(dt1, true, 1, 1);
+                    string ColLeave = GetColumnName(dt1.Columns.Count);
+
+                    CellRange range = sheetLeaveDetails.Range["A1:" + ColLeave + "1"];
                     HeaderFormat(range);
-                    range = sheet.Range["A1:" + Col + (dt.Rows.Count + 1)];
+                    range = sheetLeaveDetails.Range["A1:" + ColLeave + (dt1.Rows.Count + 1)];
                     AllBorder(range);
                     ContentCenter(range);
-                    rowcount = sheet.LastRow;
-                    colcount = sheet.LastColumn;
-                    mainrowcount = sheet.LastRow;
 
-                    sheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
-                    sheet.AllocatedRange.Style.Font.Size = 10;
+                    int leaveMainRow = sheetLeaveDetails.LastRow;
 
-                    sheet.AllocatedRange.AutoFitColumns();
-                    sheet.AllocatedRange.AutoFitRows();
+                    sheetLeaveDetails.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
+                    sheetLeaveDetails.AllocatedRange.Style.Font.Size = 10;
+                    sheetLeaveDetails.AllocatedRange.AutoFitColumns();
+                    sheetLeaveDetails.AllocatedRange.AutoFitRows();
 
-                    sheet = book.Worksheets["Absconding Summary"];
-                    #region Domain wise
-                    CellRange dataRangeHiring = book.Worksheets["Absconding Details"].Range["A1:" + Col + (mainrowcount)];
-                    PivotCache cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                    PivotTable ptHiring = sheet.PivotTables.Add("Domain", sheet.Range["A1"], cacheHiring);
+                    // Leave Summary (Pivot Tables)
+                    #region Leave Domain wise
+                    CellRange leaveDataRange = sheetLeaveDetails.Range["A1:" + ColLeave + leaveMainRow];
+                    PivotCache leaveCache = book.PivotCaches.Add(leaveDataRange);
+                    PivotTable ptLeave = sheetLeaveSummary.PivotTables.Add("Domain", sheetLeaveSummary.Range["A1"], leaveCache);
 
-                    var rHiring = ptHiring.PivotFields["Domain"];
-                    rHiring.Axis = AxisTypes.Row;
-                    ptHiring.Options.RowHeaderCaption = "Domain";
-
-                    ptHiring.DataFields.Add(ptHiring.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
-
-                    ptHiring.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
-                    ptHiring.CalculateData();
+                    var leaveField = ptLeave.PivotFields["Domain"];
+                    leaveField.Axis = AxisTypes.Row;
+                    ptLeave.Options.RowHeaderCaption = "Domain";
+                    ptLeave.DataFields.Add(ptLeave.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
+                    ptLeave.DataFields.Add(ptLeave.PivotFields["ForDays"], "For Days", SubtotalTypes.Sum);
+                    ptLeave.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
+                    ptLeave.CalculateData();
                     #endregion
 
-                    rowcount = sheet.LastRow;
-                    colcount = sheet.LastColumn;
+                    int leaveRowcount = sheetLeaveSummary.LastRow + 2;
 
-                    #region Location wise
-                    dataRangeHiring = book.Worksheets["Absconding Details"].Range["A1:" + Col + (mainrowcount)];
-                    cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                    ptHiring = sheet.PivotTables.Add("Branch", sheet.Range["A" + (rowcount)], cacheHiring);
-
-                    rHiring = ptHiring.PivotFields["Branch"];
-                    rHiring.Axis = AxisTypes.Row;
-                    ptHiring.Options.RowHeaderCaption = "Location";
-
-                    ptHiring.DataFields.Add(ptHiring.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
-
-                    ptHiring.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
-                    ptHiring.CalculateData();
-
+                    #region Leave Location wise
+                    ptLeave = sheetLeaveSummary.PivotTables.Add("Branch", sheetLeaveSummary.Range["A" + leaveRowcount], leaveCache);
+                    leaveField = ptLeave.PivotFields["Branch"];
+                    leaveField.Axis = AxisTypes.Row;
+                    ptLeave.Options.RowHeaderCaption = "Location";
+                    ptLeave.DataFields.Add(ptLeave.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
+                    ptLeave.DataFields.Add(ptLeave.PivotFields["ForDays"], "For Days", SubtotalTypes.Sum);
+                    ptLeave.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
+                    ptLeave.CalculateData();
                     #endregion
 
-                    rowcount = sheet.LastRow;
-                    colcount = sheet.LastColumn;
-
-                    #region Domain and Location wise
-                    string Col1 = GetColumnName(colcount - 4);
-                    dataRangeHiring = book.Worksheets["Absconding Details"].Range["A1:" + Col + (mainrowcount)];
-                    cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                    ptHiring = sheet.PivotTables.Add("Domain Head", sheet.Range[Col1 + "1"], cacheHiring);
-
-                    rHiring = ptHiring.PivotFields["DomainHead"];
-                    rHiring.Axis = AxisTypes.Row;
-                    ptHiring.Options.RowHeaderCaption = "Domain Head";
-
-                    var rHiring1 = ptHiring.PivotFields["Branch"];
-                    rHiring1.Axis = AxisTypes.Column;
-                    ptHiring.Options.ColumnHeaderCaption = "Location";
-
-                    ptHiring.DataFields.Add(ptHiring.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
-
-                    ptHiring.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
-                    ptHiring.CalculateData();
-
-                    #endregion
-
-                    sheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
-                    sheet.AllocatedRange.Style.Font.Size = 10;
-
-                    sheet.AllocatedRange.AutoFitColumns();
-                    sheet.AllocatedRange.AutoFitRows();
+                    sheetLeaveSummary.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
+                    sheetLeaveSummary.AllocatedRange.Style.Font.Size = 10;
+                    sheetLeaveSummary.AllocatedRange.AutoFitColumns();
+                    sheetLeaveSummary.AllocatedRange.AutoFitRows();
                 }
             }
-
-            sheet = book.Worksheets.Add("Leave Summary");
-            sheet = book.Worksheets.Add("Leave Details");
-
-            //DataTable dt1 = new bllMaster().GetTotalLeaves(Month, Year);
-            DataSet ds = new bllMaster().GetTotalLeaves_Revised(Month, Year);
-            if (ds != null)
-            {
-                if (ds.Tables.Count > 0)
-                {
-                    DataTable dt1 = ds.Tables[0];
-                    DataTable dt2 = ds.Tables[1];
-
-                    if (dt1 != null)
-                    {
-                        if (dt1.Rows.Count > 0)
-                        {
-                            sheet.InsertDataTable(dt1, true, 1, 1);
-                            string Col = GetColumnName(dt1.Columns.Count - 1);
-                            CellRange range = sheet.Range["A1:" + Col + "1"];
-                            HeaderFormat(range);
-                            range = sheet.Range["A1:" + Col + (dt1.Rows.Count + 1)];
-                            AllBorder(range);
-                            ContentCenter(range);
-                            rowcount = sheet.LastRow;
-                            colcount = sheet.LastColumn;
-                            mainrowcount = sheet.LastRow;
-
-                            sheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
-                            sheet.AllocatedRange.Style.Font.Size = 10;
-
-                            sheet.AllocatedRange.AutoFitColumns();
-                            sheet.AllocatedRange.AutoFitRows();
-                            
-                            sheet = book.Worksheets.Add("Previous Month Leave Details");
-                            sheet.InsertDataTable(dt2, true, 1, 1);
-                            Col = GetColumnName(dt2.Columns.Count - 1);
-                            range = sheet.Range["A1:" + Col + "1"];
-                            HeaderFormat(range);
-                            range = sheet.Range["A1:" + Col + (dt2.Rows.Count + 1)];
-                            AllBorder(range);
-                            ContentCenter(range);
-
-                            sheet = book.Worksheets["Leave Summary"];
-                            #region Domain wise
-                            CellRange dataRangeHiring = book.Worksheets["Leave Details"].Range["A1:" + Col + (mainrowcount)];
-                            PivotCache cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                            PivotTable ptHiring = sheet.PivotTables.Add("Domain", sheet.Range["A1"], cacheHiring);
-
-                            var rHiring = ptHiring.PivotFields["Domain"];
-                            rHiring.Axis = AxisTypes.Row;
-                            ptHiring.Options.RowHeaderCaption = "Domain";
-
-                            ptHiring.DataFields.Add(ptHiring.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
-                            ptHiring.DataFields.Add(ptHiring.PivotFields["ForDays"], "For Days", SubtotalTypes.Sum);
-
-                            ptHiring.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
-                            ptHiring.CalculateData();
-                            #endregion
-
-                            rowcount = sheet.LastRow;
-                            colcount = sheet.LastColumn;
-
-                            #region Location wise
-                            dataRangeHiring = book.Worksheets["Leave Details"].Range["A1:" + Col + (mainrowcount)];
-                            cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                            ptHiring = sheet.PivotTables.Add("Branch", sheet.Range["A" + (rowcount)], cacheHiring);
-
-                            rHiring = ptHiring.PivotFields["Branch"];
-                            rHiring.Axis = AxisTypes.Row;
-                            ptHiring.Options.RowHeaderCaption = "Location";
-
-                            ptHiring.DataFields.Add(ptHiring.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
-                            ptHiring.DataFields.Add(ptHiring.PivotFields["ForDays"], "For Days", SubtotalTypes.Sum);
-
-                            ptHiring.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
-                            ptHiring.CalculateData();
-
-                            #endregion
-
-                            rowcount = sheet.LastRow;
-                            colcount = sheet.LastColumn;
-
-                            #region Domain and Location wise
-                            string Col1 = GetColumnName(colcount - 4);
-                            dataRangeHiring = book.Worksheets["Leave Details"].Range["A1:" + Col + (mainrowcount)];
-                            cacheHiring = book.PivotCaches.Add(dataRangeHiring);
-                            ptHiring = sheet.PivotTables.Add("Domain Head", sheet.Range[Col1 + "1"], cacheHiring);
-
-                            rHiring = ptHiring.PivotFields["DomainHead"];
-                            rHiring.Axis = AxisTypes.Row;
-                            ptHiring.Options.RowHeaderCaption = "Domain Head";
-
-                            var rHiring1 = ptHiring.PivotFields["Branch"];
-                            rHiring1.Axis = AxisTypes.Column;
-                            ptHiring.Options.ColumnHeaderCaption = "Location";
-
-                            ptHiring.DataFields.Add(ptHiring.PivotFields["Code"], "Employee Count", SubtotalTypes.Count);
-                            ptHiring.DataFields.Add(ptHiring.PivotFields["ForDays"], "For Days", SubtotalTypes.Sum);
-
-                            ptHiring.BuiltInStyle = PivotBuiltInStyles.PivotStyleLight16;
-                            ptHiring.CalculateData();
-
-                            #endregion
-
-                            sheet.AllocatedRange.Style.Font.FontName = "Aptos Narrow";
-                            sheet.AllocatedRange.Style.Font.Size = 10;
-
-                            sheet.AllocatedRange.AutoFitColumns();
-                            sheet.AllocatedRange.AutoFitRows();
-
-                            sheet = book.Worksheets.Add("Leave Summary");
-                            sheet = book.Worksheets.Add("Leave Details");
-                        }
-                    }
-                }
-            }
+            #endregion
 
             if (File.Exists(FileName))
             {
-                try
-                {
-                    File.Delete(FileName);
-                }
-                catch { }
+                try { File.Delete(FileName); } catch { }
             }
+
             book.SaveToFile(FileName, ExcelVersion.Version2010);
 
         }

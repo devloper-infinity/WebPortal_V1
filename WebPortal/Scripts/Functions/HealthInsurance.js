@@ -828,6 +828,8 @@ function bindEmployeesByPolicyPeriod() {
     if (policyPeriod === '') {
         policyEmployees = [];
         currentEmployeeIndex = 0;
+        $('#insurance_txtEmployeeSearch').val('');
+        $('#insurance_ddlEmployeeStatus').val('All');
         $('#selectedEmployeeList').html('');
         $('#employeeProgress').text('0 / 0 Completed');
         togglePrevNextButtons();
@@ -849,6 +851,8 @@ function bindEmployeesByPolicyPeriod() {
             }
 
             currentEmployeeIndex = 0;
+            $('#insurance_txtEmployeeSearch').val('');
+            $('#insurance_ddlEmployeeStatus').val('All');
 
             bindLeftEmployeeList();
 
@@ -863,8 +867,17 @@ function bindEmployeesByPolicyPeriod() {
 
 function bindLeftEmployeeList() {
     let html = '';
+    let searchText = ($('#insurance_txtEmployeeSearch').val() || '').toLowerCase();
+    let status = $('#insurance_ddlEmployeeStatus').val() || 'All';
 
     policyEmployees.forEach(function (emp, index) {
+        let employeeStatus = emp.isApprovedPolicy == 1 ? 'Policy Applied' : 'Pending';
+        let employeeText = `${emp.Code || ''} ${emp.EmpName || ''}`.toLowerCase();
+
+        if (employeeText.indexOf(searchText) === -1 || (status !== 'All' && status !== employeeStatus)) {
+            return;
+        }
+
         html += `
             <div class="employee-item ${index === currentEmployeeIndex ? 'active' : ''}"
                  onclick="openEmployeeByIndex(${index})">
@@ -875,11 +888,15 @@ function bindLeftEmployeeList() {
                 <span class="small-note">${emp.SumInsured}</span><br/>
 
                 <span class="badge ${emp.isApprovedPolicy == 1 ? 'badge-success' : 'badge-warning'}">
-                    ${emp.isApprovedPolicy == 1 ? 'Policy Applied' : 'Pending'}
+                    ${employeeStatus}
                 </span>
 
             </div>`;
     });
+
+    if (html === '') {
+        html = '<div class="employee-item text-muted">No employees found.</div>';
+    }
 
     $('#selectedEmployeeList').html(html);
 
