@@ -31,5 +31,9 @@ namespace WebPortal.Admin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button fr_newdownload;
+
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl servicingRegion;
+
+        protected global::System.Web.UI.WebControls.Button servicingDownload;
     }
 }
