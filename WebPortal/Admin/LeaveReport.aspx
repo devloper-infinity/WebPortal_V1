@@ -249,17 +249,7 @@
             border-spacing: 0;
         }
 
-        .table.dataTable thead th {
-            background: #edf3f6 !important;
-            color: #172033 !important;
-            font-size: 12px;
-            font-weight: 800;
-            vertical-align: middle;
-            height: 42px;
-            border-bottom: 1px solid #d8e1ea !important;
-            white-space: nowrap;
-        }
-
+      
         .table.dataTable tbody td {
             background: #fff !important;
             color: #263244;
@@ -416,14 +406,24 @@
                 width: 100%;
             }
         }
+        .table thead th {
+            padding: 7px 8px;
+            border-color: #dee2e6;
+            background: linear-gradient(to bottom, #007bff, 3%, #fff) !important;
+            color: #080808;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
     </style>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script type="text/javascript">
         $(document).ready(function () {
-            // BindViewLeaveDetails_Grid();
+            //BindViewLeaveReportDetails_Grid();
         });
     </script>
-    <portal:VersionedScript Src="~/Scripts/Functions/Leaves.js" runat="server"></portal:VersionedScript>
+     <script src="../Scripts/Functions/LeavesReport.js" type="text/javascript"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -470,7 +470,7 @@
                     </div>
 
                     <div class="lr-action-wrap">
-                        <button class="lr-btn lr-btn-primary" type="button" id="leaveReport__Show" onclick="return BindViewLeaveDetails_Grid();">
+                        <button class="lr-btn lr-btn-primary" type="button" id="leaveReport__Show" onclick="return BindViewLeaveReportDetails_Grid();">
                             <i class="fas fa-search"></i>
                             <span>Show Report</span>
                         </button>
