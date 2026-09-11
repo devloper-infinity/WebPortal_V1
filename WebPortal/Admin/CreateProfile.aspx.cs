@@ -489,7 +489,7 @@ namespace WebPortal.Admin
 
             #endregion
 
-            ReturnValue =  new bllMaster().UpdateEmployeeInfo(htParam);
+            ReturnValue =  new bllMaster().UpdateEmployeeInfo(htParam);      
 
             if (ReturnValue > 0)
             {
