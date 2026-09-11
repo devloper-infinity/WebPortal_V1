@@ -106,13 +106,13 @@ function GetDealFromLoan(id) {
     }
 
     // Show loading message
-    Swal.fire({
+    NativePopup.fire({
         title: "Please wait...",
         text: "Fetching deal number...",
         allowOutsideClick: false,
         allowEscapeKey: false,
         didOpen: () => {
-            Swal.showLoading();
+            NativePopup.showLoading();
         }
     });
 
@@ -134,13 +134,13 @@ function GetDealFromLoan(id) {
 
             if (data && data.length > 0) {
                 $("#conclUS_dealNo").val(data[0].DealNo);
-                Swal.close();
+                NativePopup.close();
             } else {
 
-                Swal.close();   // Close loading popup first
+                NativePopup.close();   // Close loading popup first
 
                 alert("No deal number is available for Loan No. " + loanNo + ".");
-                // Swal.fire({
+                // NativePopup.fire({
                 //     icon: "warning",
                 //     title: "Loan Not Found",
                 //     text: "Deal number is not available for the selected loan number.",
@@ -149,16 +149,16 @@ function GetDealFromLoan(id) {
                 $("#conclUS_dealNo").val("");
             }
 
-            Swal.close(); // Close loading popup
+            NativePopup.close(); // Close loading popup
         })
         .catch(error => {
 
             console.error(error);
             $("#conclUS_dealNo").val("");
 
-            Swal.close();
+            NativePopup.close();
 
-            Swal.fire({
+            NativePopup.fire({
                 icon: "error",
                 title: "Error",
                 text: "Unable to fetch deal number."
@@ -244,7 +244,7 @@ function conclUS_SaveData() {
 
     // Validation
     if (project == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select Project'
@@ -253,7 +253,7 @@ function conclUS_SaveData() {
     }
 
     if (deal == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select Deal'
@@ -262,7 +262,7 @@ function conclUS_SaveData() {
     }
 
     if (grade == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select Initial Exception Grade'
@@ -271,7 +271,7 @@ function conclUS_SaveData() {
     }
 
     if (process == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select Process'
@@ -280,7 +280,7 @@ function conclUS_SaveData() {
     }
 
     if (infCondition == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please enter Infinity Condition'
@@ -289,7 +289,7 @@ function conclUS_SaveData() {
     }
 
     if (rebuttal == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please enter Clients Rebuttal'
@@ -304,11 +304,11 @@ function conclUS_SaveData() {
 
             if (response.includes("Error")) {
 
-                Swal.fire({ icon: 'error', title: 'Error', text: response });
+                NativePopup.fire({ icon: 'error', title: 'Error', text: response });
 
             } else {
 
-                Swal.fire({ icon: 'success', title: 'Success', text: response });
+                NativePopup.fire({ icon: 'success', title: 'Success', text: response });
 
                 conclUS_ClearForm();
                 condclearing_bindGrid();
@@ -317,7 +317,7 @@ function conclUS_SaveData() {
 
         function (error) {
 
-            Swal.fire({ icon: 'error', title: 'Error', text: error.get_message() });
+            NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message() });
         }
     );
 
@@ -371,7 +371,7 @@ function core_conclUS_SaveData() {
 
         function (response) {
 
-            const Toast = Swal.mixin({
+            const Toast = NativePopup.mixin({
                 width: '700px',
                 padding: '2em',
                 confirmButtonText: 'OK',
@@ -400,7 +400,7 @@ function core_conclUS_SaveData() {
 
         function (error) {
 
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: error.get_message()
@@ -426,7 +426,7 @@ function conclUS_ClearForm() {
 }
 
 function showSuccess(message) {
-    Swal.fire({
+    NativePopup.fire({
         icon: 'success',
         title: 'Success',
         text: message
@@ -434,7 +434,7 @@ function showSuccess(message) {
 }
 
 function showError(message) {
-    Swal.fire({
+    NativePopup.fire({
         icon: 'error',
         title: 'Error',
         text: message
@@ -449,7 +449,7 @@ function handlePageMethodResponse(response, clearFunction = null) {
     } else {
 
 
-        Swal.fire({
+        NativePopup.fire({
             icon: 'success',
             title: 'Success',
             text: response

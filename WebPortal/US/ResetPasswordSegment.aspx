@@ -1,7 +1,6 @@
 <%@ Page Title="User Access Management" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="ResetPasswordSegment.aspx.cs" Inherits="WebPortal.US.ResetPasswordSegment" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
     <style>
         :root {
             --rps-primary: #2563eb;
@@ -326,8 +325,6 @@
         }
 
         @keyframes rpsSpin { to { transform: rotate(360deg); } }
-        .swal2-container { z-index: 100000 !important; }
-
         @media (max-width: 767px) {
             .rps-page { padding-top: 12px; }
 
@@ -351,7 +348,6 @@
             .rps-tab { transition: none; }
         }
     </style>
-    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="../Scripts/US/ResetPasswordSegment.js?v=1"></script>
 </asp:Content>
 

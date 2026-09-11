@@ -2,7 +2,6 @@
 
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         .cp-page {
@@ -320,14 +319,14 @@
                 return false;
             }
 
-            Swal.fire({
+            NativePopup.fire({
                 title: "Please wait...",
                 text: "Changing your password.",
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
                 didOpen: function () {
-                    Swal.showLoading();
+                    NativePopup.showLoading();
                 }
             });
 
@@ -336,10 +335,10 @@
         }
 
         function changepassword_OnSuccess(result) {
-            Swal.close();
+            NativePopup.close();
 
             if (result > 0) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: "success",
                     title: "Success",
                     text: "Password changed successfully.",
@@ -349,7 +348,7 @@
                 changepassword_clear();
             }
             else if (result == -1) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: "warning",
                     title: "Wrong Password",
                     text: "You have entered wrong current password.",
@@ -357,7 +356,7 @@
                 });
             }
             else {
-                Swal.fire({
+                NativePopup.fire({
                     icon: "error",
                     title: "Error",
                     text: "Error occurred while changing password. Please contact administrator.",
@@ -369,9 +368,9 @@
         }
 
         function changepassword_OnError(error) {
-            Swal.close();
+            NativePopup.close();
 
-            Swal.fire({
+            NativePopup.fire({
                 icon: "error",
                 title: "Error",
                 text: error && error.responseText ? error.responseText : "Unable to change password.",
@@ -382,7 +381,7 @@
         }
 
         function changepassword_showValidation(message) {
-            Swal.fire({
+            NativePopup.fire({
                 icon: "warning",
                 title: "Validation",
                 text: message,
@@ -541,7 +540,7 @@
 
         function changepassword_OnSuccess(result) {
             if (result > 0) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'success',
                     title: 'Success',
                     text: 'Password changed successfully',
@@ -553,7 +552,7 @@
             }
             else if (result == -1) {
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'warning',
                     title: 'Warning',
                     text: 'Oops! You have entered wrong password!',
@@ -563,7 +562,7 @@
             }
             else {
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: 'Oops! Error occured while changing password. Please contact administrator!',
@@ -577,7 +576,7 @@
 
         function changepassword_OnError(error) {
 
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: error.responseText,
@@ -588,7 +587,6 @@
 
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 

@@ -221,10 +221,6 @@
             width: 100% !important;
         }
 
-        .swal2-container {
-            z-index: 200000 !important;
-        }
-
         .custom-modal {
             display: none;
             position: fixed;
@@ -500,7 +496,6 @@
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>
 

@@ -354,10 +354,6 @@
             width: 100% !important;
         }
 
-        .swal2-container {
-            z-index: 200000 !important;
-        }
-
         .custom-dropdown {
             position: relative;
             width: 200px;

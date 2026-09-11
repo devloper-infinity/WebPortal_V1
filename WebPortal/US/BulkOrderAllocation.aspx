@@ -1,8 +1,6 @@
 <%@ Page Title="Bulk Order Allocation" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="BulkOrderAllocation.aspx.cs" Inherits="WebPortal.US.BulkOrderAllocation" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
-    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <script src="../Scripts/US/BulkOrderAllocation.js?v=1.9"></script>
     <style>
         .content .container { max-width: 1500px; }

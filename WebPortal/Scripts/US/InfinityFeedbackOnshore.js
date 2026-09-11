@@ -114,7 +114,7 @@ function saveInfinityOnshoreRemark() {
     var findingStatus = $("#ddlInfinityOnshore_RebuttalStatus").val();
 
     if (!feedbackId) {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select a feedback row.'
@@ -123,7 +123,7 @@ function saveInfinityOnshoreRemark() {
     }
 
     if (findingStatus === '') {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select the finding status.'
@@ -134,7 +134,7 @@ function saveInfinityOnshoreRemark() {
     }
 
     if (remark === '') {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please enter a remark.'
@@ -165,7 +165,7 @@ function saveInfinityOnshoreRemark() {
             var message = response.d || "Remark saved successfully.";
 
             if (message.indexOf("Error") === 0) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: message
@@ -179,7 +179,7 @@ function saveInfinityOnshoreRemark() {
             }
 
             $('#popUp_InfinityOnshoreRemark').modal('hide');
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'success',
                 title: 'Success',
                 text: message,
@@ -194,7 +194,7 @@ function saveInfinityOnshoreRemark() {
         },
 
         error: function (xhr) {
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Request Failed',
                 text: xhr.responseText || 'Something went wrong. Please try again.'

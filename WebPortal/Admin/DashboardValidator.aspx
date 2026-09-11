@@ -22,7 +22,7 @@
         </div>
 
         <% if (!string.IsNullOrWhiteSpace(ErrorMessage)) { %>
-        <div class="alert alert-danger"><%= Server.HtmlEncode(ErrorMessage) %></div>
+        <div class="alert alert-danger"><%= HttpContext.Current.Server.HtmlEncode(ErrorMessage) %></div>
         <% } %>
 
         <section class="erp-section-card p-4 dv-form erp-modern-form">

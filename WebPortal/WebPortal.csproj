@@ -145,8 +145,8 @@
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\All.aspx" />
-    <Content Include="Admin\ExcelCrossCheck.aspx" />
     <Content Include="Admin\DashboardValidator.aspx" />
+    <Content Include="Admin\ExcelCrossCheck.aspx" />
     <Content Include="Admin\FeedbackPerformanceReport.aspx" />
     <Content Include="Admin\IDCardProcedure.aspx" />
     <Content Include="Admin\ProjectEmailConfiguration.aspx" />
@@ -3150,15 +3150,15 @@
     <Compile Include="Admin\Birthday.aspx.designer.cs">
       <DependentUpon>Birthday.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\DashboardValidator.aspx.cs">
+      <DependentUpon>DashboardValidator.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Admin\ExcelCrossCheck.aspx.cs">
       <DependentUpon>ExcelCrossCheck.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\ExcelCrossCheckEngine.cs" />
-    <Compile Include="Admin\DashboardValidator.aspx.cs">
-      <DependentUpon>DashboardValidator.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
     <Compile Include="Admin\DashboardValidatorEngine.cs" />
     <Compile Include="Admin\IDCardProcedure.aspx.cs">
       <DependentUpon>IDCardProcedure.aspx</DependentUpon>
@@ -6237,8 +6237,7 @@
     <PropertyGroup>
       <HRReportSourceText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\Admin\HRReport.aspx.cs'))</HRReportSourceText>
     </PropertyGroup>
-    <Error Condition="!$(HRReportSourceText.Contains('HttpContext.Current.Server.ScriptTimeout = 600;'))"
-           Text="HR Report timeout protection is missing. Restore the 600-second ScriptTimeout in SkipLevelDetails before building/publishing; otherwise live exports can abort while SQL is running." />
+    <Error Condition="!$(HRReportSourceText.Contains('HttpContext.Current.Server.ScriptTimeout = 600;'))" Text="HR Report timeout protection is missing. Restore the 600-second ScriptTimeout in SkipLevelDetails before building/publishing; otherwise live exports can abort while SQL is running." />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

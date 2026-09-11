@@ -313,7 +313,7 @@
         rps_showProcessing("Generating password", "Creating a secure temporary password.");
 
         rps_post("GeneratePassword", {}, function (password) {
-            Swal.close();
+            NativePopup.close();
             $("#rpsGeneratedPassword").val(rps_text(password));
         }, "Unable to generate a password.");
     }
@@ -337,7 +337,7 @@
             return;
         }
 
-        Swal.fire({
+        NativePopup.fire({
             icon: "question",
             title: "Reset password?",
             text: "The selected employee will need to use the newly generated password.",
@@ -357,7 +357,7 @@
                     return;
                 }
 
-                Swal.fire({ icon: "success", title: "Success", text: result.Message, confirmButtonColor: "#2563eb" });
+                NativePopup.fire({ icon: "success", title: "Success", text: result.Message, confirmButtonColor: "#2563eb" });
                 $("#rpsResetUser").val("");
                 $("#rpsGeneratedPassword").val("");
             }, "Unable to reset the password.");
@@ -378,7 +378,7 @@
             return;
         }
 
-        Swal.fire({
+        NativePopup.fire({
             icon: "question",
             title: "Update segment?",
             text: "The selected employee will be assigned to " + segment + ".",
@@ -398,7 +398,7 @@
                     return;
                 }
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: result.Changed ? "success" : "info",
                     title: result.Changed ? "Success" : "No change needed",
                     text: result.Message,
@@ -422,29 +422,29 @@
                 onSuccess(response ? response.d : null);
             },
             error: function (xhr) {
-                Swal.close();
+                NativePopup.close();
                 rps_showError(fallbackMessage, xhr);
             }
         });
     }
 
     function rps_showProcessing(title, text) {
-        Swal.fire({
+        NativePopup.fire({
             title: title,
             text: text,
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
-            didOpen: function () { Swal.showLoading(); }
+            didOpen: function () { NativePopup.showLoading(); }
         });
     }
 
     function rps_showValidation(message) {
-        Swal.fire({ icon: "warning", title: "Validation", text: message, confirmButtonColor: "#f59e0b" });
+        NativePopup.fire({ icon: "warning", title: "Validation", text: message, confirmButtonColor: "#f59e0b" });
     }
 
     function rps_showResultError(message) {
-        Swal.fire({ icon: "error", title: "Error", text: message, confirmButtonColor: "#dc2626" });
+        NativePopup.fire({ icon: "error", title: "Error", text: message, confirmButtonColor: "#dc2626" });
     }
 
     function rps_showError(message, xhr) {

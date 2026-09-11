@@ -17,31 +17,25 @@
     }
 
     function notify(icon, title, message) {
-        if (window.Swal) {
-            Swal.fire({ icon: icon, title: title, text: message, confirmButtonText: "OK" });
-        } else {
-            window.alert(title + ": " + message);
-        }
+        NativePopup.fire({ icon: icon, title: title, text: message, confirmButtonText: "OK" });
     }
 
     function showAllocationProcessing() {
-        if (!window.Swal) return;
-
         allocationProcessingOpen = true;
-        Swal.fire({
+        NativePopup.fire({
             title: "Processing allocation",
             text: "Please wait while the orders are validated and allocated.",
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
-            didOpen: function () { Swal.showLoading(); }
+            didOpen: function () { NativePopup.showLoading(); }
         });
     }
 
     function hideAllocationProcessing() {
-        if (!allocationProcessingOpen || !window.Swal) return;
+        if (!allocationProcessingOpen) return;
         allocationProcessingOpen = false;
-        Swal.close();
+        NativePopup.close();
     }
 
     function readFile(file) {

@@ -354,10 +354,6 @@
             width: 100% !important;
         }
 
-        .swal2-container {
-            z-index: 200000 !important;
-        }
-
         .feedback-action-link {
             width: 30px;
             height: 30px;
@@ -593,7 +589,6 @@
 
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

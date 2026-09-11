@@ -149,7 +149,7 @@ function ana_endAnalysis() {
         function (response) {
 
             if (response.includes("Error")) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'warning',
                     title: 'Warning',
                     text: response,
@@ -158,7 +158,7 @@ function ana_endAnalysis() {
             } else {
                 $('#popUp_addResponse').modal('hide');
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'success',
                     title: 'Success',
                     text: response
@@ -170,7 +170,7 @@ function ana_endAnalysis() {
         },
 
         function (error) {
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: error.get_message()

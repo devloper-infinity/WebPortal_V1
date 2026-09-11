@@ -512,7 +512,7 @@
 
                 const firstFile = files[0];
                 if (!firstFile.name.toLowerCase().endsWith('.xlsx')) {
-                    Swal.fire('Invalid file', 'Please upload only .xlsx file.', 'warning');
+                    NativePopup.fire('Invalid file', 'Please upload only .xlsx file.', 'warning');
                     return;
                 }
 
@@ -539,7 +539,7 @@
             const xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    Swal.fire('Upload failed', 'Unable to upload selected file. Please try again.', 'error');
+                    NativePopup.fire('Upload failed', 'Unable to upload selected file. Please try again.', 'error');
                 }
             };
 
@@ -550,7 +550,6 @@
     </script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

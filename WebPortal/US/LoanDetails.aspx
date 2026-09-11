@@ -220,10 +220,6 @@
             width: 100% !important;
         }
 
-        .swal2-container {
-            z-index: 200000 !important;
-        }
-
         .custom-modal {
             display: none;
             position: fixed;
@@ -504,7 +500,6 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
    <%--  <script src="../Scripts/US/LoanDetails.js"></script>--%>
 
 </asp:Content>

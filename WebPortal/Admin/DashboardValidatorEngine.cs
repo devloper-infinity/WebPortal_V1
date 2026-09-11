@@ -14,7 +14,7 @@ namespace WebPortal.Admin
     {
         private const string InputWorkbookPassword = "PTU_PRP_1";
 
-        internal static void Generate(string inputPath, string templatePath, string outputPath)
+        internal static void Generate(string inputPath, string validationPath, string templatePath, string outputPath)
         {
             string readableInput = null;
             try
@@ -25,6 +25,7 @@ namespace WebPortal.Admin
                 {
                     IXLWorksheet inputSheet = FindInputSheet(inputWorkbook);
                     SourceData source = SourceData.Read(inputSheet);
+                    var phase1Matches = new List<Phase1Match>();
                     ValidateRequiredFields(source);
                     ValidateTemplate(outputWorkbook);
 
@@ -32,21 +33,22 @@ namespace WebPortal.Admin
                         outputWorkbook.Worksheet("Sheet1").Delete();
 
                     RecreateBlankSheet(outputWorkbook, "Worksheet");
-                    PopulateDelinquentTaxes(outputWorkbook.Worksheet("Delinquent Taxes"), source);
-                    PopulateTaxLien(outputWorkbook.Worksheet("Tax Lien"), source);
-                    PopulateSimple(outputWorkbook.Worksheet("State Tax"), source, "State Tax Lien", "Fail");
-                    PopulateSimple(outputWorkbook.Worksheet("Federal Tax"), source, "Federal Tax Lien", "Fail");
-                    PopulateSeniorLien(outputWorkbook.Worksheet("Senior Lien"), source);
-                    PopulateSimple(outputWorkbook.Worksheet("HOA"), source, "HOA Lien Exists", "Y");
-                    PopulateCityMunicipal(outputWorkbook.Worksheet("City-Municipal"), source);
-                    PopulateSimple(outputWorkbook.Worksheet("Mobile Home"), source, "Mobile Home Present", "Y");
+                    PopulateDelinquentTaxes(outputWorkbook.Worksheet("Delinquent Taxes"), source, phase1Matches);
+                    PopulateTaxLien(outputWorkbook.Worksheet("Tax Lien"), source, phase1Matches);
+                    PopulateSimple(outputWorkbook.Worksheet("State Tax"), source, "State Tax Lien", "Fail", phase1Matches);
+                    PopulateSimple(outputWorkbook.Worksheet("Federal Tax"), source, "Federal Tax Lien", "Fail", phase1Matches);
+                    PopulateSeniorLien(outputWorkbook.Worksheet("Senior Lien"), source, phase1Matches);
+                    PopulateSimple(outputWorkbook.Worksheet("HOA"), source, "HOA Lien Exists", "Y", phase1Matches);
+                    PopulateCityMunicipal(outputWorkbook.Worksheet("City-Municipal"), source, phase1Matches);
+                    PopulateSimple(outputWorkbook.Worksheet("Mobile Home"), source, "Mobile Home Present", "Y", phase1Matches);
                     RecreateBlankSheet(outputWorkbook, "Title Issue");
-                    PopulateMaturityDate(outputWorkbook.Worksheet("Maturity Date"), source);
-                    PopulateForeclosureIssues(outputWorkbook.Worksheet("FC Issues"), source);
-                    PopulateSimple(outputWorkbook.Worksheet("Mod Issues"), source, "Subject Mortgage Modified", "Y");
+                    PopulateMaturityDate(outputWorkbook.Worksheet("Maturity Date"), source, phase1Matches);
+                    PopulateForeclosureIssues(outputWorkbook.Worksheet("FC Issues"), source, phase1Matches);
+                    PopulateSimple(outputWorkbook.Worksheet("Mod Issues"), source, "Subject Mortgage Modified", "Y", phase1Matches);
                     RecreateBlankSheet(outputWorkbook, "Origination Issue");
 
                     CleanOutputFormatting(outputWorkbook);
+                    GeneratePhase2(outputWorkbook, validationPath, phase1Matches);
 
                     outputWorkbook.SaveAs(outputPath);
                 }
@@ -158,16 +160,17 @@ namespace WebPortal.Admin
             blank.Position = position;
         }
 
-        private static void PopulateDelinquentTaxes(IXLWorksheet sheet, SourceData source)
+        private static void PopulateDelinquentTaxes(IXLWorksheet sheet, SourceData source, ICollection<Phase1Match> phase1Matches)
         {
             ClearRows(sheet, 2, Math.Max(2, sheet.LastRowUsed().RowNumber()), 1, 9);
             List<SourceRow> rows = source.Rows.Where(x => x.EqualsValue("Delinquent OR Unpaid Taxes", "Fail")).ToList();
+            TrackPhase1Matches(rows, "Delinquent OR Unpaid Taxes", phase1Matches);
             WriteRows(sheet, 1, 1, 9, rows, null);
             for (int index = 0; index < rows.Count; index++)
                 sheet.Cell(index + 2, 8).FormulaA1 = "=G" + (index + 2) + "*4/100";
         }
 
-        private static void PopulateTaxLien(IXLWorksheet sheet, SourceData source)
+        private static void PopulateTaxLien(IXLWorksheet sheet, SourceData source, ICollection<Phase1Match> phase1Matches)
         {
             var blocks = new List<VerticalBlock>
             {
@@ -186,6 +189,7 @@ namespace WebPortal.Admin
                 ClearRows(sheet, headerRow + 1, originalLastDataRow, 1, 5);
 
                 List<SourceRow> rows = source.Rows.Where(x => x.EqualsValue(block.Field, block.ExpectedValue)).ToList();
+                TrackPhase1Matches(rows, block.Field, phase1Matches);
                 int capacity = originalLastDataRow - headerRow;
                 if (nextHeader.HasValue && rows.Count > capacity)
                 {
@@ -197,16 +201,19 @@ namespace WebPortal.Admin
             }
         }
 
-        private static void PopulateSimple(IXLWorksheet sheet, SourceData source, string field, string expected)
+        private static void PopulateSimple(IXLWorksheet sheet, SourceData source, string field, string expected, ICollection<Phase1Match> phase1Matches)
         {
             ClearRows(sheet, 2, Math.Max(2, sheet.LastRowUsed().RowNumber()), 1, sheet.LastColumnUsed().ColumnNumber());
-            WriteRows(sheet, 1, 1, sheet.LastColumnUsed().ColumnNumber(), source.Rows.Where(x => x.EqualsValue(field, expected)).ToList(), null);
+            List<SourceRow> rows = source.Rows.Where(x => x.EqualsValue(field, expected)).ToList();
+            TrackPhase1Matches(rows, field, phase1Matches);
+            WriteRows(sheet, 1, 1, sheet.LastColumnUsed().ColumnNumber(), rows, null);
         }
 
-        private static void PopulateSeniorLien(IXLWorksheet sheet, SourceData source)
+        private static void PopulateSeniorLien(IXLWorksheet sheet, SourceData source, ICollection<Phase1Match> phase1Matches)
         {
             int lastRow = Math.Max(49, sheet.LastRowUsed().RowNumber());
             List<SourceRow> seniorRows = source.Rows.Where(x => x.EqualsValue("Subject mortgage in first position?", "Fail")).ToList();
+            TrackPhase1Matches(seniorRows, "Subject mortgage in first position?", phase1Matches);
             int extraSeniorRows = Math.Max(0, seniorRows.Count - 22);
             if (extraSeniorRows > 0)
             {
@@ -223,11 +230,16 @@ namespace WebPortal.Admin
             WriteRows(sheet, 1, 1, 5, seniorRows, null);
 
             List<SourceRow> juniorRows = source.Rows.Where(x => x.HasPositiveNumber("Junior Mortgages Count")).ToList();
+            TrackPhase1Matches(juniorRows, "Junior Mortgages Count", phase1Matches);
             sheet.Cell(juniorHeaderRow, 5).Clear(XLClearOptions.All);
             WriteRows(sheet, juniorHeaderRow, 1, 4, juniorRows, null);
 
-            WriteRows(sheet, 1, 9, 10, source.Rows.Where(x => x.EqualsValue("Prior Lien FC Y/N", "Y")).ToList(), null);
-            WriteRows(sheet, 1, 13, 14, source.Rows.Where(x => x.EqualsValue("Prior Lien Release Required", "Y")).ToList(), null);
+            List<SourceRow> priorForeclosureRows = source.Rows.Where(x => x.EqualsValue("Prior Lien FC Y/N", "Y")).ToList();
+            TrackPhase1Matches(priorForeclosureRows, "Prior Lien FC Y/N", phase1Matches);
+            WriteRows(sheet, 1, 9, 10, priorForeclosureRows, null);
+            List<SourceRow> releaseRows = source.Rows.Where(x => x.EqualsValue("Prior Lien Release Required", "Y")).ToList();
+            TrackPhase1Matches(releaseRows, "Prior Lien Release Required", phase1Matches);
+            WriteRows(sheet, 1, 13, 14, releaseRows, null);
         }
 
         private static void CleanOutputFormatting(XLWorkbook workbook)
@@ -298,19 +310,25 @@ namespace WebPortal.Admin
             }
         }
 
-        private static void PopulateCityMunicipal(IXLWorksheet sheet, SourceData source)
+        private static void PopulateCityMunicipal(IXLWorksheet sheet, SourceData source, ICollection<Phase1Match> phase1Matches)
         {
             int lastRow = Math.Max(2, sheet.LastRowUsed().RowNumber());
             ClearRows(sheet, 2, lastRow, 1, 12);
             ClearRows(sheet, 2, lastRow, 14, 47);
-            WriteRows(sheet, 1, 1, 12, source.Rows.Where(x => x.EqualsValue("City Muni Assessment Lien Exists", "N")).ToList(), null);
-            WriteRows(sheet, 1, 14, 47, source.Rows.Where(x => x.EqualsValue("Township Search Status (Township Level)", "Completed") && x.EqualsValue("Township Search Pass/Fail", "Fail")).ToList(), null);
+            List<SourceRow> cityRows = source.Rows.Where(x => x.EqualsValue("City Muni Assessment Lien Exists", "N")).ToList();
+            TrackPhase1Matches(cityRows, "City Muni Assessment Lien Exists", phase1Matches);
+            WriteRows(sheet, 1, 1, 12, cityRows, null);
+            List<SourceRow> townshipRows = source.Rows.Where(x => x.EqualsValue("Township Search Status (Township Level)", "Completed") && x.EqualsValue("Township Search Pass/Fail", "Fail")).ToList();
+            TrackPhase1Matches(townshipRows, "Township Search Status (Township Level)", phase1Matches);
+            TrackPhase1Matches(townshipRows, "Township Search Pass/Fail", phase1Matches);
+            WriteRows(sheet, 1, 14, 47, townshipRows, null);
         }
 
-        private static void PopulateMaturityDate(IXLWorksheet sheet, SourceData source)
+        private static void PopulateMaturityDate(IXLWorksheet sheet, SourceData source, ICollection<Phase1Match> phase1Matches)
         {
             ClearRows(sheet, 2, Math.Max(2, sheet.LastRowUsed().RowNumber()), 1, 3);
             List<SourceRow> rows = source.Rows.Where(IsMaturityIssue).ToList();
+            TrackPhase1Matches(rows, "Subject Mortgage Maturity Date", phase1Matches);
             WriteRows(sheet, 1, 1, 3, rows, null);
         }
 
@@ -329,15 +347,148 @@ namespace WebPortal.Admin
             return row.TryGetDate("Orig Date", out originalDate) && maturity < originalDate.AddYears(30);
         }
 
-        private static void PopulateForeclosureIssues(IXLWorksheet sheet, SourceData source)
+        private static void PopulateForeclosureIssues(IXLWorksheet sheet, SourceData source, ICollection<Phase1Match> phase1Matches)
         {
             int lastRow = Math.Max(2, sheet.LastRowUsed().RowNumber());
             ClearRows(sheet, 2, lastRow, 1, 2);
             ClearRows(sheet, 2, lastRow, 5, 7);
             ClearRows(sheet, 2, lastRow, 11, 13);
-            WriteRows(sheet, 1, 1, 2, source.Rows.Where(x => x.EqualsValue("Subject Mortgage Foreclosed", "Fail")).ToList(), null);
-            WriteRows(sheet, 1, 5, 7, source.Rows.Where(x => x.EqualsValue("Foreclosure Filed for Subject Mortgage", "Y")).ToList(), null);
-            WriteRows(sheet, 1, 11, 13, source.Rows.Where(x => x.HasAmount("Total Lien Amount Surviving Foreclosure Before Subject")).ToList(), null);
+            List<SourceRow> foreclosedRows = source.Rows.Where(x => x.EqualsValue("Subject Mortgage Foreclosed", "Fail")).ToList();
+            TrackPhase1Matches(foreclosedRows, "Subject Mortgage Foreclosed", phase1Matches);
+            WriteRows(sheet, 1, 1, 2, foreclosedRows, null);
+            List<SourceRow> filingRows = source.Rows.Where(x => x.EqualsValue("Foreclosure Filed for Subject Mortgage", "Y")).ToList();
+            TrackPhase1Matches(filingRows, "Foreclosure Filed for Subject Mortgage", phase1Matches);
+            WriteRows(sheet, 1, 5, 7, filingRows, null);
+            List<SourceRow> survivingLienRows = source.Rows.Where(x => x.HasAmount("Total Lien Amount Surviving Foreclosure Before Subject")).ToList();
+            TrackPhase1Matches(survivingLienRows, "Total Lien Amount Surviving Foreclosure Before Subject", phase1Matches);
+            WriteRows(sheet, 1, 11, 13, survivingLienRows, null);
+        }
+
+        private static void TrackPhase1Matches(IEnumerable<SourceRow> rows, string baseHeader, ICollection<Phase1Match> phase1Matches)
+        {
+            foreach (SourceRow row in rows)
+                phase1Matches.Add(new Phase1Match(row.LoanId, baseHeader));
+        }
+
+        private static void GeneratePhase2(XLWorkbook outputWorkbook, string validationPath, IEnumerable<Phase1Match> phase1Matches)
+        {
+            Dictionary<string, ValidationDataRow> loanLookup;
+            using (var validationWorkbook = new XLWorkbook(validationPath))
+                loanLookup = BuildValidationLoanLookup(validationWorkbook);
+
+            if (outputWorkbook.Worksheets.Any(x => string.Equals(x.Name, "Validation", StringComparison.OrdinalIgnoreCase)))
+                outputWorkbook.Worksheets.First(x => string.Equals(x.Name, "Validation", StringComparison.OrdinalIgnoreCase)).Delete();
+
+            IXLWorksheet sheet = outputWorkbook.Worksheets.Add("Validation");
+            sheet.Cell(1, 1).Value = "Loan #";
+            sheet.Cell(1, 2).Value = "Exception Header";
+            sheet.Cell(1, 3).Value = "Exception Description";
+
+            int outputRow = 2;
+            var emittedPairs = new HashSet<string>(StringComparer.Ordinal);
+            foreach (Phase1Match phase1Match in phase1Matches)
+            {
+                string pairKey = Normalize(phase1Match.LoanId) + "\u001f" + Normalize(phase1Match.BaseHeader);
+                if (!emittedPairs.Add(pairKey))
+                    continue;
+
+                ValidationDataRow validationRow;
+                bool found = false;
+                if (loanLookup.TryGetValue(phase1Match.LoanId.Trim(), out validationRow))
+                {
+                    foreach (ValidationGradeCell gradeCell in validationRow.GradeCells)
+                    {
+                        string description = gradeCell.Value.IsBlank ? string.Empty : gradeCell.Value.ToString();
+                        if (description.Trim().IndexOf(phase1Match.BaseHeader.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
+                            continue;
+
+                        sheet.Cell(outputRow, 1).Value = phase1Match.LoanId;
+                        sheet.Cell(outputRow, 2).Value = gradeCell.Header;
+                        sheet.Cell(outputRow, 3).Value = gradeCell.Value;
+                        outputRow++;
+                        found = true;
+                    }
+                }
+
+                if (!found)
+                {
+                    sheet.Cell(outputRow, 1).Value = phase1Match.LoanId;
+                    sheet.Cell(outputRow, 2).Value = "Exception Not Present";
+                    sheet.Cell(outputRow, 3).Value = "Exception Not Present";
+                    outputRow++;
+                }
+            }
+
+            IXLRange resultRange = sheet.Range(1, 1, Math.Max(1, outputRow - 1), 3);
+            resultRange.Style.Font.FontName = "Bahnschrift";
+            resultRange.Style.Font.FontSize = 10;
+            resultRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            resultRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            IXLRange headerRange = sheet.Range(1, 1, 1, 3);
+            headerRange.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#B7DEE8"));
+            headerRange.Style.Fill.PatternType = XLFillPatternValues.Solid;
+            headerRange.Style.Font.Bold = true;
+            sheet.Column(1).Width = 16;
+            sheet.Column(2).Width = 48;
+            sheet.Column(3).Width = 100;
+            sheet.Column(3).Style.Alignment.WrapText = true;
+            sheet.SheetView.FreezeRows(1);
+        }
+
+        private static Dictionary<string, ValidationDataRow> BuildValidationLoanLookup(XLWorkbook workbook)
+        {
+            string[] gradeHeaders = {
+                "Grade 4 Exceptions (Reject / Non-curable)",
+                "Grade 3 Exceptions (Conditions / Curable)",
+                "Grade 2 Exceptions (Warnings)",
+                "Grade 1 Exceptions (Notices / Informational)"
+            };
+            string[] loanHeaders = { "Loan #1", "Loan #", "Loan Number", "Loan ID", "Investor Loan ID" };
+
+            foreach (IXLWorksheet sheet in workbook.Worksheets)
+            {
+                IXLRange used = sheet.RangeUsed();
+                if (used == null) continue;
+
+                int maximumHeaderRow = Math.Min(50, used.LastRow().RowNumber());
+                for (int headerRow = 1; headerRow <= maximumHeaderRow; headerRow++)
+                {
+                    var columns = new Dictionary<string, int>(StringComparer.Ordinal);
+                    var actualHeaders = new Dictionary<string, string>(StringComparer.Ordinal);
+                    for (int column = 1; column <= used.LastColumn().ColumnNumber(); column++)
+                    {
+                        string actualHeader = sheet.Cell(headerRow, column).GetString();
+                        string normalizedHeader = Normalize(actualHeader);
+                        if (normalizedHeader.Length == 0 || columns.ContainsKey(normalizedHeader)) continue;
+                        columns.Add(normalizedHeader, column);
+                        actualHeaders.Add(normalizedHeader, actualHeader);
+                    }
+
+                    string loanHeader = loanHeaders.FirstOrDefault(x => columns.ContainsKey(Normalize(x)));
+                    if (loanHeader == null || gradeHeaders.Any(x => !columns.ContainsKey(Normalize(x))))
+                        continue;
+
+                    var lookup = new Dictionary<string, ValidationDataRow>(StringComparer.OrdinalIgnoreCase);
+                    for (int row = headerRow + 1; row <= used.LastRow().RowNumber(); row++)
+                    {
+                        string loanId = sheet.Cell(row, columns[Normalize(loanHeader)]).GetString().Trim();
+                        if (loanId.Length == 0) continue;
+                        if (lookup.ContainsKey(loanId))
+                            throw new InvalidOperationException("Validation File contains duplicate Loan # '" + loanId + "'.");
+
+                        var gradeCells = new List<ValidationGradeCell>();
+                        foreach (string gradeHeader in gradeHeaders)
+                        {
+                            string key = Normalize(gradeHeader);
+                            gradeCells.Add(new ValidationGradeCell(actualHeaders[key], sheet.Cell(row, columns[key]).Value));
+                        }
+                        lookup.Add(loanId, new ValidationDataRow(gradeCells));
+                    }
+                    return lookup;
+                }
+            }
+
+            throw new InvalidOperationException("Validation File must contain Loan # and all four required Grade exception columns.");
         }
 
         private static void WriteRows(IXLWorksheet sheet, int headerRow, int firstColumn, int lastColumn, IList<SourceRow> rows, Action<IXLRow, SourceRow> afterWrite)
@@ -416,6 +567,34 @@ namespace WebPortal.Admin
             internal string ExpectedValue { get; private set; }
         }
 
+        private sealed class Phase1Match
+        {
+            internal Phase1Match(string loanId, string baseHeader)
+            {
+                LoanId = loanId;
+                BaseHeader = baseHeader;
+            }
+            internal string LoanId { get; private set; }
+            internal string BaseHeader { get; private set; }
+        }
+
+        private sealed class ValidationDataRow
+        {
+            internal ValidationDataRow(IList<ValidationGradeCell> gradeCells) { GradeCells = gradeCells; }
+            internal IList<ValidationGradeCell> GradeCells { get; private set; }
+        }
+
+        private sealed class ValidationGradeCell
+        {
+            internal ValidationGradeCell(string header, XLCellValue value)
+            {
+                Header = header;
+                Value = value;
+            }
+            internal string Header { get; private set; }
+            internal XLCellValue Value { get; private set; }
+        }
+
         private sealed class SourceData
         {
             private readonly IDictionary<string, int> columns;
@@ -480,6 +659,11 @@ namespace WebPortal.Admin
                 this.sheet = sheet;
                 this.rowNumber = rowNumber;
                 this.columns = columns;
+            }
+
+            internal string LoanId
+            {
+                get { return sheet.Cell(rowNumber, columns[Normalize("Investor Loan ID")]).GetString().Trim(); }
             }
 
             internal bool TryGetValue(string field, out XLCellValue value)

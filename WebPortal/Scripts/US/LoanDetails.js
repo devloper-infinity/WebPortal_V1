@@ -186,7 +186,7 @@ function start_Loan(button, ProcessID) {
     var startDatetime = usfeedback_getNowDateTime();
 
     if (!ProcessID) {
-        Swal.fire('Warning', 'Loan details are not available for this row.', 'warning');
+        NativePopup.fire('Warning', 'Loan details are not available for this row.', 'warning');
         return false;
     }
 
@@ -197,13 +197,13 @@ function start_Loan(button, ProcessID) {
     ProcessFeedbackID = ProcessID;
     $button.data('saving', true).prop('disabled', true);
 
-    Swal.fire({
+    NativePopup.fire({
         title: 'Starting loan...',
         text: 'Please wait while the start time is saved.',
         allowOutsideClick: false,
         allowEscapeKey: false,
         didOpen: function () {
-            Swal.showLoading();
+            NativePopup.showLoading();
         }
     });
 
@@ -239,7 +239,7 @@ function start_Loan(button, ProcessID) {
             }
 
             $button.data('saving', false).prop('disabled', false);
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'Oops! Error occurred while starting the loan.'
@@ -248,7 +248,7 @@ function start_Loan(button, ProcessID) {
 
         function (error) {
             $button.data('saving', false).prop('disabled', false);
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: error.get_message ? error.get_message() : error.responseText
@@ -350,14 +350,14 @@ function OnClickAddFeedback() {
     if (isCollectionCommentsReQC) {
         Finding = $.trim($('#USLoanDetails_CollectionFinding').val());
         Severity = '';
-        if (!DataField) { Swal.fire('Validation', 'Please select Data Field.', 'warning'); $('#USLoanDetails_DataField').focus(); return false; }
+        if (!DataField) { NativePopup.fire('Validation', 'Please select Data Field.', 'warning'); $('#USLoanDetails_DataField').focus(); return false; }
         if (DataField === 'No Error') { IsError = 'No'; Finding = 'No Error'; }
-        if (!IsError) { Swal.fire('Validation', 'Please select Is Error.', 'warning'); $('#USLoanDetails_IsError').focus(); return false; }
-        if (!Finding) { Swal.fire('Validation', 'Please enter Finding.', 'warning'); $('#USLoanDetails_CollectionFinding').focus(); return false; }
+        if (!IsError) { NativePopup.fire('Validation', 'Please select Is Error.', 'warning'); $('#USLoanDetails_IsError').focus(); return false; }
+        if (!Finding) { NativePopup.fire('Validation', 'Please enter Finding.', 'warning'); $('#USLoanDetails_CollectionFinding').focus(); return false; }
     }
 
     if (!isCollectionCommentsReQC && Severity == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please select Severity.'
@@ -370,7 +370,7 @@ function OnClickAddFeedback() {
         Finding = "No Error";
         document.getElementById("USLoanDetails_Finding").value = Finding;
     } else if (Finding == "") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Please enter Finding for Critical or Non-Critical severity.'
@@ -394,13 +394,13 @@ function OnClickAddFeedback() {
                 if (result > 0) {
                     CancelFeedbackEdit();
                     BindUSFeedbackDetails_Grid(LoanNo);
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'success',
                         title: 'Success',
                         text: 'Feedback updated successfully.'
                     });
                 } else {
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'error',
                         title: 'Not updated',
                         text: 'The feedback was not found or you do not have permission to update it.'
@@ -433,7 +433,7 @@ function OnClickAddFeedback() {
 
                 BindUSFeedbackDetails_Grid(LoanNo);
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'success',
                     title: 'Success',
                     text: 'Feedback added successfully.'
@@ -443,7 +443,7 @@ function OnClickAddFeedback() {
 
             } else {
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: 'Oops! Error occurred while adding feedback. Please contact administrator.'
@@ -462,7 +462,7 @@ function OnClickAddFeedback() {
 function OnClickCompleteLoan() {
 
     if (!ProcessFeedbackID) {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'Loan details are not available.'
@@ -471,7 +471,7 @@ function OnClickCompleteLoan() {
     }
 
     if (!feedbackRows || feedbackRows.length === 0) {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Feedback Required',
             text: 'Please add at least one feedback record before completing the loan.'
@@ -479,7 +479,7 @@ function OnClickCompleteLoan() {
         return false;
     }
 
-    Swal.fire({
+    NativePopup.fire({
         title: 'Complete Loan?',
         text: 'End Date/Time will be saved as current datetime.',
         icon: 'question',
@@ -494,13 +494,13 @@ function OnClickCompleteLoan() {
             return false;
         }
 
-        Swal.fire({
+        NativePopup.fire({
             title: 'Completing loan...',
             text: 'Please wait while the end time is saved.',
             allowOutsideClick: false,
             allowEscapeKey: false,
             didOpen: function () {
-                Swal.showLoading();
+                NativePopup.showLoading();
             }
         });
 
@@ -509,7 +509,7 @@ function OnClickCompleteLoan() {
 
             function (result) {
                 if (result === -2) {
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'warning',
                         title: 'Feedback Required',
                         text: 'Please add at least one feedback record before completing the loan.'
@@ -518,7 +518,7 @@ function OnClickCompleteLoan() {
                 }
 
                 if (result > 0) {
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'success',
                         title: 'Completed',
                         text: 'Loan completed successfully.',
@@ -531,7 +531,7 @@ function OnClickCompleteLoan() {
                     return false;
                 }
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: 'Oops! Error occurred while completing the loan. Please contact administrator.',
@@ -541,7 +541,7 @@ function OnClickCompleteLoan() {
             },
 
             function (error) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: error.get_message ? error.get_message() : error.responseText,
@@ -694,7 +694,7 @@ function DeleteFeedback(index) {
     var loanNo = document.getElementById("USLoanDetails_LoanNo").value;
     var client = document.getElementById("USLoanDetails_Client").value;
 
-    Swal.fire({
+    NativePopup.fire({
         title: 'Delete feedback?',
         text: 'This action cannot be undone.',
         icon: 'warning',
@@ -717,9 +717,9 @@ function DeleteFeedback(index) {
                         CancelFeedbackEdit();
                     }
                     BindUSFeedbackDetails_Grid(loanNo);
-                    Swal.fire({ icon: 'success', title: 'Deleted', text: 'Feedback deleted successfully.' });
+                    NativePopup.fire({ icon: 'success', title: 'Deleted', text: 'Feedback deleted successfully.' });
                 } else {
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'error',
                         title: 'Not deleted',
                         text: 'The feedback was not found or you do not have permission to delete it.'
@@ -754,7 +754,7 @@ function feedbackHtml(value) {
 }
 
 function showFeedbackRequestError(error) {
-    Swal.fire({
+    NativePopup.fire({
         icon: 'error',
         title: 'Error',
         text: error.get_message ? error.get_message() : error.responseText
@@ -1263,14 +1263,14 @@ function usfeedback_insertExistingFeedback(feedback, onSuccess) {
                 return;
             }
 
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Partially saved',
                 text: 'Feedback was saved for this process, but could not be added to the existing feedback table. Please contact administrator.'
             });
         },
         function (error) {
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Partially saved',
                 text: error.get_message ? error.get_message() : 'Feedback was saved for this process, but could not be added to the existing feedback table.'
@@ -1284,7 +1284,7 @@ function us_startGlobalSearchLoan(button, rowData, detailsPage, source) {
     var loanData = us_getGlobalSearchLoanData(rowData || {});
 
     if (!loanData.loanNo || !loanData.dealNo) {
-        Swal.fire('Warning', 'Loan details are not available for this row.', 'warning');
+        NativePopup.fire('Warning', 'Loan details are not available for this row.', 'warning');
         return false;
     }
 
@@ -1296,13 +1296,13 @@ function us_startGlobalSearchLoan(button, rowData, detailsPage, source) {
 
     loanData.startDatetime = usfeedback_getNowDateTime();
 
-    Swal.fire({
+    NativePopup.fire({
         title: 'Starting loan...',
         text: 'Please wait while the start time is saved.',
         allowOutsideClick: false,
         allowEscapeKey: false,
         didOpen: function () {
-            Swal.showLoading();
+            NativePopup.showLoading();
         }
     });
 
@@ -1328,7 +1328,7 @@ function us_startGlobalSearchLoan(button, rowData, detailsPage, source) {
             }
 
             $button.data('saving', false).prop('disabled', false);
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'Oops! Error occurred while starting the loan. Please contact administrator.'
@@ -1337,7 +1337,7 @@ function us_startGlobalSearchLoan(button, rowData, detailsPage, source) {
 
         function (error) {
             $button.data('saving', false).prop('disabled', false);
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: error.get_message ? error.get_message() : error.responseText
@@ -1788,7 +1788,7 @@ function usfeedback_startLoanIfNeeded(processid, processName) {
                 usfeedback_getElement("trOther").style.display = 'none';
             }
 
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: 'Oops! Error occurred while starting the loan.'
@@ -1801,7 +1801,7 @@ function usfeedback_startLoanIfNeeded(processid, processName) {
                 usfeedback_select("usfeedback_task").val("");
                 usfeedback_getElement("trOther").style.display = 'none';
             }
-            Swal.fire({
+            NativePopup.fire({
                 icon: 'error',
                 title: 'Error',
                 text: error.get_message ? error.get_message() : error.responseText
@@ -1829,7 +1829,7 @@ function usfeedback_completeLoan() {
     }
 
     if (!processid || processName == "" || processName == "Select") {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Validation',
             text: 'No saved feedback process is available to complete.'
@@ -1838,7 +1838,7 @@ function usfeedback_completeLoan() {
     }
 
     if (usfeedbackRecordCount === 0) {
-        Swal.fire({
+        NativePopup.fire({
             icon: 'warning',
             title: 'Feedback Required',
             text: 'Please add at least one feedback record before completing the loan.'
@@ -1848,7 +1848,7 @@ function usfeedback_completeLoan() {
 
     var loanData = usfeedback_getLoanProcessData(processid, processName);
 
-    Swal.fire({
+    NativePopup.fire({
         title: 'Complete Loan?',
         text: 'End Date/Time will be saved as current datetime.',
         icon: 'question',
@@ -1863,20 +1863,20 @@ function usfeedback_completeLoan() {
             return false;
         }
 
-        Swal.fire({
+        NativePopup.fire({
             title: 'Completing loan...',
             text: 'Please wait while the end time is saved.',
             allowOutsideClick: false,
             allowEscapeKey: false,
             didOpen: function () {
-                Swal.showLoading();
+                NativePopup.showLoading();
             }
         });
 
         us_callCompleteLoanPageMethod(loanData, usfeedback_isCanopyPage(),
             function (result) {
                 if (result === -2) {
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'warning',
                         title: 'Feedback Required',
                         text: 'Please add at least one feedback record before completing the loan.'
@@ -1885,7 +1885,7 @@ function usfeedback_completeLoan() {
                 }
 
                 if (result > 0) {
-                    Swal.fire({
+                    NativePopup.fire({
                         icon: 'success',
                         title: 'Completed',
                         text: 'Loan completed successfully.',
@@ -1898,7 +1898,7 @@ function usfeedback_completeLoan() {
                     return false;
                 }
 
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: 'Oops! Error occurred while completing the loan. Please contact administrator.',
@@ -1908,7 +1908,7 @@ function usfeedback_completeLoan() {
             },
 
             function (error) {
-                Swal.fire({
+                NativePopup.fire({
                     icon: 'error',
                     title: 'Error',
                     text: error.get_message ? error.get_message() : error.responseText,
@@ -1934,7 +1934,7 @@ function canopyfeedback_submitFeedback() {
     var script = payload.script || "";
 
     if (value == "" || value == "Select") {
-        Swal.fire('Validation', 'Please select task.', 'warning');
+        NativePopup.fire('Validation', 'Please select task.', 'warning');
         return false;
     }
 
@@ -1951,31 +1951,31 @@ function canopyfeedback_submitFeedback() {
         var rental = $.trim(usfeedback_getElement("usfeedback_noofrental").value);
 
         if (atrsupported == "") {
-            Swal.fire('Validation', "Please select 'ATR Supported?'", 'warning');
+            NativePopup.fire('Validation', "Please select 'ATR Supported?'", 'warning');
             usfeedback_getElement("usfeedback_atrsupported").focus();
             return false;
         }
 
         if (noofbwr == "") {
-            Swal.fire('Validation', "Please enter '# of Borrowers'", 'warning');
+            NativePopup.fire('Validation', "Please enter '# of Borrowers'", 'warning');
             usfeedback_getElement("usfeedback_noofbwr").focus();
             return false;
         }
 
         if (reviewfinding == "") {
-            Swal.fire('Validation', "Please enter 'Review Findings'", 'warning');
+            NativePopup.fire('Validation', "Please enter 'Review Findings'", 'warning');
             usfeedback_getElement("usfeedback_reviewfindings").focus();
             return false;
         }
 
         if (sebusiness == "") {
-            Swal.fire('Validation', "Please enter '# SE businesses'", 'warning');
+            NativePopup.fire('Validation', "Please enter '# SE businesses'", 'warning');
             usfeedback_getElement("usfeedback_noofsebus").focus();
             return false;
         }
 
         if (rental == "") {
-            Swal.fire('Validation', "Please enter '# Rental Properties'", 'warning');
+            NativePopup.fire('Validation', "Please enter '# Rental Properties'", 'warning');
             usfeedback_getElement("usfeedback_noofrental").focus();
             return false;
         }
@@ -1988,16 +1988,16 @@ function canopyfeedback_submitFeedback() {
             function (result) {
                 if (result > 0) {
                     usfeedback_setLastProcess(processid, value);
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                    NativePopup.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
                         usfeedback_atr_bindgrid("ATR", processid);
                         clearusfeedbackForm();
                     });
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
+                    NativePopup.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }
             },
             function (error) {
-                Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+                NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
             }
         );
 
@@ -2009,13 +2009,13 @@ function canopyfeedback_submitFeedback() {
     var findings = $.trim(usfeedback_getElement("usfeedback_finding").value);
 
     if (severity == "") {
-        Swal.fire('Validation', 'Please select Severity.', 'warning');
+        NativePopup.fire('Validation', 'Please select Severity.', 'warning');
         usfeedback_getElement("usfeedback_severity").focus();
         return false;
     }
 
     if (findings == "") {
-        Swal.fire('Validation', 'Please enter Findings.', 'warning');
+        NativePopup.fire('Validation', 'Please enter Findings.', 'warning');
         usfeedback_getElement("usfeedback_finding").focus();
         return false;
     }
@@ -2035,13 +2035,13 @@ function canopyfeedback_submitFeedback() {
                 if (result > 0) {
                     canopyfeedback_cancelEdit();
                     usfeedback_atr_bindgrid("Other", processid);
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback updated successfully.' });
+                    NativePopup.fire({ icon: 'success', title: 'Success', text: 'Feedback updated successfully.' });
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Not updated', text: 'The feedback was not found or you do not have permission to update it.' });
+                    NativePopup.fire({ icon: 'error', title: 'Not updated', text: 'The feedback was not found or you do not have permission to update it.' });
                 }
             },
             function (error) {
-                Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+                NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
             }
         );
         return false;
@@ -2050,7 +2050,7 @@ function canopyfeedback_submitFeedback() {
     usfeedback_callInsertOtherFeedbacks([projectid, processid, dealno, loanno, findings, severity], script,
         function (result) {
             if (result === -3 || result === -4) {
-                Swal.fire('Validation', result === -3
+                NativePopup.fire('Validation', result === -3
                     ? 'No Error feedback already exists. Additional feedback cannot be added.'
                     : 'Other feedback already exists. No Error feedback cannot be added.', 'warning');
                 return;
@@ -2068,17 +2068,17 @@ function canopyfeedback_submitFeedback() {
                     , projectId: projectid
                 }, function () {
                     usfeedback_setLastProcess(processid, value);
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                    NativePopup.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
                         usfeedback_atr_bindgrid("Other", processid);
                         clearusfeedbackForm();
                     });
                 });
             } else {
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
+                NativePopup.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
             }
         },
         function (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+            NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
         }
     );
 
@@ -2126,13 +2126,13 @@ function usfeedback_lockCanopyTask(processid) {
 function canopyfeedback_deleteFeedback(index) {
     var row = canopyfeedbackGridRows[index], ddl = usfeedback_getElement("usfeedback_task"), payload = us_getFeedbackPayload() || {};
     if (!row || !ddl) return false;
-    Swal.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
+    NativePopup.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
         if (!choice.isConfirmed) return;
         PageMethods.DeleteOtherFeedback(row["Feedback Key"] || "", parseInt(usfeedback_getElement("usfeedback_projectid").value, 10) || 0,
             parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value, usfeedback_getElement("usfeedback_loanno").value,
             usfeedback_getElement("usfeedback_projectno").value, row.Finding || "", row.Severity || "", payload.script || "",
-            function (result) { if (result > 0) { canopyfeedback_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); Swal.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else Swal.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
-            function (error) { Swal.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
+            function (result) { if (result > 0) { canopyfeedback_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); NativePopup.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else NativePopup.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
+            function (error) { NativePopup.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
     });
     return false;
 }
@@ -2149,7 +2149,7 @@ function usfeedback_submit() {
     var script = payload.script || "";
 
     if (value == "" || value == "Select") {
-        Swal.fire('Validation', 'Please select task.', 'warning');
+        NativePopup.fire('Validation', 'Please select task.', 'warning');
         return false;
     }
 
@@ -2166,31 +2166,31 @@ function usfeedback_submit() {
         var rental = $.trim(usfeedback_getElement("usfeedback_noofrental").value);
 
         if (atrsupported == "") {
-            Swal.fire('Validation', "Please select 'ATR Supported?'", 'warning');
+            NativePopup.fire('Validation', "Please select 'ATR Supported?'", 'warning');
             usfeedback_getElement("usfeedback_atrsupported").focus();
             return false;
         }
 
         if (noofbwr == "") {
-            Swal.fire('Validation', "Please enter '# of Borrowers'", 'warning');
+            NativePopup.fire('Validation', "Please enter '# of Borrowers'", 'warning');
             usfeedback_getElement("usfeedback_noofbwr").focus();
             return false;
         }
 
         if (reviewfinding == "") {
-            Swal.fire('Validation', "Please enter 'Review Findings'", 'warning');
+            NativePopup.fire('Validation', "Please enter 'Review Findings'", 'warning');
             usfeedback_getElement("usfeedback_reviewfindings").focus();
             return false;
         }
 
         if (sebusiness == "") {
-            Swal.fire('Validation', "Please enter '# SE businesses'", 'warning');
+            NativePopup.fire('Validation', "Please enter '# SE businesses'", 'warning');
             usfeedback_getElement("usfeedback_noofsebus").focus();
             return false;
         }
 
         if (rental == "") {
-            Swal.fire('Validation', "Please enter '# Rental Properties'", 'warning');
+            NativePopup.fire('Validation', "Please enter '# Rental Properties'", 'warning');
             usfeedback_getElement("usfeedback_noofrental").focus();
             return false;
         }
@@ -2203,17 +2203,17 @@ function usfeedback_submit() {
             function (result) {
                 if (result > 0) {
                     usfeedback_setLastProcess(processid, value);
-                    Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                    NativePopup.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
                         usfeedback_atr_bindgrid("ATR", processid);
                         clearusfeedbackForm();
                     });
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
+                    NativePopup.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }
             },
 
             function (error) {
-                Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+                NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
             }
         );
     }
@@ -2223,13 +2223,13 @@ function usfeedback_submit() {
         var findings = $.trim(usfeedback_getElement("usfeedback_finding").value);
 
         if (severity == "") {
-            Swal.fire('Validation', 'Please select Severity.', 'warning');
+            NativePopup.fire('Validation', 'Please select Severity.', 'warning');
             usfeedback_getElement("usfeedback_severity").focus();
             return false;
         }
 
         if (findings == "") {
-            Swal.fire('Validation', 'Please enter Findings.', 'warning');
+            NativePopup.fire('Validation', 'Please enter Findings.', 'warning');
             usfeedback_getElement("usfeedback_finding").focus();
             return false;
         }
@@ -2251,13 +2251,13 @@ function usfeedback_submit() {
                     if (result > 0) {
                         feedbackdetails_cancelEdit();
                         usfeedback_atr_bindgrid("Other", processid);
-                        Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback updated successfully.' });
+                        NativePopup.fire({ icon: 'success', title: 'Success', text: 'Feedback updated successfully.' });
                     } else {
-                        Swal.fire({ icon: 'error', title: 'Not updated', text: 'The feedback was not found or you do not have permission to update it.' });
+                        NativePopup.fire({ icon: 'error', title: 'Not updated', text: 'The feedback was not found or you do not have permission to update it.' });
                     }
                 },
                 function (error) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+                    NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
                 }
             );
             return false;
@@ -2278,18 +2278,18 @@ function usfeedback_submit() {
                 }, function () {
                     usfeedback_lockCanopyTask(processid);
                     usfeedback_setLastProcess(processid, value);
-                        Swal.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
+                        NativePopup.fire({ icon: 'success', title: 'Success', text: 'Feedback submitted successfully.' }).then(function () {
                             usfeedback_atr_bindgrid("Other", processid);
                             clearusfeedbackForm();
                         });
                     });
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
+                    NativePopup.fire({ icon: 'error', title: 'Error', text: 'Oops! Error occurred while saving feedback. Please contact administrator.' });
                 }
             },
 
             function (error) {
-                Swal.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
+                NativePopup.fire({ icon: 'error', title: 'Error', text: error.get_message ? error.get_message() : 'Unexpected error occurred.' });
             }
         );
 
@@ -2328,13 +2328,13 @@ function feedbackdetails_cancelEdit() {
 function feedbackdetails_deleteFeedback(index) {
     var row = feedbackdetailsGridRows[index], ddl = usfeedback_getElement("usfeedback_task");
     if (!row || !ddl) return false;
-    Swal.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
+    NativePopup.fire({ title: 'Delete Feedback?', text: 'This feedback will be permanently deleted.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes, Delete', confirmButtonColor: '#dc2626' }).then(function (choice) {
         if (!choice.isConfirmed) return;
         PageMethods.DeleteOtherFeedback(parseInt(ddl.value, 10) || 0, usfeedback_getElement("usfeedback_dealno").value,
             usfeedback_getElement("usfeedback_loanno").value, usfeedback_getElement("usfeedback_projectno").value,
             usfeedback_getElement("usfeedback_reviewer").value, row.Finding || "", row.Severity || "",
-            function (result) { if (result > 0) { feedbackdetails_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); Swal.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else Swal.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
-            function (error) { Swal.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
+            function (result) { if (result > 0) { feedbackdetails_cancelEdit(); usfeedback_atr_bindgrid("Other", ddl.value); NativePopup.fire('Deleted', 'Feedback deleted successfully.', 'success'); } else NativePopup.fire('Not deleted', 'The feedback was not found or you do not have permission to delete it.', 'error'); },
+            function (error) { NativePopup.fire('Error', error.get_message ? error.get_message() : 'Unexpected error occurred.', 'error'); });
     });
     return false;
 }

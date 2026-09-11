@@ -5,7 +5,7 @@ using System.Web.UI;
 
 namespace WebPortal.Admin
 {
-    public class DashboardValidator : Page
+    public partial class DashboardValidator : Page
     {
         private bool downloadSent;
         public string ErrorMessage { get; private set; }
@@ -18,6 +18,7 @@ namespace WebPortal.Admin
                 return;
 
             string inputPath = null;
+            string validationPath = null;
             string outputPath = null;
 
             try
@@ -29,6 +30,7 @@ namespace WebPortal.Admin
                 ValidateUpload(validation, "Validation File");
 
                 inputPath = SaveTemporaryUpload(report);
+                validationPath = SaveTemporaryUpload(validation);
                 outputPath = Path.Combine(Path.GetTempPath(),
                     "Dashboard_Cleaned_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + Guid.NewGuid().ToString("N") + ".xlsx");
 
@@ -36,7 +38,7 @@ namespace WebPortal.Admin
                 if (!File.Exists(templatePath))
                     throw new InvalidOperationException("The Dashboard Validator template is not available.");
 
-                DashboardValidatorEngine.Generate(inputPath, templatePath, outputPath);
+                DashboardValidatorEngine.Generate(inputPath, validationPath, templatePath, outputPath);
                 SendDownload(outputPath);
             }
             catch (Exception ex)
@@ -46,6 +48,7 @@ namespace WebPortal.Admin
             finally
             {
                 SafeDelete(inputPath);
+                SafeDelete(validationPath);
                 SafeDelete(outputPath);
             }
         }
