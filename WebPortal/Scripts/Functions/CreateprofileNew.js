@@ -13,7 +13,13 @@ function create_submitdata() {
     }
 
     function ddlVal(id) {
+
+        console.log(id);
+
         var ddl = document.getElementById(id);
+
+        console.log(ddl.options[ddl.selectedIndex].value);
+
         return ddl.options[ddl.selectedIndex].value;
     }
 
@@ -55,6 +61,9 @@ function create_submitdata() {
 
     var reportingmanager = ddlVal("reportingmanager");
     var reportingmanagername = ddlText("reportingmanager");
+
+    var domainHeadName = ddlVal("crp_domainHeadName");
+    var LocationHeadName = ddlVal("crp_LocationHeadName");
 
     var shift = ddlVal("shift");
     var shiftname = ddlText("shift");
@@ -141,6 +150,10 @@ function create_submitdata() {
         [department, "Please select department.", "department"],
         [designation, "Please select designation.", "designation"],
         [reportingmanager, "Please select reporting manager.", "reportingmanager"],
+
+        [domainHeadName, "Please select Domain Head.", "crp_domainHeadName"],
+        [LocationHeadName, "Please select Location Head.", "crp_LocationHeadName"],
+
         [shift, "Please select shift.", "shift"],
         [cutofftime, "Please enter cutoff time.", "cutofftime"],
         [workinghours, "Please select working hours.", "workinghours"],
@@ -171,13 +184,14 @@ function create_submitdata() {
             joiningdate, salary, branch, branchname, department,
             departmentname, designation, designationname, appointmentdate,
             projects, projectsname, process, reportingmanager,
-            reportingmanagername, shift, shiftname, cutofftime,
+            reportingmanagername,
+            shift, shiftname, cutofftime,
             workinghours, workinghourstext, employeeremark,
             chkagreement.checked, period, agreementdate, expirydate,
             officialemail, bankname, accountno, ifsccode, aadharNo,
             uan, esicno, pfno, weeklyholiday, weeklyholidayname,
             employeetype, domain, subdomain, taskproductive,
-            policy, domainname, e_jobtype,
+            policy, domainname, e_jobtype, domainHeadName, LocationHeadName,
 
             function () {
                 Swal.fire({
@@ -214,7 +228,7 @@ function create_submitdata() {
             cellno, restelno, birthdate, bloodgroup, requisition, pan,
             joiningdate, salary, branch, branchname, department,
             departmentname, designation, designationname, appointmentdate,
-            projects, projectsname, process, reportingmanager,
+            projects, projectsname, process, reportingmanager, 
             reportingmanagername, shift, shiftname, cutofftime,
             workinghours, workinghourstext, employeeremark,
             chkagreement.checked, period, agreementdate, expirydate,
@@ -222,7 +236,7 @@ function create_submitdata() {
             uan, esicno, pfno, weeklyholiday, weeklyholidayname,
             employeetype, domain, subdomain, taskproductive,
             policy, domainname, reaccountno, reifsccode,
-            e_jobtype,
+            e_jobtype, domainHeadName, LocationHeadName,
 
             function () {
                 Swal.fire({
@@ -335,6 +349,8 @@ function BindExistingInfo(Code) {
                 binddepartmentSelected(value.Department);
                 binddesignationSelected(value.Designation);
                 bindmanagerSelected(value.ProjectManager);
+                bindDomainHeadSelected(value.DomainHead);
+                bindLocationHeadSelected(value.LocationHead);
                 bindshiftSelected(value.Shift);
                 binddomainSelected(value.Domain);
 
@@ -428,6 +444,8 @@ function BindInfoFromApplicationForm(AppID) {
                 binddepartmentSelected(value.DepartmentName);
                 binddesignationSelected(value.DesignationName);
                 bindmanagerSelected(value.ReportingManagerName);
+                bindDomainHeadSelected(value.DomainHead);
+                bindLocationHeadSelected(value.LocationHead);
                 bindshiftSelected(value.ShiftName);
                 bindrequisitionSelected(value.RequisitionID == "0" ? "" : value.RequisitionID);
                 bindbranches();
@@ -530,6 +548,14 @@ function binddesignationSelected(value) {
 
 function bindmanagerSelected(value) {
     bindDropdown("reportingmanager", "CreateProfile.aspx/GetProjectManagers", "ProjectManagerID", "PmCodeName", false, value);
+}
+
+function bindDomainHeadSelected(value) {
+    bindDropdown("crp_domainHeadName", "CreateProfile.aspx/GetProjectManagers", "EmployeeID", "PmCodeName", false, value);
+}
+
+function bindLocationHeadSelected(value) {
+    bindDropdown("crp_LocationHeadName", "CreateProfile.aspx/GetProjectManagers", "EmployeeID", "PmCodeName", false, value);
 }
 
 function bindshiftSelected(value) {
@@ -655,6 +681,26 @@ function bindprojectamanagers() {
         "reportingmanager",
         "CreateProfile.aspx/GetProjectManagers",
         "ProjectManagerID",
+        "PmCodeName"
+    );
+}
+
+function bindDomainHead() {
+
+    app_bindDropdown(
+        "crp_domainHeadName",
+        "CreateProfile.aspx/GetProjectManagers",
+        "EmployeeID",
+        "PmCodeName"
+    );
+}
+
+function bindLocationHead() {
+
+    app_bindDropdown(
+        "crp_LocationHeadName",
+        "CreateProfile.aspx/GetProjectManagers",
+        "EmployeeID",
         "PmCodeName"
     );
 }

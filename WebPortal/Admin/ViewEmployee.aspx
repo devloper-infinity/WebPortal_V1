@@ -498,68 +498,68 @@
             color: dodgerblue;
         }
 
- /* Same alignment and spacing for header and body */
-#viewemployee th,
-#viewemployee td {
-    white-space: nowrap !important;
-    vertical-align: middle !important;
-    text-align: left;
-    padding: 10px 12px !important;
-}
+        /* Same alignment and spacing for header and body */
+        #viewemployee th,
+        #viewemployee td {
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+            text-align: left;
+            padding: 10px 12px !important;
+        }
 
-/* Action column */
-#viewemployee th:first-child,
-#viewemployee td:first-child {
-    text-align: center !important;
-}
+            /* Action column */
+            #viewemployee th:first-child,
+            #viewemployee td:first-child {
+                text-align: center !important;
+            }
 
-/* Visible cloned header created by scrollX */
-.dataTables_scrollHead table th,
-.dt-scroll-head table th {
-    white-space: nowrap !important;
-    vertical-align: middle !important;
-    text-align: left;
-    padding: 10px 12px !important;
-}
+        /* Visible cloned header created by scrollX */
+        .dataTables_scrollHead table th,
+        .dt-scroll-head table th {
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+            text-align: left;
+            padding: 10px 12px !important;
+        }
 
-.dataTables_scrollHead table th:first-child,
-.dt-scroll-head table th:first-child {
-    text-align: center !important;
-}
+            .dataTables_scrollHead table th:first-child,
+            .dt-scroll-head table th:first-child {
+                text-align: center !important;
+            }
 
-/* Filter row */
-.employee-filter-row th {
-    height: 56px;
-    padding: 10px 8px !important;
-    background-color: #eaf2f9;
-    cursor: default !important;
-}
+        /* Filter row */
+        .employee-filter-row th {
+            height: 56px;
+            padding: 10px 8px !important;
+            background-color: #eaf2f9;
+            cursor: default !important;
+        }
 
-/* Search inputs */
-.column_search {
-    display: block !important;
-    width: 100% !important;
-    min-width: 100px;
-    height: 34px;
-    padding: 6px 10px;
-    border: 1px solid #cbd7e5;
-    border-radius: 7px;
-    background-color: #ffffff;
-    font-size: 11px;
-    box-sizing: border-box;
-}
+        /* Search inputs */
+        .column_search {
+            display: block !important;
+            width: 100% !important;
+            min-width: 100px;
+            height: 34px;
+            padding: 6px 10px;
+            border: 1px solid #cbd7e5;
+            border-radius: 7px;
+            background-color: #ffffff;
+            font-size: 11px;
+            box-sizing: border-box;
+        }
 
-/* Remove ordering arrows */
-#viewemployee thead th::before,
-#viewemployee thead th::after,
-.dataTables_scrollHead thead th::before,
-.dataTables_scrollHead thead th::after,
-.dt-scroll-head thead th::before,
-.dt-scroll-head thead th::after,
-.dt-column-order {
-    display: none !important;
-    content: none !important;
-}
+        /* Remove ordering arrows */
+        #viewemployee thead th::before,
+        #viewemployee thead th::after,
+        .dataTables_scrollHead thead th::before,
+        .dataTables_scrollHead thead th::after,
+        .dt-scroll-head thead th::before,
+        .dt-scroll-head thead th::after,
+        .dt-column-order {
+            display: none !important;
+            content: none !important;
+        }
     </style>
 
     <script>
@@ -660,6 +660,8 @@
                                 <th class="sort border-top" style="text-wrap: nowrap;">Domain</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Subdomain</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Reporting Manager</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Domain Head</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Location Head</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Job Type</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Latest Login</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Current Status</th>
@@ -680,6 +682,8 @@
                                 <th class="sort border-top" style="text-wrap: nowrap;">Domain</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Subdomain</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Reporting Manager</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Domain Head</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Location Head</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Job Type</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Latest Login</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Current Status</th>

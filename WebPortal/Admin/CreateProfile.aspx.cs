@@ -258,7 +258,7 @@ namespace WebPortal.Admin
             string JoiningDate, string Salary, int Branch, string BranchName, int Departmnets, string DepartmentName, int Designation, string DesignationName, string AppointmentDate, int Project, string ProjectName,
             string Process, int ProjectManager, string ProjectManagerName, int Shift, string ShiftName, string CutOffTime, int WorkingHours, string WorkingHoursText, string EmployeeRemark, bool isAgreement, int Period, string AgreementDate, string ExpiryDate,
             string OfficialEmailID, string BankName, string BankAccNo, string IFSCCode, string aadharNo, string UAN, string ESICNo, string PFNo, int WeeklyHoliday, string WeeklyHolidayName, string EmployeeType,
-            int Domain, string Subdomain, string TaskProductive, string Policy, string DomainName, string JobType)
+            int Domain, string Subdomain, string TaskProductive, string Policy, string DomainName, string JobType, string DomainHeadName, string LocationHeadName)
         {
             int returnvalue = 0;
 
@@ -299,6 +299,8 @@ namespace WebPortal.Admin
             htParam.Add("ProcessName", Process);
             htParam.Add("ProjectManager", ProjectManager);
             htParam.Add("ProjectManagerName", ProjectManagerName);
+            htParam.Add("DomainHeadID", DomainHeadName);
+            htParam.Add("LocationHeadID", LocationHeadName);
             htParam.Add("PMCode", ProjectManagerName.Substring(0, 3));
             htParam.Add("Shift", Shift);
             htParam.Add("ShiftOld", ShiftName);
@@ -391,7 +393,7 @@ namespace WebPortal.Admin
             string JoiningDate, string Salary, int Branch, string BranchName, int Departmnets, string DepartmentName, int Designation, string DesignationName, string AppointmentDate, int Project, string ProjectName,
             string Process, int ProjectManager, string ProjectManagerName, int Shift, string ShiftName, string CutOffTime, int WorkingHours, string WorkingHoursText, string EmployeeRemark, bool isAgreement, int Period, string AgreementDate, string ExpiryDate,
             string OfficialEmailID, string BankName, string BankAccNo, string IFSCCode, string aadharNo, string UAN, string ESICNo, string PFNo, int WeeklyHoliday, string WeeklyHolidayName, string EmployeeType,
-            int Domain, string Subdomain, string TaskProductive, string Policy, string DomainName, string ReBankAccNo, string ReIFSCCode, string JobType)
+            int Domain, string Subdomain, string TaskProductive, string Policy, string DomainName, string ReBankAccNo, string ReIFSCCode, string JobType, string DomainHeadName, string LocationHeadName)
         {
             int ReturnValue = 0;
 
@@ -441,6 +443,8 @@ namespace WebPortal.Admin
             htParam.Add("ProcessName", Process);
             htParam.Add("ProjectManager", ProjectManager);
             htParam.Add("ProjectManagerName", ProjectManagerName);
+            htParam.Add("DomainHeadID", DomainHeadName);
+            htParam.Add("LocationHeadID", LocationHeadName);
             htParam.Add("PMCode", ProjectManagerName.Substring(0, 3));
             htParam.Add("Shift", Shift);
 

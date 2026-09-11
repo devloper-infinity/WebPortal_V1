@@ -87,18 +87,18 @@
             transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
         }
 
-        .btn-back:hover,
-        .btn-back:focus {
-            color: #174d9c !important;
-            background: #fff !important;
-            box-shadow: 0 9px 22px rgba(15,48,112,.2);
-            transform: translateY(-1px);
-        }
+            .btn-back:hover,
+            .btn-back:focus {
+                color: #174d9c !important;
+                background: #fff !important;
+                box-shadow: 0 9px 22px rgba(15,48,112,.2);
+                transform: translateY(-1px);
+            }
 
-        .btn-back:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255,255,255,.24), 0 9px 22px rgba(15,48,112,.2);
-        }
+            .btn-back:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(255,255,255,.24), 0 9px 22px rgba(15,48,112,.2);
+            }
 
         .dashboard-icon {
             width: 54px;
@@ -167,9 +167,9 @@
                 font-size: 0;
             }
 
-            .btn-back i {
-                font-size: 13px;
-            }
+                .btn-back i {
+                    font-size: 13px;
+                }
         }
     </style>
 
@@ -442,6 +442,8 @@
                 bindddepartment();
                 binddesignation();
                 bindprojectamanagers();
+                bindDomainHead();
+                bindLocationHead();
                 binddshift();
                 bindweeklyholiday();
                 bindprojects();
@@ -723,6 +725,19 @@
                     </div>
 
                     <div class="form-group">
+                        <label><span class="required">★</span>Domain Head</label>
+                        <select id="crp_domainHeadName" name="crp_domainHeadName" class="form-control">
+                            <option value="">Select</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><span class="required">★</span>Location Head</label>
+                        <select id="crp_LocationHeadName" name="crp_LocationHeadName" class="form-control">
+                            <option value="">Select</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label><span class="required">★</span> Shift</label>
                         <select id="shift" name="shift" class="form-control" onchange="getcutoff(this);">
                             <option value="">Select</option>
@@ -843,7 +858,7 @@
 
                     <!-- Remark -->
 
-                    <div class="form-group">
+                    <div class="form-group span-2">
                         <label>Remark</label>
                         <textarea id="remark" name="remark" class="form-control" placeholder="Training For 'Process Name' ('Training Start Date' to 'Training End Date')"></textarea>
                     </div>

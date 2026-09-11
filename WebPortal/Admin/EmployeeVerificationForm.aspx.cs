@@ -297,7 +297,7 @@ namespace WebPortal.Admin
            
             mail.To.Add(ReceiverEmail);
             mail.CC.Add("k.sagar@infinity-data.com,g.trupti@infinityinternationals.us");
-            mail.Bcc.Add("n.nilkanth@infinity-data.com,b.shubhangi@infinityinternationals.us");
+            mail.Bcc.Add("n.nilkanth@infinity-data.com,b.shubhangi@infinity-data.com");
             mail.Subject = "Ex Employer Verification – Infinity Data Technologies Pvt. Ltd. – " + candidateName;
             mail.Body = head.ToString() + body.ToString() + footer.ToString();
             mail.IsBodyHtml = true;

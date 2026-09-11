@@ -90,6 +90,8 @@ function Core_viewEmployee_Grid(currentUserName) {
                 html += '<td>' + blankForNull(value.DomainName) + '</td>';
                 html += '<td>' + blankForNull(value.Subdomain) + '</td>';
                 html += '<td>' + blankForNull(value.ReportingManager) + '</td>';
+                html += '<td>' + blankForNull(value.DomainHeadName) + '</td>';
+                html += '<td>' + blankForNull(value.LocationHeadName) + '</td>';
                 html += '<td>' + blankForNull(value.JobType) + '</td>';
                 html += '<td>' + blankForNull(value.CurrentLogin) + '</td>';
                 html += '<td>' + blankForNull(value.CurrentStatus) + '</td>';
@@ -131,7 +133,7 @@ function Core_viewEmployee_Grid(currentUserName) {
                         {
                             extend: 'excelHtml5', title: 'Employee Details',
                             exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                                 format: {
                                     header: function (data, columnIdx) {
                                         // Return ONLY the first header row text
@@ -308,6 +310,16 @@ function viewEmployee_Grid(currentUserName) {
                         defaultContent: ''
                     },
                     {
+                        data: 'DomainHeadName',
+                        title: 'Domain Head',
+                        defaultContent: ''
+                    },
+                    {
+                        data: 'LocationHeadName',
+                        title: 'Location Head',
+                        defaultContent: ''
+                    },
+                    {
                         data: 'JobType',
                         title: 'Job Type',
                         defaultContent: ''
@@ -349,7 +361,7 @@ function viewEmployee_Grid(currentUserName) {
                         exportOptions: {
                             columns: [
                                 1, 2, 3, 4, 5, 6, 7, 8,
-                                9, 10, 11, 12, 13, 14, 15, 16
+                                9, 10, 11, 12, 13, 14, 15, 16, 17, 18
                             ],
                             format: {
                                 header: function (data, columnIdx) {

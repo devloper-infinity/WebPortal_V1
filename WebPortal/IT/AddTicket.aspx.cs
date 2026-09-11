@@ -638,14 +638,13 @@ namespace WebPortal.IT
                     //mail.To.Add("b.shubhangi@infinityinternationals.us");
                     try
                     {
-                        To = "b.shubhangi@infinityinternationals.us";
-
+                       
                         if (To != "")
                             mail.To.Add(To);
-                        //if (CC != "")
-                        //    mail.CC.Add(CC);
-                        //if (BCC != "")
-                        //    mail.Bcc.Add(BCC);
+                        if (CC != "")
+                            mail.CC.Add(CC);
+                        if (BCC != "")
+                            mail.Bcc.Add(BCC);
                     }
                     catch (Exception ex)
                     {

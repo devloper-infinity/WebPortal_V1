@@ -329,7 +329,7 @@ namespace WebPortal.Search
 
             foreach (string orderId in arr_OrderiDS)
             {
-                string id = orderId.Trim(); 
+                string id = orderId.Trim();
 
                 returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark, BillingPeriod);
             }
@@ -365,7 +365,8 @@ namespace WebPortal.Search
 
             var remarks = orders.AsEnumerable()
                 .Where(row => GetDataRowValue(row, "OrderID") == OrderID.ToString())
-                .Select(row => new {
+                .Select(row => new
+                {
                     OrderNo = GetDataRowValue(row, "ClientOrderNo"),
                     Remark = GetDataRowValue(row, "Remark"),
                     OrderCost = GetDataRowValue(row, "OrderCost")
@@ -385,7 +386,8 @@ namespace WebPortal.Search
                     detail["CostEmailID"] = GetDataRowValue(row, "CostEmailID");
                     DataTable attachmentRow = storedDetails.Clone();
                     attachmentRow.ImportRow(row);
-                    detail["Attachments"] = GetValidCostEmailAttachmentFiles(attachmentRow).Select(file => new {
+                    detail["Attachments"] = GetValidCostEmailAttachmentFiles(attachmentRow).Select(file => new
+                    {
                         Name = Path.GetFileName(file.Value),
                         Url = "VerifyBilling.aspx?viewRemarkAttachment=" + HttpServerUtility.UrlTokenEncode(
                             System.Web.Security.MachineKey.Protect(Encoding.UTF8.GetBytes(file.Value),
@@ -432,7 +434,7 @@ namespace WebPortal.Search
         [WebMethod]
         public static int AddRemark_VerifyBilling(int Project, string BillingPeriod, int OrderID, string OrderCost, string Remark, bool IsMailInput, string CostDiff, string EmailInput, string AttachmentPath)
         {
-            int returnValue =  new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
+            int returnValue = new bllOST().UpdateBillingRemark(OrderID, Remark, OrderCost);
 
             if (IsMailInput == true)
             {
@@ -463,21 +465,21 @@ namespace WebPortal.Search
             DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
 
             DataTable dt_Address = new bllOST().ProjectEmailConfiguration(ProjectID);
-            if(dt_Address.Rows.Count > 0)
+            if (dt_Address.Rows.Count > 0)
             {
                 ToAddress = dt_Address.Rows[0]["ToAddress"].ToString();
                 CC = dt_Address.Rows[0]["CC"].ToString();
                 Bcc = dt_Address.Rows[0]["Bcc"].ToString();
             }
 
-            returnValue = SendClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress,  CC, Bcc);
+            returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress, CC, Bcc);
 
             return returnValue;
         }
 
         #region Email
 
-        public static int SendClientBillingOrdersTyping(DataTable dt, DataTable dtSummaryForEmail, DataTable dtRecordsForExcel, DataTable dtEmailForExcel, DataTable costEmailDetails, string ProjectName, string ProjectType, string BillingPeriod, string ToAddress, string CC, string Bcc)
+        public static int SendEmail_ClientBillingOrdersTyping(DataTable dt, DataTable dtSummaryForEmail, DataTable dtRecordsForExcel, DataTable dtEmailForExcel, DataTable costEmailDetails, string ProjectName, string ProjectType, string BillingPeriod, string ToAddress, string CC, string Bcc)
         {
             StringBuilder htmlBody = new StringBuilder();
             bool ISend;
@@ -486,9 +488,9 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            //ToAddress = "b.shubhangi@infinityinternationals.us";
-            //CC = "b.shubhangi@infinityinternationals.us";
-            //Bcc = "b.shubhangi@infinityinternationals.us";
+            //ToAddress = "b.shubhangi@infinity-data.com";
+            //CC = "b.shubhangi@infinity-data.com";
+            //Bcc = "b.shubhangi@infinity-data.com";
 
             try
             {
@@ -607,11 +609,13 @@ namespace WebPortal.Search
                 //template.Append("<br /><img src=\"http://www.infinity-data.com/images/TemplateFooter.png\" />");
                 template.Append("</body></html>");
                 mail = new MailMessage();
+
                 mail.To.Add(ToAddress);
                 if (ToCC != "")
                     mail.CC.Add(ToCC);
                 if (ToBCC != "")
                     mail.Bcc.Add(ToBCC);
+
                 mail.From = new MailAddress("ack@infinity-data.com", "Online Search Billing", System.Text.Encoding.UTF8);
                 mail.Subject = Subject;
                 mail.SubjectEncoding = System.Text.Encoding.UTF8;

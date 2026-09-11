@@ -2785,6 +2785,9 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Attachment", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htProfile["Attachment"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@IsPolicy", System.Data.SqlDbType.Bit, 0, System.Data.ParameterDirection.Input, htProfile["IsPolicy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@JobType", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, htProfile["JobType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DomainHeadID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htProfile["DomainHeadID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LocationHeadID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htProfile["LocationHeadID"]);
+
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
 
             try
@@ -2858,6 +2861,9 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@IsPolicy", System.Data.SqlDbType.Bit, 0, System.Data.ParameterDirection.Input, htProfile["IsPolicy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AadharNo", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htProfile["AadharNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@JobType", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, htProfile["JobType"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DomainHeadID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htProfile["DomainHeadID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LocationHeadID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htProfile["LocationHeadID"]);
+
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
 
             try
