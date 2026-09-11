@@ -743,99 +743,110 @@ namespace WebPortal.App_Code.DAL
         #endregion
 
         #region New Section for Detailed Feedback Report - Servicing
+        private SqlCommand ServicingReportCommand(string existingProcedure, string selectedProcedure)
+        {
+            object batch = System.Web.HttpContext.Current == null ? null : System.Web.HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"];
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, batch == null ? existingProcedure : selectedProcedure);
+            if (batch != null)
+            {
+                cmd.Parameters.Add("@BatchID", SqlDbType.UniqueIdentifier).Value = (Guid)batch;
+                cmd.Parameters.Add("@UserID", SqlDbType.Int).Value = int.Parse(System.Web.HttpContext.Current.User.Identity.Name);
+            }
+            return cmd;
+        }
         public DataTable WeeklyGraphicalView_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_WeeklyGraphicalView_QCDate_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_WeeklyGraphicalView_QCDate_Servicing_Infinity", "usp_ServicingDFR_WeeklyGraphicalView");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable ClientwiseErrorTrending_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ClientwiseErrorTrending_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_ClientwiseErrorTrending_Servicing_Infinity", "usp_ServicingDFR_ClientwiseErrorTrending");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable ReviewerwiseErrorTrending_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewerwiseErrorTrending_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_ReviewerwiseErrorTrending_Servicing_Infinity", "usp_ServicingDFR_ReviewerwiseErrorTrending");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable ReviewerVsQcerErrorCounts_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewVsQCCount_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_ReviewVsQCCount_Servicing_Infinity", "usp_ServicingDFR_ReviewVsQCCount");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable NoErrorFilesAnalysis_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_getNoErrorAnalysis_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_getNoErrorAnalysis_Servicing_Infinity", "usp_ServicingDFR_NoErrorAnalysis");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable Reviewerwiseclientwiseerrors_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_Reviewerwiseclientwiseerror_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_Reviewerwiseclientwiseerror_Servicing_Infinity", "usp_ServicingDFR_ReviewerClientError");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable ReviewerQCClientwiseerrors_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_ReviewerwiseQCwiseclientwiseerror_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_ReviewerwiseQCwiseclientwiseerror_Servicing_Infinity", "usp_ServicingDFR_ReviewerQCClientError");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable QCersPerformance_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_WeeklyQCerDetails_Servicing_Infinity_Dispatched_Loans]");
+            SqlCommand cmd = ServicingReportCommand("usp_WeeklyQCerDetails_Servicing_Infinity", "usp_ServicingDFR_QCerPerformance");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable CategorySheet_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_CategoryTrending_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_CategoryTrending_Servicing_Infinity", "usp_ServicingDFR_Category");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable SubCategorySheet_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_SubCategoryTrending_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_SubCategoryTrending_Servicing_Infinity", "usp_ServicingDFR_SubCategory");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable GetInternalFeedbacks_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetFeedbackTabs_Internal_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_GetFeedbackTabs_Internal_Servicing_Infinity", "usp_ServicingDFR_InternalFeedbacks");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable GetReQCFeedbacks_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetFeedbackTabs_ReQC_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_GetFeedbackTabs_ReQC_Servicing_Infinity", "usp_ServicingDFR_ReQCFeedbacks");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable GetClientFeedbacks_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetFeedbackTabs_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_GetFeedbackTabs_Servicing_Infinity", "usp_ServicingDFR_ClientFeedbacks");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable GetRebuttalFeedbacks_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetFeedbackTabs_Rebuttal_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_GetFeedbackTabs_Rebuttal_Servicing_Infinity", "usp_ServicingDFR_RebuttalFeedbacks");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public DataTable GetClientQualityReport_Servicing_Infinity()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetClientQualityReport_Servicing_Infinity]");
+            SqlCommand cmd = ServicingReportCommand("usp_GetClientQualityReport_Servicing_Infinity", "usp_ServicingDFR_ClientQualityReport");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }

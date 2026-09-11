@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Packaging;
 using Spire.Xls;
 using System;
 using System.Collections.Generic;
@@ -31,8 +32,11 @@ namespace WebPortal.Admin
         static string FolderPath = "";
         static Workbook book = new Workbook();
         static Worksheet wksheet = null;
+        static readonly object ServicingReportLock = new object();
+        static readonly Dictionary<Guid, Tuple<Workbook, string>> ServicingReports = new Dictionary<Guid, Tuple<Workbook, string>>();
         protected void Page_Load(object sender, EventArgs e)
         {
+            servicingRegion.Visible = IsServicingUser();
             try
             {
                 SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TruncateFeedbackImporttable");
@@ -63,6 +67,129 @@ namespace WebPortal.Admin
             }
             catch { }
         }
+
+        #region Servicing Detailed Feedback Report
+        static int CurrentUserID() { int id; return int.TryParse(HttpContext.Current.User.Identity.Name, out id) ? id : 0; }
+        static bool IsServicingUser()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, "SELECT COUNT(1) FROM dbo.EmployeeInfo WHERE EmployeeID=@UserID AND LTRIM(RTRIM(SubDomain))='Servicing'");
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserID", SqlDbType.Int, 0, ParameterDirection.Input, CurrentUserID());
+            return Convert.ToInt32(SQLHelper.ExecuteScalarCmd(cmd)) > 0;
+        }
+        static void RequireServicing() { if (!IsServicingUser()) throw new HttpException(403, "Servicing access is required."); }
+        static string Json(DataTable dt)
+        {
+            var rows = new List<Dictionary<string, object>>();
+            foreach (DataRow dr in dt.Rows) { var row = new Dictionary<string, object>(); foreach (DataColumn c in dt.Columns) row[c.ColumnName] = dr[c]; rows.Add(row); }
+            return new JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(rows);
+        }
+        static DataTable ServicingData(string procedure, params SqlParameter[] parameters)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, procedure);
+            foreach (SqlParameter parameter in parameters) cmd.Parameters.Add(parameter);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetServicingProjects()
+        {
+            RequireServicing();
+            return Json(new bllOLTracking().GetProjectsByUser(CurrentUserID()));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetServicingOrders(string projectIDs, string fromDate, string toDate)
+        {
+            RequireServicing();
+            DateTime from, to;
+            if (string.IsNullOrWhiteSpace(projectIDs) || !DateTime.TryParse(fromDate, out from) || !DateTime.TryParse(toDate, out to) || from.Date > to.Date) throw new ArgumentException("Project(s), From Date and To Date are required.");
+            DataTable orders = ServicingData("usp_ServicingDFR_GetOrders", new SqlParameter("@UserID", CurrentUserID()), new SqlParameter("@ProjectIDs", projectIDs), new SqlParameter("@FromDate", from.Date), new SqlParameter("@ToDate", to.Date));
+            HttpContext.Current.Session["ServicingDetailedFeedbackEligibleOrders"] = orders.DefaultView.ToTable(false, "OrderID", "ProjectID", "LoanNo", "SafeDispatchDate");
+            return Json(orders);
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static int GenerateServicingReport(string orderIDs, int step)
+        {
+            RequireServicing();
+            if (step < 0 || step > 14) throw new ArgumentException("Invalid report step.");
+            int userID = CurrentUserID();
+            if (step == 0)
+            {
+                if (string.IsNullOrWhiteSpace(orderIDs)) throw new ArgumentException("Select at least one order.");
+                DataTable eligible = HttpContext.Current.Session["ServicingDetailedFeedbackEligibleOrders"] as DataTable;
+                int parsed; int[] selected = orderIDs.Split(',').Where(x => int.TryParse(x, out parsed)).Select(int.Parse).Distinct().ToArray();
+                HashSet<int> selectedSet = new HashSet<int>(selected);
+                HashSet<int> eligibleIDs = eligible == null ? null : new HashSet<int>(eligible.AsEnumerable().Select(r => Convert.ToInt32(r["OrderID"])));
+                if (eligibleIDs == null || selected.Length == 0 || !selectedSet.IsSubsetOf(eligibleIDs)) throw new ArgumentException("The selected orders are invalid or expired. Click Show and select again.");
+                Guid batchID = Guid.NewGuid();
+                DataTable rows = new DataTable();
+                rows.Columns.Add("BatchID", typeof(Guid)); rows.Columns.Add("UserID", typeof(int)); rows.Columns.Add("ProjectID", typeof(int)); rows.Columns.Add("OrderID", typeof(int)); rows.Columns.Add("LoanNo", typeof(string)); rows.Columns.Add("DispatchDate", typeof(DateTime)); rows.Columns.Add("CreatedDate", typeof(DateTime));
+                foreach (DataRow r in eligible.Rows) if (selectedSet.Contains(Convert.ToInt32(r["OrderID"]))) rows.Rows.Add(batchID, userID, r["ProjectID"], r["OrderID"], r["LoanNo"], r["SafeDispatchDate"], DateTime.Now);
+                using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+                {
+                    connection.Open();
+                    using (SqlBulkCopy bulk = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock, null))
+                    {
+                        bulk.DestinationTableName = "dbo.ServicingDetailedFeedbackSelection"; bulk.BatchSize = 5000; bulk.BulkCopyTimeout = 0;
+                        foreach (DataColumn c in rows.Columns) bulk.ColumnMappings.Add(c.ColumnName, c.ColumnName);
+                        bulk.WriteToServer(rows);
+                    }
+                }
+                if (rows.Rows.Count != selected.Length) throw new InvalidOperationException("Some selected orders are no longer available. Click Show and select again.");
+                HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"] = batchID;
+            }
+            if (HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"] == null) throw new InvalidOperationException("Report session expired. Please try again.");
+            lock (ServicingReportLock)
+            {
+                Guid batchID = (Guid)HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"];
+                if (step > 0) { Tuple<Workbook, string> state; if (!ServicingReports.TryGetValue(batchID, out state)) throw new InvalidOperationException("Report session expired. Please try again."); book = state.Item1; FileName = state.Item2; }
+                Action[] sheets = { () => GetGraphicalView("Servicing","Infinity"), () => CLientwiseErrorTrending("Servicing","Infinity"), () => ReviewersFeedbackSummary("Servicing","Infinity"), () => ReviewerVsQcerErrorCounts("Servicing","Infinity"), () => NoErrorFilesAnalysis("Servicing","Infinity"), () => Reviewerwiseclientwiseerrors("Servicing","Infinity"), () => ReviewerQCClientwiseerrors("Servicing","Infinity"), () => QCersPerformance("Servicing","Infinity"), () => CategorySheet("Servicing","Infinity"), () => SubcategorySheet("Servicing","Infinity"), () => getInternalFeedbacks("Servicing","Infinity"), () => getClientFeedbacks("Servicing","Infinity"), () => getReQCFeedbacks("Servicing","Infinity"), () => getRebuttalFeedbacks("Servicing","Infinity"), () => GetClientQualityReport("Servicing","Infinity") };
+                sheets[step]();
+                if (step == 14) CleanServicingWorkbook(FileName);
+                ServicingReports[batchID] = Tuple.Create(book, FileName);
+            }
+            if (step == 14) { HttpContext.Current.Session["ServicingDetailedFeedbackFile"] = FileName; ClearServicingSelection(userID); }
+            return step + 1;
+        }
+
+        static void ClearServicingSelection(int userID)
+        {
+            object batchID = HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"];
+            if (batchID != null) { SqlCommand clean = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_ServicingDFR_ClearSelection"); SQLHelper.AddParamToSQLCmd(clean, "@BatchID", SqlDbType.UniqueIdentifier, 0, ParameterDirection.Input, batchID); SQLHelper.AddParamToSQLCmd(clean, "@UserID", SqlDbType.Int, 0, ParameterDirection.Input, userID); SQLHelper.ExecuteScalarCmd(clean); }
+            if (batchID != null) lock (ServicingReportLock) ServicingReports.Remove((Guid)batchID);
+            HttpContext.Current.Session.Remove("ServicingDetailedFeedbackBatchID");
+            HttpContext.Current.Session.Remove("ServicingDetailedFeedbackEligibleOrders");
+        }
+
+        [WebMethod(EnableSession = true)] public static void CancelServicingReport() { ClearServicingSelection(CurrentUserID()); }
+
+        static void CleanServicingWorkbook(string path)
+        {
+            using (SpreadsheetDocument document = SpreadsheetDocument.Open(path, true))
+            {
+                WorkbookPart part = document.WorkbookPart;
+                var sheets = part.Workbook.Sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>().ToList();
+                foreach (var sheet in sheets)
+                {
+                    WorksheetPart worksheet = (WorksheetPart)part.GetPartById(sheet.Id);
+                    bool blank = !worksheet.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Any();
+                    if (sheets.Count > 1 && (blank || sheet.Name.Value.IndexOf("Evaluation", StringComparison.OrdinalIgnoreCase) >= 0)) { sheet.Remove(); part.DeletePart(worksheet); }
+                }
+                part.Workbook.Save();
+            }
+        }
+
+        protected void servicingDownload_Click(object sender, EventArgs e)
+        {
+            RequireServicing();
+            string path = Convert.ToString(Session["ServicingDetailedFeedbackFile"]);
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) throw new FileNotFoundException("The generated report is no longer available.");
+            Session.Remove("ServicingDetailedFeedbackFile");
+            Response.Clear(); Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(path)); Response.TransmitFile(path); Response.End();
+        }
+        #endregion
 
         static void releaseObject(object obj)
         {
@@ -1344,6 +1471,12 @@ namespace WebPortal.Admin
         #endregion
 
         #region new Code
+        static bool EmptyServicingResult(DataTable dt, string sheetName)
+        {
+            if (HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"] == null || (dt != null && dt.Columns.Count > 0)) return false;
+            book.CreateEmptySheet(sheetName).Range["A1"].Text = "No records found";
+            return true;
+        }
         [WebMethod]
         public static int GetGraphicalView(string domain, string company)
         {
@@ -1361,6 +1494,8 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().WeeklyGraphicalView_Servicing_Infinity();
+
+            if (EmptyServicingResult(dt, "Weekly - Graphical View")) return 1;
             if (dt != null)
             {
                 wksheet = book.CreateEmptySheet("Weekly - Graphical View");
@@ -1562,6 +1697,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().ClientwiseErrorTrending_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "Client-wise Error Trending")) return 1;
             wksheet = book.CreateEmptySheet("Client-wise Error Trending");
             wksheet.InsertDataTable(dt, true, 4, CCount);
             RCount = wksheet.LastRow;
@@ -1693,6 +1829,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().ReviewerwiseErrorTrending_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "Reviewer - Feedback Summary")) return 1;
             wksheet = book.CreateEmptySheet("Reviewer - Feedback Summary");
             if (dt != null)
             {
@@ -1825,6 +1962,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().ReviewerVsQcerErrorCounts_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "Reviewer Vs Qcer Error Count")) return 1;
             wksheet = book.CreateEmptySheet("Reviewer Vs Qcer Error Count");
             if (dt != null)
             {
@@ -1860,6 +1998,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().NoErrorFilesAnalysis_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "No Error Files Analysis")) return 1;
             wksheet = book.CreateEmptySheet("No Error Files Analysis");
 
             if (dt != null)
@@ -1899,6 +2038,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().Reviewerwiseclientwiseerrors_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "Reviewer wise client wise error")) return 1;
             wksheet = book.CreateEmptySheet("Reviewer wise client wise error");
             if (dt != null)
             {
@@ -1934,6 +2074,8 @@ namespace WebPortal.Admin
             else
                 dt = new dalReport().ReviewerQCClientwiseerrors_Servicing_Infinity();
 
+            if (EmptyServicingResult(dt, "Reviewer, QC, Client wise error")) return 1;
+
             wksheet = book.CreateEmptySheet("Reviewer, QC, Client wise error");
             if (dt != null)
             {
@@ -1968,6 +2110,8 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().QCersPerformance_Servicing_Infinity();
+
+            if (EmptyServicingResult(dt, "QCer Performance")) return 1;
 
             wksheet = book.CreateEmptySheet("QCer Performance");
             if (dt != null)
@@ -2061,6 +2205,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().CategorySheet_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "Category")) return 1;
             wksheet = book.CreateEmptySheet("Category");
 
             int HCount = 3;
@@ -2131,6 +2276,7 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().SubCategorySheet_Servicing_Infinity();
+            if (EmptyServicingResult(dt, "Sub Category")) return 1;
             wksheet = book.CreateEmptySheet("Sub Category");
             if (dt != null)
             {
@@ -2198,6 +2344,8 @@ namespace WebPortal.Admin
             else
                 dt = new dalReport().GetInternalFeedbacks_Servicing_Infinity();
 
+            if (EmptyServicingResult(dt, "Internal Feedbacks")) return 1;
+
             wksheet = book.CreateEmptySheet("Internal Feedbacks");
             if (dt != null)
             {
@@ -2232,6 +2380,8 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().GetClientFeedbacks_Servicing_Infinity();
+
+            if (EmptyServicingResult(dt, "Client Feedbacks")) return 1;
 
             wksheet = book.CreateEmptySheet("Client Feedbacks");
             if (dt != null)
@@ -2268,6 +2418,8 @@ namespace WebPortal.Admin
             else
                 dt = new dalReport().GetReQCFeedbacks_Servicing_Infinity();
 
+            if (EmptyServicingResult(dt, "ReQC Feedbacks")) return 1;
+
             wksheet = book.CreateEmptySheet("ReQC Feedbacks");
             if (dt != null)
             {
@@ -2303,6 +2455,8 @@ namespace WebPortal.Admin
             else
                 dt = new dalReport().GetRebuttalFeedbacks_Servicing_Infinity();
 
+            if (EmptyServicingResult(dt, "Rebuttal Feedbacks")) return 1;
+
             wksheet = book.CreateEmptySheet("Rebuttal Feedbacks");
             if (dt != null)
             {
@@ -2337,6 +2491,8 @@ namespace WebPortal.Admin
             }
             else
                 dt = new dalReport().GetClientQualityReport_Servicing_Infinity();
+
+            if (EmptyServicingResult(dt, "Client Quality Report")) { book.SaveToFile(FileName, ExcelVersion.Version2010); return 1; }
 
             wksheet = book.CreateEmptySheet("Client Quality Report");
             if (dt != null)
