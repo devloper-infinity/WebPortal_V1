@@ -20,6 +20,7 @@ namespace WebPortal.Admin
         static string From_Date;
         static string To_Date;
         static string Sub_Domain;
+        static string Company_Name;
         static DataTable dt_Export;
 
 
@@ -29,7 +30,7 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string GetAllFeedbackByDateRange_NewFormat_OLD(string FromDate, string ToDate, string SubDomain)
+        public static string GetAllFeedbackByDateRange_NewFormat_OLD(string FromDate, string ToDate, string SubDomain, string Company)
         {
             FromDate = (Convert.ToDateTime(FromDate)).ToString("dd-MMM-yyyy");
             ToDate = (Convert.ToDateTime(ToDate)).ToString("dd-MMM-yyyy");
@@ -38,7 +39,7 @@ namespace WebPortal.Admin
             To_Date = ToDate;
             Sub_Domain = SubDomain;
             DataTable dt1 = null;
-            DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain);
+            DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain, Company);
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -99,7 +100,8 @@ namespace WebPortal.Admin
         public static object GetAllFeedbackByDateRange_NewFormat(
     string FromDate,
     string ToDate,
-    string SubDomain)
+    string SubDomain,
+    string Company)
         {
             try
             {
@@ -109,9 +111,23 @@ namespace WebPortal.Admin
                 From_Date = formattedFromDate;
                 To_Date = formattedToDate;
                 Sub_Domain = SubDomain;
+                Company_Name = string.Equals(SubDomain, "Credit", StringComparison.OrdinalIgnoreCase)
+                    ? (string.Equals(Company, "Canopy", StringComparison.OrdinalIgnoreCase) ? "Canopy" : "Infinity")
+                    : "";
 
-                DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(formattedFromDate,formattedToDate,SubDomain);
-                new bllInfinityFeedbackRca().AppendReportColumns(dt);
+                DataTable dt = new bllMaster().GetAllFeedbackByDateRange_NewFormat(formattedFromDate, formattedToDate, SubDomain, Company_Name);
+                if (string.Equals(SubDomain, "Credit", StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(Company_Name, "Infinity", StringComparison.OrdinalIgnoreCase))
+                {
+                    new bllInfinityFeedbackRca().AppendReportColumns(dt);
+                }
+                else if (dt != null)
+                {
+                    for (int errorType = 1; errorType <= 9; errorType++)
+                    {
+                        RemoveColumnIfExists(dt, "ErrorType" + errorType + "Name");
+                    }
+                }
 
                 List<Dictionary<string, object>> gridRows = new List<Dictionary<string, object>>();
 
@@ -266,6 +282,12 @@ namespace WebPortal.Admin
             AddExportColumn(gvExport, "FeedbackID", "FeedbackID");
             AddExportColumn(gvExport, "LoanNumber", "Loan Number");
             AddExportColumn(gvExport, "Client", "Client");
+            if (string.Equals(Sub_Domain, "Credit", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(Company_Name, "Canopy", StringComparison.OrdinalIgnoreCase))
+            {
+                AddFirstAvailableExportColumn(gvExport, dt, new[] { "ClientName", "Client" }, "Client Name");
+                AddFirstAvailableExportColumn(gvExport, dt, new[] { "TypeOfReview", "ReviewType", "FeedbackType" }, "Type of Review");
+            }
             AddExportColumn(gvExport, "UWName", "UW Name");
             AddExportColumn(gvExport, "QCName", "QC Name");
             AddExportColumn(gvExport, "DateReviewed", "Date Reviewed");
@@ -275,15 +297,14 @@ namespace WebPortal.Admin
             AddExportColumn(gvExport, "ErrorField", "Error Field");
             AddExportColumn(gvExport, "Screen", "Screen");
             AddExportColumn(gvExport, "ErrorType", "Error Type");
-            AddExportColumn(gvExport, "ErrorType1Name", "Error Type 1");
-            AddExportColumn(gvExport, "ErrorType2Name", "Error Type 2");
-            AddExportColumn(gvExport, "ErrorType3Name", "Error Type 3");
-            AddExportColumn(gvExport, "ErrorType4Name", "Error Type 4");
-            AddExportColumn(gvExport, "ErrorType5Name", "Error Type 5");
-            AddExportColumn(gvExport, "ErrorType6Name", "Error Type 6");
-            AddExportColumn(gvExport, "ErrorType7Name", "Error Type 7");
-            AddExportColumn(gvExport, "ErrorType8Name", "Error Type 8");
-            AddExportColumn(gvExport, "ErrorType9Name", "Error Type 9");
+            if (string.Equals(Sub_Domain, "Credit", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(Company_Name, "Infinity", StringComparison.OrdinalIgnoreCase))
+            {
+                for (int errorType = 1; errorType <= 9; errorType++)
+                {
+                    AddExportColumn(gvExport, "ErrorType" + errorType + "Name", "Error Type " + errorType);
+                }
+            }
             AddExportColumn(gvExport, "Finding", "Finding");
             AddExportColumn(gvExport, "FeedbackType", "Feedback Type");
             AddExportColumn(gvExport, "Severity", "Severity");
@@ -371,7 +392,7 @@ namespace WebPortal.Admin
             HttpContext.Current.ApplicationInstance.CompleteRequest();
         }
 
-        private void RemoveColumnIfExists(DataTable dt, string columnName)
+        private static void RemoveColumnIfExists(DataTable dt, string columnName)
         {
             if (dt.Columns.Contains(columnName))
             {
@@ -388,6 +409,15 @@ namespace WebPortal.Admin
             column.HtmlEncode = false;
 
             gridView.Columns.Add(column);
+        }
+
+        private void AddFirstAvailableExportColumn(GridView gridView, DataTable data, string[] dataFields, string headerText)
+        {
+            string dataField = dataFields.FirstOrDefault(data.Columns.Contains);
+            if (!string.IsNullOrEmpty(dataField))
+            {
+                AddExportColumn(gridView, dataField, headerText);
+            }
         }
     }
 }

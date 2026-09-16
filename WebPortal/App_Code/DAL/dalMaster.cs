@@ -4397,11 +4397,12 @@ namespace WebPortal.App_Code.DAL
 
         #region Log Imported Feedback
 
-        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain)
+        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain, string Company)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllFeedbackByDateRange_NewFormat");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllFeedbackByDateRange_NewFormat_ByCompany");
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@SubDomain", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, SubDomain);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Company", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Company);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, ToDate);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;

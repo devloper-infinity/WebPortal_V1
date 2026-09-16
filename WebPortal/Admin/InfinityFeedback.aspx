@@ -392,6 +392,13 @@
                             <option value="Servicing">Servicing</option>
                         </select>
                     </div>
+                    <div class="inf-field" id="tdcompany" style="display: none;">
+                        <label for="inffeedback_company">Company</label>
+                        <select id="inffeedback_company" name="inffeedback_company" class="form-control">
+                            <option value="Infinity">Infinity</option>
+                            <option value="Canopy">Canopy</option>
+                        </select>
+                    </div>
                     <div class="inf-field" id="tddomainrow">
                         <button class="inf-btn inf-btn-primary" type="button" id="btnEditFeedbackShow" onclick="return btnEditFeedbackShowReport();">
                             <i class="fas fa-magnifying-glass"></i>

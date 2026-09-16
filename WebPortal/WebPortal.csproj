@@ -144,6 +144,10 @@
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
+    <Content Include="Admin\RNRAdmin.aspx" />
+    <Content Include="Admin\RNRReport.aspx" />
+    <Content Include="Admin\RNRFeedback.aspx" />
+    <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
     <Content Include="Admin\All.aspx" />
     <Content Include="Admin\DashboardValidator.aspx" />
     <Content Include="Admin\ExcelCrossCheck.aspx" />
@@ -3137,6 +3141,20 @@
     </Compile>
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="App_Code\RnrFeedbackRepository.cs" />
+    <Compile Include="App_Code\RnrSecurity.cs" />
+    <Compile Include="Admin\RNRAdmin.aspx.cs">
+      <DependentUpon>RNRAdmin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\RNRReport.aspx.cs">
+      <DependentUpon>RNRReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\RNRFeedback.aspx.cs">
+      <DependentUpon>RNRFeedback.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\All.aspx.cs">
       <DependentUpon>All.aspx</DependentUpon>

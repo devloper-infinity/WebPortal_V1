@@ -1951,9 +1951,9 @@ namespace WebPortal.App_Code.BLL
 
         #region Log Imported Feedback
 
-        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain)
+        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain, string Company)
         {
-            return dalMaster.GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain);
+            return dalMaster.GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain, Company);
         }
 
         public DataTable GetFeedbackDetailsByID_NewFormat(int FeedbackID, string Subdomain)

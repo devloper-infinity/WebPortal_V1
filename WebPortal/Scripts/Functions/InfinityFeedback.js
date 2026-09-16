@@ -1,6 +1,7 @@
 ﻿
 var InfinityFeedback_html;
 var InfinityFeedback_table;
+var infinityFeedbackUserSubDomain = "";
 
 function btnEditFeedbackShowReport() {
 
@@ -9,6 +10,9 @@ function btnEditFeedbackShowReport() {
 
     var ddldomain = document.getElementById("inffeedback_domain");
     var subdomain = ddldomain.options[ddldomain.selectedIndex].value;
+    var company = subdomain === "Credit"
+        ? document.getElementById("inffeedback_company").value
+        : "";
 
     if (FromDate == "") {
         alert("please enter From Date.");
@@ -21,11 +25,11 @@ function btnEditFeedbackShowReport() {
 
     if ((FromDate != "" || FromDate != null) && (ToDate != "" || ToDate != null)) {
 
-        BindInfinityFeedbackGrid(FromDate, ToDate, subdomain);
+        BindInfinityFeedbackGrid(FromDate, ToDate, subdomain, company);
     }
 }
 
-function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
+function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain, company) {
 
     $('#load1').show();
 
@@ -35,7 +39,8 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
         data: JSON.stringify({
             FromDate: FromDate,
             ToDate: ToDate,
-            SubDomain: subdomain
+            SubDomain: subdomain,
+            Company: company
         }),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -89,6 +94,8 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                     .destroy();
             }
 
+            var columns = buildInfinityFeedbackColumns(subdomain, company);
+
             InfinityFeedback_table =
                 $('#table_InfinityFeedback').DataTable({
 
@@ -108,6 +115,8 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                         style: 'single'
                     },
 
+                    columns: columns,
+                    /*
                     columns: [
                         {
                             data: null,
@@ -322,7 +331,7 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
                             title: "Feedback Received Date",
                             defaultContent: ""
                         }
-                    ],
+                    ],*/
 
                     columnDefs: [
                         {
@@ -425,7 +434,77 @@ function BindInfinityFeedbackGrid(FromDate, ToDate, subdomain) {
     return false;
 }
 
+function buildInfinityFeedbackColumns(subdomain, company) {
+    var isCredit = subdomain === "Credit";
+    var columns = [
+        {
+            data: null, title: "Actions", orderable: false, searchable: false,
+            className: "text-center", width: "60px",
+            render: function (data, type, row) {
+                if (!row.FeedbackID) return "";
+                var feedbackID = encodeURIComponent(row.FeedbackID);
+                var subDomainCode = encodeURIComponent((subdomain || "").substring(0, 1));
+                return '<a class="dropdown-item" target="_blank" href="EditInfinityFeedback.aspx?FID=' +
+                    feedbackID + '&s=' + subDomainCode + '" title="Edit Feedback">' +
+                    '<span style="color:dodgerblue;"><i class="uil uil-pen" style="font-size:16px;"></i></span></a>';
+            }
+        },
+        { data: "FeedbackID", title: "FeedbackID", visible: true, defaultContent: "" },
+        { data: "LoanNumber", title: "Loan Number", defaultContent: "" },
+        { data: "Client", title: "Client", defaultContent: "" }
+    ];
+
+    if (isCredit && company === "Canopy") {
+        columns.push(
+            { data: function (row) { return row.ClientName || row.Client || ""; }, title: "Client Name", defaultContent: "" },
+            { data: function (row) { return row.TypeOfReview || row.ReviewType || row.FeedbackType || ""; }, title: "Type of Review", defaultContent: "" }
+        );
+    }
+
+    columns.push(
+        { data: "UWName", title: "UW Name", defaultContent: "" },
+        { data: "QCName", title: "QC Name", defaultContent: "" },
+        { data: "DateReviewed", title: "Date Reviewed", defaultContent: "" },
+        { data: "QCDate", title: "QC Date", defaultContent: "" },
+        { data: "Category", title: "Category", defaultContent: "" },
+        { data: "Subcategory", title: "Sub Category", defaultContent: "" },
+        { data: "ErrorField", title: "Error Field", defaultContent: "" },
+        { data: "Screen", title: "Screen", defaultContent: "" },
+        { data: "ErrorType", title: "Error Type", defaultContent: "" }
+    );
+
+    if (isCredit && company === "Infinity") {
+        for (var errorType = 1; errorType <= 9; errorType++) {
+            columns.push({ data: "ErrorType" + errorType + "Name", title: "Error Type " + errorType, defaultContent: "" });
+        }
+    }
+
+    columns.push(
+        { data: "Finding", title: "Finding", defaultContent: "" },
+        { data: "FeedbackType", title: "Feedback Type", defaultContent: "" },
+        { data: "Severity", title: "Severity", defaultContent: "" },
+        { data: "FeedbackStatus", title: "Feedback Status", defaultContent: "" },
+        { data: "RCA", title: "RCA/Rebuttal Comments", defaultContent: "" },
+        {
+            data: "RebuttalStatus", title: "Onshore Rebuttal Response", defaultContent: "",
+            createdCell: function (cell, value) {
+                var status = (value || "").toString().trim().toLowerCase();
+                if (status === "rebuttal") $(cell).addClass("rebuttal-status");
+                else if (status === "agree") $(cell).addClass("agree-status");
+            }
+        },
+        { data: "RebuttalRemark", title: "Onshore Rebuttal Comments", defaultContent: "" },
+        { data: "FinalStatus", title: "Manager Final Status", defaultContent: "" },
+        { data: "FinalComments", title: "Manager Final Comments", defaultContent: "" },
+        { data: "Source", title: "Source", defaultContent: "" },
+        { data: "FeedbackReceivedDate", title: "Feedback Received Date", defaultContent: "" }
+    );
+    return columns;
+}
+
 function infinityfeecback_bindsubdomain() {
+    $("#inffeedback_domain").off("change.infinityFeedback").on("change.infinityFeedback", updateInfinityFeedbackCompanyVisibility);
+    $("#inffeedback_company").off("change.infinityFeedback").on("change.infinityFeedback", clearInfinityFeedbackGrid);
     $.ajax({
         url: "ImportFeedback.aspx/GetUserInfo",
         type: "POST",
@@ -436,9 +515,10 @@ function infinityfeecback_bindsubdomain() {
             dataArray = JSON.parse(data.d);
 
             $.each(dataArray, function (data, value) {
+                infinityFeedbackUserSubDomain = blankForNull(value.SubDomain);
 
-                if (blankForNull(value.SubDomain) == "Credit" || blankForNull(value.SubDomain) == "Servicing") {
-                    $("#inffeedback_domain").val(blankForNull(value.SubDomain));
+                if (infinityFeedbackUserSubDomain == "Credit" || infinityFeedbackUserSubDomain == "Servicing") {
+                    $("#inffeedback_domain").val(infinityFeedbackUserSubDomain);
                     document.getElementById("tddomainhead").style.display = "none";
                     // document.getElementById("tddomainrow").style.display = "none";
                 }
@@ -447,9 +527,24 @@ function infinityfeecback_bindsubdomain() {
                     document.getElementById("tddomainhead").style.display = "";
                     // document.getElementById("tddomainrow").style.display = "";
                 }
+                updateInfinityFeedbackCompanyVisibility();
             })
         }
     });
+}
+
+function updateInfinityFeedbackCompanyVisibility() {
+    var showCompany = infinityFeedbackUserSubDomain === "Credit" &&
+        $("#inffeedback_domain").val() === "Credit";
+    $("#tdcompany").toggle(showCompany);
+    clearInfinityFeedbackGrid();
+}
+
+function clearInfinityFeedbackGrid() {
+    if ($.fn.DataTable.isDataTable('#table_InfinityFeedback')) {
+        $('#table_InfinityFeedback').DataTable().clear().destroy();
+        $('#table_InfinityFeedback').empty();
+    }
 }
 
 
