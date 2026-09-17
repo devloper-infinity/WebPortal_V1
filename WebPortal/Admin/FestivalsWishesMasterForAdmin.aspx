@@ -523,7 +523,7 @@
                             <span class="section-icon" aria-hidden="true"><i class="fas fa-calendar-day"></i></span>
                             <div>
                                 <h3 class="section-title">Create Festival Wish</h3>
-                                <p class="section-subtitle">Set the occasion, audience filters, display date, and celebration image.</p>
+                                <p class="section-subtitle">Set the occasion, audience filters, display date, and celebration image and video.</p>
                             </div>
                         </div>
                     </div>
