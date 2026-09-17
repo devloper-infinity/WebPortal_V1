@@ -152,6 +152,7 @@
     <Content Include="Admin\DashboardValidator.aspx" />
     <Content Include="Admin\ExcelCrossCheck.aspx" />
     <Content Include="Admin\FeedbackPerformanceReport.aspx" />
+    <Content Include="Admin\FestivalsWishesMasterForAdmin.aspx" />
     <Content Include="Admin\IDCardProcedure.aspx" />
     <Content Include="Admin\ProjectEmailConfiguration.aspx" />
     <Content Include="All.aspx" />
@@ -742,6 +743,8 @@
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
     <Content Include="Scripts\Functions\AbscondingAndLeaveReport.js" />
+    <Content Include="Scripts\Functions\FestivalMasterForAdmin.js" />
+    <Content Include="Scripts\Functions\FestivalPopupForAdmin.js" />
     <Content Include="Scripts\Functions\HelpdeskModule.js" />
     <Content Include="IT\AddTicket.aspx" />
     <Content Include="IT\AddTicketRemark.aspx" />
@@ -3181,6 +3184,13 @@
     </Compile>
     <Compile Include="Admin\ExcelCrossCheckEngine.cs" />
     <Compile Include="Admin\DashboardValidatorEngine.cs" />
+    <Compile Include="Admin\FestivalsWishesMasterForAdmin.aspx.cs">
+      <DependentUpon>FestivalsWishesMasterForAdmin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\FestivalsWishesMasterForAdmin.aspx.designer.cs">
+      <DependentUpon>FestivalsWishesMasterForAdmin.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\IDCardProcedure.aspx.cs">
       <DependentUpon>IDCardProcedure.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -6191,6 +6201,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="FestivalWishesImagesandVideos_Admin\" />
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />

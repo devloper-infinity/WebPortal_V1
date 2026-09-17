@@ -1,6 +1,7 @@
 ﻿//using DocumentFormat.OpenXml.Office.Word;
 //using DocumentFormat.OpenXml.VariantTypes;
 //using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.Bibliography;
 using System;
 //using System.Activities.Statements;
 using System.Collections;
@@ -6209,10 +6210,57 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeID);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, ToDate);
-
-            // Use ExecuteDataSetCmd instead of ExecuteDataTableCmd
             DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
             return ds;
+        }
+
+
+        public int InsertAdminFestiveData(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAdminFestivalData_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Title", System.Data.SqlDbType.NVarChar, 3000, System.Data.ParameterDirection.Input, htParam["Title"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ImagePath", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["ImagePath"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@VideoPath", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["VideoPath"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, htParam["Date"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CreatedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Branch"]);  
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = 0;
+            if (cmd.Parameters["@ReturnValue"] != null && cmd.Parameters["@ReturnValue"].Value != DBNull.Value)
+            {
+                ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            }
+            return ReturnValue;
+        }
+
+        public DataTable GetAdminFestivalMaster()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminFestivalMaster_YTU");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public int DeleteAdminFestivalData(int FestivalId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteAdminFestivalMasterData_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FestivalId", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, FestivalId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public DataTable GetAdminFestivalDataForPopUp(string festivalDate, string location)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminFestivalDataForPopUp_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FestivalDate", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, festivalDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BranchName", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, location);
+
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
         }
     }
 }

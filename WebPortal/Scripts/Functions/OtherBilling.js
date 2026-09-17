@@ -89,25 +89,25 @@ async function btnOtherBilling_Import() {
     const deal_satus = 'Existing';
 
     if (!selectedDealNo || selectedDealNo === "Select") {
-        await showValidationMessage("Deal Number Required", "Please select a deal number.");
+        await showValidationMessage("Deal Number Required","Please select a deal number.");
+
         $("#otherBilling_DealNo").focus();
         return false;
     }
 
     if (selectedDealNo === "AddNew" && !newDealNo) {
-        deal_satus = 'New';
-        await showValidationMessage("New Deal Number Required", "Please enter a new deal number.");
+        await showValidationMessage("New Deal Number Required","Please enter a new deal number.");
+
         $("#otherBilling_NewDealNo").focus();
         return false;
     }
 
-    const dealNo = selectedDealNo === "AddNew" ? newDealNo : selectedDealNo;
+    const dealNo =selectedDealNo === "AddNew"? newDealNo: selectedDealNo;
 
     document.getElementById("spntext").innerHTML = "Reading data from Excel...";
-
     $('#OtherBilling_Waitingpanel').modal('show');
 
-    PageMethods.ImportExcel(projectValue, dealNo, deal_satus,
+    PageMethods.ImportExcel(projectValue, dealNo,
 
         function (result) {
             $('#OtherBilling_Waitingpanel').modal('hide');
