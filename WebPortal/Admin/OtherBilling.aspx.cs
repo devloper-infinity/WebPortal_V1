@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using Spire.Xls;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace WebPortal.Admin
 {
     public partial class OtherBilling : System.Web.UI.Page
     {
-        static DataTable dtImport = new DataTable();
+        static System.Data.DataTable dtImport = new System.Data.DataTable();
 
         static string NewFileName = "";
         static string FileName = "";
@@ -62,13 +63,22 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int ImportExcel()
+        public static int ImportExcel(int ProjectID, string DealNo)
         {
             int ReturnValue = 0;
             string File_Name = "";
 
             try
             {
+                ReturnValue = new bllMaster().InsertDealInTracking(ProjectID, DealNo);
+
+                if (ReturnValue <= 0)
+                {
+                    ReturnValue = -3;
+                    return ReturnValue;
+                }
+
+
                 if (NewFileName != "")
                 {
                     if (!Directory.Exists(FolderPath))
@@ -84,7 +94,7 @@ namespace WebPortal.Admin
 
                     if (Extn == "xlsx")
                     {
-                        DataTable Dt = new DataTable();
+                        System.Data.DataTable Dt = new System.Data.DataTable();
                         Dt = ReadExcelFile(NewFileName);
 
                         dtImport = Dt;
@@ -116,7 +126,7 @@ namespace WebPortal.Admin
 
             try
             {
-                DataTable Dt = dtImport;
+                System.Data.DataTable Dt = dtImport;
 
                 if (Type == "Research")
                 {
@@ -137,7 +147,7 @@ namespace WebPortal.Admin
                         cmd.Connection = sqlConnection;
 
                         // i use sql helper for executing query you can use corde sw
-                        DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
+                        System.Data.DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
 
                         Dt.Columns.Add("BillingAddedDate", typeof(string));
                         Dt.Columns.Add("ProjectID", typeof(int));
@@ -154,7 +164,7 @@ namespace WebPortal.Admin
                             objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
                             objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
                             objbulk.ColumnMappings.Add("Deal No", "Deal No");
-                            objbulk.ColumnMappings.Add("Deal No", "BillingPeriod");
+                            objbulk.ColumnMappings.Add(DealNo, "BillingPeriod");
                             objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
                             objbulk.ColumnMappings.Add("Subject Line", "Subject Line");
                             objbulk.ColumnMappings.Add("Requested Docs/Tasks Performed", "Requested Docs/Tasks Performed");
@@ -174,14 +184,16 @@ namespace WebPortal.Admin
                     if (Dt.Rows.Count > 0)
                     {
                         ReturnValue = 1;
+
+                        ReturnValue = new bllMaster().InsertResearchBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                         dtImport = null;
-                        ReturnValue =  new bllMaster().InsertResearchBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                     }
                     else
                         ReturnValue = 0;
 
                     #endregion
                 }
+
                 else if (Type == "Rebuttal")
                 {
                     #region Rebuttal Insertion Code
@@ -201,7 +213,7 @@ namespace WebPortal.Admin
                         cmd.Connection = sqlConnection;
 
                         // i use sql helper for executing query you can use corde sw
-                        DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
+                        System.Data.DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
 
                         Dt.Columns.Add("BillingAddedDate", typeof(string));
                         Dt.Columns.Add("ProjectID", typeof(int));
@@ -254,9 +266,9 @@ namespace WebPortal.Admin
             return ReturnValue;
         }
 
-        public static DataTable ReadExcelFile(string path)
+        public static System.Data.DataTable ReadExcelFile(string path)
         {
-            DataTable dt = new DataTable();
+            System.Data.DataTable dt = new System.Data.DataTable();
 
             using (var workbook = new XLWorkbook(path))
             {
@@ -285,7 +297,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetExcelDataToBindGrid()
         {
-            DataTable dt1 = ReadExcelFile(NewFileName);
+            System.Data.DataTable dt1 = ReadExcelFile(NewFileName);
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -309,7 +321,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetAllDealNumber(int ProjectID)
         {
-            DataTable dt1 = new bllMaster().GetAllDealNumber(ProjectID);
+            System.Data.DataTable dt1 = new bllMaster().GetAllDealNumber(ProjectID);
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -333,7 +345,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string GetAllProjectByDomainWise(int DomainID)
         {
-            DataTable dt1 = new bllTracking().GetAllProjectByDomainWise(DomainID, Convert.ToInt32(HttpContext.Current.User.Identity.Name));
+            System.Data.DataTable dt1 = new bllTracking().GetAllProjectByDomainWise(DomainID, Convert.ToInt32(HttpContext.Current.User.Identity.Name));
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             if (dt1 != null)

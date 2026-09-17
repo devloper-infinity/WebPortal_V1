@@ -1,6 +1,8 @@
 ﻿
 /*------------- Other Billing Report ------------- */
 
+alert('message');
+
 var Research_table;
 var Rebuttal_table;
 
@@ -73,10 +75,31 @@ function getNewDalNo(obj) {
 
 function btnOtherBilling_Import() {
 
+    const projectValue = ($("#otherBilling_Project").val() || "").trim();
+    const selectedDealNo = ($("#otherBilling_DealNo").val() || "").trim();
+    const newDealNo = ($("#otherBilling_NewDealNo").val() || "").trim();
+
+
+    if (!selectedDealNo || selectedDealNo === "Select") {
+        await showValidationMessage("Deal Number Required","Please select a deal number.");
+
+        $("#otherBilling_DealNo").focus();
+        return false;
+    }
+
+    if (selectedDealNo === "AddNew" && !newDealNo) {
+        await showValidationMessage("New Deal Number Required","Please enter a new deal number.");
+
+        $("#otherBilling_NewDealNo").focus();
+        return false;
+    }
+
+    const dealNo = selectedDealNo === "AddNew" ? newDealNo : selectedDealNo;
+
     document.getElementById("spntext").innerHTML = "Reading data from Excel...";
     $('#OtherBilling_Waitingpanel').modal('show');
 
-    PageMethods.ImportExcel(
+    PageMethods.ImportExcel(projectValue, dealNo,
 
         function (result) {
 
@@ -104,6 +127,15 @@ function btnOtherBilling_Import() {
                         $("#table_Rebuttal").show();
                         rebuttal_BindGrid();
                     }
+                });
+            }
+            else if (result === -3) {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Duplicate Deal",
+                    text: "Deal already exists.",
+                    confirmButtonText: "OK"
                 });
             }
             else if (result === -1) {
@@ -142,7 +174,7 @@ function btnOtherBilling_Import() {
     return false;
 }
 
-async function core_btnOtherBilling_Verify() {
+async function btnOtherBilling_Verify() {
 
     const projectType = document.getElementById("otherBilling_ProjectType").value.trim();
     const project = document.getElementById("otherBilling_Project").value.trim();
@@ -213,138 +245,6 @@ async function core_btnOtherBilling_Verify() {
     return false;
 }
 
-async function btnOtherBilling_Verify() {
-
-    const projectType = ($("#otherBilling_ProjectType").val() || "").trim();
-    const projectValue = ($("#otherBilling_Project").val() || "").trim();
-    const selectedDealNo = ($("#otherBilling_DealNo").val() || "").trim();
-    const newDealNo = ($("#otherBilling_NewDealNo").val() || "").trim();
-
-    if (!projectType || projectType === "Select") {
-        await showValidationMessage(
-            "Project Type Required",
-            "Please select a project type."
-        );
-
-        $("#otherBilling_ProjectType").focus();
-        return false;
-    }
-
-    if (!projectValue || projectValue === "Select") {
-        await showValidationMessage(
-            "Project Required",
-            "Please select a project."
-        );
-
-        $("#otherBilling_Project").focus();
-        return false;
-    }
-
-    const projectID = parseInt(projectValue, 10);
-
-    if (isNaN(projectID) || projectID <= 0) {
-        await showValidationMessage(
-            "Invalid Project",
-            "Please select a valid project."
-        );
-
-        $("#otherBilling_Project").focus();
-        return false;
-    }
-
-    if (!selectedDealNo || selectedDealNo === "Select") {
-        await showValidationMessage(
-            "Deal Number Required",
-            "Please select a deal number."
-        );
-
-        $("#otherBilling_DealNo").focus();
-        return false;
-    }
-
-    if (selectedDealNo === "AddNew" && !newDealNo) {
-        await showValidationMessage(
-            "New Deal Number Required",
-            "Please enter a new deal number."
-        );
-
-        $("#otherBilling_NewDealNo").focus();
-        return false;
-    }
-
-    const dealNo =
-        selectedDealNo === "AddNew"
-            ? newDealNo
-            : selectedDealNo;
-
-    Swal.fire({
-        title: "Please wait",
-        html: "The system is verifying and submitting your data.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: function () {
-            Swal.showLoading();
-        }
-    });
-
-    try {
-
-        const result = await verifyAndSubmitData(
-            projectType,
-            projectID,
-            dealNo
-        );
-
-        if (Number(result) > 0) {
-
-            await Swal.fire({
-                icon: "success",
-                title: "Submitted Successfully",
-                text: "Your billing information has been verified and submitted successfully.",
-                confirmButtonText: "OK"
-            });
-
-            clearOtherBillingControls();
-
-        } else {
-
-            await Swal.fire({
-                icon: "warning",
-                title: "Submission Not Completed",
-                text: "No record was submitted. Please verify the uploaded Excel data and selected information.",
-                confirmButtonText: "OK"
-            });
-        }
-
-    } catch (error) {
-
-        console.error("VerifyAndSubmitData Error:", error);
-
-        let errorMessage = "An unexpected server error occurred.";
-
-        if (error && typeof error.get_message === "function") {
-            errorMessage = error.get_message();
-        }
-        else if (error && error.responseText) {
-            errorMessage = error.responseText;
-        }
-        else if (error && error.message) {
-            errorMessage = error.message;
-        }
-
-        await Swal.fire({
-            icon: "error",
-            title: "Submission Failed",
-            html:
-                "The billing data could not be submitted.<br><br>" +
-                "<small>" + $('<div/>').text(errorMessage).html() + "</small>",
-            confirmButtonText: "OK"
-        });
-    }
-
-    return false;
-}
 
 
 function verifyAndSubmitData(projectType, projectID, dealNo) {
