@@ -648,7 +648,7 @@
 
                     <div class="col-lg-4 col-md-12">
                         <div class="ob-actions">
-                            <button type="submit" id="otherBilling_Import" name="otherBilling_Import" class="ob-btn-primary" onclick="return btnOtherBilling_Import();">
+                            <button type="button" id="otherBilling_Import" name="otherBilling_Import" class="ob-btn-primary" onclick="btnOtherBilling_Import();">
                                 <i class="fas fa-upload"></i>Import
                            
                             </button>
