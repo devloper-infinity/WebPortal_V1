@@ -190,7 +190,7 @@ namespace WebPortal.Admin
                     {
                         string con = "";
                         SqlConnection sqlConnection = new SqlConnection();
-                        sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityERP;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192";
+                        sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityBilling_UW;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192";
                         SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection);
 
                         //assigning Destination table name
