@@ -150,6 +150,8 @@ namespace WebPortal.Admin
             public List<string> Titles { get; set; } = new List<string>();
             public List<string> ImagePaths { get; set; } = new List<string>();
             public List<string> VideoPaths { get; set; } = new List<string>();
+
+            public List<string> VideoTitles { get; set; } = new List<string>();
         }
         [WebMethod]
         public static FestivalModel GetPopupWishForCurrentUser(string currentDate)
@@ -212,7 +214,7 @@ namespace WebPortal.Admin
                                     if (!model.VideoPaths.Contains(absolutePath))
                                     {
                                         model.VideoPaths.Add(absolutePath);
-
+                                        model.VideoTitles.Add(rowTitle);
                                     }
                                 }
                             }

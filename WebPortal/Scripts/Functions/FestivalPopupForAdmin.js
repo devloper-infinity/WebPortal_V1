@@ -12,26 +12,28 @@ $(document).ready(function () {
             var data = response.d;
             if (data != null) {
                 var mediaList = [];
-                var indexCounter = 0;
+                
                 if (data.ImagePaths) {
+                    var imgCounter = 0;
                     data.ImagePaths.forEach(p => {
                         mediaList.push({
                             type: 'img',
                             src: p,
-                            title: (data.Titles && data.Titles[indexCounter]) ? data.Titles[indexCounter] : data.Title
+                            title: (data.Titles && data.Titles[imgCounter]) ? data.Titles[imgCounter] : data.Title
                         });
-                        indexCounter++;
+                        imgCounter++;
                     });
                 }
 
                 if (data.VideoPaths) {
+                    var vidCounter = 0;
                     data.VideoPaths.forEach(p => {
                         mediaList.push({
                             type: 'vid',
                             src: p,
-                            title: (data.Titles && data.Titles[indexCounter]) ? data.Titles[indexCounter] : data.Title
+                            title: (data.Titles && data.Titles[vidCounter]) ? data.Titles[vidCounter] : data.Title
                         });
-                        indexCounter++;
+                        vidCounter++;
                     });
                 }
 
