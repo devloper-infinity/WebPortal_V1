@@ -265,7 +265,7 @@ function verifyAndSubmitData(projectType, projectID, dealNo) {
     return new Promise(function (resolve, reject) {
 
         if (PageMethods.set_timeout) {
-            PageMethods.set_timeout(300000);
+            PageMethods.set_timeout(650000);
         }
 
         PageMethods.VerifyAndSubmitData(
