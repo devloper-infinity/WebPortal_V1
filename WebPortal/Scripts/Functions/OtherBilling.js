@@ -280,8 +280,13 @@ function verifyAndSubmitData(projectType, projectID, dealNo) {
                     "VerifyAndSubmitData PageMethod Error:",
                     error
                 );
-
-                reject(error);
+                const message = error && error.get_message
+                    ? error.get_message()
+                    : "The server method failed.";
+                const status = error && error.get_statusCode
+                    ? error.get_statusCode()
+                    : 0;
+                reject(new Error(status ? message + " (HTTP " + status + ")" : message));
             }
         );
     });

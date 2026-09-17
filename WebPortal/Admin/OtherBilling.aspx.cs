@@ -127,6 +127,7 @@ namespace WebPortal.Admin
         public static int VerifyAndSubmitData(string Type, int ProjectID, string DealNo)
         {
             int ReturnValue = 0;
+            HttpContext.Current.Server.ScriptTimeout = 600;
 
             try
             {
@@ -144,11 +145,13 @@ namespace WebPortal.Admin
                         SqlConnection sqlConnection = new SqlConnection();
                         sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityBilling_UW;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192";
                         SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection);
+                        objbulk.BulkCopyTimeout = 600;
 
                         //assigning Destination table name
                         objbulk.DestinationTableName = "dbo.InfinityBilling_ResearchBilling";
                         string destTableQuery = "Select top 1 * from dbo.InfinityBilling_ResearchBilling";
                         SqlCommand cmd = new SqlCommand(destTableQuery);
+                        cmd.CommandTimeout = 600;
                         sqlConnection.Open();
                         cmd.Connection = sqlConnection;
 
@@ -213,11 +216,13 @@ namespace WebPortal.Admin
                         SqlConnection sqlConnection = new SqlConnection();
                         sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityBilling_UW;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192";
                         SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection);
+                        objbulk.BulkCopyTimeout = 600;
 
                         //assigning Destination table name
                         objbulk.DestinationTableName = "dbo.InfinityBilling_RebuttalBilling";
                         string destTableQuery = "Select top 1 * from dbo.InfinityBilling_RebuttalBilling";
                         SqlCommand cmd = new SqlCommand(destTableQuery);
+                        cmd.CommandTimeout = 600;
                         sqlConnection.Open();
                         cmd.Connection = sqlConnection;
 
