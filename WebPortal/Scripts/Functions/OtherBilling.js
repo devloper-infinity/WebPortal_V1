@@ -1,7 +1,6 @@
 ﻿
 /*------------- Other Billing Report ------------- */
 
-alert('message');
 
 var Research_table;
 var Rebuttal_table;
