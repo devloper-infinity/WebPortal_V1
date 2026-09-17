@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="SetAppreciationDisciplinaryAction.aspx.cs" Inherits="WebPortal.Admin.SetAppreciationDisciplinaryAction" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="SetAppreciationDisciplinaryAction.aspx.cs" Inherits="WebPortal.US.SetAppreciationDisciplinaryAction" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>

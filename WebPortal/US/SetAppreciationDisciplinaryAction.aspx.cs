@@ -17,7 +17,7 @@ using DataTable = System.Data.DataTable;
 using MailMessage = System.Net.Mail.MailMessage;
 using WebPortal.App_Code;
 
-namespace WebPortal.Admin
+namespace WebPortal.US
 {
     public partial class SetAppreciationDisciplinaryAction : System.Web.UI.Page
     {

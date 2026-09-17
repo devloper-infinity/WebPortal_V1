@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WebPortal.Admin
+namespace WebPortal.US
 {
 
 
