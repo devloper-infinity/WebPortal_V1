@@ -1647,10 +1647,15 @@
             runPopupSequence();
         });
 
+       
+
     </script>
     <%-- <script src="../Scripts/Functions/NewDashboard.js"></script>--%>
     <%-- <script src="../Scripts/Functions/NewDash.js"></script>--%>
     <%--<script src="../Scripts/Functions/NewDash2.js"></script>--%>
+
+      <script src="../Scripts/Functions/FestivalPopupForAdmin.js"></script>
+
 </asp:Content>
 
 
@@ -2690,6 +2695,29 @@
                     </table>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+
+        <!-------------- (Arti Changes(YTU))Admin Festival Wish PopUp ------------->
+    <div class="modal fade" id="adminimagePreviewModalpopup" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 700px;">
+            <div class="modal-content">
+                <div class="modal-header bg-light position-relative justify-content-center py-3">
+                    <div class="text-center">
+                        <h4 class="modal-title font-weight-bold mb-0 text-white" id="adminfestivalTitlepopup" style="letter-spacing: 1px; text-transform: capitalize; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"> Festival Wish Preview 
+                    </h4>
+                        <span style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Celebrate with Joy & Colors</span>
+                    </div>
+                    <button type="button" class="close position-absolute" data-dismiss="modal" aria-label="Close" style="right: 15px; top: 50%; transform: translateY(-50%); outline: none;">
+                        <span aria-hidden="true" style="color: red;">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center bg-white">
+                    <div id="adminMediaBox" class="mb-3" style="height: 440px; width: 100%; display: flex; align-items: center; justify-content: center; background-color: #000; border-radius: 8px; overflow: hidden;"></div>
+                    <div id="adminDotsBox" class="d-flex justify-content-center" style="gap: 8px;"></div>
+                </div>
             </div>
         </div>
     </div>

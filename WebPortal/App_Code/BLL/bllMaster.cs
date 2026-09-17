@@ -2751,6 +2751,24 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetUserWiseLeaveDetails(FromDate, ToDate, EmployeeID);
         }
 
+        public int InsertAdminFestiveData(Hashtable htParam)
+        {
+            return dalMaster.InsertAdminFestiveData(htParam);
+        }
 
+        public DataTable GetAdminFestivalMaster()
+        {
+            return dalMaster.GetAdminFestivalMaster();
+        }
+
+        public int DeleteAdminFestivalData(int FestivalId)
+        {
+            return dalMaster.DeleteAdminFestivalData(FestivalId);
+        }
+
+        public DataTable GetAdminFestivalDataForPopUp(string festivalDate, string location)
+        {
+            return dalMaster.GetAdminFestivalDataForPopUp(festivalDate, location);
+        }
     }
 }
