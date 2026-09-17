@@ -172,7 +172,7 @@ namespace WebPortal.Admin
                             objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
                             objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
                             objbulk.ColumnMappings.Add("Deal No", "Deal No");
-                            //objbulk.ColumnMappings.Add(DealNo, "BillingPeriod");
+                            objbulk.ColumnMappings.Add("BillingPeriod", "BillingPeriod");
                             objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
                             objbulk.ColumnMappings.Add("Subject Line", "Subject Line");
                             objbulk.ColumnMappings.Add("Requested Docs/Tasks Performed", "Requested Docs/Tasks Performed");
@@ -240,7 +240,7 @@ namespace WebPortal.Admin
 
                             objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
                             objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
-                            //objbulk.ColumnMappings.Add("Deal Number", "BillingPeriod");
+                            objbulk.ColumnMappings.Add("BillingPeriod", "BillingPeriod");
                             objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
                             objbulk.ColumnMappings.Add("Deal Number", "Deal Number");
                             objbulk.ColumnMappings.Add("Loan Number", "Loan Number");
