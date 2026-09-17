@@ -415,6 +415,14 @@
             background: #fff;
         }
 
+        #invtable_wrapper .invoice-grid-scroll {
+            max-height: 60vh;
+            overflow: auto;
+            position: relative;
+            isolation: isolate;
+            width: 100%;
+        }
+
         #invtable {
             border-collapse: separate !important;
             border-spacing: 0 !important;
@@ -424,7 +432,8 @@
         #invtable thead th {
             position: sticky !important;
             top: 0 !important;
-            z-index: 40 !important;
+            z-index: 60 !important;
+            background: #f8fafc;
             box-shadow: inset 0 -1px 0 var(--inv-border);
         }
 
@@ -481,6 +490,30 @@
         #invtable thead th:nth-child(6) {
             background: #eef6ff !important;
             z-index: 75 !important;
+        }
+
+        /* A sticky cell creates its own stacking context. Raise the cell, not
+           just its menu, so later sticky rows cannot paint over the actions. */
+        #invtable tbody td:focus-within,
+        #invtable tbody td:has(.dropdown-menu.show) {
+            z-index: 76 !important;
+        }
+
+        /* Apply to cells too: sticky columns have their own opaque backgrounds. */
+        #invtable tbody tr.invoice-row-disabled > td {
+            background: #edf0f4 !important;
+            color: #64748b;
+        }
+
+        #invtable tbody tr.invoice-row-disabled:hover > td {
+            background: #e4e9ef !important;
+        }
+
+        #invtable tbody tr.invoice-row-disabled > td input:not([type="file"]),
+        #invtable tbody tr.invoice-row-disabled > td textarea,
+        #invtable tbody tr.invoice-row-disabled > td select {
+            background-color: #f3f5f7;
+            border-color: #cbd5e1;
         }
 
         #invtable th,
@@ -777,6 +810,7 @@
                                     <th class="sort border-top text-center">Prev. Month Charged Amount</th>
                                     <th class="sort border-top text-center">Prev. Month Quantity</th>
                                     <th class="sort border-top text-center">Current Quantity</th>
+                                    <th class="sort border-top text-center">Contractual Usage</th>
                                     <th class="sort border-top text-center">Amount Charged</th>
                                     <th class="sort border-top">Difference</th>
                                     <th class="sort border-top">Remark</th>

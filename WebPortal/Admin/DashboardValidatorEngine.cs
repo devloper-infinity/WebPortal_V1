@@ -14,9 +14,10 @@ namespace WebPortal.Admin
     {
         private const string InputWorkbookPassword = "PTU_PRP_1";
 
-        internal static void Generate(string inputPath, string validationPath, string templatePath, string outputPath)
+        internal static IList<Phase2ResultRow> Generate(string inputPath, string validationPath, string templatePath, string outputPath)
         {
             string readableInput = null;
+            IList<Phase2ResultRow> phase2Results = null;
             try
             {
                 readableInput = MakeReadableInput(inputPath);
@@ -48,10 +49,11 @@ namespace WebPortal.Admin
                     RecreateBlankSheet(outputWorkbook, "Origination Issue");
 
                     CleanOutputFormatting(outputWorkbook);
-                    GeneratePhase2(outputWorkbook, validationPath, phase1Matches);
+                    phase2Results = GeneratePhase2(outputWorkbook, validationPath, phase1Matches);
 
                     outputWorkbook.SaveAs(outputPath);
                 }
+                return phase2Results;
             }
             catch (InvalidOperationException)
             {
@@ -370,7 +372,7 @@ namespace WebPortal.Admin
                 phase1Matches.Add(new Phase1Match(row.LoanId, baseHeader));
         }
 
-        private static void GeneratePhase2(XLWorkbook outputWorkbook, string validationPath, IEnumerable<Phase1Match> phase1Matches)
+        private static IList<Phase2ResultRow> GeneratePhase2(XLWorkbook outputWorkbook, string validationPath, IEnumerable<Phase1Match> phase1Matches)
         {
             Dictionary<string, ValidationDataRow> loanLookup;
             using (var validationWorkbook = new XLWorkbook(validationPath))
@@ -381,10 +383,12 @@ namespace WebPortal.Admin
 
             IXLWorksheet sheet = outputWorkbook.Worksheets.Add("Validation");
             sheet.Cell(1, 1).Value = "Loan #";
-            sheet.Cell(1, 2).Value = "Exception Header";
-            sheet.Cell(1, 3).Value = "Exception Description";
+            sheet.Cell(1, 2).Value = "Keyword";
+            sheet.Cell(1, 3).Value = "Exception Header";
+            sheet.Cell(1, 4).Value = "Exception Description";
 
             int outputRow = 2;
+            var results = new List<Phase2ResultRow>();
             var emittedPairs = new HashSet<string>(StringComparer.Ordinal);
             foreach (Phase1Match phase1Match in phase1Matches)
             {
@@ -403,8 +407,10 @@ namespace WebPortal.Admin
                             continue;
 
                         sheet.Cell(outputRow, 1).Value = phase1Match.LoanId;
-                        sheet.Cell(outputRow, 2).Value = gradeCell.Header;
-                        sheet.Cell(outputRow, 3).Value = gradeCell.Value;
+                        sheet.Cell(outputRow, 2).Value = phase1Match.BaseHeader;
+                        sheet.Cell(outputRow, 3).Value = gradeCell.Header;
+                        sheet.Cell(outputRow, 4).Value = gradeCell.Value;
+                        results.Add(new Phase2ResultRow(phase1Match.LoanId, phase1Match.BaseHeader, gradeCell.Header, description));
                         outputRow++;
                         found = true;
                     }
@@ -413,26 +419,30 @@ namespace WebPortal.Admin
                 if (!found)
                 {
                     sheet.Cell(outputRow, 1).Value = phase1Match.LoanId;
-                    sheet.Cell(outputRow, 2).Value = "Exception Not Present";
+                    sheet.Cell(outputRow, 2).Value = phase1Match.BaseHeader;
                     sheet.Cell(outputRow, 3).Value = "Exception Not Present";
+                    sheet.Cell(outputRow, 4).Value = "Exception Not Present";
+                    results.Add(new Phase2ResultRow(phase1Match.LoanId, phase1Match.BaseHeader, "Exception Not Present", "Exception Not Present"));
                     outputRow++;
                 }
             }
 
-            IXLRange resultRange = sheet.Range(1, 1, Math.Max(1, outputRow - 1), 3);
+            IXLRange resultRange = sheet.Range(1, 1, Math.Max(1, outputRow - 1), 4);
             resultRange.Style.Font.FontName = "Bahnschrift";
             resultRange.Style.Font.FontSize = 10;
             resultRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             resultRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            IXLRange headerRange = sheet.Range(1, 1, 1, 3);
+            IXLRange headerRange = sheet.Range(1, 1, 1, 4);
             headerRange.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#B7DEE8"));
             headerRange.Style.Fill.PatternType = XLFillPatternValues.Solid;
             headerRange.Style.Font.Bold = true;
             sheet.Column(1).Width = 16;
             sheet.Column(2).Width = 48;
-            sheet.Column(3).Width = 100;
-            sheet.Column(3).Style.Alignment.WrapText = true;
+            sheet.Column(3).Width = 48;
+            sheet.Column(4).Width = 100;
+            sheet.Column(4).Style.Alignment.WrapText = true;
             sheet.SheetView.FreezeRows(1);
+            return results;
         }
 
         private static Dictionary<string, ValidationDataRow> BuildValidationLoanLookup(XLWorkbook workbook)
@@ -576,6 +586,21 @@ namespace WebPortal.Admin
             }
             internal string LoanId { get; private set; }
             internal string BaseHeader { get; private set; }
+        }
+
+        internal sealed class Phase2ResultRow
+        {
+            internal Phase2ResultRow(string loanId, string keyword, string exceptionHeader, string exceptionDescription)
+            {
+                LoanId = loanId;
+                Keyword = keyword;
+                ExceptionHeader = exceptionHeader;
+                ExceptionDescription = exceptionDescription;
+            }
+            internal string LoanId { get; private set; }
+            internal string Keyword { get; private set; }
+            internal string ExceptionHeader { get; private set; }
+            internal string ExceptionDescription { get; private set; }
         }
 
         private sealed class ValidationDataRow

@@ -6,6 +6,7 @@ using System.Web.Security;
 using System.Web.SessionState;
 using System.Web.UI;
 using WebPortal.App_Code.Class;
+using WebPortal.App_Code;
 
 namespace WebPortal
 {
@@ -49,6 +50,33 @@ namespace WebPortal
                     }
                 }
             }
+        }
+
+        protected void Application_AuthorizeRequest(object sender, EventArgs e)
+        {
+            // Mandatory RNR feedback is enforced centrally so direct page/API URLs cannot bypass it.
+            try
+            {
+                if (Context.User == null || !Context.User.Identity.IsAuthenticated) return;
+                int employeeId;
+                if (!Int32.TryParse(Context.User.Identity.Name, out employeeId)) return;
+                string path = Context.Request.AppRelativeCurrentExecutionFilePath ?? String.Empty;
+                if (path.Equals("~/Admin/RNRFeedback.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("~/Logout.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("~/LogoutNew.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("~/Login.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("~/LoginNew.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.EndsWith("WebResource.axd", StringComparison.OrdinalIgnoreCase) ||
+                    path.EndsWith("ScriptResource.axd", StringComparison.OrdinalIgnoreCase)) return;
+                long pending = new RnrFeedbackRepository().PendingAssignment(employeeId);
+                if (pending == 0) return;
+                if (Context.Request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase))
+                    Context.Response.Redirect("~/Admin/RNRFeedback.aspx", false);
+                else { Context.Response.StatusCode = 403; Context.Response.TrySkipIisCustomErrors = true; Context.Response.End(); }
+                Context.ApplicationInstance.CompleteRequest();
+            }
+            catch (System.Threading.ThreadAbortException) { }
+            catch (System.Data.SqlClient.SqlException ex) when (ex.Number == 208) { /* schema is deployed separately; fail open until deployment */ }
         }
 
         protected void Application_PreRequestHandlerExecute(object sender, EventArgs e)

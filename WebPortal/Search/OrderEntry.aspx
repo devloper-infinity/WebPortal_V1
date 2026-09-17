@@ -1,4 +1,4 @@
-<%@ Page Title="" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="OrderEntry.aspx.cs" Inherits="WebPortal.Search.OrderEntry" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Search/Search.Master" AutoEventWireup="true" CodeBehind="OrderEntry.aspx.cs" Inherits="WebPortal.Search.OrderEntry" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
@@ -353,6 +353,19 @@
             font-weight: 700;
         }
 
+        .order-action-menu {
+            width: 86px;
+            padding: 5px 6px;
+            border: 1px solid var(--order-border);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--order-text);
+            font: inherit;
+            cursor: pointer;
+        }
+        .order-action-menu:focus { outline: 2px solid var(--order-accent); outline-offset: 2px; }
+        .order-action-menu:disabled { opacity: .55; cursor: wait; }
+
         .order-icon-btn {
             width: 32px;
             height: 32px;
@@ -693,6 +706,7 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="order-entry-page">
+        <input type="hidden" id="orderentry_delete_token" value="<%= HttpUtility.HtmlAttributeEncode(DeleteRequestToken) %>" />
         <div class="loading search-page-loader" id="load1">
             <div>
                 <img src="../images/Load_1.gif" alt="Loading" />

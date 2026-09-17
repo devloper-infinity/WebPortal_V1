@@ -31,8 +31,13 @@ namespace WebPortal.Search
         static Worksheet wksheet = null;
         public static string path;
 
+        protected string DeleteRequestToken { get; private set; }
+
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["OrderEntry.DeleteToken"] == null)
+                Session["OrderEntry.DeleteToken"] = Guid.NewGuid().ToString("N");
+            DeleteRequestToken = (string)Session["OrderEntry.DeleteToken"];
             FolderPath = Server.MapPath(@"~\SearchDocuments\");
 
             try
@@ -204,6 +209,7 @@ namespace WebPortal.Search
             DataTable dt1 = new bllOST().GetAllInfinityOrderByProjectAndUser(int.Parse(HttpContext.Current.User.Identity.Name.ToString()), ProjectID);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
+            bool canDelete = CanDeleteOrders();
             if (dt1 != null)
             {
                 foreach (DataRow dr in dt1.Rows)
@@ -213,6 +219,7 @@ namespace WebPortal.Search
                     {
                         row.Add(col.ColumnName, dr[col]);
                     }
+                    row["CanDelete"] = canDelete;
                     rows.Add(row);
                 }
             }
@@ -408,11 +415,61 @@ namespace WebPortal.Search
         }
 
 
-        [WebMethod]
+        private static bool CanDeleteOrders()
+        {
+            var context = HttpContext.Current;
+            int employeeId;
+            if (context == null || context.User == null || !context.User.Identity.IsAuthenticated ||
+                !int.TryParse(context.User.Identity.Name, out employeeId) || employeeId <= 0) return false;
+            try
+            {
+                return ContainsOrderEntryMenu(WebPortal.MenuService.LoadMenu());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Order delete permission lookup failed: {0}", ex.Message);
+                return false;
+            }
+        }
+
+        private static bool ContainsOrderEntryMenu(IEnumerable<WebPortal.MenuService.MenuItem> menus)
+        {
+            if (menus == null) return false;
+            foreach (var menu in menus)
+            {
+                string path = (menu.Url ?? "").Split('?', '#')[0].Replace('\\', '/');
+                if (path.Equals("OrderEntry.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("Search/OrderEntry.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.EndsWith("/Search/OrderEntry.aspx", StringComparison.OrdinalIgnoreCase)) return true;
+                if (ContainsOrderEntryMenu(menu.Children)) return true;
+            }
+            return false;
+        }
+
+        [WebMethod(EnableSession = true)]
         public static int DeleteOrder(int OrderID)
         {
-            int returnvalue = new bllOST().DeleteInfinityOrder(Convert.ToInt32(OrderID));
-            return returnvalue;
+            var context = HttpContext.Current;
+            string token = context.Session["OrderEntry.DeleteToken"] as string;
+            if (!CanDeleteOrders() || string.IsNullOrEmpty(token) ||
+                !string.Equals(token, context.Request.Headers["X-Order-Delete-Token"], StringComparison.Ordinal))
+                throw new HttpException(403, "You are not authorized to delete this order. Refresh the page and try again.");
+            if (OrderID <= 0) throw new HttpException(400, "Select a valid order.");
+
+            var bllOst = new bllOST();
+            DataTable order = bllOst.GetOrderByID(OrderID);
+            int projectId;
+            if (order == null || order.Rows.Count != 1 || !order.Columns.Contains("ProjectID") ||
+                !int.TryParse(Convert.ToString(order.Rows[0]["ProjectID"]), out projectId) || projectId <= 0)
+                throw new HttpException(404, "The order no longer exists or is unavailable.");
+
+            int employeeId = int.Parse(context.User.Identity.Name);
+            DataTable allowed = bllOst.GetAllInfinityOrderByProjectAndUser(employeeId, projectId);
+            if (allowed == null || !allowed.Columns.Contains("OrderID") ||
+                !allowed.AsEnumerable().Any(row => Convert.ToString(row["OrderID"]) == OrderID.ToString()))
+                throw new HttpException(403, "You are not authorized to delete this order.");
+
+            return bllOst.DeleteInfinityOrder(OrderID);
         }
 
         [WebMethod]

@@ -3932,6 +3932,19 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
+        public int InsertDealInTracking(int ProjectId, string DealNo)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertDealInTracking");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectId", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, ProjectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, DealNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 10, System.Data.ParameterDirection.Input, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd_UWBilling(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
         public int InsertRebuttalBilling_NewERP(int ProjectID, string BillingPeriod, int AddedBy)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertRebuttalBilling_NewERP");
@@ -4398,11 +4411,12 @@ namespace WebPortal.App_Code.DAL
 
         #region Log Imported Feedback
 
-        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain)
+        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain, string Company)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllFeedbackByDateRange_NewFormat");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllFeedbackByDateRange_NewFormat_ByCompany");
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@SubDomain", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, SubDomain);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Company", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Company);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, ToDate);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;

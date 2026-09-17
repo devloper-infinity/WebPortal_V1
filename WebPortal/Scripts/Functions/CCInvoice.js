@@ -222,6 +222,7 @@ function BindInvoiceGrid() {
                 inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.PrevMonthContCost) + '</td>';
                 inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.PrevMonthQuantity) + '</td>';
                 inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.CurrentQuantity) + '</td>';
+                inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.ContractualUsage) + '</td>';
                 inv_html += '<td><input type="text" style="width:70px;" id="inv_invoiceAmount_' + value.HeaderID + '" value="' + blankForNull(value.ContractualCost1) + '" onchange="return GetDifference(this,' + value.HeaderID + ',' + index + ');" /></td>';
 
                 if (blankForNull(value.Diff) != null && blankForNull(value.Diff) != '') {
@@ -280,8 +281,9 @@ function BindInvoiceGrid() {
             $('#invtable tbody').html(inv_html);
 
             inv_table = $('#invtable').DataTable({
-                dom: 'lfti',
-                scrollX: true,
+                // One table inside a scroll container keeps header/body widths identical.
+                dom: 'f<"invoice-grid-scroll"t>i',
+                scrollX: false,
                 destroy: true,
                 "paging": false,
                 "autoWidth": true,
@@ -298,8 +300,9 @@ function BindInvoiceGrid() {
                 },
 
                 "rowCallback": function (row, data) {
-                    // Cell at index 5 in the row is 'Active'.
-                    var val = data[3];
+                    // HeaderStatus is the same hidden column used by Enable/Disable.
+                    var status = String(data[25] || '').trim().toLowerCase();
+                    $(row).toggleClass('invoice-row-disabled', status === 'disable' || status === 'disabled');
                 },
             });
 

@@ -3,9 +3,26 @@
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="../Content/erp-modern-common.css" />
     <style>
-        .dv-form { max-width: 900px; }
-        .dv-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
-        .dv-note { color: #64748b; font-size: 13px; margin-top: 6px; }
+        .dv-form {
+            max-width: 900px;
+        }
+
+        .dv-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .dv-note {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        #validationResults td:last-child {
+            white-space: pre-wrap;
+        }
     </style>
 </asp:Content>
 
@@ -21,7 +38,8 @@
             </div>
         </div>
 
-        <% if (!string.IsNullOrWhiteSpace(ErrorMessage)) { %>
+        <% if (!string.IsNullOrWhiteSpace(ErrorMessage))
+            { %>
         <div class="alert alert-danger"><%= HttpContext.Current.Server.HtmlEncode(ErrorMessage) %></div>
         <% } %>
 
@@ -33,15 +51,16 @@
             <div class="form-group mt-3">
                 <label for="validationFile">Validation File</label>
                 <input id="validationFile" name="validationFile" type="file" class="form-control" accept=".xlsx" required />
-                <div class="dv-note">Required for the workflow. Its data is reserved for future validation logic.</div>
+                <div class="dv-note">Used to validate Phase 1 exception keywords against the Grade columns.</div>
             </div>
             <div class="dv-actions">
                 <button id="generateButton" type="submit" class="btn btn-success">
-                    <i class="fas fa-download"></i> Generate Cleaned Report
+                    Generate Output
                 </button>
-                <span id="generateStatus" class="dv-note" style="display:none">Processing workbook...</span>
+                <span id="generateStatus" class="dv-note" style="display: none">Processing workbook...</span>
             </div>
         </section>
+        <%= ResultHtml %>
     </div>
     <script>
         (function () {
@@ -56,6 +75,9 @@
                     document.getElementById('generateStatus').style.display = 'none';
                 }, 5000);
             });
+            if (window.jQuery && $.fn.DataTable && document.getElementById('validationResults')) {
+                $('#validationResults').DataTable({ dom: 'tp', pageLength: 10, order: [], scrollX: true });
+            }
         })();
     </script>
 </asp:Content>

@@ -82,6 +82,12 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.InsertResearchBilling_NewERP(ProjectID, BillingPeriod, AddedBy);
         }
 
+        public int InsertDealInTracking(int ProjectId, string DealNo)
+        {
+            return dalMaster.InsertDealInTracking(ProjectId, DealNo);
+        }
+
+
         public int VeriftyData(Hashtable htParam)
         {
             return dalMaster.VeriftyData(htParam);
@@ -1641,8 +1647,18 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetAllEmployeeKYC();
         }
-        public DataTable GetEmployeeForIDCard(){return dalMaster.GetEmployeeForIDCard();} public DataTable GetEmployeeForInProcessIDCard(){return dalMaster.GetEmployeeForInProcessIDCard();} public DataTable GetEmployeeForProvidedIDCard(){return dalMaster.GetEmployeeForProvidedIDCard();} public DataTable GetDropOutEmployeeForIDCard(){return dalMaster.GetDropOutEmployeeForIDCard();} public DataTable GetEmployeesIDCardDetailsForReport(){return dalMaster.GetEmployeesIDCardDetailsForReport();} public int InsertIDCardDetails(Hashtable h){return dalMaster.InsertIDCardDetails(h);}
-        public DataTable GetViewRecruitmentReport(string f,string t){return dalMaster.GetViewRecruitmentReport(f,t);} public DataTable GetRecruitementReport_FinalSummary_LocationWise(string f,string t){return dalMaster.GetRecruitementReport_FinalSummary_LocationWise(f,t);} public DataTable GetRecruitementReport_FinalSummary_LocationWithPosition(string f,string t){return dalMaster.GetRecruitementReport_FinalSummary_LocationWithPosition(f,t);} public DataTable GetRecruitementReport_FinalSummary(string f,string t){return dalMaster.GetRecruitementReport_FinalSummary(f,t);} public DataTable BindgrdCandidateDetails(string f,string t){return dalMaster.BindgrdCandidateDetails(f,t);} public DataTable BindgrdCandidateSummary(string f,string t){return dalMaster.BindgrdCandidateSummary(f,t);}
+        public DataTable GetEmployeeForIDCard() { return dalMaster.GetEmployeeForIDCard(); }
+        public DataTable GetEmployeeForInProcessIDCard() { return dalMaster.GetEmployeeForInProcessIDCard(); }
+        public DataTable GetEmployeeForProvidedIDCard() { return dalMaster.GetEmployeeForProvidedIDCard(); }
+        public DataTable GetDropOutEmployeeForIDCard() { return dalMaster.GetDropOutEmployeeForIDCard(); }
+        public DataTable GetEmployeesIDCardDetailsForReport() { return dalMaster.GetEmployeesIDCardDetailsForReport(); }
+        public int InsertIDCardDetails(Hashtable h) { return dalMaster.InsertIDCardDetails(h); }
+        public DataTable GetViewRecruitmentReport(string f, string t) { return dalMaster.GetViewRecruitmentReport(f, t); }
+        public DataTable GetRecruitementReport_FinalSummary_LocationWise(string f, string t) { return dalMaster.GetRecruitementReport_FinalSummary_LocationWise(f, t); }
+        public DataTable GetRecruitementReport_FinalSummary_LocationWithPosition(string f, string t) { return dalMaster.GetRecruitementReport_FinalSummary_LocationWithPosition(f, t); }
+        public DataTable GetRecruitementReport_FinalSummary(string f, string t) { return dalMaster.GetRecruitementReport_FinalSummary(f, t); }
+        public DataTable BindgrdCandidateDetails(string f, string t) { return dalMaster.BindgrdCandidateDetails(f, t); }
+        public DataTable BindgrdCandidateSummary(string f, string t) { return dalMaster.BindgrdCandidateSummary(f, t); }
 
         public int InsertEmployeeInfo_Old(Hashtable htParam)
         {
@@ -1951,9 +1967,9 @@ namespace WebPortal.App_Code.BLL
 
         #region Log Imported Feedback
 
-        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain)
+        public DataTable GetAllFeedbackByDateRange_NewFormat(string FromDate, string ToDate, string SubDomain, string Company)
         {
-            return dalMaster.GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain);
+            return dalMaster.GetAllFeedbackByDateRange_NewFormat(FromDate, ToDate, SubDomain, Company);
         }
 
         public DataTable GetFeedbackDetailsByID_NewFormat(int FeedbackID, string Subdomain)

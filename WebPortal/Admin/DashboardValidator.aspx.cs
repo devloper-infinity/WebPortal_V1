@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Web;
 using System.Web.UI;
 
@@ -9,10 +11,17 @@ namespace WebPortal.Admin
     {
         private bool downloadSent;
         public string ErrorMessage { get; private set; }
+        public string ResultHtml { get; private set; }
 
         protected void Page_Load(object sender, EventArgs e)
         {
             Page.Form.Enctype = "multipart/form-data";
+
+            if (!string.IsNullOrWhiteSpace(Request.QueryString["download"]))
+            {
+                DownloadResult(Request.QueryString["download"]);
+                return;
+            }
 
             if (!string.Equals(Request.HttpMethod, "POST", StringComparison.OrdinalIgnoreCase))
                 return;
@@ -38,8 +47,12 @@ namespace WebPortal.Admin
                 if (!File.Exists(templatePath))
                     throw new InvalidOperationException("The Dashboard Validator template is not available.");
 
-                DashboardValidatorEngine.Generate(inputPath, validationPath, templatePath, outputPath);
-                SendDownload(outputPath);
+                IList<DashboardValidatorEngine.Phase2ResultRow> results =
+                    DashboardValidatorEngine.Generate(inputPath, validationPath, templatePath, outputPath);
+                string token = Guid.NewGuid().ToString("N");
+                Session["DashboardValidator_" + token] = outputPath;
+                outputPath = null;
+                ResultHtml = BuildResultHtml(results, token);
             }
             catch (Exception ex)
             {
@@ -73,18 +86,59 @@ namespace WebPortal.Admin
             return path;
         }
 
-        private void SendDownload(string path)
+        private void DownloadResult(string token)
         {
+            string sessionKey = "DashboardValidator_" + token;
+            string path = Session[sessionKey] as string;
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                Response.StatusCode = 404;
+                ErrorMessage = "The generated workbook is no longer available. Please generate it again.";
+                return;
+            }
+
             byte[] bytes = File.ReadAllBytes(path);
-            Response.Clear();
-            Response.Buffer = true;
-            Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            Response.AddHeader("Content-Disposition", "attachment; filename=Dashboard_Cleaned_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx");
-            Response.AddHeader("Content-Length", bytes.Length.ToString());
-            Response.BinaryWrite(bytes);
-            Response.Flush();
-            downloadSent = true;
-            HttpContext.Current.ApplicationInstance.CompleteRequest();
+            try
+            {
+                Response.Clear();
+                Response.Buffer = true;
+                Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                Response.AddHeader("Content-Disposition", "attachment; filename=Dashboard_Cleaned_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx");
+                Response.AddHeader("Content-Length", bytes.Length.ToString());
+                Response.BinaryWrite(bytes);
+                Response.Flush();
+                downloadSent = true;
+                HttpContext.Current.ApplicationInstance.CompleteRequest();
+            }
+            finally
+            {
+                Session.Remove(sessionKey);
+                SafeDelete(path);
+            }
+        }
+
+        private static string BuildResultHtml(IEnumerable<DashboardValidatorEngine.Phase2ResultRow> results, string token)
+        {
+            var html = new StringBuilder();
+            html.Append("<section class='erp-section-card p-3 mt-4'>");
+            html.Append("<div class='mb-3'><a class='btn btn-success' href='DashboardValidator.aspx?download=")
+                .Append(HttpUtility.UrlEncode(token)).Append("'><i class='fas fa-download'></i> Download Excel</a></div>");
+            html.Append("<div class='erp-table-wrap'><table id='validationResults' class='table table-bordered table-hover nowrap' style='width:100%'>");
+            html.Append("<thead><tr><th>Loan #</th><th>Keyword</th><th>Exception Header</th><th>Exception Description</th></tr></thead><tbody>");
+            foreach (DashboardValidatorEngine.Phase2ResultRow row in results)
+            {
+                html.Append("<tr><td>").Append(H(row.LoanId)).Append("</td><td>")
+                    .Append(H(row.Keyword)).Append("</td><td>")
+                    .Append(H(row.ExceptionHeader)).Append("</td><td>")
+                    .Append(H(row.ExceptionDescription)).Append("</td></tr>");
+            }
+            html.Append("</tbody></table></div></section>");
+            return html.ToString();
+        }
+
+        private static string H(string value)
+        {
+            return HttpUtility.HtmlEncode(value ?? string.Empty);
         }
 
         protected override void Render(HtmlTextWriter writer)

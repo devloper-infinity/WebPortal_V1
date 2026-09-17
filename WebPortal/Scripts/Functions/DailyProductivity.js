@@ -1218,7 +1218,7 @@ function approveProductivity() {
         $('#Prodwaitingpanel').modal('show');
         document.getElementById("spntext").innerHTML = "System is updating details. Please wait.";
 
-        //PageMethods.ApproveRejectProductivity(Indexes, Domain, Code, Date, CDate, TrackID, Project, TrackProcess, Process, Productions, TimeSpents, Target, OnSuccess_approved, OnError_approved);
+        PageMethods.ApproveRejectProductivity(Indexes, Domain, Code, Date, CDate, TrackID, Project, TrackProcess, Process, Productions, TimeSpents, Target, OnSuccess_approved, OnError_approved);
         return false;
     }
     else {

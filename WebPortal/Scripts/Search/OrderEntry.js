@@ -1,4 +1,4 @@
-/************** Order Entry **************/
+﻿/************** Order Entry **************/
 
 var edit_OrderID = 0;
 var edit_projectID = 0;
@@ -397,10 +397,11 @@ function OrderEntry_BindGrid(project) {
                             return "";
                         }
 
-                        return '<button type="button" class="btn btn-sm btn-outline-primary order-icon-btn" title="Edit Order" onclick="return edit_order('
-                            + orderEntryToInt(row.OrderID) + ", " + meta.row + ');">'
-                            + '<i class="fas fa-edit"></i>'
-                            + "</button>";
+                        return '<select class="order-action-menu" aria-label="Actions for order ' + orderEntryToInt(row.OrderID)
+                            + '" onchange="return orderEntryAction(this,' + orderEntryToInt(row.OrderID) + ',' + meta.row + ');">'
+                            + '<option value="">Actions</option><option value="edit">Edit</option>'
+                            + (row.CanDelete === true && orderEntryToInt(row.OrderID) > 0 ? '<option value="delete">Delete</option>' : '')
+                            + '</select>';
                     }
                 },
                 { data: "SrNo", render: orderEntryDisplayRenderer },
@@ -716,49 +717,81 @@ function OnError_InsertOrder(error) {
     return false;
 }
 
-function delete_order(orderid, index) {
-    if (orderentry_table) {
-        orderentry_table.$("tr").removeClass("selected-row");
+var orderEntryDeleteBusy = false;
 
-        var rowNode = orderentry_table.row(index).node();
-        if (rowNode) {
-            $(rowNode).addClass("selected-row");
-        }
-    }
-
-    edit_OrderID = orderEntryToInt(orderid);
-    $("#orderentry_deleteOrder").modal("show");
+function orderEntryAction(menu, orderId, index) {
+    var action = menu.value;
+    menu.value = "";
+    if (orderEntryDeleteBusy) return false;
+    if (action === "edit") return edit_order(orderId, index);
+    if (action === "delete") return delete_order(orderId, index);
     return false;
 }
 
-function orderentry_deleteOrder() {
-    if (!window.PageMethods || typeof PageMethods.DeleteOrder !== "function") {
-        orderEntryAlert("error", "Error", "Delete method is not available.");
+function delete_order(orderid, index) {
+    var id = Number(orderid);
+    var row = orderentry_table && orderentry_table.row(index).data();
+    if (orderEntryDeleteBusy) return false;
+    if (!Number.isInteger(id) || id <= 0 || id > 2147483647 || !row || Number(row.OrderID) !== id || row.CanDelete !== true) {
+        orderEntryAlert("error", "Unable to delete", "Select a valid order that you are authorized to delete.");
         return false;
     }
-
-    PageMethods.DeleteOrder(edit_OrderID, orderentry_DeleteOnSuccess, orderentry_DeleteOnError);
-    return false;
-}
-
-function orderentry_DeleteOnSuccess(result) {
-    $("#orderentry_deleteOrder").modal("hide");
-
-    if (result > 0) {
-        edit_OrderID = 0;
-        orderEntryAlert("success", "Success", "Order deleted successfully.", function () {
-            OrderEntry_BindGrid(edit_projectID || ORDERENTRY_DEFAULT_PROJECT_ID);
-        });
-    } else {
-        orderEntryAlert("error", "Error", "Error occurred while deleting order. Please contact administrator.");
+    if (!window.Swal || typeof Swal.fire !== "function") {
+        orderEntryAlert("error", "Unable to delete", "The confirmation dialog is unavailable. Refresh the page.");
+        return false;
     }
-
+    var token = $("#orderentry_delete_token").val();
+    if (!token) {
+        orderEntryAlert("error", "Unable to delete", "Your page has expired. Refresh and try again.");
+        return false;
+    }
+    orderEntryDeleteBusy = true;
+    $(".order-action-menu").prop("disabled", true);
+    Swal.fire({
+        title: "Are you sure you want to delete this order?",
+        text: "Order #: " + (row.ClientOrderNo || id) + " | Borrower: " + (row.BName || "—") + " | Project #: " + (row.ProjectNumber || "—"),
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Delete",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#dc3545",
+        showLoaderOnConfirm: true,
+        allowOutsideClick: function () { return !Swal.isLoading(); },
+        allowEscapeKey: function () { return !Swal.isLoading(); },
+        preConfirm: function () {
+            return $.ajax({
+                type: "POST", url: "OrderEntry.aspx/DeleteOrder",
+                data: JSON.stringify({ OrderID: id }), dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                headers: { "X-Order-Delete-Token": token }
+            }).then(function (response) {
+                if (Number(response.d) > 0) return true;
+                Swal.showValidationMessage("The order was not deleted. Please contact your administrator.");
+                return false;
+            }, function () {
+                Swal.showValidationMessage("Deletion could not be confirmed. Refresh the orders before retrying; the request may have reached the server.");
+                return false;
+            });
+        }
+    }).then(function (result) {
+        orderEntryDeleteBusy = false;
+        $(".order-action-menu").prop("disabled", false);
+        if (result.isConfirmed) {
+            // Update DataTables only after confirmed server success; keep search and export intact.
+            orderentry_table.rows(function (i, data) { return Number(data.OrderID) === id; }).remove().draw(false);
+            if (edit_OrderID === id) orderEntryResetForm();
+            orderEntryAlert("success", "Order deleted", "Order deleted successfully.");
+        }
+    });
     return false;
 }
 
-function orderentry_DeleteOnError(error) {
-    orderEntryAjaxError(error, "Error deleting order.");
-    return false;
+// Retain the legacy modal entry point, but require the same confirmation and authorization.
+function orderentry_deleteOrder() {
+    $("#orderentry_deleteOrder").modal("hide");
+    if (!orderentry_table) return false;
+    var indexes = orderentry_table.rows(function (i, data) { return Number(data.OrderID) === edit_OrderID; }).indexes().toArray();
+    return delete_order(edit_OrderID, indexes.length ? indexes[0] : -1);
 }
 
 $("#importorder_attachment").on("change", function () {
