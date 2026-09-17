@@ -534,11 +534,13 @@
                                 <label for="adminfestWish_title">Title</label>
                                 <select id="adminfestWish_title" name="adminfestWish_title" class="form-control">
                                     <option value="">Select</option>
-                                    <option value="Birthday Whishes">Birthday Whishes</option>
+                                    <option value="Birthday Whishes">Birthday Wishes</option>
                                     <option value="Christmas">Christmas</option>
-                                    <option value="RnR">RnR</option>
                                     <option value="Diwali">Diwali</option>
                                     <option value="Ganesh Festival">Ganesh Festival</option>
+                                    <option value="RnR">RnR</option>
+                                    <option value="IPL">IPL</option>
+                                    <option value="Fun Activities">Fun Activities</option>
                                     <option value="Independence Day">Independence Day</option>
                                     <option value="Republic Day">Republic Day</option>
                                 </select>
