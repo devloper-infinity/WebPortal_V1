@@ -3003,6 +3003,7 @@
     <Content Include="US\Dashboard.aspx" />
     <Content Include="US\CanopySearch.aspx" />
     <Content Include="US\ResetPasswordSegment.aspx" />
+    <Content Include="US\SetAppreciationDisciplinaryAction.aspx" />
     <Content Include="US\USDashboard.aspx" />
     <Content Include="US\InfinityFeedbackOnshore.aspx" />
     <Content Include="US\ReQcUtility.aspx" />
@@ -5672,6 +5673,13 @@
     </Compile>
     <Compile Include="US\ResetPasswordSegment.aspx.designer.cs">
       <DependentUpon>ResetPasswordSegment.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\SetAppreciationDisciplinaryAction.aspx.cs">
+      <DependentUpon>SetAppreciationDisciplinaryAction.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\SetAppreciationDisciplinaryAction.aspx.designer.cs">
+      <DependentUpon>SetAppreciationDisciplinaryAction.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\USDashboard.aspx.cs">
       <DependentUpon>USDashboard.aspx</DependentUpon>

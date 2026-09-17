@@ -86,9 +86,9 @@
                 var id=trValue(r,['TicketId','TicketID']);
                 var ticketNo=trValue(r,['TicketNo']);
                 body.append('<tr><td><button type="button" class="tr-view border-0" data-ticket-id="'+trEscape(id)+'" data-ticket-no="'+trEscape(ticketNo)+'" title="View remark history"><i class="fas fa-comments"></i></button></td>'+
-                    '<td>'+trEscape(trValue(r,['TicketNo']))+'</td><td>'+trEscape(trValue(r,['RequestByName']))+'</td><td>'+trEscape(trValue(r,['RequestDateTime']))+'</td><td>'+trEscape(trValue(r,['RequestName']))+'</td><td>'+trEscape(trValue(r,['Subject']))+'</td><td>'+trEscape(trValue(r,['Description']))+'</td><td><span class="tr-status">'+trEscape(trValue(r,['Status']))+'</span></td><td>'+trEscape(trValue(r,['ClosedByName']))+'</td><td>'+trEscape(trValue(r,['ClosedDate']))+'</td><td>'+trEscape(trValue(r,['ActualTAT']))+'</td></tr>');
+                    '<td>' + trEscape(trValue(r, ['TicketNo'])) + '</td><td>' + trEscape(trValue(r, ['Location'])) +'</td><td>'+trEscape(trValue(r,['RequestByName']))+'</td><td>'+trEscape(trValue(r,['RequestDateTime']))+'</td><td>'+trEscape(trValue(r,['RequestName']))+'</td><td>'+trEscape(trValue(r,['Subject']))+'</td><td>'+trEscape(trValue(r,['Description']))+'</td><td><span class="tr-status">'+trEscape(trValue(r,['Status']))+'</span></td><td>'+trEscape(trValue(r,['ClosedByName']))+'</td><td>'+trEscape(trValue(r,['ClosedDate']))+'</td><td>'+trEscape(trValue(r,['ActualTAT']))+'</td></tr>');
             });
-            var exportHeaders=['View','Ticket No','Request By','Request Date Time','Request Related To','Subject','Description','Status','Closed By','Closed Date Time','Actual TAT'];
+            var exportHeaders=['View','Ticket No','Location','Request By','Request Date Time','Request Related To','Subject','Description','Status','Closed By','Closed Date Time','Actual TAT'];
             function trExportOptions(){ return { columns:':not(:first-child)', modifier:{search:'applied',order:'applied',page:'all'}, format:{header:function(data,column){ return exportHeaders[column] || data; }} }; }
             trTable=$('#ticketReportTable').DataTable({ pageLength:25, lengthMenu:[[10,25,50,100,-1],[10,25,50,100,'All']], order:[[3,'desc']], autoWidth:false, scrollX:true, processing:true,
                 dom:"<'row mb-2'<'col-sm-12 col-md-6'B><'col-sm-12 col-md-6'f>><'row'<'col-sm-12'tr>><'row mt-2'<'col-sm-12 col-md-5'li><'col-sm-12 col-md-7'p>>",
@@ -113,10 +113,51 @@
             <div class="tr-table-wrap">
                 <table class="table" id="ticketReportTable">
                     <thead>
-                        <tr><th>View</th><th>Ticket No</th><th>Request By</th><th>Request Date Time</th><th>Request Related To</th><th>Subject</th><th>Description</th><th>Status</th><th>Closed By</th><th>Closed Date Time</th><th>Actual TAT</th></tr>
-                        <tr class="tr-column-filters"><th></th><th><input aria-label="Filter Ticket No" /></th><th><input aria-label="Filter Request By" /></th><th><input aria-label="Filter Request Date" /></th><th><input aria-label="Filter Request Related To" /></th><th><input aria-label="Filter Subject" /></th><th><input aria-label="Filter Description" /></th><th><input aria-label="Filter Status" /></th><th><input aria-label="Filter Closed By" /></th><th><input aria-label="Filter Closed Date" /></th><th><input aria-label="Filter Actual TAT" /></th></tr>
+                        <tr>
+                            <th>View</th>
+                            <th>Ticket No</th>
+                            <th>Location</th>
+                            <th>Request By</th>
+                            <th>Request Date Time</th>
+                            <th>Request Related To</th>
+                            <th>Subject</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Closed By</th>
+                            <th>Closed Date Time</th>
+                            <th>Actual TAT</th>
+                        </tr>
+                        <tr class="tr-column-filters">
+                            <th></th>
+                            <th>
+                                <input aria-label="Filter Ticket No" /></th>
+                            <th>
+                              <input aria-label="Filter Location" /></th>
+                            <th>
+                                <input aria-label="Filter Request By" /></th>
+                            <th>
+                                <input aria-label="Filter Request Date" /></th>
+                            <th>
+                                <input aria-label="Filter Request Related To" /></th>
+                            <th>
+                                <input aria-label="Filter Subject" /></th>
+                            <th>
+                                <input aria-label="Filter Description" /></th>
+                            <th>
+                                <input aria-label="Filter Status" /></th>
+                            <th>
+                                <input aria-label="Filter Closed By" /></th>
+                            <th>
+                                <input aria-label="Filter Closed Date" /></th>
+                            <th>
+                                <input aria-label="Filter Actual TAT" /></th>
+                        </tr>
                     </thead>
-                    <tbody><tr><td colspan="11" class="tr-empty">Loading current month tickets...</td></tr></tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="11" class="tr-empty">Loading current month tickets...</td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
