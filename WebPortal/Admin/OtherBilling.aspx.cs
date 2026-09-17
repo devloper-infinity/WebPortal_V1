@@ -62,22 +62,25 @@ namespace WebPortal.Admin
             catch { }
         }
 
-        [WebMethod]
-        public static int ImportExcel(int ProjectID, string DealNo)
+        [WebMethod(EnableSession = true)]
+        public static int ImportExcel(int ProjectID, string DealNo, string deal_satus)
         {
             int ReturnValue = 0;
             string File_Name = "";
 
             try
             {
-                ReturnValue = new bllMaster().InsertDealInTracking(ProjectID, DealNo);
-
-                if (ReturnValue <= 0)
+                HttpContext.Current.Session.Remove("OtherBillingImportData");
+                if (deal_satus == "New")
                 {
-                    ReturnValue = -3;
-                    return ReturnValue;
-                }
+                    ReturnValue = new bllMaster().InsertDealInTracking(ProjectID, DealNo);
 
+                    if (ReturnValue <= 0)
+                    {
+                        ReturnValue = -3;
+                        return ReturnValue;
+                    }
+                }
 
                 if (NewFileName != "")
                 {
@@ -98,6 +101,7 @@ namespace WebPortal.Admin
                         Dt = ReadExcelFile(NewFileName);
 
                         dtImport = Dt;
+                        HttpContext.Current.Session["OtherBillingImportData"] = Dt;
 
                         if (Dt.Rows.Count > 0)
                             ReturnValue = 1;
@@ -119,14 +123,16 @@ namespace WebPortal.Admin
             return ReturnValue;
         }
 
-        [WebMethod]
+        [WebMethod(EnableSession = true)]
         public static int VerifyAndSubmitData(string Type, int ProjectID, string DealNo)
         {
             int ReturnValue = 0;
 
             try
             {
-                System.Data.DataTable Dt = dtImport;
+                System.Data.DataTable Dt = HttpContext.Current.Session["OtherBillingImportData"] as System.Data.DataTable;
+                if (Dt == null || Dt.Rows.Count == 0)
+                    return -2;
 
                 if (Type == "Research")
                 {
@@ -150,10 +156,12 @@ namespace WebPortal.Admin
                         System.Data.DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
 
                         Dt.Columns.Add("BillingAddedDate", typeof(string));
+                        Dt.Columns.Add("BillingPeriod", typeof(string));
                         Dt.Columns.Add("ProjectID", typeof(int));
                         Dt.Columns.Add("IsVerify", typeof(bool));
 
                         Dt.AsEnumerable().ToList().ForEach(row => row["BillingAddedDate"] = DateTime.Now.ToString("dd-MMM-yyyy"));
+                        Dt.AsEnumerable().ToList().ForEach(row => row["BillingPeriod"] = DealNo);
                         Dt.AsEnumerable().ToList().ForEach(row => row["ProjectID"] = ProjectID);
                         Dt.AsEnumerable().ToList().ForEach(row => row["IsVerify"] = true);
 
@@ -164,7 +172,7 @@ namespace WebPortal.Admin
                             objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
                             objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
                             objbulk.ColumnMappings.Add("Deal No", "Deal No");
-                            objbulk.ColumnMappings.Add(DealNo, "BillingPeriod");
+                            //objbulk.ColumnMappings.Add(DealNo, "BillingPeriod");
                             objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
                             objbulk.ColumnMappings.Add("Subject Line", "Subject Line");
                             objbulk.ColumnMappings.Add("Requested Docs/Tasks Performed", "Requested Docs/Tasks Performed");
@@ -187,6 +195,7 @@ namespace WebPortal.Admin
 
                         ReturnValue = new bllMaster().InsertResearchBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                         dtImport = null;
+                        HttpContext.Current.Session.Remove("OtherBillingImportData");
                     }
                     else
                         ReturnValue = 0;
@@ -216,9 +225,12 @@ namespace WebPortal.Admin
                         System.Data.DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
 
                         Dt.Columns.Add("BillingAddedDate", typeof(string));
+                        Dt.Columns.Add("BillingPeriod", typeof(string));
                         Dt.Columns.Add("ProjectID", typeof(int));
                         Dt.Columns.Add("IsVerify", typeof(bool));
+
                         Dt.AsEnumerable().ToList().ForEach(row => row["BillingAddedDate"] = DateTime.Now.ToString("dd-MMM-yyyy"));
+                        Dt.AsEnumerable().ToList().ForEach(row => row["BillingPeriod"] = DealNo);
                         Dt.AsEnumerable().ToList().ForEach(row => row["ProjectID"] = ProjectID);
                         Dt.AsEnumerable().ToList().ForEach(row => row["IsVerify"] = true);
 
@@ -228,7 +240,7 @@ namespace WebPortal.Admin
 
                             objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
                             objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
-                            objbulk.ColumnMappings.Add("Deal Number", "BillingPeriod");
+                            //objbulk.ColumnMappings.Add("Deal Number", "BillingPeriod");
                             objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
                             objbulk.ColumnMappings.Add("Deal Number", "Deal Number");
                             objbulk.ColumnMappings.Add("Loan Number", "Loan Number");
@@ -249,6 +261,7 @@ namespace WebPortal.Admin
                     {
                         ReturnValue = 1;
                         dtImport = null;
+                        HttpContext.Current.Session.Remove("OtherBillingImportData");
 
                         ReturnValue = new bllMaster().InsertRebuttalBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                     }
@@ -260,7 +273,8 @@ namespace WebPortal.Admin
             }
             catch (Exception ex)
             {
-                ReturnValue = 0;
+                HttpContext.Current.Trace.Warn("OtherBilling", "VerifyAndSubmitData failed.", ex);
+                ReturnValue = -4;
             }
 
             return ReturnValue;

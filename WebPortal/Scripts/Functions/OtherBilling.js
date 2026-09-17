@@ -5,34 +5,6 @@
 var Research_table;
 var Rebuttal_table;
 
-function core_BindDomainWise_Project(DomainID) {
-
-    var select = document.getElementById("otherBilling_Project");
-    let options = select.getElementsByTagName('otherBilling_Project');
-
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
-    }
-
-    // $("#otherBilling_Project").append($("<option></option>").val("Select").html("Select"));
-
-    $("#otherBilling_Project").append($("<option></option>").val("").text("Select"));
-
-    $.ajax({
-        type: "POST", url: "OtherBilling.aspx/GetAllProjectByDomainWise", dataType: "json",
-        data: "{DomainID:" + DomainID + "}",
-        contentType: "application/json",
-        success: function (res) {
-
-            var dataArray = JSON.parse(res.d);
-            $.each(dataArray, function (data, value) {
-
-                $("#otherBilling_Project").append($("<option></option>").val(value.ProjectId).html(value.ProjectName));
-            })
-        }
-    });
-}
-
 
 function BindDomainWise_Project(DomainID) {
 
@@ -109,39 +81,39 @@ function getNewDalNo(obj) {
     }
 }
 
-function core_btnOtherBilling_Import() {
+async function btnOtherBilling_Import() {
 
     const projectValue = ($("#otherBilling_Project").val() || "").trim();
     const selectedDealNo = ($("#otherBilling_DealNo").val() || "").trim();
     const newDealNo = ($("#otherBilling_NewDealNo").val() || "").trim();
-
+    const deal_satus = 'Existing';
 
     if (!selectedDealNo || selectedDealNo === "Select") {
         await showValidationMessage("Deal Number Required","Please select a deal number.");
-
         $("#otherBilling_DealNo").focus();
         return false;
     }
 
     if (selectedDealNo === "AddNew" && !newDealNo) {
+        deal_satus = 'New';
         await showValidationMessage("New Deal Number Required","Please enter a new deal number.");
-
         $("#otherBilling_NewDealNo").focus();
         return false;
     }
 
-    const dealNo = selectedDealNo === "AddNew" ? newDealNo : selectedDealNo;
+    const dealNo =selectedDealNo === "AddNew"? newDealNo: selectedDealNo;
 
-    document.getElementById("spntext").innerHTML = "Reading data from Excel...";
+    document.getElementById("spntext").innerHTML ="Reading data from Excel...";
+
     $('#OtherBilling_Waitingpanel').modal('show');
 
-    PageMethods.ImportExcel(projectValue, dealNo,
+    PageMethods.ImportExcel(projectValue,dealNo,deal_satus,
 
         function (result) {
-
             $('#OtherBilling_Waitingpanel').modal('hide');
+            const resultCode = Number(result);
 
-            if (result > 0) {
+            if (resultCode > 0) {
 
                 Swal.fire({
                     icon: "success",
@@ -165,8 +137,7 @@ function core_btnOtherBilling_Import() {
                     }
                 });
             }
-            else if (result === -3) {
-
+            else if (resultCode === -3) {
                 Swal.fire({
                     icon: "warning",
                     title: "Duplicate Deal",
@@ -174,121 +145,7 @@ function core_btnOtherBilling_Import() {
                     confirmButtonText: "OK"
                 });
             }
-            else if (result === -1) {
-
-                Swal.fire({
-                    icon: "warning",
-                    title: "Invalid File",
-                    text: "Please select an Excel file with the .xlsx extension.",
-                    confirmButtonText: "OK"
-                });
-            }
-            else {
-
-                Swal.fire({
-                    icon: "error",
-                    title: "Import Failed",
-                    text: "Something went wrong. Please contact the administrator.",
-                    confirmButtonText: "OK"
-                });
-            }
-        },
-
-        function (error) {
-
-            $('#OtherBilling_Waitingpanel').modal('hide');
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.get_message ? error.get_message() : error.responseText,
-                confirmButtonText: "OK"
-            });
-        }
-    );
-
-    return false;
-}
-
-async function btnOtherBilling_Import() {
-
-    const projectValue = ($("#otherBilling_Project").val() || "").trim();
-    const selectedDealNo = ($("#otherBilling_DealNo").val() || "").trim();
-    const newDealNo = ($("#otherBilling_NewDealNo").val() || "").trim();
-
-    if (!selectedDealNo || selectedDealNo === "Select") {
-        await showValidationMessage(
-            "Deal Number Required",
-            "Please select a deal number."
-        );
-
-        $("#otherBilling_DealNo").focus();
-        return false;
-    }
-
-    if (selectedDealNo === "AddNew" && !newDealNo) {
-        await showValidationMessage(
-            "New Deal Number Required",
-            "Please enter a new deal number."
-        );
-
-        $("#otherBilling_NewDealNo").focus();
-        return false;
-    }
-
-    const dealNo =
-        selectedDealNo === "AddNew"
-            ? newDealNo
-            : selectedDealNo;
-
-    document.getElementById("spntext").innerHTML =
-        "Reading data from Excel...";
-
-    $('#OtherBilling_Waitingpanel').modal('show');
-
-    PageMethods.ImportExcel(
-        projectValue,
-        dealNo,
-
-        function (result) {
-
-            $('#OtherBilling_Waitingpanel').modal('hide');
-
-            if (result > 0) {
-
-                Swal.fire({
-                    icon: "success",
-                    title: "Import Successful",
-                    text: "Excel data imported successfully.",
-                    confirmButtonText: "OK"
-                }).then(function () {
-
-                    var ProjectType =
-                        $("#otherBilling_ProjectType").val();
-
-                    $("#table_Research").hide();
-                    $("#table_Rebuttal").hide();
-
-                    if (ProjectType === "Research") {
-                        $("#table_Research").show();
-                        research_BindGrid();
-                    }
-                    else if (ProjectType === "Rebuttal") {
-                        $("#table_Rebuttal").show();
-                        rebuttal_BindGrid();
-                    }
-                });
-            }
-            else if (result === -3) {
-
-                Swal.fire({
-                    icon: "warning",
-                    title: "Duplicate Deal",
-                    text: "Deal already exists.",
-                    confirmButtonText: "OK"
-                });
-            }
-            else if (result === -1) {
+            else if (resultCode === -1) {
 
                 Swal.fire({
                     icon: "warning",
@@ -369,7 +226,7 @@ async function btnOtherBilling_Verify() {
     });
 
     try {
-        const result = await verifyAndSubmitData(projectType, project, dealNo);
+        const result = await verifyAndSubmitData(projectType, Number(project), dealNo);
 
         if (Number(result) > 0) {
             await Swal.fire({
@@ -381,6 +238,10 @@ async function btnOtherBilling_Verify() {
 
                 clearOtherBillingControls();
             });
+        } else if (Number(result) === -2) {
+            await Swal.fire({ icon: "warning", title: "Import Session Expired", text: "The imported Excel data is no longer available. Please import the file again, then verify and submit.", confirmButtonText: "OK" });
+        } else if (Number(result) === -4) {
+            await Swal.fire({ icon: "error", title: "Submission Failed", text: "The server could not save the imported billing data. Please contact the administrator and provide the time of this attempt.", confirmButtonText: "OK" });
         } else {
             await Swal.fire({ icon: "warning", title: "Submission Not Completed", text: "No record was submitted. Please verify the entered information.", confirmButtonText: "OK" });
         }
@@ -402,6 +263,10 @@ async function btnOtherBilling_Verify() {
 function verifyAndSubmitData(projectType, projectID, dealNo) {
 
     return new Promise(function (resolve, reject) {
+
+        if (PageMethods.set_timeout) {
+            PageMethods.set_timeout(300000);
+        }
 
         PageMethods.VerifyAndSubmitData(
             projectType,
