@@ -1,6 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/US/USAdmin.Master" AutoEventWireup="true" CodeBehind="SetAppreciationDisciplinaryAction.aspx.cs" Inherits="WebPortal.US.SetAppreciationDisciplinaryAction" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    
     <style>
         .body {
             margin: 0 !important;
@@ -978,7 +979,7 @@
             }
         }
     </style>
-    <script>
+    <script type="text/javascript">
         $(document).ready(function () {
             try {
                 if (window.CKEDITOR && !CKEDITOR.instances['setappr_description']) {
@@ -994,6 +995,7 @@
         });
     </script>
     <script src="../ckeditor/ckeditor.js"></script>
+    <script src="~/Scripts/Functions/AppreciationDisciplinaryAction.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </asp:Content>
