@@ -126,158 +126,155 @@ namespace WebPortal.Admin
         [WebMethod(EnableSession = true)]
         public static int VerifyAndSubmitData(string Type, int ProjectID, string DealNo)
         {
-            int ReturnValue = 0;
-
+            HttpContext.Current.Server.ScriptTimeout = 600;
             try
             {
-                System.Data.DataTable Dt = HttpContext.Current.Session["OtherBillingImportData"] as System.Data.DataTable;
-                if (Dt == null || Dt.Rows.Count == 0)
+                System.Data.DataTable importedData = HttpContext.Current.Session["OtherBillingImportData"] as System.Data.DataTable;
+                if (importedData == null || importedData.Rows.Count == 0)
                     return -2;
+                if (Type != "Research" && Type != "Rebuttal")
+                    return 0;
 
-                if (Type == "Research")
+                System.Data.DataTable data = importedData.Copy();
+                PrepareBillingData(data, ProjectID, DealNo);
+
+                string destination = Type == "Research"
+                    ? "dbo.InfinityBilling_ResearchBilling"
+                    : "dbo.InfinityBilling_RebuttalBilling";
+                string procedure = Type == "Research"
+                    ? "usp_InsertResearchBilling_NewERP"
+                    : "usp_InsertRebuttalBilling_NewERP";
+
+                int returnValue;
+                using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionStringUWBilling))
                 {
-                    #region Research Insertion Code
-
-                    if (Dt != null)
+                    connection.Open();
+                    using (SqlTransaction transaction = connection.BeginTransaction())
                     {
-                        string con = "";
-                        SqlConnection sqlConnection = new SqlConnection();
-                        sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityBilling_UW;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192";
-                        SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection);
-
-                        //assigning Destination table name
-                        objbulk.DestinationTableName = "dbo.InfinityBilling_ResearchBilling";
-                        string destTableQuery = "Select top 1 * from dbo.InfinityBilling_ResearchBilling";
-                        SqlCommand cmd = new SqlCommand(destTableQuery);
-                        sqlConnection.Open();
-                        cmd.Connection = sqlConnection;
-
-                        // i use sql helper for executing query you can use corde sw
-                        System.Data.DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
-
-                        Dt.Columns.Add("BillingAddedDate", typeof(string));
-                        Dt.Columns.Add("BillingPeriod", typeof(string));
-                        Dt.Columns.Add("ProjectID", typeof(int));
-                        Dt.Columns.Add("IsVerify", typeof(bool));
-
-                        Dt.AsEnumerable().ToList().ForEach(row => row["BillingAddedDate"] = DateTime.Now.ToString("dd-MMM-yyyy"));
-                        Dt.AsEnumerable().ToList().ForEach(row => row["BillingPeriod"] = DealNo);
-                        Dt.AsEnumerable().ToList().ForEach(row => row["ProjectID"] = ProjectID);
-                        Dt.AsEnumerable().ToList().ForEach(row => row["IsVerify"] = true);
-
-                        using (SqlBulkCopy bulk = new SqlBulkCopy(sqlConnection))
+                        try
                         {
-                            objbulk.ColumnMappings.Clear();
+                            using (SqlBulkCopy bulk = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
+                            {
+                                bulk.DestinationTableName = destination;
+                                bulk.BulkCopyTimeout = 600;
+                                AddBillingMappings(bulk, Type);
+                                bulk.WriteToServer(data);
+                            }
 
-                            objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
-                            objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
-                            objbulk.ColumnMappings.Add("Deal No", "Deal No");
-                            objbulk.ColumnMappings.Add("BillingPeriod", "BillingPeriod");
-                            objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
-                            objbulk.ColumnMappings.Add("Subject Line", "Subject Line");
-                            objbulk.ColumnMappings.Add("Requested Docs/Tasks Performed", "Requested Docs/Tasks Performed");
-                            objbulk.ColumnMappings.Add("No of Loans/Docs", "No of Docs Researched");
-                            objbulk.ColumnMappings.Add("Total Time Taken (in Minutes)", "Total Time Taken (in Minutes)");
-                            objbulk.ColumnMappings.Add("Request Received from", "Request Received from");
-                            objbulk.ColumnMappings.Add("Request Received Date", "Request Received Date");
-                            objbulk.ColumnMappings.Add("Documents Delivered Date", "Documents Delivered Date");
-                            objbulk.ColumnMappings.Add("Remark", "Remark");
-                            objbulk.ColumnMappings.Add("Time (In Hours)", "Time");
-                            objbulk.ColumnMappings.Add("Deal Name", "PRP Deal Name");
-
-                            objbulk.WriteToServer(Dt);
-                            sqlConnection.Close();
+                            returnValue = FinalizeBilling(connection, transaction, procedure, ProjectID, DealNo);
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
                         }
                     }
-                    if (Dt.Rows.Count > 0)
-                    {
-                        ReturnValue = 1;
-
-                        ReturnValue = new bllMaster().InsertResearchBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                        dtImport = null;
-                        HttpContext.Current.Session.Remove("OtherBillingImportData");
-                    }
-                    else
-                        ReturnValue = 0;
-
-                    #endregion
                 }
 
-                else if (Type == "Rebuttal")
+                if (returnValue > 0)
                 {
-                    #region Rebuttal Insertion Code
-
-                    if (Dt != null)
-                    {
-                        string con = "";
-                        SqlConnection sqlConnection = new SqlConnection();
-                        sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityBilling_UW;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192";
-                        SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection);
-
-                        //assigning Destination table name
-                        objbulk.DestinationTableName = "dbo.InfinityBilling_RebuttalBilling";
-                        string destTableQuery = "Select top 1 * from dbo.InfinityBilling_RebuttalBilling";
-                        SqlCommand cmd = new SqlCommand(destTableQuery);
-                        sqlConnection.Open();
-                        cmd.Connection = sqlConnection;
-
-                        // i use sql helper for executing query you can use corde sw
-                        System.Data.DataTable dtDest = SQLHelper.ExecuteDataSetCmd(cmd).Tables[0];
-
-                        Dt.Columns.Add("BillingAddedDate", typeof(string));
-                        Dt.Columns.Add("BillingPeriod", typeof(string));
-                        Dt.Columns.Add("ProjectID", typeof(int));
-                        Dt.Columns.Add("IsVerify", typeof(bool));
-
-                        Dt.AsEnumerable().ToList().ForEach(row => row["BillingAddedDate"] = DateTime.Now.ToString("dd-MMM-yyyy"));
-                        Dt.AsEnumerable().ToList().ForEach(row => row["BillingPeriod"] = DealNo);
-                        Dt.AsEnumerable().ToList().ForEach(row => row["ProjectID"] = ProjectID);
-                        Dt.AsEnumerable().ToList().ForEach(row => row["IsVerify"] = true);
-
-                        using (SqlBulkCopy bulk = new SqlBulkCopy(sqlConnection))
-                        {
-                            objbulk.ColumnMappings.Clear();
-
-                            objbulk.ColumnMappings.Add("ProjectID", "ProjectId");
-                            objbulk.ColumnMappings.Add("IsVerify", "IsVerify");
-                            objbulk.ColumnMappings.Add("BillingPeriod", "BillingPeriod");
-                            objbulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
-                            objbulk.ColumnMappings.Add("Deal Number", "Deal Number");
-                            objbulk.ColumnMappings.Add("Loan Number", "Loan Number");
-                            objbulk.ColumnMappings.Add("Condition", "Condition");
-                            objbulk.ColumnMappings.Add("Client Rebuttal", "Clients Rebuttal");
-                            objbulk.ColumnMappings.Add("Status", "Cleared (Yes/No)");
-                            objbulk.ColumnMappings.Add("Rebuttal Received Date", "Start Date/Time");
-                            objbulk.ColumnMappings.Add("Rebuttal Response Date", "End Date/Time");
-                            objbulk.ColumnMappings.Add("Time", "Time");
-                            objbulk.ColumnMappings.Add("Billing Type", "BillingType");
-
-                            objbulk.WriteToServer(Dt);
-                            sqlConnection.Close();
-                        }
-                    }
-
-                    if (Dt.Rows.Count > 0)
-                    {
-                        ReturnValue = 1;
-                        dtImport = null;
-                        HttpContext.Current.Session.Remove("OtherBillingImportData");
-
-                        ReturnValue = new bllMaster().InsertRebuttalBilling_NewERP(ProjectID, DealNo, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                    }
-                    else
-                        ReturnValue = 0;
-
-                    #endregion
+                    dtImport = null;
+                    HttpContext.Current.Session.Remove("OtherBillingImportData");
                 }
+                return returnValue;
             }
             catch (Exception ex)
             {
                 HttpContext.Current.Trace.Warn("OtherBilling", "VerifyAndSubmitData failed.", ex);
-                ReturnValue = -4;
+                LogVerifyError(ex, Type, ProjectID, DealNo);
+                return -4;
             }
+        }
 
-            return ReturnValue;
+        private static void PrepareBillingData(System.Data.DataTable table, int projectId, string dealNo)
+        {
+            EnsureColumn(table, "BillingAddedDate", typeof(string));
+            EnsureColumn(table, "BillingPeriod", typeof(string));
+            EnsureColumn(table, "ProjectID", typeof(int));
+            EnsureColumn(table, "IsVerify", typeof(bool));
+            string addedDate = DateTime.Now.ToString("dd-MMM-yyyy");
+            foreach (DataRow row in table.Rows)
+            {
+                row["BillingAddedDate"] = addedDate;
+                row["BillingPeriod"] = dealNo;
+                row["ProjectID"] = projectId;
+                row["IsVerify"] = true;
+            }
+        }
+
+        private static void AddBillingMappings(SqlBulkCopy bulk, string type)
+        {
+            bulk.ColumnMappings.Add("ProjectID", "ProjectId");
+            bulk.ColumnMappings.Add("IsVerify", "IsVerify");
+            bulk.ColumnMappings.Add("BillingPeriod", "BillingPeriod");
+            bulk.ColumnMappings.Add("BillingAddedDate", "BillingAddedDate");
+            if (type == "Research")
+            {
+                bulk.ColumnMappings.Add("Deal No", "Deal No");
+                bulk.ColumnMappings.Add("Subject Line", "Subject Line");
+                bulk.ColumnMappings.Add("Requested Docs/Tasks Performed", "Requested Docs/Tasks Performed");
+                bulk.ColumnMappings.Add("No of Loans/Docs", "No of Docs Researched");
+                bulk.ColumnMappings.Add("Total Time Taken (in Minutes)", "Total Time Taken (in Minutes)");
+                bulk.ColumnMappings.Add("Request Received from", "Request Received from");
+                bulk.ColumnMappings.Add("Request Received Date", "Request Received Date");
+                bulk.ColumnMappings.Add("Documents Delivered Date", "Documents Delivered Date");
+                bulk.ColumnMappings.Add("Remark", "Remark");
+                bulk.ColumnMappings.Add("Time (In Hours)", "Time");
+                bulk.ColumnMappings.Add("Deal Name", "PRP Deal Name");
+                return;
+            }
+            bulk.ColumnMappings.Add("Deal Number", "Deal Number");
+            bulk.ColumnMappings.Add("Loan Number", "Loan Number");
+            bulk.ColumnMappings.Add("Condition", "Condition");
+            bulk.ColumnMappings.Add("Client Rebuttal", "Clients Rebuttal");
+            bulk.ColumnMappings.Add("Status", "Cleared (Yes/No)");
+            bulk.ColumnMappings.Add("Rebuttal Received Date", "Start Date/Time");
+            bulk.ColumnMappings.Add("Rebuttal Response Date", "End Date/Time");
+            bulk.ColumnMappings.Add("Time", "Time");
+            bulk.ColumnMappings.Add("Billing Type", "BillingType");
+        }
+
+        private static int FinalizeBilling(SqlConnection connection, SqlTransaction transaction, string procedure, int projectId, string dealNo)
+        {
+            using (SqlCommand command = new SqlCommand(procedure, connection, transaction))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = 600;
+                command.Parameters.Add("@ProjectID", SqlDbType.BigInt).Value = projectId;
+                command.Parameters.Add("@BillingPeriod", SqlDbType.NVarChar, 500).Value = dealNo;
+                command.Parameters.Add("@AddedBy", SqlDbType.BigInt).Value = Int32.Parse(HttpContext.Current.User.Identity.Name);
+                SqlParameter result = command.Parameters.Add("@ReturnValue", SqlDbType.BigInt);
+                result.Direction = ParameterDirection.ReturnValue;
+                command.ExecuteNonQuery();
+                return result.Value == DBNull.Value ? 0 : Convert.ToInt32(result.Value);
+            }
+        }
+
+        private static void EnsureColumn(System.Data.DataTable table, string name, Type type)
+        {
+            if (!table.Columns.Contains(name))
+                table.Columns.Add(name, type);
+        }
+
+        private static void LogVerifyError(Exception ex, string type, int projectId, string dealNo)
+        {
+            try
+            {
+                string directory = HttpContext.Current.Server.MapPath("~/App_Data");
+                Directory.CreateDirectory(directory);
+                string entry = Environment.NewLine + new string('=', 50) + Environment.NewLine
+                    + "Date: " + DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss") + Environment.NewLine
+                    + "Type: " + type + Environment.NewLine
+                    + "ProjectID: " + projectId + Environment.NewLine
+                    + "DealNo: " + dealNo + Environment.NewLine
+                    + "Identity: " + HttpContext.Current.User.Identity.Name + Environment.NewLine
+                    + "Exception: " + ex + Environment.NewLine;
+                File.AppendAllText(Path.Combine(directory, "OtherBilling_Error.txt"), entry);
+            }
+            catch
+            {
+            }
         }
 
         public static System.Data.DataTable ReadExcelFile(string path)
