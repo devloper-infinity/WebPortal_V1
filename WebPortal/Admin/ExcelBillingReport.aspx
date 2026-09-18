@@ -3,7 +3,7 @@
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 
     <style>
-        .ebr-page { padding: 20px 0 32px; color: #343a40; }
+        .ebr-page { color: #343a40; }
         .ebr-hero { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:18px; padding:20px 24px; color:#fff; background:linear-gradient(120deg,#173b7a 0%,#2357a7 62%,#2878c8 100%); border-radius:.35rem; box-shadow:0 8px 22px rgba(23,59,122,.22); position:relative; overflow:hidden; }
         .ebr-hero:after { content:""; position:absolute; width:190px; height:190px; right:-58px; top:-92px; border-radius:50%; background:rgba(255,255,255,.1); }
         .ebr-heading { display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
