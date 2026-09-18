@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -11,11 +12,12 @@ using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using WebPortal.App_Code;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
+using WebPortal.App_Code.DAL;
 using DataTable = System.Data.DataTable;
 using MailMessage = System.Net.Mail.MailMessage;
-using WebPortal.App_Code;
 
 namespace WebPortal.US
 {
@@ -32,7 +34,7 @@ namespace WebPortal.US
         [WebMethod]
         public static string GetAllUsers()
         {
-            DataTable dt1 = new bllMaster().GetAllUsersUnderPM(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            DataTable dt1 = GetAllUsersUnderPM(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -47,6 +49,14 @@ namespace WebPortal.US
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        public static DataTable GetAllUsersUnderPM(int EmployeeID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAllHierarchicalData_Greg]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 100, System.Data.ParameterDirection.Input, EmployeeID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
         }
 
         [WebMethod]

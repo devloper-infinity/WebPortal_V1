@@ -624,7 +624,8 @@ function setappr_getEmpInfo(ddlemp) {
                 document.getElementById("setappr_joiningdate").value = blankForNull(value.JoiningDate);
                 document.getElementById("setappr_department").value = blankForNull(value.DepartmentName);
                 document.getElementById("setappr_designation").value = blankForNull(value.DesignationName);
-                document.getElementById("setappr_repotingmanager").value = blankForNull(value.ReportingManager);
+                document.getElementById("setappr_repotingmanager").value = blankForNull(value.ReportingManagerUS);
+                //document.getElementById("setappr_repotingmanager").value = blankForNull(value.ReportingManager);
 
                 action_Count = blankForNull(value.ActionCount);
                 pip_Count = blankForNull(value.PIPCount);
