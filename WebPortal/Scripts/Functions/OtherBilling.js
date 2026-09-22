@@ -86,7 +86,12 @@ async function btnOtherBilling_Import() {
     const projectValue = ($("#otherBilling_Project").val() || "").trim();
     const selectedDealNo = ($("#otherBilling_DealNo").val() || "").trim();
     const newDealNo = ($("#otherBilling_NewDealNo").val() || "").trim();
-    const deal_satus = 'Existing';
+    var deal_status = 'Existing';
+
+    if (selectedDealNo === "AddNew") {
+        deal_status = 'New';
+    }
+
 
     if (!selectedDealNo || selectedDealNo === "Select") {
         await showValidationMessage("Deal Number Required", "Please select a deal number.");
@@ -95,7 +100,7 @@ async function btnOtherBilling_Import() {
     }
 
     if (selectedDealNo === "AddNew" && !newDealNo) {
-        deal_satus = 'New';
+
         await showValidationMessage("New Deal Number Required", "Please enter a new deal number.");
         $("#otherBilling_NewDealNo").focus();
         return false;
@@ -107,7 +112,7 @@ async function btnOtherBilling_Import() {
 
     $('#OtherBilling_Waitingpanel').modal('show');
 
-    PageMethods.ImportExcel(projectValue, dealNo, deal_satus,
+    PageMethods.ImportExcel(projectValue, dealNo, deal_status,
 
         function (result) {
             $('#OtherBilling_Waitingpanel').modal('hide');
