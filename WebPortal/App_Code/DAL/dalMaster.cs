@@ -6262,5 +6262,42 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
+
+        public int InsertAdminExpensesData(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAdminExpensesData_YTU");
+            int expenseId = htParam.ContainsKey("ExpenseId") && htParam["ExpenseId"] != null ? Convert.ToInt32(htParam["ExpenseId"]) : 0;
+            SQLHelper.AddParamToSQLCmd(cmd, "@ExpenseId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, expenseId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Location", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["Location"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@RecreationActivity", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["OtherActivity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["Date"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CompletedDate", System.Data.SqlDbType.DateTime, 0, System.Data.ParameterDirection.Input, Convert.ToDateTime(htParam["CompletedDate"]));
+            SQLHelper.AddParamToSQLCmd(cmd, "@ActualExpense", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, Convert.ToInt32(htParam["ActualExpense"]));
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["Remark"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CreatedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["CreatedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public DataTable GetAdminExpenseData()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminExpensesData_YTU");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public DataSet GetAdminExpenseDataForReport(string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminExpensesDataForReport_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
+            DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
+            return ds;
+        }
     }
 }

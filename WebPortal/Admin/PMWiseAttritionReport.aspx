@@ -878,7 +878,7 @@
                 return false;
             }
             pmatr_setValidation('');
-            pmatr_setLoading(true);
+           
 
             __doPostBack("<%= btn21.UniqueID %>", '');
 

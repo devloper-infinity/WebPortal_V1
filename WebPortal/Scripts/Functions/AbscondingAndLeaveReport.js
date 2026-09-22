@@ -144,7 +144,6 @@ function YearWiseBindAbscondingGrid() {
         return false;
     }
 
-    $('#load1').show();
 
     $.ajax({
         url: "AbscondingAndLeaveReport.aspx/GetYearWiseAbscondingEmployees",
@@ -158,7 +157,6 @@ function YearWiseBindAbscondingGrid() {
 
             if ($.fn.DataTable.isDataTable('#YearWiseabscondleavelist')) {
                 $('#YearWiseabscondleavelist').DataTable().clear().rows.add(dataArray).draw();
-                $('#load1').hide();
                 return;
             }
 
@@ -197,13 +195,11 @@ function YearWiseBindAbscondingGrid() {
                     className: "text-nowrap"
                 }],
                 initComplete: function () {
-                    $('#load1').hide();
                 }
             });
         },
 
         error: function (xhr) {
-            $('#load1').hide();
 
             Swal.fire({
                 icon: "error",

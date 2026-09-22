@@ -144,6 +144,7 @@
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
+    <Content Include="Admin\ExpensesAdmin.aspx" />
     <Content Include="Admin\RNRAdmin.aspx" />
     <Content Include="Admin\RNRReport.aspx" />
     <Content Include="Admin\RNRFeedback.aspx" />
@@ -743,6 +744,7 @@
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
     <Content Include="Scripts\Functions\AbscondingAndLeaveReport.js" />
+    <Content Include="Scripts\Functions\ExpensesAdmin.js" />
     <Content Include="Scripts\Functions\FestivalMasterForAdmin.js" />
     <Content Include="Scripts\Functions\FestivalPopupForAdmin.js" />
     <Content Include="Scripts\Functions\HelpdeskModule.js" />
@@ -3145,6 +3147,13 @@
     </Compile>
     <Compile Include="Accounts\TotalSalaryReport.aspx.designer.cs">
       <DependentUpon>TotalSalaryReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ExpensesAdmin.aspx.cs">
+      <DependentUpon>ExpensesAdmin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ExpensesAdmin.aspx.designer.cs">
+      <DependentUpon>ExpensesAdmin.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
     <Compile Include="App_Code\RnrSecurity.cs" />
