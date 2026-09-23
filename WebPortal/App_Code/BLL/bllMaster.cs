@@ -1498,6 +1498,16 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllInvoiceHeaders(Month, Year);
         }
 
+        public DataTable GetAllInvoiceHeaders(string Month, string Year, string Domain)
+        {
+            return dalMaster.GetAllInvoiceHeaders(Month, Year, Domain);
+        }
+
+        public DataTable GetInvoiceDomains()
+        {
+            return dalMaster.GetInvoiceDomains();
+        }
+
         public DataTable GetAllCCInvoiceHeaders_ByHeaderID(int HeaderID, string Month, string Year)
         {
             return dalMaster.GetAllCCInvoiceHeaders_ByHeaderID(HeaderID, Month, Year);

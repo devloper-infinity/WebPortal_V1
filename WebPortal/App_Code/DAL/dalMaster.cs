@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-//using System.Linq;
+using System.Linq;
 using System.Web;
 using System.Web.DynamicData;
 using WebPortal.Admin;
@@ -3180,11 +3180,33 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetAllInvoiceHeaders(string Month, string Year)
         {
+            return GetAllInvoiceHeaders(Month, Year, string.Empty);
+        }
+
+        public DataTable GetAllInvoiceHeaders(string Month, string Year, string Domain)
+        {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllCCInvoiceHeaders");
             SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Month);
             SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Year);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            string selectedDomain = (Domain ?? string.Empty).Trim();
+            if (selectedDomain.Length > 0 && dt.Columns.Contains("DomainName"))
+            {
+                IEnumerable<DataRow> matchingRows = dt.AsEnumerable().Where(row =>
+                    string.Equals(Convert.ToString(row["DomainName"]).Trim(), selectedDomain, StringComparison.OrdinalIgnoreCase));
+                dt = matchingRows.Any() ? matchingRows.CopyToDataTable() : dt.Clone();
+            }
             return dt;
+        }
+
+        public DataTable GetInvoiceDomains()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
+                "SELECT DISTINCT LTRIM(RTRIM(DomainName)) AS DomainName " +
+                "FROM dbo.CCInvoiceHeaders " +
+                "WHERE NULLIF(LTRIM(RTRIM(DomainName)), '') IS NOT NULL " +
+                "ORDER BY DomainName");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
         public DataTable GetAllInvoiceHeadersSummary(string Month, string Year)

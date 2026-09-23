@@ -56,9 +56,9 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
-        public static string getAllInvocieHeaders(string Month, string Year)
+        public static string getAllInvocieHeaders(string Month, string Year, string Domain)
         {
-            DataTable dt1 = new bllMaster().GetAllInvoiceHeaders(Month, Year);
+            DataTable dt1 = new bllMaster().GetAllInvoiceHeaders(Month, Year, Domain);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             if (dt1 != null)
@@ -76,6 +76,23 @@ namespace WebPortal.IT
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static string GetInvoiceDomains()
+        {
+            DataTable domains = new bllMaster().GetInvoiceDomains();
+            List<string> values = new List<string>();
+            if (domains != null)
+            {
+                foreach (DataRow row in domains.Rows)
+                {
+                    string domain = Convert.ToString(row["DomainName"]).Trim();
+                    if (domain.Length > 0)
+                        values.Add(domain);
+                }
+            }
+            return new JavaScriptSerializer().Serialize(values);
         }
 
         [WebMethod]
@@ -191,6 +208,16 @@ namespace WebPortal.IT
         public static int InsertCCInvoiceHeaders(string Header, string Domain, string Product, string PayTo, string PaymentFreq, string CostType, string EffectiveDate, string ContQuantity, string ContPerUnitCost, string ChargeableAmt)
         {
             int returnvalue = 0;
+
+            Domain = (Domain ?? string.Empty).Trim();
+            DataTable existingDomains = new bllMaster().GetInvoiceDomains();
+            if (existingDomains != null)
+            {
+                DataRow existingDomain = existingDomains.AsEnumerable().FirstOrDefault(row =>
+                    string.Equals(Convert.ToString(row["DomainName"]).Trim(), Domain, StringComparison.OrdinalIgnoreCase));
+                if (existingDomain != null)
+                    Domain = Convert.ToString(existingDomain["DomainName"]).Trim();
+            }
 
             Hashtable htParam = new Hashtable();
             htParam.Add("Header", Header);
