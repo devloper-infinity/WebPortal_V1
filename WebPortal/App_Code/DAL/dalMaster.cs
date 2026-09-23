@@ -1238,6 +1238,41 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public int InsertProjectManager(string projectManagerCode, int addedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertProjectManager");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectManager", SqlDbType.VarChar, 100, ParameterDirection.Input, projectManagerCode);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, addedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
+        }
+
+        public int UpdateProjectManager(string projectManagerCode, int projectManagerId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateProjectManager");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectManagerID", SqlDbType.BigInt, 0, ParameterDirection.Input, projectManagerId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectManagerName", SqlDbType.VarChar, 100, ParameterDirection.Input, projectManagerCode);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
+        }
+
+        public int DeleteProjectManager(int projectManagerId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_deleteProjectManager");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectManagerID", SqlDbType.BigInt, 0, ParameterDirection.Input, projectManagerId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return returnValue;
+        }
+
         public DataTable GetAllDesignation()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllDesignation");

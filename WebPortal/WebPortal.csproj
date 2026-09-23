@@ -286,6 +286,7 @@
     <Content Include="Admin\EditAttendanceCorrectionRequest.aspx" />
     <Content Include="Admin\EditInfinityFeedback.aspx" />
     <Content Include="Admin\ErrorTypeMaster.aspx" />
+    <Content Include="Admin\ProjectManagerMaster.aspx" />
     <Content Include="Admin\EditSecuritizationTracking.aspx" />
     <Content Include="Admin\EmployeeDocuments.aspx" />
     <Content Include="Admin\EmployeeInformation.aspx" />
@@ -4209,6 +4210,10 @@
     </Compile>
     <Compile Include="Admin\ErrorTypeMaster.aspx.cs">
       <DependentUpon>ErrorTypeMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ProjectManagerMaster.aspx.cs">
+      <DependentUpon>ProjectManagerMaster.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\EditSecuritizationTracking.aspx.cs">

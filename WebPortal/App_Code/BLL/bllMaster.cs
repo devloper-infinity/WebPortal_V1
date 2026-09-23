@@ -666,6 +666,21 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllProjectManager();
         }
 
+        public int InsertProjectManager(string projectManagerCode, int addedBy)
+        {
+            return dalMaster.InsertProjectManager(projectManagerCode, addedBy);
+        }
+
+        public int UpdateProjectManager(string projectManagerCode, int projectManagerId)
+        {
+            return dalMaster.UpdateProjectManager(projectManagerCode, projectManagerId);
+        }
+
+        public int DeleteProjectManager(int projectManagerId)
+        {
+            return dalMaster.DeleteProjectManager(projectManagerId);
+        }
+
         public DataTable GetAllDesignation()
         {
             return dalMaster.GetAllDesignation();
