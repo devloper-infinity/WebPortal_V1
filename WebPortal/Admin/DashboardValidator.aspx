@@ -47,11 +47,12 @@
             <div class="form-group">
                 <label for="dashboardReportFile">Dashboard Report</label>
                 <input id="dashboardReportFile" name="dashboardReportFile" type="file" class="form-control" accept=".xlsx" required />
+                <div class="dv-note">Upload an unprotected .xlsx file. Password-protected workbooks are not supported.</div>
             </div>
             <div class="form-group mt-3">
                 <label for="validationFile">Validation File</label>
                 <input id="validationFile" name="validationFile" type="file" class="form-control" accept=".xlsx" required />
-                <div class="dv-note">Used to validate Phase 1 exception keywords against the Grade columns.</div>
+                <div class="dv-note">Upload an unprotected .xlsx file used to validate Phase 1 exception keywords against the Grade columns.</div>
             </div>
             <div class="dv-actions">
                 <button id="generateButton" type="submit" class="btn btn-success">

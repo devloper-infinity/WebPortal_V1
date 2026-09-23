@@ -389,6 +389,8 @@ FodyWeavers.xsd
 /WebPortal/Admin/*
 !/WebPortal/Admin/ErrorTypeMaster.aspx
 !/WebPortal/Admin/ErrorTypeMaster.aspx.cs
+!/WebPortal/Admin/ProjectManagerMaster.aspx
+!/WebPortal/Admin/ProjectManagerMaster.aspx.cs
 !/WebPortal/Admin/MonthlyBirthdays.aspx
 !/WebPortal/Admin/MonthlyBirthdays.aspx.cs
 !/WebPortal/Admin/MonthlyBirthdays.aspx.designer.cs

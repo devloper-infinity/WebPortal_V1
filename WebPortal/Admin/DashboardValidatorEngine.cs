@@ -1,27 +1,23 @@
 using ClosedXML.Excel;
-using Excel = Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace WebPortal.Admin
 {
     internal static class DashboardValidatorEngine
     {
-        private const string InputWorkbookPassword = "PTU_PRP_1";
-
         internal static IList<Phase2ResultRow> Generate(string inputPath, string validationPath, string templatePath, string outputPath)
         {
-            string readableInput = null;
             IList<Phase2ResultRow> phase2Results = null;
             try
             {
-                readableInput = MakeReadableInput(inputPath);
-                using (var inputWorkbook = new XLWorkbook(readableInput))
+                ValidateUnprotectedXlsx(inputPath, "Dashboard Report");
+                ValidateUnprotectedXlsx(validationPath, "Validation File");
+                using (var inputWorkbook = new XLWorkbook(inputPath))
                 using (var outputWorkbook = new XLWorkbook(templatePath))
                 {
                     IXLWorksheet inputSheet = FindInputSheet(inputWorkbook);
@@ -63,62 +59,18 @@ namespace WebPortal.Admin
             {
                 throw new InvalidOperationException("Unable to generate the cleaned dashboard report. " + ex.Message, ex);
             }
-            finally
-            {
-                if (!string.IsNullOrWhiteSpace(readableInput) && !string.Equals(readableInput, inputPath, StringComparison.OrdinalIgnoreCase))
-                    SafeDelete(readableInput);
-            }
         }
 
-        private static string MakeReadableInput(string inputPath)
+        private static void ValidateUnprotectedXlsx(string path, string label)
         {
-            if (!IsCompoundDocument(inputPath))
-                return inputPath;
-
-            string decryptedPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".xlsx");
-            Excel.Application application = null;
-            Excel.Workbook workbook = null;
-
-            try
-            {
-                application = new Excel.Application { Visible = false, DisplayAlerts = false };
-                workbook = application.Workbooks.Open(inputPath, 0, true, 5, InputWorkbookPassword);
-                workbook.SaveAs(decryptedPath, Excel.XlFileFormat.xlOpenXMLWorkbook, string.Empty);
-                workbook.Close(false);
-                Marshal.FinalReleaseComObject(workbook);
-                workbook = null;
-                return decryptedPath;
-            }
-            catch (COMException ex)
-            {
-                SafeDelete(decryptedPath);
-                throw new InvalidOperationException("The Dashboard Report could not be opened. Confirm that it is a valid Excel workbook protected with the expected password.", ex);
-            }
-            finally
-            {
-                if (workbook != null)
-                {
-                    try { workbook.Close(false); } catch { }
-                    Marshal.FinalReleaseComObject(workbook);
-                }
-                if (application != null)
-                {
-                    try { application.Quit(); } catch { }
-                    Marshal.FinalReleaseComObject(application);
-                }
-            }
-        }
-
-        private static bool IsCompoundDocument(string path)
-        {
-            byte[] signature = new byte[8];
+            byte[] signature = new byte[4];
             using (FileStream stream = File.OpenRead(path))
             {
                 if (stream.Read(signature, 0, signature.Length) != signature.Length)
-                    throw new InvalidOperationException("The Dashboard Report is empty or invalid.");
+                    throw new InvalidOperationException(label + " is empty or invalid.");
             }
-            byte[] expected = { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
-            return signature.SequenceEqual(expected);
+            if (signature[0] != 0x50 || signature[1] != 0x4B)
+                throw new InvalidOperationException(label + " must be an unprotected .xlsx file. Remove the Excel password and upload the file again.");
         }
 
         private static IXLWorksheet FindInputSheet(XLWorkbook workbook)
@@ -475,7 +427,10 @@ namespace WebPortal.Admin
                     }
 
                     string loanHeader = loanHeaders.FirstOrDefault(x => columns.ContainsKey(Normalize(x)));
-                    if (loanHeader == null || gradeHeaders.Any(x => !columns.ContainsKey(Normalize(x))))
+                    List<string> availableGradeHeaders = gradeHeaders
+                        .Where(x => columns.ContainsKey(Normalize(x)))
+                        .ToList();
+                    if (loanHeader == null || availableGradeHeaders.Count == 0)
                         continue;
 
                     var lookup = new Dictionary<string, ValidationDataRow>(StringComparer.OrdinalIgnoreCase);
@@ -487,7 +442,7 @@ namespace WebPortal.Admin
                             throw new InvalidOperationException("Validation File contains duplicate Loan # '" + loanId + "'.");
 
                         var gradeCells = new List<ValidationGradeCell>();
-                        foreach (string gradeHeader in gradeHeaders)
+                        foreach (string gradeHeader in availableGradeHeaders)
                         {
                             string key = Normalize(gradeHeader);
                             gradeCells.Add(new ValidationGradeCell(actualHeaders[key], sheet.Cell(row, columns[key]).Value));
@@ -498,7 +453,7 @@ namespace WebPortal.Admin
                 }
             }
 
-            throw new InvalidOperationException("Validation File must contain Loan # and all four required Grade exception columns.");
+            throw new InvalidOperationException("Validation File must contain a supported Loan # column and at least one Grade exception column.");
         }
 
         private static void WriteRows(IXLWorksheet sheet, int headerRow, int firstColumn, int lastColumn, IList<SourceRow> rows, Action<IXLRow, SourceRow> afterWrite)
@@ -555,11 +510,6 @@ namespace WebPortal.Admin
                 }
             }
             return result.ToString();
-        }
-
-        private static void SafeDelete(string path)
-        {
-            try { if (File.Exists(path)) File.Delete(path); } catch { }
         }
 
         private sealed class VerticalBlock
