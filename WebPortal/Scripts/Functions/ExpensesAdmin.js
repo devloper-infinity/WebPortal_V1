@@ -1,4 +1,73 @@
-﻿
+﻿//Submit Recreation Activity
+function ExpensesRecreationActivitySubmit() {
+
+    var RecreationActivity = $("#Expensesrecreationactivity").val();
+
+    if (RecreationActivity === "") {
+        Swal.fire("Validation", "Please Select Recreation Activity", "warning");
+        return false;
+    }
+
+    var formData = {
+        RecreationActivity: RecreationActivity,
+    };
+
+    $.ajax({
+        type: "POST",
+        url: "ExpensesAdmin.aspx/SaveExpenseRecreationActivity",
+        data: JSON.stringify(formData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var serverMessage = response.d;
+            if (serverMessage === "Recreation Activity saved successfully!") {
+                Swal.fire("Success", serverMessage, "success").then((result) => {
+                    if (result.isConfirmed) {
+                        $("#Expensesrecreationactivity").val(""); 
+                    }
+                });
+            }
+            else if (serverMessage === "Recreation Activity already exists!") {
+                Swal.fire("Warning", serverMessage, "warning");
+            }
+            else {
+                Swal.fire("Error", serverMessage, "error");
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.fire("Error", "Server Error: " + error, "error");
+        }
+    });
+    return false;
+}
+
+
+//Fetch Recreation Activity
+function bindExpensesRecreationActivity() {
+    var select = document.getElementById("dllExpensesRecreationActivity");
+    let options = select.getElementsByTagName('optionRecreationActivity');
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#dllExpensesRecreationActivity").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ExpensesAdmin.aspx/GetRecreationActivity", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $("#dllExpensesRecreationActivity").append($("<option></option>").val(value.RecreationActivityId).html(value.RecreationActivity));
+            })
+        }
+    });
+
+}
+
+
+
+
+
+
+
+
 // Bind Location
 function bindLocation() {
     var select = document.getElementById("location");
@@ -21,16 +90,16 @@ function bindLocation() {
 }
 
 //Bind Planned Month dropdown
-// function bindPlannedMonth() {
-//     const dropdown = document.getElementById("PlannedMonth");
-//     const currentYear = new Date().getFullYear();
-//     $("#PlannedMonth").append($("<option></option>").val("").html("Select"));
-//     for (let m = 0; m < 12; m++) {
-//         const monthName = new Date(currentYear, m).toLocaleString('default', { month: 'short' });
-//         dropdown.innerHTML += `<option value="${monthName}-${currentYear}">${monthName}-${currentYear}</option>`;
-//     }
+function bindPlannedMonth() {
+    const dropdown = document.getElementById("PlannedMonth");
+    const currentYear = new Date().getFullYear();
+    $("#PlannedMonth").append($("<option></option>").val("").html("Select"));
+    for (let m = 0; m < 12; m++) {
+        const monthName = new Date(currentYear, m).toLocaleString('default', { month: 'short' });
+        dropdown.innerHTML += `<option value="${monthName}-${currentYear}">${monthName}-${currentYear}</option>`;
+    }
 
-// }
+}
 
 //Show Selected Recreation Activity in TextBox
 function showSelectedValue() {

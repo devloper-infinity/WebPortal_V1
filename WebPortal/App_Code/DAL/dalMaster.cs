@@ -6223,7 +6223,8 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@VideoPath", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["VideoPath"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 15, System.Data.ParameterDirection.Input, htParam["Date"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CreatedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Branch"]);  
+            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Branch"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Remark"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
@@ -6264,6 +6265,23 @@ namespace WebPortal.App_Code.DAL
         }
 
 
+        public int SaveExpenseRecreationActivity(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAdminExpensesRecreationActivity_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@RecreationActivity", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["RecreationActivity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CreatedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["CreatedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public DataTable GetRecreationActivity()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetRecreationActivity_YTU");
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
         public int InsertAdminExpensesData(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAdminExpensesData_YTU");

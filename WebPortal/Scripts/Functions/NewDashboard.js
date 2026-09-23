@@ -247,7 +247,7 @@ function runPopupSequence() {
         { id: "dash_birthdayModal_all", key: "allBirthday", type: "once_per_day" },
         { id: "dash_festWish_PopUp", key: "festival", type: "once_per_day" },
         { id: "dash_projectNotifications", key: "projectNotifications", type: "once_per_day" },
-
+        { id: "adminimagePreviewModalpopup", key: "adminFestivalPreview", type: "once_per_day" },
         /*{ id: "dashboard_alertdetails", type: "every_login" },*/
         { id: "dash_expiryModal", key: "passwordExpirary", type: "every_login" },
         { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" }

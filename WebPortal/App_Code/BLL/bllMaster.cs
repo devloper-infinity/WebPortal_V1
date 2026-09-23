@@ -2787,6 +2787,17 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAdminFestivalDataForPopUp(festivalDate, location);
         }
 
+
+
+        public int SaveExpenseRecreationActivity(Hashtable htParam)
+        {
+            return dalMaster.SaveExpenseRecreationActivity(htParam);
+        }
+
+        public DataTable GetRecreationActivity()
+        {
+            return dalMaster.GetRecreationActivity();
+        } 
         public int InsertAdminExpensesData(Hashtable htParam)
         {
             return dalMaster.InsertAdminExpensesData(htParam);

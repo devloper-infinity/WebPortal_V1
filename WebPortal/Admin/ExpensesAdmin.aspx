@@ -358,6 +358,7 @@
         $(document).ready(function () {
             bindLocation();
             BindAdminExpenseData();
+            bindPlannedMonth();
         });
 
 
@@ -392,8 +393,13 @@
 
 
         <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+           <li class="nav-item">
+        <a class="nav-link active" id="custom-tabs-one-home-tab_RecreationActivity" data-toggle="pill" href="#custom-tabs-one-home-tab_Recreation" role="tab" aria-controls="custom-tabs-one-home-tab_Recreation" aria-selected="true">
+            <b><i class="fas fa-edit"></i> Recreation Activity Master</b>
+        </a>
+    </li>
             <li class="nav-item">
-                <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b><i class="fas fa-edit"></i>Expenses Details & List</b></a>
+                <a class="nav-link" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b><i class="fas fa-edit"></i>Expenses Details & List</b></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">
@@ -404,7 +410,98 @@
 
         <div class="tab-content" id="custom-tabs-one-tabContent">
 
-            <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+
+             <div class="tab-pane fade show active" id="custom-tabs-one-home-tab_Recreation" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab_RecreationActivity">
+        <div class="p-3">
+            <ul class="nav nav-tabs" id="sub-tabs-recreation" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="recreation-activity-tab" data-toggle="pill" href="#recreation-activity-content" role="tab" aria-controls="recreation-activity-content" aria-selected="true">
+            <b><i class="fas fa-edit"></i> Recreation Activity</b>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="yearly-budget-tab" data-toggle="pill" href="#yearly-budget-content" role="tab" aria-controls="yearly-budget-content" aria-selected="false">
+            <b><i class="fas fa-wallet"></i> Yearly Budget</b>
+        </a>
+    </li>
+</ul>
+             
+            <div class="tab-content" id="sub-tabs-content">
+                <div class="tab-pane fade show active" id="recreation-activity-content" role="tabpanel" aria-labelledby="recreation-activity-tab">
+                    <div class="card p-3">
+    <div class="row align-items-end">
+        <!-- Input Field Column -->
+        <div class="col-md-5">
+            <div class="dp-field mb-0">
+                <label>Recreation Activity</label>
+                <input type="text" id="Expensesrecreationactivity" name="Expensesrecreationactivity" class="form-control" />
+            </div>           
+        </div>
+        
+        <!-- Button Column -->
+        <div class="col-md-2">
+            <button type="button" class="btn btn-submit w-100" id="Expensesrecreationactivity_btnsubmit" name="Expensesrecreationactivity_btnsubmit" onclick="ExpensesRecreationActivitySubmit();">
+                <i class="fa fa-paper-plane"></i>
+                <span id="ExpensesrecreationactivitybtnText">Submit</span>
+            </button>
+        </div>
+    </div>
+</div>
+                </div>
+                 
+              <div class="tab-pane fade" id="yearly-budget-content" role="tabpanel" aria-labelledby="yearly-budget-tab">
+    <div class="card p-3">
+        <div class="row align-items-end g-3">
+            
+            <!-- 1. Activity Dropdown -->
+            <div class="col-md-3">
+                <div class="dp-field mb-0">
+                    <label for="ExpensesRecreationActivity" class="form-label">Recreation Activity</label>
+                    <select id="dllExpensesRecreationActivity" name="dllExpensesRecreationActivity" class="form-control">
+                       
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. Budget Textbox -->
+            <div class="col-md-3">
+                <div class="dp-field mb-0">
+                    <label for="yearly_budget_input" class="form-label">Budget</label>
+                    <input type="number" id="yearly_budget_input" name="yearly_budget_input" class="form-control" placeholder="Enter budget" />
+                </div>
+            </div>
+
+            <!-- 3. Year Dropdown -->
+            <div class="col-md-3">
+                <div class="dp-field mb-0">
+                    <label for="yearly_year_dropdown" class="form-label">Year</label>
+                    <select id="yearly_year_dropdown" name="yearly_year_dropdown" class="form-control">
+                        <option value="">Select Year</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 4. Submit Button -->
+            <div class="col-md-3">
+                <button type="button" class="btn btn-submit w-100" id="yearly_budget_btnsubmit" name="yearly_budget_btnsubmit">
+    <i class="fa fa-paper-plane"></i>
+    <span id="yearly_budget_btnsubmitspan">Submit</span>
+</button>
+               
+            </div>
+
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+
+
+            <div class="tab-pane fade" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
                 <div class="Expenses-card">
 
                     <div class="Expenses-card-body">
@@ -437,8 +534,9 @@
 
                             <div class="dp-field">
                                 <label>Activities Date</label>
-                                <input type="date" id="Date" name="Date" class="form-control" />
-                            </div>
+ <select id="PlannedMonth" name="PlannedMonth" class="form-control">
+   
+ </select>                            </div>
                             <div class="dp-field">
                                 <label>Completed Date</label>
                                 <input type="date" id="CompletedDate" name="CompletedDate" class="form-control" />

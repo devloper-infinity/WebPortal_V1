@@ -508,11 +508,11 @@
         <div class="festival-shell">
             <div class="sec-hero">
                 <span class="sec-hero-icon" aria-hidden="true">
-                    <i class="fas fa-gifts"></i>
+                    <i class="fas fa-photo-video"></i>
                 </span>
                 <div class="sec-hero-copy">
-                    <h1 class="sec-title">Festival Wishes</h1>
-                    <p class="sec-subtitle">Create festive greetings, choose the right audience, and keep every celebration image ready for its display date.</p>
+                    <h1 class="sec-title">Admin Dashboard Alert</h1>
+                    <p class="sec-subtitle">Create event alerts, and keep every celebration images and video ready for its display date.</p>
                 </div>
             </div>
 
@@ -522,8 +522,8 @@
                         <div class="section-title-wrap">
                             <span class="section-icon" aria-hidden="true"><i class="fas fa-calendar-day"></i></span>
                             <div>
-                                <h3 class="section-title">Create Festival Wish</h3>
-                                <p class="section-subtitle">Set the occasion, audience filters, display date, and celebration image and video.</p>
+                                <h3 class="section-title">Create Dashboard Alert</h3>
+                                <p class="section-subtitle">Set the Title,location, display date, and celebration images and video.</p>
                             </div>
                         </div>
                     </div>
@@ -546,7 +546,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label for="festWish_date">Date</label>
+                                <label for="festWish_date">Display Date</label>
                                 <input type="date" id="adminfestWish_date" class="form-control" />
                             </div>
                             <div class="col-md-4">
@@ -563,16 +563,28 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
+
+
+
+                      <div class="row mb-3"> 
+    <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-6 mb-3">
                                 <label for="adminfestWish_Video">Video</label>
                                 <input type="file" id="adminfestWish_Video" class="form-control" accept="video/*" />
                             </div>
 
-                            <div class="col-md-4">
+                           <div class="col-md-6 mb-3">
                                 <label for="adminfestWish_attachment">Image</label>
                                 <input type="file" id="adminfestWish_attachment" class="form-control" multiple accept="image/*" onchange="previewSelectedFiles(this)" />
                             </div>
+
+             <div class="col-md-12">
+                <label for="adminfestWish_remark">Remark</label>
+                <textarea id="adminfestWish_remark" name="adminfestWish_remark" class="form-control" rows="3"  style="resize: none;"></textarea>
+            </div>
+        </div>
+    </div>
 
                             <div class="col-md-4">
                                 <label>Selected Images</label>
@@ -592,6 +604,10 @@
                                 </div>
                             </div>
                         </div>
+
+
+
+
                         <div class="actions-row">
                             <button type="button" class="festival-submit-btn" id="adminfestWish_btnsubmit" onclick="return adminfestWish_SubmitData();">
                                 <i class="fas fa-paper-plane" aria-hidden="true"></i>
@@ -606,8 +622,8 @@
                         <div class="section-title-wrap">
                             <span class="section-icon" aria-hidden="true"><i class="fas fa-images"></i></span>
                             <div>
-                                <h3 class="section-title">Festival Wishes List</h3>
-                                <p class="section-subtitle">Review uploaded wishes and remove records that are no longer needed.</p>
+                                <h3 class="section-title">Dashboard Alerts List</h3>
+                                <p class="section-subtitle">Review uploaded Images,video and remove records that are no longer needed.</p>
                             </div>
                         </div>
                     </div>
@@ -624,6 +640,8 @@
                                         <th>Display Date</th>
                                         <th>Uploaded By</th>
                                         <th>Uploaded Date</th>
+                                                                                <th>Remark</th>
+
                                     </tr>
                                 </thead>
                             </table>
@@ -642,9 +660,13 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body text-center">
+                <div class="modal-body text-center position-relative">
+                    <button type="button" onclick="adminChangeImagePreview(-1)" class="img-arrow-btn" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(4 4 4); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; z-index: 10; display: none;">❮</button>
+
                     <img id="adminpreviewImage" class="festival-preview-image" alt="Festival preview" style="max-width: 100%; max-height: 450px;" />
                     <video id="adminpreviewVideo" controls style="max-width: 100%; height: 500px; display: none;"></video>
+
+                    <button type="button" onclick="adminChangeImagePreview(1)" class="img-arrow-btn" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(4 4 4); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; z-index: 10; display: none;">❯</button>
                     <div id="imageDotsContainer" class="mt-3" style="display: none; justify-content: center; gap: 8px;">
                     </div>
                 </div>

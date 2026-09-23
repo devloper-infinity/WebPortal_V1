@@ -14,27 +14,23 @@ $(document).ready(function () {
                 var mediaList = [];
                 
                 if (data.ImagePaths) {
-                    var imgCounter = 0;
-                    data.ImagePaths.forEach(p => {
+                    for (var i = 0; i < data.ImagePaths.length; i++) {
                         mediaList.push({
                             type: 'img',
-                            src: p,
-                            title: (data.Titles && data.Titles[imgCounter]) ? data.Titles[imgCounter] : data.Title
+                            src: data.ImagePaths[i],
+                            title: (data.Titles && data.Titles[i]) ? data.Titles[i] : data.Title
                         });
-                        imgCounter++;
-                    });
+                    }
                 }
 
                 if (data.VideoPaths) {
-                    var vidCounter = 0;
-                    data.VideoPaths.forEach(p => {
+                    for (var j = 0; j < data.VideoPaths.length; j++) {
                         mediaList.push({
                             type: 'vid',
-                            src: p,
-                            title: (data.Titles && data.Titles[vidCounter]) ? data.Titles[vidCounter] : data.Title
+                            src: data.VideoPaths[j],
+                            title: (data.VideoTitles && data.VideoTitles[j]) ? data.VideoTitles[j] : data.Title
                         });
-                        vidCounter++;
-                    });
+                    }
                 }
 
                 if (mediaList.length > 0) {
@@ -45,8 +41,11 @@ $(document).ready(function () {
         }
     });
 });
-
+var globalMediaList = [];
+var adminfestival_currentIndex = 0;
 function showMedia(idx, list) {
+    globalMediaList = list; 
+    adminfestival_currentIndex = idx;
     var box = $('#adminMediaBox').empty();
     var dots = $('#adminDotsBox').empty();
 
@@ -66,5 +65,12 @@ function showMedia(idx, list) {
             dot.click(function () { showMedia(parseInt($(this).attr('data-i')), list); });
             dots.append(dot);
         }
+    }
+}
+
+function changeMedia(direction) {
+    if (globalMediaList.length > 1) {
+        adminfestival_currentIndex = (adminfestival_currentIndex + direction + globalMediaList.length) % globalMediaList.length;
+        showMedia(adminfestival_currentIndex, globalMediaList);
     }
 }

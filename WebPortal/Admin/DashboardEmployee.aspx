@@ -1654,7 +1654,7 @@
     <%-- <script src="../Scripts/Functions/NewDash.js"></script>--%>
     <%--<script src="../Scripts/Functions/NewDash2.js"></script>--%>
 
-      <script src="../Scripts/Functions/FestivalPopupForAdmin.js"></script>
+      
 
 </asp:Content>
 
@@ -2714,8 +2714,11 @@
                         <span aria-hidden="true" style="color: red;">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body text-center bg-white">
+                <div class="modal-body text-center bg-white position-relative">
                     <div id="adminMediaBox" class="mb-3" style="height: 440px; width: 100%; display: flex; align-items: center; justify-content: center; background-color: #000; border-radius: 8px; overflow: hidden;"></div>
+<button type="button" onclick="changeMedia(-1)" class="btn btn-dark position-absolute" style="left: 5px; top: 45%; border-radius: 50%; background: #fff; color: #000; font-size: 20px;">&#10094;</button>
+
+<button type="button" onclick="changeMedia(1)" class="btn btn-dark position-absolute" style="right: 5px; top: 45%; border-radius: 50%; background: #fff; color: #000; font-size: 20px;">&#10095;</button>
                     <div id="adminDotsBox" class="d-flex justify-content-center" style="gap: 8px;"></div>
                 </div>
             </div>
@@ -3865,4 +3868,5 @@
     </style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.x.x/css/all.min.css">
+    <script src="../Scripts/Functions/FestivalPopupForAdmin.js"></script>
 </asp:Content>

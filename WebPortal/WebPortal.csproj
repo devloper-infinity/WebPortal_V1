@@ -3155,6 +3155,7 @@
     <Compile Include="Admin\ExpensesAdmin.aspx.designer.cs">
       <DependentUpon>ExpensesAdmin.aspx</DependentUpon>
     </Compile>
+    <Compile Include="App_Code\Class\RecreationActivitycls.cs" />
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
     <Compile Include="App_Code\RnrSecurity.cs" />
     <Compile Include="Admin\RNRAdmin.aspx.cs">
