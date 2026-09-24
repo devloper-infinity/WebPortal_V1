@@ -1095,7 +1095,6 @@ namespace WebPortal.Search
             foreach (DataRow row in costEmailDetails.Rows)
             {
                 string storedPath = GetDataRowValue(row, "AttachmentPath").Trim();
-                string orderId = GetDataRowValue(row, "OrderID");
                 if (string.IsNullOrWhiteSpace(storedPath))
                 {
                     continue;
@@ -1112,7 +1111,8 @@ namespace WebPortal.Search
 
                     if (File.Exists(physicalPath) && physicalPaths.Add(physicalPath))
                     {
-                        files.Add(new KeyValuePair<string, string>(orderId, physicalPath));
+                        string orderNo = Path.GetFileName(Path.GetDirectoryName(physicalPath));
+                        files.Add(new KeyValuePair<string, string>(orderNo, physicalPath));
                     }
                     else if (Directory.Exists(physicalPath))
                     {
@@ -1121,7 +1121,8 @@ namespace WebPortal.Search
                             string fullFilePath = Path.GetFullPath(file);
                             if (physicalPaths.Add(fullFilePath))
                             {
-                                files.Add(new KeyValuePair<string, string>(orderId, fullFilePath));
+                                string orderNo = Path.GetFileName(Path.GetDirectoryName(fullFilePath));
+                                files.Add(new KeyValuePair<string, string>(orderNo, fullFilePath));
                             }
                         }
                     }
@@ -1152,18 +1153,18 @@ namespace WebPortal.Search
             return Path.GetFullPath(HttpContext.Current.Server.MapPath("~/" + normalizedPath.Replace('\\', '/')));
         }
 
-        private static string GetUniqueZipEntryName(HashSet<string> entryNames, string orderId, string fileName)
+        private static string GetUniqueZipEntryName(HashSet<string> entryNames, string orderNo, string fileName)
         {
-            string safeOrderId = GetSafeFileName(string.IsNullOrWhiteSpace(orderId) ? "UnknownOrder" : orderId);
+            string safeOrderNo = GetSafeFileName(string.IsNullOrWhiteSpace(orderNo) ? "UnknownOrder" : orderNo);
             string safeFileName = GetSafeFileName(fileName);
-            string entryName = safeOrderId + "/" + safeFileName;
+            string entryName = safeOrderNo + "/" + safeFileName;
             int duplicateNumber = 2;
 
             while (!entryNames.Add(entryName))
             {
                 string baseName = Path.GetFileNameWithoutExtension(safeFileName);
                 string extension = Path.GetExtension(safeFileName);
-                entryName = safeOrderId + "/" + baseName + "_" + duplicateNumber++ + extension;
+                entryName = safeOrderNo + "/" + baseName + "_" + duplicateNumber++ + extension;
             }
 
             return entryName;
