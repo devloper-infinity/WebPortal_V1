@@ -357,11 +357,28 @@
     <script>
         $(document).ready(function () {
             bindLocation();
-            BindAdminExpenseData();
-            bindPlannedMonth();
+           // BindAdminExpenseData();
+            //bindPlannedMonth();
+            bindExpensesRecreationActivity();
+            bindExpdetailsRecreationActivity();
         });
 
 
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const maxDate = `${year}-${month}`;
+
+            const monthInput = document.getElementById('expActivitiesMonth');
+            if (monthInput) {
+                monthInput.max = maxDate;
+                monthInput.value = maxDate;
+            }
+        });
     </script>
     <script src="../Scripts/Functions/ExpensesAdmin.js" type="text/javascript"></script>
 
@@ -514,38 +531,66 @@
 
                             <div class="dp-field">
                                 <label>Recreation Activity</label>
-                                <select id="RecreationActivity" name="RecreationActivity" class="form-control" required onchange="showSelectedValue()">
-                                    <option value="Select">Select</option>
-                                    <option value="Birthday Celebration with Cake">Birthday Celebration with Cake</option>
-                                    <option value="26th January republic day">26th January republic day</option>
-                                    <option value="New Year Celebration ">New Year Celebration </option>
-                                    <option value="Women's Day">Women's Day</option>
-                                    <option value="Ciricket IPL">Ciricket IPL</option>
-                                    <option value="Farewell">Farewell</option>
-                                    <option value="R&R Refreshment -1st and 2nd Quarter">R&R Refreshment -1st and 2nd Quarter</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                               <select id="dllexpdetailsRecreationActivity" name="dllexpdetailsRecreationActivity" class="form-control">
+     
+  </select>
                             </div>
 
                             <div class="dp-field" id="otherFieldContainer">
-                                <label>Selected Recreation Activity</label>
-                                <input type="text" id="otherActivity" name="otherActivity" class="form-control" placeholder="Selected activity name" readonly />
+                                <label>Quarter</label>
+<div class="dropdown">
+    <button id="quarterDropdownBtn" class="form-control dropdown-toggle text-left" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
+        Select Quarter
+    </button>
+    
+    <div class="dropdown-menu multi-dropdown-menu" style="padding: 10px; width: 100%;">
+        <label style="cursor: pointer; display: block; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 5px;">
+            <input type="checkbox" id="select_all_quarter" />
+            <b>Select All</b>
+        </label>
+                <div id="quarterList">
+            <label style="display: block; cursor: pointer;"><input type="checkbox" name="ExpAdminQuarter" value="January - March">January - March</label>
+            <label style="display: block; cursor: pointer;"><input type="checkbox" name="ExpAdminQuarter" value="April - June">April - June</label>
+            <label style="display: block; cursor: pointer;"><input type="checkbox" name="ExpAdminQuarter" value="July - September">July - September</label>
+            <label style="display: block; cursor: pointer;"><input type="checkbox" name="ExpAdminQuarter" value="October - December">October - December</label>
+        </div>
+    </div>
+</div>
                             </div>
 
+
+
+
                             <div class="dp-field">
-                                <label>Activities Date</label>
- <select id="PlannedMonth" name="PlannedMonth" class="form-control">
-   
- </select>                            </div>
+    <label for="expActivitiesMonth">Activities Month</label>
+    
+    <input type="month" id="expActivitiesMonth" name="expActivitiesMonth" class="form-control" min="2000-01" >
+</div>
+
+
+
+                            <div class="dp-field">
+                                <label>Shift</label>
+                                <select id="ExpShift" name="ExpShift" class="form-control">
+                                    <option value="Select">Select</option>
+                                    <option value="Day">Day</option>
+                                    <option value="Night">Night</option>
+                                    <option value="Both">Both</option>
+
+                                </select>
+                            </div>
+                            <div class="dp-field">
+                                <label>Actual Expense</label>
+                                <input type="number" id="ActualExpense" name="ActualExpense" class="form-control" />
+                            </div>
+
                             <div class="dp-field">
                                 <label>Completed Date</label>
                                 <input type="date" id="CompletedDate" name="CompletedDate" class="form-control" />
                             </div>
 
-                            <div class="dp-field">
-                                <label>Actual Expense</label>
-                                <input type="number" id="ActualExpense" name="ActualExpense" class="form-control" />
-                            </div>
+                       
+
                             <div class="dp-field">
                                 <label>Status</label>
                                 <select id="Status" name="Status" class="form-control">
@@ -555,7 +600,7 @@
                                 </select>
                             </div>
 
-                            <div class="dp-field span-2">
+                            <div class="dp-field">
                                 <label>Remark</label>
                                 <textarea id="remark" name="remark" style="resize: none;" rows="1" class="form-control"></textarea>
                             </div>

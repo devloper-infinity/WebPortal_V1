@@ -171,6 +171,10 @@ namespace WebPortal.Admin
                 }
 
                 DataTable dtFestival = new bllMaster().GetAdminFestivalDataForPopUp(currentDate, userLocation);
+                if (dtFestival == null || dtFestival.Rows.Count == 0)
+                {
+                    return null;
+                }
 
                 if (dtFestival != null && dtFestival.Rows.Count > 0)
                 {

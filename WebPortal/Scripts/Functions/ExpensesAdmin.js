@@ -58,8 +58,49 @@ function bindExpensesRecreationActivity() {
             })
         }
     });
+}
+
+//Fetch Recreation Activity For Details
+function bindExpdetailsRecreationActivity() {
+    var select = document.getElementById("dllexpdetailsRecreationActivity");
+    let options = select.getElementsByTagName('option');
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#dllexpdetailsRecreationActivity").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ExpensesAdmin.aspx/GetRecreationActivity", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $("#dllexpdetailsRecreationActivity").append($("<option></option>").val(value.RecreationActivityId).html(value.RecreationActivity));
+            })
+        }
+    });
 
 }
+
+//Quater Dropdown Enable when select RnR Value
+$(document).on('change', '#dllexpdetailsRecreationActivity', function () {
+    // ID aivaji selected option cha visible text milvnyasathi:
+    let selectedText = $("#dllexpdetailsRecreationActivity option:selected").text();
+    let isRewards = selectedText.trim() === "Rewards and Recognition";
+
+    console.log("Selected Text:", selectedText);
+    console.log("Is Rewards and Recognition?", isRewards);
+
+    $('#quarterDropdownBtn').prop('disabled', !isRewards);
+
+    $('#otherFieldContainer').css({
+        'opacity': isRewards ? '1' : '0.5',
+        'pointer-events': isRewards ? 'auto' : 'none'
+    });
+
+    if (!isRewards) {
+        $('#otherFieldContainer input[type="checkbox"]').prop('checked', false);
+        $('#select_all_quarter').prop('checked', false);
+        $('#quarterDropdownBtn').text('Select Quarter');
+    }
+});
 
 
 
@@ -89,40 +130,23 @@ function bindLocation() {
 
 }
 
-//Bind Planned Month dropdown
-function bindPlannedMonth() {
-    const dropdown = document.getElementById("PlannedMonth");
-    const currentYear = new Date().getFullYear();
-    $("#PlannedMonth").append($("<option></option>").val("").html("Select"));
-    for (let m = 0; m < 12; m++) {
-        const monthName = new Date(currentYear, m).toLocaleString('default', { month: 'short' });
-        dropdown.innerHTML += `<option value="${monthName}-${currentYear}">${monthName}-${currentYear}</option>`;
-    }
+// //Bind Planned Month dropdown
+// function bindPlannedMonth() {
+//     const dropdown = document.getElementById("PlannedMonth");
+//     const currentYear = new Date().getFullYear();
+//     $("#PlannedMonth").append($("<option></option>").val("").html("Select"));
+//     for (let m = 0; m < 12; m++) {
+//         const monthName = new Date(currentYear, m).toLocaleString('default', { month: 'short' });
+//         dropdown.innerHTML += `<option value="${monthName}-${currentYear}">${monthName}-${currentYear}</option>`;
+//     }
 
-}
+// }
 
-//Show Selected Recreation Activity in TextBox
-function showSelectedValue() {
-    var selectElement = document.getElementById("RecreationActivity");
-    var otherInput = document.getElementById("otherActivity");
-    var selectedVal = selectElement.value;
-
-    if (selectedVal === "Other") {
-        otherInput.removeAttribute("readonly");
-        otherInput.value = "";
-        otherInput.focus();
-    } else if (selectedVal === "Select") {
-        otherInput.value = "";
-        otherInput.setAttribute("readonly", true);
-    } else {
-        otherInput.value = selectedVal;
-        otherInput.setAttribute("readonly", true);
-    }
-}
 
 //Submit Data
 function ExpenseSubmitData() {
     var expenseId = $("#hdnExpenseId").val() || 0;
+
     var locationId = $("#location").val();
     var otherActivity = $("#otherActivity").val();
     var Date = $("#Date").val();
@@ -294,7 +318,7 @@ function EditExpenseRow(index) {
         $('#otherActivity').removeAttr("readonly"); 
     } else {
         $('#RecreationActivity').trigger('change');
-        showSelectedValue();
+       // showSelectedValue();
     }
 
     // 1. Fixed Date Bind (Converted to YYYY-MM-DD format)

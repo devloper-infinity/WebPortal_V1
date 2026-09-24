@@ -538,7 +538,7 @@
                                     <option value="Christmas">Christmas</option>
                                     <option value="Diwali">Diwali</option>
                                     <option value="Ganesh Festival">Ganesh Festival</option>
-                                    <option value="RnR">RnR</option>
+                                    <option value="Rewards and Recognition">Rewards and Recognition</option>
                                     <option value="IPL">IPL</option>
                                     <option value="Fun Activities">Fun Activities</option>
                                     <option value="Independence Day">Independence Day</option>

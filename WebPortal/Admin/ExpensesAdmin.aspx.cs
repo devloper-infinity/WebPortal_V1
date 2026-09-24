@@ -40,7 +40,7 @@ namespace WebPortal.Admin
 
                 if (ReturnValue > 0)
                 {
-                    msg = "Data saved successfully!";
+                    msg = "Recreation Activity saved successfully!";
                 }
                 else if (ReturnValue == -1)
                 {
@@ -87,6 +87,8 @@ namespace WebPortal.Admin
             }
             return obj;
         }
+
+        //Fetch Recreation Activity
         [WebMethod]
         public static List<WebPortal.App_Code.Class.RecreationActivitycls> GetRecreationActivity()
         {

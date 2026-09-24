@@ -2706,9 +2706,9 @@
             <div class="modal-content">
                 <div class="modal-header bg-light position-relative justify-content-center py-3">
                     <div class="text-center">
-                        <h4 class="modal-title font-weight-bold mb-0 text-white" id="adminfestivalTitlepopup" style="letter-spacing: 1px; text-transform: capitalize; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"> Festival Wish Preview 
+                        <h4 class="modal-title font-weight-bold mb-0 text-white" id="adminfestivalTitlepopup" style="letter-spacing: 1px; text-transform: capitalize; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"> ERP Event Alert 
                     </h4>
-                        <span style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Celebrate with Joy & Colors</span>
+<%--                        <span style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Celebrate with Joy & Colors</span>--%>
                     </div>
                     <button type="button" class="close position-absolute" data-dismiss="modal" aria-label="Close" style="right: 15px; top: 50%; transform: translateY(-50%); outline: none;">
                         <span aria-hidden="true" style="color: red;">&times;</span>
