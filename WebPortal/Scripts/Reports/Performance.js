@@ -2,6 +2,7 @@
 var upr_feedbacktable;
 var upr_tableprod;
 var upr_table;
+var upr_consolidatedtable;
 
 
 function upr_BindUsers() {
@@ -118,6 +119,8 @@ function upr_submit() {
         }
     });
 
+    upr_bindConsolidatedReport(FromDate, ToDate);
+
     $.ajax({
         url: "UserPerformanceReport.aspx/GetUserPerformanceReport",
         type: "POST",
@@ -162,6 +165,8 @@ function upr_submit() {
                     { data: 'EmployeeName' },
                     { data: 'Employee' },
                     { data: 'LoanCount' },
+                    { data: 'TrainingProduction' },
+                    { data: 'PracticeProduction' },
                     { data: 'ProdPerc' },
                     { data: 'QualityPerc' },
                     { data: 'AttPerc' },
@@ -198,6 +203,68 @@ function upr_submit() {
     });
 
     return false;
+}
+
+function upr_bindConsolidatedReport(FromDate, ToDate) {
+    $.ajax({
+        url: "UserPerformanceReport.aspx/GetUserPerformanceConsolidatedReport",
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify({ FromDate: FromDate, ToDate: ToDate }),
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+            var dataArray = JSON.parse(data.d);
+            upr_consolidatedtable = $('#upr_consolidatedtable').DataTable({
+                dom: 'Bftip',
+                destroy: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                scrollX: true,
+                paging: true,
+                autoWidth: true,
+                ordering: false,
+                processing: true,
+                filter: true,
+                serverSide: false,
+                data: dataArray,
+                select: { style: 'single' },
+                columns: [
+                    { data: 'Code' },
+                    { data: 'EmployeeName' },
+                    { data: 'Employee' },
+                    { data: 'LoanCount' },
+                    { data: 'TrainingProduction' },
+                    { data: 'PracticeProduction' },
+                    { data: 'ProdPerc' },
+                    { data: 'QualityPerc' },
+                    { data: 'AttPerc' },
+                    { data: 'ProdGrade' },
+                    { data: 'QualGrade' },
+                    { data: 'AttnGrade' }
+                ],
+                fnCreatedRow: function (nRow) {
+                    $(nRow).children("td").css({
+                        "text-wrap": "nowrap",
+                        "text-align": "center"
+                    });
+                },
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        title: 'User Performance Consolidated Report',
+                        autoFilter: true
+                    }
+                ]
+            });
+        },
+        error: function (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: error.responseText || "Something went wrong while generating the consolidated report."
+            });
+        }
+    });
 }
 
 function core_upr_submit() {

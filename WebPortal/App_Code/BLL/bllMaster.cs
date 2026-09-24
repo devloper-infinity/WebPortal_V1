@@ -1845,6 +1845,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetUserPerformanceReport(FromDate, ToDate, EmployeeID);
         }
 
+        public DataTable GetUserPerformanceConsolidatedReport(string FromDate, string ToDate, int EmployeeID)
+        {
+            return dalMaster.GetUserPerformanceConsolidatedReport(FromDate, ToDate, EmployeeID);
+        }
+
         public DataTable GetUserPerformanceProdDetails(string FromDate, string ToDate, int EmployeeID)
         {
             return dalMaster.GetUserPerformanceProdDetails(FromDate, ToDate, EmployeeID);
