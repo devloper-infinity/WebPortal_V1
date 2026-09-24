@@ -133,8 +133,10 @@ function Bind_SearchBilling_Grid_1(prjno, fromdate, todate) {
     $.ajax({
         url: "VerifyBilling.aspx/GetDataForBilling",
         type: "POST",
-        data: JSON.stringify({ ProjectNo: prjno, FromDate: fromdate, ToDate: todate,
-            Project: Number($('#VerifyOrdres_projectno').val()), BillingPeriod: $('#VerifyOrdres_dateperild option:selected').text() }),
+        data: JSON.stringify({
+            ProjectNo: prjno, FromDate: fromdate, ToDate: todate,
+            Project: Number($('#VerifyOrdres_projectno').val()), BillingPeriod: $('#VerifyOrdres_dateperild option:selected').text()
+        }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
@@ -324,8 +326,10 @@ function Bind_SearchBilling_Grid(prjno, fromdate, todate) {
     $.ajax({
         url: "VerifyBilling.aspx/GetDataForBilling",
         type: "POST",
-        data: JSON.stringify({ ProjectNo: prjno, FromDate: fromdate, ToDate: todate,
-            Project: remarkContext.Project, BillingPeriod: remarkContext.BillingPeriod }),
+        data: JSON.stringify({
+            ProjectNo: prjno, FromDate: fromdate, ToDate: todate,
+            Project: remarkContext.Project, BillingPeriod: remarkContext.BillingPeriod
+        }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
@@ -535,19 +539,21 @@ function verifyBilling_renderRemarks(result) {
     var columns = [
         { title: 'Email Note / Additional Details', data: 'EmailInput', width: '45%', defaultContent: '', render: textCell },
         { title: 'Cost Difference / Amount', data: 'CostDiff', width: '25%', className: 'vrbil-amount', defaultContent: '', render: textCell },
-        { title: 'Attachment', data: null, width: '30%', render: function (record, type) {
-            var attachments = record.Attachments || [];
-            if (type !== 'display') return attachments.map(function (file) { return file.Name; }).join(', ');
-            if (!attachments.length) return record.AttachmentPath ? 'Attachment unavailable' : 'No attachment';
-            var $links = $('<div>');
-            attachments.forEach(function (file) {
-                var $line = $('<div>').addClass('vrbil-attachment-link').appendTo($links);
-                $('<span>').text(file.Name).appendTo($line);
-                $('<a>').attr({ href: file.Url, target: '_blank', rel: 'noopener' })
-                    .addClass('btn btn-sm btn-outline-info').text('View / Download').appendTo($line);
-            });
-            return $links.html();
-        } }
+        {
+            title: 'Attachment', data: null, width: '30%', render: function (record, type) {
+                var attachments = record.Attachments || [];
+                if (type !== 'display') return attachments.map(function (file) { return file.Name; }).join(', ');
+                if (!attachments.length) return record.AttachmentPath ? 'Attachment unavailable' : 'No attachment';
+                var $links = $('<div>');
+                attachments.forEach(function (file) {
+                    var $line = $('<div>').addClass('vrbil-attachment-link').appendTo($links);
+                    $('<span>').text(file.Name).appendTo($line);
+                    $('<a>').attr({ href: file.Url, target: '_blank', rel: 'noopener' })
+                        .addClass('btn btn-sm btn-outline-info').text('View / Download').appendTo($line);
+                });
+                return $links.html();
+            }
+        }
     ];
     var known = ['CostEmailID', 'Project', 'OrderID', 'BillingPeriod', 'EmailInput', 'CostDiff', 'AttachmentPath', 'Attachments'];
     records.forEach(function (record) {
@@ -557,13 +563,15 @@ function verifyBilling_renderRemarks(result) {
             columns.push({ title: key.replace(/([a-z])([A-Z])/g, '$1 $2'), data: key, defaultContent: '', render: textCell });
         });
     });
-    columns.unshift({ title: 'Action', data: null, width: '90px', className: 'vrbil-detail-action', orderable: false, render: function (record, type) {
-        if (type !== 'display') return '';
-        var id = String(record.CostEmailID || '');
-        if (!/^[1-9][0-9]*$/.test(id)) return '';
-        return '<button type="button" class="btn btn-sm btn-outline-danger vrbil-delete-detail" data-detail-id="' + id +
-            '" title="Delete additional details"><i class="fas fa-trash-alt" aria-hidden="true"></i> Delete</button>';
-    } });
+    columns.unshift({
+        title: 'Action', data: null, width: '90px', className: 'vrbil-detail-action', orderable: false, render: function (record, type) {
+            if (type !== 'display') return '';
+            var id = String(record.CostEmailID || '');
+            if (!/^[1-9][0-9]*$/.test(id)) return '';
+            return '<button type="button" class="btn btn-sm btn-outline-danger vrbil-delete-detail" data-detail-id="' + id +
+                '" title="Delete additional details"><i class="fas fa-trash-alt" aria-hidden="true"></i> Delete</button>';
+        }
+    });
     addTable('vrbil_additionalTable', 'Additional Details', records, columns);
     $('#vrbil_additionalTable').on('click', '.vrbil-delete-detail', function () {
         verifyBilling_deleteAdditionalDetail($(this).attr('data-detail-id'), this);
@@ -588,8 +596,10 @@ function verifyBilling_deleteAdditionalDetail(id, button) {
         $.ajax({
             type: 'POST', url: 'VerifyBilling.aspx/DeleteAdditionalDetails_VerifyBilling',
             contentType: 'application/json; charset=utf-8', dataType: 'json',
-            data: JSON.stringify({ Project: context.Project, BillingPeriod: context.BillingPeriod,
-                OrderID: context.OrderID, CostEmailID: id })
+            data: JSON.stringify({
+                Project: context.Project, BillingPeriod: context.BillingPeriod,
+                OrderID: context.OrderID, CostEmailID: id
+            })
         }).done(function (response) {
             var result = response.d;
             if (!result || !Array.isArray(result.Details)) {
@@ -704,41 +714,47 @@ function btnverfybilling_AddRemark() {
     var ddldateprd = document.getElementById("VerifyOrdres_dateperild");
     var dateprd = ddldateprd.options[ddldateprd.selectedIndex].text;
 
-    if (remark === "") {
+    alert(prjValue);
 
-        Swal.fire({
-            icon: "warning", title: "Remark Required", text: "Please enter a remark.", confirmButtonText: "OK"
-        }).then(function () {
-            $('#vrbil_remark').focus();
-        });
+    if (prjValue != 210) {
+        if (remark === "") {
 
-        return false;
+            Swal.fire({
+                icon: "warning", title: "Remark Required", text: "Please enter a remark.", confirmButtonText: "OK"
+            }).then(function () {
+                $('#vrbil_remark').focus();
+            });
+
+            return false;
+        }
     }
-
 
     // Validate additional fields only when switch is ON
 
     if (isAdditionalChecked) {
 
-        if (vrbil_costDiff === "" || vrbil_costDiff === null || parseFloat(vrbil_costDiff) <= 0) {
+        if (prjValue != 210) {
+            if (vrbil_costDiff === "" || vrbil_costDiff === null || parseFloat(vrbil_costDiff) <= 0) {
 
-            Swal.fire({
-                icon: "warning", title: "Amount Required", text: "Please enter a cost difference.", confirmButtonText: "OK"
-            }).then(function () {
-                $('#vrbil_costDiff').focus();
-            });
+                Swal.fire({
+                    icon: "warning", title: "Amount Required", text: "Please enter a cost difference.", confirmButtonText: "OK"
+                }).then(function () {
+                    $('#vrbil_costDiff').focus();
+                });
 
-            return false;
+                return false;
+            }
+
+            if (emailInput === "") {
+                Swal.fire({
+                    icon: "warning", title: "Email Required", text: "Please enter an email address.", confirmButtonText: "OK"
+                }).then(function () {
+                    $('#vrbil_EmailNote').focus();
+                });
+                return false;
+            }
         }
 
-        if (emailInput === "") {
-            Swal.fire({
-                icon: "warning", title: "Email Required", text: "Please enter an email address.", confirmButtonText: "OK"
-            }).then(function () {
-                $('#vrbil_EmailNote').focus();
-            });
-            return false;
-        }
 
         if (!selectedFile) {
             Swal.fire({ icon: "warning", title: "Attachment Required", text: "Please select a file to upload.", confirmButtonText: "OK" });

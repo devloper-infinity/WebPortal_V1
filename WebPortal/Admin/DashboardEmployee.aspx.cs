@@ -32,7 +32,7 @@ namespace WebPortal.Admin
         public static bool ShouldShowPerformanceAcknowledgement()
         {
             int day = DateTime.Today.Day;
-            if (day < 23 || day > 25)
+            if (day < 26 || day > 28)
                 return false;
 
             int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);

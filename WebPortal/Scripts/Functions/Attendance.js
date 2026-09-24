@@ -892,10 +892,11 @@ function attendanceDaysSinceJsonDate(value) {
 }
 
 function pmatt_showApprovalUnavailable(daysSinceAddedDate) {
-    var message = "Approval is unavailable because the Added Date is invalid.";
+
+    var message = "Approval period has expired. This request must be approved within 7 days from the In Date.";
 
     if (daysSinceAddedDate > 7) {
-        message = "Approval period has expired. This request must be approved within 7 days from the Added Date.";
+        message = "Approval period has expired. This request must be approved within 7 days from the In Date.";
     }
     else if (daysSinceAddedDate < 0) {
         message = "Approval is unavailable because the Added Date is in the future.";

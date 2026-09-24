@@ -61,8 +61,9 @@
         .user-perf-ack { max-width: 1040px; margin: 0 auto; padding: 0 16px 28px; color: #303933; }
         .user-perf-ack .card { border: 1px solid #e5e2d9; border-top: 4px solid #cda866; border-radius: 14px; background: #fff; box-shadow: 0 12px 32px rgba(31, 43, 38, .1); }
         .user-perf-ack .card-body { padding: clamp(18px, 4vw, 38px); }
-        .user-perf-ack .letter-content { font-size: 14px; line-height: 1.65; }
+        .user-perf-ack .letter-content { font-size: 14px; line-height: 1.65; color: #17251e; }
         .user-perf-ack .letter-content > table:not(.table) { width: 100%; }
+        .user-perf-ack .letter-content > table:not(.table) label { color: #17251e !important; opacity: 1; }
         .user-perf-ack .table { width: 100%; margin: 12px 0 24px; border: 1px solid #e3e4df; border-radius: 8px; background: #fff; }
         .user-perf-ack .table td { padding: 11px 12px; border-color: #e6e8e2; vertical-align: middle; }
         .user-perf-ack .table tr:first-child td { background: #28564b !important; color: #fff; font-weight: 700; }
@@ -79,7 +80,20 @@
         .user-perf-ack .performance-summary-table .form-control br { display: none; }
         .user-perf-ack .ack-consent { width: 100%; margin-top: 20px; padding: 18px; background: #edf7f2; border: 1px solid #cfe4d8; border-radius: 10px; }
         .user-perf-ack .ack-consent td { padding: 4px; }
-        .user-perf-ack #chk_UserPerfDesclaimer { width: 18px; height: 18px; vertical-align: middle; accent-color: #16765f; }
+        .user-perf-ack .checkbox-wrapper-26 { display: inline-flex; vertical-align: middle; margin-right: 8px; }
+        .user-perf-ack .checkbox-wrapper-26 input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .user-perf-ack .checkbox-wrapper-26 label { --size: 36px; --shadow: calc(var(--size) * .07) calc(var(--size) * .1); position: relative; display: block; width: var(--size); height: var(--size); margin: 0; background: #cda866; border-radius: 50%; box-shadow: 0 var(--shadow) #e9dcc2; cursor: pointer; overflow: hidden; transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease; }
+        .user-perf-ack .checkbox-wrapper-26 label::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; width: calc(var(--size) * .7); height: calc(var(--size) * .7); margin: 0 auto; background: #fff; border-radius: 50%; box-shadow: inset 0 var(--shadow) #e9dcc2; transform: translateY(-50%); transition: width .2s ease, height .2s ease; }
+        .user-perf-ack .checkbox-wrapper-26 label:hover::before { width: calc(var(--size) * .55); height: calc(var(--size) * .55); }
+        .user-perf-ack .checkbox-wrapper-26 label:active { transform: scale(.9); }
+        .user-perf-ack .checkbox-wrapper-26 input:focus-visible + label { outline: 3px solid #16765f; outline-offset: 3px; }
+        .user-perf-ack .checkbox-wrapper-26 .tick_mark { position: absolute; top: -1px; left: calc(var(--size) * -.05); right: 0; width: calc(var(--size) * .6); height: calc(var(--size) * .6); margin: 0 auto 0 calc(var(--size) * .14); transform: rotate(-40deg); }
+        .user-perf-ack .checkbox-wrapper-26 .tick_mark::before, .user-perf-ack .checkbox-wrapper-26 .tick_mark::after { content: ""; position: absolute; background: #fff; border-radius: 2px; opacity: 0; transition: transform .2s ease, opacity .2s ease; }
+        .user-perf-ack .checkbox-wrapper-26 .tick_mark::before { left: 0; bottom: 0; width: calc(var(--size) * .1); height: calc(var(--size) * .3); transform: translateY(calc(var(--size) * -.68)); }
+        .user-perf-ack .checkbox-wrapper-26 .tick_mark::after { left: 0; bottom: 0; width: 100%; height: calc(var(--size) * .1); transform: translateX(calc(var(--size) * .78)); }
+        .user-perf-ack .checkbox-wrapper-26 input:checked + label { background: #16765f; box-shadow: 0 var(--shadow) #a8d1c2; }
+        .user-perf-ack .checkbox-wrapper-26 input:checked + label::before { width: 0; height: 0; }
+        .user-perf-ack .checkbox-wrapper-26 input:checked + label .tick_mark::before, .user-perf-ack .checkbox-wrapper-26 input:checked + label .tick_mark::after { transform: translate(0); opacity: 1; }
         .user-perf-ack #userPerfAck_lblDesclaimer { display: inline; margin-left: 6px; color: #214a3d; font-weight: 600; }
         .user-perf-ack #userPerfAck_btnAccept { min-width: 180px; margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 8px; background: #28564b; font-weight: 700; box-shadow: 0 6px 16px rgba(40, 86, 75, .22); }
         .user-perf-ack #userPerfAck_btnAccept:hover { background: #1f463d; }
@@ -287,7 +301,10 @@
                                 <tr>
                                     <td>
                                         <br />
-                                        <input type="checkbox" id="chk_UserPerfDesclaimer" name="chk_UserPerfDesclaimer" />&nbsp;&nbsp;
+                                       &nbsp; <div class="checkbox-wrapper-26">
+                                            <input type="checkbox" id="chk_UserPerfDesclaimer" name="chk_UserPerfDesclaimer" aria-labelledby="userPerfAck_lblDesclaimer" />
+                                            <label for="chk_UserPerfDesclaimer"><span class="tick_mark"></span></label>
+                                        </div>
                                         <label id="userPerfAck_lblDesclaimer" style="font-weight: bold;"></label>
                                     </td>
                                 </tr>
@@ -296,6 +313,9 @@
                                         <button id="userPerfAck_btnAccept" name="userPerfAck_btnAccept" class="btn btn-primary" onclick="return Onclick_userPerfAck_btnAccept();">Accept Performance</button>
                                         <br />
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
                                 </tr>
                             </table>
                         </div>
