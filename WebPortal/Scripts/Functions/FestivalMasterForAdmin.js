@@ -3,6 +3,7 @@
     var date = $.trim($('#adminfestWish_date').val() || '');
     var fileInput = document.getElementById('adminfestWish_attachment');
     var locations = festivalGetCheckedValues('.location_checkbox');
+    var remark = $.trim($('#adminfestWish_remark').val() || '');
     var VideofileInput = document.getElementById('adminfestWish_Video');
 
     if (title === '') {
@@ -22,7 +23,7 @@
         return false;
     }
 
-
+    $('#load1').show();
     var videoFile = VideofileInput.files[0];
     var videoName = videoFile ? videoFile.name : null;
 
@@ -37,11 +38,11 @@
                 var videoReader = new FileReader();
                 videoReader.onload = function (ev) {
                     var base64Video = ev.target.result;
-                    sendDataToServer(title, date, locations, imagesData, fileNames, base64Video, videoName);
+                    sendDataToServer(title, date, locations, remark, imagesData, fileNames, base64Video, videoName);
                 };
                 videoReader.readAsDataURL(videoFile);
             } else {
-                sendDataToServer(title, date, locations, imagesData, fileNames, null, null);
+                sendDataToServer(title, date, locations, remark, imagesData, fileNames, null, null);
             }
             return;
         }
@@ -61,7 +62,7 @@
     return false;
 }
 
-function sendDataToServer(title, date, locations, imagesData, fileNames, base64Video, videoName) {
+function sendDataToServer(title, date, locations, remark, imagesData, fileNames, base64Video, videoName) {
     $.ajax({
         type: "POST",
         url: "FestivalsWishesMasterForAdmin.aspx/InsertAdminFestiveData",
@@ -69,6 +70,7 @@ function sendDataToServer(title, date, locations, imagesData, fileNames, base64V
             Title: title,
             Date: date,
             Location: locations.join(','),
+            Remark: remark,
             ImagesBase64: imagesData,
             FileNames: fileNames,
             VideoBase64: base64Video,
@@ -77,6 +79,7 @@ function sendDataToServer(title, date, locations, imagesData, fileNames, base64V
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
+            $('#load1').hide();
             var resText = response.d;
             if (resText.indexOf("already exists") !== -1 || resText.indexOf("Error") !== -1) {
                 festivalShowAlert({
@@ -91,11 +94,29 @@ function sendDataToServer(title, date, locations, imagesData, fileNames, base64V
                     text: resText
                 }).then(function () {
 
-                    $('.festival-card input, .festival-card select').val('').prop('checked', false); $('#locationDropdownBtn').text('Select Location'); $('#selectedFilesWrapper').hide(); $('#noFilesPlaceholder').show(); festivaladmin_bindGrid();
+                    $('#adminfestWish_title').val('');
+                    $('#adminfestWish_date').val('');
+                    $('#adminfestWish_remark').val('');
+                    $('#adminfestWish_attachment').val('');
+                    $('#adminfestWish_Video').val('');
+
+                    $('.location_checkbox').prop('checked', false);
+                    $('#select_all_location').prop('checked', false);
+                    $('#locationDropdownBtn').text('Select Location');
+
+                    $('#selectedFilesWrapper').hide();
+                    $('#noFilesPlaceholder').show();
+                    $('#fileListContainer').empty();
+                    if (typeof dataTransfer !== 'undefined') {
+                        dataTransfer = new DataTransfer();
+                    }
+
+                    festivaladmin_bindGrid();
                 });
             }
         },
         error: function (xhr, status, error) {
+            $('#load1').hide();
             console.log(xhr.responseText);
             festivalShowAlert({
                 icon: 'error',
@@ -193,7 +214,9 @@ function festivaladmin_bindGrid() {
                     },
                     { data: 'OnDate' },
                     { data: 'UploadedBy' },
-                    { data: 'UploadedDate' }
+                    { data: 'UploadedDate' },
+                    { data: 'Remark' }
+
                 ],
                 initComplete: function () {
                     $('#load1').hide();
@@ -250,6 +273,7 @@ function updateModalImageView() {
     dotsContainer.empty();
 
     if (currentPreviewImages.length > 1) {
+        $('.img-arrow-btn').show();
         dotsContainer.css({ 'display': 'flex', 'flex-wrap': 'wrap', 'justify-content': 'center', 'gap': '8px' });
 
         currentPreviewImages.forEach(function (imgUrl, i) {
@@ -263,6 +287,7 @@ function updateModalImageView() {
             dotsContainer.append(dotButton);
         });
     } else {
+        $('.img-arrow-btn').hide();
         dotsContainer.hide();
     }
 }
@@ -279,6 +304,8 @@ $(document).on('click', '.festivalVideoWrapper', function () {
 
     $('#adminfestivalTitle').text(title);
     $('#imageDotsContainer').hide();
+    $('.img-arrow-btn').hide();
+
 
     $('#adminpreviewImage').hide().attr('src', '');
     $('#adminpreviewVideo').attr('src', videoSrc).show();
@@ -288,6 +315,7 @@ $(document).on('click', '.festivalVideoWrapper', function () {
     setTimeout(function () {
         $('#adminpreviewVideo')[0].play();
     }, 300);
+
 });
 
 $('#adminimagePreviewModal').on('hidden.bs.modal', function () {
@@ -345,7 +373,6 @@ let dataTransfer = new DataTransfer();
 
 function previewSelectedFiles(input) {
     const maxFiles = 3;
-
     if (dataTransfer.files.length + input.files.length > maxFiles) {
         festivalShowAlert({
             icon: 'error',
@@ -411,4 +438,16 @@ function clearAllFiles() {
     dataTransfer = new DataTransfer();
     input.files = dataTransfer.files;
     renderFileList();
+}
+
+function adminChangeImagePreview(direction) {
+    if (typeof currentPreviewImages !== 'undefined' && currentPreviewImages.length > 1) {
+        currentImageIndex += direction;
+        if (currentImageIndex < 0) {
+            currentImageIndex = currentPreviewImages.length - 1;
+        } else if (currentImageIndex >= currentPreviewImages.length) {
+            currentImageIndex = 0;
+        }
+        updateModalImageView();
+    }
 }

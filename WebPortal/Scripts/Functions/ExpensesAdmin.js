@@ -1,4 +1,114 @@
-﻿
+﻿//Submit Recreation Activity
+function ExpensesRecreationActivitySubmit() {
+
+    var RecreationActivity = $("#Expensesrecreationactivity").val();
+
+    if (RecreationActivity === "") {
+        Swal.fire("Validation", "Please Select Recreation Activity", "warning");
+        return false;
+    }
+
+    var formData = {
+        RecreationActivity: RecreationActivity,
+    };
+
+    $.ajax({
+        type: "POST",
+        url: "ExpensesAdmin.aspx/SaveExpenseRecreationActivity",
+        data: JSON.stringify(formData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var serverMessage = response.d;
+            if (serverMessage === "Recreation Activity saved successfully!") {
+                Swal.fire("Success", serverMessage, "success").then((result) => {
+                    if (result.isConfirmed) {
+                        $("#Expensesrecreationactivity").val(""); 
+                    }
+                });
+            }
+            else if (serverMessage === "Recreation Activity already exists!") {
+                Swal.fire("Warning", serverMessage, "warning");
+            }
+            else {
+                Swal.fire("Error", serverMessage, "error");
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.fire("Error", "Server Error: " + error, "error");
+        }
+    });
+    return false;
+}
+
+
+//Fetch Recreation Activity
+function bindExpensesRecreationActivity() {
+    var select = document.getElementById("dllExpensesRecreationActivity");
+    let options = select.getElementsByTagName('optionRecreationActivity');
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#dllExpensesRecreationActivity").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ExpensesAdmin.aspx/GetRecreationActivity", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $("#dllExpensesRecreationActivity").append($("<option></option>").val(value.RecreationActivityId).html(value.RecreationActivity));
+            })
+        }
+    });
+}
+
+//Fetch Recreation Activity For Details
+function bindExpdetailsRecreationActivity() {
+    var select = document.getElementById("dllexpdetailsRecreationActivity");
+    let options = select.getElementsByTagName('option');
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#dllexpdetailsRecreationActivity").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "ExpensesAdmin.aspx/GetRecreationActivity", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $("#dllexpdetailsRecreationActivity").append($("<option></option>").val(value.RecreationActivityId).html(value.RecreationActivity));
+            })
+        }
+    });
+
+}
+
+//Quater Dropdown Enable when select RnR Value
+$(document).on('change', '#dllexpdetailsRecreationActivity', function () {
+    // ID aivaji selected option cha visible text milvnyasathi:
+    let selectedText = $("#dllexpdetailsRecreationActivity option:selected").text();
+    let isRewards = selectedText.trim() === "Rewards and Recognition";
+
+    console.log("Selected Text:", selectedText);
+    console.log("Is Rewards and Recognition?", isRewards);
+
+    $('#quarterDropdownBtn').prop('disabled', !isRewards);
+
+    $('#otherFieldContainer').css({
+        'opacity': isRewards ? '1' : '0.5',
+        'pointer-events': isRewards ? 'auto' : 'none'
+    });
+
+    if (!isRewards) {
+        $('#otherFieldContainer input[type="checkbox"]').prop('checked', false);
+        $('#select_all_quarter').prop('checked', false);
+        $('#quarterDropdownBtn').text('Select Quarter');
+    }
+});
+
+
+
+
+
+
+
+
 // Bind Location
 function bindLocation() {
     var select = document.getElementById("location");
@@ -20,7 +130,7 @@ function bindLocation() {
 
 }
 
-//Bind Planned Month dropdown
+// //Bind Planned Month dropdown
 // function bindPlannedMonth() {
 //     const dropdown = document.getElementById("PlannedMonth");
 //     const currentYear = new Date().getFullYear();
@@ -32,28 +142,11 @@ function bindLocation() {
 
 // }
 
-//Show Selected Recreation Activity in TextBox
-function showSelectedValue() {
-    var selectElement = document.getElementById("RecreationActivity");
-    var otherInput = document.getElementById("otherActivity");
-    var selectedVal = selectElement.value;
-
-    if (selectedVal === "Other") {
-        otherInput.removeAttribute("readonly");
-        otherInput.value = "";
-        otherInput.focus();
-    } else if (selectedVal === "Select") {
-        otherInput.value = "";
-        otherInput.setAttribute("readonly", true);
-    } else {
-        otherInput.value = selectedVal;
-        otherInput.setAttribute("readonly", true);
-    }
-}
 
 //Submit Data
 function ExpenseSubmitData() {
     var expenseId = $("#hdnExpenseId").val() || 0;
+
     var locationId = $("#location").val();
     var otherActivity = $("#otherActivity").val();
     var Date = $("#Date").val();
@@ -225,7 +318,7 @@ function EditExpenseRow(index) {
         $('#otherActivity').removeAttr("readonly"); 
     } else {
         $('#RecreationActivity').trigger('change');
-        showSelectedValue();
+       // showSelectedValue();
     }
 
     // 1. Fixed Date Bind (Converted to YYYY-MM-DD format)

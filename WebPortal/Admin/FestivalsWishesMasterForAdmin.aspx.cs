@@ -21,7 +21,7 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string InsertAdminFestiveData(string Title, string Date, string Location, List<string> ImagesBase64, List<string> FileNames, string VideoBase64, string VideoName)
+        public static string InsertAdminFestiveData(string Title, string Date, string Location, string Remark, List<string> ImagesBase64, List<string> FileNames, string VideoBase64, string VideoName)
         {
             string msg = string.Empty;
 
@@ -71,6 +71,8 @@ namespace WebPortal.Admin
                 htParam.Add("ImagePath", string.Join(",", fullPaths));
                 htParam.Add("VideoPath", videoFullPath);
                 htParam.Add("Branch", Location);
+                htParam.Add("Remark", Remark);
+
 
                 int addedById = 0;
                 if (HttpContext.Current.User.Identity.IsAuthenticated)
@@ -169,6 +171,10 @@ namespace WebPortal.Admin
                 }
 
                 DataTable dtFestival = new bllMaster().GetAdminFestivalDataForPopUp(currentDate, userLocation);
+                if (dtFestival == null || dtFestival.Rows.Count == 0)
+                {
+                    return null;
+                }
 
                 if (dtFestival != null && dtFestival.Rows.Count > 0)
                 {

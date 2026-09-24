@@ -108,9 +108,12 @@
         .upr-shell {
             display: grid;
             gap: 18px;
+            min-width: 0;
         }
 
         .upr-panel {
+            min-width: 0;
+            max-width: 100%;
             background: #fff;
             border: 1px solid #dbe5ec;
             border-radius: 8px;
@@ -277,10 +280,15 @@
 
         .upr-tab-body {
             padding: 16px 18px 18px;
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .upr-table-wrap {
             width: 100%;
+            min-width: 0;
+            max-width: 100%;
             overflow-x: auto;
             border: 1px solid #dbe5ec;
             border-radius: 8px;
@@ -334,6 +342,10 @@
 
         .dataTables_wrapper {
             padding: 12px;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
             .dataTables_wrapper .dataTables_filter input {
@@ -364,6 +376,8 @@
 
         .dataTables_scrollBody {
             border-bottom: 0 !important;
+            max-width: 100%;
+            overflow-x: auto !important;
         }
 
         .dataTables_paginate {
@@ -563,6 +577,14 @@
 
         function upr_export() {
             $('#waitingpanel').modal('show');
+            document.getElementById("spntext").innerHTML = "Generating excel sheet : Consolidated Report";
+            var fromdate = document.getElementById("upr_fromdate").value;
+            var todate = document.getElementById("upr_todate").value;
+            PageMethods.ConsolidatedSummary(fromdate, todate, uperConsolidated_OnSuccess, uper_OnError);
+            return false;
+        }
+
+        function uperConsolidated_OnSuccess(result) {
             document.getElementById("spntext").innerHTML = "Generating excel sheet : Summary";
             var fromdate = document.getElementById("upr_fromdate").value;
             var todate = document.getElementById("upr_todate").value;
@@ -707,7 +729,13 @@
             <div class="upr-panel">
                 <ul class="nav nav-tabs upr-tabs" id="custom-tabs-one-tab" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">
+                        <a class="nav-link active" id="custom-tabs-one-consolidated-tab" data-toggle="pill" href="#custom-tabs-one-consolidated" role="tab" aria-controls="custom-tabs-one-consolidated" aria-selected="true">
+                            <i class="fas fa-table"></i>
+                            Consolidated Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="false">
                             <i class="fas fa-table"></i>
                             Summary
                         </a>
@@ -733,9 +761,33 @@
                 </ul>
 
                 <div class="tab-content upr-tab-body" id="custom-tabs-one-tabContent">
-                    <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+                    <div class="tab-pane fade show active" id="custom-tabs-one-consolidated" role="tabpanel" aria-labelledby="custom-tabs-one-consolidated-tab">
                         <div class="upr-table-wrap">
-                            <table class="table table-hover upr-data-table" id="upr_table">
+                            <table class="table table-hover upr-data-table" id="upr_consolidatedtable" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Pseudoname</th>
+                                        <th>Live Production</th>
+                                        <th>Training Production</th>
+                                        <th>Practice Production</th>
+                                        <th>Production %</th>
+                                        <th>Quality %</th>
+                                        <th>Attendance %</th>
+                                        <th>Production Grade</th>
+                                        <th>Quality Grade</th>
+                                        <th>Attendance Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+                        <div class="upr-table-wrap">
+                            <table class="table table-hover upr-data-table" id="upr_table" style="width:100%;">
                                 <thead>
                                     <tr>
                                         <th>Month</th>
@@ -743,7 +795,9 @@
                                         <th>Code</th>
                                         <th>Name</th>
                                         <th>Pseudoname</th>
-                                        <th>Production Count</th>
+                                        <th>Live Production</th>
+                                        <th>Training Production</th>
+                                        <th>Practice Production</th>
                                         <th>Production %</th>
                                         <th>Quality %</th>
                                         <th>Attendance %</th>

@@ -420,6 +420,7 @@ FodyWeavers.xsd
 !/WebPortal/Content/erp-modern-common.css
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
+!/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql
 !/WebPortal/DatabaseScripts/ServicingDetailedFeedbackReport_001_SelectedLoans.sql
 !/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql
 !/WebPortal/DatabaseScripts/OLTracking_015_ProductivityAndCollectionComments.sql

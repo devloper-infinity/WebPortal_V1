@@ -1498,6 +1498,16 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllInvoiceHeaders(Month, Year);
         }
 
+        public DataTable GetAllInvoiceHeaders(string Month, string Year, string Domain)
+        {
+            return dalMaster.GetAllInvoiceHeaders(Month, Year, Domain);
+        }
+
+        public DataTable GetInvoiceDomains()
+        {
+            return dalMaster.GetInvoiceDomains();
+        }
+
         public DataTable GetAllCCInvoiceHeaders_ByHeaderID(int HeaderID, string Month, string Year)
         {
             return dalMaster.GetAllCCInvoiceHeaders_ByHeaderID(HeaderID, Month, Year);
@@ -1833,6 +1843,11 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetUserPerformanceReport(string FromDate, string ToDate, int EmployeeID)
         {
             return dalMaster.GetUserPerformanceReport(FromDate, ToDate, EmployeeID);
+        }
+
+        public DataTable GetUserPerformanceConsolidatedReport(string FromDate, string ToDate, int EmployeeID)
+        {
+            return dalMaster.GetUserPerformanceConsolidatedReport(FromDate, ToDate, EmployeeID);
         }
 
         public DataTable GetUserPerformanceProdDetails(string FromDate, string ToDate, int EmployeeID)
@@ -2802,6 +2817,17 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAdminFestivalDataForPopUp(festivalDate, location);
         }
 
+
+
+        public int SaveExpenseRecreationActivity(Hashtable htParam)
+        {
+            return dalMaster.SaveExpenseRecreationActivity(htParam);
+        }
+
+        public DataTable GetRecreationActivity()
+        {
+            return dalMaster.GetRecreationActivity();
+        } 
         public int InsertAdminExpensesData(Hashtable htParam)
         {
             return dalMaster.InsertAdminExpensesData(htParam);

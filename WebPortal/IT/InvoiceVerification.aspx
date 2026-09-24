@@ -509,11 +509,17 @@
             background: #e4e9ef !important;
         }
 
-        #invtable tbody tr.invoice-row-disabled > td input:not([type="file"]),
+        #invtable tbody tr.invoice-row-disabled > td input,
         #invtable tbody tr.invoice-row-disabled > td textarea,
         #invtable tbody tr.invoice-row-disabled > td select {
             background-color: #f3f5f7;
             border-color: #cbd5e1;
+            color: #64748b;
+        }
+
+        #invtable tbody tr.invoice-row-disabled > td .btn-primary {
+            border-color: #94a3b8;
+            background: #94a3b8;
         }
 
         #invtable th,
@@ -701,6 +707,7 @@
             document.getElementById("lbl_LoginEmpID").innerHTML = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
             //BindInvoiceGrid();
             BindYear_INV();
+            BindInvoiceDomains();
             invver_bindusers();
         });
     </script>
@@ -772,6 +779,12 @@
                             <label for="inv_year">Year</label>
                             <select id="inv_year" name="inv_year" class="form-control">
                                 <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div class="invoice-field">
+                            <label for="inv_domain">Domain</label>
+                            <select id="inv_domain" name="inv_domain" class="form-control">
+                                <option value="">All Domains</option>
                             </select>
                         </div>
                         <div class="invoice-field">
@@ -956,7 +969,13 @@
                         </div>
                         <div class="invoice-field">
                             <label for="invetails_NewProdDomain">Domain</label>
-                            <input type="text" id="invetails_NewProdDomain" name="invetails_NewProdDomain" class="form-control" />
+                            <select id="invetails_NewProdDomain" name="invetails_NewProdDomain" class="form-control" onchange="return invoiceDomainChanged();">
+                                <option value="">Select</option>
+                            </select>
+                        </div>
+                        <div class="invoice-field" id="invdetails_NewDomainField" style="display: none;">
+                            <label for="invdetails_NewDomain">New Domain</label>
+                            <input type="text" id="invdetails_NewDomain" name="invdetails_NewDomain" class="form-control" maxlength="255" />
                         </div>
                         <div class="invoice-field">
                             <label for="invetails_NewProdProduct">Product</label>

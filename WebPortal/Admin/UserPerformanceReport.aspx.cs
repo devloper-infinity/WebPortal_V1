@@ -20,10 +20,10 @@ namespace WebPortal.Admin
         static string FileName = "";
         static Workbook book = new Workbook();
         static Worksheet sheet;
-        
+
         protected void Page_Load(object sender, EventArgs e)
         {
-           
+
         }
 
         [WebMethod]
@@ -55,6 +55,25 @@ namespace WebPortal.Admin
             foreach (DataRow dr in dt1.Rows)
             {
                 row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static string GetUserPerformanceConsolidatedReport(string FromDate, string ToDate)
+        {
+            DataTable dt1 = new bllMaster().GetUserPerformanceConsolidatedReport(FromDate, ToDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            foreach (DataRow dr in dt1.Rows)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>();
                 foreach (DataColumn col in dt1.Columns)
                 {
                     row.Add(col.ColumnName, dr[col]);
@@ -217,13 +236,61 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
+        public static int ConsolidatedSummary(string FromDate, string ToDate)
+        {
+            FileName = HttpContext.Current.Server.MapPath(@"~\ReportDocument\User_Performance_Report_" + Convert.ToString(FromDate) + " to " + Convert.ToString(ToDate) + DateTime.Now.ToString("hhmmss") + ".xlsx");
+            book = new Workbook();
+            book.DefaultFontSize = 9;
+            book.DefaultFontName = "biome";
+
+            sheet = book.Worksheets.Add("Consolidated Report");
+            DataTable dt = new bllMaster().GetUserPerformanceConsolidatedReport(FromDate, ToDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            if (dt != null)
+            {
+                dt.Columns["Code"].SetOrdinal(0);
+                dt.Columns["EmployeeName"].SetOrdinal(1);
+                dt.Columns["EmployeeName"].Caption = "Name";
+                dt.Columns["Employee"].SetOrdinal(2);
+                dt.Columns["Employee"].Caption = "Pseudoname";
+                dt.Columns["LoanCount"].SetOrdinal(3);
+                dt.Columns["LoanCount"].Caption = "Live Production";
+                dt.Columns["TrainingProduction"].SetOrdinal(4);
+                dt.Columns["TrainingProduction"].Caption = "Training Production";
+                dt.Columns["PracticeProduction"].SetOrdinal(5);
+                dt.Columns["PracticeProduction"].Caption = "Practice Production";
+                dt.Columns["ProdPerc"].SetOrdinal(6);
+                dt.Columns["ProdPerc"].Caption = "Production %";
+                dt.Columns["QualityPerc"].SetOrdinal(7);
+                dt.Columns["QualityPerc"].Caption = "Quality %";
+                dt.Columns["AttPerc"].SetOrdinal(8);
+                dt.Columns["AttPerc"].Caption = "Attendance %";
+                dt.Columns["ProdGrade"].SetOrdinal(9);
+                dt.Columns["ProdGrade"].Caption = "Production Grade";
+                dt.Columns["QualGrade"].SetOrdinal(10);
+                dt.Columns["QualGrade"].Caption = "Quality Grade";
+                dt.Columns["AttnGrade"].SetOrdinal(11);
+                dt.Columns["AttnGrade"].Caption = "Attendance Grade";
+
+                sheet.InsertDataTable(dt, true, 1, 1);
+                string Col = GetColumnName_Static(dt.Columns.Count - 1);
+                CellRange range = sheet.Range["A1:" + Col + "1"];
+                HeaderFormat_Static(range);
+                range = sheet.Range["A1:" + Col + (dt.Rows.Count + 1)];
+                AllBorder_Static(range);
+                ContentCenter_Static(range);
+                sheet.AllocatedRange.Style.Font.FontName = "Biome";
+                sheet.AllocatedRange.Style.Font.Size = 9;
+                sheet.AllocatedRange.AutoFitColumns();
+                sheet.AllocatedRange.AutoFitRows();
+            }
+
+            return 1;
+        }
+
+        [WebMethod]
         public static int OverallSummary(string FromDate, string ToDate)
         {
             int returnvalue = 1;
-            FileName = HttpContext.Current.Server.MapPath(@"~\ReportDocument\User_Performance_Report_" + Convert.ToString(FromDate) + " to " + Convert.ToString(ToDate) + DateTime.Now.ToString("hhmmss") + ".xlsx");
-
-            book.DefaultFontSize = 9;
-            book.DefaultFontName = "biome";
 
             int rowcount = 0;
             int colcount = 0;
@@ -242,24 +309,33 @@ namespace WebPortal.Admin
                 dt.Columns["EmployeeName"].SetOrdinal(3);
                 dt.Columns["EmployeeName"].Caption = "Name";
                 dt.Columns["Employee"].SetOrdinal(4);
-                dt.Columns["Employee"].Caption = "Psuedoname";
+                dt.Columns["Employee"].Caption = "Pseudoname";
                 dt.Columns["LoanCount"].SetOrdinal(5);
-                dt.Columns["LoanCount"].Caption = "Production Count";
-                dt.Columns["ProdPerc"].SetOrdinal(6);
+                dt.Columns["LoanCount"].Caption = "Live Production";
+                dt.Columns["TrainingProduction"].SetOrdinal(6);
+                dt.Columns["TrainingProduction"].Caption = "Training Production";
+                dt.Columns["PracticeProduction"].SetOrdinal(7);
+                dt.Columns["PracticeProduction"].Caption = "Practice Production";
+                dt.Columns["ProdPerc"].SetOrdinal(8);
                 dt.Columns["ProdPerc"].Caption = "Production %";
-                dt.Columns["QualityPerc"].SetOrdinal(7);
+                dt.Columns["QualityPerc"].SetOrdinal(9);
                 dt.Columns["QualityPerc"].Caption = "Quality %";
-                dt.Columns["AttPerc"].SetOrdinal(8);
+                dt.Columns["AttPerc"].SetOrdinal(10);
                 dt.Columns["AttPerc"].Caption = "Attendance %";
-                dt.Columns["ProdGrade"].SetOrdinal(9);
+                dt.Columns["ProdGrade"].SetOrdinal(11);
                 dt.Columns["ProdGrade"].Caption = "Production Grade";
-                dt.Columns["QualGrade"].SetOrdinal(10);
+                dt.Columns["QualGrade"].SetOrdinal(12);
                 dt.Columns["QualGrade"].Caption = "Quality Grade";
-                dt.Columns["AttnGrade"].SetOrdinal(11);
+                dt.Columns["AttnGrade"].SetOrdinal(13);
                 dt.Columns["AttnGrade"].Caption = "Attendance Grade";
-                dt.Columns.Remove(dt.Columns["Critical"]);
-                dt.Columns.Remove(dt.Columns["NonCritical"]);
-                dt.Columns.Remove(dt.Columns["TotalError"]);
+                string[] internalColumns = { "QualId", "Subdomain", "Critical", "NonCritical", "TotalError" };
+                foreach (string internalColumn in internalColumns)
+                {
+                    if (dt.Columns.Contains(internalColumn))
+                    {
+                        dt.Columns.Remove(internalColumn);
+                    }
+                }
 
                 sheet.InsertDataTable(dt, true, 1, 1);
                 string Col = GetColumnName_Static(dt.Columns.Count - 1);
@@ -294,7 +370,7 @@ namespace WebPortal.Admin
             #region Production Details
             sheet = null;
             sheet = book.Worksheets.Add("Production Details");
-           
+
             DataTable dt = new bllMaster().GetUserPerformanceProdDetails(FromDate, ToDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString())); ;
             if (dt != null)
             {
@@ -538,32 +614,23 @@ namespace WebPortal.Admin
             string filePath = FileName;
             string outputPath = FileName;
 
-            // Zero-based index: e.g., index 0 = first sheet
-            int sheetIndexToDelete = 1;
-
             using (var workbook = new XLWorkbook(filePath))
             {
-                // Check if index is within bounds
-                if (sheetIndexToDelete >= 0 && sheetIndexToDelete < workbook.Worksheets.Count)
+                string[] defaultSheetNames = { "Sheet1", "Sheet2", "Sheet3" };
+                foreach (string defaultSheetName in defaultSheetNames)
                 {
-                    var worksheet = workbook.Worksheet(1);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                    worksheet = workbook.Worksheet(1);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                    worksheet = workbook.Worksheet(1);
-                    workbook.Worksheets.Delete(worksheet.Name);
-                    int cnt = workbook.Worksheets.Count;
-                    worksheet = workbook.Worksheet(5);
-                    workbook.Worksheets.Delete(worksheet.Name);
+                    var defaultSheet = workbook.Worksheets.FirstOrDefault(ws => ws.Name.Equals(defaultSheetName, StringComparison.OrdinalIgnoreCase));
+                    if (defaultSheet != null && workbook.Worksheets.Count > 1)
+                    {
+                        defaultSheet.Delete();
+                    }
                 }
-                else
+                try
                 {
-
+                    workbook.Worksheet(workbook.Worksheets.Count).Delete();
                 }
-
-                // Save the updated workbook
+                catch { }
                 workbook.SaveAs(outputPath);
-
             }
 
             Response.Clear();

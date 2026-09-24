@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -14,6 +15,7 @@ using System.Web.UI.WebControls;
 using System.Windows.Interop;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.Class;
+using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Admin
 {
@@ -23,6 +25,81 @@ namespace WebPortal.Admin
         {
 
         }
+
+        //Submit Recreation Activity
+        [WebMethod]
+        public static string SaveExpenseRecreationActivity(string RecreationActivity)
+        {
+            string msg = string.Empty;
+            try
+            {
+                Hashtable htParam = new Hashtable();
+                htParam.Add("RecreationActivity", RecreationActivity);
+                htParam.Add("CreatedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                int ReturnValue = new bllMaster().SaveExpenseRecreationActivity(htParam);
+
+                if (ReturnValue > 0)
+                {
+                    msg = "Recreation Activity saved successfully!";
+                }
+                else if (ReturnValue == -1)
+                {
+                    msg = "Recreation Activity already exists!"; 
+                }
+                else
+                {
+                    msg = "Error saving data";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+            return msg;
+        }
+
+
+        private static List<T> ConvertDataTable<T>(DataTable dt)
+        {
+            List<T> data = new List<T>();
+            foreach (DataRow row in dt.Rows)
+            {
+                T item = GetItem<T>(row);
+                data.Add(item);
+            }
+            return data;
+        }
+        private static T GetItem<T>(DataRow dr)
+        {
+            Type temp = typeof(T);
+            T obj = Activator.CreateInstance<T>();
+
+            foreach (DataColumn column in dr.Table.Columns)
+            {
+                foreach (PropertyInfo pro in temp.GetProperties())
+                {
+                    if (pro.Name == column.ColumnName)
+                        pro.SetValue(obj, dr[column.ColumnName], null);
+                    else
+                        continue;
+                }
+            }
+            return obj;
+        }
+
+        //Fetch Recreation Activity
+        [WebMethod]
+        public static List<WebPortal.App_Code.Class.RecreationActivitycls> GetRecreationActivity()
+        {
+            DataTable dtRecreationActivity = null;
+            dtRecreationActivity = new bllMaster().GetRecreationActivity();
+            List<WebPortal.App_Code.Class.RecreationActivitycls> RecreationActivity = new List<WebPortal.App_Code.Class.RecreationActivitycls>();
+            RecreationActivity = ConvertDataTable<WebPortal.App_Code.Class.RecreationActivitycls>(dtRecreationActivity);
+            return RecreationActivity;
+        }
+
+
 
         [WebMethod]
         public static string SaveExpenseData(int expenseId,string Location, string OtherActivity, string Date, string CompletedDate, string ActualExpense, string Status, string Remark)

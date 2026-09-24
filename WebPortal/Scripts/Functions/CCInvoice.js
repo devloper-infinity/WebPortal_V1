@@ -47,6 +47,38 @@ function BindYear_INV() {
     }
 }
 
+function BindInvoiceDomains(selectedDomain) {
+    return $.ajax({
+        type: "POST",
+        url: "InvoiceVerification.aspx/GetInvoiceDomains",
+        data: "{}",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (res) {
+            var domains = JSON.parse(res.d);
+            var filter = $("#inv_domain").empty().append($("<option></option>").val("").text("All Domains"));
+            var product = $("#invetails_NewProdDomain").empty().append($("<option></option>").val("").text("Select"));
+            $.each(domains, function (_, domain) {
+                filter.append($("<option></option>").val(domain).text(domain));
+                product.append($("<option></option>").val(domain).text(domain));
+            });
+            product.append($("<option></option>").val("__add_new__").text("Add New Domain"));
+            if (selectedDomain) {
+                filter.val(selectedDomain);
+                product.val(selectedDomain);
+            }
+        }
+    });
+}
+
+function invoiceDomainChanged() {
+    var adding = $("#invetails_NewProdDomain").val() === "__add_new__";
+    $("#invdetails_NewDomainField").toggle(adding);
+    if (!adding)
+        $("#invdetails_NewDomain").val("");
+    return false;
+}
+
 function BindYear_INV_Rec() {
     var start = new Date().getFullYear();
 
@@ -167,6 +199,7 @@ function BindInvoiceGrid() {
     var month = ddlmonth.options[ddlmonth.selectedIndex].value;
     var ddlyear = document.getElementById("inv_year");
     var year = ddlyear.options[ddlyear.selectedIndex].value;
+    var domain = document.getElementById("inv_domain").value;
 
     /// month = "July";
     //year = "2025";
@@ -185,7 +218,7 @@ function BindInvoiceGrid() {
         $.ajax({
         url: "InvoiceVerification.aspx/getAllInvocieHeaders",
         type: "POST",
-        data: "{Month:'" + month + "', Year:'" + year + "'}",
+        data: JSON.stringify({ Month: month, Year: year, Domain: domain }),
         dataType: "json",
         contentType: "application/json; charset=utf-8",
 
@@ -193,7 +226,8 @@ function BindInvoiceGrid() {
             var dataArray = JSON.parse(data.d);//
             $.each(dataArray, function (index, value) {
 
-                inv_html += '<tr>';
+                var isDisabled = String(value.HeaderStatus || '').trim().toLowerCase() === 'disabled';
+                inv_html += '<tr' + (isDisabled ? ' class="invoice-row-disabled"' : '') + '>';
                 inv_html += '<td style="display:none;">' + value.Attachment + '</td>';
                 inv_html += '<td class=""><div class="btn-group">';
                 inv_html += '<div class="btn-group">';
@@ -223,7 +257,7 @@ function BindInvoiceGrid() {
                 inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.PrevMonthQuantity) + '</td>';
                 inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.CurrentQuantity) + '</td>';
                 inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.ContractualUsage) + '</td>';
-                inv_html += '<td><input type="text" style="width:70px;" id="inv_invoiceAmount_' + value.HeaderID + '" value="' + blankForNull(value.ContractualCost1) + '" onchange="return GetDifference(this,' + value.HeaderID + ',' + index + ');" /></td>';
+                inv_html += '<td><input  type="number" step="0.01" onpaste="return false;" style="width:70px;" id="inv_invoiceAmount_' + value.HeaderID + '" value="' + blankForNull(value.ContractualCost1) + '" onchange="return GetDifference(this,' + value.HeaderID + ',' + index + ');" /></td>';
 
                 if (blankForNull(value.Diff) != null && blankForNull(value.Diff) != '') {
                     if (parseFloat(blankForNull(value.Diff)) > 0)
@@ -301,8 +335,12 @@ function BindInvoiceGrid() {
 
                 "rowCallback": function (row, data) {
                     // HeaderStatus is the same hidden column used by Enable/Disable.
-                    var status = String(data[25] || '').trim().toLowerCase();
-                    $(row).toggleClass('invoice-row-disabled', status === 'disable' || status === 'disabled');
+                    var status = String(data[26] || '').trim().toLowerCase();
+                    var disabled = status === 'disable' || status === 'disabled';
+                    $(row).toggleClass('invoice-row-disabled', disabled);
+                    $(row).find('input, textarea, select, button')
+                        .prop('disabled', disabled)
+                        .attr('aria-disabled', disabled ? 'true' : 'false');
                 },
             });
 
@@ -343,7 +381,7 @@ function invoice_EnableDisabled(HeaderID, index) {
     document.getElementById("nvdetails_EnableDisableRemark").value = '';
 
     inv_Disable_HeaderID = HeaderID;
-    DisableEnableStatus = row[25];
+    DisableEnableStatus = row[26];
 
     if (DisableEnableStatus == "Enable") {
         lblName = "Disable : " + row[3] + ' - ' + row[22];
@@ -474,7 +512,9 @@ function invuser_OnError(error) {
 
 /* Add New Product */
 function addNewProduct() {
-
+    BindInvoiceDomains();
+    $("#invdetails_NewDomainField").hide();
+    $("#invdetails_NewDomain").val("");
     $('#invdetailspopup_AddNewProduct').modal('show');
 
 }
@@ -483,6 +523,8 @@ function invdetails_btnAddNewProd() {
 
     var PopUp_Header = document.getElementById("invdetails_NewProdHeader").value;
     var PopUp_Domain = document.getElementById("invetails_NewProdDomain").value;
+    if (PopUp_Domain === "__add_new__")
+        PopUp_Domain = $.trim(document.getElementById("invdetails_NewDomain").value);
     var PopUp_Product = document.getElementById("invetails_NewProdProduct").value;
     var PopUp_PayTo = document.getElementById("invdetails_NewProdPayTo").value;
     var PopUp_EffDate = document.getElementById("invdetails_NewProdEffDate").value;
@@ -503,8 +545,11 @@ function invdetails_btnAddNewProd() {
         return false;
     }
     if (PopUp_Domain == "") {
-        alert("Please enter Domain.");
-        document.getElementById("invetails_NewProdDomain").focus();
+        alert("Please select or enter Domain.");
+        if (document.getElementById("invetails_NewProdDomain").value === "__add_new__")
+            document.getElementById("invdetails_NewDomain").focus();
+        else
+            document.getElementById("invetails_NewProdDomain").focus();
         return false;
     }
     if (PopUp_Product == "") {
@@ -558,8 +603,15 @@ function OnSuccess_AddNewProd(result) {
     if (result > 0) {
 
         alert("Data added successfully.");
-        // BindInvoiceGrid();
-        location.reload();
+        var addedDomain = $("#invetails_NewProdDomain").val() === "__add_new__"
+            ? $.trim($("#invdetails_NewDomain").val())
+            : $("#invetails_NewProdDomain").val();
+        $('#invdetailspopup_AddNewProduct').modal('hide');
+        BindInvoiceDomains(addedDomain);
+        BindInvoiceGrid();
+        $("#invdetails_NewProdHeader, #invetails_NewProdProduct, #invdetails_NewProdPayTo, #invdetails_NewProdEffDate, #invdetails_NewProdContQuantity, #invdetails_NewProdContPerUnitCost, #invdetails_NewProdCharAmt, #invdetails_NewDomain").val("");
+        $("#invdetails_NewProdPaymentFreq, #invdetails_NewProdCostType").prop('selectedIndex', 0);
+        $("#invdetails_NewDomainField").hide();
         return false;
     }
     else {
