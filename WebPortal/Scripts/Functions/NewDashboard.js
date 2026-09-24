@@ -252,7 +252,8 @@ function runPopupSequence() {
         { id: "adminimagePreviewModalpopup", key: "adminFestivalPreview", type: "once_per_day" },
         /*{ id: "dashboard_alertdetails", type: "every_login" },*/
         { id: "dash_expiryModal", key: "passwordExpirary", type: "every_login" },
-        { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" }
+        { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" },
+        { id: "dash_performanceAckModal", type: "every_login" }
     ];
 
     showPopupsSequentially(popups, 0);
@@ -316,6 +317,11 @@ function openPopup(id, callback) {
     //  Pending Notification --  9
     if (id === "dash_pendingnotifications") {
         dash_PendingTaskNotifications(callback);
+        return;
+    }
+
+    if (id === "dash_performanceAckModal") {
+        dash_showPerformanceAcknowledgement(callback);
         return;
     }
 
@@ -1443,7 +1449,7 @@ function das_ShowAdminashboardAlert(callback)
         dataType: "json",
         success: function (response) {
             var data = response.d;
-            alert(data);
+          
             if (data != null && data != "null" ) {
                 var mediaList = [];
                 
@@ -1648,4 +1654,27 @@ function changeMedia(direction) {
         adminfestival_currentIndex = (adminfestival_currentIndex + direction + globalMediaList.length) % globalMediaList.length;
         showMedia(adminfestival_currentIndex, globalMediaList);
     }
+}
+
+function dash_showPerformanceAcknowledgement(callback) {
+    $.ajax({
+        type: "POST",
+        url: "DashboardEmployee.aspx/ShouldShowPerformanceAcknowledgement",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json"
+    }).done(function (response) {
+        if (!response.d) {
+            callback();
+            return;
+        }
+
+        var $modal = $("#dash_performanceAckModal");
+        $modal.one("hidden.bs.modal", callback);
+        $("#dash_performanceAckFrame").attr("src", "UserPerformanceAcknowledgement.aspx?popup=1");
+        $modal.modal("show");
+    }).fail(callback);
+}
+
+function dashClosePerformancePopup() {
+    $("#dash_performanceAckModal").modal("hide");
 }

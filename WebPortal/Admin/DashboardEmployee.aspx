@@ -15,6 +15,20 @@
             font-weight: normal !important;
             border: none !important;
         }
+
+        #dash_performanceAckModal .modal-dialog { max-width: min(1400px, calc(100vw - 32px)); }
+        #dash_performanceAckModal .modal-content { border: 1px solid #deded8; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 70px rgba(24, 31, 28, .25); }
+        #dash_performanceAckModal .modal-header { align-items: center; background: linear-gradient(120deg, #24352f, #35483f); color: #fff; border-bottom: 3px solid #cda866; padding: 18px 24px; }
+        #dash_performanceAckModal .modal-title { font-size: 18px; font-weight: 700; }
+        #dash_performanceAckModal .modal-title i { color: #e5c384; }
+        #dash_performanceAckModal .modal-header .close { color: #fff; opacity: .9; text-shadow: none; }
+        #dash_performanceAckModal .modal-body { padding: 0; background: #f5f4f0; }
+        #dash_performanceAckFrame { display: block; width: 100%; height: min(84vh, 900px); border: 0; }
+        @media (max-width: 575px) {
+            #dash_performanceAckModal .modal-dialog { margin: 8px; }
+            #dash_performanceAckModal .modal-header { padding: 14px 16px; }
+            #dash_performanceAckFrame { height: calc(100vh - 100px); min-height: 0; }
+        }
     </style>
     <style>
         .close-btn {
@@ -2651,6 +2665,20 @@
                 <div class="modal-footer">
                     <button class="btn btn-primary" data-dismiss="modal"><span id="totalCount"></span></button>
                     <button type="button" id="btnpendingClose" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="dash_performanceAckModal" tabindex="-1" role="dialog" aria-labelledby="dash_performanceAckTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dash_performanceAckTitle"><i class="fas fa-clipboard-check mr-2"></i>User Performance Acknowledgement</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="dash_performanceAckFrame" title="User Performance Acknowledgement"></iframe>
                 </div>
             </div>
         </div>

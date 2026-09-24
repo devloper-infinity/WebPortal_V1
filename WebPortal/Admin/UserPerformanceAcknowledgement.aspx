@@ -55,6 +55,65 @@
 
         }
     </style>
+    <style>
+        .user-perf-ack-header .callout { max-width: 1008px; margin: 0 auto; padding: 15px 20px; border-left: 4px solid #cda866; border-radius: 10px; background: #fff; box-shadow: 0 6px 20px rgba(31, 43, 38, .08); }
+        .user-perf-ack-header h6 { color: #24352f; font-size: 18px; }
+        .user-perf-ack { max-width: 1040px; margin: 0 auto; padding: 0 16px 28px; color: #303933; }
+        .user-perf-ack .card { border: 1px solid #e5e2d9; border-top: 4px solid #cda866; border-radius: 14px; background: #fff; box-shadow: 0 12px 32px rgba(31, 43, 38, .1); }
+        .user-perf-ack .card-body { padding: clamp(18px, 4vw, 38px); }
+        .user-perf-ack .letter-content { font-size: 14px; line-height: 1.65; }
+        .user-perf-ack .letter-content > table:not(.table) { width: 100%; }
+        .user-perf-ack .table { width: 100%; margin: 12px 0 24px; border: 1px solid #e3e4df; border-radius: 8px; background: #fff; }
+        .user-perf-ack .table td { padding: 11px 12px; border-color: #e6e8e2; vertical-align: middle; }
+        .user-perf-ack .table tr:first-child td { background: #28564b !important; color: #fff; font-weight: 700; }
+        .user-perf-ack .table tr:nth-child(even) td { background: #faf9f6; }
+        .user-perf-ack .table .form-control { min-height: 34px; height: auto; margin: 0; padding: 5px 8px; border: 0; background: transparent; font-weight: 600; }
+        .user-perf-ack .performance-summary-table { table-layout: fixed; }
+        .user-perf-ack .performance-summary-table td { vertical-align: middle; text-align: center; font-size: 15px; }
+        .user-perf-ack .performance-summary-table td:nth-child(1) { width: 34%; }
+        .user-perf-ack .performance-summary-table td:nth-child(2) { width: 26%; }
+        .user-perf-ack .performance-summary-table td:nth-child(3) { width: 40%; }
+        .user-perf-ack .performance-summary-table .form-control { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 40px; padding: 7px 10px; font-size: 15px !important; line-height: 1.4; text-align: center; }
+        .user-perf-ack .performance-summary-table td:nth-child(2) .form-control { background: #fff7e9; color: #66491c; border: 1px solid #f0dfbc; border-radius: 8px; }
+        .user-perf-ack .performance-summary-table td:nth-child(3) .form-control { background: #edf7f2; color: #1f604d; border: 1px solid #d5e9dd; border-radius: 8px; }
+        .user-perf-ack .performance-summary-table .form-control br { display: none; }
+        .user-perf-ack .ack-consent { width: 100%; margin-top: 20px; padding: 18px; background: #edf7f2; border: 1px solid #cfe4d8; border-radius: 10px; }
+        .user-perf-ack .ack-consent td { padding: 4px; }
+        .user-perf-ack #chk_UserPerfDesclaimer { width: 18px; height: 18px; vertical-align: middle; accent-color: #16765f; }
+        .user-perf-ack #userPerfAck_lblDesclaimer { display: inline; margin-left: 6px; color: #214a3d; font-weight: 600; }
+        .user-perf-ack #userPerfAck_btnAccept { min-width: 180px; margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 8px; background: #28564b; font-weight: 700; box-shadow: 0 6px 16px rgba(40, 86, 75, .22); }
+        .user-perf-ack #userPerfAck_btnAccept:hover { background: #1f463d; }
+        @media (max-width: 640px) {
+            .user-perf-ack { padding: 0 8px 18px; }
+            .user-perf-ack .card-body { padding: 16px; }
+            .user-perf-ack .table { display: block; overflow-x: auto; white-space: nowrap; }
+            .user-perf-ack .table td { padding: 8px; }
+        }
+    </style>
+    <style>
+        .ack-popup-mode body { background: #f5f4f0; }
+        .ack-popup-mode .main-header, .ack-popup-mode .main-footer { display: none !important; }
+        .ack-popup-mode .content-wrapper { margin: 0 !important; background: transparent; }
+        .ack-popup-mode .content-header { display: none; }
+        .ack-popup-mode .content .container { width: 100%; max-width: none; padding: 0 16px; }
+        .ack-popup-mode .user-perf-ack { width: 100%; max-width: none; padding: 12px 0 16px; }
+        .ack-popup-mode .user-perf-ack .card-body { padding: 18px 24px; }
+        .ack-popup-mode .user-perf-ack .table { margin: 8px 0 14px; }
+        .ack-popup-mode .user-perf-ack .table td { padding: 7px 10px; white-space: nowrap; }
+        .ack-popup-mode .user-perf-ack .ack-consent { margin-top: 12px; padding: 12px; }
+        @media (max-width: 1100px) {
+            .ack-popup-mode .user-perf-ack .table { display: block; overflow-x: auto; }
+        }
+        @media (max-width: 640px) {
+            .ack-popup-mode .content .container { padding: 0 8px; }
+            .ack-popup-mode .user-perf-ack .card-body { padding: 14px; }
+        }
+    </style>
+    <script>
+        if (new URLSearchParams(window.location.search).get("popup") === "1") {
+            document.documentElement.classList.add("ack-popup-mode");
+        }
+    </script>
 
     <script>
         $(document).ready(function () {
@@ -68,7 +127,7 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <div class="content-header">
+    <div class="content-header user-perf-ack-header">
         <div class="container">
             <div class="row mb-2 callout callout-info">
                 <div class="col-sm-6">
@@ -78,13 +137,13 @@
         </div>
     </div>
 
-    <div class="col-lg-12">
+    <div class="col-lg-12 user-perf-ack">
         <div class="card">
             <div class="card-body">
                 <div class="col-lg-12">
                     <div class="row">
                        
-                        <div class="col-md-8" style="font-size: 14px;">
+                        <div class="col-12 letter-content">
                             <table>
                                 <tr>
                                     <td>
@@ -128,7 +187,7 @@
                             <span>Below is a summary of your grading compared to the company’s expected performance rating categories:</span>
                             <br />
                             <br />
-                            <table border="1" class="table" style="text-align: center;">
+                            <table border="1" class="table performance-summary-table" style="text-align: center;">
                                 <tr>
                                     <td style="background-color: lightgray;">
                                         <b>Category</b>
@@ -224,7 +283,7 @@
                                 </tr>
                             </table>
                             <hr />
-                            <table style="font-size: 17px;">
+                            <table class="ack-consent" style="font-size: 17px;">
                                 <tr>
                                     <td>
                                         <br />
@@ -234,13 +293,13 @@
                                 </tr>
                                 <tr style="text-align: center;">
                                     <td>
-                                        <button id="userPerfAck_btnAccept" name="userPerfAck_btnAccept" class="btn btn-primary" onclick="return Onclick_userPerfAck_btnAccept();">Accept</button>
+                                        <button id="userPerfAck_btnAccept" name="userPerfAck_btnAccept" class="btn btn-primary" onclick="return Onclick_userPerfAck_btnAccept();">Accept Performance</button>
                                         <br />
                                     </td>
                                 </tr>
                             </table>
                         </div>
-                        <div class="col-md-2">
+                        <div class="d-none">
                             <label id="userPerfAck_lblPerformanceID" name="userPerfAck_lblPerformanceID" style="display: none;"></label>
                             <label id="userPerfAck_lblCode" name="userPerfAck_lblCode" style="display: none;"></label>
                         </div>

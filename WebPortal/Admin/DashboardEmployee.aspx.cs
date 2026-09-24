@@ -28,6 +28,19 @@ namespace WebPortal.Admin
             }
         }
 
+        [WebMethod]
+        public static bool ShouldShowPerformanceAcknowledgement()
+        {
+            int day = DateTime.Today.Day;
+            if (day < 23 || day > 25)
+                return false;
+
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);
+            DataTable performance = new bllMaster().GetOverAllUserPerformance_UserPerfAck(employeeId);
+            return performance != null && performance.Rows.Count > 0 &&
+                new dalMaster().CheckAcknowledgeUserPerformance(employeeId) == 0;
+        }
+
 
         [WebMethod]
         public static string BindInformation()

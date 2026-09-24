@@ -66,6 +66,10 @@ function OnSuccessAck(result) {
 
     if (result > 0) {
         alert("Acknowledged successfully.");
+        if (window.parent !== window && typeof window.parent.dashClosePerformancePopup === "function") {
+            window.parent.dashClosePerformancePopup();
+            return;
+        }
         window.location = "../Admin/DashboardEmployee.aspx";
     }
     else {
