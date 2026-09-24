@@ -59,11 +59,7 @@ namespace WebPortal.Admin
         [WebMethod]
         public static int SubmitStep2(int resgnationid, string status, string unitheadremark, string attritioncategory, string resignationreceivedthrough)
         {
-            DataTable details = new bllMaster().GetResignationDetails(resgnationid);
-            string lastWorkingDate = details != null && details.Rows.Count > 0
-                ? Convert.ToDateTime(details.Rows[0]["LastWorkingDate"]).ToString("dd-MMM-yyyy")
-                : string.Empty;
-            return Resignation.SubmitStep2(resgnationid, status, unitheadremark, attritioncategory, resignationreceivedthrough, lastWorkingDate);
+            return Resignation.SubmitStep2(resgnationid, status, unitheadremark, attritioncategory, resignationreceivedthrough);
         }
 
         private static object GetFirst(Dictionary<string, object> values, params string[] keys)

@@ -779,8 +779,7 @@
                             <label>Resignation Date</label><div class="detail-value" id="step2Date"></div>
                         </div>
                         <div class="detail-item">
-                            <label for="step2LastWorking">Last Working Date <span class="required">*</span></label>
-                            <input id="step2LastWorking" type="text" class="form-control" autocomplete="off" placeholder="dd-MMM-yyyy" />
+                            <label>Last Working Date</label><div class="detail-value" id="step2LastWorking"></div>
                         </div>
                         <div class="detail-item">
                             <label>Step 1 Remark</label><div class="detail-value" id="step2Step1Remark"></div>
