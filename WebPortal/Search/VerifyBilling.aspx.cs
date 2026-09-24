@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -85,8 +86,8 @@ namespace WebPortal.Search
             try
             {
                 int project;
-                int orderId;
                 string billingPeriod = (Request.Form["BillingPeriod"] ?? string.Empty).Trim();
+                string orderFolderName = SafePathSegment(Request.Form["OrderNo"]);
                 HttpPostedFile uploadedFile = Request.Files["vrbil_attachment"];
 
                 if (!int.TryParse(Request.Form["Project"], out project) || project <= 0)
@@ -101,9 +102,9 @@ namespace WebPortal.Search
                     return;
                 }
 
-                if (!int.TryParse(Request.Form["OrderID"], out orderId) || orderId <= 0)
+                if (string.IsNullOrWhiteSpace(orderFolderName))
                 {
-                    WriteAttachmentUploadResult(serializer, false, "Please select a valid order.", string.Empty, string.Empty);
+                    WriteAttachmentUploadResult(serializer, false, "Please select a valid order number.", string.Empty, string.Empty);
                     return;
                 }
 
@@ -131,7 +132,6 @@ namespace WebPortal.Search
                 string dateFolderName = DateTime.Now.ToString("dd-MMM-yyyy");
                 string projectFolderName = SafePathSegment(project.ToString());
                 string billingPeriodFolderName = SafePathSegment(billingPeriod);
-                string orderFolderName = SafePathSegment(orderId.ToString());
 
                 string dateFolder = EnsureFolder(rootFolder, dateFolderName);
                 string projectFolder = EnsureFolder(dateFolder, projectFolderName);
@@ -472,14 +472,14 @@ namespace WebPortal.Search
                 Bcc = dt_Address.Rows[0]["Bcc"].ToString();
             }
 
-            returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, ToAddress, CC, Bcc);
+            returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
 
             return returnValue;
         }
 
         #region Email
 
-        public static int SendEmail_ClientBillingOrdersTyping(DataTable dt, DataTable dtSummaryForEmail, DataTable dtRecordsForExcel, DataTable dtEmailForExcel, DataTable costEmailDetails, string ProjectName, string ProjectType, string BillingPeriod, string ToAddress, string CC, string Bcc)
+        public static int SendEmail_ClientBillingOrdersTyping(DataTable dt, DataTable dtSummaryForEmail, DataTable dtRecordsForExcel, DataTable dtEmailForExcel, DataTable costEmailDetails, string ProjectName, string ProjectType, string BillingPeriod, string Remark, string ToAddress, string CC, string Bcc)
         {
             StringBuilder htmlBody = new StringBuilder();
             bool ISend;
@@ -549,6 +549,20 @@ namespace WebPortal.Search
                     System.Web.HttpUtility.HtmlEncode(ProjectName),
                     System.Web.HttpUtility.HtmlEncode(ProjectType),
                     System.Web.HttpUtility.HtmlEncode(BillingPeriod));
+
+                if (!string.IsNullOrWhiteSpace(Remark))
+                {
+                    string encodedRemark = System.Web.HttpUtility.HtmlEncode(Remark.Trim())
+                        .Replace("\r\n", "<br />")
+                        .Replace("\n", "<br />")
+                        .Replace("\r", "<br />");
+                    htmlBody.AppendFormat(
+                        @"<tr><td style='padding:8px 30px 16px;'>
+                            <div style='color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:700;'>Verification Remark</div>
+                            <div style='margin-top:6px;color:#526174;font-family:Segoe UI,Arial,sans-serif;font-size:13px;line-height:1.65;'>{0}</div>
+                          </td></tr>",
+                        encodedRemark);
+                }
 
                 if (dtSummaryForEmail != null && dtSummaryForEmail.Rows.Count > 0)
                 {
@@ -838,6 +852,7 @@ namespace WebPortal.Search
             approvalTable.Columns.Add("County");
             approvalTable.Columns.Add("Received Date");
             approvalTable.Columns.Add("Online Offline");
+            approvalTable.Columns.Add("Documnet Download Cost (Online)");
             approvalTable.Columns.Add("Abstractor Search Cost");
             approvalTable.Columns.Add("Abstractor Copy Cost");
             approvalTable.Columns.Add("Cost paid for Independent Abstractor");
@@ -874,9 +889,12 @@ namespace WebPortal.Search
                     approvalRow["County"] = GetDataRowValue(reportRow, "County");
                     approvalRow["Received Date"] = GetDataRowValue(reportRow, "OrderDate", "ReceivedDate");
                     approvalRow["Online Offline"] = GetDataRowValue(reportRow, "OnOffLine", "OnlineOffline");
-                    approvalRow["Abstractor Search Cost"] = GetDataRowValue(reportRow, "AbstractorSearchCost");
-                    approvalRow["Abstractor Copy Cost"] = GetDataRowValue(reportRow, "AbstractorCopyCostCost", "AbstractorCopyCost");
-                    approvalRow["Cost paid for Independent Abstractor"] = GetDataRowValue(reportRow, "Abstractorpaid", "AbstractorPaid");
+                    approvalRow["Documnet Download Cost (Online)"] = GetDataRowValue(reportRow, "DocumentDownloadCost", "DocumentDownloadCost");
+                    string searchCost = GetDataRowValue(reportRow, "AbstractorSearchCost");
+                    string copyCost = GetDataRowValue(reportRow, "AbstractorCopyCostCost", "AbstractorCopyCost");
+                    approvalRow["Abstractor Search Cost"] = searchCost;
+                    approvalRow["Abstractor Copy Cost"] = copyCost;
+                    approvalRow["Cost paid for Independent Abstractor"] = (ParseCostAmount(searchCost) + ParseCostAmount(copyCost)).ToString(CultureInfo.CurrentCulture);
                     approvalRow["Amount Approved from Client"] = GetDataRowValue(costRow, "CostDiff");
                     approvalRow["Approval Email Content/Remark"] = GetDataRowValue(costRow, "EmailInput", "EmailNote");
                     approvalTable.Rows.Add(approvalRow);
@@ -941,6 +959,23 @@ namespace WebPortal.Search
             worksheet.Column(11).Style.Alignment.WrapText = true;
             worksheet.PageSetup.PageOrientation = XLPageOrientation.Landscape;
             worksheet.PageSetup.FitToPages(1, 0);
+        }
+
+        private static decimal ParseCostAmount(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return 0m;
+            }
+
+            decimal amount;
+            if (decimal.TryParse(value, NumberStyles.Currency, CultureInfo.CurrentCulture, out amount) ||
+                decimal.TryParse(value, NumberStyles.Currency, CultureInfo.InvariantCulture, out amount))
+            {
+                return amount;
+            }
+
+            throw new FormatException("Invalid abstractor cost: " + value);
         }
 
         private static string GetDataRowValue(DataRow row, params string[] columnNames)

@@ -26,43 +26,40 @@ namespace WebPortal.Admin
 
         }
 
+
         [WebMethod]
-        public static string BindOtherTaskReport(string FromDate, string ToDate)
+        public static object BindOtherTaskReport(string FromDate, string ToDate)
         {
-            int EmployeeID = 0;
+            int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name);
 
-            int IsPm = new bllMaster().CheckIfPM(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-            if (IsPm == 1)
-                EmployeeID = 0;
-            else
-                EmployeeID = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            int IsPm = new bllMaster().CheckIfPM(currentEmployeeId);
 
-            string data = string.Empty;
+            int EmployeeID = IsPm == 1 ? 0 : currentEmployeeId;
+
             try
             {
-                DataTable dt = new bllMaster().GetOtherTaskReport(FromDate, ToDate, EmployeeID);
+                DataTable dt = new bllMaster().GetOtherTaskReport(FromDate,ToDate,EmployeeID);
 
                 var rows = new List<Dictionary<string, object>>();
 
                 foreach (DataRow dataRow in dt.Rows)
                 {
-                    var row = new Dictionary<string, object>();
+                    var row =new Dictionary<string, object>();
 
                     foreach (DataColumn column in dt.Columns)
                     {
-                        row[column.ColumnName] = dataRow[column] == DBNull.Value ? "" : dataRow[column];
+                        row[column.ColumnName] =dataRow[column] == DBNull.Value? "": dataRow[column];
                     }
 
                     rows.Add(row);
                 }
 
-                return new JavaScriptSerializer().Serialize(rows);
+                return rows;
             }
             catch (Exception ex)
             {
-                throw new Exception("Unable to load Other Task Report: " + ex.Message);
+                throw new Exception("Unable to load Other Task Report: "+ ex.Message);
             }
-
         }
     }
 }

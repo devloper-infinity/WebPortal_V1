@@ -1,6 +1,7 @@
 
 var title;
 var remark_orderid = 0;
+var remark_orderno = '';
 var verifyBillingSummaryRequest = null;
 
 function blankForNull(s) {
@@ -666,6 +667,7 @@ function verifyBilling_addRemark(orderid, index) {
     rowNode.style.setProperty('font-weight', 'bold');
 
     remark_orderid = orderid;
+    remark_orderno = rowData.ClientOrderNo;
 
     $("#lblupdateRemark").text("Add Remark : " + rowData.ClientOrderNo);
 
@@ -804,7 +806,7 @@ function btnverfybilling_AddRemark() {
         var attachmentForm = new FormData();
         attachmentForm.append("Project", prjValue);
         attachmentForm.append("BillingPeriod", dateprd);
-        attachmentForm.append("OrderID", remark_orderid);
+        attachmentForm.append("OrderNo", remark_orderno);
         attachmentForm.append("vrbil_attachment", selectedFile);
 
         $.ajax({

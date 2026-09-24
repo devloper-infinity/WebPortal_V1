@@ -556,7 +556,7 @@
             initOtherTaskTabs();
         });
 
-        window.otherTaskReportServiceUrl = 'OtherTask.aspx/BindOtherTaskReport';
+        window.otherTaskReportServiceUrl = 'OtherTaskReport.aspx/BindOtherTaskReport';
 
         function initOtherTaskTabs() {
             $('.other-task-tab').on('click', function () {

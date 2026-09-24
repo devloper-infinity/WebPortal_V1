@@ -747,7 +747,7 @@ function otherTaskReport_bindgrid(fromDate, toDate) {
                 return JSON.stringify({ FromDate: fromDate, ToDate: toDate });
             },
             dataSrc: function (response) {
-                return JSON.parse(response.d);
+                return response.d;/* JSON.parse(response.d); */
             }
         },
 
