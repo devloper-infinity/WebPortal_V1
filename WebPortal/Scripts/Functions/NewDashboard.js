@@ -1,4 +1,6 @@
-﻿
+﻿var globalMediaList = [];
+var adminfestival_currentIndex = 0;
+
 var currentUserName;
 var IsOwnBirthDayPopUp;
 var IsBirthdayNotifications;
@@ -296,7 +298,14 @@ function openPopup(id, callback) {
         return;
     }
 
-    //  Password Expirary --  7
+    // 🎯 Admin Dashboard alert Popup --  7
+    if (id === "adminimagePreviewModalpopup") {
+        das_ShowAdminashboardAlert(callback);
+        return;
+
+    }
+
+    //  Password Expirary --  8
     if (id === "dash_expiryModal") {
         // console.log('passsword');
         dash_passwordExpirary(callback);
@@ -304,7 +313,7 @@ function openPopup(id, callback) {
     }
 
 
-    //  Pending Notification --  8
+    //  Pending Notification --  9
     if (id === "dash_pendingnotifications") {
         dash_PendingTaskNotifications(callback);
         return;
@@ -1421,6 +1430,52 @@ function markAsRead(alertId) {
     });
 }
 
+/* Admin Dashboard Alert */
+function das_ShowAdminashboardAlert(callback)
+{
+    var todayDate = new Date().toISOString().split('T')[0];
+
+    $.ajax({
+        type: "POST",
+        url: "FestivalsWishesMasterForAdmin.aspx/GetPopupWishForCurrentUser",
+        data: JSON.stringify({ currentDate: todayDate }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var data = response.d;
+            alert(data);
+            if (data != null && data != "null" ) {
+                var mediaList = [];
+                
+                if (data.ImagePaths) {
+                    for (var i = 0; i < data.ImagePaths.length; i++) {
+                        mediaList.push({
+                            type: 'img',
+                            src: data.ImagePaths[i],
+                            title: (data.Titles && data.Titles[i]) ? data.Titles[i] : data.Title
+                        });
+                    }
+                }
+
+                if (data.VideoPaths) {
+                    for (var j = 0; j < data.VideoPaths.length; j++) {
+                        mediaList.push({
+                            type: 'vid',
+                            src: data.VideoPaths[j],
+                            title: (data.VideoTitles && data.VideoTitles[j]) ? data.VideoTitles[j] : data.Title
+                        });
+                    }
+                }
+
+                if (mediaList.length > 0) {
+                    showMedia(0, mediaList);
+                    $('#adminimagePreviewModalpopup').modal('show');
+                }
+            }
+        }
+    });
+}
+
 
 /* Password Expiry Notification */
 function dash_passwordExpirary(callback) {
@@ -1562,4 +1617,35 @@ function dashboardAttachColumnFilters(tableSelector, tableApi) {
             tableApi.column(columnIndex).search(this.value).draw();
         }
     });
+}
+function showMedia(idx, list) {
+    globalMediaList = list; 
+    adminfestival_currentIndex = idx;
+    var box = $('#adminMediaBox').empty();
+    var dots = $('#adminDotsBox').empty();
+
+    var curr = list[idx];
+    $('#adminfestivalTitlepopup').text(curr.title);
+
+    if (curr.type === 'img') {
+        box.html('<img src="' + curr.src + '" class="rounded" style="width: 100%; height: 100%; object-fit: contain;" />');
+    } else {
+        box.html('<video controls class="rounded" style="width: 100%; height: 100%; object-fit: contain;"><source src="' + curr.src + '" type="video/mp4" /></video>');
+    }
+
+    if (list.length > 1) {
+        for (var i = 0; i < list.length; i++) {
+            var color = (i === idx) ? '#007bff' : '#ccc';
+            var dot = $('<span style="width:10px;height:10px;background:' + color + ';border-radius:50%;display:inline-block;cursor:pointer;" data-i="' + i + '"></span>');
+            dot.click(function () { showMedia(parseInt($(this).attr('data-i')), list); });
+            dots.append(dot);
+        }
+    }
+}
+
+function changeMedia(direction) {
+    if (globalMediaList.length > 1) {
+        adminfestival_currentIndex = (adminfestival_currentIndex + direction + globalMediaList.length) % globalMediaList.length;
+        showMedia(adminfestival_currentIndex, globalMediaList);
+    }
 }
