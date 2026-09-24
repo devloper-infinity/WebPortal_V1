@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -443,10 +444,14 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int SubmitStep2(int resgnationid, string status, string unitheadremark, string attritioncategory, string resignationreceivedthrough)
+        public static int SubmitStep2(int resgnationid, string status, string unitheadremark, string attritioncategory, string resignationreceivedthrough, string lastWorkingDate)
         {
             int ReturnValue = 0;
             int ResignationID = resgnationid;
+            DateTime parsedLastWorkingDate;
+
+            if (!DateTime.TryParseExact(lastWorkingDate, "dd-MMM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedLastWorkingDate))
+                return 0;
 
             DataTable dt = new bllMaster().GetResignationDetails(ResignationID);
             if (dt != null)
@@ -463,18 +468,19 @@ namespace WebPortal.Admin
                 string PM = new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 htParam.Add("UnitHeadRemark", PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + UHReamrk);
                 htParam.Add("ResignationReceivedThrough", ResignationReceivedThrough);
+                htParam.Add("LastWorkingDate", parsedLastWorkingDate);
                 htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
                 ReturnValue =  new bllMaster().UpdateResignation(htParam);
 
                 if (ReturnValue > 0)
-                    SendStep2Email(dt, UHReamrk, Status);
+                    SendStep2Email(dt, UHReamrk, Status, parsedLastWorkingDate.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture));
             }
             return ReturnValue;
         }
 
         [WebMethod]
-        public static int SendStep2Email(DataTable dtResigned, string UHRemark, string Status)
+        public static int SendStep2Email(DataTable dtResigned, string UHRemark, string Status, string lastWorkingDate)
         {
             int ReturnValue = 1;
             StringBuilder head = new StringBuilder();
@@ -557,9 +563,9 @@ namespace WebPortal.Admin
                         }
                         else
                         {
-                            string NoOfDays1 = (Convert.ToDateTime(dtResigned.Rows[0]["LastWorkingDate"]) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays.ToString();
+                            string NoOfDays1 = (Convert.ToDateTime(lastWorkingDate) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays.ToString();
                             NoOfDays = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays) + "</td></tr>");
+                            body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Notice Period:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + lastWorkingDate + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays) + "</td></tr>");
                             body.Append("<tr><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\"><b>Step 1 Remark:</b></td><td style=\"padding:11px 16px;border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
                         }
                         body.Append("<tr><td style=\"padding:13px 16px;background-color:#edf4fb;border-bottom:1px solid #dfe6ef;text-align:left;font-size:14px;line-height:20px;font-weight:bold;color:#174a7e;\" colspan=\"2\"><b> :: Step 2 :: </b></td></tr>" +

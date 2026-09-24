@@ -1443,7 +1443,7 @@ function das_ShowAdminashboardAlert(callback)
         dataType: "json",
         success: function (response) {
             var data = response.d;
-            alert(data);
+            
             if (data != null && data != "null" ) {
                 var mediaList = [];
                 

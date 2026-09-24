@@ -769,6 +769,10 @@
                                         <th>Code</th>
                                         <th>Name</th>
                                         <th>Pseudoname</th>
+                                        <th>Domain</th>
+                                        <th>Subdomain</th>
+                                        <th>Location</th>
+                                        <th>Reporting Manager</th>
                                         <th>Live Production</th>
                                         <th>Training Production</th>
                                         <th>Practice Production</th>

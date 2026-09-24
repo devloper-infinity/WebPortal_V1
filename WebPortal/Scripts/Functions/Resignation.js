@@ -623,7 +623,7 @@
         loadFinalizedTable("edit", "#tblEdit", force, function () {
             return actionMenu([
                 { action: "open-change", icon: "fas fa-exchange-alt", color: "#059669", text: "Change Resignation Type" },
-                { action: "open-change", icon: "fas fa-exchange-alt", color: "#059669", text: "Change Resignation Type" },
+                // { action: "open-change", icon: "fas fa-exchange-alt", color: "#059669", text: "Change Resignation Type" },
                 { action: "open-extend", icon: "fas fa-calendar-alt", color: "#2563eb", text: "Extend / Shorten Notice Period" },
                 { action: "open-cancel", icon: "fas fa-times", color: "#dc2626", text: "Cancel Resignation" }
             ]);
@@ -675,7 +675,7 @@
         setText("#step2Manager", safe(row, "ReportingManger", "ReportingManager"));
         setText("#step2Type", safe(row, "ResignationType"));
         setText("#step2Date", safe(row, "ResignationDate"));
-        setText("#step2LastWorking", safe(row, "LastWorkingDate"));
+        setValue("#step2LastWorking", displayDate(safe(row, "LastWorkingDate")));
         setText("#step2Step1Remark", safe(row, "Remark"));
         resetSelectAndRemark("#step2Modal");
         $("#btnStep2Submit").text("Okay");
@@ -686,7 +686,9 @@
         var status = $("#step2Status").val();
         var attrition = $("#step2AttritionCategory").val();
         var receivedThrough = $("#step2ReceivedThrough").val();
+        var lastWorkingDate = $.trim($("#step2LastWorking").val());
 
+        if (!lastWorkingDate || !parseDate(lastWorkingDate)) { showWarning("Please select a valid last working date."); $("#step2LastWorking").focus(); return; }
         if (!attrition) { showWarning("Please select attrition category"); $("#step2AttritionCategory").focus(); return; }
         if (!status) { showWarning("Please select appropriate status."); $("#step2Status").focus(); return; }
         if (!receivedThrough) { showWarning("Please select resignation received through option."); $("#step2ReceivedThrough").focus(); return; }
@@ -699,7 +701,8 @@
             status: status,
             unitheadremark: $("#step2Remark").val(),
             attritioncategory: attrition,
-            resignationreceivedthrough: receivedThrough
+            resignationreceivedthrough: receivedThrough,
+            lastWorkingDate: formatServerDate(parseDate(lastWorkingDate))
         }, function () {
             showWait(false);
             showSuccess("Record updated successfully!").then(reloadPage);
@@ -1156,6 +1159,14 @@
     }
 
     function init() {
+        if ($.fn.datepicker) {
+            $("#step2LastWorking").datepicker({
+                dateFormat: "dd-M-yy",
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true
+            });
+        }
         bindEvents();
         loadEmployees();
         loadProjects();

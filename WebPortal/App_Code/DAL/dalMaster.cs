@@ -1057,14 +1057,29 @@ namespace WebPortal.App_Code.DAL
 
         public int UpdateResignation(Hashtable htParam)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateResignation");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DECLARE @ProcedureReturn int;
+EXEC @ProcedureReturn = dbo.usp_UpdateResignation
+    @ResignationID, @Status, @AttritionCategory, @UnitHeadRemark,
+    @ResignationReceivedThrough, @AddedBy;
+IF @ProcedureReturn > 0
+BEGIN
+    UPDATE dbo.InitiateResignation
+       SET LastWorkingDate = @LastWorkingDate
+     WHERE ResignationId = @ResignationID;
+END;
+COMMIT TRANSACTION;
+SET @ReturnValue = @ProcedureReturn;");
             SQLHelper.AddParamToSQLCmd(cmd, "@ResignationID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["ResignationID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Status"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AttritionCategory", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["AttritionCategory"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@UnitHeadRemark", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["UnitHeadRemark"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ResignationReceivedThrough", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ResignationReceivedThrough"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LastWorkingDate", System.Data.SqlDbType.DateTime, 0, System.Data.ParameterDirection.Input, htParam["LastWorkingDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Output, null);
 
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
