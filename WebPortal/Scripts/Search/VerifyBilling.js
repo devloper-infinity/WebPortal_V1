@@ -713,9 +713,7 @@ function btnverfybilling_AddRemark() {
 
     var ddldateprd = document.getElementById("VerifyOrdres_dateperild");
     var dateprd = ddldateprd.options[ddldateprd.selectedIndex].text;
-
-    alert(prjValue);
-
+  
     if (prjValue != 210) {
         if (remark === "") {
 
