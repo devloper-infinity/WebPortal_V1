@@ -922,7 +922,7 @@ function pmatt_BindGrid() {
                 var pmId = String(blankForNull(value.Pm)).trim();
                 var approved = blankForNull(value.Approved);
                 var isPendingApproval = approved === "Pending for approval";
-                var daysSinceAddedDate = isPendingApproval ? attendanceDaysSinceJsonDate(value.AddedDate) : null;
+                var daysSinceAddedDate = isPendingApproval ? attendanceDaysSinceJsonDate(value.InDate) : null;
                 var isWithinApprovalPeriod = isPendingApproval && daysSinceAddedDate !== null && daysSinceAddedDate >= 0 && daysSinceAddedDate <= 7;
                 var rowClasses = [];
                 var cells = [];
@@ -932,6 +932,9 @@ function pmatt_BindGrid() {
                 }
                 if (isPendingApproval && !isWithinApprovalPeriod) {
                     rowClasses.push("pmatt-approval-disabled-row");
+                    if (loginId !== "" && loginId === pmId) {
+                        rowClasses.push("pmatt-disabled-current-manager-row");
+                    }
                 }
 
                 if (isWithinApprovalPeriod) {

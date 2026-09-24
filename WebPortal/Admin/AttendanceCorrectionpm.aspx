@@ -290,6 +290,14 @@
                 color: #8a94a3;
             }
 
+            .attendance-data-table tbody tr.pmatt-disabled-current-manager-row td,
+            .attendance-data-table tbody tr.pmatt-disabled-current-manager-row:hover td,
+            table.dataTable tbody tr.pmatt-disabled-current-manager-row td,
+            table.dataTable tbody tr.pmatt-disabled-current-manager-row:hover td {
+                background: forestgreen !important;
+                color: #fff;
+            }
+
             .attendance-data-table tbody tr.pmatt-approval-disabled-row td:not(:first-child),
             table.dataTable tbody tr.pmatt-approval-disabled-row td:not(:first-child) {
                 pointer-events: none;
