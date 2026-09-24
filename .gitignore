@@ -433,6 +433,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_022_OutOfScopeAndHoldReasons.sql
 !/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
 !/WebPortal/DatabaseScripts/USFeedback_002_AddProcessID.sql
+!/WebPortal/DatabaseScripts/DashboardValidator_001_ValidationExceptionMaster.sql
 !/WebPortal/US/
 /WebPortal/US/*
 !/WebPortal/US/ProjectProcessLoanReport.aspx

@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Data.SqlClient;
 using System.Text;
+using System.Text.RegularExpressions;
+using WebPortal.App_Code.DAL;
 
 namespace WebPortal.Admin
 {
@@ -321,7 +324,7 @@ namespace WebPortal.Admin
         private static void TrackPhase1Matches(IEnumerable<SourceRow> rows, string baseHeader, ICollection<Phase1Match> phase1Matches)
         {
             foreach (SourceRow row in rows)
-                phase1Matches.Add(new Phase1Match(row.LoanId, baseHeader));
+                phase1Matches.Add(new Phase1Match(row.LoanId, baseHeader, row.GetAmounts(GetAmountFields(baseHeader))));
         }
 
         private static IList<Phase2ResultRow> GeneratePhase2(XLWorkbook outputWorkbook, string validationPath, IEnumerable<Phase1Match> phase1Matches)
@@ -329,72 +332,185 @@ namespace WebPortal.Admin
             Dictionary<string, ValidationDataRow> loanLookup;
             using (var validationWorkbook = new XLWorkbook(validationPath))
                 loanLookup = BuildValidationLoanLookup(validationWorkbook);
+            Dictionary<string, List<string>> exceptionMaster = LoadValidationExceptionMaster();
 
             if (outputWorkbook.Worksheets.Any(x => string.Equals(x.Name, "Validation", StringComparison.OrdinalIgnoreCase)))
                 outputWorkbook.Worksheets.First(x => string.Equals(x.Name, "Validation", StringComparison.OrdinalIgnoreCase)).Delete();
 
             IXLWorksheet sheet = outputWorkbook.Worksheets.Add("Validation");
             sheet.Cell(1, 1).Value = "Loan #";
-            sheet.Cell(1, 2).Value = "Keyword";
-            sheet.Cell(1, 3).Value = "Exception Header";
-            sheet.Cell(1, 4).Value = "Exception Description";
+            sheet.Cell(1, 2).Value = "Exception Header";
+            sheet.Cell(1, 3).Value = "Exception Description";
 
             int outputRow = 2;
             var results = new List<Phase2ResultRow>();
-            var emittedPairs = new HashSet<string>(StringComparer.Ordinal);
+            var emittedValidations = new HashSet<string>(StringComparer.Ordinal);
             foreach (Phase1Match phase1Match in phase1Matches)
             {
                 string pairKey = Normalize(phase1Match.LoanId) + "\u001f" + Normalize(phase1Match.BaseHeader);
-                if (!emittedPairs.Add(pairKey))
-                    continue;
-
                 ValidationDataRow validationRow;
-                bool found = false;
-                if (loanLookup.TryGetValue(phase1Match.LoanId.Trim(), out validationRow))
+                if (!loanLookup.TryGetValue(phase1Match.LoanId.Trim(), out validationRow))
                 {
-                    foreach (ValidationGradeCell gradeCell in validationRow.GradeCells)
-                    {
-                        string description = gradeCell.Value.IsBlank ? string.Empty : gradeCell.Value.ToString();
-                        if (description.Trim().IndexOf(phase1Match.BaseHeader.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
-                            continue;
-
-                        sheet.Cell(outputRow, 1).Value = phase1Match.LoanId;
-                        sheet.Cell(outputRow, 2).Value = phase1Match.BaseHeader;
-                        sheet.Cell(outputRow, 3).Value = gradeCell.Header;
-                        sheet.Cell(outputRow, 4).Value = gradeCell.Value;
-                        results.Add(new Phase2ResultRow(phase1Match.LoanId, phase1Match.BaseHeader, gradeCell.Header, description));
-                        outputRow++;
-                        found = true;
-                    }
+                    string missingLoanKey = Normalize(phase1Match.LoanId) + "\u001fLOAN_NOT_FOUND";
+                    if (emittedValidations.Add(missingLoanKey))
+                        AddPhase2Failure(sheet, results, ref outputRow, phase1Match.LoanId,
+                            "Loan # not found", "Loan # not found in Validation report");
+                    continue;
                 }
 
-                if (!found)
+                if (string.Equals(Normalize(phase1Match.BaseHeader), Normalize("Subject Mortgage Modified"), StringComparison.Ordinal))
                 {
-                    sheet.Cell(outputRow, 1).Value = phase1Match.LoanId;
-                    sheet.Cell(outputRow, 2).Value = phase1Match.BaseHeader;
-                    sheet.Cell(outputRow, 3).Value = "Exception Not Present";
-                    sheet.Cell(outputRow, 4).Value = "Exception Not Present";
-                    results.Add(new Phase2ResultRow(phase1Match.LoanId, phase1Match.BaseHeader, "Exception Not Present", "Exception Not Present"));
-                    outputRow++;
+                    if (emittedValidations.Add(pairKey + "\u001fTEXT") && string.IsNullOrWhiteSpace(validationRow.Modification))
+                        AddPhase2Failure(sheet, results, ref outputRow, phase1Match.LoanId,
+                            phase1Match.BaseHeader, "Modification is not present");
+                    continue;
+                }
+
+                List<string> expectedTexts;
+                if (exceptionMaster.TryGetValue(Normalize(phase1Match.BaseHeader), out expectedTexts)
+                    && emittedValidations.Add(pairKey + "\u001fTEXT")
+                    && !expectedTexts.Any(text => ContainsText(validationRow, text)))
+                {
+                    AddPhase2Failure(sheet, results, ref outputRow, phase1Match.LoanId,
+                        phase1Match.BaseHeader,
+                        GetSectionFailureMessage(phase1Match.BaseHeader));
+                }
+
+                foreach (Phase1Amount amount in phase1Match.Amounts)
+                {
+                    string amountKey = pairKey + "\u001fAMOUNT\u001f" + amount.Value.ToString("0.00", CultureInfo.InvariantCulture);
+                    if (!emittedValidations.Add(amountKey) || ContainsAmount(validationRow, amount.Value))
+                        continue;
+                    AddPhase2Failure(sheet, results, ref outputRow, phase1Match.LoanId,
+                        phase1Match.BaseHeader,
+                        "Amount \"" + amount.DisplayValue + "\" not present in exception");
                 }
             }
 
-            IXLRange resultRange = sheet.Range(1, 1, Math.Max(1, outputRow - 1), 4);
+            IXLRange resultRange = sheet.Range(1, 1, Math.Max(1, outputRow - 1), 3);
             resultRange.Style.Font.FontName = "Bahnschrift";
             resultRange.Style.Font.FontSize = 10;
             resultRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             resultRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            IXLRange headerRange = sheet.Range(1, 1, 1, 4);
+            IXLRange headerRange = sheet.Range(1, 1, 1, 3);
             headerRange.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#B7DEE8"));
             headerRange.Style.Fill.PatternType = XLFillPatternValues.Solid;
             headerRange.Style.Font.Bold = true;
+            if (outputRow > 2)
+                sheet.Range(2, 1, outputRow - 1, 3).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#F4CCCC"));
             sheet.Column(1).Width = 16;
             sheet.Column(2).Width = 48;
-            sheet.Column(3).Width = 48;
-            sheet.Column(4).Width = 100;
-            sheet.Column(4).Style.Alignment.WrapText = true;
+            sheet.Column(3).Width = 100;
+            sheet.Column(3).Style.Alignment.WrapText = true;
             sheet.SheetView.FreezeRows(1);
             return results;
+        }
+
+        private static Dictionary<string, List<string>> LoadValidationExceptionMaster()
+        {
+            var result = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            try
+            {
+                using (var connection = new SqlConnection(SQLHelper.ConnectionString))
+                using (var command = new SqlCommand(
+                    "SELECT Section, ExpectedExceptionText FROM dbo.ValidationExceptionMaster WHERE IsActive = 1 ORDER BY SourceRowNumber", connection))
+                {
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string section = Convert.ToString(reader["Section"], CultureInfo.InvariantCulture).Trim();
+                            string expectedText = Convert.ToString(reader["ExpectedExceptionText"], CultureInfo.InvariantCulture).Trim();
+                            if (section.Length == 0 || expectedText.Length == 0) continue;
+                            string key = Normalize(section);
+                            List<string> texts;
+                            if (!result.TryGetValue(key, out texts))
+                            {
+                                texts = new List<string>();
+                                result.Add(key, texts);
+                            }
+                            if (!texts.Contains(expectedText, StringComparer.OrdinalIgnoreCase))
+                                texts.Add(expectedText);
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new InvalidOperationException("Unable to read Validation Exception Master. Run DashboardValidator_001_ValidationExceptionMaster.sql on the application database.", ex);
+            }
+            return result;
+        }
+
+        private static bool ContainsText(ValidationDataRow validationRow, string expectedText)
+        {
+            return validationRow != null && validationRow.GradeCells.Any(cell =>
+                GetGradeText(cell).IndexOf(expectedText.Trim(), StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
+        private static bool ContainsAmount(ValidationDataRow validationRow, decimal expectedAmount)
+        {
+            if (validationRow == null) return false;
+            foreach (ValidationGradeCell cell in validationRow.GradeCells)
+            {
+                foreach (Match match in Regex.Matches(GetGradeText(cell), @"(?<![A-Za-z0-9/-])\$?\s*\(?\d[\d,]*(?:\.\d+)?\)?(?![A-Za-z0-9/-])"))
+                {
+                    string token = match.Value.Replace("$", string.Empty).Replace(",", string.Empty).Trim();
+                    bool negative = token.StartsWith("(", StringComparison.Ordinal) && token.EndsWith(")", StringComparison.Ordinal);
+                    token = token.Replace("(", string.Empty).Replace(")", string.Empty).Trim();
+                    decimal candidate;
+                    if (decimal.TryParse(token, NumberStyles.Number, CultureInfo.InvariantCulture, out candidate)
+                        && decimal.Round(negative ? -candidate : candidate, 2) == decimal.Round(expectedAmount, 2))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static string GetGradeText(ValidationGradeCell cell)
+        {
+            return cell.Value.IsBlank ? string.Empty : cell.Value.ToString().Trim();
+        }
+
+        private static void AddPhase2Failure(IXLWorksheet sheet, ICollection<Phase2ResultRow> results, ref int outputRow,
+            string loanId, string section, string description)
+        {
+            sheet.Cell(outputRow, 1).Value = loanId;
+            sheet.Cell(outputRow, 2).Value = section;
+            sheet.Cell(outputRow, 3).Value = description;
+            results.Add(new Phase2ResultRow(loanId, section, description));
+            outputRow++;
+        }
+
+        private static string GetSectionFailureMessage(string section)
+        {
+            string label = section.Trim();
+            int suffix = label.IndexOf(" Lien Exists", StringComparison.OrdinalIgnoreCase);
+            if (suffix > 0) label = label.Substring(0, suffix);
+            return label + " exception is not present";
+        }
+
+        private static IEnumerable<string> GetAmountFields(string section)
+        {
+            string key = Normalize(section);
+            if (key == Normalize("Delinquent OR Unpaid Taxes")) return new[] { "Delinquent Tax Amount" };
+            if (key == Normalize("Tax Lien")) return new[] { "Tax Lien Amount Before Subject", "Tax Lien Amount After Subject" };
+            if (key == Normalize("State Tax Lien")) return new[] { "State Tax Lien Amount Before Subject", "State Tax Lien Amount After Subject" };
+            if (key == Normalize("Federal Tax Lien")) return new[] { "Federal Tax Lien Amount Before Subject", "Federal Tax Lien Amount After Subject" };
+            if (key == Normalize("Subject mortgage in first position?")) return new[] { "Total Senior Mortgage Amount" };
+            if (key == Normalize("Junior Mortgages Count")) return new[] { "Total Junior Mortgage Amount" };
+            if (key == Normalize("HOA Lien Exists")) return new[] { "HOA Lien Amount Before Subject", "HOA Lien Amount After Subject" };
+            if (key == Normalize("City Muni Assessment Lien Exists")) return new[] {
+                "City Muni Assessment Lien Amount Before Subject", "City Muni Assessment Lien Amount After Subject",
+                "Water Sewer  Utilities Lien Amount Before Subject", "Water Sewer Utilities Lien Amount After Subject",
+                "Code Enforcement Lien amount Before", "Code Enforcement Lien amount After" };
+            if (key == Normalize("Township Search Status (Township Level)")) return new[] {
+                "Municipal Liens Total Amount", "Violations Total Amount", "Tax Sale Redemption Amt",
+                "Total Tax Amount including Delinquent Taxes", "VPR Total Amount", "Total Amount Owed  (Water)", "Total Amount Owed (Sewer)" };
+            if (key == Normalize("Total Lien Amount Surviving Foreclosure Before Subject")) return new[] {
+                "Total Lien Amount Surviving Foreclosure Before Subject", "Total Lien Amount Surviving Foreclosure After Subject" };
+            return Enumerable.Empty<string>();
         }
 
         private static Dictionary<string, ValidationDataRow> BuildValidationLoanLookup(XLWorkbook workbook)
@@ -447,7 +563,12 @@ namespace WebPortal.Admin
                             string key = Normalize(gradeHeader);
                             gradeCells.Add(new ValidationGradeCell(actualHeaders[key], sheet.Cell(row, columns[key]).Value));
                         }
-                        lookup.Add(loanId, new ValidationDataRow(gradeCells));
+                        string modification = string.Empty;
+                        int modificationColumn;
+                        if (columns.TryGetValue(Normalize("Modification"), out modificationColumn)
+                            || columns.TryGetValue(Normalize("Mod Comments"), out modificationColumn))
+                            modification = sheet.Cell(row, modificationColumn).GetString().Trim();
+                        lookup.Add(loanId, new ValidationDataRow(gradeCells, modification));
                     }
                     return lookup;
                 }
@@ -529,34 +650,50 @@ namespace WebPortal.Admin
 
         private sealed class Phase1Match
         {
-            internal Phase1Match(string loanId, string baseHeader)
+            internal Phase1Match(string loanId, string baseHeader, IList<Phase1Amount> amounts)
             {
                 LoanId = loanId;
                 BaseHeader = baseHeader;
+                Amounts = amounts;
             }
             internal string LoanId { get; private set; }
             internal string BaseHeader { get; private set; }
+            internal IList<Phase1Amount> Amounts { get; private set; }
+        }
+
+        private sealed class Phase1Amount
+        {
+            internal Phase1Amount(decimal value, string displayValue)
+            {
+                Value = value;
+                DisplayValue = displayValue;
+            }
+            internal decimal Value { get; private set; }
+            internal string DisplayValue { get; private set; }
         }
 
         internal sealed class Phase2ResultRow
         {
-            internal Phase2ResultRow(string loanId, string keyword, string exceptionHeader, string exceptionDescription)
+            internal Phase2ResultRow(string loanId, string exceptionHeader, string exceptionDescription)
             {
                 LoanId = loanId;
-                Keyword = keyword;
                 ExceptionHeader = exceptionHeader;
                 ExceptionDescription = exceptionDescription;
             }
             internal string LoanId { get; private set; }
-            internal string Keyword { get; private set; }
             internal string ExceptionHeader { get; private set; }
             internal string ExceptionDescription { get; private set; }
         }
 
         private sealed class ValidationDataRow
         {
-            internal ValidationDataRow(IList<ValidationGradeCell> gradeCells) { GradeCells = gradeCells; }
+            internal ValidationDataRow(IList<ValidationGradeCell> gradeCells, string modification)
+            {
+                GradeCells = gradeCells;
+                Modification = modification;
+            }
             internal IList<ValidationGradeCell> GradeCells { get; private set; }
+            internal string Modification { get; private set; }
         }
 
         private sealed class ValidationGradeCell
@@ -692,6 +829,48 @@ namespace WebPortal.Admin
             {
                 double value;
                 return TryGetNumber(field, out value) && Math.Abs(value) > 0.0000001;
+            }
+
+            internal IList<Phase1Amount> GetAmounts(IEnumerable<string> fields)
+            {
+                var result = new List<Phase1Amount>();
+                foreach (string field in fields)
+                {
+                    decimal value;
+                    string displayValue;
+                    if (TryGetAmount(field, out value, out displayValue) && value != 0
+                        && !result.Any(x => x.Value == value))
+                        result.Add(new Phase1Amount(value, displayValue));
+                }
+                return result;
+            }
+
+            private bool TryGetAmount(string field, out decimal value, out string displayValue)
+            {
+                int column;
+                if (columns.TryGetValue(Normalize(field), out column))
+                {
+                    IXLCell cell = sheet.Cell(rowNumber, column);
+                    double numeric;
+                    if (cell.TryGetValue(out numeric))
+                    {
+                        value = Convert.ToDecimal(numeric, CultureInfo.InvariantCulture);
+                        displayValue = value.ToString("0.##", CultureInfo.InvariantCulture);
+                        return true;
+                    }
+                    string original = cell.GetString().Trim();
+                    bool negative = original.StartsWith("(", StringComparison.Ordinal) && original.EndsWith(")", StringComparison.Ordinal);
+                    string text = original.Replace("$", string.Empty).Replace(",", string.Empty).Replace("(", string.Empty).Replace(")", string.Empty).Trim();
+                    if (decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out value))
+                    {
+                        if (negative) value = -value;
+                        displayValue = original.Length == 0 ? value.ToString("0.##", CultureInfo.InvariantCulture) : original;
+                        return true;
+                    }
+                }
+                value = 0;
+                displayValue = string.Empty;
+                return false;
             }
 
             private bool TryGetNumber(string field, out double value)

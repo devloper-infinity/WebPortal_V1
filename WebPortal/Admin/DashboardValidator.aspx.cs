@@ -124,11 +124,10 @@ namespace WebPortal.Admin
             html.Append("<div class='mb-3'><a class='btn btn-success' href='DashboardValidator.aspx?download=")
                 .Append(HttpUtility.UrlEncode(token)).Append("'><i class='fas fa-download'></i> Download Excel</a></div>");
             html.Append("<div class='erp-table-wrap'><table id='validationResults' class='table table-bordered table-hover nowrap' style='width:100%'>");
-            html.Append("<thead><tr><th>Loan #</th><th>Keyword</th><th>Exception Header</th><th>Exception Description</th></tr></thead><tbody>");
+            html.Append("<thead><tr><th>Loan #</th><th>Exception Header</th><th>Exception Description</th></tr></thead><tbody>");
             foreach (DashboardValidatorEngine.Phase2ResultRow row in results)
             {
-                html.Append("<tr><td>").Append(H(row.LoanId)).Append("</td><td>")
-                    .Append(H(row.Keyword)).Append("</td><td>")
+                html.Append("<tr class='table-danger'><td>").Append(H(row.LoanId)).Append("</td><td>")
                     .Append(H(row.ExceptionHeader)).Append("</td><td>")
                     .Append(H(row.ExceptionDescription)).Append("</td></tr>");
             }
