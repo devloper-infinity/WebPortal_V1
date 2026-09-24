@@ -1051,34 +1051,34 @@ namespace WebPortal.Admin
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
                             NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Reason to terminate:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]) + " </td></tr> ");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0));
+                            AppendNoticeEmailRow(body, "Reason to terminate:", Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]) + " ");
+                            AppendNoticeEmailRow(body, "Step 1 Remark:", Convert.ToString(dtResigned.Rows[0]["Remark"]) + " ");
                         }
                         else if (Convert.ToString(dtResigned.Rows[0]["ResignationType"]) == "Absconding")
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
                             NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(0));
+                            AppendNoticeEmailRow(body, "Step 1 Remark:", Convert.ToString(dtResigned.Rows[0]["Remark"]) + " ");
                         }
                         else
                         {
                             string NoOfDays1 = (Convert.ToDateTime(dtResigned.Rows[0]["LastWorkingDate"]) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays.ToString();
                             NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Notice Period:</b></td><td style=\"border:solid 1px Gray;border-top:none;\"><b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays_1) + "</td></tr>");
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 1 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["Remark"]) + " </td></tr> ");
+                            AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays_1));
+                            AppendNoticeEmailRow(body, "Step 1 Remark:", Convert.ToString(dtResigned.Rows[0]["Remark"]) + " ");
                         }
-                        body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Step 2 :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Resignation Status:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(ResignationStatus) + " </td></tr> " +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Step 2 Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["UnitHeadRemark"]) + " </td></tr> " +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Latest Login Date:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + "</td></tr>");
+                        AppendNoticeEmailSection(body, " :: Step 2 :: ");
+                        AppendNoticeEmailRow(body, "Resignation Status:", Convert.ToString(ResignationStatus) + " ");
+                        AppendNoticeEmailRow(body, "Step 2 Remark:", Convert.ToString(dtResigned.Rows[0]["UnitHeadRemark"]) + " ");
+                        AppendNoticeEmailRow(body, "Latest Login Date:", Convert.ToString(dt.Rows[0]["LastLoginDate"]));
 
                         if (Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesCompleted"]) == "True")
                         {
-                            body.Append("<tr><td style=\"border:solid 1px Gray;border-top:none; text-align:center;\" colspan=\"2\"><b> :: Exit Formality Details :: </b></td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Exit Formalities Completed?:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">Yes</td></tr>" +
-                            "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Exit Formalities Completion Remark:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesRemark"]) + "</td></tr>");
+                            AppendNoticeEmailSection(body, " :: Exit Formality Details :: ");
+                            AppendNoticeEmailRow(body, "Exit Formalities Completed?:", "Yes");
+                            AppendNoticeEmailRow(body, "Exit Formalities Completion Remark:", Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesRemark"]));
                         }
 
                         AppendNoticeEmailSection(body, " :: Changes in Resignation :: ");
@@ -1511,7 +1511,7 @@ namespace WebPortal.Admin
             // Inline cell colors keep the professional template intact in Outlook.
             string labelBackground = highlight ? "#fff7dc" : "#f8fafc";
             string valueBackground = highlight ? "#fff7dc" : "#ffffff";
-            body.Append("<tr" + (highlight ? " style=\"background-color:yellow;\"" : "") +
+            body.Append("<tr" + (highlight ? " class=\"notice-email-highlight\" style=\"background-color:#fff7dc;\"" : "") +
                 "><td width=\"38%\" bgcolor=\"" + labelBackground + "\" style=\"padding:11px 16px;background-color:" + labelBackground + ";border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;font-weight:bold;color:#52637a;\">" + label +
                 "</td><td bgcolor=\"" + valueBackground + "\" style=\"padding:11px 16px;background-color:" + valueBackground + ";border-bottom:1px solid #e6ebf1;font-size:13px;line-height:20px;color:#25324b;\">" + value + "</td></tr>");
         }
@@ -1529,6 +1529,7 @@ namespace WebPortal.Admin
                 ".email-details tr:first-child td[colspan=\"2\"]{padding:20px 16px!important;background-color:#ffffff!important;font-size:15px!important;line-height:24px!important;color:#52637a!important;}" +
                 ".email-details td[colspan=\"2\"][style*=\"text-align:center\"]{padding:13px 16px!important;background-color:#edf4fb!important;font-size:14px!important;line-height:20px!important;font-weight:bold!important;color:#174a7e!important;}" +
                 ".email-details tr[style*=\"background-color:yellow\"] td{background-color:#fff7dc!important;}" +
+                ".email-details tr.notice-email-highlight td{background-color:#fff7dc!important;}" +
                 ".email-details tr:last-child td{border-bottom:0!important;}" +
                 "</style></head><body>";
         }
