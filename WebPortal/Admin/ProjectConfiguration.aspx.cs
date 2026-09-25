@@ -95,13 +95,37 @@ namespace WebPortal.Admin
 
             con.Open();
 
-            SqlTransaction trans = con.BeginTransaction();
+            SqlTransaction trans = con.BeginTransaction(IsolationLevel.Serializable);
 
             cmd.Transaction = trans;
 
             try
             {
                 int ProjectID = 0;
+
+                obj.ProjectName = (obj.ProjectName ?? string.Empty).Trim();
+
+                if (obj.ProjectName.Length == 0)
+                {
+                    trans.Rollback();
+                    return "Project # is required.";
+                }
+
+                cmd.CommandText = @"
+                    SELECT COUNT(1)
+                    FROM Project WITH (UPDLOCK, HOLDLOCK)
+                    WHERE LTRIM(RTRIM(ProjectName)) = @ProjectName
+                      AND ProjectID <> @ProjectID";
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@ProjectName", SqlDbType.NVarChar, 255).Value = obj.ProjectName;
+                cmd.Parameters.Add("@ProjectID", SqlDbType.Int).Value =
+                    string.IsNullOrEmpty(obj.ProjectID) ? 0 : Convert.ToInt32(obj.ProjectID);
+
+                if (Convert.ToInt32(cmd.ExecuteScalar()) > 0)
+                {
+                    trans.Rollback();
+                    return "Project # already exists.";
+                }
 
                 /* =========================================
                    INSERT
@@ -947,20 +971,18 @@ namespace WebPortal.Admin
             P.ProjectName,
             D.DomainName,
 
-            CASE
-                WHEN R.ProjectId IS NOT NULL
-                THEN 1
-                ELSE 0
-            END AS IsAssigned
+            CASE WHEN EXISTS
+            (
+                SELECT 1
+                FROM UserProjectConfiguration R
+                WHERE R.ProjectId = P.ProjectId
+                  AND R.UserId = @EmployeeId
+            ) THEN 1 ELSE 0 END AS IsAssigned
 
         FROM Project P
         inner join ClientFeedback C on C.ProjectID=P.ProjectID
         INNER JOIN Domain D
             ON D.DomainId = C.DomainId
-
-        LEFT JOIN UserProjectConfiguration R
-            ON R.ProjectId = P.ProjectId
-            AND R.UserId = @EmployeeId
 
         ORDER BY P.ProjectName
         ";
@@ -1011,9 +1033,15 @@ namespace WebPortal.Admin
 
                     delCmd.ExecuteNonQuery();
 
-                    // INSERT NEW RIGHTS
-                    foreach (string projectId in ProjectIds)
+                    // INSERT NEW RIGHTS IN ONE DATABASE CALL
+                    List<int> projectIds = (ProjectIds ?? new List<string>())
+                        .Select(id => Convert.ToInt32(id))
+                        .Distinct()
+                        .ToList();
+
+                    if (projectIds.Count > 0)
                     {
+                        string values = string.Join(",", projectIds.Select((id, index) => "(@ProjectId" + index + ")"));
                         SqlCommand insCmd = new SqlCommand(@"
                     INSERT INTO UserProjectConfiguration
                     (
@@ -1022,18 +1050,19 @@ namespace WebPortal.Admin
                         AddedBy,
                         AddedDate
                     )
-                    VALUES
-                    (
-                        @ProjectId,
+                    SELECT
+                        SelectedProjects.ProjectId,
                         @EmployeeId,
                         @AddedBy,
                         GETDATE()
-                    )
+                    FROM (VALUES " + values + @") SelectedProjects(ProjectId)
                 ", con, trans);
 
                         insCmd.Parameters.AddWithValue("@EmployeeId", EmployeeId);
-                        insCmd.Parameters.AddWithValue("@ProjectId", projectId);
                         insCmd.Parameters.AddWithValue("@AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+                        for (int index = 0; index < projectIds.Count; index++)
+                            insCmd.Parameters.Add("@ProjectId" + index, SqlDbType.Int).Value = projectIds[index];
 
                         insCmd.ExecuteNonQuery();
                     }

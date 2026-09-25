@@ -127,7 +127,8 @@ namespace WebPortal.Admin
             html.Append("<thead><tr><th>Loan #</th><th>Exception Header</th><th>Exception Description</th></tr></thead><tbody>");
             foreach (DashboardValidatorEngine.Phase2ResultRow row in results)
             {
-                html.Append("<tr class='table-danger'><td>").Append(H(row.LoanId)).Append("</td><td>")
+                html.Append(row.IsValid ? "<tr class='table-success'><td>" : "<tr class='table-danger'><td>")
+                    .Append(H(row.LoanId)).Append("</td><td>")
                     .Append(H(row.ExceptionHeader)).Append("</td><td>")
                     .Append(H(row.ExceptionDescription)).Append("</td></tr>");
             }

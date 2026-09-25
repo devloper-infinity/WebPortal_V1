@@ -237,6 +237,15 @@ function projectconf_submit() {
         dataType: "json",
 
         success: function (response) {
+            if (response.d !== 'Success') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Unable to save',
+                    text: response.d,
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
@@ -963,7 +972,7 @@ function projectrights_bindprojectslist() {
     //});
 
     // Show grid after user selection
-    $('#projectrights_btnLoad').click(function () {
+    $('#projectrights_btnLoad').off('click.projectRights').on('click.projectRights', function () {
 
         let user = $('#projectrights_ddlUser').val();
         if (user == '') {
@@ -976,11 +985,11 @@ function projectrights_bindprojectslist() {
     });
 
     // Select All
-    $('#projectrights_chkAll').change(function () {
+    $('#projectrights_chkAll').off('change.projectRights').on('change.projectRights', function () {
         $('.row-check').prop('checked', $(this).prop('checked'));
     });
 
-    $('#projectrights_btnSaveRights').click(function () {
+    $('#projectrights_btnSaveRights').off('click.projectRights').on('click.projectRights', function () {
 
         let selectedProjects = [];
 
@@ -1017,14 +1026,17 @@ function projectrights_bindprojectslist() {
             contentType: "application/json; charset=utf-8",
             dataType: "json",
 
-            success: function () {
+            success: function (response) {
                 $('#projectrights_processingModal').modal('hide');
 
                 // ENABLE BUTTON
                 $('#projectrights_btnSaveRights').prop('disabled', false);
 
-                // SUCCESS MESSAGE
-                toastr.success('Rights updated successfully.');
+                if (response.d === 'Success') {
+                    toastr.success('Rights updated successfully.');
+                } else {
+                    toastr.error(response.d);
+                }
                 // alert('Rights updated successfully.');
 
             },
@@ -1032,7 +1044,7 @@ function projectrights_bindprojectslist() {
             error: function () {
 
                 // HIDE LOADER
-                processingModal.hide();
+                $('#projectrights_processingModal').modal('hide');
 
                 // ENABLE BUTTON
                 $('#projectrights_btnSaveRights').prop('disabled', false);
