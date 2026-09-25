@@ -294,8 +294,8 @@
             .attendance-data-table tbody tr.pmatt-disabled-current-manager-row:hover td,
             table.dataTable tbody tr.pmatt-disabled-current-manager-row td,
             table.dataTable tbody tr.pmatt-disabled-current-manager-row:hover td {
-                background: forestgreen !important;
-                color: #fff;
+                background: #C1F5C1 !important;
+                color: #1f2937;
             }
 
             .attendance-data-table tbody tr.pmatt-approval-disabled-row td:not(:first-child),
