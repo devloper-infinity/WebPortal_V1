@@ -671,7 +671,31 @@ function btnClientHolidaySubmit() {
     var ProjectID = Project.options[Project.selectedIndex].value;
 
     var HolidayDate = document.getElementById("fte_ClientHoliday").value;
+    var months = {
+    Jan: "Jan",
+    Feb: "Feb",
+    Mar: "Mar",
+    Apr: "Apr",
+    May: "May",
+    Jun: "Jun",
+    Jul: "Jul",
+    Aug: "Aug",
+    Sep: "Sep",
+    Sept: "Sep",
+    Oct: "Oct",
+    Nov: "Nov",
+    Dec: "Dec"
+};
 
+var parts = HolidayDate.split("-");
+
+if (parts.length === 3) {
+    HolidayDate =
+        parts[0] + "-" +
+        (months[parts[1]] || parts[1]) + "-" +
+        parts[2];
+}
+console.log(HolidayDate);
     if (ProjectID == "Select") {
         alert("Please select project.");
         return false;

@@ -377,21 +377,23 @@ function formatFteBillingPeriod(value) {
         return String(value);
     }
 
-    function formatDatePart(dateText, fallbackYear) {
-        var match = dateText.trim().match(/^(\d{1,2})[-\/]([A-Za-z]+)[-\/](\d{2}|\d{4})$/);
+    function formatDatePart(dateText, fallbackMonth, fallbackYear) {
+        var match = dateText.trim().match(/^(\d{1,2})(?:[-\/]([A-Za-z]+))?(?:[-\/](\d{2}|\d{4}))?$/);
         if (!match) {
             return null;
         }
 
-        var month = monthNames[match[2].toLowerCase()];
-        var year = match[3].length === 4 ? match[3] : fallbackYear;
+        var monthText = (match[2] || "").toLowerCase();
+        var month = monthNames[monthText] || fallbackMonth;
+        var year = match[3] && match[3].length === 4 ? match[3] : fallbackYear;
         return month && year ? ("0" + match[1]).slice(-2) + "-" + month + "-" + year : null;
     }
 
     var fromYearMatch = parts[0].match(/(\d{4})\s*$/);
     var fromYear = fromYearMatch ? fromYearMatch[1] : null;
-    var fromDate = formatDatePart(parts[0], null);
-    var toDate = formatDatePart(parts[1], fromYear);
+    var fromDate = formatDatePart(parts[0], null, null);
+    var fromMonth = fromDate ? fromDate.split("-")[1] : null;
+    var toDate = formatDatePart(parts[1], fromMonth, fromYear);
     return fromDate && toDate ? fromDate + " ~ " + toDate : String(value);
 }
 
