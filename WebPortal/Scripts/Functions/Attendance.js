@@ -90,7 +90,8 @@ function attendanceReturnMessage(result) {
         "-4": "Please select Out Time Convention!",
         "-5": "Please enter login time in 12 hours format!",
         "-6": "Technical Error. Please contact support department!",
-        "-7": "Please select In Date and In Time!"
+        "-7": "Please select In Date and In Time!",
+        "-8": "You have reached the maximum of 4 attendance correction requests."
     };
     return messages[result] || "Unable to process attendance correction request. Please try again.";
 }
@@ -396,32 +397,42 @@ function selfatt_submit() {
         return false;
     }
 
-    var userreason = attendanceValue("selfatt_userreason");
-    var indate = attendanceValue("selfatt_indate");
-    var intime = attendanceValue("selfatt_intime");
-    var outdate = attendanceValue("selfatt_outdate");
-    var outtime = attendanceValue("selfatt_outtime");
-    var reasontext = attendanceText("selfatt_reason");
-    var reasonvalue = attendanceValue("selfatt_reason");
-    var totaltime = attendanceValue("selfatt_totaltime");
-    $('#waitingpanel').modal('show');
-    PageMethods.InsertAttendance(
-        intime,
-        outtime,
-        indate,
-        outdate,
-        totaltime,
-        reasonvalue,
-        reasontext,
-        userreason,
+    selfatt_getattendancecount(function () {
+        var userreason = attendanceValue("selfatt_userreason");
+        var indate = attendanceValue("selfatt_indate");
+        var intime = attendanceValue("selfatt_intime");
+        var outdate = attendanceValue("selfatt_outdate");
+        var outtime = attendanceValue("selfatt_outtime");
+        var reasontext = attendanceText("selfatt_reason");
+        var reasonvalue = attendanceValue("selfatt_reason");
+        var totaltime = attendanceValue("selfatt_totaltime");
+        $('#waitingpanel').modal('show');
+
+        PageMethods.InsertAttendance(intime,outtime,indate,outdate,totaltime,reasonvalue,reasontext,userreason,
+            function (result) {
+                handleAttendanceSubmitResult(result, "Attendance correction request raised successfully!", function () {
+                    location.reload();
+                });
+            },
+            handleAttendanceError
+        );
+    });
+
+    return false;
+}
+
+
+function selfatt_getattendancecount(onAllowed) {
+    PageMethods.getAttendanceCount(
         function (result) {
-            handleAttendanceSubmitResult(result, "Attendance correction request raised successfully!", function () {
-                location.reload();
-            });
+            if (result >= 4) {
+                showAttendanceValidation("You have reached the maximum of 4 attendance correction requests.");
+                return;
+            }
+            if (typeof onAllowed === "function") onAllowed();
         },
         handleAttendanceError
     );
-
     return false;
 }
 
@@ -909,7 +920,7 @@ function pmatt_showApprovalUnavailable(daysSinceAddedDate) {
     var message;
     if (daysSinceAddedDate != null) {
         if (daysSinceAddedDate > 7) {
-            message = "Approval period has expired. This request must be approved within 7 days from the In Date.";
+            message = "Approval period has expired. This request must be approved within 7 working days from the In Date.";
         }
         else if (daysSinceAddedDate < 0) {
             message = "Approval is unavailable because the Added Date is in the future.";
@@ -939,7 +950,7 @@ function pmatt_BindGrid() {
                 var approved = blankForNull(value.Approved);
                 var isPendingApproval = approved === "Pending for approval";
                 var daysSinceInDate = isPendingApproval ? attendanceDaysSinceJsonDate(value.InDate) : null;
-                var isEditable = isPendingApproval && daysSinceInDate !== null && daysSinceInDate >= 0 && daysSinceInDate <= 7;
+                var isEditable = isPendingApproval && daysSinceInDate !== null && daysSinceInDate >= 0 && daysSinceInDate <= 9;
 
                 var rowClasses = [];
                 var cells = [];
@@ -956,7 +967,7 @@ function pmatt_BindGrid() {
 
                 if (isEditable)
                     cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item" href="EditAttendanceCorrectionRequest.aspx?AttendanceCorrectRequestID=' + blankForNull(value.AttendanceCorrectRequestID) + '"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
-                else if (isPendingApproval && daysSinceInDate > 7)
+                else if (isPendingApproval && daysSinceInDate > 9)
                     cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item pmatt-approval-disabled-action" href="#!" role="button" aria-disabled="true" title="Approval period over" onclick="return pmatt_showApprovalUnavailable(' + daysSinceInDate + ');"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
                 else
                     cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item pmatt-approval-disabled-action" aria-disabled="true" tabindex="-1" title="Editing unavailable"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');

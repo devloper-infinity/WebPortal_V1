@@ -14,33 +14,32 @@ namespace WebPortal.Admin
 {
     public partial class ProposedSalaryReport : System.Web.UI.Page
     {
-        bllSalary bllSalary = new bllSalary();
-
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
                 string Code = Convert.ToString(Request.QueryString["Code"]);
 
-                if (Code == null)
+                if (string.IsNullOrEmpty(Code))
                 {
                     aBack.Style.Add("display", "none");
                     prp_labelCode.InnerHtml = EmployeeInfo.Current.Code;
                     prp_labelEmpID.InnerHtml = Convert.ToString(EmployeeInfo.Current.EmployeeID);
-
-                    BindSalaryInfo(prp_labelCode.InnerHtml);
                 }
                 else
                 {
                     aBack.Style.Add("display", "");
                     aBack.HRef = "ViewLog.aspx?Code=" + Code;
-                    BindSalaryInfo(Code);
                 }
             }
         }
 
-        public void BindSalaryInfo(string Code)
+        [WebMethod]
+        public static Dictionary<string, string> BindSalaryInfo(string Code)
         {
+            if (string.IsNullOrWhiteSpace(Code))
+                return null;
+
             DateTime today = DateTime.Now.Date;
 
             DateTime startDate = new DateTime(today.Year, today.Month, 23);
@@ -48,21 +47,25 @@ namespace WebPortal.Admin
 
             bool isEnabled = today >= startDate && today <= endDate;
 
-            if (isEnabled)
+            if (!isEnabled)
+                return null;
+
+            DataTable dt = new bllSalary().getSalaryDetails(Code);
+            if (dt.Rows.Count == 0)
+                return null;
+
+            DataRow row = dt.Rows[0];
+            return new Dictionary<string, string>
             {
-                DataTable dt = bllSalary.getSalaryDetails(Code);
-                if (dt.Rows.Count > 0)
-                {
-                    lblFullDays.InnerHtml = Convert.ToString(dt.Rows[0]["FullDay"]);
-                    lblPartialDays.InnerHtml = Convert.ToString(dt.Rows[0]["PartialDay"]);
-                    lblLatemarkCount.InnerHtml = Convert.ToString(dt.Rows[0]["LateMark"]);
-                    lblTotalDays.InnerHtml = Convert.ToString(dt.Rows[0]["TotalDays"]);
-                    lblTotalDaysWithExtra.InnerHtml = Convert.ToString(dt.Rows[0]["TotalDaysWithExtra"]);
-                    lblExtraDays.InnerHtml = Convert.ToString(dt.Rows[0]["ExtraDays"]);
-                    lblExtraDaysSalary.InnerHtml = Convert.ToString(dt.Rows[0]["ExtraDaysSalary"]);
-                    lblIncentive.InnerHtml = Convert.ToString(dt.Rows[0]["Incentive"]);
-                }
-            }
+                { "FullDay", Convert.ToString(row["FullDay"]) },
+                { "PartialDay", Convert.ToString(row["PartialDay"]) },
+                { "LateMark", Convert.ToString(row["LateMark"]) },
+                { "TotalDays", Convert.ToString(row["TotalDays"]) },
+                { "TotalDaysWithExtra", Convert.ToString(row["TotalDaysWithExtra"]) },
+                { "ExtraDays", Convert.ToString(row["ExtraDays"]) },
+                { "ExtraDaysSalary", Convert.ToString(row["ExtraDaysSalary"]) },
+                { "Incentive", Convert.ToString(row["Incentive"]) }
+            };
         }
 
 
