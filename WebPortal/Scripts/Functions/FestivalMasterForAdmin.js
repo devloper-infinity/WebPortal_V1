@@ -22,7 +22,29 @@
         festivalShowAlert({ icon: 'warning', title: 'Location Required', text: 'Please select at least one location.' });
         return false;
     }
+    var files = fileInput.files;
+    var maxImageSize = 5 * 1024 * 1024; 
+    for (var i = 0; i < files.length; i++) {
+        if (files[i].size > maxImageSize) {
+            festivalShowAlert({
+                icon: 'warning',
+                title: 'Image Too Large',
+                text: 'The image "' + files[i].name + '" is too large. Please upload an image smaller than 5 MB.'
+            });
+            return false;
+        }
+    }
 
+    var videoFile = VideofileInput.files[0];
+    var maxVideoSize = 15 * 1024 * 1024; 
+    if (videoFile && videoFile.size > maxVideoSize) {
+        festivalShowAlert({
+            icon: 'warning',
+            title: 'Video Too Large',
+            text: 'The selected video is too large. Please upload a video smaller than 15 MB.'
+        });
+        return false;
+    }
     $('#load1').show();
     var videoFile = VideofileInput.files[0];
     var videoName = videoFile ? videoFile.name : null;
@@ -195,6 +217,7 @@ function festivaladmin_bindGrid() {
                             return '<img src="' + cleanArray[0] + '" ' +
                                 'alt="' + title + '" ' +
                                 'class="festivalImg" ' +
+                                'loading="lazy" ' +
                                 'data-title="' + title + '" ' +
                                 'data-images="' + festivalEscapeHtml(JSON.stringify(cleanArray)) + '" ' +
                                 'style="max-height: 80px; width: 50px; cursor: pointer;" />';
@@ -215,6 +238,7 @@ function festivaladmin_bindGrid() {
                     { data: 'OnDate' },
                     { data: 'UploadedBy' },
                     { data: 'UploadedDate' },
+                    { data: 'Location', defaultContent: '' },
                     { data: 'Remark' }
 
                 ],

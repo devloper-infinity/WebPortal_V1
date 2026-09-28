@@ -640,7 +640,9 @@
                                         <th>Display Date</th>
                                         <th>Uploaded By</th>
                                         <th>Uploaded Date</th>
-                                                                                <th>Remark</th>
+                                        <th>Location</th>
+
+                                        <th>Remark</th>
 
                                     </tr>
                                 </thead>
