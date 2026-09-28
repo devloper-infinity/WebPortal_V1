@@ -272,7 +272,7 @@ namespace WebPortal.Admin
             int lastRow = Math.Max(2, sheet.LastRowUsed().RowNumber());
             ClearRows(sheet, 2, lastRow, 1, 12);
             ClearRows(sheet, 2, lastRow, 14, 47);
-            List<SourceRow> cityRows = source.Rows.Where(x => x.EqualsValue("City Muni Assessment Lien Exists", "N")).ToList();
+            List<SourceRow> cityRows = source.Rows.Where(x => x.EqualsValue("City Muni Assessment Lien Exists", "Y")).ToList();
             TrackPhase1Matches(cityRows, "City Muni Assessment Lien Exists", phase1Matches);
             WriteRows(sheet, 1, 1, 12, cityRows, null);
             List<SourceRow> townshipRows = source.Rows.Where(x => x.EqualsValue("Township Search Status (Township Level)", "Completed") && x.EqualsValue("Township Search Pass/Fail", "Fail")).ToList();
@@ -379,8 +379,14 @@ namespace WebPortal.Admin
                 foreach (Phase1Amount amount in phase1Match.Amounts)
                 {
                     string amountKey = pairKey + "\u001fAMOUNT\u001f" + amount.Value.ToString("0.00", CultureInfo.InvariantCulture);
-                    if (!emittedValidations.Add(amountKey) || ContainsAmount(validationRow, amount.Value))
+                    if (!emittedValidations.Add(amountKey))
                         continue;
+                    if (ContainsAmount(validationRow, amount.Value))
+                    {
+                        AddPhase2Success(sheet, results, ref outputRow, phase1Match.LoanId,
+                            phase1Match.BaseHeader, "Amount Validated");
+                        continue;
+                    }
                     AddPhase2Failure(sheet, results, ref outputRow, phase1Match.LoanId,
                         phase1Match.BaseHeader,
                         "Amount \"" + amount.DisplayValue + "\" not present in exception");
@@ -396,8 +402,6 @@ namespace WebPortal.Admin
             headerRange.Style.Fill.SetBackgroundColor(XLColor.FromHtml("#B7DEE8"));
             headerRange.Style.Fill.PatternType = XLFillPatternValues.Solid;
             headerRange.Style.Font.Bold = true;
-            if (outputRow > 2)
-                sheet.Range(2, 1, outputRow - 1, 3).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#F4CCCC"));
             sheet.Column(1).Width = 16;
             sheet.Column(2).Width = 48;
             sheet.Column(3).Width = 100;
@@ -479,7 +483,19 @@ namespace WebPortal.Admin
             sheet.Cell(outputRow, 1).Value = loanId;
             sheet.Cell(outputRow, 2).Value = section;
             sheet.Cell(outputRow, 3).Value = description;
-            results.Add(new Phase2ResultRow(loanId, section, description));
+            sheet.Range(outputRow, 1, outputRow, 3).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#F4CCCC"));
+            results.Add(new Phase2ResultRow(loanId, section, description, false));
+            outputRow++;
+        }
+
+        private static void AddPhase2Success(IXLWorksheet sheet, ICollection<Phase2ResultRow> results, ref int outputRow,
+            string loanId, string section, string description)
+        {
+            sheet.Cell(outputRow, 1).Value = loanId;
+            sheet.Cell(outputRow, 2).Value = section;
+            sheet.Cell(outputRow, 3).Value = description;
+            sheet.Range(outputRow, 1, outputRow, 3).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#D9EAD3"));
+            results.Add(new Phase2ResultRow(loanId, section, description, true));
             outputRow++;
         }
 
@@ -674,15 +690,17 @@ namespace WebPortal.Admin
 
         internal sealed class Phase2ResultRow
         {
-            internal Phase2ResultRow(string loanId, string exceptionHeader, string exceptionDescription)
+            internal Phase2ResultRow(string loanId, string exceptionHeader, string exceptionDescription, bool isValid)
             {
                 LoanId = loanId;
                 ExceptionHeader = exceptionHeader;
                 ExceptionDescription = exceptionDescription;
+                IsValid = isValid;
             }
             internal string LoanId { get; private set; }
             internal string ExceptionHeader { get; private set; }
             internal string ExceptionDescription { get; private set; }
+            internal bool IsValid { get; private set; }
         }
 
         private sealed class ValidationDataRow
