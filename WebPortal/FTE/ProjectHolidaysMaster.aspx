@@ -585,13 +585,29 @@
             return formatDateObject(date);
         }
 
-        function formatDateObject(date) {
-            if (!date || isNaN(date.getTime())) {
-                return '';
-            }
+        // function formatDateObject(date) {
+        //     if (!date || isNaN(date.getTime())) {
+        //         return '';
+        //     }
 
-            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
-        }
+        //     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-');
+        // }
+        function formatDateObject(date) {
+    if (!date || isNaN(date.getTime())) {
+        return '';
+    }
+
+    var months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    var day = String(date.getDate()).padStart(2, '0');
+    var month = months[date.getMonth()];
+    var year = date.getFullYear();
+
+    return day + '-' + month + '-' + year;
+}
     </script>
 </asp:Content>
 

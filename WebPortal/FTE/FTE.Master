@@ -318,9 +318,9 @@
             <Scripts>
                 <asp:ScriptReference Path="~/Scripts/FTE/FTEMaster.js" />
                 <asp:ScriptReference Path="~/Scripts/FTE/FTEEntry.js" />
-                <asp:ScriptReference Path="~/Scripts/FTE/FTEBilling.js" />
             </Scripts>
         </asp:ToolkitScriptManager>
+        <script src="../Scripts/FTE/FTEBilling.js?v=20260925-3"></script>
 
         <div class="wrapper">
             <!-- Navbar -->

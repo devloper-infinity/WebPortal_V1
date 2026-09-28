@@ -247,6 +247,16 @@
             .dash-item.premium {
                 min-width: 150px;
             }
+
+        .mgmt-report { font-size: 12px; }
+        .mgmt-report .table { width: 100% !important; white-space: nowrap; }
+        .mgmt-report .dataTables_wrapper { width: 100%; overflow-x: auto; }
+        .mgmt-cards { display:grid; grid-template-columns:repeat(5,minmax(150px,1fr)); gap:10px; }
+        .mgmt-card { border-left:4px solid #047edf; background:#f8fbff; padding:10px; border-radius:7px; }
+        .mgmt-card span { color:#667085; display:block; }
+        .mgmt-card b { font-size:17px; }
+        .mgmt-loading { display:none; position:fixed; inset:0; z-index:2000; background:rgba(255,255,255,.65); align-items:center; justify-content:center; font-size:18px; font-weight:bold; }
+        @media(max-width:991px){.mgmt-cards{grid-template-columns:repeat(2,minmax(140px,1fr));}}
     </style>
 
     <script>
@@ -290,10 +300,26 @@
 
             $(document).on('change', '#insurance_ddlContriType', function () {
                 getAmountDistributionPercentage();
+                refreshRemainingMonthAmounts();
             });
 
             $(document).on('keyup change', '#insurance_txtPercentage', function () {
                 getAmountDistributionPercentage();
+                refreshRemainingMonthAmounts();
+            });
+
+            $(document).on('change', '#insurance_txtPolicyStartDate, #insurance_txtPolicyPeriod1', function () {
+                refreshRemainingMonthAmounts();
+                refreshAllFamilyRemainingMonthAmounts();
+            });
+
+            $(document).ajaxComplete(function (event, xhr, settings) {
+                if (settings.url.indexOf('/getAmountDistribution') >= 0 || settings.url.indexOf('/GetEmployeePolicyInfo') >= 0) {
+                    refreshRemainingMonthAmounts();
+                    setTimeout(refreshAllFamilyRemainingMonthAmounts, 0);
+                }
+                if (settings.url.indexOf('/GetFamilyInfo') >= 0)
+                    setTimeout(refreshAllFamilyRemainingMonthAmounts, 0);
             });
 
             $(document).on('keyup', '#insurance_txtEmployeeSearch', function () {
@@ -310,10 +336,99 @@
 
             $(document).on('keyup change', '.fam-premium', function () {
                 calculateFamilyContribution(this);
+                refreshFamilyRemainingMonthAmounts($(this).closest('tr'));
             });
 
 
         });
+
+        function refreshRemainingMonthAmounts() {
+            var start = $('#insurance_txtPolicyStartDate').val();
+            var period = $('#insurance_txtPolicyPeriod1').val();
+            var employeeYearly = parseFloat($('#insurance_txtEmployeeApproxPremiumYearly').val()) || 0;
+            var companyYearly = parseFloat($('#insurance_txtCompContributionYearly').val()) || 0;
+            if (!start || !period || !selectedEmployeeId) return;
+
+            $.ajax({
+                url: 'HealthInsurancePolicy.aspx/CalculateMonthlyContributions',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({
+                    employeeId: selectedEmployeeId,
+                    policyId: selectedPolicyId,
+                    policyStartDate: start,
+                    policyPeriod: period,
+                    employeeYearly: employeeYearly,
+                    companyYearly: companyYearly
+                }),
+                success: function (res) {
+                    $('#insurance_txtEmployeeApproxPremiumMonthly').val(res.d.EmployeeMonthly.toFixed(2));
+                    $('#insurance_txtCompContributionMonthly').val(res.d.CompanyMonthly.toFixed(2));
+                }
+            });
+        }
+
+        function refreshAllFamilyRemainingMonthAmounts() {
+            $('#insurance_tblFamily tbody tr').each(function () {
+                refreshFamilyRemainingMonthAmounts($(this));
+            });
+        }
+
+        function refreshFamilyRemainingMonthAmounts(row) {
+            var start = $('#insurance_txtPolicyStartDate').val();
+            var period = $('#insurance_txtPolicyPeriod1').val();
+            var employeeYearly = parseFloat(row.find('.fam-emp-yearly').val()) || 0;
+            var companyYearly = parseFloat(row.find('.fam-comp-yearly').val()) || 0;
+            if (!start || !period || !selectedEmployeeId || !row.find('.fam-premium').length) return;
+
+            $.ajax({
+                url: 'HealthInsurancePolicy.aspx/CalculateFamilyMonthlyContributions',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({
+                    employeeId: selectedEmployeeId,
+                    policyId: selectedPolicyId,
+                    policyStartDate: start,
+                    policyPeriod: period,
+                    employeeYearly: employeeYearly,
+                    companyYearly: companyYearly
+                }),
+                success: function (res) {
+                    row.find('.fam-emp-monthly').val(res.d.EmployeeMonthly.toFixed(2));
+                    row.find('.fam-comp-monthly').val(res.d.CompanyMonthly.toFixed(2));
+                }
+            });
+        }
+
+        var mgmtLoaded = false, mgmtLoading = false;
+        function mgmtFilters() { return {
+            policy:$('#mgmtPolicy').val()||'', policyPeriod:$('#mgmtPeriod').val()||'', employee:$('#mgmtEmployee').val()||'',
+            department:$('#mgmtDepartment').val()||'', location:$('#mgmtLocation').val()||'', status:$('#mgmtStatus').val()||'',
+            contributionType:$('#mgmtContribution').val()||'', fromDate:$('#mgmtFrom').val()||'', toDate:$('#mgmtTo').val()||'' }; }
+        function mgmtMoney(v){return '₹'+(parseFloat(v)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+        function mgmtSelect(id,values){var old=$(id).val()||'',h='<option value="">All</option>';$.each(values||[],function(_,v){h+='<option>'+v+'</option>';});$(id).html(h).val(old);}
+        function mgmtTable(id,data,columns){if($.fn.DataTable.isDataTable(id))$(id).DataTable().clear().destroy();$(id).DataTable({data:data||[],columns:columns,scrollX:true,autoWidth:false,pageLength:10,order:[],language:{emptyTable:'No records found'}});}
+        function loadManagementReport(){
+            if(mgmtLoading)return; mgmtLoading=true;
+            $('#mgmtLoading').css('display','flex');
+            $.ajax({url:'HealthInsurancePolicy.aspx/GetManagementReport',type:'POST',contentType:'application/json; charset=utf-8',data:JSON.stringify(mgmtFilters())})
+            .done(function(res){var x=res.d,s=x.Summary;
+                var cards=[['Total Policies',s.TotalPolicies],['Enrolled Employees',s.TotalEnrolledEmployees],['Annual Premium',mgmtMoney(s.TotalAnnualPremium)],['Company Contribution',mgmtMoney(s.TotalCompanyContribution)],['Employee Contribution',mgmtMoney(s.TotalEmployeeContribution)],['Monthly Company',mgmtMoney(s.TotalMonthlyCompanyDeduction)],['Monthly Employee',mgmtMoney(s.TotalMonthlyEmployeeDeduction)],['Added Later',s.LateEmployees],['Active Policies',s.ActivePolicies],['Expiring Soon',s.ExpiringSoon]];
+                $('#mgmtCards').html($.map(cards,function(c){return '<div class="mgmt-card"><span>'+c[0]+'</span><b>'+c[1]+'</b></div>';}).join(''));
+                if(!mgmtLoaded){var periods=[];$('#insurance_ddlPolicyPeriodTab2 option').each(function(){if(this.value)periods.push(this.value);});mgmtSelect('#mgmtPolicy',x.Filters.Policies);mgmtSelect('#mgmtPeriod',periods.length?periods:x.Filters.Periods);mgmtSelect('#mgmtEmployee',x.Filters.Employees);mgmtSelect('#mgmtDepartment',x.Filters.Departments);mgmtSelect('#mgmtLocation',x.Filters.Locations);mgmtSelect('#mgmtContribution',x.Filters.ContributionTypes);}
+                var money=function(d){return mgmtMoney(d);};
+                mgmtTable('#mgmtPolicyTable',x.PolicySummary,[{data:null,render:function(_,__,___,m){return m.row+1;}},{data:'PolicyName',render:function(d,_,r){return '<a href="#" class="mgmt-policy" data-policy="'+d+'" data-period="'+r.PolicyPeriod+'">'+d+'</a>'; }},{data:'PolicyStartDate'},{data:'PolicyEndDate'},{data:'TotalEmployees',render:function(d,_,r){return '<a href="#" class="mgmt-policy" data-policy="'+r.PolicyName+'" data-period="'+r.PolicyPeriod+'">'+d+'</a>'; }},{data:'OriginalEmployees'},{data:'EmployeesAddedLater'},{data:'TotalAnnualPremium',render:money},{data:'CompanyContribution',render:money},{data:'EmployeeContribution',render:money},{data:'MonthlyCompanyContribution',render:money},{data:'MonthlyEmployeeContribution',render:money},{data:'TotalDeducted',render:money},{data:'RemainingDeduction',render:money},{data:'PolicyStatus'},{data:'RemainingDays'}]);
+                mgmtTable('#mgmtEmployeeTable',x.EmployeeDetails,[{data:null,render:function(_,__,___,m){return m.row+1;}},{data:'EmployeeCode'},{data:'EmployeeName'},{data:'Department'},{data:'Location'},{data:'PolicyName'},{data:'EmployeeStart'},{data:'PolicyEnd'},{data:'ContributionType'},{data:'AnnualPremium',render:money},{data:'CompanyContribution',render:money},{data:'EmployeeContribution',render:money},{data:'RemainingMonths'},{data:'MonthlyCompanyContribution',render:money},{data:'MonthlyEmployeeContribution',render:money},{data:'AlreadyDeductedEmployeeAmount',render:money},{data:'AlreadyDeductedCompanyAmount',render:money},{data:'RemainingEmployeeAmount',render:money},{data:'RemainingCompanyAmount',render:money},{data:'DeductionStartMonth'},{data:'LastDeductedMonth'},{data:'Status'}]);
+                mgmtTable('#mgmtLateTable',x.LateEnrollment,[{data:'Employee'},{data:'Policy'},{data:'OriginalPolicyStartDate'},{data:'EmployeeEffectiveStartDate'},{data:'MonthsElapsed'},{data:'RemainingDeductionMonths'},{data:'AnnualPremium',render:money},{data:'EmployeeMonthlyContribution',render:money},{data:'CompanyMonthlyContribution',render:money}]);
+                mgmtTable('#mgmtDeductionTable',x.DeductionSummary,[{data:'Policy'},{data:'TotalExpectedEmployeeContribution',render:money},{data:'EmployeeContributionDeducted',render:money},{data:'EmployeeContributionPending',render:money},{data:'TotalExpectedCompanyContribution',render:money},{data:'CompanyContributionProcessed',render:money},{data:'CompanyContributionPending',render:money},{data:'CompletionPercent',render:function(d){return d+'%';}}]);
+                $('#mgmtTotals').html('<b>Total Employees:</b> '+s.TotalEnrolledEmployees+' &nbsp; <b>Total Premium:</b> '+mgmtMoney(s.TotalAnnualPremium)+' &nbsp; <b>Total Company:</b> '+mgmtMoney(s.TotalCompanyContribution)+' &nbsp; <b>Total Employee:</b> '+mgmtMoney(s.TotalEmployeeContribution)+' &nbsp; <b>Total Deducted:</b> '+mgmtMoney($.fn.DataTable.isDataTable('#mgmtPolicyTable')?$('#mgmtPolicyTable').DataTable().column(12).data().reduce(function(a,b){return a+(parseFloat(b)||0);},0):0)+' &nbsp; <b>Total Pending:</b> '+mgmtMoney($.fn.DataTable.isDataTable('#mgmtPolicyTable')?$('#mgmtPolicyTable').DataTable().column(13).data().reduce(function(a,b){return a+(parseFloat(b)||0);},0):0));
+                mgmtLoaded=true;
+            }).fail(function(x){Swal.fire('Error',x.responseText,'error');}).always(function(){mgmtLoading=false;$('#mgmtLoading').hide();});
+        }
+        function resetManagementReport(){$('#tab-management select,#tab-management input').val('');loadManagementReport();}
+        function exportManagementReport(){$('#mgmtLoading').css('display','flex');$.ajax({url:'HealthInsurancePolicy.aspx/ExportManagementReport',type:'POST',contentType:'application/json; charset=utf-8',data:JSON.stringify(mgmtFilters())}).done(function(r){var a=document.createElement('a');a.href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'+r.d;a.download='HealthInsuranceManagementReport.xlsx';a.click();}).fail(function(x){Swal.fire('Error',x.responseText,'error');}).always(function(){$('#mgmtLoading').hide();});}
+        $(document).on('shown.bs.tab','a[href="#tab-management"]',function(){if(!mgmtLoaded)resetManagementReport();});
+        $(document).on('click','.mgmt-policy',function(e){e.preventDefault();$('#mgmtPolicy').val($(this).data('policy'));$('#mgmtPeriod').val($(this).data('period'));loadManagementReport();});
     </script>
 
     <script>
@@ -423,6 +538,7 @@
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="pill" href="#tab-deleted" role="tab" onclick="return deletedpolicy_bindgrid();">Deleted Employees</a>
                         </li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tab-management" role="tab" onclick="if(!mgmtLoaded)resetManagementReport();">Management Report</a></li>
                     </ul>
                 </div>
 
@@ -756,9 +872,42 @@
                         </table>
 
                     </div>
+
+                    <div class="tab-pane fade mgmt-report" id="tab-management" role="tabpanel">
+                        <div class="section-title">Management Report</div>
+                        <div class="row mb-2">
+                            <div class="col-md-2"><label>Policy</label><select id="mgmtPolicy" class="form-control"><option value="">All</option></select></div>
+                            <div class="col-md-2"><label>Policy Period</label><select id="mgmtPeriod" class="form-control"><option value="">All</option></select></div>
+                            <div class="col-md-2"><label>Employee</label><select id="mgmtEmployee" class="form-control"><option value="">All</option></select></div>
+                            <div class="col-md-2"><label>Department</label><select id="mgmtDepartment" class="form-control"><option value="">All</option></select></div>
+                            <div class="col-md-2"><label>Location</label><select id="mgmtLocation" class="form-control"><option value="">All</option></select></div>
+                            <div class="col-md-2"><label>Status</label><select id="mgmtStatus" class="form-control"><option value="">All</option><option>Not Started</option><option>Active</option><option>Deduction In Progress</option><option>Completed</option><option>Expired</option><option>Expiring Soon</option></select></div>
+                        </div>
+                        <div class="row align-items-end mb-3">
+                            <div class="col-md-2"><label>Contribution Type</label><select id="mgmtContribution" class="form-control"><option value="">All</option></select></div>
+                            <div class="col-md-2"><label>From Date</label><input id="mgmtFrom" type="date" class="form-control" /></div>
+                            <div class="col-md-2"><label>To Date</label><input id="mgmtTo" type="date" class="form-control" /></div>
+                            <div class="col-md-6"><button type="button" class="btn btn-primary mr-2" onclick="loadManagementReport()">Search</button><button type="button" class="btn btn-default mr-2" onclick="resetManagementReport()">Reset</button><button type="button" class="btn btn-success" onclick="exportManagementReport()"><i class="fas fa-file-excel"></i> Export to Excel</button></div>
+                        </div>
+                        <div id="mgmtCards" class="mgmt-cards mb-4"></div>
+
+                        <div class="section-title">Policy-wise Summary</div>
+                        <table id="mgmtPolicyTable" class="table table-bordered table-sm"><thead><tr><th>Sr #</th><th>Policy Name</th><th>Policy Start Date</th><th>Policy End Date</th><th>Total Employees</th><th>Original Employees</th><th>Employees Added Later</th><th>Total Annual Premium</th><th>Company Contribution</th><th>Employee Contribution</th><th>Monthly Company Contribution</th><th>Monthly Employee Contribution</th><th>Total Deducted</th><th>Remaining Deduction</th><th>Policy Status</th><th>Remaining Days</th></tr></thead></table>
+
+                        <div class="section-title mt-4">Employee-wise Details</div>
+                        <table id="mgmtEmployeeTable" class="table table-bordered table-sm"><thead><tr><th>Sr #</th><th>Employee Code</th><th>Employee Name</th><th>Department</th><th>Location</th><th>Policy Name</th><th>Employee Policy Start Date</th><th>Policy End Date</th><th>Contribution Type</th><th>Annual Premium</th><th>Company Contribution</th><th>Employee Contribution</th><th>Remaining Months</th><th>Monthly Company Contribution</th><th>Monthly Employee Contribution</th><th>Already Deducted Employee Amount</th><th>Already Deducted Company Amount</th><th>Remaining Employee Amount</th><th>Remaining Company Amount</th><th>Deduction Start Month</th><th>Last Deducted Month</th><th>Status</th></tr></thead></table>
+
+                        <div class="section-title mt-4">Employees Added After Policy Start</div>
+                        <table id="mgmtLateTable" class="table table-bordered table-sm"><thead><tr><th>Employee</th><th>Policy</th><th>Original Policy Start Date</th><th>Employee Effective Start Date</th><th>Months Elapsed</th><th>Remaining Deduction Months</th><th>Annual Premium</th><th>Employee Monthly Contribution</th><th>Company Monthly Contribution</th></tr></thead></table>
+
+                        <div class="section-title mt-4">Deduction Progress</div>
+                        <table id="mgmtDeductionTable" class="table table-bordered table-sm"><thead><tr><th>Policy</th><th>Total Expected Employee Contribution</th><th>Employee Contribution Deducted</th><th>Employee Contribution Pending</th><th>Total Expected Company Contribution</th><th>Company Contribution Processed</th><th>Company Contribution Pending</th><th>Completion %</th></tr></thead></table>
+                        <div id="mgmtTotals" class="summary-card mt-3"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div id="mgmtLoading" class="mgmt-loading"><i class="fas fa-spinner fa-spin mr-2"></i> Loading report...</div>
 
 </asp:Content>
