@@ -1638,9 +1638,9 @@ function showMedia(idx, list) {
     $('#adminfestivalTitlepopup').text(curr.title);
 
     if (curr.type === 'img') {
-        box.html('<img src="' + curr.src + '" class="rounded" style="width: 100%; height: 100%; object-fit: contain;" />');
+        box.html('<img src="' + curr.src + '" loading="lazy" decoding="async" class="rounded" style="width: 100%; height: 100%; object-fit: contain;" />');
     } else {
-        box.html('<video controls class="rounded" style="width: 100%; height: 100%; object-fit: contain;"><source src="' + curr.src + '" type="video/mp4" /></video>');
+        box.html('<video controls controlsList="nodownload" autoplay preload="metadata" playsinline class="rounded" style="width: 100%; height: 100%; object-fit: contain;"><source src="' + curr.src + '" type="video/mp4" /></video>');
     }
 
     if (list.length > 1) {

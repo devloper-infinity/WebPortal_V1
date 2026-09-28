@@ -26,25 +26,26 @@ namespace WebPortal.Admin
 
         }
 
-        //Submit Recreation Activity
+        //Submit Activity Category
         [WebMethod]
-        public static string SaveExpenseRecreationActivity(string RecreationActivity)
+        public static string SaveExpenseActivityCategory(string AdminExp_ActivityCategory,int ActivityCategoryId)
         {
             string msg = string.Empty;
             try
             {
                 Hashtable htParam = new Hashtable();
-                htParam.Add("RecreationActivity", RecreationActivity);
+                htParam.Add("ActivityCategoryId", ActivityCategoryId);
+                htParam.Add("ActivityCategory", AdminExp_ActivityCategory);
                 htParam.Add("CreatedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-                int ReturnValue = new bllMaster().SaveExpenseRecreationActivity(htParam);
+                int ReturnValue = new bllMaster().SaveExpenseActivityCategory(htParam);
 
                 if (ReturnValue > 0)
                 {
-                    msg = "Recreation Activity saved successfully!";
+                    msg = "Activity Category saved successfully!";
                 }
                 else if (ReturnValue == -1)
                 {
-                    msg = "Recreation Activity already exists!"; 
+                    msg = "Activity Category already exists!"; 
                 }
                 else
                 {
@@ -59,7 +60,33 @@ namespace WebPortal.Admin
             return msg;
         }
 
+        //Get Activity Category for Update
+        [WebMethod]
+        public static string GetAdminExpActivityCategory()
+        {
+            DataTable dt1 = new bllMaster().GetAdminExpActivityCategory();
+            List<string> columnNames = new List<string>();
+            foreach (DataColumn col in dt1.Columns)
+            {
+                columnNames.Add(col.ColumnName);
+            }
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
 
+            foreach (DataRow dr in dt1.Rows)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+        // Activity Category Bind Dropdown
         private static List<T> ConvertDataTable<T>(DataTable dt)
         {
             List<T> data = new List<T>();
@@ -87,32 +114,192 @@ namespace WebPortal.Admin
             }
             return obj;
         }
-
-        //Fetch Recreation Activity
         [WebMethod]
-        public static List<WebPortal.App_Code.Class.RecreationActivitycls> GetRecreationActivity()
+        public static List<WebPortal.App_Code.Class.ActivityCategorycls> FetchAdminExpActivityCategory()
         {
-            DataTable dtRecreationActivity = null;
-            dtRecreationActivity = new bllMaster().GetRecreationActivity();
-            List<WebPortal.App_Code.Class.RecreationActivitycls> RecreationActivity = new List<WebPortal.App_Code.Class.RecreationActivitycls>();
-            RecreationActivity = ConvertDataTable<WebPortal.App_Code.Class.RecreationActivitycls>(dtRecreationActivity);
+            DataTable dtActivityCategory = null;
+            dtActivityCategory = new bllMaster().GetAdminExpActivityCategory();
+            List<WebPortal.App_Code.Class.ActivityCategorycls> RecreationActivity = new List<WebPortal.App_Code.Class.ActivityCategorycls>();
+            RecreationActivity = ConvertDataTable<WebPortal.App_Code.Class.ActivityCategorycls>(dtActivityCategory);
             return RecreationActivity;
+        }
+
+        //Submit Activity 
+        [WebMethod]
+        public static string SaveExpenseActivity(int AdminExp_ActivityCategory,String AdminExp_Activity ,int activityId)
+        {
+            string msg = string.Empty;
+            try
+            {
+                Hashtable htParam = new Hashtable();
+                htParam.Add("ActivityId", activityId);
+                htParam.Add("ActivityCategoryId", AdminExp_ActivityCategory);
+                htParam.Add("Activity", AdminExp_Activity);
+                htParam.Add("CreatedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+                int ReturnValue = new bllMaster().SaveExpenseActivity(htParam);
+
+                if (ReturnValue > 0)
+                {
+                    msg = "Activity saved successfully!";
+                }
+                else if (ReturnValue == -1)
+                {
+                    msg = "Activity already exists!";
+                }
+                else
+                {
+                    msg = "Error saving data";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+            return msg;
+        }
+        //Get Activity  for Update
+        [WebMethod]
+        public static string GetAdminExpActivity()
+        {
+            DataTable dt1 = new bllMaster().GetAdminExpActivity();
+            List<string> columnNames = new List<string>();
+            foreach (DataColumn col in dt1.Columns)
+            {
+                columnNames.Add(col.ColumnName);
+            }
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            foreach (DataRow dr in dt1.Rows)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+        //Fetch activities based on selected category
+        [WebMethod]
+        public static string GetActivitiesByCategory(int categoryId)
+        {
+
+            DataTable dt1 = new bllMaster().GetActivitiesByCategoryId(categoryId);
+
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            if (dt1 != null)
+            {
+                foreach (DataRow dr in dt1.Rows)
+                {
+                    Dictionary<string, object> row = new Dictionary<string, object>();
+                    foreach (DataColumn col in dt1.Columns)
+                    {
+                        row.Add(col.ColumnName, dr[col]);
+                    }
+                    rows.Add(row);
+                }
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
+        }
+
+
+        [WebMethod]
+        public static string SaveYearlyBudget(int budgetId,int categoryId, int activityId, int locationId, int year, decimal budget)
+        {
+            string msg = string.Empty;
+            try
+            {
+                Hashtable htParam = new Hashtable();
+                htParam.Add("ExpensesBugetId", budgetId);
+                htParam.Add("ActivityCategoryId", categoryId);
+                htParam.Add("ActivityId", activityId);
+                htParam.Add("LocationId", locationId);
+                htParam.Add("Year", year);
+                htParam.Add("Budget", budget);
+                htParam.Add("CreatedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+
+                int ReturnValue = new bllMaster().SaveYearlyBudget(htParam);
+
+                if (ReturnValue > 0)
+                {
+                    msg = "Budget saved successfully!";
+                }
+                else if (ReturnValue == -1)
+                {
+                    msg = "Budget for this year already exists!";
+                }
+                else
+                {
+                    msg = "Error saving budget data!";
+                }
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
+            return msg;
+        }
+
+        [WebMethod]
+        public static string GetAdminExpensesYearlyBudget()
+        {
+            DataTable dt1 = new bllMaster().GetAdminExpensesYearlyBudget();
+            List<string> columnNames = new List<string>();
+            foreach (DataColumn col in dt1.Columns)
+            {
+                columnNames.Add(col.ColumnName);
+            }
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            foreach (DataRow dr in dt1.Rows)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt1.Columns)
+                {
+                    row.Add(col.ColumnName, dr[col]);
+                }
+                rows.Add(row);
+            }
+
+            JavaScriptSerializer ser = new JavaScriptSerializer();
+            ser.MaxJsonLength = int.MaxValue;
+            return ser.Serialize(rows);
         }
 
 
 
+
+
+
+
+
+
+
+
+
+
         [WebMethod]
-        public static string SaveExpenseData(int expenseId,string Location, string OtherActivity, string Date, string CompletedDate, string ActualExpense, string Status, string Remark)
+        public static string SaveExpenseData(int expenseId, string LocationId, string RecreationActivity, string Quarter, string ActivitiesMonth, string CompletedDate, string ExpShift, string ActualExpense, string Status, string Remark)
         {
             string msg = string.Empty;
             try
             {
                 Hashtable htParam = new Hashtable();
                 htParam.Add("ExpenseId", expenseId);
-                htParam.Add("Location", Location);
-                htParam.Add("OtherActivity", OtherActivity);
-                htParam.Add("Date", Date);
+                htParam.Add("Location", LocationId);
+                htParam.Add("RecreationActivity", RecreationActivity);
+                htParam.Add("Quarter", Quarter);
+                htParam.Add("ActivitiesMonth", ActivitiesMonth);
                 htParam.Add("CompletedDate", CompletedDate);
+                htParam.Add("ExpShift", ExpShift);
                 htParam.Add("ActualExpense", ActualExpense);
                 htParam.Add("Status", Status);
                 htParam.Add("Remark", Remark);

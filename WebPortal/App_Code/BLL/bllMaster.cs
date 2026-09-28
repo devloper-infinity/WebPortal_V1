@@ -2818,16 +2818,66 @@ namespace WebPortal.App_Code.BLL
         }
 
 
-
-        public int SaveExpenseRecreationActivity(Hashtable htParam)
+        /*----- Admin(Expenses) -----*/
+        public int SaveExpenseActivityCategory(Hashtable htParam)
         {
-            return dalMaster.SaveExpenseRecreationActivity(htParam);
+            return dalMaster.SaveExpenseActivityCategory(htParam);
         }
 
-        public DataTable GetRecreationActivity()
+        public DataTable GetAdminExpActivityCategory()
         {
-            return dalMaster.GetRecreationActivity();
-        } 
+            return dalMaster.GetAdminExpActivityCategory();
+        }
+
+        public int SaveExpenseActivity(Hashtable htParam)
+        {
+            return dalMaster.SaveExpenseActivity(htParam);
+        }
+        public DataTable GetAdminExpActivity()
+        {
+            return dalMaster.GetAdminExpActivity();
+        }
+
+        public DataTable GetActivitiesByCategoryId(int categoryId)
+        {
+            return dalMaster.GetActivitiesByCategoryId(categoryId);
+        }
+        public int SaveYearlyBudget(Hashtable htParam)
+        {
+            return dalMaster.SaveYearlyBudget(htParam);
+        }
+        public DataTable GetAdminExpensesYearlyBudget()
+        {
+            return dalMaster.GetAdminExpensesYearlyBudget();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         public int InsertAdminExpensesData(Hashtable htParam)
         {
             return dalMaster.InsertAdminExpensesData(htParam);

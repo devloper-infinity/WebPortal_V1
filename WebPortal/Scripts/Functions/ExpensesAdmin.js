@@ -1,33 +1,35 @@
-﻿//Submit Recreation Activity
-function ExpensesRecreationActivitySubmit() {
-
-    var RecreationActivity = $("#Expensesrecreationactivity").val();
-
-    if (RecreationActivity === "") {
-        Swal.fire("Validation", "Please Select Recreation Activity", "warning");
+﻿//Submit Activity Category
+function ExpensesActivityCategorySubmit() {
+    var AdminExp_ActivityCategory = $("#AdminExp_ActivityCategory").val();
+    var activityId = $('#hdnActivityCategoryId').val(); // <--- इथून ID घेतला
+    if (AdminExp_ActivityCategory === "") {
+        Swal.fire("Validation", "Please Select Activity Category", "warning");
         return false;
     }
+    $("#load1").show();
 
     var formData = {
-        RecreationActivity: RecreationActivity,
+        AdminExp_ActivityCategory: AdminExp_ActivityCategory,
+        ActivityCategoryId: activityId,
     };
 
     $.ajax({
         type: "POST",
-        url: "ExpensesAdmin.aspx/SaveExpenseRecreationActivity",
+        url: "ExpensesAdmin.aspx/SaveExpenseActivityCategory",
         data: JSON.stringify(formData),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
             var serverMessage = response.d;
-            if (serverMessage === "Recreation Activity saved successfully!") {
+            if (serverMessage === "Activity Category saved successfully!") {
                 Swal.fire("Success", serverMessage, "success").then((result) => {
                     if (result.isConfirmed) {
-                        $("#Expensesrecreationactivity").val(""); 
+                        ClearActivityCategory();
+                        GetAdminExpActivityCategory();
                     }
                 });
             }
-            else if (serverMessage === "Recreation Activity already exists!") {
+            else if (serverMessage === "Activity Category already exists!") {
                 Swal.fire("Warning", serverMessage, "warning");
             }
             else {
@@ -36,29 +38,427 @@ function ExpensesRecreationActivitySubmit() {
         },
         error: function (xhr, status, error) {
             Swal.fire("Error", "Server Error: " + error, "error");
+        },
+        complete: function () {
+            $("#load1").hide();
         }
     });
     return false;
 }
 
-
-//Fetch Recreation Activity
-function bindExpensesRecreationActivity() {
-    var select = document.getElementById("dllExpensesRecreationActivity");
-    let options = select.getElementsByTagName('optionRecreationActivity');
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
-    }
-    $("#dllExpensesRecreationActivity").append($("<option></option>").val("").html("Select"));
+//Get Activity Category
+function GetAdminExpActivityCategory() {
     $.ajax({
-        type: "POST", url: "ExpensesAdmin.aspx/GetRecreationActivity", dataType: "json", contentType: "application/json",
-        success: function (res) {
-            $.each(res.d, function (data, value) {
-                $("#dllExpensesRecreationActivity").append($("<option></option>").val(value.RecreationActivityId).html(value.RecreationActivity));
-            })
+        type: "POST",
+        url: "ExpensesAdmin.aspx/GetAdminExpActivityCategory",
+        data: '{}',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var data = JSON.parse(response.d);
+            if ($.fn.DataTable.isDataTable('#AdminActivityCategory_table')) {
+                $('#AdminActivityCategory_table').DataTable().destroy();
+            }
+
+            if (data.length > 0) {
+                var colNames = Object.keys(data[0]).filter(item => item !== "ActivityCategoryId");
+                var actualDataColumn = colNames[0]; 
+
+                var columnsConfig = [
+                    {
+                        title: "Action",
+                        className: "text-end",
+                        width: "25%",
+                        orderable: false, 
+                        data: null,
+                        render: function (row, type, full) {
+                            var id = full.ActivityCategoryId || '';
+                            var name = full[actualDataColumn] || '';
+                            var clickAction = "$('#hdnActivityCategoryId').val('" + id + "'); " +
+                                "$('#AdminExp_ActivityCategory').val(`" + name + "`); " +
+                                "$('#AdminExpActivityCategorybtnText').text('Update'); " +
+                                "$('#AdminExpActivityCategory_btnIcon').removeClass('fa-paper-plane').addClass('fa-edit');";
+                            return '<i class="fas fa-edit text-primary" style="cursor:pointer;" onclick="' + clickAction + '" title="Update"></i>';
+                        }
+                    },
+                    {
+                        title: "Activity Category",
+                        data: actualDataColumn,
+                        width: "75%"
+                    }
+                ];
+                $('#AdminActivityCategory_table').DataTable({
+                    data: data,
+                    columns: columnsConfig,
+                    destroy: true,
+                    paging: true,
+                    searching: true,
+                    info: true,
+                    ordering: false,
+                    lengthChange: true,
+                    autoWidth: false
+                });
+
+            } else {
+                $('#AdminActivityCategory_table').empty();
+                $('#AdminActivityCategory_table').html('<tbody><tr><td colspan="2" class="text-center">No data available</td></tr></tbody>');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log("Error: " + error);
         }
     });
 }
+
+//Clear Input Field
+function ClearActivityCategory() {
+    $('#hdnActivityCategoryId').val('0');
+    $("#AdminExp_ActivityCategory").val("");
+    $('#AdminExpActivityCategorybtnText').text("Submit");
+    $('#AdminExpActivityCategory_btnIcon').removeClass("fa-edit").addClass("fa-paper-plane");
+    $("#adminexpactivity").val("");
+    $("#dlladminExpensesActivity").val("").trigger('change');
+    $('#adminexpactivitybtnText').text("Submit");
+    $('#adminexpactivitybtnicon').removeClass("fa-edit").addClass("fa-paper-plane");
+
+}
+
+//Fetch Activity Category
+function bindExpensesActivityCategory(dropdownId) {
+    var selector = "#" + dropdownId;
+    $(selector).html('<option value="">Select</option>');
+    $.ajax({
+        type: "POST",
+        url: "ExpensesAdmin.aspx/FetchAdminExpActivityCategory",
+        dataType: "json",
+        contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $(selector).append($("<option></option>").val(value.ActivityCategoryId).html(value.ActivityCategory));
+            });
+        }
+    });
+}
+
+//Submit Activity 
+function ExpensesAdminActivitySubmit() {
+    var AdminExp_ActivityCategory = $("#dlladminExpensesActivity").val();
+    var AdminExp_Activity = $("#adminexpactivity").val();
+    var activityId = $('#hdnActivityId').val(); 
+    if (AdminExp_ActivityCategory === "") {
+        Swal.fire("Validation", "Please Select Activity Category", "warning");
+        return false;
+    }
+    if (AdminExp_Activity === "") {
+        Swal.fire("Validation", "Please Add Activity", "warning");
+        return false;
+    }
+    $("#load1").show();
+
+    var formData = {
+        AdminExp_ActivityCategory: AdminExp_ActivityCategory,
+        AdminExp_Activity: AdminExp_Activity,
+        activityId: activityId,
+    };
+
+    $.ajax({
+        type: "POST",
+        url: "ExpensesAdmin.aspx/SaveExpenseActivity",
+        data: JSON.stringify(formData),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var serverMessage = response.d;
+            if (serverMessage === "Activity saved successfully!") {
+                Swal.fire("Success", serverMessage, "success").then((result) => {
+                    if (result.isConfirmed) {
+                        GetAdminExpActivity();
+                    }
+                });
+            }
+            else if (serverMessage === "Activity already exists!") {
+                Swal.fire("Warning", serverMessage, "warning");
+            }
+            else {
+                Swal.fire("Error", serverMessage, "error");
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.fire("Error", "Server Error: " + error, "error");
+        },
+        complete: function () {
+            $("#load1").hide();
+        }
+    });
+    return false;
+}
+
+// Get Activity function 
+function GetAdminExpActivity() {
+    $.ajax({
+        type: "POST",
+        url: "ExpensesAdmin.aspx/GetAdminExpActivity",
+        data: '{}',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var data = JSON.parse(response.d);
+            if ($.fn.DataTable.isDataTable('#AdminActivity_table')) {
+                $('#AdminActivity_table').DataTable().destroy();
+            }
+
+            if (data.length > 0) {
+                var columnsConfig = [
+                    {
+                        title: "Action",
+                        className: "text-end",
+                        width: "25%",
+                        orderable: false,
+                        data: null,
+                        render: function (row, type, full) {
+                            var id = full.ActivityId || '';
+                            var categoryId = full.ActivityCategoryId || ''; 
+                            var name = full.ActivityName || '';
+                            var clickAction = "$('#hdnActivityId').val('" + id + "'); " +
+                                "$('#dlladminExpensesActivity').val('" + categoryId + "').trigger('change'); " +
+                                "$('#adminexpactivity').val(`" + name + "`); " +
+                                "$('#adminexpactivitybtnText').text('Update'); " +
+                                "$('#adminexpactivitybtnicon').removeClass('fa-paper-plane').addClass('fa-edit');";
+
+                            return '<i class="fas fa-edit text-primary" style="cursor:pointer;" onclick="' + clickAction + '" title="Update"></i>';
+                        }
+                    },
+                    {
+                        title: "Activity Category",
+                        data: "ActivityCategory",
+                        width: "35%"
+                    },
+                    {
+                        title: "Activity Name",
+                        data: "ActivityName",
+                        width: "40%"
+                    }
+                ];
+
+                $('#AdminActivity_table').DataTable({
+                    data: data,
+                    columns: columnsConfig,
+                    destroy: true,
+                    paging: true,
+                    searching: true,
+                    info: true,
+                    ordering: false,
+                    lengthChange: true,
+                    autoWidth: false
+                });
+
+            } else {
+                $('#AdminActivity_table').empty();
+                $('#AdminActivity_table').html('<tbody><tr><td colspan="3" class="text-center">No data available</td></tr></tbody>');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log("Error: " + error);
+        }
+    });
+}
+//Fetch activities based on selected category
+$(document).on('change', '#dllExpensesBudgetActivityCategory', function () {
+    var categoryId = $(this).val();
+    var $activityDropdown = $('#dllExpensesActivity');
+
+    if (!categoryId) {
+        $activityDropdown.empty();
+        $activityDropdown.append('<option value="">-- Select Activity --</option>');
+        return;
+    }
+
+    $.ajax({
+        url: 'ExpensesAdmin.aspx/GetActivitiesByCategory',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ categoryId: categoryId }), 
+        success: function (response) {
+            $activityDropdown.empty();
+            $activityDropdown.append('<option value="">-- Select Activity --</option>');
+
+            var data = typeof response.d === 'string' ? JSON.parse(response.d) : (response.d || response);
+
+            $.each(data, function (index, activity) {
+                $activityDropdown.append(
+                    '<option value="' + activity.ActivityId + '">' + activity.ActivityName + '</option>'
+                );
+            });
+            var preSelectedActivity = $activityDropdown.data('selected-activity');
+            if (preSelectedActivity) {
+                $activityDropdown.val(preSelectedActivity);
+                $activityDropdown.removeData('selected-activity');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log("Error fetching activities: " + error);
+        }
+    });
+});
+// Bind Location
+function bindAdminExpLocation() {
+    var select = document.getElementById("dllAdminExpLocation");
+    let options = select.getElementsByTagName('option');
+    for (var i = options.length; i--;) {
+        select.removeChild(options[i]);
+    }
+    $("#dllAdminExpLocation").append($("<option></option>").val("").html("Select"));
+    $.ajax({
+        type: "POST", url: "CreateProfile.aspx/GetBranches", dataType: "json", contentType: "application/json",
+        success: function (res) {
+            $.each(res.d, function (data, value) {
+                $("#dllAdminExpLocation").append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            })
+        }
+    });
+
+}
+function ExpensesAdminYearlybudgetSubmit() {
+    var budgetId = $('#hdnExpensesBugetId').val();
+    var categoryId = $('#dllExpensesBudgetActivityCategory').val();
+    var activityId = $('#dllExpensesActivity').val();
+    var locationId = $('#dllAdminExpLocation').val();
+    var year = $('#yearly_year_dropdown').val();
+    var budget = $('#yearly_budget_input').val();
+    if (!categoryId) { alert('Krupaya Activity Category select kara!'); $('#dllExpensesBudgetActivityCategory').focus(); return; }
+    if (!activityId) { alert('Krupaya Activity select kara!'); $('#dllExpensesActivity').focus(); return; }
+    if (!locationId) { alert('Krupaya Location select kara!'); $('#dllAdminExpLocation').focus(); return; }
+    if (!year) { alert('Krupaya Year select kara!'); $('#yearly_year_dropdown').focus(); return; }
+    if (!budget || budget <= 0) { alert('Krupaya yogya Budget amount taka!'); $('#yearly_budget_input').focus(); return; }
+
+    var $btn = $('#adminexpaYearlybudget_btnsubmit');
+    var $icon = $('#adminexpYearlybudgetbtnicon');
+    var $text = $('#adminexpYearlybudgetbtnText');
+
+    $btn.prop('disabled', true);
+    $icon.removeClass('fa-paper-plane').addClass('fa-spinner fa-spin');
+    $text.text('Saving...');
+
+    $.ajax({
+        url: 'ExpensesAdmin.aspx/SaveYearlyBudget',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({
+            budgetId: parseInt(budgetId || 0),
+            categoryId: parseInt(categoryId),
+            activityId: parseInt(activityId),
+            locationId: parseInt(locationId),
+            year: parseInt(year),
+            budget: parseFloat(budget)
+        }),
+        success: function (response) {
+            var resMsg = response.d;
+            if (resMsg.indexOf("successfully") !== -1) {
+                alert(resMsg);
+            } else {
+                alert(resMsg);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log(xhr.responseText);
+            alert('Server sobat connect hotana error ala.');
+        },
+        complete: function () {
+            $btn.prop('disabled', false);
+            $icon.removeClass('fa-spinner fa-spin').addClass('fa-paper-plane');
+            $text.text('Submit');
+        }
+    });
+}
+// Clear Function
+function ClearActivityCategory() {
+    $('#dllExpensesBudgetActivityCategory').val('').trigger('change');
+    $('#dllExpensesActivity').empty().append('<option value="">-- Select Activity --</option>');
+    $('#dllAdminExpLocation').val('');
+    $('#yearly_year_dropdown').val('');
+    $('#yearly_budget_input').val('');
+}
+function GetAdminExpensesYearlyBudget() {
+    $.ajax({
+        type: "POST",
+        url: "ExpensesAdmin.aspx/GetAdminExpensesYearlyBudget",
+        data: '{}',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            var data = typeof response.d === 'string' ? JSON.parse(response.d) : (response.d || response);
+
+            if ($.fn.DataTable.isDataTable('#AdminExpensesYearlyBuget_table')) {
+                $('#AdminExpensesYearlyBuget_table').DataTable().destroy();
+            }
+
+            if (data.length > 0) {
+                $('#AdminExpensesYearlyBuget_table').DataTable({
+                    data: data,
+                    destroy: true,
+                    paging: true,
+                    searching: true,
+                    ordering: false,
+                    columns: [
+                        {
+                            title: "Action",
+                            className: "text-center",
+                            width: "10%",
+                            data: null,
+                            render: function (row, type, full) {
+                                return '<i class="fas fa-edit text-primary" style="cursor:pointer;" onclick="EditYearlyBudget(' +
+                                    full.ExpensesBugetId + ', ' +
+                                    full.ActivityCategoryId + ', ' +
+                                    full.ActivityId + ', ' +
+                                    full.LocationId + ', \'' +
+                                    full.Year + '\', ' +
+                                    full.Budget + ')" title="Update"></i>';
+                            }
+                        },
+                        { title: "Category", data: "ActivityCategory", width: "25%" },
+                        { title: "Activity", data: "ActivityName", width: "25%" },
+                        { title: "Location", data: "BranchName", width: "25%" },
+                        { title: "Year", data: "Year", width: "15%" },
+                        { title: "Budget", data: "Budget", width: "25%" }
+                    ]
+                });
+            } else {
+                $('#AdminExpensesYearlyBuget_table').html('<tbody><tr><td colspan="5" class="text-center">No data available</td></tr></tbody>');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log("Error: " + error);
+        }
+    });
+}
+function EditYearlyBudget(budgetId, categoryId, activityId, locationId, year, budget) {
+    $('#hdnExpensesBugetId').val(budgetId);
+    $('#dllExpensesActivity').data('selected-activity', activityId);
+    $('#dllExpensesBudgetActivityCategory').val(categoryId).trigger('change');
+    $('#dllAdminExpLocation').val(locationId);
+    $('#yearly_year_dropdown').val(year);
+    $('#yearly_budget_input').val(budget);
+    $('#adminexpYearlybudgetbtnText').text('Update');
+    $('#adminexpYearlybudgetbtnicon').removeClass('fa-paper-plane').addClass('fa-edit');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //Fetch Recreation Activity For Details
 function bindExpdetailsRecreationActivity() {
@@ -103,12 +503,6 @@ $(document).on('change', '#dllexpdetailsRecreationActivity', function () {
 });
 
 
-
-
-
-
-
-
 // Bind Location
 function bindLocation() {
     var select = document.getElementById("location");
@@ -148,9 +542,15 @@ function ExpenseSubmitData() {
     var expenseId = $("#hdnExpenseId").val() || 0;
 
     var locationId = $("#location").val();
-    var otherActivity = $("#otherActivity").val();
-    var Date = $("#Date").val();
+    var expdetailsRecreationActivity = $("#dllexpdetailsRecreationActivity").val();
+    var selectedQuarters = [];
+    $("input[name='ExpAdminQuarter']:checked").each(function () {
+        selectedQuarters.push($(this).val());
+    });
+    var quarter = selectedQuarters.join(", ");
+    var expActivitiesMonth = $("#expActivitiesMonth").val();
     var completedDate = $("#CompletedDate").val();
+    var expShift = $("#ExpShift").val();
     var actualExpense = $("#ActualExpense").val();
     var status = $("#Status").val();
     var remark = $("#remark").val();
@@ -159,16 +559,16 @@ function ExpenseSubmitData() {
         Swal.fire("Validation", "Please Select Location", "warning");
         return;
     }
-    if (otherActivity === "" || otherActivity === "Select") {
+    if (expdetailsRecreationActivity === "" || expdetailsRecreationActivity === "Select") {
         Swal.fire("Validation", "Please Select Recreation Activity", "warning");
         return;
     }
-    if (Date === "" || Date === "Select") {
-        Swal.fire("Validation", "Please Select Date", "warning");
+    if (expActivitiesMonth === "" || expActivitiesMonth === "Select") {
+        Swal.fire("Validation", "Please Select Activities Month", "warning");
         return;
     }
     if (completedDate === "" || completedDate === "Select") {
-        Swal.fire("Validation", "Please Select Date", "warning");
+        Swal.fire("Validation", "Please Select Completed Date", "warning");
         return;
     }
     if (actualExpense === "") {
@@ -180,12 +580,19 @@ function ExpenseSubmitData() {
         Swal.fire("Validation", "Please Select status", "warning");
         return;
     }
+
+    if (expShift === "") {
+        Swal.fire("Validation", "Please Select Shift", "warning");
+        return;
+    }
     var formData = {
         expenseId: expenseId,
-        Location: locationId,
-        OtherActivity: otherActivity,
-        Date: Date,
+        LocationId: locationId,
+        RecreationActivity: expdetailsRecreationActivity,
+        Quarter: quarter,
+        ActivitiesMonth: expActivitiesMonth,
         CompletedDate: completedDate,
+        ExpShift: expShift,
         ActualExpense: actualExpense,
         Status: status,
         Remark: remark
@@ -263,7 +670,7 @@ function BindAdminExpenseData() {
                 "autoWidth": false,
                 "columnDefs": [
                     {
-                        "targets": 7, 
+                        "targets": 9, 
                         "width": "250px",
                         "createdCell": function (td, cellData, rowData, row, col) {
                             $(td).css({
