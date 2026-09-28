@@ -90,7 +90,8 @@ function attendanceReturnMessage(result) {
         "-4": "Please select Out Time Convention!",
         "-5": "Please enter login time in 12 hours format!",
         "-6": "Technical Error. Please contact support department!",
-        "-7": "Please select In Date and In Time!"
+        "-7": "Please select In Date and In Time!",
+        "-8": "You have reached the maximum of 4 attendance correction requests."
     };
     return messages[result] || "Unable to process attendance correction request. Please try again.";
 }
@@ -396,32 +397,42 @@ function selfatt_submit() {
         return false;
     }
 
-    var userreason = attendanceValue("selfatt_userreason");
-    var indate = attendanceValue("selfatt_indate");
-    var intime = attendanceValue("selfatt_intime");
-    var outdate = attendanceValue("selfatt_outdate");
-    var outtime = attendanceValue("selfatt_outtime");
-    var reasontext = attendanceText("selfatt_reason");
-    var reasonvalue = attendanceValue("selfatt_reason");
-    var totaltime = attendanceValue("selfatt_totaltime");
-    $('#waitingpanel').modal('show');
-    PageMethods.InsertAttendance(
-        intime,
-        outtime,
-        indate,
-        outdate,
-        totaltime,
-        reasonvalue,
-        reasontext,
-        userreason,
+    selfatt_getattendancecount(function () {
+        var userreason = attendanceValue("selfatt_userreason");
+        var indate = attendanceValue("selfatt_indate");
+        var intime = attendanceValue("selfatt_intime");
+        var outdate = attendanceValue("selfatt_outdate");
+        var outtime = attendanceValue("selfatt_outtime");
+        var reasontext = attendanceText("selfatt_reason");
+        var reasonvalue = attendanceValue("selfatt_reason");
+        var totaltime = attendanceValue("selfatt_totaltime");
+        $('#waitingpanel').modal('show');
+
+        PageMethods.InsertAttendance(intime,outtime,indate,outdate,totaltime,reasonvalue,reasontext,userreason,
+            function (result) {
+                handleAttendanceSubmitResult(result, "Attendance correction request raised successfully!", function () {
+                    location.reload();
+                });
+            },
+            handleAttendanceError
+        );
+    });
+
+    return false;
+}
+
+
+function selfatt_getattendancecount(onAllowed) {
+    PageMethods.getAttendanceCount(
         function (result) {
-            handleAttendanceSubmitResult(result, "Attendance correction request raised successfully!", function () {
-                location.reload();
-            });
+            if (result >= 4) {
+                showAttendanceValidation("You have reached the maximum of 4 attendance correction requests.");
+                return;
+            }
+            if (typeof onAllowed === "function") onAllowed();
         },
         handleAttendanceError
     );
-
     return false;
 }
 
@@ -881,28 +892,42 @@ function formatAttendanceJsonDate(value) {
 }
 
 function attendanceDaysSinceJsonDate(value) {
+
     var addedDate = parseAttendanceJsonDate(value);
+    if (!addedDate) {
+        var dateParts = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(String(blankForNull(value)).trim());
+        if (dateParts) {
+            var month = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].indexOf(dateParts[2].toLowerCase());
+            if (month !== -1) {
+                addedDate = new Date(Number(dateParts[3]), month, Number(dateParts[1]));
+                if (addedDate.getFullYear() !== Number(dateParts[3]) || addedDate.getMonth() !== month || addedDate.getDate() !== Number(dateParts[1])) return null;
+            }
+        }
+    }
+
     if (!addedDate) return null;
 
     var today = new Date();
     var todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
     var addedDateUtc = Date.UTC(addedDate.getFullYear(), addedDate.getMonth(), addedDate.getDate());
 
+
     return Math.floor((todayUtc - addedDateUtc) / 86400000);
 }
 
 function pmatt_showApprovalUnavailable(daysSinceAddedDate) {
 
-    var message = "Approval period has expired. This request must be approved within 7 days from the In Date.";
+    var message;
+    if (daysSinceAddedDate != null) {
+        if (daysSinceAddedDate > 7) {
+            message = "Approval period has expired. This request must be approved within 7 working days from the In Date.";
+        }
+        else if (daysSinceAddedDate < 0) {
+            message = "Approval is unavailable because the Added Date is in the future.";
+        }
 
-    if (daysSinceAddedDate > 7) {
-        message = "Approval period has expired. This request must be approved within 7 days from the In Date.";
+        showAttendanceMessage("warning", "Approval unavailable", message);
     }
-    else if (daysSinceAddedDate < 0) {
-        message = "Approval is unavailable because the Added Date is in the future.";
-    }
-
-    showAttendanceMessage("warning", "Approval unavailable", message);
     return false;
 }
 
@@ -921,33 +946,31 @@ function pmatt_BindGrid() {
 
             $.each(dataArray, function (index, value) {
                 var pmId = String(blankForNull(value.Pm)).trim();
+                var IsPM = loginId === pmId;
                 var approved = blankForNull(value.Approved);
                 var isPendingApproval = approved === "Pending for approval";
-                var daysSinceAddedDate = isPendingApproval ? attendanceDaysSinceJsonDate(value.InDate) : null;
-                var isWithinApprovalPeriod = isPendingApproval && daysSinceAddedDate !== null && daysSinceAddedDate >= 0 && daysSinceAddedDate <= 7;
+                var daysSinceInDate = isPendingApproval ? attendanceDaysSinceJsonDate(value.InDate) : null;
+                var isEditable = isPendingApproval && daysSinceInDate !== null && daysSinceInDate >= 0 && daysSinceInDate <= 9;
+
                 var rowClasses = [];
                 var cells = [];
 
-                if (loginId !== "" && loginId === pmId) {
+                if (loginId !== "" && IsPM) {
                     rowClasses.push("pmatt-current-manager-row");
                 }
-                if (isPendingApproval && !isWithinApprovalPeriod) {
+                if (isPendingApproval && !isEditable) {
                     rowClasses.push("pmatt-approval-disabled-row");
-                    if (loginId !== "" && loginId === pmId) {
+                    if (loginId !== "" && IsPM) {
                         rowClasses.push("pmatt-disabled-current-manager-row");
                     }
                 }
 
-                if (isWithinApprovalPeriod) {
-                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item" href="EditAttendanceCorrectionRequest.aspx?AttendanceCorrectRequestID=' + blankForNull(value.AttendanceCorrectRequestID) + '"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
-                }
-                else if (isPendingApproval) {
-                    var unavailableDays = daysSinceAddedDate === null ? "null" : daysSinceAddedDate;
-                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item pmatt-approval-disabled-action" href="#!" role="button" aria-disabled="true" title="Approval period over" onclick="return pmatt_showApprovalUnavailable(' + unavailableDays + ');"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
-                }
-                else {
-                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item isDisabled" href="#!" onclick="AddRemark(' + value.VerID + ',' + index + ',1);"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
-                }
+                if (isEditable)
+                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item" href="EditAttendanceCorrectionRequest.aspx?AttendanceCorrectRequestID=' + blankForNull(value.AttendanceCorrectRequestID) + '"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
+                else if (isPendingApproval && daysSinceInDate > 9)
+                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item pmatt-approval-disabled-action" href="#!" role="button" aria-disabled="true" title="Approval period over" onclick="return pmatt_showApprovalUnavailable(' + daysSinceInDate + ');"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
+                else
+                    cells.push('<td style="text-wrap: nowrap;text-align:center;"><a class="dropdown-item pmatt-approval-disabled-action" aria-disabled="true" tabindex="-1" title="Editing unavailable"><span><i class="uil fs-0 me-2 uil-pen"></i></span></a></td>');
 
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>');
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.EmpName) + '</td>');

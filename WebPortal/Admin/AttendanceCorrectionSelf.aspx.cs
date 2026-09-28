@@ -101,6 +101,9 @@ namespace WebPortal.Admin
         [WebMethod]
         public static int InsertAttendance(string IntimeParam, string OutTimeParam, string InDateParam, string OutDateParam, string TotalHoursParam, string reasontypevalue, string reasontypeParam, string userreasonParam)
         {
+            if (new bllMaster().GetAttendanceRequestCount() >= 4)
+                return -8;
+
             return AttendanceCorrectionWebMethods.SaveAttendanceCorrection(new AttendanceCorrectionWebMethods.AttendanceSaveRequest
             {
                 Mode = AttendanceCorrectionWebMethods.AttendanceSaveMode.SelfInsert,

@@ -293,7 +293,7 @@ function openPopup(id, callback) {
         return;
     }
 
-    // 🎯 Project Notofcations --  6
+    // 🎯 Project Notifications --  6
     if (id === "dash_projectNotifications") {
         dash_loadUserProjectNotifications(callback);
         return;
@@ -1624,6 +1624,7 @@ function dashboardAttachColumnFilters(tableSelector, tableApi) {
         }
     });
 }
+
 function showMedia(idx, list) {
     globalMediaList = list; 
     adminfestival_currentIndex = idx;

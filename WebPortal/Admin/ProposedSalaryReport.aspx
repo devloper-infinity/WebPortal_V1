@@ -233,16 +233,50 @@
         $(document).ready(function () {
 
             const params = new URLSearchParams(window.location.search);
-            const code = params.get("Code");
+            var code = params.get("Code");
+            if (!code) {
+                code = $("#<%= prp_labelCode.ClientID %>").text().trim();
+            }
 
-            if (code == null) {
-                var login_code = $("#<%= prp_labelCode.ClientID %>").text().trim();
-                BindSalaryLogDataTable(login_code);
-            }
-            else {
-                BindSalaryLogDataTable(code);
-            }
+            BindSalaryInfo(code);
+            BindSalaryLogDataTable(code);
         });
+
+        function BindSalaryInfo(code) {
+            if (!code || code.trim() === "") {
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "ProposedSalaryReport.aspx/BindSalaryInfo",
+                data: JSON.stringify({ Code: code }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (response) {
+                    var salary = response.d;
+                    if (!salary) return;
+
+                    var controls = {
+                        FullDay: "<%= lblFullDays.ClientID %>",
+                        PartialDay: "<%= lblPartialDays.ClientID %>",
+                        LateMark: "<%= lblLatemarkCount.ClientID %>",
+                        TotalDays: "<%= lblTotalDays.ClientID %>",
+                        TotalDaysWithExtra: "<%= lblTotalDaysWithExtra.ClientID %>",
+                        ExtraDays: "<%= lblExtraDays.ClientID %>",
+                        ExtraDaysSalary: "<%= lblExtraDaysSalary.ClientID %>",
+                        Incentive: "<%= lblIncentive.ClientID %>"
+                    };
+
+                    $.each(controls, function (field, id) {
+                        $(document.getElementById(id)).text(salary[field] || "0");
+                    });
+                },
+                error: function () {
+                    Swal.fire("Error", "Unable to load salary summary.", "error");
+                }
+            });
+        }
 
 
         function BindSalaryLogDataTable(code) {
