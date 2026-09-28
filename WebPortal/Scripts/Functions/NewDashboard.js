@@ -321,6 +321,9 @@ function openPopup(id, callback) {
     }
 
     if (id === "dash_performanceAckModal") {
+
+        alert('message');
+
         dash_showPerformanceAcknowledgement(callback);
         return;
     }
@@ -1657,6 +1660,9 @@ function changeMedia(direction) {
     }
 }
 
+
+/*------------------------ User Acknowledgement Pop-Up  ------------------------*/
+
 function dash_showPerformanceAcknowledgement(callback) {
     $.ajax({
         type: "POST",
@@ -1664,15 +1670,21 @@ function dash_showPerformanceAcknowledgement(callback) {
         contentType: "application/json; charset=utf-8",
         dataType: "json"
     }).done(function (response) {
+
+        alert(response.d);
         if (!response.d) {
             callback();
             return;
         }
 
         var $modal = $("#dash_performanceAckModal");
+
         $modal.one("hidden.bs.modal", callback);
+
         $("#dash_performanceAckFrame").attr("src", "UserPerformanceAcknowledgement.aspx?popup=1");
+
         $modal.modal("show");
+
     }).fail(callback);
 }
 

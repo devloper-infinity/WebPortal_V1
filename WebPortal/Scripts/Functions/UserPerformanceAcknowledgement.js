@@ -14,8 +14,10 @@ function BindUserPerformanceInfo() {
 
             var dataArray = JSON.parse(data.d);
 
-            $.each(dataArray, function (index, value) {
+           
 
+            $.each(dataArray, function (index, value) {
+                alert(value);
                 document.getElementById("userPerfAck_lblPerformanceID").innerHTML = value.PerformanceID;
                 document.getElementById("userPerfAck_lblCode").innerHTML = value.Code;
                 document.getElementById("userPerfAck_lblDate").innerHTML = '<b>Date : </b> ' + value.CurrentDate;

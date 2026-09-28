@@ -37,8 +37,11 @@ namespace WebPortal.Admin
 
             int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);
             DataTable performance = new bllMaster().GetOverAllUserPerformance_UserPerfAck(employeeId);
-            return performance != null && performance.Rows.Count > 0 &&
-                new dalMaster().CheckAcknowledgeUserPerformance(employeeId) == 0;
+            //return performance != null && performance.Rows.Count > 0 && new dalMaster().CheckAcknowledgeUserPerformance(employeeId) == 1;
+            if (performance != null && performance.Rows.Count > 0)
+                return true;
+            else
+                return false;
         }
 
 
@@ -693,7 +696,7 @@ ORDER BY CAST([Date] AS DATETIME);";
 
         [WebMethod]
         public static List<EmpWorkAnniversary> GetEmpWorkAnniversary()
-      {
+        {
             List<EmpWorkAnniversary> list = new List<EmpWorkAnniversary>();
             DataTable dt = new bllMaster().GetWorkAnniversary();
 
