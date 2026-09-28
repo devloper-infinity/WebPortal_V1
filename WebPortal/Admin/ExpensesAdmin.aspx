@@ -356,11 +356,18 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
     <script>
         $(document).ready(function () {
-            bindLocation();
-           // BindAdminExpenseData();
-            //bindPlannedMonth();
-            bindExpensesRecreationActivity();
-            bindExpdetailsRecreationActivity();
+            GetAdminExpActivityCategory();
+            bindExpensesActivityCategory("dlladminExpensesActivity");
+            bindExpensesActivityCategory("dllExpensesBudgetActivityCategory");
+            GetAdminExpActivity();
+            bindAdminExpLocation();
+            GetAdminExpensesYearlyBudget();
+            // bindLocation();
+            // BindAdminExpenseData();
+            // //bindPlannedMonth();
+            // GetRecreationActivity();
+            // bindExpensesRecreationActivity();
+            // bindExpdetailsRecreationActivity();
         });
 
 
@@ -407,20 +414,19 @@
             </div>
         </div>
 
-
-
         <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-           <li class="nav-item">
-        <a class="nav-link active" id="custom-tabs-one-home-tab_RecreationActivity" data-toggle="pill" href="#custom-tabs-one-home-tab_Recreation" role="tab" aria-controls="custom-tabs-one-home-tab_Recreation" aria-selected="true">
-            <b><i class="fas fa-edit"></i> Recreation Activity Master</b>
-        </a>
-    </li>
+
+            <li class="nav-item">
+                <a class="nav-link active" id="custom-tabs-one-home-tab_RecreationActivity" data-toggle="pill" href="#custom-tabs-one-home-tab_Recreation" role="tab" aria-controls="custom-tabs-one-home-tab_Recreation" aria-selected="true">
+                    <b><i class="fas fa-edit"></i>Recreation Activity Master</b>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true"><b><i class="fas fa-edit"></i>Expenses Details & List</b></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">
-                    <b><i class="fas fa-file-alt"></i> Expenses Report</b>
+                    <b><i class="fas fa-file-alt"></i>Expenses Report</b>
                 </a>
             </li>
         </ul>
@@ -428,94 +434,226 @@
         <div class="tab-content" id="custom-tabs-one-tabContent">
 
 
-             <div class="tab-pane fade show active" id="custom-tabs-one-home-tab_Recreation" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab_RecreationActivity">
-        <div class="p-3">
-            <ul class="nav nav-tabs" id="sub-tabs-recreation" role="tablist">
-    <li class="nav-item">
-        <a class="nav-link active" id="recreation-activity-tab" data-toggle="pill" href="#recreation-activity-content" role="tab" aria-controls="recreation-activity-content" aria-selected="true">
-            <b><i class="fas fa-edit"></i> Recreation Activity</b>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" id="yearly-budget-tab" data-toggle="pill" href="#yearly-budget-content" role="tab" aria-controls="yearly-budget-content" aria-selected="false">
-            <b><i class="fas fa-wallet"></i> Yearly Budget</b>
-        </a>
-    </li>
-</ul>
-             
-            <div class="tab-content" id="sub-tabs-content">
-                <div class="tab-pane fade show active" id="recreation-activity-content" role="tabpanel" aria-labelledby="recreation-activity-tab">
-                    <div class="card p-3">
-    <div class="row align-items-end">
-        <!-- Input Field Column -->
-        <div class="col-md-5">
-            <div class="dp-field mb-0">
-                <label>Recreation Activity</label>
-                <input type="text" id="Expensesrecreationactivity" name="Expensesrecreationactivity" class="form-control" />
-            </div>           
-        </div>
-        
-        <!-- Button Column -->
-        <div class="col-md-2">
-            <button type="button" class="btn btn-submit w-100" id="Expensesrecreationactivity_btnsubmit" name="Expensesrecreationactivity_btnsubmit" onclick="ExpensesRecreationActivitySubmit();">
-                <i class="fa fa-paper-plane"></i>
-                <span id="ExpensesrecreationactivitybtnText">Submit</span>
-            </button>
-        </div>
-    </div>
-</div>
-                </div>
-                 
-              <div class="tab-pane fade" id="yearly-budget-content" role="tabpanel" aria-labelledby="yearly-budget-tab">
-    <div class="card p-3">
-        <div class="row align-items-end g-3">
-            
-            <!-- 1. Activity Dropdown -->
-            <div class="col-md-3">
-                <div class="dp-field mb-0">
-                    <label for="ExpensesRecreationActivity" class="form-label">Recreation Activity</label>
-                    <select id="dllExpensesRecreationActivity" name="dllExpensesRecreationActivity" class="form-control">
-                       
-                    </select>
+            <div class="tab-pane fade show active" id="custom-tabs-one-home-tab_Recreation" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab_RecreationActivity">
+                <div class="p-3">
+                    <ul class="nav nav-tabs" id="sub-tabs-recreation" role="tablist">
+
+                        <li class="nav-item">
+                            <a class="nav-link active" id="Admin-Activity-Category-tab" data-toggle="pill" href="#Admin-Activity-Category-content" role="tab" aria-controls="Activity-Category-content" aria-selected="true">
+                                <b><i class="fas fa-edit"></i>Activity Category</b>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" id="activity-tab" data-toggle="pill" href="#Admin-Activity-content" role="tab" aria-controls="activity-content" aria-selected="true">
+                                <b><i class="fas fa-edit"></i>Activity</b>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="yearly-budget-tab" data-toggle="pill" href="#yearly-budget-content" role="tab" aria-controls="yearly-budget-content" aria-selected="false">
+                                <b><i class="fas fa-wallet"></i> Yearly Budget</b>
+                            </a>
+                        </li>
+                    </ul>
+                    <input type="hidden" id="hdnActivityCategoryId" value="0" />
+                    <div class="tab-content" id="sub-tabs-content">
+                        <div class="tab-pane fade show active" id="Admin-Activity-Category-content" role="tabpanel" aria-labelledby="Admin-Activity-Category-tab">
+                            <div class="card p-3">
+                                <div class="row align-items-end">
+                                    <!-- Input Field Column -->
+                                    <div class="col-md-5">
+                                        <div class="dp-field mb-0">
+                                            <label>Activity Category</label>
+                                            <input type="text" id="AdminExp_ActivityCategory" name="AdminExp_ActivityCategory" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Button Column -->
+                                    <div class="col-md-4">
+                                        <div class="d-flex gap-2">
+                                            <!-- Submit / Update Button -->
+                                            <button type="button" class="btn-submit" id="AdminExpActivityCategory_btnsubmit" name="AdminExpActivityCategory_btnsubmit" onclick="ExpensesActivityCategorySubmit();">
+                                                <i class="fa fa-paper-plane" id="AdminExpActivityCategory_btnIcon"></i>
+                                                <span id="AdminExpActivityCategorybtnText">Submit</span>
+                                            </button>
+
+                                            <!-- Clear Button -->
+                                            <button type="button" class="btn-clear" id="AdminExpActivityCategory_btnClear" onclick="ClearActivityCategory();">
+                                                <i class="fa fa-redo"></i>Clear
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h4 class="Expenses-section-title mt-4">
+                                    <i class="fas fa-list-ul"></i>
+                                    Activity Category List
+                                </h4>
+                                <hr />
+                                <div>
+                                    <table class="table" id="AdminActivityCategory_table" style="width: 100%;">
+                                        <thead>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="Admin-Activity-content" role="tabpanel" aria-labelledby="activity-content">
+                                                <input type="hidden" id="hdnActivityId" value="0" />
+                            <input type="hidden" id="hdnExpensesBugetId" value="0" />
+                            <div class="card p-3">
+                                <div class="row align-items-end">
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label>Activity</label>
+                                            <select id="dlladminExpensesActivity" name="dlladminExpensesActivity" class="form-control"></select>
+                                        </div>
+                                    </div>
+                                    <!-- Input Field Column -->
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label>Activity</label>
+                                            <input type="text" id="adminexpactivity" name="adminexpactivity" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Button Column -->
+                                    <div class="col-md-4">
+                                        <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-submit" id="adminexpactivity_btnsubmit" name="adminexpactivity_btnsubmit" onclick="ExpensesAdminActivitySubmit();">
+                                            <i class="fa fa-paper-plane" id="adminexpactivitybtnicon"></i>
+                                            <span id="adminexpactivitybtnText">Submit</span>
+                                        </button>
+
+
+                                          <button type="button" class="btn-clear" id="AdminExpActivity_btnClear" onclick="ClearActivityCategory();">
+      <i class="fa fa-redo"></i>Clear
+  </button>
+ </div>
+                                    </div>
+
+
+
+                                </div>
+
+
+                                <h4 class="Expenses-section-title mt-4">
+                                    <i class="fas fa-list-ul"></i>
+                                    Activity List
+                                </h4>
+                                <hr />
+                                <div>
+                                    <table class="table" id="AdminActivity_table" style="width: 100%;">
+                                        <thead>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="tab-pane fade" id="yearly-budget-content" role="tabpanel" aria-labelledby="yearly-budget-tab">
+                            <div class="card p-3">
+                                <div class="row align-items-end g-3 mb-3">
+
+                                    <!-- 1. Activity Dropdown -->
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label for="ExpensesActivityCategory" class="form-label">Activity Category</label>
+                                            <select id="dllExpensesBudgetActivityCategory" name="dllExpensesBudgetActivityCategory" class="form-control">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label for="ExpensesActivityCategory" class="form-label">Activity</label>
+                                            <select id="dllExpensesActivity" name="dllExpensesActivity" class="form-control">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label for="dllAdminExpLocation" class="form-label">Location</label>
+                                            <select id="dllAdminExpLocation" name="dllAdminExpLocation" class="form-control">
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+
+
+                                </div>
+
+                                <div class="row align-items-end g-3">
+
+                                    <!-- 3. Year Dropdown -->
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label for="yearly_year_dropdown" class="form-label">Year</label>
+                                            <select id="yearly_year_dropdown" name="yearly_year_dropdown" class="form-control">
+                                                <option value="">Select Year</option>
+                                                <option value="2024">2024</option>
+                                                <option value="2025">2025</option>
+                                                <option value="2026">2026</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- 2. Budget Textbox -->
+                                    <div class="col-md-4">
+                                        <div class="dp-field mb-0">
+                                            <label for="yearly_budget_input" class="form-label">Budget</label>
+                                            <input type="number" id="yearly_budget_input" name="yearly_budget_input" class="form-control" placeholder="Enter budget" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Button Column -->
+                                    <div class="col-md-4">
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-submit" id="adminexpaYearlybudget_btnsubmit" name="adminexpaYearlybudget_btnsubmit" onclick="ExpensesAdminYearlybudgetSubmit();">
+                                                <i class="fa fa-paper-plane" id="adminexpYearlybudgetbtnicon"></i>
+                                                <span id="adminexpYearlybudgetbtnText">Submit</span>
+                                            </button>
+
+
+                                            <button type="button" class="btn-clear" id="AdminExpYearlybudget_btnClear" onclick="ClearActivityCategory();">
+                                                <i class="fa fa-redo"></i>Clear
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                 <h4 class="Expenses-section-title mt-4">
+     <i class="fas fa-list-ul"></i>
+     Yearly Buget
+ </h4>
+ <hr />
+ <div>
+     <table class="table" id="AdminExpensesYearlyBuget_table" style="width: 100%;">
+         <thead>
+         </thead>
+         <tbody></tbody>
+     </table>
+ </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 2. Budget Textbox -->
-            <div class="col-md-3">
-                <div class="dp-field mb-0">
-                    <label for="yearly_budget_input" class="form-label">Budget</label>
-                    <input type="number" id="yearly_budget_input" name="yearly_budget_input" class="form-control" placeholder="Enter budget" />
-                </div>
-            </div>
 
-            <!-- 3. Year Dropdown -->
-            <div class="col-md-3">
-                <div class="dp-field mb-0">
-                    <label for="yearly_year_dropdown" class="form-label">Year</label>
-                    <select id="yearly_year_dropdown" name="yearly_year_dropdown" class="form-control">
-                        <option value="">Select Year</option>
-                        <option value="2024">2024</option>
-                        <option value="2025">2025</option>
-                        <option value="2026">2026</option>
-                    </select>
-                </div>
-            </div>
 
-            <!-- 4. Submit Button -->
-            <div class="col-md-3">
-                <button type="button" class="btn btn-submit w-100" id="yearly_budget_btnsubmit" name="yearly_budget_btnsubmit">
-    <i class="fa fa-paper-plane"></i>
-    <span id="yearly_budget_btnsubmitspan">Submit</span>
-</button>
-               
-            </div>
 
-        </div>
-    </div>
-</div>
-            </div>
-        </div>
-    </div>
+
+
+
+
+
+
+
 
 
             <div class="tab-pane fade" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
