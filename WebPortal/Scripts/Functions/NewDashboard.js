@@ -242,6 +242,7 @@ function runPopupSequence() {
     currentUserName = document.getElementById("hdnUserId").value;
 
     const popups = [
+        { id: "dash_performanceAckModal", type: "every_login" },
         { id: "welcomeIntro", type: "first_time" },
 
         { id: "birthdayModal", key: "birthday", type: "once_per_day" },
@@ -252,8 +253,7 @@ function runPopupSequence() {
         { id: "adminimagePreviewModalpopup", key: "adminFestivalPreview", type: "once_per_day" },
         /*{ id: "dashboard_alertdetails", type: "every_login" },*/
         { id: "dash_expiryModal", key: "passwordExpirary", type: "every_login" },
-        { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" },
-        { id: "dash_performanceAckModal", type: "every_login" }
+        { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" }
     ];
 
     showPopupsSequentially(popups, 0);
@@ -321,10 +321,12 @@ function openPopup(id, callback) {
     }
 
     if (id === "dash_performanceAckModal") {
-
-        alert('message');
-
-        dash_showPerformanceAcknowledgement(callback);
+        // Wait for the dashboard to render before checking the first popup.
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                dash_showPerformanceAcknowledgement(callback);
+            });
+        });
         return;
     }
 
@@ -1279,7 +1281,7 @@ function dash_bindFestivalWish(callback) {
 /* Project Notifications */
 function dash_loadUserProjectNotifications(callback) {
 
-    let localCallback = callback;
+    localCallback = callback;
 
     $.ajax({
         type: "POST",
@@ -1298,6 +1300,9 @@ function dash_loadUserProjectNotifications(callback) {
 
             if (alertsQueue.length > 0) {
                 currentIndex = 0;
+                $("#dash_projectNotifications")
+                    .off('hidden.bs.modal')
+                    .one('hidden.bs.modal', callback);
                 test_showNextAlert();
                 $("#dash_projectNotifications").modal("show");
             }
@@ -1348,7 +1353,7 @@ function test_showNextAlert() {
         markAsRead(alert2.AlertId);
 
         currentIndex++;
-        showNextAlert();
+        test_showNextAlert();
     });
 
     // ✅ CLOSE BUTTON FLOW (IMPORTANT FIX)
@@ -1407,7 +1412,7 @@ function goToNextAlert(e) {
     currentIndex++;
 
     if (currentIndex < alertsQueue.length) {
-        showNextAlert();
+        test_showNextAlert();
     } else {
         $("#dash_projectNotifications")
             .off('hidden.bs.modal')
@@ -1478,10 +1483,15 @@ function das_ShowAdminashboardAlert(callback)
 
                 if (mediaList.length > 0) {
                     showMedia(0, mediaList);
-                    $('#adminimagePreviewModalpopup').modal('show');
+                    $('#adminimagePreviewModalpopup')
+                        .one('hidden.bs.modal', callback)
+                        .modal('show');
+                    return;
                 }
             }
-        }
+            callback();
+        },
+        error: callback
     });
 }
 
@@ -1670,8 +1680,6 @@ function dash_showPerformanceAcknowledgement(callback) {
         contentType: "application/json; charset=utf-8",
         dataType: "json"
     }).done(function (response) {
-
-        alert(response.d);
         if (!response.d) {
             callback();
             return;
@@ -1681,6 +1689,7 @@ function dash_showPerformanceAcknowledgement(callback) {
 
         $modal.one("hidden.bs.modal", callback);
 
+        window.dashPerformanceAcknowledgementData = response.d;
         $("#dash_performanceAckFrame").attr("src", "UserPerformanceAcknowledgement.aspx?popup=1");
 
         $modal.modal("show");

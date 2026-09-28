@@ -3,6 +3,11 @@ var ackUserReport_table;
 var ackUserReport_html;
 
 function BindUserPerformanceInfo() {
+    var cachedInfo = window.parent !== window ? window.parent.dashPerformanceAcknowledgementData : null;
+    if (cachedInfo) {
+        renderUserPerformanceInfo(cachedInfo);
+        return false;
+    }
 
     $.ajax({
         url: "UserPerformanceAcknowledgement.aspx/GetOverAllUserPerformance_UserPerfAck",
@@ -11,41 +16,38 @@ function BindUserPerformanceInfo() {
         contentType: "application/json; charset=utf-8",
 
         success: function (data) {
-
-            var dataArray = JSON.parse(data.d);
-
-           
-
-            $.each(dataArray, function (index, value) {
-                alert(value);
-                document.getElementById("userPerfAck_lblPerformanceID").innerHTML = value.PerformanceID;
-                document.getElementById("userPerfAck_lblCode").innerHTML = value.Code;
-                document.getElementById("userPerfAck_lblDate").innerHTML = '<b>Date : </b> ' + value.CurrentDate;
-                document.getElementById("userPerfAck_lblTo").innerHTML = '<b>To : </b> ' + value.EmployeeName;
-                document.getElementById("userPerfAck_lblPosition").innerHTML = '<b>Position : </b> ' + value.DesignationName;
-                document.getElementById("userPerfAck_lblDomain").innerHTML = '<b>Domain : </b> ' + value.DomainName;
-                document.getElementById("userPerfAck_lblMonthYear").innerHTML = '<b>' + value.Month.substring(0, 3) + '-' + value.Year + ' </b>';
-                document.getElementById("userPerfAck_lblEmpName").innerHTML = '<b>Dear </b>' + value.F_Name + ',';
-                document.getElementById("userPerfAck_lblQCritical").innerHTML = '(<b>Critical : </b>' + value.Critical;
-                document.getElementById("userPerfAck_lblQNonCritical").innerHTML = '<b>Non-Critical : </b>' + value.NonCritical + ')';
-
-                document.getElementById("userPerfAck_lblQuality").innerHTML = '</br>' + value.QualityPerc;
-                document.getElementById("userPerfAck_lblQuaRatingCat").innerHTML = '</br>' + value.QualRatingCatg;
-                document.getElementById("userPerfAck_lblAttendance").innerHTML = value.AttPerc;
-                document.getElementById("userPerfAck_lblAttRatingCat").innerHTML = value.AttnRatingCatg;
-                document.getElementById("userPerfAck_lblProductivity").innerHTML = value.ProdPerc;
-                document.getElementById("userPerfAck_lblPrRatingCat").innerHTML = value.ProdRatingCatg;
-                document.getElementById("userPerfAck_lblDesclaimer").innerHTML = 'I ' + value.F_Name + ', acknowledge the receipt and review of my performance grading as outlined above.';
-            });
+            var records = typeof data.d === "string" ? JSON.parse(data.d) : data.d;
+            if (records && records.length) {
+                renderUserPerformanceInfo(records[records.length - 1]);
+            }
         },
 
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            alert(error.responseText || "Unable to load performance information.");
         }
     });
 
     return false;
+}
+
+function renderUserPerformanceInfo(value) {
+    document.getElementById("userPerfAck_lblPerformanceID").textContent = value.PerformanceID;
+    document.getElementById("userPerfAck_lblCode").textContent = value.Code;
+    document.getElementById("userPerfAck_lblDate").innerHTML = '<b>Date : </b> ' + value.CurrentDate;
+    document.getElementById("userPerfAck_lblTo").innerHTML = '<b>To : </b> ' + value.EmployeeName;
+    document.getElementById("userPerfAck_lblPosition").innerHTML = '<b>Position : </b> ' + value.DesignationName;
+    document.getElementById("userPerfAck_lblDomain").innerHTML = '<b>Domain : </b> ' + value.DomainName;
+    document.getElementById("userPerfAck_lblMonthYear").innerHTML = '<b>' + String(value.Month || "").substring(0, 3) + '-' + value.Year + ' </b>';
+    document.getElementById("userPerfAck_lblEmpName").innerHTML = '<b>Dear </b>' + value.F_Name + ',';
+    document.getElementById("userPerfAck_lblQCritical").innerHTML = '(<b>Critical : </b>' + value.Critical;
+    document.getElementById("userPerfAck_lblQNonCritical").innerHTML = '<b>Non-Critical : </b>' + value.NonCritical + ')';
+    document.getElementById("userPerfAck_lblQuality").innerHTML = '</br>' + value.QualityPerc;
+    document.getElementById("userPerfAck_lblQuaRatingCat").innerHTML = '</br>' + value.QualityRatingCatg;
+    document.getElementById("userPerfAck_lblAttendance").textContent = value.AttendancePerc;
+    document.getElementById("userPerfAck_lblAttRatingCat").textContent = value.AttnRatingCatg;
+    document.getElementById("userPerfAck_lblProductivity").textContent = value.ProdPerc;
+    document.getElementById("userPerfAck_lblPrRatingCat").textContent = value.ProdRatingCatg;
+    document.getElementById("userPerfAck_lblDesclaimer").textContent = 'I ' + value.F_Name + ', acknowledge the receipt and review of my performance grading as outlined above.';
 }
 
 function Onclick_userPerfAck_btnAccept() {
