@@ -669,15 +669,21 @@
 
     function openStep2(row) {
         if (!row) { return; }
+        var existingLastWorkingDate = parseDate(safe(row, "LastWorkingDate"));
+
+        resetSelectAndRemark("#step2Modal");
         setValue("#step2ResignationId", resignationId(row));
         setText("#step2Employee", employeeName(row, "Name"));
         setText("#step2Joining", safe(row, "JoiningDate"));
         setText("#step2Manager", safe(row, "ReportingManger", "ReportingManager"));
         setText("#step2Type", safe(row, "ResignationType"));
         setText("#step2Date", safe(row, "ResignationDate"));
-        setValue("#step2LastWorking", displayDate(safe(row, "LastWorkingDate")));
+        if ($.fn.datepicker && existingLastWorkingDate) {
+            $("#step2LastWorking").datepicker("setDate", existingLastWorkingDate).datepicker("hide");
+        } else {
+            setValue("#step2LastWorking", displayDate(safe(row, "LastWorkingDate")));
+        }
         setText("#step2Step1Remark", safe(row, "Remark"));
-        resetSelectAndRemark("#step2Modal");
         $("#btnStep2Submit").text("Okay");
         runModal("#step2Modal", "show");
     }
@@ -1164,7 +1170,10 @@
                 dateFormat: "dd-M-yy",
                 changeMonth: true,
                 changeYear: true,
-                showButtonPanel: true
+                showButtonPanel: true,
+                showOn: "focus"
+            }).on("click", function () {
+                $(this).datepicker("show");
             });
         }
         bindEvents();
