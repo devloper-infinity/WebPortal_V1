@@ -224,6 +224,7 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
         public int InsertProfile(string ProfileName, int AddedBy)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_insertProfile");

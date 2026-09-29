@@ -398,6 +398,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/EmployeeLogReport.aspx.cs
 !/WebPortal/Admin/EmployeeLogReport.aspx.designer.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx.cs
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx.designer.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx.designer.cs
 !/WebPortal/Admin/RecruitmentReport.aspx
@@ -412,6 +415,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/DashboardValidator.aspx
 !/WebPortal/Admin/DashboardValidator.aspx.cs
 !/WebPortal/Admin/DashboardValidatorEngine.cs
+!/WebPortal/Admin/PendingData.aspx
+!/WebPortal/Admin/PendingData.aspx.cs
+!/WebPortal/Admin/PendingData.aspx.designer.cs
 !/WebPortal/Templates/
 /WebPortal/Templates/*
 !/WebPortal/Templates/DashboardValidatorTemplate.xlsx
@@ -434,6 +440,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
 !/WebPortal/DatabaseScripts/USFeedback_002_AddProcessID.sql
 !/WebPortal/DatabaseScripts/DashboardValidator_001_ValidationExceptionMaster.sql
+!/WebPortal/DatabaseScripts/PendingData_001_BlockingWorkflow.sql
 !/WebPortal/US/
 /WebPortal/US/*
 !/WebPortal/US/ProjectProcessLoanReport.aspx
@@ -453,6 +460,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/InfinityRCA/
 !/WebPortal/DatabaseScripts/InfinityRCA/**
 !/WebPortal/App_Code/Class/
+!/WebPortal/App_Code/PendingDataRepository.cs
 /WebPortal/App_Code/Class/*
 !/WebPortal/App_Code/Class/SelfLeavesEmailTemplate.cs
 !/WebPortal/TrackingSheet/

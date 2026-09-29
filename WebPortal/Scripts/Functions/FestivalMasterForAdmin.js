@@ -149,6 +149,8 @@ function sendDataToServer(title, date, locations, remark, imagesData, fileNames,
     });
 }
 
+var currentPreviewImages = [];
+var currentImageIndex = 0;
 
 function festivaladmin_bindGrid() {
     $('#load1').show();
@@ -159,8 +161,7 @@ function festivaladmin_bindGrid() {
         contentType: 'application/json',
         success: function (data) {
             var dataArray = JSON.parse(data.d || '[]');
-            var currentPreviewImages = [];
-            var currentImageIndex = 0;
+          
             if ($.fn.DataTable.isDataTable('#admintable_festival')) {
                 $('#admintable_festival').DataTable().clear().destroy();
             }
@@ -258,9 +259,21 @@ function festivaladmin_bindGrid() {
     });
 }
 
+
+function preloadFestivalImages(urls) {
+    urls.forEach(function (url) {
+        var img = new Image();
+        img.src = url;
+    });
+}
+
+
+
 $(document).on('click', '.festivalImg', function () {
     var title = $(this).data('title') || 'Festival Preview';
     var imagesJson = $(this).attr('data-images');
+    currentPreviewImages = [];
+    currentImageIndex = 0;
     try {
         currentPreviewImages = JSON.parse(imagesJson);
     } catch (e) {
@@ -273,7 +286,7 @@ $(document).on('click', '.festivalImg', function () {
     }
 
     currentImageIndex = 0;
-
+    preloadFestivalImages(currentPreviewImages);
     $('#adminfestivalTitle').text(title);
     $('#adminpreviewVideo').hide().attr('src', '');
     $('#adminpreviewImage').show();
@@ -348,6 +361,9 @@ $('#adminimagePreviewModal').on('hidden.bs.modal', function () {
         videoElement.pause();
         videoElement.src = "";
     }
+    $('#adminpreviewImage').attr('src', '');
+    currentPreviewImages = [];
+    currentImageIndex = 0
     $('#imageDotsContainer').hide();
 });
 
@@ -390,8 +406,6 @@ function adminfestWish_delete(id) {
     });
     return false;
 }
-
-
 
 let dataTransfer = new DataTransfer();
 
