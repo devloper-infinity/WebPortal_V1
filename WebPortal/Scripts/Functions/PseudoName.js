@@ -2,6 +2,7 @@
 var updatePseudoName_table;
 var updatePseudoName_html;
 var popUp_EmpConfigID;
+var updatePseudoName_data = [];
 
 
 function bindPseudoNameGrid() {
@@ -16,9 +17,10 @@ function bindPseudoNameGrid() {
 
         success: function (data) {
             var dataArray = JSON.parse(data.d);
+            updatePseudoName_data = dataArray;
             $.each(dataArray, function (index, value) {
                 updatePseudoName_html += '<tr>';
-                updatePseudoName_html += '<td style="text-align:center;"><a class="dropdown-item" href="#!" id="pseudoName_Actions" onclick="pseudoName_Delete(' + blankForNull(value.EmpConfigrationID) + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil-trash-alt"></i></span></a></td>';
+                updatePseudoName_html += '<td style="text-align:center;white-space:nowrap;"><a href="#!" title="Edit" onclick="return pseudoName_Edit(' + blankForNull(value.EmpConfigrationID) + ');"><span style="color:#f59e0b;"><i class="fas fa-edit"></i></span></a>&nbsp;&nbsp;<a href="#!" title="Delete" onclick="return pseudoName_Delete(' + blankForNull(value.EmpConfigrationID) + ',' + index + ');"><span style="color:dodgerblue;"><i class="uil-trash-alt"></i></span></a></td>';
                 updatePseudoName_html += '<td style="text-wrap: nowrap;text-align:center;">' + blankForNull((index + 1)) + '</td>';
                 updatePseudoName_html += '<td style="text-wrap: nowrap; display:none;">' + blankForNull(value.EmpConfigrationID) + '</td>';
                 updatePseudoName_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.LocationCode) + '</td>';
@@ -69,6 +71,23 @@ function bindPseudoNameGrid() {
             alert('error; ' + error.responseText);
         }
     });
+    return false;
+}
+
+function pseudoName_Edit(id) {
+    var value = updatePseudoName_data.find(function (item) { return String(item.EmpConfigrationID) === String(id); });
+    if (!value) return false;
+
+    var code = blankForNull(value.Code) || "Other";
+    var employee = $("#pseudoName_Employee");
+    if (employee.find('option[value="' + code.replace(/"/g, '\\"') + '"]').length === 0)
+        employee.append($("<option></option>").val(code).text(blankForNull(value.Name)));
+    employee.val(code).trigger("change");
+    $("#pseudoName_Name").val(blankForNull(value.PsuedoName));
+    $("#pseudoName_Location").val(blankForNull(value.LocationCode));
+    $("#pseudoName_Company").val(blankForNull(value.Company));
+    $("#pseudoName_Name").focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
     return false;
 }
 

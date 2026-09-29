@@ -53,23 +53,10 @@
     </style>
     <script>
         function gettestlink() {
-            var video = document.getElementById("<%= poshvideo.ClientID %>");
-            var totaltime = video.duration;
-            var currenttime = video.currentTime;
-
-            /* $("#poshvi_dverror").modal('show');*/
-
-            Swal.fire({
-                title: 'Completed!',
-                html: 'You have successfully completed the video.<br>Please click <b>OK</b> to proceed to the induction test.',
-                icon: 'success',
-                confirmButtonText: 'OK',
-                allowOutsideClick: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // poshvi_Message();  your existing function
-                    location.href = "PoshTest.aspx";
-                }
+            $("#poshvi_dverror").modal({
+                backdrop: "static",
+                keyboard: false,
+                show: true
             });
 
             return false;
@@ -89,7 +76,6 @@
             }
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="loading" id="load1">
@@ -115,16 +101,18 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="poshvi_dverror">
-        <div class="modal-dialog modal-sm">
+    <div class="modal fade" id="poshvi_dverror" tabindex="-1" role="dialog" aria-labelledby="poshvi_modalTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title" id="poshvi_errmsg">Thank you for watching complete video. Please click on <b>Okay</b> button below to start the test.
-                    </h6>
+                    <h6 class="modal-title" id="poshvi_modalTitle">Completed!</h6>
                 </div>
-
-                <div class="modal-footer align-content-center">
-                    <button class="btn btn-primary" type="button" id="poshvi_btnMessage" onclick="return poshvi_Message();">Okay</button>
+                <div class="modal-body" id="poshvi_errmsg">
+                    You have successfully completed the video.<br />
+                    Please click <b>OK</b> to proceed to the induction test.
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button class="btn btn-primary" type="button" id="poshvi_btnMessage" onclick="return poshvi_Message();">OK</button>
                 </div>
             </div>
             <!-- /.modal-content -->

@@ -398,6 +398,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/EmployeeLogReport.aspx.cs
 !/WebPortal/Admin/EmployeeLogReport.aspx.designer.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx.cs
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx.designer.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx.designer.cs
 !/WebPortal/Admin/RecruitmentReport.aspx

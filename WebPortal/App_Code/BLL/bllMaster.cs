@@ -2887,6 +2887,10 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetAdminExpenseData();
         }
+        public DataTable getViewShortlistedCandidate(int EmpId)
+        {
+            return dalMaster.getViewShortlistedCandidate(EmpId);
+        }
         public DataSet GetAdminExpenseDataForReport(String FromDate, string ToDate)
         {
             return dalMaster.GetAdminExpenseDataForReport(FromDate, ToDate);
