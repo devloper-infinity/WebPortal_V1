@@ -26,12 +26,23 @@ namespace WebPortal
 
         }
 
-        [WebMethod]
+        [WebMethod(EnableSession = true)]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        public static object ResetPassword(string username, string newPassword)
+        public static object UpdatePassword(string username, string newPassword, string otp)
         {
 
-            return "success";
+            username = (username ?? "").Trim();
+            string otpStatus = VerifyOTP(username, otp);
+            if (otpStatus != "Valid")
+                return new { status = "error", message = otpStatus == "Expired" ? "OTP expired. Please request a new code." : "Invalid OTP" };
+
+            if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 8 ||
+                newPassword.Contains("%") ||
+                !System.Text.RegularExpressions.Regex.IsMatch(newPassword, "[A-Z]") ||
+                !System.Text.RegularExpressions.Regex.IsMatch(newPassword, "[a-z]") ||
+                !System.Text.RegularExpressions.Regex.IsMatch(newPassword, "[0-9]") ||
+                !System.Text.RegularExpressions.Regex.IsMatch(newPassword, "[^A-Za-z0-9%]"))
+                return new { status = "error", message = "Password does not meet requirements" };
 
             try
             {
@@ -56,10 +67,14 @@ namespace WebPortal
                         cmd.Parameters.AddWithValue("@PasswordChangedDate", DateTime.Now);
 
                         con.Open();
-                        cmd.ExecuteNonQuery();
+                        if (cmd.ExecuteNonQuery() == 0)
+                            return new { status = "error", message = "User not found" };
                     }
                 }
-                return new { status = "success" };
+                HttpContext.Current.Session.Remove("OTP");
+                HttpContext.Current.Session.Remove("OTPTime");
+                HttpContext.Current.Session.Remove("User");
+                return new { status = "success", message = "Password updated successfully" };
             }
             catch (Exception ex)
             {
@@ -91,9 +106,12 @@ namespace WebPortal
         }
 
 
-        [WebMethod]
+        [WebMethod(EnableSession = true)]
         public static string SendOTP(string username)
         {
+            username = (username ?? "").Trim();
+            if (username.Length == 0)
+                return "Please enter username";
             string email = "";
             string otp = new Random().Next(100000, 999999).ToString();
 
@@ -111,10 +129,6 @@ namespace WebPortal
 
             if (string.IsNullOrEmpty(email))
                 return "Email ID not available in system";
-
-            // Store OTP in Session (or DB)
-            HttpContext.Current.Session["OTP"] = otp;
-            HttpContext.Current.Session["User"] = username;
 
             string Pass = new bllMaster().GetPassword("ackdata");
 
@@ -137,15 +151,21 @@ namespace WebPortal
             try
             {
                 client.Send(mail);
+                HttpContext.Current.Session["OTP"] = otp;
+                HttpContext.Current.Session["User"] = username;
+                HttpContext.Current.Session["OTPTime"] = DateTime.UtcNow;
                 return "OTP Sent";
             }
             catch { return "Error sending in email"; }
         }
 
-        [WebMethod]
+        [WebMethod(EnableSession = true)]
         public static string VerifyOTP(string username, string otp)
         {
             var session = HttpContext.Current.Session;
+
+            if (session == null)
+                return "Expired";
 
             string savedOtp = session["OTP"]?.ToString();
             DateTime? otpTime = session["OTPTime"] as DateTime?;
@@ -153,10 +173,11 @@ namespace WebPortal
             if (savedOtp == null || otpTime == null)
                 return "Expired";
 
-            if ((DateTime.Now - otpTime.Value).TotalMinutes > 5)
+            if ((DateTime.UtcNow - otpTime.Value).TotalMinutes >= 5)
                 return "Expired";
 
-            if (otp == savedOtp)
+            if (string.Equals(session["User"] as string, (username ?? "").Trim(), StringComparison.OrdinalIgnoreCase) &&
+                (otp ?? "").Trim() == savedOtp)
                 return "Valid";
 
             return "Invalid";

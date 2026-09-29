@@ -41,7 +41,7 @@
             </div>
 
             <!-- ✅ ADD BUTTON HERE -->
-            <button type="button" onclick="sendOTP()"
+            <button type="button" id="btnSend" onclick="sendOTP()"
                 class="w-full bg-blue-500 text-white py-2 rounded-lg mb-3">
                 Send Code
             </button>
@@ -110,6 +110,10 @@
         let otpTimer;
         let resendInterval;
         let resendSeconds = 30;
+        let otpRequestVersion = 0;
+
+        $("#pass_username").on("input", resetOTPUI);
+        resetOTPUI();
 
         // 🔐 Toggle password visibility
         function toggle(id) {
@@ -127,6 +131,8 @@
             }
 
             $("#btnSend").prop("disabled", true).text("Sending...");
+            resetOTPUI();
+            $("#otp").val("");
 
             $.ajax({
                 type: "POST",
@@ -134,7 +140,12 @@
                 data: JSON.stringify({ username: username }),
                 contentType: "application/json; charset=utf-8",
 
-                success: function () {
+                success: function (res) {
+                    if (res.d !== "OTP Sent") {
+                        showMessage(res.d, "error");
+                        $("#btnSend").prop("disabled", false).text("Send Code");
+                        return;
+                    }
                     showMessage("OTP sent to your official email 📩", "success");
 
                     startResendTimer();
@@ -150,6 +161,7 @@
 
         // ⏱ RESEND TIMER
         function startResendTimer() {
+            clearInterval(resendInterval);
             resendSeconds = 30;
             $("#btnSend").text("Resend in 30s");
 
@@ -179,6 +191,9 @@
 
         // 🔁 RESET OTP UI
         function resetOTPUI() {
+            clearTimeout(otpTimer);
+            otpRequestVersion++;
+            $("#otp_loader").hide();
             $("#otp_success, #otp_error_icon, #otp_error_text").hide();
             $("#otp").css("border", "");
             otpVerified = false;
@@ -187,7 +202,8 @@
 
         // 🌐 VERIFY OTP
         function verifyOTPFromServer(otp) {
-            let username = $("#pass_username").val();
+            let username = $("#pass_username").val().trim();
+            const requestVersion = otpRequestVersion;
 
             $("#otp_loader").show();
 
@@ -198,6 +214,7 @@
                 contentType: "application/json; charset=utf-8",
 
                 success: function (res) {
+                    if (requestVersion !== otpRequestVersion) return;
                     $("#otp_loader").hide();
 
                     if (res.d === "Valid") {
@@ -211,12 +228,13 @@
 
                     } else {
                         $("#otp_error_icon").show();
-                        $("#otp_error_text").text("Invalid OTP").show();
+                        $("#otp_error_text").text(res.d === "Expired" ? "OTP expired. Please request a new code." : "Invalid OTP").show();
                         $("#otp").css("border", "2px solid #f87171");
                     }
                 },
 
                 error: function () {
+                    if (requestVersion !== otpRequestVersion) return;
                     $("#otp_loader").hide();
                     $("#otp_error_text").text("Error validating OTP").show();
                 }
@@ -286,7 +304,14 @@
                 contentType: "application/json; charset=utf-8",
 
                 success: function (res) {
-                    showMessage(res.d, "success");
+                    const result = res.d;
+                    showMessage(result.message, result.status);
+                    if (result.status === "success") {
+                        resetOTPUI();
+                        $("#otp, #newPassword, #confirmPassword").val("");
+                    } else {
+                        $("#btnSubmit").prop("disabled", false);
+                    }
                     $("#btnSubmit").text("Update Password");
                 },
 
@@ -309,7 +334,7 @@
                 box.attr("class", "mb-4 p-3 rounded-lg bg-green-500/20 text-green-200 border border-green-400");
             }
 
-            box.html(msg);
+            box.text(msg);
         }
 
     </script>
