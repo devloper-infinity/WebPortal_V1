@@ -148,6 +148,8 @@
     <Content Include="Admin\RNRAdmin.aspx" />
     <Content Include="Admin\RNRReport.aspx" />
     <Content Include="Admin\RNRFeedback.aspx" />
+    <Content Include="Admin\PendingData.aspx" />
+    <Content Include="DatabaseScripts\PendingData_001_BlockingWorkflow.sql" />
     <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
     <Content Include="Admin\All.aspx" />
     <Content Include="Admin\DashboardValidator.aspx" />
@@ -3160,6 +3162,7 @@
     </Compile>
     <Compile Include="App_Code\Class\ActivityCategorycls.cs" />
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
+    <Compile Include="App_Code\PendingDataRepository.cs" />
     <Compile Include="App_Code\RnrSecurity.cs" />
     <Compile Include="Admin\RNRAdmin.aspx.cs">
       <DependentUpon>RNRAdmin.aspx</DependentUpon>
@@ -3172,6 +3175,13 @@
     <Compile Include="Admin\RNRFeedback.aspx.cs">
       <DependentUpon>RNRFeedback.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PendingData.aspx.cs">
+      <DependentUpon>PendingData.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PendingData.aspx.designer.cs">
+      <DependentUpon>PendingData.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\All.aspx.cs">
       <DependentUpon>All.aspx</DependentUpon>
