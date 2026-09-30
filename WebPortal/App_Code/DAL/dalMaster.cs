@@ -1036,6 +1036,30 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllResignedEmployees");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmpId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmpId);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            // The legacy procedure returns EmployeeID, not the resignation record ID
+            // required by DeleteUser and UpdateExitFormality.
+            if (dt != null && dt.Rows.Count > 0 && !dt.Columns.Contains("ResignationId"))
+            {
+                dt.Columns.Add("ResignationId", typeof(int));
+                using (SqlCommand idCommand = SQLHelper.GetCommand(CommandType.Text, @"
+                    SELECT EmployeeID, MIN(ResignationId) AS ResignationId
+                    FROM dbo.InitiateResignation
+                    WHERE status = 'Accept'
+                    GROUP BY EmployeeID
+                    HAVING COUNT(*) = 1"))
+                {
+                    DataTable ids = SQLHelper.ExecuteDataTableCmd(idCommand);
+                    var resignationIds = ids.AsEnumerable().ToDictionary(
+                        row => Convert.ToInt32(row["EmployeeID"]),
+                        row => Convert.ToInt32(row["ResignationId"]));
+                    foreach (DataRow employee in dt.Rows)
+                    {
+                        int resignationId;
+                        if (resignationIds.TryGetValue(Convert.ToInt32(employee["EmployeeID"]), out resignationId))
+                            employee["ResignationId"] = resignationId;
+                    }
+                }
+            }
             return dt;
         }
 

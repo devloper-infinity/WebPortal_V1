@@ -132,7 +132,7 @@ function updaterowdata(HeaderID) {
         return false;
     }
 
-    PageMethods.InsertCCMonthlyData(HeaderID, month, year, remark, invoiceno, Invoiceamount, utilization, diff, inv_OnSuccess, inv_OnError);
+    PageMethods.InsertCCMonthlyData(HeaderID, month, year, remark, invoiceno, Invoiceamount, utilization, diff, ccNo, inv_OnSuccess, inv_OnError);
     return false;
 }
 

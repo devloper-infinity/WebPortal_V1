@@ -142,7 +142,7 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
-        public static int InsertCCMonthlyData(int HeaderID, string Month, string Year, string Remark, string InvoiceNo, string InvoiceAmount, string Utilization, string Difference)
+        public static int InsertCCMonthlyData(int HeaderID, string Month, string Year, string Remark, string InvoiceNo, string InvoiceAmount, string Utilization, string Difference, string CredidCardNo)
         {
             int returnvalue = 0;
             Hashtable htParam = new Hashtable();
@@ -152,6 +152,7 @@ namespace WebPortal.IT
             htParam.Add("Remark", Remark);
             htParam.Add("InvoiceNo", InvoiceNo);
             htParam.Add("InvoiceAmount", InvoiceAmount);
+            htParam.Add("", CredidCardNo);
             if (NewFileName != "")
             {
                 if (!Directory.Exists(FolderPath))

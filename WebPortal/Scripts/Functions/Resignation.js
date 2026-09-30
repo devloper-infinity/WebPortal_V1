@@ -1,4 +1,4 @@
-﻿(function (window, document, $) {
+(function (window, document, $) {
     "use strict";
 
     var state = {
@@ -588,21 +588,28 @@
         if (state.loadedTabs[key] && !force) { return; }
         showTableLoader(true);
         post("GetFinalizedStep3", {}, function (payload) {
-            var rows = parseRows(payload);
-            buildTable(selector, key, rows, [
-                { data: null, orderable: false, render: actionRenderer },
-                { data: "Code", render: textCell },
-                { data: "FullName", render: textCell },
-                { data: "JoiningDate", render: dateCell },
-                { data: "BranchName", render: textCell },
-                { data: "ResignedType", render: textCell },
-                { data: "ResignedDate", render: dateCell },
-                { data: "LastWorkingDate", render: dateCell },
-                { data: "PMRemark", render: textCell },
-                { data: "UHRemark", render: textCell }
-            ], [1, 2, 3, 4, 5, 6, 7, 8, 9], "Resigned Employees");
-            state.loadedTabs[key] = true;
-            showTableLoader(false);
+            try {
+                var rows = parseRows(payload);
+                var table = buildTable(selector, key, rows, [
+                    { data: null, orderable: false, render: actionRenderer },
+                    { data: "Code", render: textCell },
+                    { data: "FullName", render: textCell },
+                    { data: "JoiningDate", render: dateCell },
+                    { data: "BranchName", render: textCell },
+                    { data: "ResignedType", render: textCell },
+                    { data: "ResignedDate", render: dateCell },
+                    { data: "LastWorkingDate", render: dateCell },
+                    { data: "PMRemark", render: textCell },
+                    { data: "UHRemark", render: textCell }
+                ], [1, 2, 3, 4, 5, 6, 7, 8, 9], "Resigned Employees");
+                state.loadedTabs[key] = !!table;
+            } catch (error) {
+                state.loadedTabs[key] = false;
+                if (window.console) { window.console.error("Unable to render resigned employees.", error); }
+                showError("Unable to display resigned employees. Please refresh and try again.");
+            } finally {
+                showTableLoader(false);
+            }
         }, function () {
             showTableLoader(false);
             showError("Unable to load resigned employees.");
@@ -612,9 +619,8 @@
     function loadDropout(force) {
         loadFinalizedTable("dropout", "#tblDropout", force, function () {
             return actionMenu([
-                { action: "open-exit", icon: "fas fa-envelope", color: "#059669", text: "Send Exit Formality Email", resignationId: row.ResignationId },
-                { action: "open-dropout", icon: "fas fa-trash", color: "#dc2626", text: "Delete User", resignationId: row.ResignationId },
-
+                { action: "open-exit", icon: "fas fa-envelope", color: "#059669", text: "Send Exit Formality Email" },
+                { action: "open-dropout", icon: "fas fa-trash", color: "#dc2626", text: "Delete User" }
             ]);
         });
     }
@@ -741,67 +747,32 @@
         runModal("#dropoutModal", "show");
     }
 
-    function core_submitDropout() {
-        if (!validateRemark("#dropoutRemark", "step 3")) { return; }
-        runModal("#dropoutModal", "hide");
-        showWait(true);
-        post("DeleteUser", {
-            ResignationId: parseInt($("#dropoutResignationId").val(), 10),
-            Remark: $("#dropoutRemark").val()
-        }, function () {
-            showWait(false);
-            showSuccess("Employee dropped out successfully!").then(reloadPage);
-        }, function () {
-            showWait(false);
-            showError("Unable to delete user.");
-        });
-    }
 
     function submitDropout() {
-        if (!validateRemark("#dropoutRemark", "step 3")) {
+        if (!validateRemark("#dropoutRemark", "step 3")) { return; }
+
+        var id = Number($("#dropoutResignationId").val());
+        if (!isFinite(id) || id <= 0 || Math.floor(id) !== id) {
+            showError("Unable to identify the resignation. Please refresh and select the employee again.");
             return;
         }
 
         runModal("#dropoutModal", "hide");
-
-        showInfo($("#resignationId").val());
-
         showWait(true);
-
-        PageMethods.DeleteUser(
-            parseInt($("#dropoutResignationId").val(), 10),
-            $("#dropoutRemark").val(),
-
-            function (response) { // success
-                showWait(false);
-
-                if (response > 0) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'Employee dropped out successfully!'
-                    }).then(() => {
-                        reloadPage();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Failed',
-                        text: 'Unable to delete user.'
-                    });
-                }
-            },
-
-            function (error) { // failure
-                showWait(false);
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.get_message()
-                });
+        post("DeleteUser", {
+            ResignationId: id,
+            Remark: $("#dropoutRemark").val()
+        }, function (response) {
+            showWait(false);
+            if (response > 0) {
+                showSuccess("Employee dropped out successfully!").then(reloadPage);
+            } else {
+                showError("Unable to delete user.");
             }
-        );
+        }, function () {
+            showWait(false);
+            showError("Unable to delete user. Please refresh the employee list to check its status before trying again.");
+        });
     }
 
     function openExit(row) {
