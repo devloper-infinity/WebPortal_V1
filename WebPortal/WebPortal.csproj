@@ -149,6 +149,10 @@
     <Content Include="Admin\RNRReport.aspx" />
     <Content Include="Admin\RNRFeedback.aspx" />
     <Content Include="Admin\PendingData.aspx" />
+    <Content Include="Admin\ProjectBillingDetails.aspx" />
+    <Content Include="Content\ProjectBillingDetails.css" />
+    <Content Include="Scripts\Admin\ProjectBillingDetails.js" />
+    <Content Include="DatabaseScripts\usp_GetAllProjectsBillingDetails.sql" />
     <Content Include="DatabaseScripts\PendingData_001_BlockingWorkflow.sql" />
     <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
     <Content Include="Admin\All.aspx" />
@@ -3138,6 +3142,13 @@
     <Compile Include="Accounts\SalaryReport_DepartmentWise.aspx.cs">
       <DependentUpon>SalaryReport_DepartmentWise.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ProjectBillingDetails.aspx.cs">
+      <DependentUpon>ProjectBillingDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ProjectBillingDetails.aspx.designer.cs">
+      <DependentUpon>ProjectBillingDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\SalarySlipMaster.aspx.cs">
       <DependentUpon>SalarySlipMaster.aspx</DependentUpon>
