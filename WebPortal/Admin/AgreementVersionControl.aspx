@@ -221,6 +221,87 @@
         row-gap: 14px;
     }
 
+    .modern-form-row > div > label {
+        display: block;
+    }
+
+    .agreement-upload {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border: 1px dashed #b9ccef;
+        border-radius: 16px;
+        background: #f6f9ff;
+        transition: border-color .2s, background .2s;
+    }
+
+    .agreement-upload:focus-within {
+        border-color: var(--avc-primary);
+        background: #eef4ff;
+        box-shadow: 0 0 0 4px rgba(36, 87, 230, .11);
+    }
+
+    .agreement-upload-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: #e5edff;
+        color: var(--avc-primary);
+        font-size: 24px;
+    }
+
+    .agreement-upload-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .agreement-file-input {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        padding: 4px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--avc-text);
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .agreement-file-input::file-selector-button {
+        margin-right: 14px;
+        padding: 10px 18px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--avc-primary);
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .2s;
+    }
+
+    .agreement-file-input:hover::file-selector-button {
+        background: var(--avc-primary-dark);
+    }
+
+    .agreement-file-input:focus-visible {
+        outline: 2px solid var(--avc-primary);
+        outline-offset: 2px;
+    }
+
+    .agreement-upload-hint {
+        display: block;
+        margin: 6px 4px 0;
+        color: var(--avc-muted);
+        font-size: 12px;
+    }
+
     .modern-label,
     .agreement-page label {
         color: #344054;
@@ -418,6 +499,45 @@
         var global_agrChangeID = 0;
         var agreeVersion_table;
 
+        function saveAgreementUpload(inputId, tab, version, versionDate, rows, button) {
+            var input = document.getElementById(inputId);
+            if (!input.files.length) { return false; }
+            var file = input.files[0];
+            if (!file.size || file.size > 10 * 1024 * 1024) {
+                alert("Please select a non-empty file of 10 MB or smaller.");
+                return true;
+            }
+            var data = new FormData();
+            data.append("file", file);
+            data.append("tab", tab);
+            data.append("version", version);
+            data.append("versionDate", versionDate);
+            data.append("rows", JSON.stringify(rows));
+            data.append("token", document.getElementById("agreementUploadToken").value);
+            $(button).prop("disabled", true);
+            $.ajax({
+                url: "AgreementVersionControl.aspx?upload=1",
+                type: "POST", data: data, processData: false, contentType: false, dataType: "json",
+                success: function (response) {
+                    if (response.d === "Success") {
+                        alert("Details Saved Successfully");
+                        location.reload();
+                    } else { alert(response.d); }
+                },
+                error: function () { alert("Unable to save the upload. Review the history before retrying."); },
+                complete: function () { $(button).prop("disabled", false); }
+            });
+            return true;
+        }
+
+        function agreementDownload(row, tab, type) {
+            var id = tab === "Version" ? row.AgrChangeID : row.AgreementTypeID;
+            if (!row.FilePath || typeof row.FilePath !== "string" || !/^\d+$/.test(String(id))) { return ""; }
+            if (type !== "display") { return "Download"; }
+            return '<a target="_blank" rel="noopener" href="AgreementVersionControl.aspx?tab=' + tab +
+                '&amp;download=' + encodeURIComponent(id) + '">Download</a>';
+        }
+
 
         $(document).ready(function () {
             BindAgreementVersionGrid();
@@ -458,6 +578,7 @@
                     return;
                 }
 
+                if (saveAgreementUpload("versionFile", "Version", version, versionDate, clauseList, this)) { return; }
                 PageMethods.SaveAgreement_Versions(version, versionDate, clauseList,
                     function (response) {
                         if (response === "Success") {
@@ -546,7 +667,8 @@
                             { data: "ClauseNo" },
                             { data: "Clause" },
                             { data: "AddedByName" },
-                            { data: "AddedDate" }
+                            { data: "AddedDate" },
+                            { data: null, orderable: false, render: function (_, type, row) { return agreementDownload(row, "Version", type); } }
                         ],
 
                         initComplete: function () {
@@ -662,6 +784,7 @@
                     return;
                 }
 
+                if (saveAgreementUpload("typeFile", "Type", version1, versionDate1, typeList, this)) { return; }
                 // 🔹 AJAX CALL
                 $.ajax({
                     type: "POST",
@@ -761,7 +884,8 @@
                             { data: "AgreementType" },
                             { data: "MinServicePeriod" },
                             { data: "AddedByName" },
-                            { data: "AddedDate1" }
+                            { data: "AddedDate1" },
+                            { data: null, orderable: false, render: function (_, type, row) { return agreementDownload(row, "Type", type); } }
                         ],
 
                         initComplete: function () {
@@ -779,6 +903,7 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <input type="hidden" id="agreementUploadToken" value="<%= AgreementUploadToken %>" />
 
     <div class="loading" id="load1">
         <img src="../images/Load_1.gif" />
@@ -824,26 +949,24 @@
                             <div class="row mb-4 modern-form-row">
 
 
-                            <%--  <div class="col-md-6">
-                                    <labe class="clause-label"><b>Version :</b></labe>
-                                    <input type="text" id="txtVersion" class="form-control" placeholder="Enter Version" />
-                                </div>
-                                <div class="col-md-6">
-                                    <labe class="clause-label"><b>Version :</b></labe>
-                                    <input type="date" id="txtVersionDate" class="form-control" placeholder="Enter Version Date" />
-                                </div>--%>
-                            <div class="col-md-1">
-                                <label><b>Version :</b></label>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <label for="txtVersion">Version</label>
                                 <input type="text" id="txtVersion" class="form-control" placeholder="Enter Version" />
                             </div>
 
-                            <div class="col-md-2" style="text-align: right;">
-                                <label><b>Version Date :</b></label>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <label for="txtVersionDate">Version Date</label>
                                 <input type="date" id="txtVersionDate" class="form-control" />
+                            </div>
+                            <div class="col-md-12">
+                                <label for="versionFile">Agreement File</label>
+                                <div class="agreement-upload">
+                                    <span class="agreement-upload-icon" aria-hidden="true"><i class="bi bi-cloud-arrow-up"></i></span>
+                                    <div class="agreement-upload-content">
+                                        <input type="file" id="versionFile" class="agreement-file-input" aria-describedby="versionFileHint" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.png,.jpg,.jpeg,.zip" />
+                                        <small id="versionFileHint" class="agreement-upload-hint">Optional &middot; Documents, images or ZIP &middot; Up to 10 MB</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         </div>
@@ -889,6 +1012,7 @@
                                         <th class="sort border-top ps-3" style="text-wrap: nowrap;">Clause </th>
                                         <th class="sort border-top ps-3" style="text-wrap: nowrap;">Added By</th>
                                         <th class="sort border-top ps-3">Added Date</th>
+                                        <th class="sort border-top ps-3">Download</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -901,17 +1025,23 @@
                         <div class="modern-section">
                             <h5 class="section-title"><i class="bi bi-file-earmark-text-fill"></i> Type Version Details</h5>
                         <div class="row mb-4 modern-form-row">
-                            <div class="col-md-1">
-                                <label><b>Version :</b></label>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <label for="txttypeVersion">Version</label>
                                 <input type="text" id="txttypeVersion" class="form-control" placeholder="Enter Version" />
                             </div>
-                            <div class="col-md-2" style="text-align: right;">
-                                <label><b>Version Date :</b></label>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
+                                <label for="txttypeVersionDate">Version Date</label>
                                 <input type="date" id="txttypeVersionDate" class="form-control" />
+                            </div>
+                            <div class="col-md-12">
+                                <label for="typeFile">Agreement File</label>
+                                <div class="agreement-upload">
+                                    <span class="agreement-upload-icon" aria-hidden="true"><i class="bi bi-cloud-arrow-up"></i></span>
+                                    <div class="agreement-upload-content">
+                                        <input type="file" id="typeFile" class="agreement-file-input" aria-describedby="typeFileHint" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.png,.jpg,.jpeg,.zip" />
+                                        <small id="typeFileHint" class="agreement-upload-hint">Optional &middot; Documents, images or ZIP &middot; Up to 10 MB</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         </div>
@@ -955,6 +1085,7 @@
                                         <th class="sort border-top ps-3" style="text-wrap: nowrap;">Minimum Service Commitment Period </th>
                                         <th class="sort border-top ps-3" style="text-wrap: nowrap;">Added By</th>
                                         <th class="sort border-top ps-3">Added Date</th>
+                                        <th class="sort border-top ps-3">Download</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>

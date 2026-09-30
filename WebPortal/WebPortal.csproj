@@ -238,6 +238,8 @@
     <Content Include="Admin\AddApplicantRemark.aspx" />
     <Content Include="Admin\AddressVerification.aspx" />
     <Content Include="Admin\AgreementVersionControl.aspx" />
+    <Content Include="AgreementVersions\web.config" />
+    <Content Include="DatabaseScripts\AgreementVersions_001_Attachments.sql" />
     <Content Include="Admin\AgreementVersionsHistoryReport.aspx" />
     <Content Include="Admin\AllResignedEmployees.aspx" />
     <Content Include="Admin\ApplicationForm.aspx" />
@@ -6235,6 +6237,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="AgreementVersions\" />
     <Folder Include="FestivalWishesImagesandVideos_Admin\" />
     <Folder Include="InvoiceDocs\" />
     <Folder Include="OtherTaskDocuments\" />

@@ -2198,6 +2198,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.InsertAgreementVersionHistory(htParam);
         }
 
+        public int InsertAgreementVersionDocs(Hashtable htParam)
+        {
+            return dalMaster.InsertAgreementVersionDocs(htParam);
+        }
+
         public int InsertAgreementTypeHistory(Hashtable htParam)
         {
             return dalMaster.InsertAgreementTypeHistory(htParam);
