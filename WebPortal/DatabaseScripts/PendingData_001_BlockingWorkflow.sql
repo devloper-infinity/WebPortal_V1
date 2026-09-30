@@ -44,7 +44,9 @@ BEGIN
     WHERE NOT EXISTS
     (
         SELECT 1 FROM dbo.PendingDataRemark r
-        WHERE r.ProjectID=p.ProjectID AND r.OrderNo=p.OrderNo AND r.IsActive=1
+        WHERE r.ProjectID=p.ProjectID
+          AND LTRIM(RTRIM(r.OrderNo))=LTRIM(RTRIM(p.OrderNo))
+          AND r.IsActive=1
     )
     ORDER BY p.ProjectName,p.OrderDate,p.MissingField;
 END;

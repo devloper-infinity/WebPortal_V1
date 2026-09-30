@@ -63,6 +63,7 @@ namespace WebPortal
                     string path = Context.Request.AppRelativeCurrentExecutionFilePath ?? String.Empty;
                     string extension = VirtualPathUtility.GetExtension(path) ?? String.Empty;
                     bool publicPath = path.StartsWith("~/Admin/PendingData.aspx", StringComparison.OrdinalIgnoreCase) ||
+                                      path.Equals("~/SessionKeepAlive.aspx", StringComparison.OrdinalIgnoreCase) ||
                                       path.Equals("~/Logout.aspx", StringComparison.OrdinalIgnoreCase) ||
                                       path.Equals("~/LogoutNew.aspx", StringComparison.OrdinalIgnoreCase) ||
                                       path.Equals("~/Login.aspx", StringComparison.OrdinalIgnoreCase) ||
@@ -100,6 +101,7 @@ namespace WebPortal
                 string extension = VirtualPathUtility.GetExtension(path) ?? String.Empty;
                 if (path.Equals("~/Admin/RNRFeedback.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.StartsWith("~/Admin/PendingData.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.Equals("~/SessionKeepAlive.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("~/Logout.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("~/LogoutNew.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("~/Login.aspx", StringComparison.OrdinalIgnoreCase) ||

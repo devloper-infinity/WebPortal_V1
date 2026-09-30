@@ -418,12 +418,16 @@ FodyWeavers.xsd
 !/WebPortal/Admin/PendingData.aspx
 !/WebPortal/Admin/PendingData.aspx.cs
 !/WebPortal/Admin/PendingData.aspx.designer.cs
+!/WebPortal/Admin/ProjectBillingDetails.aspx
+!/WebPortal/Admin/ProjectBillingDetails.aspx.cs
+!/WebPortal/Admin/ProjectBillingDetails.aspx.designer.cs
 !/WebPortal/Templates/
 /WebPortal/Templates/*
 !/WebPortal/Templates/DashboardValidatorTemplate.xlsx
 !/WebPortal/Content/
 /WebPortal/Content/*
 !/WebPortal/Content/erp-modern-common.css
+!/WebPortal/Content/ProjectBillingDetails.css
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
 !/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql
@@ -441,6 +445,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/USFeedback_002_AddProcessID.sql
 !/WebPortal/DatabaseScripts/DashboardValidator_001_ValidationExceptionMaster.sql
 !/WebPortal/DatabaseScripts/PendingData_001_BlockingWorkflow.sql
+!/WebPortal/DatabaseScripts/usp_GetAllProjectsBillingDetails.sql
 !/WebPortal/US/
 /WebPortal/US/*
 !/WebPortal/US/ProjectProcessLoanReport.aspx
@@ -472,6 +477,9 @@ FodyWeavers.xsd
 !/WebPortal/TrackingSheet/ManagerDashboard.Snd.js
 !/WebPortal/Scripts/
 /WebPortal/Scripts/*
+!/WebPortal/Scripts/Admin/
+/WebPortal/Scripts/Admin/*
+!/WebPortal/Scripts/Admin/ProjectBillingDetails.js
 !/WebPortal/Scripts/US/
 /WebPortal/Scripts/US/*
 !/WebPortal/Scripts/US/ResetPasswordSegment.js
