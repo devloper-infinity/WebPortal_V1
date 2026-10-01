@@ -153,6 +153,8 @@
     <Content Include="Content\ProjectBillingDetails.css" />
     <Content Include="Scripts\Admin\ProjectBillingDetails.js" />
     <Content Include="DatabaseScripts\usp_GetAllProjectsBillingDetails.sql" />
+    <Content Include="DatabaseScripts\ProjectBillingParameterRemarks.sql" />
+    <Content Include="DatabaseScripts\UnderwritingBillingReminder.sql" />
     <Content Include="DatabaseScripts\LoanLevelHistory_001_ServerPaging.sql" />
     <Content Include="DatabaseScripts\PendingData_001_BlockingWorkflow.sql" />
     <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
@@ -3178,6 +3180,7 @@
     <Compile Include="App_Code\Class\ActivityCategorycls.cs" />
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
     <Compile Include="App_Code\PendingDataRepository.cs" />
+    <Compile Include="App_Code\UnderwritingBillingValidationService.cs" />
     <Compile Include="App_Code\RnrSecurity.cs" />
     <Compile Include="Admin\RNRAdmin.aspx.cs">
       <DependentUpon>RNRAdmin.aspx</DependentUpon>

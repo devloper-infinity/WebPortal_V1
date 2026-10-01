@@ -1,7 +1,8 @@
 ALTER PROCEDURE dbo.usp_GetAllProjectsBillingDetails
     @EmployeeID INT,
     @Month NVARCHAR(100),
-    @Year INT
+    @Year INT,
+    @ToDate DATE=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -17,8 +18,9 @@ BEGIN
         RETURN;
     END;
 
-    DECLARE @FromDate DATE=DATEFROMPARTS(@Year,@MonthNo,1), @ToDate DATE;
-    SET @ToDate=EOMONTH(@FromDate);
+    DECLARE @FromDate DATE=DATEFROMPARTS(@Year,@MonthNo,1), @PeriodTo DATE;
+    SET @PeriodTo=EOMONTH(@FromDate);
+    IF @ToDate IS NOT NULL AND @ToDate<@PeriodTo SET @PeriodTo=@ToDate;
     DECLARE @ProjectList TABLE(ID INT IDENTITY(1,1) PRIMARY KEY,ProjectID INT,ProjectName NVARCHAR(100));
     DECLARE @ForBilling INT=1,@Columns NVARCHAR(MAX),@SQL NVARCHAR(MAX),@DueDateColumn SYSNAME,@ProjectName NVARCHAR(100),@ProjectID INT;
 
@@ -55,16 +57,16 @@ BEGIN
 
             IF NULLIF(@Columns,'') IS NOT NULL AND NULLIF(@DueDateColumn,'') IS NOT NULL
             BEGIN
-                SET @SQL=N'SELECT @ProjectName AS [Project #], '+@Columns+N'
+                SET @SQL=N'SELECT @ProjectName AS [Project #], @ProjectID AS [__ProjectID], '+@Columns+N'
                     FROM Underwriting.dbo.WBT_TrackingSheet T
                     WHERE T.ProjectID=@ProjectID AND T.BillingPeriod IS NULL
                     AND CASE
                             WHEN ISDATE(T.'+QUOTENAME(@DueDateColumn)+N')=1
                             THEN CONVERT(DATE,T.'+QUOTENAME(@DueDateColumn)+N')
-                        END BETWEEN @FromDate AND @ToDate;';
+                        END BETWEEN @FromDate AND @PeriodTo;';
                 EXEC sys.sp_executesql @SQL,
-                    N'@ProjectName NVARCHAR(100),@ProjectID INT,@FromDate DATE,@ToDate DATE',
-                    @ProjectName=@ProjectName,@ProjectID=@ProjectID,@FromDate=@FromDate,@ToDate=@ToDate;
+                    N'@ProjectName NVARCHAR(100),@ProjectID INT,@FromDate DATE,@PeriodTo DATE',
+                    @ProjectName=@ProjectName,@ProjectID=@ProjectID,@FromDate=@FromDate,@PeriodTo=@PeriodTo;
             END;
             FETCH NEXT FROM c_pro INTO @ProjectID,@ProjectName;
         END;

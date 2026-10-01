@@ -13,6 +13,13 @@ namespace WebPortal.Admin
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!Request.IsAuthenticated) Response.Redirect("~/Login.aspx", false);
+            int employeeId;
+            if (Int32.TryParse(User.Identity.Name, out employeeId) && (employeeId == 277 || employeeId == 6823))
+            {
+                Response.Redirect("~/Admin/ProjectBillingDetails.aspx", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
         }
 
         private static int EmployeeID()

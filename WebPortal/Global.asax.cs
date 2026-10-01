@@ -7,6 +7,8 @@ using System.Web.SessionState;
 using System.Web.UI;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code;
+using InfinityERP.UnderwritingBilling;
+using WebPortal.App_Code.DAL;
 
 namespace WebPortal
 {
@@ -54,7 +56,8 @@ namespace WebPortal
 
         protected void Application_AuthorizeRequest(object sender, EventArgs e)
         {
-            // Pending project data is a global ERP gate; enforcing it here also covers manually-entered URLs.
+            // Phase 1: the Underwriting billing gate applies only to employees 277 and 6823.
+            // All other employees must continue through the normal ERP login/navigation flow.
             try
             {
                 if (Context.User != null && Context.User.Identity.IsAuthenticated)
@@ -63,6 +66,7 @@ namespace WebPortal
                     string path = Context.Request.AppRelativeCurrentExecutionFilePath ?? String.Empty;
                     string extension = VirtualPathUtility.GetExtension(path) ?? String.Empty;
                     bool publicPath = path.StartsWith("~/Admin/PendingData.aspx", StringComparison.OrdinalIgnoreCase) ||
+                                      path.StartsWith("~/Admin/ProjectBillingDetails.aspx", StringComparison.OrdinalIgnoreCase) ||
                                       path.Equals("~/SessionKeepAlive.aspx", StringComparison.OrdinalIgnoreCase) ||
                                       path.Equals("~/Logout.aspx", StringComparison.OrdinalIgnoreCase) ||
                                       path.Equals("~/LogoutNew.aspx", StringComparison.OrdinalIgnoreCase) ||
@@ -79,17 +83,25 @@ namespace WebPortal
                                       extension.Equals(".woff2", StringComparison.OrdinalIgnoreCase) ||
                                       path.EndsWith("WebResource.axd", StringComparison.OrdinalIgnoreCase) ||
                                       path.EndsWith("ScriptResource.axd", StringComparison.OrdinalIgnoreCase);
-                    if (!publicPath && Int32.TryParse(Context.User.Identity.Name, out employeeId) && new PendingDataRepository().HasPending(employeeId))
+                    if (!publicPath && Int32.TryParse(Context.User.Identity.Name, out employeeId) &&
+                        (employeeId == 277 || employeeId == 6823))
                     {
-                        if (Context.Request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase))
-                            Context.Response.Redirect("~/Admin/PendingData.aspx", false);
-                        else { Context.Response.StatusCode = 403; Context.Response.TrySkipIisCustomErrors = true; }
-                        Context.ApplicationInstance.CompleteRequest();
-                        return;
+                        DateTime today = DateTime.Today;
+                        DateTime billingMonth = today.Day == 1 ? new DateTime(today.Year, today.Month, 1).AddMonths(-1) : new DateTime(today.Year, today.Month, 1);
+                        bool hasPending = new UnderwritingBillingValidationService(SQLHelper.ConnectionString)
+                            .HasBlockingPending(employeeId, billingMonth, today.AddDays(-1));
+                        if (hasPending)
+                        {
+                            if (Context.Request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase))
+                                Context.Response.Redirect("~/Admin/ProjectBillingDetails.aspx", false);
+                            else { Context.Response.StatusCode = 403; Context.Response.TrySkipIisCustomErrors = true; }
+                            Context.ApplicationInstance.CompleteRequest();
+                            return;
+                        }
                     }
                 }
             }
-            catch (System.Data.SqlClient.SqlException ex) when (ex.Number == 208 || ex.Number == 2812) { /* fail open until the deployment script is applied */ }
+            catch (Exception) { /* Billing validation must never make ERP login/navigation unavailable. */ }
 
             // Mandatory RNR feedback is enforced centrally so direct page/API URLs cannot bypass it.
             try
@@ -101,6 +113,7 @@ namespace WebPortal
                 string extension = VirtualPathUtility.GetExtension(path) ?? String.Empty;
                 if (path.Equals("~/Admin/RNRFeedback.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.StartsWith("~/Admin/PendingData.aspx", StringComparison.OrdinalIgnoreCase) ||
+                    path.StartsWith("~/Admin/ProjectBillingDetails.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("~/SessionKeepAlive.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("~/Logout.aspx", StringComparison.OrdinalIgnoreCase) ||
                     path.Equals("~/LogoutNew.aspx", StringComparison.OrdinalIgnoreCase) ||
@@ -125,7 +138,7 @@ namespace WebPortal
                 Context.ApplicationInstance.CompleteRequest();
             }
             catch (System.Threading.ThreadAbortException) { }
-            catch (System.Data.SqlClient.SqlException ex) when (ex.Number == 208) { /* schema is deployed separately; fail open until deployment */ }
+            catch (System.Data.SqlClient.SqlException ex) { if (ex.Number != 208) throw; /* schema is deployed separately; fail open until deployment */ }
         }
 
         protected void Application_PreRequestHandlerExecute(object sender, EventArgs e)
