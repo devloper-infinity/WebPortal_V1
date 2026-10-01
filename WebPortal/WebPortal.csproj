@@ -153,6 +153,7 @@
     <Content Include="Content\ProjectBillingDetails.css" />
     <Content Include="Scripts\Admin\ProjectBillingDetails.js" />
     <Content Include="DatabaseScripts\usp_GetAllProjectsBillingDetails.sql" />
+    <Content Include="DatabaseScripts\LoanLevelHistory_001_ServerPaging.sql" />
     <Content Include="DatabaseScripts\PendingData_001_BlockingWorkflow.sql" />
     <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
     <Content Include="Admin\All.aspx" />
@@ -2949,6 +2950,7 @@
     <Content Include="Search\VerifyBilling.aspx" />
     <Content Include="Search\ViewBilling.aspx" />
     <Content Include="Handler\SummaryReportDownload.ashx" />
+    <Content Include="Handler\LoanLevelHistoryExport.ashx" />
     <Content Include="DatabaseScripts\NonProductiveHours.sql" />
     <Content Include="DatabaseScripts\MonthlyBirthdays_001_Report.sql" />
     <Content Include="DatabaseScripts\DashboardValidator_001_ValidationExceptionMaster.sql" />
@@ -5509,6 +5511,9 @@
     </Compile>
     <Compile Include="Handler\SummaryReportDownload.ashx.cs">
       <DependentUpon>SummaryReportDownload.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Handler\LoanLevelHistoryExport.ashx.cs">
+      <DependentUpon>LoanLevelHistoryExport.ashx</DependentUpon>
     </Compile>
     <Compile Include="Search\ProcessOrders.aspx.cs">
       <DependentUpon>ProcessOrders.aspx</DependentUpon>

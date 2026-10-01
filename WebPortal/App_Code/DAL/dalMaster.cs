@@ -6232,14 +6232,17 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
-        public DataTable GetLoanTrackingHistory(Hashtable htParam)
+        public DataSet GetLoanTrackingHistory(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLoanLevelSecRelTracking");
             SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
-            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
+            SQLHelper.AddParamToSQLCmd(cmd, "@Start", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["Start"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PageSize", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["PageSize"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchValue", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchValue"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ExportAll", System.Data.SqlDbType.Bit, 1, System.Data.ParameterDirection.Input, false);
+            return SQLHelper.ExecuteDataSetCmd(cmd);
         }
 
 

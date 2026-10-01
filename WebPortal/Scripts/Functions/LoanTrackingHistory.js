@@ -45,12 +45,9 @@ function ResetFilters() {
     $("#txtToDate").val('');
 
     if ($.fn.DataTable.isDataTable('#tblLoanTrackingHistory')) {
-
-        $('#tblLoanTrackingHistory')
-            .DataTable()
-            .clear()
-            .draw();
-
+        $('#tblLoanTrackingHistory').DataTable().destroy();
+        $('#tblLoanTrackingHistory').empty();
+        loanHistoryTable = null;
     }
 
 }
@@ -110,59 +107,27 @@ function LoadProjects() {
 
 function LoadLoanTrackingHistory() {
 
+    if (!$("#txtFromDate").val() || !$("#txtToDate").val()) {
+        Swal.fire('Info', 'Please select both From Date and To Date.', 'info');
+        return;
+    }
+
     ShowLoader();
 
-    var obj = {
-
-        ProjectID: $("#ddlProject").val(),
-
-        FromDate: $("#txtFromDate").val(),
-
-        ToDate: $("#txtToDate").val()
-
-    };
-
-    $.ajax({
-
-        type: "POST",
-
-        url: "LoanLevelHistory.aspx/GetLoanTrackingHistory",
-
-        data: JSON.stringify(obj),
-
-        contentType: "application/json; charset=utf-8",
-
-        dataType: "json",
-
-        success: function (response) {
-
-            HideLoader();
-
-            //var result = response.d;
-            var result = JSON.parse(response.d);
-            BindGrid(result);
-
-        },
-
-        error: function () {
-
-            HideLoader();
-
-            Swal.fire(
-                'Error',
-                'Unable to load data.',
-                'error'
-            );
-
+    requestLoanHistoryPage(1, 0, 10, '', function (result) {
+        HideLoader();
+        if (result.error) {
+            Swal.fire('Error', result.error, 'error');
+            return;
         }
-
-    });
+        BindGrid(result);
+    }, showLoadError);
 
 }
 
 function BindGrid(result) {
 
-    if (!result || result.length === 0) {
+    if (!result || !result.columns || result.columns.length === 0) {
 
         $('#tblLoanTrackingHistory').html(
             '<thead><tr><th>No records found</th></tr></thead>'
@@ -179,7 +144,7 @@ function BindGrid(result) {
 
     var columns = [];
 
-    $.each(Object.keys(result[0]), function (i, col) {
+    $.each(result.columns, function (i, col) {
 
         columns.push({
             data: col,
@@ -188,38 +153,67 @@ function BindGrid(result) {
 
     });
 
-    $('#tblLoanTrackingHistory').DataTable({
-        data: result,
+    loanHistoryTable = $('#tblLoanTrackingHistory').DataTable({
+        data: result.data,
         columns: columns,
         destroy: true,
-        dom: 'Bfrtip',
-        buttons: [{
-            extend: 'excelHtml5',
-            title: 'Loan Tracking History',
-            text: '<i class="fas fa-file-excel"></i> Excel'
-        }],
+        processing: true,
+        serverSide: true,
+        deferLoading: result.recordsTotal,
+        pageLength: 10,
+        ajax: function (request, callback) {
+            requestLoanHistoryPage(
+                request.draw,
+                request.start,
+                request.length,
+                request.search ? request.search.value : '',
+                callback,
+                function () {
+                    callback({ draw: request.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
+                    showLoadError();
+                });
+        },
+        dom: 'frtip',
         language: {
             emptyTable: 'No records found.'
         }
     });
 }
 
+function requestLoanHistoryPage(draw, start, length, searchValue, onSuccess, onError) {
+    $.ajax({
+        type: "POST",
+        url: "LoanLevelHistory.aspx/GetLoanTrackingHistory",
+        data: JSON.stringify({
+            ProjectID: $("#ddlProject").val() || '0',
+            FromDate: $("#txtFromDate").val(),
+            ToDate: $("#txtToDate").val(),
+            draw: draw,
+            start: start,
+            length: length,
+            searchValue: searchValue || ''
+        }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) { onSuccess(response.d); },
+        error: onError
+    });
+}
+
+function showLoadError() {
+    HideLoader();
+    Swal.fire('Error', 'Unable to load data.', 'error');
+}
+
 function ExportGrid() {
-
-    if (loanHistoryTable == null) {
-
-        Swal.fire(
-            'Info',
-            'No data available to export.',
-            'info'
-        );
-
+    if (!$("#txtFromDate").val() || !$("#txtToDate").val()) {
+        Swal.fire('Info', 'Please select both From Date and To Date.', 'info');
         return;
-
     }
-
-    loanHistoryTable
-        .button('.buttons-excel')
-        .trigger();
-
+    var search = loanHistoryTable ? loanHistoryTable.search() : '';
+    window.location = '../Handler/LoanLevelHistoryExport.ashx?ProjectID=' +
+        encodeURIComponent($("#ddlProject").val() || '0') + '&FromDate=' +
+        encodeURIComponent($("#txtFromDate").val()) + '&ToDate=' +
+        encodeURIComponent($("#txtToDate").val()) + '&SearchValue=' +
+        encodeURIComponent(search);
 }

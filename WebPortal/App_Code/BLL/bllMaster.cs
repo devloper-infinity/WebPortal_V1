@@ -2735,7 +2735,7 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetExistingLoanList_Unbilled();
         }
-        public DataTable GetLoanTrackingHistory(Hashtable ht)
+        public DataSet GetLoanTrackingHistory(Hashtable ht)
         {
             return new dalMaster().GetLoanTrackingHistory(ht);
         }
