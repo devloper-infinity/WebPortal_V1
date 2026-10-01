@@ -41,7 +41,14 @@ namespace WebPortal.Admin
 
                 if (ReturnValue > 0)
                 {
-                    msg = "Activity Category saved successfully!";
+                    if (ActivityCategoryId == 0)
+                    {
+                        msg = "Activity Category saved successfully!";
+                    }
+                    else
+                    {
+                        msg = "Activity Category updated successfully!"; 
+                    }
                 }
                 else if (ReturnValue == -1)
                 {
@@ -140,7 +147,14 @@ namespace WebPortal.Admin
 
                 if (ReturnValue > 0)
                 {
-                    msg = "Activity saved successfully!";
+                    if (activityId == 0)
+                    {
+                        msg = "Activity saved successfully!";
+                    }
+                    else
+                    {
+                        msg = "Activity updated successfully!"; 
+                    }
                 }
                 else if (ReturnValue == -1)
                 {
@@ -230,7 +244,14 @@ namespace WebPortal.Admin
 
                 if (ReturnValue > 0)
                 {
-                    msg = "Budget saved successfully!";
+                    if (budgetId == 0)
+                    {
+                        msg = "Budget saved successfully!";
+                    }
+                    else
+                    {
+                        msg = "Budget updated successfully!"; 
+                    }
                 }
                 else if (ReturnValue == -1)
                 {
@@ -275,19 +296,8 @@ namespace WebPortal.Admin
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
         [WebMethod]
-        public static string SaveExpenseData(int expenseId, string LocationId, string RecreationActivity, string Quarter, string ActivitiesMonth, string CompletedDate, string ExpShift, string ActualExpense, string Status, string Remark)
+        public static string SaveExpenseData(int expenseId, string LocationId, int RecreationActivity, int activityId, string formattedPlannedMonth, string CompletedDate, string ExpShift, string ActualExpense, string Status, string Remark)
         {
             string msg = string.Empty;
             try
@@ -296,8 +306,8 @@ namespace WebPortal.Admin
                 htParam.Add("ExpenseId", expenseId);
                 htParam.Add("Location", LocationId);
                 htParam.Add("RecreationActivity", RecreationActivity);
-                htParam.Add("Quarter", Quarter);
-                htParam.Add("ActivitiesMonth", ActivitiesMonth);
+                htParam.Add("activityId", activityId);
+                htParam.Add("PlannedMonth", formattedPlannedMonth);
                 htParam.Add("CompletedDate", CompletedDate);
                 htParam.Add("ExpShift", ExpShift);
                 htParam.Add("ActualExpense", ActualExpense);
@@ -310,7 +320,14 @@ namespace WebPortal.Admin
 
                 if (ReturnValue > 0)
                 {
-                    msg = "Data saved successfully!";
+                    if (expenseId == 0)
+                    {
+                        msg = "Expense Details saved successfully!";
+                    }
+                    else
+                    {
+                        msg = "Expense Details updated successfully!"; 
+                    }
                 }
                 else
                 {
@@ -352,9 +369,9 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static string GetAdminExpenseDataForReport(string FromDate, string ToDate)
+        public static string GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
         {
-            DataSet ds = new bllMaster().GetAdminExpenseDataForReport(FromDate, ToDate);
+            DataSet ds = new bllMaster().GetAdminExpenseDataForReport(ExpenseFromDate, ExpensesToDate);
             Func<DataTable, List<Dictionary<string, object>>> convertTableToList = (dt) => {
                 var rows = new List<Dictionary<string, object>>();
                 if (dt != null)
@@ -377,7 +394,7 @@ namespace WebPortal.Admin
             resultData["summary"] = (ds.Tables.Count > 1) ? convertTableToList(ds.Tables[1]) : new List<Dictionary<string, object>>();
             resultData["locationSummary"] = (ds.Tables.Count > 2) ? convertTableToList(ds.Tables[2]) : new List<Dictionary<string, object>>();
             resultData["activitySummary"] = (ds.Tables.Count > 3) ? convertTableToList(ds.Tables[3]) : new List<Dictionary<string, object>>();
-
+            resultData["YearlycountSummary"] = (ds.Tables.Count > 4) ? convertTableToList(ds.Tables[4]) : new List<Dictionary<string, object>>();
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(resultData);
