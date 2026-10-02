@@ -31,9 +31,9 @@ namespace WebPortal.Admin
         [WebMethod]
         public static Dictionary<string, object> ShouldShowPerformanceAcknowledgement()
         {
-            int day = DateTime.Today.Day;
-            if (day < 26 || day > 28)
-                return null;
+            //int day = DateTime.Today.Day;
+            //if (day > 4)
+            //    return null;
 
             int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);
             DataTable performance = new bllMaster().GetOverAllUserPerformance_UserPerfAck(employeeId);

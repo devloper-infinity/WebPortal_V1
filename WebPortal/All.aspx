@@ -191,7 +191,7 @@
             border-radius: 13px !important;
             padding: 9px 13px !important;
             color: #0f172a;
-            background-color: #fff !important;
+           /* background-color: #fff !important;*/
             font-size: 13px;
             font-weight: 600;
             box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
@@ -352,7 +352,7 @@
                 padding: 5px !important;
                 border-top: 1px solid #e8eef7 !important;
                 vertical-align: middle;
-                background: #fff;
+           /*     background: #fff;*/
                 text-align: left !important;
             }
 

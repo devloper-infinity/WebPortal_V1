@@ -280,7 +280,6 @@
         }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function () {
             ChekIfPoshTestExists();
@@ -330,8 +329,8 @@
         </div>
     </div>
 
-    <div class="modal fade modal-modern" id="posh_dverror" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal fade modal-modern" id="posh_dverror" tabindex="-1" role="dialog" aria-labelledby="posh_errmsg" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h6 class="modal-title" id="posh_errmsg"></h6>
@@ -345,7 +344,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="waitingpanel" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal fade" id="waitingpanel" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered justify-content-center text-center">
             <div>
                 <img src="../Images/Load.gif" alt="Loading" />

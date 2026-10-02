@@ -355,7 +355,7 @@
                 return;
             }
 
-            if (xhr.status === 401 || xhr.status === 403 || xhr.status === 440 || isLoginResponseUrl(xhr.responseURL)) {
+            if (xhr.status === 401 || xhr.status === 440 || isLoginResponseUrl(xhr.responseURL)) {
                 completeKeepAlive(false, null);
                 expireSession();
                 return;
@@ -449,7 +449,7 @@
             var originalFetch = window.fetch;
             window.fetch = function () {
                 return originalFetch.apply(this, arguments).then(function (response) {
-                    if (response.status === 401 || response.status === 403 || response.status === 440 ||
+                    if (response.status === 401 || response.status === 440 ||
                         (response.redirected && isLoginResponseUrl(response.url))) {
                         expireSession();
                     }
@@ -460,7 +460,7 @@
 
         if (window.jQuery) {
             window.jQuery(document).ajaxError(function (event, xhr) {
-                if (xhr.status === 401 || xhr.status === 403 || xhr.status === 440 || isLoginResponseUrl(xhr.responseURL)) {
+                if (xhr.status === 401 || xhr.status === 440 || isLoginResponseUrl(xhr.responseURL)) {
                     expireSession();
                 }
             });

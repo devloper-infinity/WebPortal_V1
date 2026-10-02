@@ -37,39 +37,75 @@ namespace WebPortal.Admin
         #region Loan Tracking History
 
         [WebMethod]
-        public static string GetLoanTrackingHistory(
+        public static object GetLoanTrackingHistory(
             string ProjectID,
             string FromDate,
-            string ToDate)
+            string ToDate,
+            int draw,
+            int start,
+            int length,
+            string searchValue)
         {
             try
             {
+                start = Math.Max(0, start);
+                length = Math.Max(10, Math.Min(length, 500));
+
                 Hashtable ht = new Hashtable();
 
                 ht.Add("ProjectID", ProjectID);
                 ht.Add("FromDate", FromDate);
                 ht.Add("ToDate", ToDate);
+                ht.Add("Start", start);
+                ht.Add("PageSize", length);
+                ht.Add("SearchValue", searchValue ?? string.Empty);
 
-                DataTable dt = new DataTable();
-                dt = new bllMaster().GetLoanTrackingHistory(ht);
-                /*
-                 * KEEP SP NAME BLANK FOR NOW
-                 *
-                 * Example:
-                 *
-                
-                 *
-                 */
-                return dt != null ? SerializeTable(dt) : "[]";
-                //return SerializeDynamicTable(dt);
+                DataSet ds = new bllMaster().GetLoanTrackingHistory(ht);
+                DataTable countTable = ds != null && ds.Tables.Count > 0 ? ds.Tables[0] : null;
+                DataTable pageTable = ds != null && ds.Tables.Count > 1 ? ds.Tables[1] : null;
+                int totalRecords = countTable != null && countTable.Rows.Count > 0
+                    ? Convert.ToInt32(countTable.Rows[0]["TotalRecords"])
+                    : 0;
+
+                return new
+                {
+                    draw = draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    columns = pageTable == null
+                        ? new List<string>()
+                        : pageTable.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToList(),
+                    data = ToRows(pageTable)
+                };
             }
             catch (Exception ex)
             {
-                return "{}";
+                System.Diagnostics.Trace.TraceError("Loan tracking history failed: {0}", ex);
+                return new
+                {
+                    draw = draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    columns = new List<string>(),
+                    data = new List<Dictionary<string, object>>(),
+                    error = "Unable to load loan tracking history."
+                };
             }
         }
 
         #endregion
+
+        private static List<Dictionary<string, object>> ToRows(DataTable table)
+        {
+            if (table == null)
+                return new List<Dictionary<string, object>>();
+
+            return table.AsEnumerable()
+                .Select(row => table.Columns.Cast<DataColumn>().ToDictionary(
+                    column => column.ColumnName,
+                    column => row[column] == DBNull.Value ? null : row[column]))
+                .ToList();
+        }
 
         #region Dynamic Table Serializer
 

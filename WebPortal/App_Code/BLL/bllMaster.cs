@@ -2198,6 +2198,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.InsertAgreementVersionHistory(htParam);
         }
 
+        public int InsertAgreementVersionDocs(Hashtable htParam)
+        {
+            return dalMaster.InsertAgreementVersionDocs(htParam);
+        }
+
         public int InsertAgreementTypeHistory(Hashtable htParam)
         {
             return dalMaster.InsertAgreementTypeHistory(htParam);
@@ -2730,7 +2735,7 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetExistingLoanList_Unbilled();
         }
-        public DataTable GetLoanTrackingHistory(Hashtable ht)
+        public DataSet GetLoanTrackingHistory(Hashtable ht)
         {
             return new dalMaster().GetLoanTrackingHistory(ht);
         }
@@ -2860,7 +2865,7 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetAdminExpenseData();
         }
-        public DataSet GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
+        public DataSet GetAdminExpenseDataForReport(String FromDate, string ToDate)
         {
             return dalMaster.GetAdminExpenseDataForReport(ExpenseFromDate, ExpensesToDate);
         }

@@ -1036,6 +1036,30 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllResignedEmployees");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmpId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmpId);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            // The legacy procedure returns EmployeeID, not the resignation record ID
+            // required by DeleteUser and UpdateExitFormality.
+            if (dt != null && dt.Rows.Count > 0 && !dt.Columns.Contains("ResignationId"))
+            {
+                dt.Columns.Add("ResignationId", typeof(int));
+                using (SqlCommand idCommand = SQLHelper.GetCommand(CommandType.Text, @"
+                    SELECT EmployeeID, MIN(ResignationId) AS ResignationId
+                    FROM dbo.InitiateResignation
+                    WHERE status = 'Accept'
+                    GROUP BY EmployeeID
+                    HAVING COUNT(*) = 1"))
+                {
+                    DataTable ids = SQLHelper.ExecuteDataTableCmd(idCommand);
+                    var resignationIds = ids.AsEnumerable().ToDictionary(
+                        row => Convert.ToInt32(row["EmployeeID"]),
+                        row => Convert.ToInt32(row["ResignationId"]));
+                    foreach (DataRow employee in dt.Rows)
+                    {
+                        int resignationId;
+                        if (resignationIds.TryGetValue(Convert.ToInt32(employee["EmployeeID"]), out resignationId))
+                            employee["ResignationId"] = resignationId;
+                    }
+                }
+            }
             return dt;
         }
 
@@ -4000,7 +4024,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, BillingPeriod);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, AddedBy);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd_UWBilling(cmd); 
+            SQLHelper.ExecuteNonQueryCmd_UWBilling(cmd);
 
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
             return ReturnValue;
@@ -5018,6 +5042,21 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
+        public int InsertAgreementVersionDocs(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAgreementVersionDocs");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["Type"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ChangeID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ChangeID"]);
+            cmd.Parameters.Add("@Path", SqlDbType.NVarChar, -1).Value = htParam["Path"];
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+
         public int InsertAgreementVersionHistory(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAgreementVersionHistory");
@@ -5029,10 +5068,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Clause", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Clause"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd(cmd);
-
-            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
-            return ReturnValue;
+            return ExecuteAgreementHistoryInsert(cmd, htParam, "Version");
         }
 
 
@@ -5045,12 +5081,67 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@MinServPeriod", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["MinServPeriod"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd(cmd);
-
-            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
-            return ReturnValue;
+            return ExecuteAgreementHistoryInsert(cmd, htParam, "Type");
         }
 
+        private int ExecuteAgreementHistoryInsert(SqlCommand cmd, Hashtable values, string type)
+        {
+            // Save the history row and its attachment together; propagate SQL failures.
+            using (cmd)
+            using (var connection = new SqlConnection(SQLHelper.ConnectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    cmd.Connection = connection;
+                    cmd.Transaction = transaction;
+                    cmd.ExecuteNonQuery();
+                    int changeId = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+                    string path = Convert.ToString(values["FilePath"]);
+                    if (changeId > 0 && !string.IsNullOrWhiteSpace(path))
+                    {
+                        using (var document = new SqlCommand("usp_InsertAgreementVersionDocs", connection, transaction))
+                        {
+                            document.CommandType = CommandType.StoredProcedure;
+                            document.Parameters.Add("@Type", SqlDbType.NVarChar, 50).Value = type;
+                            document.Parameters.Add("@ChangeID", SqlDbType.BigInt).Value = changeId;
+                            // Preserve the exact filename, including apostrophes and punctuation.
+                            document.Parameters.Add("@Path", SqlDbType.NVarChar, -1).Value = path;
+                            document.Parameters.Add("@AddedBy", SqlDbType.BigInt).Value = values["AddedBy"];
+                            document.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.ReturnValue;
+                            document.ExecuteNonQuery();
+                            if (Convert.ToInt32(document.Parameters["@ReturnValue"].Value) <= 0)
+                                throw new InvalidOperationException("The agreement attachment could not be saved.");
+                        }
+                    }
+                    transaction.Commit();
+                    return changeId;
+                }
+            }
+        }
+
+        private DataTable AddAgreementDocumentPaths(DataTable history, string type, string idColumn)
+        {
+            if (history == null) return null;
+            if (!history.Columns.Contains("FilePath")) history.Columns.Add("FilePath", typeof(string));
+            using (var connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (var cmd = new SqlCommand("SELECT ChangeID, [Path] FROM dbo.AgreementVersionDocs WHERE [Type] = @Type ORDER BY AgrVersionDocID", connection))
+            {
+                cmd.Parameters.Add("@Type", SqlDbType.NVarChar, 50).Value = type;
+                connection.Open();
+                var paths = new Dictionary<long, string>();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read()) paths[Convert.ToInt64(reader["ChangeID"])] = Convert.ToString(reader["Path"]);
+                }
+                foreach (DataRow row in history.Rows)
+                {
+                    string path;
+                    if (paths.TryGetValue(Convert.ToInt64(row[idColumn]), out path)) row["FilePath"] = path;
+                }
+            }
+            return history;
+        }
 
         public int UpdateAgreementVersionHistory(Hashtable htParam)
         {
@@ -5070,14 +5161,14 @@ namespace WebPortal.App_Code.DAL
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAgreementVersionHistory");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
+            return AddAgreementDocumentPaths(dt, "Version", "AgrChangeID");
         }
 
         public DataTable GetAgreementTypeHistory()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAgreemnetType_History");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
+            return AddAgreementDocumentPaths(dt, "Type", "AgreementTypeID");
         }
 
         public DataTable GetAgreementVersionHistory_Report()
@@ -6141,14 +6232,17 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
-        public DataTable GetLoanTrackingHistory(Hashtable htParam)
+        public DataSet GetLoanTrackingHistory(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLoanLevelSecRelTracking");
             SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
-            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
+            SQLHelper.AddParamToSQLCmd(cmd, "@Start", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["Start"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PageSize", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["PageSize"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchValue", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchValue"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ExportAll", System.Data.SqlDbType.Bit, 1, System.Data.ParameterDirection.Input, false);
+            return SQLHelper.ExecuteDataSetCmd(cmd);
         }
 
 
@@ -6235,21 +6329,33 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetKYCInfo");
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
-        private DataTable IDCardData(string sp){return SQLHelper.ExecuteDataTableCmd(SQLHelper.GetCommand(CommandType.StoredProcedure,sp));} public DataTable GetEmployeeForIDCard(){return IDCardData("usp_GetEmployeeForIDCard");} public DataTable GetEmployeeForInProcessIDCard(){return IDCardData("usp_GetEmployeeForInProcessIDCard");} public DataTable GetEmployeeForProvidedIDCard(){return IDCardData("usp_GetEmployeeForProvidedIDCard");} public DataTable GetDropOutEmployeeForIDCard(){return IDCardData("usp_GetDropOutEmployeeForIDCard");} public DataTable GetEmployeesIDCardDetailsForReport(){return IDCardData("usp_GetEmployeesIDCardDetailsForReport");} public int InsertIDCardDetails(Hashtable h){SqlCommand c=SQLHelper.GetCommand(CommandType.StoredProcedure,"usp_InsertIDCardDetails");SQLHelper.AddParamToSQLCmd(c,"@Code",SqlDbType.NVarChar,10,ParameterDirection.Input,h["Code"]);SQLHelper.AddParamToSQLCmd(c,"@Status",SqlDbType.NVarChar,400,ParameterDirection.Input,h["Status"]);SQLHelper.AddParamToSQLCmd(c,"@SubStatus",SqlDbType.NVarChar,400,ParameterDirection.Input,h["SubStatus"]);SQLHelper.AddParamToSQLCmd(c,"@Remark",SqlDbType.NVarChar,4000,ParameterDirection.Input,h["Remark"]);SQLHelper.AddParamToSQLCmd(c,"@RemarkBy",SqlDbType.BigInt,10,ParameterDirection.Input,h["RemarkBy"]);SQLHelper.AddParamToSQLCmd(c,"@IssuedDate",SqlDbType.NVarChar,100,ParameterDirection.Input,h["IssuedDate"]);SQLHelper.AddParamToSQLCmd(c,"@ReturnValue",SqlDbType.BigInt,0,ParameterDirection.ReturnValue,null);SQLHelper.ExecuteNonQueryCmd(c);return Convert.ToInt32(c.Parameters["@ReturnValue"].Value);}
-        private DataTable RecruitmentData(string sp,string p1,string p2,string f,string t){SqlCommand c=SQLHelper.GetCommand(CommandType.StoredProcedure,sp);SQLHelper.AddParamToSQLCmd(c,p1,SqlDbType.NVarChar,12,ParameterDirection.Input,f);SQLHelper.AddParamToSQLCmd(c,p2,SqlDbType.NVarChar,12,ParameterDirection.Input,t);return SQLHelper.ExecuteDataTableCmd(c);} public DataTable GetViewRecruitmentReport(string f,string t){return RecruitmentData("usp_GetViewRecruitmentReport","@From","@To",f,t);} public DataTable GetRecruitementReport_FinalSummary_LocationWise(string f,string t){return RecruitmentData("usp_GetRecruitementReport_FinalSummary_LocationWise","@FromDate","@ToDate",f,t);} public DataTable GetRecruitementReport_FinalSummary_LocationWithPosition(string f,string t){return RecruitmentData("usp_GetRecruitementReport_FinalSummary_LocationWithPosition_Test","@FromDate","@ToDate",f,t);} public DataTable GetRecruitementReport_FinalSummary(string f,string t){return RecruitmentData("usp_GetRecruitementReport_FinalSummary","@FromDate","@ToDate",f,t);} public DataTable BindgrdCandidateDetails(string f,string t){return RecruitmentData("usp_GetRecruitementReport_Candidate_NEw","@From","@To",f,t);} public DataTable BindgrdCandidateSummary(string f,string t){return RecruitmentData("usp_GetRecruitementReport_Candidate","@FromDate","@ToDate",f,t);}
+        private DataTable IDCardData(string sp) { return SQLHelper.ExecuteDataTableCmd(SQLHelper.GetCommand(CommandType.StoredProcedure, sp)); }
+        public DataTable GetEmployeeForIDCard() { return IDCardData("usp_GetEmployeeForIDCard"); }
+        public DataTable GetEmployeeForInProcessIDCard() { return IDCardData("usp_GetEmployeeForInProcessIDCard"); }
+        public DataTable GetEmployeeForProvidedIDCard() { return IDCardData("usp_GetEmployeeForProvidedIDCard"); }
+        public DataTable GetDropOutEmployeeForIDCard() { return IDCardData("usp_GetDropOutEmployeeForIDCard"); }
+        public DataTable GetEmployeesIDCardDetailsForReport() { return IDCardData("usp_GetEmployeesIDCardDetailsForReport"); }
+        public int InsertIDCardDetails(Hashtable h) { SqlCommand c = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertIDCardDetails"); SQLHelper.AddParamToSQLCmd(c, "@Code", SqlDbType.NVarChar, 10, ParameterDirection.Input, h["Code"]); SQLHelper.AddParamToSQLCmd(c, "@Status", SqlDbType.NVarChar, 400, ParameterDirection.Input, h["Status"]); SQLHelper.AddParamToSQLCmd(c, "@SubStatus", SqlDbType.NVarChar, 400, ParameterDirection.Input, h["SubStatus"]); SQLHelper.AddParamToSQLCmd(c, "@Remark", SqlDbType.NVarChar, 4000, ParameterDirection.Input, h["Remark"]); SQLHelper.AddParamToSQLCmd(c, "@RemarkBy", SqlDbType.BigInt, 10, ParameterDirection.Input, h["RemarkBy"]); SQLHelper.AddParamToSQLCmd(c, "@IssuedDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, h["IssuedDate"]); SQLHelper.AddParamToSQLCmd(c, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null); SQLHelper.ExecuteNonQueryCmd(c); return Convert.ToInt32(c.Parameters["@ReturnValue"].Value); }
+        private DataTable RecruitmentData(string sp, string p1, string p2, string f, string t) { SqlCommand c = SQLHelper.GetCommand(CommandType.StoredProcedure, sp); SQLHelper.AddParamToSQLCmd(c, p1, SqlDbType.NVarChar, 12, ParameterDirection.Input, f); SQLHelper.AddParamToSQLCmd(c, p2, SqlDbType.NVarChar, 12, ParameterDirection.Input, t); return SQLHelper.ExecuteDataTableCmd(c); }
+        public DataTable GetViewRecruitmentReport(string f, string t) { return RecruitmentData("usp_GetViewRecruitmentReport", "@From", "@To", f, t); }
+        public DataTable GetRecruitementReport_FinalSummary_LocationWise(string f, string t) { return RecruitmentData("usp_GetRecruitementReport_FinalSummary_LocationWise", "@FromDate", "@ToDate", f, t); }
+        public DataTable GetRecruitementReport_FinalSummary_LocationWithPosition(string f, string t) { return RecruitmentData("usp_GetRecruitementReport_FinalSummary_LocationWithPosition_Test", "@FromDate", "@ToDate", f, t); }
+        public DataTable GetRecruitementReport_FinalSummary(string f, string t) { return RecruitmentData("usp_GetRecruitementReport_FinalSummary", "@FromDate", "@ToDate", f, t); }
+        public DataTable BindgrdCandidateDetails(string f, string t) { return RecruitmentData("usp_GetRecruitementReport_Candidate_NEw", "@From", "@To", f, t); }
+        public DataTable BindgrdCandidateSummary(string f, string t) { return RecruitmentData("usp_GetRecruitementReport_Candidate", "@FromDate", "@ToDate", f, t); }
 
         public DataTable GetBuybackSettlements()
         {
-            SqlCommand cmd=SQLHelper.GetCommand(CommandType.StoredProcedure,"usp_GetBuybackSettlement"); return SQLHelper.ExecuteDataTableCmd(cmd);
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetBuybackSettlement"); return SQLHelper.ExecuteDataTableCmd(cmd);
         }
         public DataTable GetBuybackSettlementForEmployee(int employeeId)
         {
-            SqlCommand cmd=SQLHelper.GetCommand(CommandType.StoredProcedure,"usp_GetBuybackSettlementForEmployee"); SQLHelper.AddParamToSQLCmd(cmd,"@EmployeeID",SqlDbType.BigInt,0,ParameterDirection.Input,employeeId); return SQLHelper.ExecuteDataTableCmd(cmd);
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetBuybackSettlementForEmployee"); SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.BigInt, 0, ParameterDirection.Input, employeeId); return SQLHelper.ExecuteDataTableCmd(cmd);
         }
         public int SaveBuybackSettlement(Hashtable values)
         {
-            SqlCommand cmd=SQLHelper.GetCommand(CommandType.StoredProcedure,"usp_InsertBuybackSettlement");
-            SQLHelper.AddParamToSQLCmd(cmd,"@EmployeeID",SqlDbType.BigInt,0,ParameterDirection.Input,values["EmployeeID"]); SQLHelper.AddParamToSQLCmd(cmd,"@ActualNoticePeriod",SqlDbType.NVarChar,100,ParameterDirection.Input,values["ActualNoticePeriod"]); SQLHelper.AddParamToSQLCmd(cmd,"@BuybackNoticePeriod",SqlDbType.NVarChar,100,ParameterDirection.Input,values["BuybackNoticePeriod"]); SQLHelper.AddParamToSQLCmd(cmd,"@OriginalSalary",SqlDbType.NVarChar,100,ParameterDirection.Input,values["OriginalSalary"]); SQLHelper.AddParamToSQLCmd(cmd,"@BuybackAmount",SqlDbType.NVarChar,100,ParameterDirection.Input,values["BuybackAmount"]); SQLHelper.AddParamToSQLCmd(cmd,"@InfinityPaidAmount",SqlDbType.NVarChar,100,ParameterDirection.Input,values["InfinityPaidAmount"]); SQLHelper.AddParamToSQLCmd(cmd,"@InfinityPaidDate",SqlDbType.NVarChar,100,ParameterDirection.Input,values["InfinityPaidDate"]); SQLHelper.AddParamToSQLCmd(cmd,"@Remark",SqlDbType.NVarChar,4000,ParameterDirection.Input,values["Remark"]); SQLHelper.AddParamToSQLCmd(cmd,"@SalarySlipPath",SqlDbType.NVarChar,4000,ParameterDirection.Input,values["SalarySlipPath"]); SQLHelper.AddParamToSQLCmd(cmd,"@AmountPath",SqlDbType.NVarChar,4000,ParameterDirection.Input,values["AmountPath"]); SQLHelper.AddParamToSQLCmd(cmd,"@AddedBy",SqlDbType.BigInt,0,ParameterDirection.Input,values["AddedBy"]); SQLHelper.AddParamToSQLCmd(cmd,"@ReturnValue",SqlDbType.BigInt,0,ParameterDirection.ReturnValue,null); SQLHelper.ExecuteNonQueryCmd(cmd); return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertBuybackSettlement");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.BigInt, 0, ParameterDirection.Input, values["EmployeeID"]); SQLHelper.AddParamToSQLCmd(cmd, "@ActualNoticePeriod", SqlDbType.NVarChar, 100, ParameterDirection.Input, values["ActualNoticePeriod"]); SQLHelper.AddParamToSQLCmd(cmd, "@BuybackNoticePeriod", SqlDbType.NVarChar, 100, ParameterDirection.Input, values["BuybackNoticePeriod"]); SQLHelper.AddParamToSQLCmd(cmd, "@OriginalSalary", SqlDbType.NVarChar, 100, ParameterDirection.Input, values["OriginalSalary"]); SQLHelper.AddParamToSQLCmd(cmd, "@BuybackAmount", SqlDbType.NVarChar, 100, ParameterDirection.Input, values["BuybackAmount"]); SQLHelper.AddParamToSQLCmd(cmd, "@InfinityPaidAmount", SqlDbType.NVarChar, 100, ParameterDirection.Input, values["InfinityPaidAmount"]); SQLHelper.AddParamToSQLCmd(cmd, "@InfinityPaidDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, values["InfinityPaidDate"]); SQLHelper.AddParamToSQLCmd(cmd, "@Remark", SqlDbType.NVarChar, 4000, ParameterDirection.Input, values["Remark"]); SQLHelper.AddParamToSQLCmd(cmd, "@SalarySlipPath", SqlDbType.NVarChar, 4000, ParameterDirection.Input, values["SalarySlipPath"]); SQLHelper.AddParamToSQLCmd(cmd, "@AmountPath", SqlDbType.NVarChar, 4000, ParameterDirection.Input, values["AmountPath"]); SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, values["AddedBy"]); SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null); SQLHelper.ExecuteNonQueryCmd(cmd); return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
 
 
@@ -6447,7 +6553,7 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-        public DataSet GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
+        public DataSet GetAdminExpenseDataForReport(string FromDate, string ToDate)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminExpensesDataForReport_YTU");
             SQLHelper.AddParamToSQLCmd(cmd, "@ExpenseFromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ExpenseFromDate);

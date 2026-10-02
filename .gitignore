@@ -398,6 +398,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/EmployeeLogReport.aspx.cs
 !/WebPortal/Admin/EmployeeLogReport.aspx.designer.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx.cs
+!/WebPortal/Admin/ViewShortlistedCandidate.aspx.designer.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx.cs
 !/WebPortal/Admin/EmployeeKYCReport.aspx.designer.cs
 !/WebPortal/Admin/RecruitmentReport.aspx
@@ -412,17 +415,25 @@ FodyWeavers.xsd
 !/WebPortal/Admin/DashboardValidator.aspx
 !/WebPortal/Admin/DashboardValidator.aspx.cs
 !/WebPortal/Admin/DashboardValidatorEngine.cs
+!/WebPortal/Admin/PendingData.aspx
+!/WebPortal/Admin/PendingData.aspx.cs
+!/WebPortal/Admin/PendingData.aspx.designer.cs
+!/WebPortal/Admin/ProjectBillingDetails.aspx
+!/WebPortal/Admin/ProjectBillingDetails.aspx.cs
+!/WebPortal/Admin/ProjectBillingDetails.aspx.designer.cs
 !/WebPortal/Templates/
 /WebPortal/Templates/*
 !/WebPortal/Templates/DashboardValidatorTemplate.xlsx
 !/WebPortal/Content/
 /WebPortal/Content/*
 !/WebPortal/Content/erp-modern-common.css
+!/WebPortal/Content/ProjectBillingDetails.css
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
 !/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql
 !/WebPortal/DatabaseScripts/ServicingDetailedFeedbackReport_001_SelectedLoans.sql
 !/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql
+!/WebPortal/DatabaseScripts/LoanLevelHistory_001_ServerPaging.sql
 !/WebPortal/DatabaseScripts/OLTracking_015_ProductivityAndCollectionComments.sql
 !/WebPortal/DatabaseScripts/OLTracking_016_ManagerOperationalDashboard.sql
 !/WebPortal/DatabaseScripts/OLTracking_017_ProcessSpecificEligibility.sql
@@ -434,6 +445,10 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
 !/WebPortal/DatabaseScripts/USFeedback_002_AddProcessID.sql
 !/WebPortal/DatabaseScripts/DashboardValidator_001_ValidationExceptionMaster.sql
+!/WebPortal/DatabaseScripts/PendingData_001_BlockingWorkflow.sql
+!/WebPortal/DatabaseScripts/usp_GetAllProjectsBillingDetails.sql
+!/WebPortal/DatabaseScripts/ProjectBillingParameterRemarks.sql
+!/WebPortal/DatabaseScripts/UnderwritingBillingReminder.sql
 !/WebPortal/US/
 /WebPortal/US/*
 !/WebPortal/US/ProjectProcessLoanReport.aspx
@@ -444,6 +459,7 @@ FodyWeavers.xsd
 !/WebPortal/US/ResetPasswordSegment.aspx.designer.cs
 !/WebPortal/App_Code/
 /WebPortal/App_Code/*
+!/WebPortal/App_Code/UnderwritingBillingValidationService.cs
 !/WebPortal/App_Code/BLL/
 !/WebPortal/App_Code/DAL/
 /WebPortal/App_Code/BLL/*
@@ -453,6 +469,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/InfinityRCA/
 !/WebPortal/DatabaseScripts/InfinityRCA/**
 !/WebPortal/App_Code/Class/
+!/WebPortal/App_Code/PendingDataRepository.cs
 /WebPortal/App_Code/Class/*
 !/WebPortal/App_Code/Class/SelfLeavesEmailTemplate.cs
 !/WebPortal/TrackingSheet/
@@ -464,6 +481,9 @@ FodyWeavers.xsd
 !/WebPortal/TrackingSheet/ManagerDashboard.Snd.js
 !/WebPortal/Scripts/
 /WebPortal/Scripts/*
+!/WebPortal/Scripts/Admin/
+/WebPortal/Scripts/Admin/*
+!/WebPortal/Scripts/Admin/ProjectBillingDetails.js
 !/WebPortal/Scripts/US/
 /WebPortal/Scripts/US/*
 !/WebPortal/Scripts/US/ResetPasswordSegment.js
@@ -492,3 +512,9 @@ FodyWeavers.xsd
 /.gitignore
 /IHMS.EmailService/IHMS.EmailService.csproj
 /IHMS.EmailService/IHMS.EmailService.csproj
+
+# Agreement attachment infrastructure; uploaded files remain ignored.
+!/WebPortal/AgreementVersions/
+/WebPortal/AgreementVersions/*
+!/WebPortal/AgreementVersions/web.config
+!/WebPortal/DatabaseScripts/AgreementVersions_001_Attachments.sql
