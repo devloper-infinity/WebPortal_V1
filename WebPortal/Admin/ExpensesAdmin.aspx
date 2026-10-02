@@ -503,7 +503,7 @@
                                     <!-- Button Column -->
                                     <div class="col-md-4">
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-submit" id="adminexpactivity_btnsubmit" name="adminexpactivity_btnsubmit" onclick="ExpensesAdminActivitySubmit();">
+                                            <button type="button" class="btn-submit" id="adminexpactivity_btnsubmit" name="adminexpactivity_btnsubmit" onclick="ExpensesAdminActivitySubmit();">
                                                 <i class="fa fa-paper-plane" id="adminexpactivitybtnicon"></i>
                                                 <span id="adminexpactivitybtnText">Submit</span>
                                             </button>
@@ -578,7 +578,7 @@
                                     <!-- Button Column -->
                                     <div class="col-md-4">
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-submit" id="adminexpaYearlybudget_btnsubmit" name="adminexpaYearlybudget_btnsubmit" onclick="ExpensesAdminYearlybudgetSubmit();">
+                                            <button type="button" class="btn-submit" id="adminexpaYearlybudget_btnsubmit" name="adminexpaYearlybudget_btnsubmit" onclick="ExpensesAdminYearlybudgetSubmit();">
                                                 <i class="fa fa-paper-plane" id="adminexpYearlybudgetbtnicon"></i>
                                                 <span id="adminexpYearlybudgetbtnText">Submit</span>
                                             </button>

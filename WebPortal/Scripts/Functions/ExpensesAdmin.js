@@ -1170,11 +1170,11 @@ function ExportTableToExcel(fromDate, toDate) {
 
                 locations4.forEach(function (loc) {
                     var val = (pivotMap4[rKey] && pivotMap4[rKey][loc] !== undefined) ? pivotMap4[rKey][loc] : 0;
-                    rowObj[loc] = val.toFixed(2);
+                    rowObj[loc] = Number(val.toFixed(2));
                     rowTotal += val;
                 });
 
-                rowObj["Total"] = rowTotal.toFixed(2);
+                rowObj["Total"] = Number(rowTotal.toFixed(2));
                 rowObj["Total Activity All Branches"] = activityMap4[rKey] || 0;
                 matrixRows4.push(rowObj);
             });
@@ -1204,7 +1204,7 @@ function ExportTableToExcel(fromDate, toDate) {
                 matrixRows4.forEach(function (r) {
                     colSum += parseFloat(r[colName] || 0);
                 });
-                matrixTotalRow4[c] = colSum.toFixed(2);
+                matrixTotalRow4[c] = Number(colSum.toFixed(2));
             }
 
             XLSX.utils.sheet_add_aoa(wsSummary, [matrixTotalRow4], { origin: { r: currentRow, c: 0 } });
@@ -1252,7 +1252,7 @@ function ExportTableToExcel(fromDate, toDate) {
 
                 categories.forEach(function (cat) {
                     var val = (pivotMap1[loc] && pivotMap1[loc][cat] !== undefined) ? pivotMap1[loc][cat] : 0;
-                    rowObj[cat] = val.toFixed(2);
+                    rowObj[cat] = Number(val.toFixed(2));
                     rowTotal += val;
                 });
 
@@ -1267,9 +1267,9 @@ function ExportTableToExcel(fromDate, toDate) {
                     });
                 }
 
-                rowObj["Total"] = rowTotal.toFixed(2);
-                rowObj["Previous Month Expense"] = prevMonthTotal.toFixed(2);
-                rowObj["Year Month Total Expense"] = yearMonthTotal.toFixed(2);
+                rowObj["Total"] = Number(rowTotal.toFixed(2));
+                rowObj["Previous Month Expense"] = Number(prevMonthTotal.toFixed(2));
+                rowObj["Year Month Total Expense"] = Number(yearMonthTotal.toFixed(2));
 
                 matrixRows1.push(rowObj);
             });
@@ -1299,7 +1299,7 @@ function ExportTableToExcel(fromDate, toDate) {
                 matrixRows1.forEach(function (r) {
                     colSum += parseFloat(r[colCat] || 0);
                 });
-                matrixTotalRow1[c] = colSum.toFixed(2);
+                matrixTotalRow1[c] = Number(colSum.toFixed(2));
             }
 
             XLSX.utils.sheet_add_aoa(wsSummary, [matrixTotalRow1], { origin: { r: currentRow, c: 0 } });
@@ -1433,18 +1433,18 @@ function ExportTableToExcel(fromDate, toDate) {
 
                 locations.forEach(function (loc) {
                     var val = (pivotMap3[m] && pivotMap3[m][loc] !== undefined) ? pivotMap3[m][loc] : 0;
-                    rowObj[loc] = val.toFixed(2);
+                    rowObj[loc] = Number(val.toFixed(2));
                     rowTotal += val;
 
                     rowActivityTotal += (activityCountMap[m] && activityCountMap[m][loc] !== undefined) ? activityCountMap[m][loc] : 0;
                 });
 
-                rowObj["Total"] = rowTotal.toFixed(2);
+                rowObj["Total"] = Number(rowTotal.toFixed(2));
                 rowObj["Activity Count"] = rowActivityTotal;
                 matrixRows3.push(rowObj);
             });
 
-            XLSX.utils.sheet_add_aoa(wsSummary, [["Month-wise and Location Expense Summary"]], { origin: { r: currentRow, c: 0 } });
+            XLSX.utils.sheet_add_aoa(wsSummary, [["Month and Location wise Expenses and Activity Count"]], { origin: { r: currentRow, c: 0 } });
             summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: matrixHeaders3.length - 1 } });
             currentRow++;
 
@@ -1478,13 +1478,13 @@ function ExportTableToExcel(fromDate, toDate) {
                     matrixRows3.forEach(function (r) {
                         colSum += parseFloat(r[colName] || 0);
                     });
-                    matrixTotalRow3[c] = colSum.toFixed(2);
+                    matrixTotalRow3[c] = Number(colSum.toFixed(2));
                 } else {
                     var grandTotal = 0;
                     matrixRows3.forEach(function (r) {
                         grandTotal += parseFloat(r["Total"] || 0);
                     });
-                    matrixTotalRow3[c] = grandTotal.toFixed(2);
+                    matrixTotalRow3[c] = Number(grandTotal.toFixed(2));
                 }
             }
 
@@ -1547,7 +1547,7 @@ function ExportTableToExcel(fromDate, toDate) {
     // 4. Export File
     var formattedFrom = formatFileNameDate(fromDate);
     var formattedTo = formatFileNameDate(toDate);
-    var fileName = "Expenses_" + formattedFrom + "_" + formattedTo + ".xlsx";
+    var fileName = "RecreationActivities_Expenses_Report_" + formattedFrom + "_" + formattedTo + ".xlsx";
     XLSX.writeFile(wb, fileName);
 }
 

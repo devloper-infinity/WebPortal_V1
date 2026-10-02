@@ -2865,7 +2865,7 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetAdminExpenseData();
         }
-        public DataSet GetAdminExpenseDataForReport(String FromDate, string ToDate)
+        public DataSet GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
         {
             return dalMaster.GetAdminExpenseDataForReport(ExpenseFromDate, ExpensesToDate);
         }

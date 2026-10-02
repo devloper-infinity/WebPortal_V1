@@ -6553,7 +6553,7 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-        public DataSet GetAdminExpenseDataForReport(string FromDate, string ToDate)
+        public DataSet GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminExpensesDataForReport_YTU");
             SQLHelper.AddParamToSQLCmd(cmd, "@ExpenseFromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ExpenseFromDate);

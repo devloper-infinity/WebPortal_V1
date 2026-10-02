@@ -21,6 +21,7 @@ namespace WebPortal.Admin
 {
     public partial class ExpensesAdmin : System.Web.UI.Page
     {
+
         protected void Page_Load(object sender, EventArgs e)
         {
 
