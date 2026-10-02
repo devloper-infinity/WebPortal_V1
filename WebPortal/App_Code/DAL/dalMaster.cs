@@ -6561,5 +6561,13 @@ namespace WebPortal.App_Code.DAL
             DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
             return ds;
         }
+
+        public DataTable getViewShortlistedCandidate(int EmpId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetShortlistedCandidate");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EmpId);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
     }
 }
