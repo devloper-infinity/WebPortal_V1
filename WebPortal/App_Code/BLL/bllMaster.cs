@@ -2735,7 +2735,7 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetExistingLoanList_Unbilled();
         }
-        public DataTable GetLoanTrackingHistory(Hashtable ht)
+        public DataSet GetLoanTrackingHistory(Hashtable ht)
         {
             return new dalMaster().GetLoanTrackingHistory(ht);
         }
@@ -2856,33 +2856,6 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAdminExpensesYearlyBudget();
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         public int InsertAdminExpensesData(Hashtable htParam)
         {
             return dalMaster.InsertAdminExpensesData(htParam);
@@ -2892,13 +2865,13 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetAdminExpenseData();
         }
+        public DataSet GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
+        {
+            return dalMaster.GetAdminExpenseDataForReport(ExpenseFromDate, ExpensesToDate);
+        }
         public DataTable getViewShortlistedCandidate(int EmpId)
         {
             return dalMaster.getViewShortlistedCandidate(EmpId);
-        }
-        public DataSet GetAdminExpenseDataForReport(String FromDate, string ToDate)
-        {
-            return dalMaster.GetAdminExpenseDataForReport(FromDate, ToDate);
         }
     }
 }

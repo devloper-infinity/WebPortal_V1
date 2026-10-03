@@ -112,7 +112,7 @@
         }
 
         #tblLoanTrackingHistory thead th {
-            background: #edf3f6 !important;
+           /* background: #edf3f6 !important;*/
             font-size: 12px;
             white-space: nowrap;
         }
@@ -268,7 +268,7 @@
 
                 </div>
 
-                <div class="loan-action-row" style="display:none;">
+                <div class="loan-action-row">
 
                     <button type="button"
                         id="btnExport"

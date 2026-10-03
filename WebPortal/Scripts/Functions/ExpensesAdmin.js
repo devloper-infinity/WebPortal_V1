@@ -1,9 +1,9 @@
 ﻿//Submit Activity Category
 function ExpensesActivityCategorySubmit() {
     var AdminExp_ActivityCategory = $("#AdminExp_ActivityCategory").val();
-    var activityId = $('#hdnActivityCategoryId').val(); // <--- इथून ID घेतला
+    var activityId = $('#hdnActivityCategoryId').val(); 
     if (AdminExp_ActivityCategory === "") {
-        Swal.fire("Validation", "Please Select Activity Category", "warning");
+        Swal.fire("Validation", "Please Add Activity Category", "warning");
         return false;
     }
     $("#load1").show();
@@ -21,11 +21,17 @@ function ExpensesActivityCategorySubmit() {
         dataType: "json",
         success: function (response) {
             var serverMessage = response.d;
-            if (serverMessage === "Activity Category saved successfully!") {
+            if (serverMessage === "Activity Category saved successfully!" || serverMessage === "Activity Category updated successfully!") {
                 Swal.fire("Success", serverMessage, "success").then((result) => {
                     if (result.isConfirmed) {
                         ClearActivityCategory();
                         GetAdminExpActivityCategory();
+                        bindExpensesActivityCategory("dlladminExpensesActivity");
+                        GetAdminExpActivity();
+                        GetAdminExpensesYearlyBudget();
+                        bindExpensesActivityCategory("dllExpensesBudgetActivityCategory");
+                        bindExpensesActivityCategory("dllExpensesActivityCategory");
+                        BindAdminExpenseData();
                     }
                 });
             }
@@ -113,6 +119,9 @@ function GetAdminExpActivityCategory() {
 //Clear Input Field
 function ClearActivityCategory() {
     $('#hdnActivityCategoryId').val('0');
+    $('#hdnActivityId').val('0');
+    $('#hdnExpensesBugetId').val('0');
+
     $("#AdminExp_ActivityCategory").val("");
     $('#AdminExpActivityCategorybtnText').text("Submit");
     $('#AdminExpActivityCategory_btnIcon').removeClass("fa-edit").addClass("fa-paper-plane");
@@ -120,7 +129,17 @@ function ClearActivityCategory() {
     $("#dlladminExpensesActivity").val("").trigger('change');
     $('#adminexpactivitybtnText').text("Submit");
     $('#adminexpactivitybtnicon').removeClass("fa-edit").addClass("fa-paper-plane");
-
+    $('#dllExpensesBudgetActivityCategory').val('').trigger('change');
+    $('#dllExpensesActivity').empty().append('<option value="">-- Select Activity --</option>');
+    $('#adminexpYearlybudgetbtnText').text("Submit");
+    $('#adminexpYearlybudgetbtnicon').removeClass("fa-edit").addClass("fa-paper-plane");
+    $('#dllAdminExpLocation').val('');
+    $('#AdminExpYear').val('');
+    $('#AdminExpBudget').val('');
+    $('#AdminExp_ActivityCategory').val('');
+    $('#adminexpactivity').val('');
+    $('#AdminExpYear').val('').trigger('change');
+    $('#AdminExpBudget').val('');
 }
 
 //Fetch Activity Category
@@ -169,10 +188,17 @@ function ExpensesAdminActivitySubmit() {
         dataType: "json",
         success: function (response) {
             var serverMessage = response.d;
-            if (serverMessage === "Activity saved successfully!") {
+            if (serverMessage === "Activity saved successfully!" || serverMessage === "Activity updated successfully!") {
                 Swal.fire("Success", serverMessage, "success").then((result) => {
                     if (result.isConfirmed) {
                         GetAdminExpActivity();
+                        bindExpensesActivityCategory("dlladminExpensesActivity");
+                        bindExpensesActivityCategory("dllExpensesBudgetActivityCategory");
+                        bindExpensesActivityCategory("dllExpensesActivityCategory");
+                        GetAdminExpensesYearlyBudget();
+                        ClearActivityCategory();
+                        bindExpensesActivityCategory("dllExpensesActivityCategory");
+                        BindAdminExpenseData();
                     }
                 });
             }
@@ -262,23 +288,21 @@ function GetAdminExpActivity() {
         }
     });
 }
-//Fetch activities based on selected category
-$(document).on('change', '#dllExpensesBudgetActivityCategory', function () {
-    var categoryId = $(this).val();
-    var $activityDropdown = $('#dllExpensesActivity');
 
+//Fetch activities based on selected category
+function loadActivities(categoryId, preSelectedValue) {
+    var $activityDropdown = $('#dllExpensesActivity');
     if (!categoryId) {
         $activityDropdown.empty();
         $activityDropdown.append('<option value="">-- Select Activity --</option>');
         return;
     }
-
     $.ajax({
         url: 'ExpensesAdmin.aspx/GetActivitiesByCategory',
         type: 'POST',
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify({ categoryId: categoryId }), 
+        data: JSON.stringify({ categoryId: categoryId }),
         success: function (response) {
             $activityDropdown.empty();
             $activityDropdown.append('<option value="">-- Select Activity --</option>');
@@ -290,47 +314,104 @@ $(document).on('change', '#dllExpensesBudgetActivityCategory', function () {
                     '<option value="' + activity.ActivityId + '">' + activity.ActivityName + '</option>'
                 );
             });
-            var preSelectedActivity = $activityDropdown.data('selected-activity');
-            if (preSelectedActivity) {
-                $activityDropdown.val(preSelectedActivity);
+            var selectedVal = preSelectedValue || $activityDropdown.data('selected-activity');
+            if (selectedVal) {
+                $activityDropdown.val(selectedVal);
                 $activityDropdown.removeData('selected-activity');
             }
         },
         error: function (xhr, status, error) {
-            console.log("Error fetching activities: " + error);
         }
     });
+}
+
+$(document).on('change', '#dllExpensesBudgetActivityCategory', function () {
+    var categoryId = $(this).val();
+    loadActivities(categoryId);
+});
+
+$(document).ready(function () {
+    var initialCategory = $('#dllExpensesBudgetActivityCategory').val();
+    if (initialCategory) {
+        var existingActivity = $('#dllExpensesActivity').val();
+        loadActivities(initialCategory, existingActivity);
+    }
 });
 // Bind Location
 function bindAdminExpLocation() {
-    var select = document.getElementById("dllAdminExpLocation");
-    let options = select.getElementsByTagName('option');
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
+    // Donhi dropdowns che references ghya
+    var select1 = document.getElementById("adminexplocation");
+    var select2 = document.getElementById("dllAdminExpLocation");
+
+    // Pahilya dropdown che options clear kara
+    if (select1) {
+        let options1 = select1.getElementsByTagName('option');
+        for (var i = options1.length; i--;) {
+            select1.removeChild(options1[i]);
+        }
+        $("#adminexplocation").append($("<option></option>").val("").html("Select"));
     }
-    $("#dllAdminExpLocation").append($("<option></option>").val("").html("Select"));
+
+    // Dusrya dropdown che options clear kara
+    if (select2) {
+        let options2 = select2.getElementsByTagName('option');
+        for (var j = options2.length; j--;) {
+            select2.removeChild(options2[j]);
+        }
+        $("#dllAdminExpLocation").append($("<option></option>").val("").html("Select"));
+    }
+
+    // AJAX Call
     $.ajax({
-        type: "POST", url: "CreateProfile.aspx/GetBranches", dataType: "json", contentType: "application/json",
+        type: "POST",
+        url: "CreateProfile.aspx/GetBranches",
+        dataType: "json",
+        contentType: "application/json",
         success: function (res) {
             $.each(res.d, function (data, value) {
+                // Donhi dropdowns madhye options append kara
+                $("#adminexplocation").append($("<option></option>").val(value.BranchID).html(value.BranchName));
                 $("#dllAdminExpLocation").append($("<option></option>").val(value.BranchID).html(value.BranchName));
-            })
+            });
         }
     });
-
 }
+
 function ExpensesAdminYearlybudgetSubmit() {
     var budgetId = $('#hdnExpensesBugetId').val();
     var categoryId = $('#dllExpensesBudgetActivityCategory').val();
     var activityId = $('#dllExpensesActivity').val();
     var locationId = $('#dllAdminExpLocation').val();
-    var year = $('#yearly_year_dropdown').val();
-    var budget = $('#yearly_budget_input').val();
-    if (!categoryId) { alert('Krupaya Activity Category select kara!'); $('#dllExpensesBudgetActivityCategory').focus(); return; }
-    if (!activityId) { alert('Krupaya Activity select kara!'); $('#dllExpensesActivity').focus(); return; }
-    if (!locationId) { alert('Krupaya Location select kara!'); $('#dllAdminExpLocation').focus(); return; }
-    if (!year) { alert('Krupaya Year select kara!'); $('#yearly_year_dropdown').focus(); return; }
-    if (!budget || budget <= 0) { alert('Krupaya yogya Budget amount taka!'); $('#yearly_budget_input').focus(); return; }
+    var year = $('#AdminExpYear').val();
+    var budget = $('#AdminExpBudget').val();
+
+    if (!categoryId)
+    {
+        Swal.fire("Validation", "Please Select Activity Category", "warning");
+        return false;
+    }
+    if (!activityId)
+    {
+        Swal.fire("Validation", "Please Select Activity", "warning");
+        return false;
+    }
+    if (!locationId)
+    {
+        Swal.fire("Validation", "Please Select Location", "warning");
+        return false;
+    }
+
+    if (!year)
+    {
+        Swal.fire("Validation", "Please Select Year", "warning");
+        return false;
+    }
+
+    if (!budget || budget <= 0)
+    {
+        Swal.fire("Validation", "Please Add Budget", "warning");
+        return false;
+    }
 
     var $btn = $('#adminexpaYearlybudget_btnsubmit');
     var $icon = $('#adminexpYearlybudgetbtnicon');
@@ -355,15 +436,24 @@ function ExpensesAdminYearlybudgetSubmit() {
         }),
         success: function (response) {
             var resMsg = response.d;
-            if (resMsg.indexOf("successfully") !== -1) {
-                alert(resMsg);
-            } else {
-                alert(resMsg);
+            if (resMsg === "Budget saved successfully!" || serverMessage === "Budget updated successfully!") {
+                Swal.fire("Success", resMsg, "success").then((result) => {
+                    if (result.isConfirmed) {
+                        GetAdminExpensesYearlyBudget();
+                        ClearActivityCategory();
+                    }
+                });
+            }
+            else if (resMsg === "Budget for this year already exists!") {
+                Swal.fire("Warning", resMsg, "warning");
+            }
+            else {
+                Swal.fire("Error", resMsg, "error");
             }
         },
         error: function (xhr, status, error) {
             console.log(xhr.responseText);
-            alert('Server sobat connect hotana error ala.');
+            alert('Error');
         },
         complete: function () {
             $btn.prop('disabled', false);
@@ -372,14 +462,7 @@ function ExpensesAdminYearlybudgetSubmit() {
         }
     });
 }
-// Clear Function
-function ClearActivityCategory() {
-    $('#dllExpensesBudgetActivityCategory').val('').trigger('change');
-    $('#dllExpensesActivity').empty().append('<option value="">-- Select Activity --</option>');
-    $('#dllAdminExpLocation').val('');
-    $('#yearly_year_dropdown').val('');
-    $('#yearly_budget_input').val('');
-}
+
 function GetAdminExpensesYearlyBudget() {
     $.ajax({
         type: "POST",
@@ -433,122 +516,93 @@ function GetAdminExpensesYearlyBudget() {
         }
     });
 }
+
 function EditYearlyBudget(budgetId, categoryId, activityId, locationId, year, budget) {
     $('#hdnExpensesBugetId').val(budgetId);
     $('#dllExpensesActivity').data('selected-activity', activityId);
     $('#dllExpensesBudgetActivityCategory').val(categoryId).trigger('change');
     $('#dllAdminExpLocation').val(locationId);
-    $('#yearly_year_dropdown').val(year);
-    $('#yearly_budget_input').val(budget);
+    $('#AdminExpYear').val(year);
+    $('#AdminExpBudget').val(budget);
     $('#adminexpYearlybudgetbtnText').text('Update');
     $('#adminexpYearlybudgetbtnicon').removeClass('fa-paper-plane').addClass('fa-edit');
 }
 
+$(document).on('change', '#dllExpensesActivityCategory', function () {
+    var categoryId = $(this).val();
+    loadExpDetailsActivities(categoryId, null);
+});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Fetch Recreation Activity For Details
-function bindExpdetailsRecreationActivity() {
-    var select = document.getElementById("dllexpdetailsRecreationActivity");
-    let options = select.getElementsByTagName('option');
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
-    }
-    $("#dllexpdetailsRecreationActivity").append($("<option></option>").val("").html("Select"));
-    $.ajax({
-        type: "POST", url: "ExpensesAdmin.aspx/GetRecreationActivity", dataType: "json", contentType: "application/json",
-        success: function (res) {
-            $.each(res.d, function (data, value) {
-                $("#dllexpdetailsRecreationActivity").append($("<option></option>").val(value.RecreationActivityId).html(value.RecreationActivity));
-            })
-        }
-    });
-
-}
-
-//Quater Dropdown Enable when select RnR Value
-$(document).on('change', '#dllexpdetailsRecreationActivity', function () {
-    // ID aivaji selected option cha visible text milvnyasathi:
-    let selectedText = $("#dllexpdetailsRecreationActivity option:selected").text();
-    let isRewards = selectedText.trim() === "Rewards and Recognition";
-
-    console.log("Selected Text:", selectedText);
-    console.log("Is Rewards and Recognition?", isRewards);
-
-    $('#quarterDropdownBtn').prop('disabled', !isRewards);
-
-    $('#otherFieldContainer').css({
-        'opacity': isRewards ? '1' : '0.5',
-        'pointer-events': isRewards ? 'auto' : 'none'
-    });
-
-    if (!isRewards) {
-        $('#otherFieldContainer input[type="checkbox"]').prop('checked', false);
-        $('#select_all_quarter').prop('checked', false);
-        $('#quarterDropdownBtn').text('Select Quarter');
+$(document).ready(function () {
+    var initialCategory = $('#dllExpensesActivityCategory').val();
+    if (initialCategory) {
+        var existingActivity = $('#dllExpensesdetailsActivity').val();
+        loadExpDetailsActivities(initialCategory, existingActivity);
     }
 });
 
+function loadExpDetailsActivities(categoryId, preSelectedValue) {
+    var $activityDropdown = $('#dllExpensesdetailsActivity');
 
-// Bind Location
-function bindLocation() {
-    var select = document.getElementById("location");
-    let options = select.getElementsByTagName('option');
-
-
-    for (var i = options.length; i--;) {
-        select.removeChild(options[i]);
+    // Jar category select nsel tar dropdown clear kara
+    if (!categoryId) {
+        $activityDropdown.html('<option value="">-- Select Activity --</option>');
+        return;
     }
-    $("#location").append($("<option></option>").val("").html("Select"));
+
     $.ajax({
-        type: "POST", url: "CreateProfile.aspx/GetBranches", dataType: "json", contentType: "application/json",
-        success: function (res) {
-            $.each(res.d, function (data, value) {
-                $("#location").append($("<option></option>").val(value.BranchID).html(value.BranchName));
-            })
+        url: 'ExpensesAdmin.aspx/GetActivitiesByCategory',
+        type: 'POST',
+        contentType: 'application/json; charset=utf-8',
+        data: JSON.stringify({ categoryId: categoryId }),
+        dataType: 'json',
+        success: function (response) {
+            $activityDropdown.empty();
+            $activityDropdown.append('<option value="">-- Select Activity --</option>');
+
+            // ASP.NET WebMethod response (.d property handle karne)
+            var data = typeof response.d === 'string' ? JSON.parse(response.d) : (response.d || response);
+
+            // Activities dropdown madhe bind karne
+            $.each(data, function (index, item) {
+                $activityDropdown.append(
+                    $('<option></option>').val(item.ActivityId).text(item.ActivityName)
+                );
+            });
+
+            // Edit mode sathi pre-selected value set karne
+            if (preSelectedValue) {
+                $activityDropdown.val(preSelectedValue);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Error loading activities: " + error);
         }
     });
-
 }
 
-// //Bind Planned Month dropdown
-// function bindPlannedMonth() {
-//     const dropdown = document.getElementById("PlannedMonth");
-//     const currentYear = new Date().getFullYear();
-//     $("#PlannedMonth").append($("<option></option>").val("").html("Select"));
-//     for (let m = 0; m < 12; m++) {
-//         const monthName = new Date(currentYear, m).toLocaleString('default', { month: 'short' });
-//         dropdown.innerHTML += `<option value="${monthName}-${currentYear}">${monthName}-${currentYear}</option>`;
-//     }
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const maxDate = `${year}-${month}`;
 
-// }
-
+    const monthInput = document.getElementById('expPlannedMonth');
+    if (monthInput) {
+        monthInput.max = maxDate;
+        monthInput.value = maxDate;
+    }
+});
 
 //Submit Data
 function ExpenseSubmitData() {
     var expenseId = $("#hdnExpenseId").val() || 0;
 
-    var locationId = $("#location").val();
-    var expdetailsRecreationActivity = $("#dllexpdetailsRecreationActivity").val();
-    var selectedQuarters = [];
-    $("input[name='ExpAdminQuarter']:checked").each(function () {
-        selectedQuarters.push($(this).val());
-    });
-    var quarter = selectedQuarters.join(", ");
-    var expActivitiesMonth = $("#expActivitiesMonth").val();
+    var locationId = $("#adminexplocation").val();
+    var expdetailsRecreationActivity = $("#dllExpensesActivityCategory").val();
+    var activityId = $('#dllExpensesdetailsActivity').val();
+
+    var rawPlannedMonth = $("#expPlannedMonth").val();
     var completedDate = $("#CompletedDate").val();
     var expShift = $("#ExpShift").val();
     var actualExpense = $("#ActualExpense").val();
@@ -560,10 +614,14 @@ function ExpenseSubmitData() {
         return;
     }
     if (expdetailsRecreationActivity === "" || expdetailsRecreationActivity === "Select") {
-        Swal.fire("Validation", "Please Select Recreation Activity", "warning");
+        Swal.fire("Validation", "Please Select Activity Category ", "warning");
         return;
     }
-    if (expActivitiesMonth === "" || expActivitiesMonth === "Select") {
+    if (activityId === "" || activityId === "-- Select Activity --") {
+        Swal.fire("Validation", "Please Select Activity  ", "warning");
+        return;
+    }
+    if (expPlannedMonth === "" || expPlannedMonth === "Select") {
         Swal.fire("Validation", "Please Select Activities Month", "warning");
         return;
     }
@@ -585,12 +643,23 @@ function ExpenseSubmitData() {
         Swal.fire("Validation", "Please Select Shift", "warning");
         return;
     }
+    var formattedPlannedMonth = "";
+    if (rawPlannedMonth) {
+        var parts = rawPlannedMonth.split("-");
+        var year = parts[0];
+        var monthIndex = parseInt(parts[1], 10) - 1;
+
+        var date = new Date(year, monthIndex, 1);
+        var monthName = date.toLocaleString('en-US', { month: 'long' });
+
+        formattedPlannedMonth = monthName + "-" + year; 
+    }
     var formData = {
         expenseId: expenseId,
         LocationId: locationId,
         RecreationActivity: expdetailsRecreationActivity,
-        Quarter: quarter,
-        ActivitiesMonth: expActivitiesMonth,
+        activityId: activityId,
+        formattedPlannedMonth: formattedPlannedMonth,
         CompletedDate: completedDate,
         ExpShift: expShift,
         ActualExpense: actualExpense,
@@ -605,16 +674,22 @@ function ExpenseSubmitData() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
-            Swal.fire("Success", "Data saved successfully!", "success").then((result) => {
-                if (result.isConfirmed) {
-                    $("#hdnExpenseId").val("0");
-                    BindAdminExpenseData();
-                    ClearExpenseForm();
-                }
-            });
+            var serverMessage = response.d;
+            if (serverMessage === "Expense Details saved successfully!" || serverMessage === "Expense Details updated successfully!") {
+                Swal.fire("Success", serverMessage, "success").then((result) => {
+                    if (result.isConfirmed) {
+                        $("#hdnExpenseId").val("0");
+                        BindAdminExpenseData();
+                        ClearExpenseForm();
+                    }
+                });
+            }
+            else {
+                Swal.fire("Error", serverMessage, "error");
+            }
         },
         error: function (xhr, status, error) {
-            alert("Error" + error);
+            Swal.fire("Error", "Server Error: " + error, "error");
         }
     });
     return false;
@@ -638,7 +713,7 @@ function BindAdminExpenseData() {
             var $thead = $("#AdminExpense_table thead").empty();
 
             if (!data.length) {
-                var defaultColumns = ['Location', 'Recreation Activity', 'Date', 'Completed Date', 'Actual Expense', 'Status', 'Remark'];
+                var defaultColumns = ['Location', 'Activity Category', 'Activity Name', 'Planned Month', 'Shift', 'Completed Date', 'Actual Expense', 'Status', 'Remark'];
                 var headerHtml = "<tr><th>Action</th>" + defaultColumns.map(c => "<th>" + c + "</th>").join("") + "</tr>";
                 $thead.append(headerHtml);
 
@@ -646,10 +721,17 @@ function BindAdminExpenseData() {
                 $('#load1').hide();
                 return;
             }
-            var columns = Object.keys(data[0]).filter(c => c !== 'ExpensesId');
 
+            // ExpensesId, ActivityId, ani ActivityCategoryId UI la disnar nahiyet, 
+            // pan window.adminExpenseData madhe save rahtil!
+            var columns = Object.keys(data[0]).filter(c =>
+                c !== 'ExpensesId' &&
+                c !== 'ActivityId' &&
+                c !== 'ActivityCategoryId'
+            );
             var headerHtml = "<tr><th>Action</th>" + columns.map(c => "<th>" + c + "</th>").join("") + "</tr>";
             $thead.append(headerHtml);
+
             var rowsHtml = data.map((row, index) => {
                 var actionCell = `<td><a href='javascript:void(0);' class='update-btn text-primary' onclick='EditExpenseRow(${index})' title='Update'><i class='fas fa-edit fa-lg'></i></a></td>`;
                 var cells = columns.map(c => "<td>" + (row[c] !== null ? row[c] : "") + "</td>").join("");
@@ -657,10 +739,13 @@ function BindAdminExpenseData() {
             }).join("");
 
             $tbody.append(rowsHtml);
-            window.adminExpenseData = data;
+            window.adminExpenseData = data; 
+
+            var remarkColumnIndex = columns.indexOf('Remark') + 1; 
+
             $('#AdminExpense_table').DataTable({
                 "paging": true,
-                "pageLength": 10,         
+                "pageLength": 10,
                 "lengthChange": true,
                 "searching": true,
                 "ordering": false,
@@ -670,7 +755,7 @@ function BindAdminExpenseData() {
                 "autoWidth": false,
                 "columnDefs": [
                     {
-                        "targets": 9, 
+                        "targets": remarkColumnIndex, 
                         "width": "250px",
                         "createdCell": function (td, cellData, rowData, row, col) {
                             $(td).css({
@@ -697,49 +782,47 @@ function EditExpenseRow(index) {
     if (!data) return;
 
     $('#hdnExpenseId').val(data.ExpensesId);
-
     $('#btnText').text("Update");
     $('#btnIcon').removeClass("fa-paper-plane").addClass("fas fa-edit fa-lg");
+
     var locName = data["Branch Name"] || data["Location"] || data["location"] || '';
-    $('#location option').each(function () {
+    $('#adminexplocation option').each(function () {
         if ($(this).text().trim() === locName.trim() || $(this).val() == locName) {
-            $('#location').val($(this).val());
+            $('#adminexplocation').val($(this).val());
             return false;
         }
     });
 
-    var recActivity = data["Recreation Activity"] || data["RecreationActivity"] || 'Select';
-    var matched = false;
+    var categoryId = data["ActivityCategoryId"] || '';
+    var activityId = data["ActivityId"] || '';
 
-    $('#RecreationActivity option').each(function () {
-        if (($(this).val() === recActivity || $(this).text().trim() === recActivity.trim()) && $(this).val() !== "Other") {
-            matched = true;
-            $('#RecreationActivity').val($(this).val());
-        }
-    });
-
-    if (!matched && recActivity && recActivity !== 'Select') {
-        $('#RecreationActivity').val("Other");
-        $('#RecreationActivity').trigger('change');
-        $('#otherActivity').val(recActivity);
-        $('#otherActivity').removeAttr("readonly"); 
+    if (categoryId) {
+        $('#dllExpensesActivityCategory').val(categoryId);
+        loadExpDetailsActivities(categoryId, activityId);
     } else {
-        $('#RecreationActivity').trigger('change');
-       // showSelectedValue();
+        $('#dllExpensesActivityCategory').val("").trigger('change');
     }
+    var plannedMonth = data["Planned Month"] || data["PlannedMonth"] || data["plannedMonth"] || '';
 
-    // 1. Fixed Date Bind (Converted to YYYY-MM-DD format)
-    var expenseDateStr = data["Date"] || '';
-    if (expenseDateStr) {
-        var parsedDate = new Date(expenseDateStr);
-        if (!isNaN(parsedDate.getTime())) {
-            $('#Date').val(parsedDate.toISOString().split('T')[0]);
+    if (plannedMonth) {
+        var parts = plannedMonth.split("-");
+        if (parts.length === 2 && isNaN(parts[0])) {
+            var monthName = parts[0];
+            var year = parts[1];
+            var dateObj = new Date(monthName + " 1, " + year);
+            if (!isNaN(dateObj.getTime())) {
+                var m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                $('#expPlannedMonth').val(year + "-" + m);
+            } else {
+                $('#expPlannedMonth').val('');
+            }
         } else {
-            $('#Date').val(expenseDateStr);
+            $('#expPlannedMonth').val(plannedMonth);
         }
     } else {
-        $('#Date').val('');
+        $('#expPlannedMonth').val('');
     }
+    $('#ExpShift').val(data["Shift"] || data["ExpShift"] || 'Select');
 
     var compDateStr = data["Completed Date"] || data["CompletedDate"] || '';
     if (compDateStr) {
@@ -768,38 +851,39 @@ function EditExpenseRow(index) {
 function ClearExpenseForm() {
     $("#hdnExpenseId").val("0");
 
-    $("#location").val("").trigger('change'); 
-    $("#RecreationActivity").val("Select").trigger('change');
-    $("#otherActivity").val("").attr("readonly", true);
-    $("#Date").val("");
+    $("#adminexplocation").val("").trigger('change'); 
+    $("#dllExpensesActivityCategory").val("").trigger('change');
+    $("#dllExpensesdetailsActivity").html('<option value="">-- Select Activity --</option>');
+
+    $("#expPlannedMonth").val("");
     $("#CompletedDate").val("");
     $("#ActualExpense").val("");
-    $("#Status").val("Select");
+    $("#Status").val("");
     $("#remark").val("");
+    $("#ExpShift").val("");
 
     $('#btnText').text("Submit");
     $('#btnIcon').removeClass("fa-edit").addClass("fa-paper-plane");
 }
-
 
 //Report Table Bind Data
 
 var globalAdminExpenseData = [];
 function BindAdminExpenseDataForReport() {
     $('#load1').show();
-    var ExpensesFromDate = document.getElementById("ExpensesFromDate").value;
-    var ExpensesToDate = document.getElementById("ExpensesToDate").value;
-    if (ExpensesFromDate == "") {
+    var ExpenseFromDate = document.getElementById("ExpenseFromDate").value;
+    var ExpenseToDate = document.getElementById("ExpenseToDate").value;
+    if (ExpenseFromDate == "") {
         $('#load1').hide();
         Swal.fire("Validation", "Please select from date", "warning");
         return false;
     }
-    if (ExpensesToDate == "") {
+    if (ExpenseToDate == "") {
         $('#load1').hide();
         Swal.fire("Validation", "Please select to date", "warning");
         return false;
     }
-    if (ExpensesToDate < ExpensesFromDate) {
+    if (ExpenseToDate < ExpenseFromDate) {
         $('#load1').hide();
         Swal.fire("Validation", "Please ensure that the To Date is after the From Date.", "warning");
         return false;
@@ -809,7 +893,7 @@ function BindAdminExpenseDataForReport() {
     }
     $.ajax({
         type: "POST",
-        data: "{FromDate:'" + ExpensesFromDate + "', ToDate:'" + ExpensesToDate + "'}",
+        data: "{ExpenseFromDate:'" + ExpenseFromDate + "', ExpensesToDate:'" + ExpenseToDate + "'}",
         url: "ExpensesAdmin.aspx/GetAdminExpenseDataForReport",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -821,11 +905,11 @@ function BindAdminExpenseDataForReport() {
             var activitySummaryData = responseObj.activitySummary;
 
             globalAdminExpenseData = data || [];
-            // Store all summary datasets in table elements (hidden from UI)
             $('#AdminExpenseReport_table').data('summaryData', summaryData);
             $('#AdminExpenseReport_table').data('locationSummaryData', locationSummaryData);
             $('#AdminExpenseReport_table').data('activitySummaryData', activitySummaryData);
-
+            var yearlyCountSummaryData = responseObj.YearlycountSummary;
+            $('#AdminExpenseReport_table').data('yearlyCountSummaryData', yearlyCountSummaryData);
             if (data && data.length > 0) {
                 var columns = Object.keys(data[0]);
                 var headerHtml = "<tr>";
@@ -877,8 +961,8 @@ function BindAdminExpenseDataForReport() {
 
 // Excel To Export 
 $(document).on('click', '#Expenses_btnExporttoexcel', function () {
-    var ExpensesFromDate = document.getElementById("ExpensesFromDate").value;
-    var ExpensesToDate = document.getElementById("ExpensesToDate").value;
+    var ExpensesFromDate = document.getElementById("ExpenseFromDate").value;
+    var ExpensesToDate = document.getElementById("ExpenseToDate").value;
 
     if (ExpensesFromDate == "") {
         Swal.fire("Validation", "Please select from date", "warning");
@@ -1041,58 +1125,374 @@ function ExportTableToExcel(fromDate, toDate) {
         var wsSummary = XLSX.utils.aoa_to_sheet([]);
         var summaryMerges = [];
         var currentRow = 0;
-        var maxCols = 3;
+        // --- SECTION 4: Yearly Count / Cultural Activity Summary (Location vs Month Pivot) ---
+        var yearlyCountSummaryData = $('#AdminExpenseReport_table').data('yearlyCountSummaryData');
+        if (yearlyCountSummaryData && yearlyCountSummaryData.length > 0) {
+            var locations4 = [];
+            var rowKeys4 = []; 
+            var pivotMap4 = {};
+            var activityMap4 = {};
 
+            yearlyCountSummaryData.forEach(function (item) {
+                var loc = item["Location"] || item["BranchName"] || item["Branch"] || "Unknown";
+                var mName = item["Month"] || "Unknown";
+                var yName = item["Year"] || "Unknown";
+
+                var rowKey = mName + "___" + yName;
+
+                var exp = parseFloat(item["Actual Expense"] || item["ActualExpense"] || item["Expense"] || 0);
+                var totalActivity = parseInt(item["Total Activity All Branches"] || 0);
+                if (!locations4.includes(loc)) locations4.push(loc);
+                if (!rowKeys4.includes(rowKey)) rowKeys4.push(rowKey);
+
+                if (!pivotMap4[rowKey]) pivotMap4[rowKey] = {};
+                pivotMap4[rowKey][loc] = (pivotMap4[rowKey][loc] || 0) + exp;
+
+                if (!activityMap4[rowKey]) activityMap4[rowKey] = 0;
+                activityMap4[rowKey] += totalActivity;
+            });
+
+            locations4.sort();
+            rowKeys4.sort(); 
+
+            var matrixHeaders4 = ["Month", "Year"].concat(locations4).concat(["Total", "Total Activity All Branches"]);
+            var matrixRows4 = [];
+
+            rowKeys4.forEach(function (rKey) {
+                var parts = rKey.split("___");
+                var mName = parts[0];
+                var yName = parts[1];
+
+                var rowObj = {};
+                rowObj["Month"] = mName;
+                rowObj["Year"] = yName;
+                var rowTotal = 0;
+
+                locations4.forEach(function (loc) {
+                    var val = (pivotMap4[rKey] && pivotMap4[rKey][loc] !== undefined) ? pivotMap4[rKey][loc] : 0;
+                    rowObj[loc] = Number(val.toFixed(2));
+                    rowTotal += val;
+                });
+
+                rowObj["Total"] = Number(rowTotal.toFixed(2));
+                rowObj["Total Activity All Branches"] = activityMap4[rKey] || 0;
+                matrixRows4.push(rowObj);
+            });
+            XLSX.utils.sheet_add_aoa(wsSummary, [["OFFICE CULTURAL ACTIVITY AND & EXPENSE SUMMARY DASHBOARD"]], { origin: { r: currentRow, c: 0 } });
+            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: matrixHeaders4.length - 1 } });
+            currentRow++;
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixHeaders4], { origin: { r: currentRow, c: 0 } });
+            currentRow++;
+
+            matrixRows4.forEach(function (rData) {
+                var rowArray = [];
+                matrixHeaders4.forEach(function (hName) {
+                    rowArray.push(rData[hName] !== undefined ? rData[hName] : "");
+                });
+                XLSX.utils.sheet_add_aoa(wsSummary, [rowArray], { origin: { r: currentRow, c: 0 } });
+                currentRow++;
+            });
+
+            var matrixTotalRow4 = new Array(matrixHeaders4.length).fill("");
+            matrixTotalRow4[0] = "Total";
+            matrixTotalRow4[1] = ""; 
+
+            for (var c = 2; c < matrixHeaders4.length; c++) {
+                var colName = matrixHeaders4[c];
+                var colSum = 0;
+                matrixRows4.forEach(function (r) {
+                    colSum += parseFloat(r[colName] || 0);
+                });
+                matrixTotalRow4[c] = Number(colSum.toFixed(2));
+            }
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixTotalRow4], { origin: { r: currentRow, c: 0 } });
+            currentRow += 3;
+        }
         // --- SECTION 1: Month-wise Summary ---
         if (summaryData && summaryData.length > 0) {
-            XLSX.utils.sheet_add_aoa(wsSummary, [["Month-wise Expense Summary"]], { origin: { r: currentRow, c: 0 } });
-            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: Object.keys(summaryData[0]).length - 1 } });
+            var locations = [];
+            var categories = [];
+            var pivotMap1 = {};
+            var pivotMapPrev = {};
+            var pivotMapYearExp = {};
+
+            summaryData.forEach(function (item) {
+                var loc = item["Location"] || item["BranchName"] || item["Branch"] || "Unknown";
+                var cat = item["Activity Category"] || item["ActivityCategory"] || item["Category"] || "Other";
+                var exp = parseFloat(item["Actual Expense"] || item["ActualExpense"] || item["Expense"] || 0);
+                var prevExp = parseFloat(item["Previous Month Expense"] || item["PreviousMonthExpense"] || 0);
+                var YearTotalExp = parseFloat(item["Yearly Total Expense"] || item["YTDExpense"] || item["Year Month Total Expense"] || 0);
+
+                if (!locations.includes(loc)) locations.push(loc);
+                if (!categories.includes(cat)) categories.push(cat);
+
+                if (!pivotMap1[loc]) pivotMap1[loc] = {};
+                pivotMap1[loc][cat] = (pivotMap1[loc][cat] || 0) + exp;
+
+                if (!pivotMapPrev[loc]) pivotMapPrev[loc] = {};
+                pivotMapPrev[loc][cat] = (pivotMapPrev[loc][cat] || 0) + prevExp;
+
+                if (!pivotMapYearExp[loc]) pivotMapYearExp[loc] = {};
+                pivotMapYearExp[loc][cat] = (pivotMapYearExp[loc][cat] || 0) + YearTotalExp;
+            });
+
+            categories.sort();
+            locations.sort();
+            var matrixHeaders1 = ["Location"].concat(categories).concat(["Total", "Previous Month Expense", "Year Month Total Expense"]);
+            var matrixRows1 = [];
+
+            locations.forEach(function (loc) {
+                var rowObj = {};
+                rowObj["Location"] = loc;
+                var rowTotal = 0;
+                var prevMonthTotal = 0;
+                var yearMonthTotal = 0;
+
+                categories.forEach(function (cat) {
+                    var val = (pivotMap1[loc] && pivotMap1[loc][cat] !== undefined) ? pivotMap1[loc][cat] : 0;
+                    rowObj[cat] = Number(val.toFixed(2));
+                    rowTotal += val;
+                });
+
+                if (pivotMapPrev[loc]) {
+                    categories.forEach(function (cat) {
+                        prevMonthTotal += (pivotMapPrev[loc][cat] || 0);
+                    });
+                }
+                if (pivotMapYearExp[loc]) {
+                    categories.forEach(function (cat) {
+                        yearMonthTotal += (pivotMapYearExp[loc][cat] || 0);
+                    });
+                }
+
+                rowObj["Total"] = Number(rowTotal.toFixed(2));
+                rowObj["Previous Month Expense"] = Number(prevMonthTotal.toFixed(2));
+                rowObj["Year Month Total Expense"] = Number(yearMonthTotal.toFixed(2));
+
+                matrixRows1.push(rowObj);
+            });
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [["Location and Activity wise Monthly Expense"]], { origin: { r: currentRow, c: 0 } });
+            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: matrixHeaders1.length - 1 } });
             currentRow++;
 
-            XLSX.utils.sheet_add_aoa(wsSummary, [Object.keys(summaryData[0])], { origin: { r: currentRow, c: 0 } });
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixHeaders1], { origin: { r: currentRow, c: 0 } });
             currentRow++;
 
-            XLSX.utils.sheet_add_json(wsSummary, summaryData, { origin: { r: currentRow, c: 0 }, skipHeader: true });
-            currentRow += summaryData.length;
-            var totalRow1 = calculateTotalRow(summaryData);
-            XLSX.utils.sheet_add_aoa(wsSummary, [totalRow1], { origin: { r: currentRow, c: 0 } });
-            currentRow += 3; 
+            matrixRows1.forEach(function (rData) {
+                var rowArray = [];
+                matrixHeaders1.forEach(function (hName) {
+                    rowArray.push(rData[hName] !== undefined ? rData[hName] : "");
+                });
+                XLSX.utils.sheet_add_aoa(wsSummary, [rowArray], { origin: { r: currentRow, c: 0 } });
+                currentRow++;
+            });
+
+            var matrixTotalRow1 = new Array(matrixHeaders1.length).fill("");
+            matrixTotalRow1[0] = "Total";
+
+            for (var c = 1; c < matrixHeaders1.length; c++) {
+                var colCat = matrixHeaders1[c];
+                var colSum = 0;
+                matrixRows1.forEach(function (r) {
+                    colSum += parseFloat(r[colCat] || 0);
+                });
+                matrixTotalRow1[c] = Number(colSum.toFixed(2));
+            }
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixTotalRow1], { origin: { r: currentRow, c: 0 } });
+            currentRow += 3;
         }
 
-        // --- SECTION 2: Location-wise Summary ---
+        // --- SECTION 2: Location-wise & Activity Category Matrix Summary ---
         if (locationSummaryData && locationSummaryData.length > 0) {
-            XLSX.utils.sheet_add_aoa(wsSummary, [["Location-wise Expense Summary"]], { origin: { r: currentRow, c: 0 } });
-            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: Object.keys(locationSummaryData[0]).length - 1 } });
+            var locations = [];
+            var categories = [];
+            var pivotMap = {};
+            var completedMap = {}; 
+            var pendingMap = {};  
+
+            locationSummaryData.forEach(function (item) {
+                var loc = item["Location"] || item["BranchName"] || item["Branch"] || "Unknown";
+                var cat = item["Activity Category"] || item["ActivityCategory"] || item["Category"] || "Other";
+                var cnt = parseInt(item["Activity Count"] || item["ActivityCount"] || item["Count"] || 0);
+                var compCnt = parseInt(item["Completed Activity"] || 0);
+                var pendCnt = parseInt(item["Pending Activity"] || 0);
+
+                if (!locations.includes(loc)) locations.push(loc);
+                if (!categories.includes(cat)) categories.push(cat);
+
+                if (!pivotMap[loc]) pivotMap[loc] = {};
+                pivotMap[loc][cat] = (pivotMap[loc][cat] || 0) + cnt;
+
+                if (!completedMap[loc]) completedMap[loc] = {};
+                completedMap[loc][cat] = (completedMap[loc][cat] || 0) + compCnt;
+
+                if (!pendingMap[loc]) pendingMap[loc] = {};
+                pendingMap[loc][cat] = (pendingMap[loc][cat] || 0) + pendCnt;
+            });
+            categories.sort();
+            var matrixHeaders = ["Location"].concat(categories).concat(["Total", "Completed Activity", "Pending Activity"]);
+            var matrixRows = [];
+
+            locations.forEach(function (loc) {
+                var rowObj = {};
+                rowObj["Location"] = loc;
+                var rowTotal = 0;
+                var rowCompletedTotal = 0;
+                var rowPendingTotal = 0;
+                categories.forEach(function (cat) {
+                    var val = (pivotMap[loc] && pivotMap[loc][cat] !== undefined) ? pivotMap[loc][cat] : 0;
+                    rowObj[cat] = val; 
+                    rowTotal += val;
+                });
+                categories.forEach(function (cat) {
+                    rowCompletedTotal += (completedMap[loc] && completedMap[loc][cat] !== undefined) ? completedMap[loc][cat] : 0;
+                    rowPendingTotal += (pendingMap[loc] && pendingMap[loc][cat] !== undefined) ? pendingMap[loc][cat] : 0;
+                });
+
+                rowObj["Total"] = rowTotal;
+                rowObj["Completed Activity"] = rowCompletedTotal;
+                rowObj["Pending Activity"] = rowPendingTotal;
+              
+                matrixRows.push(rowObj);
+            });
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [["Location-wise Monthly Activity Count"]], { origin: { r: currentRow, c: 0 } });
+            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: matrixHeaders.length - 1 } });
             currentRow++;
 
-            XLSX.utils.sheet_add_aoa(wsSummary, [Object.keys(locationSummaryData[0])], { origin: { r: currentRow, c: 0 } });
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixHeaders], { origin: { r: currentRow, c: 0 } });
             currentRow++;
+            matrixRows.forEach(function (rData) {
+                var rowArray = [];
+                matrixHeaders.forEach(function (hName) {
+                    rowArray.push(rData[hName] !== undefined ? rData[hName] : "");
+                });
+                XLSX.utils.sheet_add_aoa(wsSummary, [rowArray], { origin: { r: currentRow, c: 0 } });
+                currentRow++;
+            });
 
-            XLSX.utils.sheet_add_json(wsSummary, locationSummaryData, { origin: { r: currentRow, c: 0 }, skipHeader: true });
-            currentRow += locationSummaryData.length;
+            var matrixTotalRow = new Array(matrixHeaders.length).fill("");
+            matrixTotalRow[0] = "Total";
 
-            // Total Row for Section 2
-            var totalRow2 = calculateTotalRow(locationSummaryData);
-            XLSX.utils.sheet_add_aoa(wsSummary, [totalRow2], { origin: { r: currentRow, c: 0 } });
+            for (var c = 1; c < matrixHeaders.length; c++) {
+                var colCat = matrixHeaders[c];
+                var colSum = 0;
+                matrixRows.forEach(function (r) {
+                    colSum += parseInt(r[colCat] || 0);
+                });
+                matrixTotalRow[c] = colSum;
+            }
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixTotalRow], { origin: { r: currentRow, c: 0 } });
             currentRow += 3;
         }
 
         // --- SECTION 3: Activity Category-wise Summary ---
         if (activitySummaryData && activitySummaryData.length > 0) {
-            XLSX.utils.sheet_add_aoa(wsSummary, [["Activity Category-wise Summary"]], { origin: { r: currentRow, c: 0 } });
-            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: Object.keys(activitySummaryData[0]).length - 1 } });
+            var months = [];
+            var locations = [];
+            var pivotMap3 = {};
+            var yearMap = {};
+            var activityCountMap = {};
+
+            activitySummaryData.forEach(function (item) {
+                var month = item["Month"] || item["Plannedmonth"] || "Unknown";
+                var year = item["Year"] || "";
+                var loc = item["Location"] || item["BranchName"] || item["Branch"] || "Unknown";
+                var exp = parseFloat(item["Actual Expense"] || item["ActualExpense"] || item["Expense"] || 0);
+                var actCount = parseInt(item["Activity Count"] || 0);
+
+                if (!months.includes(month)) months.push(month);
+                if (!locations.includes(loc)) locations.push(loc);
+
+                if (year) yearMap[month] = year;
+
+                if (!pivotMap3[month]) pivotMap3[month] = {};
+                pivotMap3[month][loc] = (pivotMap3[month][loc] || 0) + exp;
+
+                if (!activityCountMap[month]) activityCountMap[month] = {};
+                activityCountMap[month][loc] = (activityCountMap[month][loc] || 0) + actCount;
+            });
+
+            months.sort();
+            locations.sort();
+
+            var matrixHeaders3 = ["Month", "Year"].concat(locations).concat(["Total", "Activity Count"]);
+            var matrixRows3 = [];
+
+            months.forEach(function (m) {
+                var rowObj = {};
+                rowObj["Month"] = m;
+                rowObj["Year"] = yearMap[m] || "";
+                var rowTotal = 0;
+                var rowActivityTotal = 0;
+
+                locations.forEach(function (loc) {
+                    var val = (pivotMap3[m] && pivotMap3[m][loc] !== undefined) ? pivotMap3[m][loc] : 0;
+                    rowObj[loc] = Number(val.toFixed(2));
+                    rowTotal += val;
+
+                    rowActivityTotal += (activityCountMap[m] && activityCountMap[m][loc] !== undefined) ? activityCountMap[m][loc] : 0;
+                });
+
+                rowObj["Total"] = Number(rowTotal.toFixed(2));
+                rowObj["Activity Count"] = rowActivityTotal;
+                matrixRows3.push(rowObj);
+            });
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [["Month and Location wise Expenses and Activity Count"]], { origin: { r: currentRow, c: 0 } });
+            summaryMerges.push({ s: { r: currentRow, c: 0 }, e: { r: currentRow, c: matrixHeaders3.length - 1 } });
             currentRow++;
 
-            XLSX.utils.sheet_add_aoa(wsSummary, [Object.keys(activitySummaryData[0])], { origin: { r: currentRow, c: 0 } });
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixHeaders3], { origin: { r: currentRow, c: 0 } });
             currentRow++;
 
-            XLSX.utils.sheet_add_json(wsSummary, activitySummaryData, { origin: { r: currentRow, c: 0 }, skipHeader: true });
-            currentRow += activitySummaryData.length;
+            matrixRows3.forEach(function (rData) {
+                var rowArray = [];
+                matrixHeaders3.forEach(function (hName) {
+                    rowArray.push(rData[hName] !== undefined ? rData[hName] : "");
+                });
+                XLSX.utils.sheet_add_aoa(wsSummary, [rowArray], { origin: { r: currentRow, c: 0 } });
+                currentRow++;
+            });
 
-            // Total Row for Section 3
-            var totalRow3 = calculateTotalRow(activitySummaryData);
-            XLSX.utils.sheet_add_aoa(wsSummary, [totalRow3], { origin: { r: currentRow, c: 0 } });
+            var matrixTotalRow3 = new Array(matrixHeaders3.length).fill("");
+            matrixTotalRow3[0] = "Total";
+            matrixTotalRow3[1] = "";
+
+            for (var c = 2; c < matrixHeaders3.length; c++) {
+                var colName = matrixHeaders3[c];
+
+                if (colName === "Activity Count") {
+                    var colActivitySum = 0;
+                    matrixRows3.forEach(function (r) {
+                        colActivitySum += parseInt(r["Activity Count"] || 0);
+                    });
+                    matrixTotalRow3[c] = colActivitySum;
+                } else if (colName !== "Total") {
+                    var colSum = 0;
+                    matrixRows3.forEach(function (r) {
+                        colSum += parseFloat(r[colName] || 0);
+                    });
+                    matrixTotalRow3[c] = Number(colSum.toFixed(2));
+                } else {
+                    var grandTotal = 0;
+                    matrixRows3.forEach(function (r) {
+                        grandTotal += parseFloat(r["Total"] || 0);
+                    });
+                    matrixTotalRow3[c] = Number(grandTotal.toFixed(2));
+                }
+            }
+
+            XLSX.utils.sheet_add_aoa(wsSummary, [matrixTotalRow3], { origin: { r: currentRow, c: 0 } });
+            currentRow += 3;
         }
+
+      
 
         wsSummary['!merges'] = summaryMerges;
         var summaryRange = XLSX.utils.decode_range(wsSummary['!ref'] || "A1:C1");
@@ -1147,7 +1547,7 @@ function ExportTableToExcel(fromDate, toDate) {
     // 4. Export File
     var formattedFrom = formatFileNameDate(fromDate);
     var formattedTo = formatFileNameDate(toDate);
-    var fileName = "Expenses_" + formattedFrom + "_" + formattedTo + ".xlsx";
+    var fileName = "RecreationActivities_Expenses_Report_" + formattedFrom + "_" + formattedTo + ".xlsx";
     XLSX.writeFile(wb, fileName);
 }
 
@@ -1176,3 +1576,20 @@ function calculateTotalRow(dataArray) {
     }
     return totalObj;
 }
+
+// Get Year
+document.addEventListener('DOMContentLoaded', function () {
+    const yearSelect = document.getElementById('AdminExpYear');
+
+    if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+
+        for (let i = 0; i < 4; i++) {
+            let year = currentYear - i; 
+            let option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+    }
+});

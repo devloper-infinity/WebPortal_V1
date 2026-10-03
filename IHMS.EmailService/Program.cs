@@ -20,6 +20,8 @@ namespace IHMS.EmailService
         static readonly HttpClient Http = new HttpClient(); static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue }; static string Mailbox = ConfigurationManager.AppSettings["SharedMailbox"], Root = ConfigurationManager.AppSettings["AttachmentRoot"];
         static readonly bool TestMode = String.Equals(ConfigurationManager.AppSettings["TestMode"], "true", StringComparison.OrdinalIgnoreCase);
         static readonly string TestRecipient = ConfigurationManager.AppSettings["TestRecipient"];
+        static readonly bool EnableITEmailService = !String.Equals(ConfigurationManager.AppSettings["EnableITEmailService"], "false", StringComparison.OrdinalIgnoreCase);
+        static readonly bool EnableUnderwritingBillingService = !String.Equals(ConfigurationManager.AppSettings["EnableUnderwritingBillingService"], "false", StringComparison.OrdinalIgnoreCase);
         static void Main() { Console.CancelKeyPress += (s, e) => Environment.Exit(0); Run().GetAwaiter().GetResult(); }
         static async Task Run()
         {
@@ -27,14 +29,24 @@ namespace IHMS.EmailService
             {
                 try
                 {
-                    var token = await Token();
-                    Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                    Console.WriteLine("{0:u} Processing outbound email queue...", DateTime.Now);
-                    await SendQueue();
-                    Console.WriteLine("{0:u} Reading unread messages from {1}...", DateTime.Now, Mailbox);
-                    await ReadMessages();
-                    Console.WriteLine("{0:u} Processing acknowledgements created during this cycle...", DateTime.Now);
-                    await SendQueue();
+                    if (EnableUnderwritingBillingService)
+                    {
+                        Console.WriteLine("{0:u} Checking Underwriting billing reminders...", DateTime.Now);
+                        string billingMailbox = ConfigurationManager.AppSettings["BillingReminderMailbox"];
+                        if (String.IsNullOrWhiteSpace(billingMailbox)) throw new ConfigurationErrorsException("BillingReminderMailbox is required.");
+                        new UnderwritingBillingReminder(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString, billingMailbox.Trim()).RunIfDue(DateTime.Now);
+                    }
+                    if (EnableITEmailService)
+                    {
+                        var token = await Token();
+                        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                        Console.WriteLine("{0:u} Processing outbound IT email queue...", DateTime.Now);
+                        await SendQueue();
+                        Console.WriteLine("{0:u} Reading unread IT messages from {1}...", DateTime.Now, Mailbox);
+                        await ReadMessages();
+                        Console.WriteLine("{0:u} Processing IT acknowledgements created during this cycle...", DateTime.Now);
+                        await SendQueue();
+                    }
                 }
                 catch (Exception ex)
                 {

@@ -6244,14 +6244,17 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
-        public DataTable GetLoanTrackingHistory(Hashtable htParam)
+        public DataSet GetLoanTrackingHistory(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetLoanLevelSecRelTracking");
             SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["ProjectID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["FromDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["ToDate"]);
-            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
-            return dt;
+            SQLHelper.AddParamToSQLCmd(cmd, "@Start", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["Start"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PageSize", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["PageSize"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@SearchValue", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["SearchValue"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ExportAll", System.Data.SqlDbType.Bit, 1, System.Data.ParameterDirection.Input, false);
+            return SQLHelper.ExecuteDataSetCmd(cmd);
         }
 
 
@@ -6533,40 +6536,15 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         public int InsertAdminExpensesData(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAdminExpensesData_YTU");
             int expenseId = htParam.ContainsKey("ExpenseId") && htParam["ExpenseId"] != null ? Convert.ToInt32(htParam["ExpenseId"]) : 0;
             SQLHelper.AddParamToSQLCmd(cmd, "@ExpenseId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, expenseId);
             SQLHelper.AddParamToSQLCmd(cmd, "@Location", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["Location"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@RecreationActivity", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["RecreationActivity"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Quarter", System.Data.SqlDbType.NVarChar, 20, System.Data.ParameterDirection.Input, htParam["Quarter"] ?? DBNull.Value);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ActivitiesDate", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["ActivitiesMonth"] ?? DBNull.Value);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ActivityCategoryId", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["RecreationActivity"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@activityId", System.Data.SqlDbType.NVarChar, 20, System.Data.ParameterDirection.Input, htParam["activityId"] ?? DBNull.Value);
+            SQLHelper.AddParamToSQLCmd(cmd, "@PlannedMonth", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["PlannedMonth"] ?? DBNull.Value);
             SQLHelper.AddParamToSQLCmd(cmd, "@Shift", System.Data.SqlDbType.NVarChar, 30, System.Data.ParameterDirection.Input, htParam["ExpShift"] ?? DBNull.Value);
             SQLHelper.AddParamToSQLCmd(cmd, "@CompletedDate", System.Data.SqlDbType.DateTime, 0, System.Data.ParameterDirection.Input, Convert.ToDateTime(htParam["CompletedDate"]));
             SQLHelper.AddParamToSQLCmd(cmd, "@ActualExpense", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, Convert.ToInt32(htParam["ActualExpense"]));
@@ -6587,21 +6565,21 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataSet GetAdminExpenseDataForReport(string ExpenseFromDate, string ExpensesToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminExpensesDataForReport_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ExpenseFromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ExpenseFromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ExpensesToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ExpensesToDate);
+            DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
+            return ds;
+        }
+
         public DataTable getViewShortlistedCandidate(int EmpId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetShortlistedCandidate");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EmpId);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
-        }
-
-        public DataSet GetAdminExpenseDataForReport(string FromDate, string ToDate)
-        {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAdminExpensesDataForReport_YTU");
-            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
-            DataSet ds = SQLHelper.ExecuteDataSetCmd(cmd);
-            return ds;
         }
     }
 }
