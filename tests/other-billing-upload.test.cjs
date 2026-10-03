@@ -12,6 +12,7 @@ const values = { '#otherBilling_Project': '661', '#otherBilling_DealNo': 'Existi
 const messages = [];
 let xhr;
 let imports = 0;
+let importSuccess;
 const context = vm.createContext({
     console,
     document: { getElementById(id) { return elements[id] ||= { style: {}, classList: { add() {} } }; } },
@@ -20,7 +21,7 @@ const context = vm.createContext({
     XMLHttpRequest: class { constructor() { xhr = this; } open() {} send() {} },
     $: selector => ({ val: () => values[selector] || '', modal() {}, focus() {} }),
     Swal: { fire: message => { messages.push(message); return Promise.resolve(); } },
-    PageMethods: { set_timeout() {}, ImportExcel() { imports++; } }
+    PageMethods: { set_timeout() {}, ImportExcel(project, deal, status, success) { imports++; importSuccess = success; } }
 });
 vm.runInContext(script, context);
 vm.runInContext(uploadCode, context);
@@ -34,6 +35,9 @@ vm.runInContext(uploadCode, context);
     xhr.onload();
     await pending;
     assert.equal(imports, 1, 'Acknowledged upload should allow import');
+    importSuccess(-5);
+    assert.equal(messages.at(-1).title, 'Billing Database Error', 'SQL failure must be distinguished from Excel parsing');
+    assert.match(messages.at(-1).text, /uploaded file has been kept/);
 
     vm.runInContext('getFileName({ target: { name: "attachment", files: [{ name: "invalid.xlsx" }] } })', context);
     const failed = context.btnOtherBilling_Import();

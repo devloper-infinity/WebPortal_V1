@@ -174,6 +174,9 @@ async function btnOtherBilling_Import() {
             else if (resultCode === -4) {
                 Swal.fire({ icon: "error", title: "Import Failed", text: "The server could not read the Excel file. Please contact the administrator with the time of this attempt so they can check OtherBilling_Error.txt.", confirmButtonText: "OK" });
             }
+            else if (resultCode === -5) {
+                Swal.fire({ icon: "error", title: "Billing Database Error", text: "The Excel file was read, but the server could not save the new deal in the billing database. Your uploaded file has been kept. Please contact the administrator with the time of this attempt.", confirmButtonText: "OK" });
+            }
             else if (resultCode === -1) {
 
                 Swal.fire({

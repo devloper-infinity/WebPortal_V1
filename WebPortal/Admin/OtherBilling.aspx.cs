@@ -79,6 +79,12 @@ namespace WebPortal.Admin
                 HttpContext.Current.Session["OtherBillingImportData"] = data;
                 return 1;
             }
+            catch (SqlException ex)
+            {
+                HttpContext.Current.Trace.Warn("OtherBilling", "Billing database operation failed during ImportExcel.", ex);
+                LogVerifyError(ex, "ImportExcel - billing database", ProjectID, DealNo);
+                return -5;
+            }
             catch (Exception ex)
             {
                 HttpContext.Current.Trace.Warn("OtherBilling", "ImportExcel failed.", ex);
@@ -102,12 +108,8 @@ namespace WebPortal.Admin
                 System.Data.DataTable data = importedData.Copy();
                 PrepareBillingData(data, ProjectID, DealNo);
 
-                string destination = Type == "Research"
-                    ? "dbo.InfinityBilling_ResearchBilling"
-                    : "dbo.InfinityBilling_RebuttalBilling";
-                string procedure = Type == "Research"
-                    ? "usp_InsertResearchBilling_NewERP"
-                    : "usp_InsertRebuttalBilling_NewERP";
+                string destination = Type == "Research" ? "dbo.InfinityBilling_ResearchBilling": "dbo.InfinityBilling_RebuttalBilling";
+                string procedure = Type == "Research" ? "usp_InsertResearchBilling_NewERP": "usp_InsertRebuttalBilling_NewERP";
 
                 int returnValue;
                 using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionStringUWBilling))
