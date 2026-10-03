@@ -8,7 +8,7 @@ var ProjectTracking_ChangeStatusInfo = null;
 
 function ProjectTracking_CanShowActions() {
     var employeeId = parseInt(window.ProjectTracking_CurrentEmployeeId, 10) || 0;
-    return employeeId === 369 || employeeId === 375;
+    return employeeId === 369 || employeeId === 375 || employeeId === 7882;
 }
 
 function ProjectTracking_ApplyActionVisibility() {

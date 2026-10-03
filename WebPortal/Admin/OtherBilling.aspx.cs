@@ -1,12 +1,8 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using Spire.Xls;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OleDb;
 using System.Data.SqlClient;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -22,105 +18,73 @@ namespace WebPortal.Admin
 {
     public partial class OtherBilling : System.Web.UI.Page
     {
-        static System.Data.DataTable dtImport = new System.Data.DataTable();
-
-        static string NewFileName = "";
-        static string FileName = "";
-        static string GUIDFile = "";
-        static string FolderPath = "";
-        static Workbook book = new Workbook();
-        static Worksheet wksheet = null;
-
         protected void Page_Load(object sender, EventArgs e)
         {
-            FolderPath = "C:\\BillingDocuments";
+            if (Request.Files.Count == 0)
+                return;
 
+            bool uploaded = false;
+            string message = "";
+            Session.Remove("OtherBillingUploadPath");
+            Session.Remove("OtherBillingImportData");
             try
             {
-                HttpContext postedContext = HttpContext.Current;
-                HttpPostedFile file = postedContext.Request.Files[0];
-
-                string name = file.FileName;
-                byte[] binaryWriteArray = new byte[file.InputStream.Length];
-                file.InputStream.Read(binaryWriteArray, 0,
-                (int)file.InputStream.Length);
-
-                FileInfo file_Info = new FileInfo(file.FileName);
-                string ext = file_Info.Extension;
-
-                FileName = file.FileName;
-
-                // string file_Name = Guid.NewGuid().ToString() + "_" + DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year + ext;
-                NewFileName = Server.MapPath("..//TempFiles//" + file.FileName);
-                FileStream objfilestream = new FileStream(NewFileName, FileMode.Create, FileAccess.ReadWrite);
-                objfilestream.Write(binaryWriteArray, 0,
-                binaryWriteArray.Length);
-                objfilestream.Close();
-
-
+                HttpPostedFile file = Request.Files[0];
+                if (file.ContentLength == 0 ||
+                    !string.Equals(Path.GetExtension(file.FileName), ".xlsx", StringComparison.OrdinalIgnoreCase))
+                {
+                    message = "Please select a non-empty Excel file with the .xlsx extension.";
+                }
+                else
+                {
+                    // Store in the web project root; request filtering protects the saved files.
+                    string directory = Server.MapPath("~/OtherBillingDocuments");
+                    Directory.CreateDirectory(directory);
+                    string uploadPath = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".xlsx");
+                    file.SaveAs(uploadPath);
+                    Session["OtherBillingUploadPath"] = uploadPath;
+                    uploaded = true;
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogVerifyError(ex, "Upload", 0, "");
+                message = "The server could not receive the Excel file. Please contact the administrator with the time of this attempt.";
+            }
+
+            Response.Clear();
+            Response.ContentType = "application/json";
+            Response.Write(new JavaScriptSerializer().Serialize(new { success = uploaded, message = message }));
+            Response.End();
         }
 
         [WebMethod(EnableSession = true)]
         public static int ImportExcel(int ProjectID, string DealNo, string deal_satus)
         {
-            int ReturnValue = 0;
-            string File_Name = "";
-
             try
             {
+                HttpContext.Current.Server.ScriptTimeout = 600;
                 HttpContext.Current.Session.Remove("OtherBillingImportData");
-                if (deal_satus == "New")
-                {
-                    ReturnValue = new bllMaster().InsertDealInTracking(ProjectID, DealNo);
+                string uploadPath = HttpContext.Current.Session["OtherBillingUploadPath"] as string;
+                if (string.IsNullOrEmpty(uploadPath) || !File.Exists(uploadPath))
+                    return -2;
 
-                    if (ReturnValue <= 0)
-                    {
-                        ReturnValue = -3;
-                        return ReturnValue;
-                    }
-                }
+                System.Data.DataTable data = ReadExcelFile(uploadPath);
+                if (data.Rows.Count == 0)
+                    return 0;
 
-                if (NewFileName != "")
-                {
-                    if (!Directory.Exists(FolderPath))
-                    {
-                        Directory.CreateDirectory(FolderPath);
-                    }
+                if (deal_satus == "New" && new bllMaster().InsertDealInTracking(ProjectID, DealNo) <= 0)
+                    return -3;
 
-                    File_Name = FolderPath + "\\" + FileName.Substring(FileName.LastIndexOf("\\") + 1);
-
-                    File.Copy(NewFileName, File_Name);
-
-                    string Extn = NewFileName.Substring(NewFileName.LastIndexOf(".") + 1);
-
-                    if (Extn == "xlsx")
-                    {
-                        System.Data.DataTable Dt = new System.Data.DataTable();
-                        Dt = ReadExcelFile(NewFileName);
-
-                        dtImport = Dt;
-                        HttpContext.Current.Session["OtherBillingImportData"] = Dt;
-
-                        if (Dt.Rows.Count > 0)
-                            ReturnValue = 1;
-                        else
-                            ReturnValue = 0;
-                    }
-                    else
-                    {
-                        ReturnValue = -1;
-                    }
-                }
+                HttpContext.Current.Session["OtherBillingImportData"] = data;
+                return 1;
             }
             catch (Exception ex)
             {
-                ReturnValue = -1;
+                HttpContext.Current.Trace.Warn("OtherBilling", "ImportExcel failed.", ex);
+                LogVerifyError(ex, "ImportExcel", ProjectID, DealNo);
+                return -4;
             }
-
-            File.Delete(File_Name);
-            return ReturnValue;
         }
 
         [WebMethod(EnableSession = true)]
@@ -174,8 +138,9 @@ namespace WebPortal.Admin
 
                 if (returnValue > 0)
                 {
-                    dtImport = null;
+                    // Clear session state only; retain the uploaded document on disk.
                     HttpContext.Current.Session.Remove("OtherBillingImportData");
+                    HttpContext.Current.Session.Remove("OtherBillingUploadPath");
                 }
                 return returnValue;
             }
@@ -279,12 +244,22 @@ namespace WebPortal.Admin
 
         public static System.Data.DataTable ReadExcelFile(string path)
         {
+            using (FileStream stream = File.OpenRead(path))
+            {
+                return ReadExcelFile(stream);
+            }
+        }
+
+        private static System.Data.DataTable ReadExcelFile(Stream stream)
+        {
             System.Data.DataTable dt = new System.Data.DataTable();
 
-            using (var workbook = new XLWorkbook(path))
+            using (var workbook = new XLWorkbook(stream))
             {
                 var ws = workbook.Worksheet(1);
                 var range = ws.RangeUsed();
+                if (range == null)
+                    return dt;
                 bool firstRow = true;
 
                 foreach (var row in range.Rows())
@@ -305,10 +280,10 @@ namespace WebPortal.Admin
             return dt;
         }
 
-        [WebMethod]
+        [WebMethod(EnableSession = true)]
         public static string GetExcelDataToBindGrid()
         {
-            System.Data.DataTable dt1 = ReadExcelFile(NewFileName);
+            System.Data.DataTable dt1 = HttpContext.Current.Session["OtherBillingImportData"] as System.Data.DataTable;
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;

@@ -986,18 +986,25 @@ function projectrights_bindprojectslist() {
 
     // Select All
     $('#projectrights_chkAll').off('change.projectRights').on('change.projectRights', function () {
-        $('.row-check').prop('checked', $(this).prop('checked'));
+        var table = $('#projectrights_tblProjectRights').DataTable();
+        $(table.rows().nodes()).find('.row-check').prop('checked', $(this).prop('checked'));
     });
 
     $('#projectrights_btnSaveRights').off('click.projectRights').on('click.projectRights', function () {
+        if ($(this).prop('disabled')) { return false; }
+        let empId = $('#projectrights_ddlUser').val();
+        if (!empId || $('#projectrights_tblProjectRights').data('employeeId') !== empId) {
+            toastr.error('Select an employee and load their rights before saving.');
+            return false;
+        }
 
         let selectedProjects = [];
 
-        $('.row-check:checked').each(function () {
+        let rightsTable = $('#projectrights_tblProjectRights').DataTable();
+        $(rightsTable.rows().nodes()).find('.row-check:checked').each(function () {
             selectedProjects.push($(this).val());
         });
 
-        let empId = $('#projectrights_ddlUser').val();
 
 
 
@@ -1012,11 +1019,13 @@ function projectrights_bindprojectslist() {
 
         // DISABLE BUTTON
         $('#projectrights_btnSaveRights').prop('disabled', true);
+        $('#projectrights_ddlUser, #projectrights_btnLoad').prop('disabled', true);
 
 
         $.ajax({
             type: "POST",
             url: "ProjectConfiguration.aspx/SaveProjectRights",
+            timeout: 60000,
 
             data: JSON.stringify({
                 EmployeeId: empId,
@@ -1027,10 +1036,6 @@ function projectrights_bindprojectslist() {
             dataType: "json",
 
             success: function (response) {
-                $('#projectrights_processingModal').modal('hide');
-
-                // ENABLE BUTTON
-                $('#projectrights_btnSaveRights').prop('disabled', false);
 
                 if (response.d === 'Success') {
                     toastr.success('Rights updated successfully.');
@@ -1041,16 +1046,22 @@ function projectrights_bindprojectslist() {
 
             },
 
-            error: function () {
-
-                // HIDE LOADER
-                $('#projectrights_processingModal').modal('hide');
-
-                // ENABLE BUTTON
+            error: function (xhr, status) {
+                toastr.error(status === 'timeout'
+                    ? 'The save request timed out. Load the rights again to check the saved state before retrying.'
+                    : 'Unable to save rights. Load the rights again before retrying.');
+            },
+            complete: function () {
+                var modal = $('#projectrights_processingModal');
+                var instance = modal.data('bs.modal');
+                // Bootstrap ignores hide during the opening animation.
+                if (instance && instance._isTransitioning && instance._isShown) {
+                    modal.one('shown.bs.modal.projectRightsSave', function () { modal.modal('hide'); });
+                } else {
+                    modal.modal('hide');
+                }
                 $('#projectrights_btnSaveRights').prop('disabled', false);
-
-                toastr.error('Error while saving rights.');
-
+                $('#projectrights_ddlUser, #projectrights_btnLoad').prop('disabled', false);
             }
         });
 
@@ -1060,6 +1071,7 @@ function projectrights_bindprojectslist() {
 }
 
 function projectrights_loadProjectRights(empId) {
+    $('#projectrights_tblProjectRights').removeData('employeeId');
 
     // DESTROY OLD DATATABLE
     if ($.fn.DataTable.isDataTable('#projectrights_tblProjectRights')) {
@@ -1118,6 +1130,7 @@ function projectrights_loadProjectRights(empId) {
             });
 
             $('#projectrights_tblProjectRights tbody').html(html);
+            $('#projectrights_tblProjectRights').data('employeeId', empId);
 
             // SHOW GRID
             $('#projectrights_rightsSection').slideDown();

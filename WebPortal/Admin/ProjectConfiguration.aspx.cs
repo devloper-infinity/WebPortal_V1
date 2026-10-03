@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -1013,73 +1013,89 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string SaveProjectRights(string EmployeeId, List<string> ProjectIds)
         {
-            string constr = SQLHelper.ConnectionString;
+            int employeeId;
+            int addedBy;
+            if (!int.TryParse(EmployeeId, out employeeId) || employeeId <= 0)
+                return "Please select a valid employee.";
+            if (!int.TryParse(HttpContext.Current.User.Identity.Name, out addedBy))
+                return "Your session has expired. Sign in and try again.";
 
-            using (SqlConnection con = new SqlConnection(constr))
+            var projectIds = new HashSet<int>();
+            foreach (string value in ProjectIds ?? new List<string>())
             {
-                con.Open();
-
-                SqlTransaction trans = con.BeginTransaction();
-
-                try
+                int projectId;
+                if (!int.TryParse(value, out projectId) || projectId <= 0)
+                    return "The selected projects are invalid. Load the rights again.";
+                projectIds.Add(projectId);
+            }
+            string projects = "<projects>" + string.Concat(projectIds.Select(id => "<id>" + id + "</id>")) + "</projects>";
+            try
+            {
+                using (var con = new SqlConnection(SQLHelper.ConnectionString))
                 {
-                    // DELETE OLD RIGHTS
-                    SqlCommand delCmd = new SqlCommand(@"
-                DELETE FROM UserProjectConfiguration
-                WHERE UserID = @EmployeeId
-            ", con, trans);
-
-                    delCmd.Parameters.AddWithValue("@EmployeeId", EmployeeId);
-
-                    delCmd.ExecuteNonQuery();
-
-                    // INSERT NEW RIGHTS IN ONE DATABASE CALL
-                    List<int> projectIds = (ProjectIds ?? new List<string>())
-                        .Select(id => Convert.ToInt32(id))
-                        .Distinct()
-                        .ToList();
-
-                    if (projectIds.Count > 0)
+                    con.Open();
+                    using (var trans = con.BeginTransaction())
                     {
-                        string values = string.Join(",", projectIds.Select((id, index) => "(@ProjectId" + index + ")"));
-                        SqlCommand insCmd = new SqlCommand(@"
-                    INSERT INTO UserProjectConfiguration
-                    (
-                        ProjectID,
-                        UserID,
-                        AddedBy,
-                        AddedDate
-                    )
-                    SELECT
-                        SelectedProjects.ProjectId,
-                        @EmployeeId,
-                        @AddedBy,
-                        GETDATE()
-                    FROM (VALUES " + values + @") SelectedProjects(ProjectId)
-                ", con, trans);
-
-                        insCmd.Parameters.AddWithValue("@EmployeeId", EmployeeId);
-                        insCmd.Parameters.AddWithValue("@AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
-
-                        for (int index = 0; index < projectIds.Count; index++)
-                            insCmd.Parameters.Add("@ProjectId" + index, SqlDbType.Int).Value = projectIds[index];
-
-                        insCmd.ExecuteNonQuery();
+                        using (var cmd = new SqlCommand(ProjectRightsSaveSql, con, trans))
+                        {
+                            cmd.CommandTimeout = 30;
+                            cmd.Parameters.Add("@EmployeeId", SqlDbType.Int).Value = employeeId;
+                            cmd.Parameters.Add("@AddedBy", SqlDbType.Int).Value = addedBy;
+                            cmd.Parameters.Add("@Projects", SqlDbType.Xml).Value = projects;
+                            cmd.ExecuteNonQuery();
+                        }
+                        trans.Commit();
                     }
-
-                    trans.Commit();
-
-                    return "Success";
                 }
-                catch (Exception ex)
-                {
-                    trans.Rollback();
-
-                    return ex.Message;
-                }
+                return "Success";
+            }
+            catch (SqlException ex)
+            {
+                System.Diagnostics.Trace.TraceError("Project rights save failed for employee {0}: {1}", employeeId, ex);
+                if (ex.Number == -2 || ex.Number == 1222 || ex.Number == 1205)
+                    return "The database is busy. No changes were saved. Please try again shortly.";
+                return "Unable to save project rights. Please load the rights again before retrying.";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Project rights save failed for employee {0}: {1}", employeeId, ex);
+                return "Unable to save project rights. Please load the rights again before retrying.";
             }
         }
 
+        private const string ProjectRightsSaveSql = @"
+            SET XACT_ABORT ON;
+            SET LOCK_TIMEOUT 15000;
+            CREATE TABLE #SelectedProjectRights (ProjectID int NOT NULL PRIMARY KEY);
+            INSERT INTO #SelectedProjectRights (ProjectID)
+            SELECT n.value('.', 'int') FROM @Projects.nodes('/projects/id') AS p(n);
+
+            -- Serialize saves for this employee and leave unchanged rights intact.
+            DECLARE @ExistingCount int;
+            SELECT @ExistingCount = COUNT(*) FROM dbo.UserProjectConfiguration WITH (UPDLOCK, HOLDLOCK)
+            WHERE UserID = @EmployeeId;
+            DELETE r FROM dbo.UserProjectConfiguration r
+            WHERE r.UserID = @EmployeeId
+              AND NOT EXISTS (SELECT 1 FROM #SelectedProjectRights s WHERE s.ProjectID = r.ProjectID);
+
+            -- The existing tracking-system trigger expects one inserted row at a time.
+            -- Execute the loop on the server, in one request and one transaction.
+            DECLARE @ProjectID int;
+            DECLARE selected_rights CURSOR LOCAL FAST_FORWARD FOR
+                SELECT s.ProjectID FROM #SelectedProjectRights s
+                WHERE NOT EXISTS (SELECT 1 FROM dbo.UserProjectConfiguration r
+                    WHERE r.UserID = @EmployeeId AND r.ProjectID = s.ProjectID);
+            OPEN selected_rights;
+            FETCH NEXT FROM selected_rights INTO @ProjectID;
+            WHILE @@FETCH_STATUS = 0
+            BEGIN
+                INSERT INTO dbo.UserProjectConfiguration (ProjectID, UserID, AddedBy, AddedDate)
+                VALUES (@ProjectID, @EmployeeId, @AddedBy, GETDATE());
+                FETCH NEXT FROM selected_rights INTO @ProjectID;
+            END;
+            CLOSE selected_rights;
+            DEALLOCATE selected_rights;
+            DROP TABLE #SelectedProjectRights;";
         #endregion
         #region Assign Special Target
         [WebMethod]

@@ -83,8 +83,21 @@ namespace WebPortal.Admin
                     created = true;
                     file.InputStream.CopyTo(output);
                 }
-                Context.Items["AgreementUploadPath"] = savedPath;
                 result = tab == "Version" ? SaveAgreement_Versions(version, versionDate, clauses) : SaveAgreement_Types(version, versionDate, types);
+                if (result == "Success")
+                {
+                    var document = new Hashtable
+                    {
+                        { "Type", tab }, { "Version", version }, { "Path", savedPath },
+                        { "AddedBy", int.Parse(User.Identity.Name) }
+                    };
+                    // One attachment call after all clauses/types have been processed.
+                    int documentId = new bllMaster().InsertAgreementVersionDocs(document);
+                    if (documentId > 0) Context.Items["AgreementUploadSaved"] = true;
+                    else result = "Details saved. This Version already has an uploaded file; the existing file has been kept.";
+                }
+                else if (string.IsNullOrEmpty(result))
+                    result = "No new details were saved. These records may already exist; review the history before retrying.";
             }
             catch (InvalidOperationException ex) { result = ex.Message; }
             catch (IOException) { result = "Unable to store the file. A file with this name may already exist today. Rename it and try again."; }
@@ -95,7 +108,7 @@ namespace WebPortal.Admin
             }
             finally
             {
-                // Keep a file if any row references it, even if a later row fails.
+                // Keep only the file whose single Version attachment was saved.
                 if (created && Context.Items["AgreementUploadSaved"] == null)
                 {
                     try { File.Delete(physicalPath); }
@@ -195,10 +208,7 @@ namespace WebPortal.Admin
                     htParam["ClauseNo"] = clause.ClauseNo;
                     htParam["Clause"] = clause.ClauseDetails;
                     htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-                    htParam["FilePath"] = HttpContext.Current.Items["AgreementUploadPath"];
                     ReturnValue = new bllMaster().InsertAgreementVersionHistory(htParam);
-                    if (ReturnValue > 0) HttpContext.Current.Items["AgreementUploadSaved"] = true;
-                    else return "This version and clause already exist. Use a new version or clause before uploading.";
                 }
 
                 if (ReturnValue > 0)
@@ -235,11 +245,8 @@ namespace WebPortal.Admin
                     htParam["AgreementType"] = item.TypeText;
                     htParam["MinServPeriod"] = item.MinServicePeriod;
                     htParam["AddedBy"] = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-                    htParam["FilePath"] = HttpContext.Current.Items["AgreementUploadPath"];
 
                     ReturnValue =  new bllMaster().InsertAgreementTypeHistory(htParam);
-                    if (ReturnValue > 0) HttpContext.Current.Items["AgreementUploadSaved"] = true;
-                    else return "This version and agreement type already exist. Use a new version or type before uploading.";
                 }
 
                 if (ReturnValue > 0)

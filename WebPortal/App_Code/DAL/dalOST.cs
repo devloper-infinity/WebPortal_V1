@@ -732,12 +732,27 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
+        public int SendBillingToAccount(string Project, string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SendBillingToAccount_WebPortal");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Project);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+
         public int InsertCostEmailDetails(Hashtable htDetails)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_Order_CostEmailDetails_Insert");
-            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input,htDetails["Project"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htDetails["Project"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htDetails["BillingPeriod"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input,  htDetails["OrderID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htDetails["OrderID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CostDiff", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["CostDiff"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmailNote", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htDetails["EmailNote"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AttachmentPath", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDetails["AttachmentPath"]);
@@ -1159,6 +1174,6 @@ namespace WebPortal.App_Code.DAL
             return result;
         }
 
-     
+
     }
 }

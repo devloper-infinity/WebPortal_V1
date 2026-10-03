@@ -485,32 +485,43 @@
             document.getElementById('otherBilling_attachment').addEventListener('change', getFileName);
         }
 
+        var otherBillingUploadPromise = null;
+
         const getFileName = (event) => {
-            const files = event.target.files;
-            var file = files[0];
-            document.getElementById("file_otherBilling").value = files[0].name;
-
+            const file = event.target.files[0];
+            if (!file) {
+                otherBillingUploadPromise = null;
+                return;
+            }
+            document.getElementById("file_otherBilling").value = file.name;
             const fd = new FormData();
-
-            // add all selected files
             fd.append(event.target.name, file, file.name);
-            // create the request
-            const xhr = new XMLHttpRequest();
 
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    // we done!
-                }
-            };
-            var url = window.location.href;
-            // path to server would be where you'd normally post the form to
-            xhr.open('POST', url, true);
-            xhr.send(fd);
+            // Import waits for the server to acknowledge this upload.
+            otherBillingUploadPromise = new Promise(function (resolve) {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function () {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        resolve(xhr.status >= 200 && xhr.status < 300 && result.success
+                            ? { success: true }
+                            : { success: false, message: result.message || "The server could not receive the Excel file." });
+                    } catch (error) {
+                        resolve({ success: false, message: "The upload failed. Please check your connection and sign in again if your session has expired." });
+                    }
+                };
+                xhr.onerror = xhr.ontimeout = xhr.onabort = function () {
+                    resolve({ success: false, message: "The upload did not complete. Please select the file again." });
+                };
+                xhr.open('POST', window.location.pathname, true);
+                xhr.timeout = 600000;
+                xhr.send(fd);
+            });
             document.getElementById("dropzone").classList.add("dz-max-files-reached");
             document.getElementById("conentdiv").style.display = '';
-            document.getElementById("otherbillingfilesdiv").innerHTML = '<i class="fas fa-file-excel"></i> ' + file.name;
+            const preview = document.getElementById("otherbillingfilesdiv");
+            preview.textContent = file.name;
         }
-
 
 
         $(document).on("dragover", "#otherBilling_uploadArea", function (e) {

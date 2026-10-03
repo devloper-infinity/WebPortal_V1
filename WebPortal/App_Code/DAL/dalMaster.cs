@@ -1,4 +1,4 @@
-﻿//using DocumentFormat.OpenXml.Office.Word;
+//using DocumentFormat.OpenXml.Office.Word;
 //using DocumentFormat.OpenXml.VariantTypes;
 //using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentFormat.OpenXml.Bibliography;
@@ -5044,18 +5044,54 @@ namespace WebPortal.App_Code.DAL
 
         public int InsertAgreementVersionDocs(Hashtable htParam)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAgreementVersionDocs");
-            SQLHelper.AddParamToSQLCmd(cmd, "@Type", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["Type"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ChangeID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ChangeID"]);
-            cmd.Parameters.Add("@Path", SqlDbType.NVarChar, -1).Value = htParam["Path"];
-            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd(cmd);
-
-            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
-            return ReturnValue;
+            using (var connection = new SqlConnection(SQLHelper.ConnectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction(IsolationLevel.Serializable))
+                {
+                    int result = InsertAgreementVersionDocument(htParam, connection, transaction);
+                    transaction.Commit();
+                    return result;
+                }
+            }
         }
 
+        private int InsertAgreementVersionDocument(Hashtable values, SqlConnection connection, SqlTransaction transaction)
+        {
+            string type = Convert.ToString(values["Type"]);
+            if (type != "Version" && type != "Type") throw new InvalidOperationException("Invalid agreement history type.");
+            string table = type == "Version" ? "AgreementVersionHistory" : "AgreementTypeHistory";
+            string key = type == "Version" ? "AgrChangeID" : "AgreementTypeID";
+            // The existing procedure keys attachments by ChangeID. Use the first history
+            // row as the Version anchor, and check every row for older attachments.
+            using (var anchor = new SqlCommand("SELECT TOP (1) " + key + " FROM dbo." + table +
+                " WITH (UPDLOCK, HOLDLOCK) WHERE Version = @Version ORDER BY " + key, connection, transaction))
+            {
+                SQLHelper.AddParamToSQLCmd(anchor, "@Version", SqlDbType.NVarChar, 4000, ParameterDirection.Input, values["Version"]);
+                object changeId = anchor.ExecuteScalar();
+                if (changeId == null) throw new InvalidOperationException("No agreement history exists for this Version.");
+                using (var existing = new SqlCommand("SELECT TOP (1) d.AgrVersionDocID FROM dbo.AgreementVersionDocs d WITH (UPDLOCK, HOLDLOCK) " +
+                    "INNER JOIN dbo." + table + " h ON h." + key + " = d.ChangeID WHERE d.[Type] = @Type AND h.Version = @Version", connection, transaction))
+                {
+                    existing.Parameters.Add("@Type", SqlDbType.NVarChar, 50).Value = type;
+                    existing.Parameters.Add("@Version", SqlDbType.NVarChar, 4000).Value = anchor.Parameters["@Version"].Value;
+                    if (existing.ExecuteScalar() != null) return -1;
+                }
+                using (var document = new SqlCommand("usp_InsertAgreementVersionDocs", connection, transaction))
+                {
+                    document.CommandType = CommandType.StoredProcedure;
+                    document.Parameters.Add("@Type", SqlDbType.NVarChar, 50).Value = type;
+                    document.Parameters.Add("@ChangeID", SqlDbType.BigInt).Value = changeId;
+                    document.Parameters.Add("@Path", SqlDbType.NVarChar, -1).Value = values["Path"];
+                    document.Parameters.Add("@AddedBy", SqlDbType.BigInt).Value = values["AddedBy"];
+                    document.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.ReturnValue;
+                    document.ExecuteNonQuery();
+                    int result = Convert.ToInt32(document.Parameters["@ReturnValue"].Value);
+                    if (result <= 0) throw new InvalidOperationException("The agreement attachment could not be saved.");
+                    return result;
+                }
+            }
+        }
 
         public int InsertAgreementVersionHistory(Hashtable htParam)
         {
@@ -5068,7 +5104,8 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Clause", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Clause"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            return ExecuteAgreementHistoryInsert(cmd, htParam, "Version");
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
 
 
@@ -5081,43 +5118,8 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@MinServPeriod", System.Data.SqlDbType.NVarChar, 4000, System.Data.ParameterDirection.Input, htParam["MinServPeriod"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            return ExecuteAgreementHistoryInsert(cmd, htParam, "Type");
-        }
-
-        private int ExecuteAgreementHistoryInsert(SqlCommand cmd, Hashtable values, string type)
-        {
-            // Save the history row and its attachment together; propagate SQL failures.
-            using (cmd)
-            using (var connection = new SqlConnection(SQLHelper.ConnectionString))
-            {
-                connection.Open();
-                using (var transaction = connection.BeginTransaction())
-                {
-                    cmd.Connection = connection;
-                    cmd.Transaction = transaction;
-                    cmd.ExecuteNonQuery();
-                    int changeId = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
-                    string path = Convert.ToString(values["FilePath"]);
-                    if (changeId > 0 && !string.IsNullOrWhiteSpace(path))
-                    {
-                        using (var document = new SqlCommand("usp_InsertAgreementVersionDocs", connection, transaction))
-                        {
-                            document.CommandType = CommandType.StoredProcedure;
-                            document.Parameters.Add("@Type", SqlDbType.NVarChar, 50).Value = type;
-                            document.Parameters.Add("@ChangeID", SqlDbType.BigInt).Value = changeId;
-                            // Preserve the exact filename, including apostrophes and punctuation.
-                            document.Parameters.Add("@Path", SqlDbType.NVarChar, -1).Value = path;
-                            document.Parameters.Add("@AddedBy", SqlDbType.BigInt).Value = values["AddedBy"];
-                            document.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.ReturnValue;
-                            document.ExecuteNonQuery();
-                            if (Convert.ToInt32(document.Parameters["@ReturnValue"].Value) <= 0)
-                                throw new InvalidOperationException("The agreement attachment could not be saved.");
-                        }
-                    }
-                    transaction.Commit();
-                    return changeId;
-                }
-            }
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
         }
 
         private DataTable AddAgreementDocumentPaths(DataTable history, string type, string idColumn)
@@ -5125,19 +5127,29 @@ namespace WebPortal.App_Code.DAL
             if (history == null) return null;
             if (!history.Columns.Contains("FilePath")) history.Columns.Add("FilePath", typeof(string));
             using (var connection = new SqlConnection(SQLHelper.ConnectionString))
-            using (var cmd = new SqlCommand("SELECT ChangeID, [Path] FROM dbo.AgreementVersionDocs WHERE [Type] = @Type ORDER BY AgrVersionDocID", connection))
+            using (var cmd = new SqlCommand("SELECT h.Version, d.ChangeID, d.[Path] FROM dbo.AgreementVersionDocs d INNER JOIN dbo." +
+                (type == "Version" ? "AgreementVersionHistory" : "AgreementTypeHistory") + " h ON h." + idColumn +
+                " = d.ChangeID WHERE d.[Type] = @Type ORDER BY d.AgrVersionDocID", connection))
             {
                 cmd.Parameters.Add("@Type", SqlDbType.NVarChar, 50).Value = type;
                 connection.Open();
-                var paths = new Dictionary<long, string>();
+                var paths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var existingRowPaths = new Dictionary<long, string>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    while (reader.Read()) paths[Convert.ToInt64(reader["ChangeID"])] = Convert.ToString(reader["Path"]);
+                    while (reader.Read())
+                    {
+                        string path = Convert.ToString(reader["Path"]);
+                        paths[Convert.ToString(reader["Version"]).TrimEnd()] = path;
+                        existingRowPaths[Convert.ToInt64(reader["ChangeID"])] = path;
+                    }
                 }
                 foreach (DataRow row in history.Rows)
                 {
                     string path;
-                    if (paths.TryGetValue(Convert.ToInt64(row[idColumn]), out path)) row["FilePath"] = path;
+                    // Preserve old per-row downloads; new clauses share the Version attachment.
+                    if (existingRowPaths.TryGetValue(Convert.ToInt64(row[idColumn]), out path) ||
+                        paths.TryGetValue(Convert.ToString(row["Version"]).TrimEnd(), out path)) row["FilePath"] = path;
                 }
             }
             return history;

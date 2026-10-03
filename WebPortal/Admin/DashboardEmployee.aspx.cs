@@ -31,9 +31,9 @@ namespace WebPortal.Admin
         [WebMethod]
         public static Dictionary<string, object> ShouldShowPerformanceAcknowledgement()
         {
-            //int day = DateTime.Today.Day;
-            //if (day > 4)
-            //    return null;
+            int day = DateTime.Today.Day;
+            if (day < 10)
+                return null;
 
             int employeeId = int.Parse(HttpContext.Current.User.Identity.Name);
             DataTable performance = new bllMaster().GetOverAllUserPerformance_UserPerfAck(employeeId);
@@ -44,10 +44,11 @@ namespace WebPortal.Admin
             var details = new Dictionary<string, object>();
             string[] fields = {
                 "PerformanceID", "Code", "CurrentDate", "EmployeeName", "DesignationName",
-                "DomainName", "Month", "Year", "F_Name", "CriticalErrorCnt", "NonCriticalErrorCnt",
-                "QualityPerc", "QualityRatingCatg", "AttendancePerc", "AttnRatingCatg",
+                "DomainName", "Month", "Year", "F_Name", "Critical", "NonCritical",
+                "QualityPerc", "QualRatingCatg", "AttPerc", "AttnRatingCatg",
                 "ProdPerc", "ProdRatingCatg"
             };
+
             foreach (string field in fields)
                 details[field] = record[field];
 

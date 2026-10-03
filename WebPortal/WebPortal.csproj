@@ -6248,9 +6248,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="AgreementVersions\" />
     <Folder Include="FestivalWishesImagesandVideos_Admin\" />
     <Folder Include="InvoiceDocs\" />
+    <Folder Include="OtherBillingDocuments\" />
     <Folder Include="OtherTaskDocuments\" />
     <Folder Include="ReportDocument\" />
     <Folder Include="SearchDocuments\" />

@@ -86,6 +86,14 @@ async function btnOtherBilling_Import() {
     const projectValue = ($("#otherBilling_Project").val() || "").trim();
     const selectedDealNo = ($("#otherBilling_DealNo").val() || "").trim();
     const newDealNo = ($("#otherBilling_NewDealNo").val() || "").trim();
+    if (!projectValue) {
+        await showValidationMessage("Project Required", "Please select a project.");
+        return false;
+    }
+    if (!otherBillingUploadPromise) {
+        await showValidationMessage("File Required", "Please select an Excel file before importing.");
+        return false;
+    }
     var deal_status = 'Existing';
 
     if (selectedDealNo === "AddNew") {
@@ -111,6 +119,16 @@ async function btnOtherBilling_Import() {
     document.getElementById("spntext").innerHTML = "Reading data from Excel...";
 
     $('#OtherBilling_Waitingpanel').modal('show');
+
+    const uploadResult = await otherBillingUploadPromise;
+    if (!uploadResult.success) {
+        $('#OtherBilling_Waitingpanel').modal('hide');
+        await showValidationMessage("Upload Failed", uploadResult.message);
+        return false;
+    }
+    if (PageMethods.set_timeout) {
+        PageMethods.set_timeout(650000);
+    }
 
     PageMethods.ImportExcel(projectValue, dealNo, deal_status,
 
@@ -149,6 +167,12 @@ async function btnOtherBilling_Import() {
                     text: "Deal already exists.",
                     confirmButtonText: "OK"
                 });
+            }
+            else if (resultCode === -2) {
+                Swal.fire({ icon: "warning", title: "Upload Session Expired", text: "Please select the Excel file again, then import it.", confirmButtonText: "OK" });
+            }
+            else if (resultCode === -4) {
+                Swal.fire({ icon: "error", title: "Import Failed", text: "The server could not read the Excel file. Please contact the administrator with the time of this attempt so they can check OtherBilling_Error.txt.", confirmButtonText: "OK" });
             }
             else if (resultCode === -1) {
 
@@ -516,6 +540,7 @@ function clearOtherBillingControls() {
     $('#otherBilling_NewDealNo').val('');
     $('#divNewDealNo').hide();
 
+    otherBillingUploadPromise = null;
     $('#otherBilling_attachment').val('');
     $('#otherbillingfilesdiv').empty();
     $('#conentdiv').attr('style', 'display: none !important;');

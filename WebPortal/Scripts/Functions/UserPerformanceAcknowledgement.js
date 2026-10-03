@@ -42,8 +42,8 @@ function renderUserPerformanceInfo(value) {
     document.getElementById("userPerfAck_lblQCritical").innerHTML = '(<b>Critical : </b>' + value.Critical;
     document.getElementById("userPerfAck_lblQNonCritical").innerHTML = '<b>Non-Critical : </b>' + value.NonCritical + ')';
     document.getElementById("userPerfAck_lblQuality").innerHTML = '</br>' + value.QualityPerc;
-    document.getElementById("userPerfAck_lblQuaRatingCat").innerHTML = '</br>' + value.QualityRatingCatg;
-    document.getElementById("userPerfAck_lblAttendance").textContent = value.AttendancePerc;
+    document.getElementById("userPerfAck_lblQuaRatingCat").innerHTML = '</br>' + value.QualRatingCatg;
+    document.getElementById("userPerfAck_lblAttendance").textContent = value.AttPerc;
     document.getElementById("userPerfAck_lblAttRatingCat").textContent = value.AttnRatingCatg;
     document.getElementById("userPerfAck_lblProductivity").textContent = value.ProdPerc;
     document.getElementById("userPerfAck_lblPrRatingCat").textContent = value.ProdRatingCatg;

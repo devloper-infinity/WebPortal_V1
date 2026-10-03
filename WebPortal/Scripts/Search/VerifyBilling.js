@@ -684,7 +684,7 @@ function verifyBilling_addRemark(orderid, index) {
     var ddlprjNo = document.getElementById("VerifyOrdres_projectno");
     var prjNo = ddlprjNo.options[ddlprjNo.selectedIndex].text;
 
-    if (prjNo === "735" || prjNo === "547-002" || prjNo === "1017" || prjNo === "669" || prjNo === "591") {
+    if (prjNo === "735" || prjNo === "547-002" || prjNo === "1017" || prjNo === "669" || prjNo === "591" || prjNo === "380-001") {
         $('#costingDiffEmail_div').show();
     } else {
         $('#costingDiffEmail_div').hide();
@@ -714,7 +714,7 @@ function btnverfybilling_AddRemark() {
     var ddldateprd = document.getElementById("VerifyOrdres_dateperild");
     var dateprd = ddldateprd.options[ddldateprd.selectedIndex].text;
   
-    if (prjValue != 210) {
+    if (prjValue != 210 || prjValue != 74) {
         if (remark === "") {
 
             Swal.fire({
@@ -731,7 +731,7 @@ function btnverfybilling_AddRemark() {
 
     if (isAdditionalChecked) {
 
-        if (prjValue != 210) {
+        if (prjValue != 210 || prjValue != 74) {
             if (vrbil_costDiff === "" || vrbil_costDiff === null || parseFloat(vrbil_costDiff) <= 0) {
 
                 Swal.fire({

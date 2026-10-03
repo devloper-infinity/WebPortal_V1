@@ -362,6 +362,11 @@ namespace WebPortal.App_Code.BLL
             dalOst.DeleteCostEmailDetails(costEmailId, deletedBy);
         }
 
+        public int SendBillingToAccount(string Project, string FromDate, string ToDate)
+        {
+            return dalOst.SendBillingToAccount(Project, FromDate, ToDate);
+        }
+
         public int UpdateBillingRemark(int OrderID, string Remark, string Cost)
         {
             return dalOst.UpdateBillingRemark(OrderID, Remark, Cost);

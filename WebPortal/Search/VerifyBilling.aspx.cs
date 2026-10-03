@@ -461,6 +461,10 @@ namespace WebPortal.Search
         {
             int returnValue = 0;
 
+            //returnValue = new bllOST().SendBillingToAccount(ProjectNo, BillingPeriod.Split('~')[0], BillingPeriod.Split('~')[1]);
+
+            //if (returnValue > 0)
+            //{
             DataTable dt = new bllOST().GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
             DataTable summaryForEmail = new bllOST().GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
             DataTable costEmailDetails = new bllOST().GetCostEmailDetails(ProjectID, BillingPeriod);
@@ -475,7 +479,7 @@ namespace WebPortal.Search
             }
 
             returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
-
+            // }
             return returnValue;
         }
 
@@ -490,9 +494,9 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            //ToAddress = "b.shubhangi@infinity-data.com";
-            //CC = "b.shubhangi@infinity-data.com";
-            //Bcc = "b.shubhangi@infinity-data.com";
+            ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
+            CC = "b.shubhangi@infinity-data.com";
+            Bcc = "b.shubhangi@infinity-data.com";
 
             try
             {
@@ -615,6 +619,7 @@ namespace WebPortal.Search
         {
             MailMessage mail = null;
             SmtpClient client = null;
+
             try
             {
                 String Body = htmlBody.ToString();
