@@ -494,9 +494,9 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
-            CC = "b.shubhangi@infinity-data.com";
-            Bcc = "b.shubhangi@infinity-data.com";
+            //ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
+            //CC = "b.shubhangi@infinity-data.com";
+            //Bcc = "b.shubhangi@infinity-data.com";
 
             try
             {
