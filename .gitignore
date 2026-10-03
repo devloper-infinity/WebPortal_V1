@@ -421,6 +421,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/ProjectBillingDetails.aspx
 !/WebPortal/Admin/ProjectBillingDetails.aspx.cs
 !/WebPortal/Admin/ProjectBillingDetails.aspx.designer.cs
+!/WebPortal/Admin/ClientBillingEmailMaster.aspx
+!/WebPortal/Admin/ClientBillingEmailMaster.aspx.cs
+!/WebPortal/Admin/ClientBillingEmailMaster.aspx.designer.cs
 !/WebPortal/Templates/
 /WebPortal/Templates/*
 !/WebPortal/Templates/DashboardValidatorTemplate.xlsx
@@ -449,6 +452,8 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/usp_GetAllProjectsBillingDetails.sql
 !/WebPortal/DatabaseScripts/ProjectBillingParameterRemarks.sql
 !/WebPortal/DatabaseScripts/UnderwritingBillingReminder.sql
+!/WebPortal/DatabaseScripts/CommitmentBillingReminder.sql
+!/WebPortal/DatabaseScripts/ClientBillingEmailMaster.sql
 !/WebPortal/US/
 /WebPortal/US/*
 !/WebPortal/US/ProjectProcessLoanReport.aspx
@@ -518,3 +523,8 @@ FodyWeavers.xsd
 /WebPortal/AgreementVersions/*
 !/WebPortal/AgreementVersions/web.config
 !/WebPortal/DatabaseScripts/AgreementVersions_001_Attachments.sql
+!/WebPortal/DatabaseScripts/FTEClientAutoBilling.sql
+!/WebPortal/DatabaseScripts/CommitmentClientAutoBilling.sql
+!/WebPortal/Services/
+!/WebPortal/Services/FteClientAutoBillingService.cs
+!/IHMS.EmailService/CommitmentClientAutoBilling.cs

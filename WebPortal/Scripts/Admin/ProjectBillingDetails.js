@@ -17,6 +17,7 @@
         });
         $('#blankLoansBody').on('change', '.loan-select', syncSelectAll);
         $('#btnSaveBulkRemark').on('click', saveBulkRemarks);
+        $('#billingTabContent').on('click', '.export-project-data', exportProjectData);
         loadBillingDetails();
     });
 
@@ -47,7 +48,8 @@
                     return;
                 }
                 currentResult = result;
-                renderSummary(result.Summary || []);
+                if (result.BillingMode === 'FTE') $('#billingSummary').hide();
+                else renderSummary(result.Summary || []);
                 renderProjects(result.Projects);
             },
             error: function () { showMessage('Unable to fetch billing details.', true); },
@@ -56,6 +58,12 @@
     }
 
     function renderSummary(projects) {
+        if (isProjectOnlyMode()) {
+            renderProjectOnlySummary(projects);
+            return;
+        }
+        $('.summary-title-row > span:first').text('Billing Readiness Summary');
+        $('.summary-hint').text('Click a project to view deal-wise counts. Action-required counts open the affected loans.').show();
         var $container = $('#billingSummaryContent').empty();
         $.each(projects, function (index, project) {
             var $card = $('<div/>', { 'class': 'project-summary-card' });
@@ -83,6 +91,36 @@
             $details.append($table.append($body));
             $card.append($details);
             $container.append($card);
+        });
+        $('#billingSummary').show();
+    }
+
+    function isProjectOnlyMode() {
+        return currentResult && (currentResult.BillingMode === 'Commitment' || currentResult.BillingMode === 'Freight' || currentResult.BillingMode === 'Valuation');
+    }
+
+    function renderProjectOnlySummary(projects) {
+        var $container = $('#billingSummaryContent').empty();
+        $('.summary-title-row > span:first').text('Project-wise ' + currentResult.BillingMode + ' Summary');
+        $('.summary-hint').text(currentResult.BillingMode === 'Freight' ? 'On Hold excludes dispatched and cancelled record quantities.' : 'On Hold records do not have a Dispatched Date.').show();
+        $.each(projects, function (index, project) {
+            var rowClass = currentResult.BillingMode === 'Freight' ? 'freight-summary-row' : 'commitment-summary-row';
+            var $row = $('<div/>', { 'class': 'project-summary-row project-summary-main ' + rowClass });
+            $('<div/>', { 'class': 'commitment-project-name', text: project.ProjectName }).appendTo($row);
+            var metrics = [
+                ['Total', project.TotalLoans, 'total'],
+                ['Dispatched', project.DispatchedLoans, 'dispatched'],
+            ];
+            if (currentResult.BillingMode === 'Freight') metrics.push(['Cancelled', project.CancelledLoans || 0, 'cancelled']);
+            metrics.push(['On Hold', project.PendingLoans, 'onhold']);
+            $.each(metrics, function (_, item) {
+                var $cell = $('<div/>', { 'class': 'summary-metric' });
+                $('<span/>', { 'class': 'summary-metric-label', text: item[0] }).appendTo($cell);
+                createCountButton(item[1], item[2], project.ProjectID, '', project.ProjectName, index).appendTo($cell);
+                $row.append($cell);
+            });
+            $('<div/>', { 'class': 'summary-status-cell' }).append(statusBadge(project.Status)).appendTo($row);
+            $container.append($('<div/>', { 'class': 'project-summary-card' }).append($row));
         });
         $('#billingSummary').show();
     }
@@ -152,6 +190,10 @@
             if (count > 0) openLoanPopup('PendingLoans', $button.data('project-id'), String($button.data('deal') || ''), $button.data('project-name'), 'Pending Loans');
             return;
         }
+        if (category === 'onhold') {
+            if (count > 0) openLoanPopup('PendingLoans', $button.data('project-id'), '', $button.data('project-name'), 'On Hold - Dispatched Date Missing');
+            return;
+        }
         activateProjectTab(parseInt($button.data('project-index'), 10), String($button.data('deal') || ''));
     }
 
@@ -169,6 +211,20 @@
         var loans = $.grep((currentResult && currentResult[sourceName]) || [], function (loan) {
             return loan.ProjectID === projectId && (!dealNo || loan.DealNo === dealNo);
         });
+        var projectOnlyMode = isProjectOnlyMode();
+        if (projectOnlyMode) renderProjectOnlyPopup(projectId, loans);
+        else renderStandardLoanPopup(loans);
+        $('#blankBillingModalTitle').text(title);
+        $('#blankBillingModalContext').text(projectName + (projectOnlyMode ? ' • Project records' : (dealNo ? ' • Deal ' + dealNo : ' • All deals')));
+        $('#chkSelectAllLoans').prop('checked', false);
+        $('#txtBulkRemark').val('');
+        $('#remarkMessage').hide();
+        $('.bulk-remark-bar').toggle(!projectOnlyMode && !!dealNo);
+        $('#blankBillingModal').modal('show');
+    }
+
+    function renderStandardLoanPopup(loans) {
+        $('.blank-loans-table').removeClass('commitment-loans-table').find('thead').html('<tr><th>Select</th><th>Project</th><th>Deal #</th><th>Loan #</th><th>Dispatch Date</th><th>Blank Parameter(s)</th><th>Existing Remark</th><th>Remark</th><th>Action</th></tr>');
         var $body = $('#blankLoansBody').empty();
         $.each(loans, function (_, loan) {
             var $row = $('<tr/>').data('loan', loan);
@@ -187,13 +243,35 @@
             $('<td/>').append($('<button/>', { type: 'button', 'class': 'btn btn-sm btn-billing save-loan-remark', text: 'Save' })).appendTo($row);
             $body.append($row);
         });
-        $('#blankBillingModalTitle').text(title);
-        $('#blankBillingModalContext').text(projectName + (dealNo ? ' • Deal ' + dealNo : ' • All deals'));
-        $('#chkSelectAllLoans').prop('checked', false);
-        $('#txtBulkRemark').val('');
-        $('#remarkMessage').hide();
-        $('.bulk-remark-bar').toggle(!!dealNo);
-        $('#blankBillingModal').modal('show');
+    }
+
+    function renderProjectOnlyPopup(projectId, loans) {
+        var project = $.grep((currentResult && currentResult.Projects) || [], function (item) { return item.ProjectID === projectId; })[0];
+        var columns = project ? (project.Columns || []) : [];
+        var $table = $('.blank-loans-table').addClass('commitment-loans-table');
+        var $header = $('<tr/>');
+        $.each(columns, function (_, column) { $('<th/>').text(column).appendTo($header); });
+        $('<th/>').text('Existing Remark').appendTo($header);
+        $('<th/>').text('Remark').appendTo($header);
+        $('<th/>').text('Action').appendTo($header);
+        $table.find('thead').empty().append($header);
+
+        var $body = $('#blankLoansBody').empty();
+        $.each(loans, function (_, loan) {
+            var $row = $('<tr/>').data('loan', loan);
+            var missingName = $.trim(loan.BlankParameters || '').toLowerCase();
+            $.each(columns, function (_, column) {
+                var value = loan.RowValues && loan.RowValues[column] != null ? loan.RowValues[column] : '';
+                var isMissing = $.trim(column).toLowerCase() === missingName && !$.trim(String(value));
+                var $cell = $('<td/>', { text: value });
+                if (isMissing) $cell.addClass('missing-project-value').empty().append($('<span/>', { 'class': 'blank-parameter', text: 'Missing' }));
+                $cell.appendTo($row);
+            });
+            $('<td/>', { 'class': 'existing-remark', text: loan.Remark ? loan.Remark + (loan.HasValidRemark ? ' (Valid)' : ' (Condition changed)') : '—' }).appendTo($row);
+            $('<td/>').append($('<input/>', { type: 'text', 'class': 'form-control loan-remark', maxlength: 1000, value: loan.Remark || '' })).appendTo($row);
+            $('<td/>').append($('<button/>', { type: 'button', 'class': 'btn btn-sm btn-billing save-loan-remark', text: 'Save' })).appendTo($row);
+            $body.append($row);
+        });
     }
 
     function saveSingleRemark() {
@@ -252,8 +330,26 @@
                 'data-toggle': 'tab', 'aria-selected': active ? 'true' : 'false', text: project.ProjectName || ('Project ' + (index + 1))
             })).appendTo($tabs);
             var $table = $('<table/>', { id: 'billing-table-' + index, 'class': 'display nowrap table table-bordered table-sm billing-table' });
-            $('<div/>', { 'class': 'tab-pane fade billing-tab-pane' + (active ? ' show active' : ''), id: paneId, role: 'tabpanel' })
-                .append($('<div/>', { 'class': 'billing-table-wrap' }).append($table)).appendTo($content);
+            var $pane = $('<div/>', { 'class': 'tab-pane fade billing-tab-pane' + (active ? ' show active' : ''), id: paneId, role: 'tabpanel' });
+            if (currentResult && currentResult.BillingMode === 'FTE') {
+                var $projectSummary = $('<div/>', { 'class': 'fte-project-summary' });
+                $.each(project.SummaryItems || [], function (_, item) {
+                    $('<div/>', { 'class': 'fte-summary-item' })
+                        .append($('<span/>', { text: item.Label }))
+                        .append($('<strong/>', { text: item.Value }))
+                        .appendTo($projectSummary);
+                });
+                $pane.append($projectSummary);
+                if (project.ReportTitle) $pane.append($('<div/>', { 'class': 'fte-report-title', text: project.ReportTitle }));
+            }
+            var $toolbar = $('<div/>', { 'class': 'billing-table-toolbar' });
+            $('<button/>', {
+                type: 'button',
+                'class': 'btn btn-sm btn-billing export-project-data',
+                'data-project-index': index,
+                text: 'Export CSV'
+            }).appendTo($toolbar);
+            $pane.append($toolbar).append($('<div/>', { 'class': 'billing-table-wrap' }).append($table)).appendTo($content);
             var columns = $.map(project.Columns || [], function (name, columnIndex) {
                 return { title: name, data: columnIndex, render: $.fn.dataTable.render.text() };
             });
@@ -265,6 +361,50 @@
         });
         $('#billingResults').show();
         window.setTimeout(function () { $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust(); }, 0);
+    }
+
+    function exportProjectData() {
+        var projectIndex = parseInt($(this).data('project-index'), 10);
+        var project = currentResult && currentResult.Projects ? currentResult.Projects[projectIndex] : null;
+        var table = tables[projectIndex];
+        if (!project || !table) return;
+
+        var rows = table.rows({ search: 'applied' }).data().toArray();
+        if (!rows.length) {
+            window.alert('No filtered records are available to export.');
+            return;
+        }
+
+        var csv = [toCsvRow(project.Columns || [])];
+        $.each(rows, function (_, row) { csv.push(toCsvRow(row)); });
+        var blob = new Blob(['\ufeff' + csv.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+        var fileName = safeFileName(project.ProjectName || ('Project_' + (projectIndex + 1))) +
+            '_Billing_' + safeFileName($('#ddlMonth').val() + '-' + $('#ddlYear').val()) + '.csv';
+
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(blob, fileName);
+            return;
+        }
+        var url = window.URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 0);
+    }
+
+    function toCsvRow(values) {
+        return $.map(values || [], function (value) {
+            var text = value == null ? '' : String(value);
+            if (/^[=+\-@]/.test(text)) text = "'" + text;
+            return '"' + text.replace(/"/g, '""') + '"';
+        }).join(',');
+    }
+
+    function safeFileName(value) {
+        return String(value || '').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_');
     }
 
     function clearResults() {

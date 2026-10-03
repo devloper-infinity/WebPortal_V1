@@ -440,8 +440,8 @@
                 document.getElementById("spntext").innerHTML = "Please wait while system is working on excel validation . . . ";
                 var ddltype = document.getElementById("feedbackreport_base");
                 var type = ddltype.options[ddltype.selectedIndex].value;
-                // PageMethods.getWeeklyGraphicalView(type, feedbackweeklygraphical_OnSuccess, feedbackweeklygraphical_OnError);
-                ValidateExcelSheetInput();
+                PageMethods.getWeeklyGraphicalView(type, feedbackweeklygraphical_OnSuccess, feedbackweeklygraphical_OnError);
+                //ValidateExcelSheetInput();
                 //PageMethods.ValidateExcelSheet(type, validateexcel_OnSuccess, validateexcel_OnError);
             }
             return false;

@@ -13,6 +13,7 @@ using System.Web.Services;
 using System.Web.UI;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.DAL;
+using WebPortal.App_Code;
 
 namespace WebPortal.FTE
 {
@@ -168,7 +169,7 @@ namespace WebPortal.FTE
             }
         }
 
-        private static BillingReportResult BuildBillingReport(int projectID, string billingPeriod)
+        public static BillingReportResult BuildBillingReport(int projectID, string billingPeriod)
         {
             string normalizedPeriod = NormalizePeriod(billingPeriod);
             DataTable dt = GetBillingDetails(projectID, normalizedPeriod);
@@ -180,9 +181,60 @@ namespace WebPortal.FTE
                 ? BuildAverageFteBillingData(dt, projectID, normalizedPeriod)
                 : dt;
             result.Rows = DataTableToDictionaryList(displayData);
+            result.Columns = displayData == null
+                ? new List<string>()
+                : displayData.Columns.Cast<DataColumn>().Select(column => column.ColumnName).ToList();
             result.RecordCount = displayData == null ? 0 : displayData.Rows.Count;
             result.ReportTitle = IsAverageFteBillingProject(projectID) ? GetBillingMonthTitle(normalizedPeriod) : string.Empty;
+            result.SummaryItems = BuildSummaryItems(projectID, result.Summary);
             return result;
+        }
+
+        [WebMethod]
+        public static string SendMonthlyClientBilling(int ProjectID, int Month, int Year)
+        {
+            return SerializeObject(FteClientAutoBillingService.SendMonthlyBilling(Month, Year, ProjectID, GetCurrentEmployeeId()));
+        }
+
+        [WebMethod]
+        public static string SendMonthlyClientBillingForAllProjects(int Month, int Year)
+        {
+            return SerializeObject(FteClientAutoBillingService.SendAllMonthlyBilling(Month, Year, GetCurrentEmployeeId()));
+        }
+
+        private static List<FteBillingSummaryItem> BuildSummaryItems(int projectID, Dictionary<string, object> summary)
+        {
+            List<FteBillingSummaryItem> items = new List<FteBillingSummaryItem>();
+            AddSummaryItem(items, summary, "RecordCount", "Records");
+
+            if (projectID == 184 || projectID == 205)
+            {
+                AddSummaryItem(items, summary, "AverageBilledFTE", "Average Billed FTE");
+                AddSummaryItem(items, summary, "BillableHours", "Billable Hours");
+                AddSummaryItem(items, summary, "WorkingHours", "Working Hours");
+                AddSummaryItem(items, summary, "TotalFTEHours", "Total FTE Hours");
+            }
+            else if (projectID == 87)
+            {
+                AddSummaryItem(items, summary, "InvoiceCount", "# of Invoices");
+                AddSummaryItem(items, summary, "TimeMins", "Time Spent (Mins)");
+                AddSummaryItem(items, summary, "TimeHrs", "Time Spent (Hrs)");
+            }
+            else
+            {
+                AddSummaryItem(items, summary, "BillableHours", "Billable Hours");
+                AddSummaryItem(items, summary, "WorkingHours", "Working Hours");
+                AddSummaryItem(items, summary, "TotalFTEHours", "Total FTE Hours");
+            }
+
+            return items;
+        }
+
+        private static void AddSummaryItem(List<FteBillingSummaryItem> items, Dictionary<string, object> summary, string key, string label)
+        {
+            object value;
+            if (summary != null && summary.TryGetValue(key, out value) && !String.Equals(Convert.ToString(value), "-", StringComparison.Ordinal))
+                items.Add(new FteBillingSummaryItem { Label = label, Value = Convert.ToString(value, CultureInfo.InvariantCulture) });
         }
 
         private static bool IsAverageFteBillingProject(int projectID)
@@ -646,8 +698,12 @@ namespace WebPortal.FTE
                 }
 
                 SmtpClient client = new SmtpClient();
-                client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", GetPassword("ack"));
-                client.Host = "smtpcorp.netcore.co.in";
+                client.UseDefaultCredentials = false;
+                client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", GetPassword("ackdata"));
+                client.Host = "smtp.office365.com";
+                client.Port = 587;
+                client.EnableSsl = true;
+                System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
                 client.Send(mail);
             }
         }
@@ -872,10 +928,18 @@ namespace WebPortal.FTE
             public decimal Hours { get; set; }
         }
 
-        private class BillingReportResult
+        public sealed class FteBillingSummaryItem
+        {
+            public string Label { get; set; }
+            public string Value { get; set; }
+        }
+
+        public class BillingReportResult
         {
             public List<Dictionary<string, object>> Rows { get; set; }
+            public List<string> Columns { get; set; }
             public Dictionary<string, object> Summary { get; set; }
+            public List<FteBillingSummaryItem> SummaryItems { get; set; }
             public int RecordCount { get; set; }
             public string ReportTitle { get; set; }
         }

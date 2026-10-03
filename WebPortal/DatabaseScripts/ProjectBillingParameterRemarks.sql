@@ -73,7 +73,9 @@ BEGIN
         FROM dbo.Project P
         WHERE P.ProjectID=@ProjectID
           AND ((@EmployeeID=277 AND P.SubdomainID=19)
-            OR (@EmployeeID=6823 AND P.SubdomainID=15))
+            OR (@EmployeeID=6823 AND P.SubdomainID=15)
+            OR (@EmployeeID=255 AND EXISTS
+                (SELECT 1 FROM dbo.UserProjectConfiguration U WHERE U.UserID=@EmployeeID AND U.ProjectID=P.ProjectID)))
     )
     BEGIN
         RAISERROR('You are not authorized to update remarks for this project.',16,1);

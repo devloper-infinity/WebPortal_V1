@@ -30,7 +30,7 @@
     <Reference Include="netstandard"><HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\netstandard.dll</HintPath></Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs"/><Compile Include="UnderwritingBillingReminder.cs"/>
+    <Compile Include="Program.cs"/><Compile Include="UnderwritingBillingReminder.cs"/><Compile Include="UnderwritingClientBilling.cs"/><Compile Include="CommitmentClientAutoBilling.cs"/><Compile Include="ValuationClientAutoBilling.cs"/>
     <Compile Include="..\WebPortal\App_Code\UnderwritingBillingValidationService.cs"><Link>Shared\UnderwritingBillingValidationService.cs</Link></Compile>
     <None Include="App.config"/>
   </ItemGroup>

@@ -22,7 +22,51 @@ namespace IHMS.EmailService
         static readonly string TestRecipient = ConfigurationManager.AppSettings["TestRecipient"];
         static readonly bool EnableITEmailService = !String.Equals(ConfigurationManager.AppSettings["EnableITEmailService"], "false", StringComparison.OrdinalIgnoreCase);
         static readonly bool EnableUnderwritingBillingService = !String.Equals(ConfigurationManager.AppSettings["EnableUnderwritingBillingService"], "false", StringComparison.OrdinalIgnoreCase);
-        static void Main() { Console.CancelKeyPress += (s, e) => Environment.Exit(0); Run().GetAwaiter().GetResult(); }
+        static readonly bool EnableCommitmentBillingService = !String.Equals(ConfigurationManager.AppSettings["EnableCommitmentBillingService"], "false", StringComparison.OrdinalIgnoreCase);
+        static readonly bool EnableCommitmentClientAutoBillingService = String.Equals(ConfigurationManager.AppSettings["EnableCommitmentClientAutoBillingService"], "true", StringComparison.OrdinalIgnoreCase);
+        static readonly bool EnableValuationClientAutoBillingService = String.Equals(ConfigurationManager.AppSettings["EnableValuationClientAutoBillingService"], "true", StringComparison.OrdinalIgnoreCase);
+        static readonly bool EnableUnderwritingClientBillingService = String.Equals(ConfigurationManager.AppSettings["EnableUnderwritingClientBillingService"], "true", StringComparison.OrdinalIgnoreCase);
+        static void Main(string[] args)
+        {
+            Console.CancelKeyPress += (s, e) => Environment.Exit(0);
+            if (args != null && Array.Exists(args, value => String.Equals(value, "--underwriting-credit-billing-once", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("{0:u} Running one Underwriting Credit client billing cycle on user request...", DateTime.Now);
+                new UnderwritingClientBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunCreditNow(DateTime.Now);
+                return;
+            }
+            if (args != null && Array.Exists(args, value => String.Equals(value, "--underwriting-servicing-billing-once", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("{0:u} Running one Underwriting Servicing client billing cycle on user request...", DateTime.Now);
+                new UnderwritingClientBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunServicingNow(DateTime.Now);
+                return;
+            }
+            if (args != null && Array.Exists(args, value => String.Equals(value, "--underwriting-client-billing-once", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("{0:u} Running one Underwriting client billing cycle on user request...", DateTime.Now);
+                new UnderwritingClientBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunNow(DateTime.Now);
+                return;
+            }
+            if (args != null && Array.Exists(args, value => String.Equals(value, "--valuation-client-billing-once", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("{0:u} Running one Valuation client billing cycle on user request...", DateTime.Now);
+                new ValuationClientAutoBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunNow(DateTime.Now);
+                return;
+            }
+            if (args != null && Array.Exists(args, value => String.Equals(value, "--freight-client-billing-once", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("{0:u} Running one Freight client billing cycle on user request...", DateTime.Now);
+                new CommitmentClientAutoBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunFreightNow(DateTime.Now);
+                return;
+            }
+            if (args != null && Array.Exists(args, value => String.Equals(value, "--commitment-client-billing-once", StringComparison.OrdinalIgnoreCase)))
+            {
+                Console.WriteLine("{0:u} Running one Commitment/Freight client billing cycle on user request...", DateTime.Now);
+                new CommitmentClientAutoBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunNow(DateTime.Now);
+                return;
+            }
+            Run().GetAwaiter().GetResult();
+        }
         static async Task Run()
         {
             Directory.CreateDirectory(Root); for (; ; )
@@ -35,6 +79,28 @@ namespace IHMS.EmailService
                         string billingMailbox = ConfigurationManager.AppSettings["BillingReminderMailbox"];
                         if (String.IsNullOrWhiteSpace(billingMailbox)) throw new ConfigurationErrorsException("BillingReminderMailbox is required.");
                         new UnderwritingBillingReminder(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString, billingMailbox.Trim()).RunIfDue(DateTime.Now);
+                    }
+                    if (EnableCommitmentBillingService)
+                    {
+                        Console.WriteLine("{0:u} Checking Commitment billing reminders...", DateTime.Now);
+                        string billingMailbox = ConfigurationManager.AppSettings["BillingReminderMailbox"];
+                        if (String.IsNullOrWhiteSpace(billingMailbox)) throw new ConfigurationErrorsException("BillingReminderMailbox is required.");
+                        new UnderwritingBillingReminder(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString, billingMailbox.Trim()).RunCommitmentIfDue(DateTime.Now);
+                    }
+                    if (EnableCommitmentClientAutoBillingService)
+                    {
+                        Console.WriteLine("{0:u} Checking Commitment client auto billing...", DateTime.Now);
+                        new CommitmentClientAutoBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunIfDue(DateTime.Now);
+                    }
+                    if (EnableValuationClientAutoBillingService)
+                    {
+                        Console.WriteLine("{0:u} Checking Valuation client auto billing...", DateTime.Now);
+                        new ValuationClientAutoBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunIfDue(DateTime.Now);
+                    }
+                    if (EnableUnderwritingClientBillingService)
+                    {
+                        Console.WriteLine("{0:u} Checking Underwriting client billing...", DateTime.Now);
+                        new UnderwritingClientBilling(ConfigurationManager.ConnectionStrings["MainCon"].ConnectionString).RunIfDue(DateTime.Now);
                     }
                     if (EnableITEmailService)
                     {

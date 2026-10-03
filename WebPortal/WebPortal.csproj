@@ -150,11 +150,16 @@
     <Content Include="Admin\RNRFeedback.aspx" />
     <Content Include="Admin\PendingData.aspx" />
     <Content Include="Admin\ProjectBillingDetails.aspx" />
+    <Content Include="Admin\ClientBillingEmailMaster.aspx" />
     <Content Include="Content\ProjectBillingDetails.css" />
+    <Content Include="Helpdesk\ticket-details.css" />
+    <Content Include="Helpdesk\ticket-details.js" />
     <Content Include="Scripts\Admin\ProjectBillingDetails.js" />
     <Content Include="DatabaseScripts\usp_GetAllProjectsBillingDetails.sql" />
     <Content Include="DatabaseScripts\ProjectBillingParameterRemarks.sql" />
     <Content Include="DatabaseScripts\UnderwritingBillingReminder.sql" />
+    <Content Include="DatabaseScripts\CommitmentBillingReminder.sql" />
+    <Content Include="DatabaseScripts\ClientBillingEmailMaster.sql" />
     <Content Include="DatabaseScripts\LoanLevelHistory_001_ServerPaging.sql" />
     <Content Include="DatabaseScripts\PendingData_001_BlockingWorkflow.sql" />
     <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
@@ -3181,6 +3186,7 @@
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
     <Compile Include="App_Code\PendingDataRepository.cs" />
     <Compile Include="App_Code\UnderwritingBillingValidationService.cs" />
+    <Compile Include="Services\FteClientAutoBillingService.cs" />
     <Compile Include="App_Code\RnrSecurity.cs" />
     <Compile Include="Admin\RNRAdmin.aspx.cs">
       <DependentUpon>RNRAdmin.aspx</DependentUpon>
@@ -3293,6 +3299,13 @@
     </Compile>
     <Compile Include="Admin\ProjectEmailConfiguration.aspx.designer.cs">
       <DependentUpon>ProjectEmailConfiguration.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ClientBillingEmailMaster.aspx.cs">
+      <DependentUpon>ClientBillingEmailMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ClientBillingEmailMaster.aspx.designer.cs">
+      <DependentUpon>ClientBillingEmailMaster.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\ProjectHealthReport.aspx.cs">
       <DependentUpon>ProjectHealthReport.aspx</DependentUpon>
