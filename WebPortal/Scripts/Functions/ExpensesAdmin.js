@@ -436,7 +436,7 @@ function ExpensesAdminYearlybudgetSubmit() {
         }),
         success: function (response) {
             var resMsg = response.d;
-            if (resMsg === "Budget saved successfully!" || serverMessage === "Budget updated successfully!") {
+            if (resMsg === "Budget saved successfully!" || resMsg === "Budget updated successfully!") {
                 Swal.fire("Success", resMsg, "success").then((result) => {
                     if (result.isConfirmed) {
                         GetAdminExpensesYearlyBudget();

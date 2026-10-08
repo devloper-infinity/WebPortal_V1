@@ -7,7 +7,6 @@ using System.Web.SessionState;
 using System.Web.UI;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code;
-using InfinityERP.UnderwritingBilling;
 using WebPortal.App_Code.DAL;
 
 namespace WebPortal
@@ -56,53 +55,6 @@ namespace WebPortal
 
         protected void Application_AuthorizeRequest(object sender, EventArgs e)
         {
-            // Phase 1: the Underwriting billing gate applies only to employees 277 and 6823.
-            // All other employees must continue through the normal ERP login/navigation flow.
-            try
-            {
-                if (Context.User != null && Context.User.Identity.IsAuthenticated)
-                {
-                    int employeeId;
-                    string path = Context.Request.AppRelativeCurrentExecutionFilePath ?? String.Empty;
-                    string extension = VirtualPathUtility.GetExtension(path) ?? String.Empty;
-                    bool publicPath = path.StartsWith("~/Admin/PendingData.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      path.StartsWith("~/Admin/ProjectBillingDetails.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      path.Equals("~/SessionKeepAlive.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      path.Equals("~/Logout.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      path.Equals("~/LogoutNew.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      path.Equals("~/Login.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      path.Equals("~/LoginNew.aspx", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".css", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".js", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".gif", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".svg", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".woff", StringComparison.OrdinalIgnoreCase) ||
-                                      extension.Equals(".woff2", StringComparison.OrdinalIgnoreCase) ||
-                                      path.EndsWith("WebResource.axd", StringComparison.OrdinalIgnoreCase) ||
-                                      path.EndsWith("ScriptResource.axd", StringComparison.OrdinalIgnoreCase);
-                    if (!publicPath && Int32.TryParse(Context.User.Identity.Name, out employeeId) &&
-                        (employeeId == 277 || employeeId == 6823))
-                    {
-                        DateTime today = DateTime.Today;
-                        DateTime billingMonth = today.Day == 1 ? new DateTime(today.Year, today.Month, 1).AddMonths(-1) : new DateTime(today.Year, today.Month, 1);
-                        bool hasPending = new UnderwritingBillingValidationService(SQLHelper.ConnectionString)
-                            .HasBlockingPending(employeeId, billingMonth, today.AddDays(-1));
-                        if (hasPending)
-                        {
-                            if (Context.Request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase))
-                                Context.Response.Redirect("~/Admin/ProjectBillingDetails.aspx", false);
-                            else { Context.Response.StatusCode = 403; Context.Response.TrySkipIisCustomErrors = true; }
-                            Context.ApplicationInstance.CompleteRequest();
-                            return;
-                        }
-                    }
-                }
-            }
-            catch (Exception) { /* Billing validation must never make ERP login/navigation unavailable. */ }
-
             // Mandatory RNR feedback is enforced centrally so direct page/API URLs cannot bypass it.
             try
             {
