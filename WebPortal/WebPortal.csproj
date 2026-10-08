@@ -791,7 +791,6 @@
     <Content Include="IT\InvoiceVerification.aspx" />
     <Content Include="IT\InvoiceVerificationUpload.ashx" />
     <Content Include="DatabaseScripts\InvoiceVerification_001_MetadataAndDocuments.sql" />
-    <Content Include="DatabaseScripts\InvoiceVerification_002_BillingDate.sql" />
     <Content Include="Admin\LetterHeadManagement.aspx" />
     <Content Include="Admin\Log.aspx" />
     <Content Include="Admin\LogInDetailsOld.aspx" />
