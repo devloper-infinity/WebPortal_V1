@@ -387,6 +387,12 @@ FodyWeavers.xsd
 !/WebPortal/Accounts/BranchwiseSalaryAnalysis.aspx.designer.cs
 !/WebPortal/Admin/
 /WebPortal/Admin/*
+!/WebPortal/Admin/BillingChannelMaster.aspx
+!/WebPortal/Admin/BillingChannelMaster.aspx.cs
+!/WebPortal/Admin/BillingChannelMaster.aspx.designer.cs
+!/WebPortal/Admin/HRManpowerReport.aspx
+!/WebPortal/Admin/HRManpowerReport.aspx.cs
+!/WebPortal/Admin/HRManpowerReport.aspx.designer.cs
 !/WebPortal/Admin/ErrorTypeMaster.aspx
 !/WebPortal/Admin/ErrorTypeMaster.aspx.cs
 !/WebPortal/Admin/ProjectManagerMaster.aspx

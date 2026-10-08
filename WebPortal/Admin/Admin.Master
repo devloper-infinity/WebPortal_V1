@@ -433,6 +433,8 @@
                             <li class="nav-item dropdown" id="tabhrreport" runat="server">
                                 <a id="reports" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Reports</a>
                                 <ul aria-labelledby="reports" class="dropdown-menu border-0 shadow">
+                                    <li><a href="HRManpowerReport.aspx" class="dropdown-item">HR Manpower Report</a></li>
+                                    <li class="dropdown-divider"></li>
                                     <li><a href="NewJoineeReport.aspx" class="dropdown-item">New Joined Employees</a></li>
                                     <li><a href="AllResignedEmployees.aspx" class="dropdown-item">All Resigned Employees</a></li>
                                     <li><a href="DropoutEmployeeReport.aspx" class="dropdown-item">Dropout Employees</a></li>
@@ -640,6 +642,3 @@
 </form>
 </body>
 </html>
-
-
-

@@ -151,6 +151,7 @@
     <Content Include="Admin\PendingData.aspx" />
     <Content Include="Admin\ProjectBillingDetails.aspx" />
     <Content Include="Admin\ClientBillingEmailMaster.aspx" />
+    <Content Include="Admin\BillingChannelMaster.aspx" />
     <Content Include="Content\ProjectBillingDetails.css" />
     <Content Include="Helpdesk\ticket-details.css" />
     <Content Include="Helpdesk\ticket-details.js" />
@@ -316,6 +317,7 @@
     <Content Include="Admin\GroupMaster.aspx" />
     <Content Include="Admin\HRAnswerSheet.aspx" />
     <Content Include="Admin\HRDashboard.aspx" />
+    <Content Include="Admin\HRManpowerReport.aspx" />
     <Content Include="Admin\HRInduction.aspx" />
     <Content Include="Admin\CreateProfileOLD.aspx" />
     <Content Include="Admin\DashboardEmployeeOLD.aspx" />
@@ -3307,6 +3309,13 @@
     <Compile Include="Admin\ClientBillingEmailMaster.aspx.designer.cs">
       <DependentUpon>ClientBillingEmailMaster.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\BillingChannelMaster.aspx.cs">
+      <DependentUpon>BillingChannelMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\BillingChannelMaster.aspx.designer.cs">
+      <DependentUpon>BillingChannelMaster.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\ProjectHealthReport.aspx.cs">
       <DependentUpon>ProjectHealthReport.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -4349,6 +4358,13 @@
     </Compile>
     <Compile Include="Admin\HRDashboard.aspx.designer.cs">
       <DependentUpon>HRDashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\HRManpowerReport.aspx.cs">
+      <DependentUpon>HRManpowerReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HRManpowerReport.aspx.designer.cs">
+      <DependentUpon>HRManpowerReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\HRInduction.aspx.cs">
       <DependentUpon>HRInduction.aspx</DependentUpon>
