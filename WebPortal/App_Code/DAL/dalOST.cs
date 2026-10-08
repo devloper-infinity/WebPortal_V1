@@ -714,7 +714,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", SqlDbType.NVarChar, 50, ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", SqlDbType.NVarChar, 50, ParameterDirection.Input, ToDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@Type", SqlDbType.NVarChar, 12, ParameterDirection.Input, Type);
-            SQLHelper.AddParamToSQLCmd(cmd, "@UserId", SqlDbType.NVarChar, 50, ParameterDirection.Input, UserId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserId", SqlDbType.NVarChar, 50, ParameterDirection.Input, UserId); 
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
@@ -732,18 +732,14 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue; //-1=Exist, 0=Fail, >0=Success
         }
 
-        public int SendBillingToAccount(string Project, string FromDate, string ToDate)
+        public DataTable SendBillingToAccount(string Project, string FromDate, string ToDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SendBillingToAccount_WebPortal");
-            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Project);
-            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, FromDate);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, ToDate);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-            SQLHelper.ExecuteNonQueryCmd(cmd);
-
-            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
-            cmd.Dispose();
-            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification_Bill"); /*usp_SendBillingToAccount_WebPortal*/
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Project);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
         }
 
 
@@ -822,12 +818,13 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
-        public DataTable GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(string Project, string FromDate, string ToDate)
+        public DataTable GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(string Project, string FromDate, string ToDate, int AddedBy)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification_Bill");
             SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Project);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, AddedBy);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }

@@ -626,6 +626,7 @@ function verifyBilling_deleteAdditionalDetail(id, button) {
         }).always(function () { button.disabled = false; });
     });
 }
+
 function verifyBilling_viewRemark(orderId, trigger) {
     var context = $('#VerifyOrders_Search_Billing').data('remark-context');
     if (!context) return;
@@ -982,7 +983,7 @@ function VerifyOrdres_Verify() {
 
     const project = $("#VerifyOrdres_projectno option:selected").text().trim();
     const remark = $("#VerifyOrdres_Remark").val().trim();
-    var ddlprj_billPeriod = document.getElementById("VerifyOrdres_BillingCycle");
+    var ddlprj_billPeriod = document.getElementById("VerifyOrdres_dateperild");
     var billingPeriod = ddlprj_billPeriod.options[ddlprj_billPeriod.selectedIndex].text;
 
     if (!project) {
@@ -1032,7 +1033,7 @@ function VerifyOrdres_Verify() {
     });
 
     $.ajax({
-        url: "VerifyBilling.aspx/VerifyOrders",
+        url: "VerifyBilling.aspx/VerifyOrdres_Verify",
         type: "POST",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -1185,6 +1186,7 @@ function VerifyOrdres_SendToAccount() {
         data: JSON.stringify({
             ProjectID: parseInt(projectNo, 10),
             ProjectNo: projectName,
+            BillingCycle: billingCycle,
             BillingPeriod: billingPeriodText,
             FromDate: fromDate,
             ToDate: toDate,

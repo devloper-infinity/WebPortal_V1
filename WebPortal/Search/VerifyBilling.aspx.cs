@@ -321,7 +321,7 @@ namespace WebPortal.Search
         }
 
         [WebMethod]
-        public static int VerifyOrders(string OrderIDs, string Project, string Remark, string BillingPeriod)
+        public static int VerifyOrdres_Verify(string OrderIDs, string Project, string Remark, string BillingPeriod)
         {
             int returnValue = 0;
 
@@ -331,7 +331,7 @@ namespace WebPortal.Search
             {
                 string id = orderId.Trim();
 
-                returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark, BillingPeriod);
+                returnValue = new bllOST().VerifyOstOrdersForBilling(Convert.ToInt32(id), Project, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), Remark, BillingPeriod.Replace(" ", ""));
             }
 
             return returnValue;
@@ -457,29 +457,35 @@ namespace WebPortal.Search
 
 
         [WebMethod]
-        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingPeriod, string FromDate, string ToDate, string Remark, string ToAddress, string CC, string Bcc)
+        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark, string ToAddress, string CC, string Bcc)
         {
             int returnValue = 0;
+            string productionBillingDate = DateTime.Now.ToString("dd-MMM-yyyy");
 
-            //returnValue = new bllOST().SendBillingToAccount(ProjectNo, BillingPeriod.Split('~')[0], BillingPeriod.Split('~')[1]);
+            returnValue = new bllOST().UpdateBillingInBillingDB(ProjectID, BillingPeriod, BillingCycle, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), productionBillingDate, productionBillingDate, true, "", "Pending");
 
-            //if (returnValue > 0)
-            //{
-            DataTable dt = new bllOST().GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
-            DataTable summaryForEmail = new bllOST().GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
-            DataTable costEmailDetails = new bllOST().GetCostEmailDetails(ProjectID, BillingPeriod);
-            DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
+            DataTable dtCheck = new bllOST().GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim(), int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            DataTable dt_Address = new bllOST().ProjectEmailConfiguration(ProjectID);
-            if (dt_Address.Rows.Count > 0)
+            if (dtCheck.Rows.Count > 0)
             {
-                ToAddress = dt_Address.Rows[0]["ToAddress"].ToString();
-                CC = dt_Address.Rows[0]["CC"].ToString();
-                Bcc = dt_Address.Rows[0]["Bcc"].ToString();
-            }
+                DataTable dt = new bllOST().GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
+                DataTable summaryForEmail = new bllOST().GetSummaryProjectWise_Date(ProjectNo, FromDate, ToDate);
+                DataTable costEmailDetails = new bllOST().GetCostEmailDetails(ProjectID, BillingPeriod);
+                DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
 
-            returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
-            // }
+                DataTable dt_Address = new bllOST().ProjectEmailConfiguration(ProjectID);
+                if (dt_Address.Rows.Count > 0)
+                {
+                    ToAddress = dt_Address.Rows[0]["ToAddress"].ToString();
+                    CC = dt_Address.Rows[0]["CC"].ToString();
+                    Bcc = dt_Address.Rows[0]["Bcc"].ToString();
+                }
+
+               // returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
+
+                if (returnValue > 0)
+                    returnValue = new bllOST().HoldOrdersPending(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());
+            }
             return returnValue;
         }
 
@@ -494,9 +500,9 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            //ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
-            //CC = "b.shubhangi@infinity-data.com";
-            //Bcc = "b.shubhangi@infinity-data.com";
+            ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
+            CC = "b.shubhangi@infinity-data.com";
+            Bcc = "b.shubhangi@infinity-data.com";
 
             try
             {

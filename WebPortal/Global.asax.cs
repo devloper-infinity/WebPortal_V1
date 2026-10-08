@@ -22,7 +22,7 @@ namespace WebPortal
 
         protected void Session_Start(object sender, EventArgs e)
         {
-            
+
         }
 
         protected void Application_BeginRequest(object sender, EventArgs e)
@@ -137,8 +137,13 @@ namespace WebPortal
                 else { Context.Response.StatusCode = 403; Context.Response.TrySkipIisCustomErrors = true; Context.Response.End(); }
                 Context.ApplicationInstance.CompleteRequest();
             }
-            catch (System.Threading.ThreadAbortException) { }
-            catch (System.Data.SqlClient.SqlException ex) { if (ex.Number != 208) throw; /* schema is deployed separately; fail open until deployment */ }
+            catch (System.Threading.ThreadAbortException)
+            {
+            }
+            catch (System.Data.SqlClient.SqlException ex)
+            {
+                if (ex.Number != 208) throw; /* schema is deployed separately; fail open until deployment */
+            }
         }
 
         protected void Application_PreRequestHandlerExecute(object sender, EventArgs e)

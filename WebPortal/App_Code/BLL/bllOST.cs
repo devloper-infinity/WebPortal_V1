@@ -362,7 +362,7 @@ namespace WebPortal.App_Code.BLL
             dalOst.DeleteCostEmailDetails(costEmailId, deletedBy);
         }
 
-        public int SendBillingToAccount(string Project, string FromDate, string ToDate)
+        public DataTable SendBillingToAccount(string Project, string FromDate, string ToDate)
         {
             return dalOst.SendBillingToAccount(Project, FromDate, ToDate);
         }
@@ -372,9 +372,9 @@ namespace WebPortal.App_Code.BLL
             return dalOst.UpdateBillingRemark(OrderID, Remark, Cost);
         }
 
-        public DataTable GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(string Project, string FromDate, string ToDate)
+        public DataTable GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(string Project, string FromDate, string ToDate, int AddedBy)
         {
-            return dalOst.GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(Project, FromDate, ToDate);
+            return dalOst.GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(Project, FromDate, ToDate, AddedBy);
         }
 
 

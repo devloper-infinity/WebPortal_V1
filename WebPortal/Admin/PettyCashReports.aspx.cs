@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
-using System.Collections.Generic;
+using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Admin
 {
@@ -28,6 +29,11 @@ namespace WebPortal.Admin
             }
             return new JavaScriptSerializer().Serialize(rows);
         }
-        [WebMethod(EnableSession=true)] public static string GetReport(string fromDate,string toDate,string status){ DateTime? f=null,t=null; DateTime d; if(DateTime.TryParse(fromDate,out d)) f=d; if(DateTime.TryParse(toDate,out d)) t=d; return Json(new PettyCashBLL().GetReport(f,t,status)); }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetReport(string fromDate, string toDate, string status)
+        {
+            DateTime? f = null, t = null; DateTime d; if (DateTime.TryParse(fromDate, out d)) f = d; if (DateTime.TryParse(toDate, out d)) t = d; return Json(new bllMaster().GetReport(f, t, status));
+        }
     }
 }

@@ -44,30 +44,30 @@
             min-width: 0;
         }
 
-        .invoice-title .icon-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,.16);
-            font-size: 18px;
-        }
+            .invoice-title .icon-box {
+                width: 44px;
+                height: 44px;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255,255,255,.16);
+                font-size: 18px;
+            }
 
-        .invoice-title h1 {
-            margin: 0;
-            font-size: 22px;
-            line-height: 1.15;
-            font-weight: 800;
-            letter-spacing: 0;
-        }
+            .invoice-title h1 {
+                margin: 0;
+                font-size: 22px;
+                line-height: 1.15;
+                font-weight: 800;
+                letter-spacing: 0;
+            }
 
-        .invoice-title p {
-            margin: 4px 0 0;
-            color: rgba(255,255,255,.82);
-            font-size: 12px;
-        }
+            .invoice-title p {
+                margin: 4px 0 0;
+                color: rgba(255,255,255,.82);
+                font-size: 12px;
+            }
 
         .invoice-chip-row {
             display: flex;
@@ -113,24 +113,24 @@
             gap: 10px;
         }
 
-        .invoice-section-title i {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #e9f2ff;
-            color: var(--inv-blue);
-        }
+            .invoice-section-title i {
+                width: 34px;
+                height: 34px;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: #e9f2ff;
+                color: var(--inv-blue);
+            }
 
-        .invoice-section-title h2 {
-            margin: 0;
-            font-size: 16px;
-            line-height: 1.2;
-            font-weight: 800;
-            letter-spacing: 0;
-        }
+            .invoice-section-title h2 {
+                margin: 0;
+                font-size: 16px;
+                line-height: 1.2;
+                font-weight: 800;
+                letter-spacing: 0;
+            }
 
         .invoice-panel-body {
             padding: 16px;
@@ -144,27 +144,27 @@
             align-items: end;
         }
 
-        .invoice-form-grid.two-col {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+            .invoice-form-grid.two-col {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
 
         .invoice-field {
             min-width: 0;
         }
 
-        .invoice-field.full {
-            grid-column: 1 / -1;
-        }
+            .invoice-field.full {
+                grid-column: 1 / -1;
+            }
 
-        .invoice-field label {
-            display: block;
-            margin: 0 0 6px;
-            color: #526179;
-            font-size: 11px;
-            font-weight: 900 !important;
-            text-transform: uppercase;
-            border: 0 !important;
-        }
+            .invoice-field label {
+                display: block;
+                margin: 0 0 6px;
+                color: #526179;
+                font-size: 11px;
+                font-weight: 900 !important;
+                text-transform: uppercase;
+                border: 0 !important;
+            }
 
         .invoice-page .form-control,
         .invoice-modal .form-control {
@@ -215,10 +215,10 @@
             transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
         }
 
-        .btn-invoice:hover {
-            transform: translateY(-1px);
-            text-decoration: none;
-        }
+            .btn-invoice:hover {
+                transform: translateY(-1px);
+                text-decoration: none;
+            }
 
         .btn-invoice-primary {
             background: var(--inv-blue);
@@ -226,11 +226,11 @@
             box-shadow: 0 8px 18px rgba(29, 78, 216, .2);
         }
 
-        .btn-invoice-primary:hover,
-        .btn-invoice-primary:focus {
-            color: #fff;
-            background: #1e40af;
-        }
+            .btn-invoice-primary:hover,
+            .btn-invoice-primary:focus {
+                color: #fff;
+                background: #1e40af;
+            }
 
         .btn-invoice-soft {
             border-color: #cbd5e1;
@@ -238,17 +238,39 @@
             color: #20304a;
         }
 
-        .btn-invoice-soft:hover,
-        .btn-invoice-soft:focus {
-            color: var(--inv-teal);
-            border-color: #99f6e4;
-            background: #ecfeff;
-        }
+            .btn-invoice-soft:hover,
+            .btn-invoice-soft:focus {
+                color: var(--inv-teal);
+                border-color: #99f6e4;
+                background: #ecfeff;
+            }
 
         .invoice-table-shell {
             width: 100%;
             overflow: auto;
         }
+
+        .invoice-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--inv-border);
+        }
+
+        .invoice-tab {
+            padding: 9px 14px;
+            border: 0;
+            border-bottom: 3px solid transparent;
+            background: transparent;
+            color: var(--inv-muted);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+            .invoice-tab[aria-selected="true"] {
+                border-bottom-color: var(--inv-blue);
+                color: var(--inv-blue);
+            }
 
         #invtable,
         #inv_details {
@@ -256,41 +278,41 @@
             margin-bottom: 0 !important;
         }
 
-        .table.dataTable th,
-        #invtable thead th,
-        #inv_details thead th {
-            border-bottom: 1px solid var(--inv-border) !important;
-            background: #f8fafc !important;
-            color: #1d3557 !important;
-            font-size: 11px;
-            font-weight: 900;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
+            .table.dataTable th,
+            #invtable thead th,
+            #inv_details thead th {
+                border-bottom: 1px solid var(--inv-border) !important;
+                background: #f8fafc !important;
+                color: #1d3557 !important;
+                font-size: 11px;
+                font-weight: 900;
+                text-transform: uppercase;
+                white-space: nowrap;
+            }
 
-        .table.dataTable tr td,
-        #invtable tbody td,
-        #inv_details tbody td {
-            vertical-align: middle;
-            background: #fff !important;
-            color: #172033;
-            font-size: 12px;
-        }
+            .table.dataTable tr td,
+            #invtable tbody td,
+            #inv_details tbody td {
+                vertical-align: middle;
+                background: #fff !important;
+                color: #172033;
+                font-size: 12px;
+            }
 
-        #invtable input,
-        #invtable select,
-        #invtable textarea {
-            min-height: 32px;
-            border: 1px solid #cfd9e6;
-            border-radius: 6px;
-            padding: 4px 7px;
-            font-size: 12px;
-        }
+            #invtable input,
+            #invtable select,
+            #invtable textarea {
+                min-height: 32px;
+                border: 1px solid #cfd9e6;
+                border-radius: 6px;
+                padding: 4px 7px;
+                font-size: 12px;
+            }
 
-        #invtable textarea {
-            min-width: 160px;
-            min-height: 36px;
-        }
+            #invtable textarea {
+                min-width: 160px;
+                min-height: 36px;
+            }
 
         .dataTables_length,
         .dataTables_info {
@@ -337,9 +359,9 @@
             justify-content: center !important;
         }
 
-        #load1.invoice-loading-overlay.is-active {
-            display: flex !important;
-        }
+            #load1.invoice-loading-overlay.is-active {
+                display: flex !important;
+            }
 
         #load1 .invoice-loading-card {
             width: 230px;
@@ -352,20 +374,20 @@
             box-shadow: 0 24px 70px rgba(15, 23, 42, .30);
         }
 
-        #load1 .invoice-loading-card img {
-            display: block;
-            width: 68px;
-            height: 68px;
-            margin: 0 auto 10px;
-            object-fit: contain;
-        }
+            #load1 .invoice-loading-card img {
+                display: block;
+                width: 68px;
+                height: 68px;
+                margin: 0 auto 10px;
+                object-fit: contain;
+            }
 
-        #load1 .invoice-loading-card .invoice-loading-text {
-            margin-top: 8px;
-            color: #334155;
-            font-size: 13px;
-            font-weight: 900;
-        }
+            #load1 .invoice-loading-card .invoice-loading-text {
+                margin-top: 8px;
+                color: #334155;
+                font-size: 13px;
+                font-weight: 900;
+            }
 
 
 
@@ -387,15 +409,15 @@
             text-align: center !important;
         }
 
-        #load1.invoice-loading-overlay.is-active,
-        #load1.invoice-loading-overlay[style*="display: block"],
-        #load1.invoice-loading-overlay[style*="display:block"] {
-            display: flex !important;
-        }
+            #load1.invoice-loading-overlay.is-active,
+            #load1.invoice-loading-overlay[style*="display: block"],
+            #load1.invoice-loading-overlay[style*="display:block"] {
+                display: flex !important;
+            }
 
-        #load1.invoice-loading-overlay:not(.is-active):not([style*="display: block"]):not([style*="display:block"]) {
-            display: none !important;
-        }
+            #load1.invoice-loading-overlay:not(.is-active):not([style*="display: block"]):not([style*="display:block"]) {
+                display: none !important;
+            }
 
         #load1 .invoice-loading-card {
             position: fixed !important;
@@ -408,7 +430,7 @@
 
         /* DataTable usability: fixed header + sticky first 4 visible columns fallback. */
         .invoice-table-shell {
-           /* max-height: calc(100vh - 290px);*/
+            /* max-height: calc(100vh - 290px);*/
             overflow: auto !important;
             border: 1px solid var(--inv-border);
             border-radius: 8px;
@@ -426,112 +448,134 @@
         #invtable {
             border-collapse: separate !important;
             border-spacing: 0 !important;
-            min-width: 2450px;
+            min-width: 2820px;
         }
 
-        #invtable thead th {
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 60 !important;
-            background: #f8fafc;
-            box-shadow: inset 0 -1px 0 var(--inv-border);
-        }
+            #invtable thead th {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 60 !important;
+                background: #f8fafc;
+                box-shadow: inset 0 -1px 0 var(--inv-border);
+            }
 
-        #invtable thead th:nth-child(2),
-        #invtable tbody td:nth-child(2) {
-            position: sticky !important;
-            left: 0 !important;
-            min-width: 72px;
-            width: 72px;
-            z-index: 55 !important;
-            box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
-        }
+                #invtable thead th:nth-child(2),
+                #invtable tbody td:nth-child(2) {
+                    position: sticky !important;
+                    left: 0 !important;
+                    min-width: 72px;
+                    width: 72px;
+                    z-index: 55 !important;
+                    box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
+                }
 
-        #invtable thead th:nth-child(4),
-        #invtable tbody td:nth-child(4) {
-            position: sticky !important;
-            left: 72px !important;
-            min-width: 170px;
-            width: 170px;
-            z-index: 54 !important;
-            box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
-        }
+                #invtable thead th:nth-child(4),
+                #invtable tbody td:nth-child(4) {
+                    position: sticky !important;
+                    left: 72px !important;
+                    min-width: 170px;
+                    width: 170px;
+                    z-index: 54 !important;
+                    box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
+                }
 
-        #invtable thead th:nth-child(5),
-        #invtable tbody td:nth-child(5) {
-            position: sticky !important;
-            left: 242px !important;
-            min-width: 150px;
-            width: 150px;
-            z-index: 53 !important;
-            box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
-        }
+                #invtable thead th:nth-child(5),
+                #invtable tbody td:nth-child(5) {
+                    position: sticky !important;
+                    left: 242px !important;
+                    min-width: 150px;
+                    width: 150px;
+                    z-index: 53 !important;
+                    box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
+                }
 
-        #invtable thead th:nth-child(6),
-        #invtable tbody td:nth-child(6) {
-            position: sticky !important;
-            left: 392px !important;
-            min-width: 190px;
-            width: 190px;
-            z-index: 52 !important;
-            box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
-        }
+                #invtable thead th:nth-child(6),
+                #invtable tbody td:nth-child(6) {
+                    position: sticky !important;
+                    left: 392px !important;
+                    min-width: 190px;
+                    width: 190px;
+                    z-index: 52 !important;
+                    box-shadow: 2px 0 3px rgba(15, 23, 42, .08);
+                }
 
-        #invtable tbody td:nth-child(2),
-        #invtable tbody td:nth-child(4),
-        #invtable tbody td:nth-child(5),
-        #invtable tbody td:nth-child(6) {
-            background: #fff !important;
-        }
+            #invtable tbody td:nth-child(2),
+            #invtable tbody td:nth-child(4),
+            #invtable tbody td:nth-child(5),
+            #invtable tbody td:nth-child(6) {
+                background: #fff !important;
+            }
 
-        #invtable thead th:nth-child(2),
-        #invtable thead th:nth-child(4),
-        #invtable thead th:nth-child(5),
-        #invtable thead th:nth-child(6) {
-            background: #eef6ff !important;
-            z-index: 75 !important;
-        }
+            #invtable thead th:nth-child(2),
+            #invtable thead th:nth-child(4),
+            #invtable thead th:nth-child(5),
+            #invtable thead th:nth-child(6) {
+                background: #eef6ff !important;
+                z-index: 75 !important;
+            }
 
-        /* A sticky cell creates its own stacking context. Raise the cell, not
+            /* A sticky cell creates its own stacking context. Raise the cell, not
            just its menu, so later sticky rows cannot paint over the actions. */
-        #invtable tbody td:focus-within,
-        #invtable tbody td:has(.dropdown-menu.show) {
-            z-index: 76 !important;
-        }
+            #invtable tbody td:focus-within,
+            #invtable tbody td:has(.dropdown-menu.show) {
+                z-index: 76 !important;
+            }
 
-        /* Apply to cells too: sticky columns have their own opaque backgrounds. */
-        #invtable tbody tr.invoice-row-disabled > td {
-            background: #edf0f4 !important;
-            color: #64748b;
-        }
+            /* Apply to cells too: sticky columns have their own opaque backgrounds. */
+            #invtable tbody tr.invoice-row-disabled > td {
+                background: #edf0f4 !important;
+                color: #64748b;
+            }
 
-        #invtable tbody tr.invoice-row-disabled:hover > td {
-            background: #e4e9ef !important;
-        }
+            #invtable tbody tr.invoice-row-disabled:hover > td {
+                background: #e4e9ef !important;
+            }
 
-        #invtable tbody tr.invoice-row-disabled > td input,
-        #invtable tbody tr.invoice-row-disabled > td textarea,
-        #invtable tbody tr.invoice-row-disabled > td select {
-            background-color: #f3f5f7;
-            border-color: #cbd5e1;
-            color: #64748b;
-        }
+            #invtable tbody tr.invoice-row-disabled > td input,
+            #invtable tbody tr.invoice-row-disabled > td textarea,
+            #invtable tbody tr.invoice-row-disabled > td select {
+                background-color: #f3f5f7;
+                border-color: #cbd5e1;
+                color: #64748b;
+            }
 
-        #invtable tbody tr.invoice-row-disabled > td .btn-primary {
-            border-color: #94a3b8;
-            background: #94a3b8;
-        }
+            #invtable tbody tr.invoice-row-disabled > td .btn-primary {
+                border-color: #94a3b8;
+                background: #94a3b8;
+            }
 
-        #invtable th,
-        #invtable td {
-            white-space: nowrap !important;
-        }
+            #invtable th,
+            #invtable td {
+                white-space: nowrap !important;
+            }
 
-        #invtable td:nth-child(6),
-        #invtable td:nth-child(17),
-        #invtable td:nth-child(18) {
-            white-space: normal !important;
-        }
+                #invtable td:nth-child(4),
+                #invtable td:nth-child(5),
+                #invtable td:nth-child(6),
+                #invtable td:nth-child(7),
+                #invtable td:nth-child(8),
+                #invtable td:nth-child(9),
+                #invtable td:nth-child(10) {
+                    white-space: normal !important;
+                    overflow-wrap: anywhere;
+                }
+
+            #invtable .invoice-product-text {
+                display: block;
+                width: 220px;
+                max-width: 100%;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                line-height: 1.5;
+            }
+
+            #invtable th:nth-child(7), #invtable td:nth-child(7) {
+                min-width: 244px;
+            }
+
+            #invtable th:nth-child(8), #invtable td:nth-child(8) {
+                min-width: 170px;
+            }
 
         .invoice-modal.modal.fade .modal-dialog {
             transform: translate3d(0, 24px, 0) scale(.98);
@@ -573,15 +617,15 @@
             letter-spacing: 0;
         }
 
-        .invoice-modal .modal-title i {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,.16);
-        }
+            .invoice-modal .modal-title i {
+                width: 34px;
+                height: 34px;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255,255,255,.16);
+            }
 
         .invoice-modal .close {
             display: inline-flex;
@@ -648,9 +692,323 @@
                 padding: 14px;
             }
         }
-    </style>
-    <script> 
 
+        .invoice-tabs {
+            gap: 12px;
+            padding: 8px;
+            border: 1px solid #dbe4f0;
+            border-radius: 14px;
+            background: #f1f5f9;
+        }
+
+        .invoice-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 24px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+            .invoice-tab[aria-selected="true"] {
+                background: #1d4ed8;
+                color: #fff;
+                border-color: #1d4ed8;
+                box-shadow: 0 4px 12px #1d4ed825;
+            }
+
+        .invoice-tab-count {
+            padding: 2px 9px;
+            border-radius: 20px;
+            background: #ffffff80;
+            color: #132238;
+            font-size: 12px;
+        }
+
+        .invoice-tab:focus-visible, .invoice-search-clear:focus-visible {
+            outline: 3px solid #93c5fd;
+            outline-offset: 2px;
+        }
+
+        .invoice-table-shell:has(#invtable) {
+            overflow: hidden !important;
+            border-radius: 12px;
+        }
+
+        #invtable_wrapper {
+            width: 100%;
+        }
+
+        .invoice-grid-toolbar, .invoice-grid-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: #f8fafc;
+        }
+
+        .invoice-grid-toolbar {
+            border-bottom: 1px solid #dbe4f0;
+        }
+
+        .invoice-grid-footer {
+            border-top: 1px solid #dbe4f0;
+            justify-content: space-between;
+        }
+
+        #invtable_wrapper .dataTables_filter {
+            margin-left: auto;
+        }
+
+            #invtable_wrapper .dataTables_filter label, #invtable_wrapper .dataTables_length label {
+                margin: 0;
+            }
+
+            #invtable_wrapper .dataTables_filter input {
+                width: 250px;
+                padding: 9px 12px;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                background: white;
+            }
+
+        #invtable_wrapper .dataTables_length select {
+            padding: 7px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+        }
+
+        .invoice-search-clear {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #334155;
+        }
+
+        #invtable tbody td {
+            vertical-align: middle;
+            padding: 12px;
+        }
+
+        #invtable tbody tr:hover td {
+            background: #eff6ff !important;
+        }
+
+        #invtable tbody tr:focus-within td {
+            background: #f0f9ff !important;
+        }
+        /* Keep only Details pinned so variable-width text columns never overlap. */
+        #invtable tbody td:nth-child(4),
+        #invtable tbody td:nth-child(5),
+        #invtable tbody td:nth-child(6) {
+            position: static !important;
+            box-shadow: none;
+        }
+
+        #invtable thead th:nth-child(4),
+        #invtable thead th:nth-child(5),
+        #invtable thead th:nth-child(6) {
+            position: sticky !important;
+            top: 0 !important;
+            left: auto !important;
+            box-shadow: inset 0 -1px 0 var(--inv-border);
+        }
+
+        #invtable td:last-child, #invtable th:last-child {
+            white-space: nowrap;
+            min-width: 110px;
+        }
+
+        #invtable .invoice-upload {
+            position: relative;
+            min-width: 260px;
+            max-width: 300px;
+            border: 1px dashed #94a3b8;
+            border-radius: 9px;
+            background: #f8fafc;
+        }
+
+        #invtable .invoice-file-picker {
+            display: block;
+            position: relative;
+            margin: 0;
+            padding: 10px 36px 10px 12px;
+            cursor: pointer;
+        }
+
+            #invtable .invoice-file-picker input {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+        .invoice-file-name {
+            display: block;
+            max-width: 240px;
+            overflow-wrap: anywhere;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .invoice-file-picker small {
+            display: block;
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        #invtable .invoice-upload.has-file {
+            border-style: solid;
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        #invtable .invoice-upload.drag-over {
+            border-color: #2563eb;
+            background: #dbeafe;
+        }
+
+        #invtable .invoice-upload:focus-within {
+            outline: 2px solid #93c5fd;
+        }
+
+        #invtable .invoice-file-remove {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            border: 0;
+            background: transparent;
+            color: #b91c1c;
+            font-size: 22px;
+            padding: 0 5px;
+        }
+
+            #invtable .invoice-file-remove[hidden] {
+                display: none;
+            }
+
+        #invtable .invoice-row-disabled .invoice-upload {
+            opacity: .6;
+        }
+
+        @media (max-width: 640px) {
+            #invtable_wrapper .dataTables_filter {
+                margin-left: 0;
+            }
+
+                #invtable_wrapper .dataTables_filter input {
+                    width: 180px;
+                }
+
+            .invoice-tab {
+                padding: 12px;
+            }
+        }
+
+        #invtable .invoice-update-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 112px;
+            padding: 11px 17px;
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #4338ca);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.2;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, .2);
+            transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+
+            #invtable .invoice-update-btn i {
+                font-size: 11px;
+            }
+
+            #invtable .invoice-update-btn:hover:not(:disabled) {
+                background: linear-gradient(135deg, #1d4ed8, #3730a3);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 14px rgba(37, 99, 235, .28);
+            }
+
+            #invtable .invoice-update-btn:active:not(:disabled) {
+                transform: translateY(0);
+                box-shadow: 0 2px 5px rgba(37, 99, 235, .2);
+            }
+
+            #invtable .invoice-update-btn:focus-visible {
+                outline: 3px solid #93c5fd;
+                outline-offset: 3px;
+            }
+
+            #invtable .invoice-update-btn:disabled {
+                background: #e2e8f0;
+                border-color: #cbd5e1;
+                color: #64748b;
+                cursor: not-allowed;
+                box-shadow: none;
+            }
+
+        @media (prefers-reduced-motion: reduce) {
+            #invtable .invoice-update-btn {
+                transition: none;
+                transform: none !important;
+            }
+        }
+
+        #invtable th, #invtable td {
+            border-left: 0 !important;
+            border-right: 0 !important;
+        }
+
+        #invtable thead th:nth-child(2), #invtable tbody td:nth-child(2) {
+            box-shadow: none !important;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #invtable .invoice-details-cell .btn-group {
+            display: inline-flex;
+            vertical-align: middle;
+        }
+
+        #invtable .invoice-settings {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+            #invtable .invoice-settings i {
+                margin: 0;
+                font-size: 18px;
+                line-height: 1;
+            }
+
+            #invtable .invoice-settings:hover, #invtable .invoice-settings:focus-visible {
+                background: #dbeafe;
+                color: #1d4ed8;
+            }
+
+            #invtable .invoice-settings:focus-visible {
+                outline: 2px solid #93c5fd;
+                outline-offset: 2px;
+            }
+    </style>
+    <script>
         function showInvoiceLoader() {
             var loader = document.getElementById('load1');
             if (loader) {
@@ -669,43 +1027,11 @@
             }
         }
 
-        window.addEventListener('error', function () {
-            hideInvoiceLoader();
-        });
-
-        window.addEventListener('unhandledrejection', function () {
-            hideInvoiceLoader();
-        });
-
-        const getFileName = (event) => {
-            const files = event.target.files;
-            if (!files || !files.length) {
-                return;
-            }
-            var file = files[0];
-            document.getElementById("filep_inv").value = file.name;
-
-            const fd = new FormData();
-
-            // add all selected files
-            fd.append(event.target.name, file, file.name);
-            // create the request
-            const xhr = new XMLHttpRequest();
-
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    // we done!
-                }
-            };
-            var url = window.location.href;
-            // path to server would be where you'd normally post the form to
-            xhr.open('POST', url, true);
-            xhr.send(fd);
-        }
+        window.addEventListener('error', hideInvoiceLoader);
+        window.addEventListener('unhandledrejection', hideInvoiceLoader);
 
         $(document).ready(function () {
-            document.getElementById("lbl_LoginEmpID").innerHTML = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
-            //BindInvoiceGrid();
+            document.getElementById("lbl_LoginEmpID").textContent = <%= System.Web.HttpUtility.JavaScriptStringEncode(HttpContext.Current.User.Identity.Name, true) %>;
             BindYear_INV();
             BindInvoiceDomains();
             invver_bindusers();
@@ -714,9 +1040,8 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <input id="filep_inv" style="display: none;" />
     <label id="lbl_LoginEmpID" style="display: none;"></label>
-    <div class="invoice-loading-overlay" id="load1" aria-hidden="true" style="display:none;">
+    <div class="invoice-loading-overlay" id="load1" aria-hidden="true" style="display: none;">
         <div class="invoice-loading-card">
             <img src="../images/Load_1.gif" alt="Loading" />
             <div class="invoice-loading-text">One moment, please...</div>
@@ -804,6 +1129,10 @@
                     </div>
                 </div>
                 <div class="invoice-panel-body">
+                    <div class="invoice-tabs" role="tablist" aria-label="Invoice status">
+                        <button id="invtab_active" type="button" class="invoice-tab" role="tab" aria-selected="true" onclick="applyInvoiceStatusTab('active');"><i class="fas fa-check-circle" aria-hidden="true"></i>Active <span class="invoice-tab-count">0</span></button>
+                        <button id="invtab_deactivated" type="button" class="invoice-tab" role="tab" aria-selected="false" onclick="applyInvoiceStatusTab('deactivated');"><i class="fas fa-pause-circle" aria-hidden="true"></i>Deactivated <span class="invoice-tab-count">0</span></button>
+                    </div>
                     <div class="invoice-table-shell">
                         <table class="table table-striped table-hover" id="invtable">
                             <thead>
@@ -824,17 +1153,21 @@
                                     <th class="sort border-top text-center">Prev. Month Quantity</th>
                                     <th class="sort border-top text-center">Current Quantity</th>
                                     <th class="sort border-top text-center">Contractual Usage</th>
+                                    <th class="sort border-top">Effective From</th>
+                                    <th class="sort border-top">Effective To</th>
                                     <th class="sort border-top text-center">Amount Charged</th>
                                     <th class="sort border-top">Difference</th>
                                     <th class="sort border-top">Remark</th>
                                     <th class="sort border-top">Invoice #</th>
-                                    <th class="sort border-top">Invoice Attachment</th>
+                                    <th class="sort border-top">Billing Date</th>
+                                    <th class="sort border-top">File Upload</th>
                                     <th class="sort border-top">Utilization</th>
                                     <th class="sort border-top" style="display: none;">Provider</th>
                                     <th class="sort border-top" style="display: none;">Product</th>
-                                    <th class="sort border-top">Update</th>
                                     <th class="sort border-top">CC #</th>
                                     <th class="sort border-top" style="display: none;">HeaderStatus</th>
+                                    <th class="sort border-top">Update</th>
+                                    <th class="sort border-top">Download Attachment</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -874,6 +1207,7 @@
                                     <th class="sort border-top">Pseudoname</th>
                                     <th class="sort border-top">Branch</th>
                                     <th class="sort border-top">Domain</th>
+                                    <th class="sort border-top">Project</th>
                                     <th class="sort border-top">Current Status</th>
                                     <th class="sort border-top">Remove User</th>
                                 </tr>
@@ -1012,6 +1346,11 @@
                         <div class="invoice-field">
                             <label for="invdetails_NewProdContPerUnitCost">Contractual Per Unit Cost</label>
                             <input type="number" id="invdetails_NewProdContPerUnitCost" name="invdetails_NewProdContPerUnitCost" class="form-control" />
+                        </div>
+
+                        <div class="invoice-field">
+                            <label for="invdetails_ContractualUsage">Contractual Usage</label>
+                            <input type="number" id="invdetails_ContractualUsage" name="invdetails_ContractualUsage" class="form-control" />
                         </div>
                         <div class="invoice-field">
                             <label for="invdetails_NewProdCharAmt">Chargeable Amount</label>

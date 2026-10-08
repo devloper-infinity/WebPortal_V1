@@ -145,6 +145,14 @@
     <Content Include="Accounts\TotalSalaryReport.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\ExpensesAdmin.aspx" />
+    <Content Include="Admin\PettyCashCategoryMaster.aspx" />
+    <Content Include="Admin\PettyCashDashboard.aspx" />
+    <Content Include="Admin\PettyCashExpense.aspx" />
+    <Content Include="Admin\PettyCashLedger.aspx" />
+    <Content Include="Admin\PettyCashPayment.aspx" />
+    <Content Include="Admin\PettyCashReports.aspx" />
+    <Content Include="Admin\PettyCashRequest.aspx" />
+    <Content Include="Admin\PettyCashSettlement.aspx" />
     <Content Include="Admin\RNRAdmin.aspx" />
     <Content Include="Admin\RNRReport.aspx" />
     <Content Include="Admin\RNRFeedback.aspx" />
@@ -762,6 +770,7 @@
     <Content Include="IT\HostingMaster.aspx" />
     <Content Include="IT\AddAsset.aspx" />
     <Content Include="Scripts\Functions\AbscondingAndLeaveReport.js" />
+    <Content Include="Scripts\Functions\CCInvoice_OLD.js" />
     <Content Include="Scripts\Functions\ExpensesAdmin.js" />
     <Content Include="Scripts\Functions\FestivalMasterForAdmin.js" />
     <Content Include="Scripts\Functions\FestivalPopupForAdmin.js" />
@@ -776,6 +785,9 @@
     <Content Include="IT\Brand.aspx" />
     <Content Include="IT\DownloadFiles.aspx" />
     <Content Include="IT\InvoiceVerification.aspx" />
+    <Content Include="IT\InvoiceVerificationUpload.ashx" />
+    <Content Include="DatabaseScripts\InvoiceVerification_001_MetadataAndDocuments.sql" />
+    <Content Include="DatabaseScripts\InvoiceVerification_002_BillingDate.sql" />
     <Content Include="Admin\LetterHeadManagement.aspx" />
     <Content Include="Admin\Log.aspx" />
     <Content Include="Admin\LogInDetailsOld.aspx" />
@@ -910,6 +922,7 @@
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
     <Content Include="Scripts\Functions\LeavesReport.js" />
+    <Content Include="Scripts\Functions\PettyCash.js" />
     <Content Include="Scripts\Functions\ProjectEmailConfiguration.js" />
     <Content Include="Scripts\Search\VmOrders.js" />
     <Content Include="Scripts\Search\VMReport.js" />
@@ -3154,6 +3167,38 @@
       <DependentUpon>SalaryReport_DepartmentWise.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="Admin\PettyCashCategoryMaster.aspx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+      <DependentUpon>PettyCashCategoryMaster.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\PettyCashDashboard.aspx.cs">
+      <DependentUpon>PettyCashDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashExpense.aspx.cs">
+      <DependentUpon>PettyCashExpense.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashLedger.aspx.cs">
+      <DependentUpon>PettyCashLedger.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashPayment.aspx.cs">
+      <DependentUpon>PettyCashPayment.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashReports.aspx.cs">
+      <DependentUpon>PettyCashReports.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashRequest.aspx.cs">
+      <DependentUpon>PettyCashRequest.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashSettlement.aspx.cs">
+      <DependentUpon>PettyCashSettlement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Admin\ProjectBillingDetails.aspx.cs">
       <DependentUpon>ProjectBillingDetails.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5091,6 +5136,9 @@
     <Compile Include="IT\InvoiceVerification.aspx.cs">
       <DependentUpon>InvoiceVerification.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="IT\InvoiceVerificationUpload.ashx.cs">
+      <DependentUpon>InvoiceVerificationUpload.ashx</DependentUpon>
     </Compile>
     <Compile Include="IT\InvoiceVerification.aspx.designer.cs">
       <DependentUpon>InvoiceVerification.aspx</DependentUpon>

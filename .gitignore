@@ -437,6 +437,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/ServicingDetailedFeedbackReport_001_SelectedLoans.sql
 !/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql
 !/WebPortal/DatabaseScripts/LoanLevelHistory_001_ServerPaging.sql
+!/WebPortal/DatabaseScripts/InvoiceVerification_001_MetadataAndDocuments.sql
 !/WebPortal/DatabaseScripts/OLTracking_015_ProductivityAndCollectionComments.sql
 !/WebPortal/DatabaseScripts/OLTracking_016_ManagerOperationalDashboard.sql
 !/WebPortal/DatabaseScripts/OLTracking_017_ProcessSpecificEligibility.sql

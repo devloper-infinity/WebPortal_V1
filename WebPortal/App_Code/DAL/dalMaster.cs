@@ -6,6 +6,7 @@ using System;
 //using System.Activities.Statements;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -3230,6 +3231,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Month);
             SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Year);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            if (dt == null) throw new InvalidOperationException("Unable to load invoice data. Please retry.");
             string selectedDomain = (Domain ?? string.Empty).Trim();
             if (selectedDomain.Length > 0 && dt.Columns.Contains("DomainName"))
             {
@@ -3237,7 +3239,179 @@ namespace WebPortal.App_Code.DAL
                     string.Equals(Convert.ToString(row["DomainName"]).Trim(), selectedDomain, StringComparison.OrdinalIgnoreCase));
                 dt = matchingRows.Any() ? matchingRows.CopyToDataTable() : dt.Clone();
             }
+            DataTable details = GetInvoiceVerificationDetails(Month, Year);
+            if (details != null && dt.Columns.Contains("HeaderID"))
+            {
+                string[] extraColumns = { "ActiveFrom", "ActiveThrough", "BillingDate", "ProjectID", "ProjectName", "DocumentID", "DocumentName", "DocumentPath" };
+                foreach (string name in extraColumns)
+                    if (!dt.Columns.Contains(name)) dt.Columns.Add(name, name == "ProjectID" || name == "DocumentID" ? typeof(int) : typeof(string));
+                foreach (DataRow row in dt.Rows)
+                {
+                    int headerID;
+                    if (!int.TryParse(Convert.ToString(row["HeaderID"]), out headerID)) continue;
+                    DataRow detail = details.AsEnumerable().FirstOrDefault(item => Convert.ToInt32(item["HeaderID"]) == headerID);
+                    if (detail == null) continue;
+                    foreach (string name in extraColumns)
+                    {
+                        // The monthly invoice is the primary source for a saved billing date.
+                        if (name == "BillingDate" && row[name] != DBNull.Value && !string.IsNullOrWhiteSpace(Convert.ToString(row[name]))) continue;
+                        if (details.Columns.Contains(name) && detail[name] != DBNull.Value) row[name] = detail[name];
+                    }
+                }
+            }
+            // Read the actual header value: a null DisabledDate must not inherit
+            // a default date returned by the invoice-list stored procedure.
+            if (dt.Rows.Count > 0 && dt.Columns.Contains("HeaderID"))
+            {
+                SqlCommand disabledDateCommand = SQLHelper.GetCommand(CommandType.Text,
+                    "SELECT HeaderID, DisabledDate FROM dbo.CCInvoiceHeaders");
+                DataTable disabledDates = SQLHelper.ExecuteDataTableCmd(disabledDateCommand);
+                if (disabledDates == null) throw new InvalidOperationException("Unable to read invoice disabled dates. Please retry.");
+                Dictionary<int, object> datesByHeader = disabledDates.AsEnumerable().ToDictionary(
+                    item => Convert.ToInt32(item["HeaderID"]), item => item["DisabledDate"]);
+                if (!dt.Columns.Contains("DisabledDate")) dt.Columns.Add("DisabledDate", disabledDates.Columns["DisabledDate"].DataType);
+                dt.Columns["DisabledDate"].AllowDBNull = true;
+                foreach (DataRow invoice in dt.Rows)
+                {
+                    int headerID;
+                    object disabledDate;
+                    invoice["DisabledDate"] = int.TryParse(Convert.ToString(invoice["HeaderID"]), out headerID) && datesByHeader.TryGetValue(headerID, out disabledDate)
+                        ? disabledDate : DBNull.Value;
+                }
+            }
             return dt;
+        }
+
+        public DataTable GetInvoiceVerificationDetails(string month, string year)
+        {
+            const string sql = @"
+SELECT d.HeaderID,
+       CASE WHEN ISDATE(h.EffectiveDate) = 1
+            THEN CONVERT(char(10), CONVERT(datetime, h.EffectiveDate), 23)
+            ELSE NULL END AS ActiveFrom,
+       CONVERT(char(10), d.ActiveThrough, 23) AS ActiveThrough,
+       CONVERT(char(10), billing.BillingDate, 23) AS BillingDate,
+       d.ProjectID, ISNULL(p.ProjectName, '') AS ProjectName,
+       doc.DocumentID, ISNULL(doc.OriginalFileName, '') AS DocumentName,
+       ISNULL(doc.StoredPath, '') AS DocumentPath
+FROM dbo.CCInvoiceVerificationDetails d
+INNER JOIN dbo.CCInvoiceHeaders h ON h.HeaderID=d.HeaderID
+LEFT JOIN dbo.CCInvoiceBillingDates billing ON billing.HeaderID=d.HeaderID AND billing.InvoiceMonth=@Month AND billing.InvoiceYear=@Year
+LEFT JOIN dbo.Project p ON p.ProjectID=d.ProjectID
+OUTER APPLY (SELECT TOP (1) x.DocumentID,x.OriginalFileName,x.StoredPath
+             FROM dbo.CCInvoiceDocuments x WHERE x.HeaderID=d.HeaderID
+             ORDER BY x.UploadedOn DESC,x.DocumentID DESC) doc;";
+            SqlCommand command = SQLHelper.GetCommand(CommandType.Text, sql);
+            SQLHelper.AddParamToSQLCmd(command, "@Month", SqlDbType.NVarChar, 100, ParameterDirection.Input, month);
+            SQLHelper.AddParamToSQLCmd(command, "@Year", SqlDbType.NVarChar, 100, ParameterDirection.Input, year);
+            return SQLHelper.ExecuteDataTableCmd(command);
+        }
+
+        public string GetInvoiceHeaderName(int headerID)
+        {
+            SqlCommand command = SQLHelper.GetCommand(CommandType.Text,
+                "SELECT Header FROM dbo.CCInvoiceHeaders WHERE HeaderID=@HeaderID");
+            SQLHelper.AddParamToSQLCmd(command, "@HeaderID", SqlDbType.Int, 0, ParameterDirection.Input, headerID);
+            object value = SQLHelper.ExecuteScalarCmd(command);
+            return value == null || value == DBNull.Value ? null : Convert.ToString(value);
+        }
+
+        public DataTable GetInvoiceDocument(int documentID)
+        {
+            SqlCommand command = SQLHelper.GetCommand(CommandType.Text,
+                "SELECT DocumentID,OriginalFileName,StoredFileName,StoredPath FROM dbo.CCInvoiceDocuments WHERE DocumentID=@DocumentID");
+            SQLHelper.AddParamToSQLCmd(command, "@DocumentID", SqlDbType.Int, 0, ParameterDirection.Input, documentID);
+            return SQLHelper.ExecuteDataTableCmd(command);
+        }
+
+        public int SaveCCInvoiceMonthlyData(Hashtable values)
+        {
+            int headerID = Convert.ToInt32(values["HeaderID"]);
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            {
+                connection.Open();
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        using (SqlCommand validate = new SqlCommand("SELECT COUNT(1) FROM dbo.Project WHERE ProjectID=@ProjectID", connection, transaction))
+                        {
+                            validate.Parameters.Add("@ProjectID", SqlDbType.Int).Value = values["ProjectID"];
+                            if (Convert.ToInt32(validate.ExecuteScalar()) == 0) throw new InvalidOperationException("Please select a valid project.");
+                        }
+                        using (SqlCommand updateEffectiveDate = new SqlCommand("UPDATE dbo.CCInvoiceHeaders SET EffectiveDate=CONVERT(varchar(10),@ActiveFrom,23) WHERE HeaderID=@HeaderID", connection, transaction))
+                        {
+                            updateEffectiveDate.Parameters.Add("@HeaderID", SqlDbType.Int).Value = headerID;
+                            updateEffectiveDate.Parameters.Add("@ActiveFrom", SqlDbType.Date).Value = values["ActiveFrom"];
+                            if (updateEffectiveDate.ExecuteNonQuery() != 1) throw new InvalidOperationException("Invoice was not found.");
+                        }
+
+                        using (SqlCommand command = new SqlCommand("usp_InsertInvoiceMonthlyData", connection, transaction))
+                        {
+                            command.CommandType = CommandType.StoredProcedure;
+                            command.Parameters.Add("@HeaderID", SqlDbType.Int).Value = headerID;
+                            command.Parameters.Add("@Month", SqlDbType.NVarChar, 100).Value = values["Month"];
+                            command.Parameters.Add("@Year", SqlDbType.NVarChar, 100).Value = values["Year"];
+                            command.Parameters.Add("@Remark", SqlDbType.NVarChar, 5000).Value = (object)values["Remark"] ?? DBNull.Value;
+                            command.Parameters.Add("@InvoiceNo", SqlDbType.NVarChar, 5000).Value = (object)values["InvoiceNo"] ?? DBNull.Value;
+                            command.Parameters.Add("@Attachment", SqlDbType.NVarChar, 5000).Value = (object)values["Attachment"] ?? DBNull.Value;
+                            command.Parameters.Add("@Difference", SqlDbType.NVarChar, 100).Value = (object)values["Difference"] ?? DBNull.Value;
+                            command.Parameters.Add("@Utilization", SqlDbType.NVarChar, 5000).Value = (object)values["Utilization"] ?? DBNull.Value;
+                            command.Parameters.Add("@InvoiceAmount", SqlDbType.NVarChar, 100).Value = (object)values["InvoiceAmount"] ?? DBNull.Value;
+                            command.Parameters.Add("@AddedBy", SqlDbType.Int).Value = values["AddedBy"];
+                            command.Parameters.Add("@CreditCardNo", SqlDbType.NVarChar, 100).Value = (object)values["CreditCardNo"] ?? DBNull.Value;
+                            SqlParameter result = command.Parameters.Add("@ReturnValue", SqlDbType.BigInt);
+                            result.Direction = ParameterDirection.ReturnValue;
+                            command.ExecuteNonQuery();
+                            int returnValue = Convert.ToInt32(result.Value);
+                            if (returnValue <= 0) { transaction.Rollback(); return returnValue; }
+                        }
+
+                        const string saveDetails = @"
+IF EXISTS (SELECT 1 FROM dbo.CCInvoiceVerificationDetails WITH (UPDLOCK,HOLDLOCK) WHERE HeaderID=@HeaderID)
+    UPDATE dbo.CCInvoiceVerificationDetails SET ActiveThrough=@ActiveThrough,ProjectID=@ProjectID,ModifiedBy=@UserID,ModifiedOn=GETDATE() WHERE HeaderID=@HeaderID;
+ELSE
+    INSERT dbo.CCInvoiceVerificationDetails(HeaderID,ActiveThrough,ProjectID,ModifiedBy,ModifiedOn) VALUES(@HeaderID,@ActiveThrough,@ProjectID,@UserID,GETDATE());";
+                        using (SqlCommand command = new SqlCommand(saveDetails, connection, transaction))
+                        {
+                            command.Parameters.Add("@HeaderID", SqlDbType.Int).Value = headerID;
+                            command.Parameters.Add("@ActiveThrough", SqlDbType.Date).Value = values["ActiveThrough"] == null ? (object)DBNull.Value : values["ActiveThrough"];
+                            command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = values["ProjectID"];
+                            command.Parameters.Add("@UserID", SqlDbType.Int).Value = values["AddedBy"];
+                            command.ExecuteNonQuery();
+                        }
+                        const string saveBillingDate = @"
+IF EXISTS (SELECT 1 FROM dbo.CCInvoiceBillingDates WITH (UPDLOCK,HOLDLOCK) WHERE HeaderID=@HeaderID AND InvoiceMonth=@Month AND InvoiceYear=@Year)
+    UPDATE dbo.CCInvoiceBillingDates SET BillingDate=@BillingDate WHERE HeaderID=@HeaderID AND InvoiceMonth=@Month AND InvoiceYear=@Year;
+ELSE
+    INSERT dbo.CCInvoiceBillingDates(HeaderID,InvoiceMonth,InvoiceYear,BillingDate) VALUES(@HeaderID,@Month,@Year,@BillingDate);";
+                        using (SqlCommand command = new SqlCommand(saveBillingDate, connection, transaction))
+                        {
+                            command.Parameters.Add("@HeaderID", SqlDbType.Int).Value = headerID;
+                            command.Parameters.Add("@Month", SqlDbType.NVarChar, 100).Value = values["Month"];
+                            command.Parameters.Add("@Year", SqlDbType.NVarChar, 100).Value = values["Year"];
+                            command.Parameters.Add("@BillingDate", SqlDbType.Date).Value = values["BillingDate"] ?? (object)DBNull.Value;
+                            command.ExecuteNonQuery();
+                        }
+                        if (!string.IsNullOrEmpty(Convert.ToString(values["StoredPath"])))
+                        {
+                            using (SqlCommand command = new SqlCommand(@"INSERT dbo.CCInvoiceDocuments(HeaderID,OriginalFileName,StoredFileName,StoredPath,UploadedOn,UploadedBy)
+VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@UploadedBy);", connection, transaction))
+                            {
+                                command.Parameters.Add("@HeaderID", SqlDbType.Int).Value = headerID;
+                                command.Parameters.Add("@OriginalFileName", SqlDbType.NVarChar, 255).Value = values["OriginalFileName"];
+                                command.Parameters.Add("@StoredFileName", SqlDbType.NVarChar, 255).Value = values["StoredFileName"];
+                                command.Parameters.Add("@StoredPath", SqlDbType.NVarChar, 1000).Value = values["StoredPath"];
+                                command.Parameters.Add("@UploadedBy", SqlDbType.Int).Value = values["AddedBy"];
+                                command.ExecuteNonQuery();
+                            }
+                        }
+                        transaction.Commit();
+                        return 1;
+                    }
+                    catch { transaction.Rollback(); throw; }
+                }
+            }
         }
 
         public DataTable GetInvoiceDomains()
@@ -3308,6 +3482,8 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@Difference", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Difference"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Utilization", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Utilization"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InvoiceAmount", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["InvoiceAmount"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CreditCard", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["CreditCard"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingDate", System.Data.SqlDbType.Date, 100, System.Data.ParameterDirection.Input, htParam["BillingDate"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
@@ -3368,6 +3544,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@ContQuantity", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["ContQuantity"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ContPerUnitCost", System.Data.SqlDbType.Decimal, 10, System.Data.ParameterDirection.Input, htParam["ContPerUnitCost"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ChargeableAmt", System.Data.SqlDbType.Decimal, 10, System.Data.ParameterDirection.Input, htParam["ChargeableAmt"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ContractualUsage", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, htParam["ContractualUsage"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
@@ -6581,5 +6758,20 @@ namespace WebPortal.App_Code.DAL
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+
+        #region Petty_Cash
+
+        //  private readonly string _cs = ConfigurationManager.ConnectionStrings["constr"].ConnectionString; // change only if your WebPortal connection name differs
+
+        public DataTable ExecuteTable(string procedure, params SqlParameter[] parameters)
+        {
+            using (SqlConnection cn = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand(procedure, cn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure; if (parameters != null) cmd.Parameters.AddRange(parameters);
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd)) { DataTable dt = new DataTable(); da.Fill(dt); return dt; }
+            }
+        }
+
+        #endregion
     }
 }

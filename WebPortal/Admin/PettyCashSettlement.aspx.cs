@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
-using System.Collections.Generic;
+using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Admin
 {
@@ -28,9 +29,29 @@ namespace WebPortal.Admin
             }
             return new JavaScriptSerializer().Serialize(rows);
         }
-        [WebMethod(EnableSession=true)] public static string GetSettlementRequests(){ return Json(new PettyCashBLL().GetSettlementRequests(LoginId())); }
-        [WebMethod(EnableSession=true)] public static string GetSettlementPreview(long requestId){ return Json(new PettyCashBLL().GetSettlementPreview(requestId)); }
-        [WebMethod(EnableSession=true)] public static string GetSettlements(){ return Json(new PettyCashBLL().GetSettlements()); }
-        [WebMethod(EnableSession=true)] public static string SubmitSettlement(long requestId,string settlementDate,string remark){ DateTime d; if(!DateTime.TryParse(settlementDate,out d)) throw new Exception("Invalid settlement date."); return Json(new PettyCashBLL().SubmitSettlement(requestId,d,remark,LoginId())); }
+        [WebMethod(EnableSession = true)]
+        public static string GetSettlementRequests()
+        {
+            return Json(new bllMaster().GetSettlementRequests(LoginId()));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetSettlementPreview(long requestId)
+        {
+            return Json(new bllMaster().GetSettlementPreview(requestId));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetSettlements()
+        {
+            return Json(new bllMaster().GetSettlements());
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string SubmitSettlement(long requestId, string settlementDate, string remark)
+        {
+            DateTime d; if (!DateTime.TryParse(settlementDate, out d)) throw new Exception("Invalid settlement date.");
+            return Json(new bllMaster().SubmitSettlement(requestId, d, remark, LoginId()));
+        }
     }
 }

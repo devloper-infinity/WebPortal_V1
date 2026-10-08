@@ -9,6 +9,139 @@ var invtable_summary;
 var inv_Disable_HeaderID = 0;
 var DisableEnableStatus = '';
 var cardnames = '';
+var invoiceProjects = [];
+var invoiceProjectsLoaded = false;
+var invoiceStatusTab = 'active';
+var invoiceStatusFilterRegistered = false;
+
+function invoiceHeaderIsDeactivated(value) {
+    return /^(1|true|yes|disable|disabled|deactivated|inactive)$/.test($.trim(String(value == null ? '' : value)).toLowerCase());
+}
+
+function registerInvoiceStatusFilter() {
+    if (invoiceStatusFilterRegistered || !$.fn.dataTable) return;
+    $.fn.dataTable.ext.search.push(function (settings, data) {
+        if (!settings.nTable || settings.nTable.id !== 'invtable') return true;
+        var disabled = invoiceHeaderIsDeactivated(data[28]);
+        return invoiceStatusTab === 'deactivated' ? disabled : !disabled;
+    });
+    invoiceStatusFilterRegistered = true;
+}
+
+function applyInvoiceStatusTab(tab) {
+    invoiceStatusTab = tab === 'deactivated' ? 'deactivated' : 'active';
+    $('#invtab_active').attr('aria-selected', invoiceStatusTab === 'active' ? 'true' : 'false');
+    $('#invtab_deactivated').attr('aria-selected', invoiceStatusTab === 'deactivated' ? 'true' : 'false');
+    registerInvoiceStatusFilter();
+    if ($.fn.dataTable.isDataTable('#invtable')) $('#invtable').DataTable().draw();
+}
+
+function invoiceEscape(value) {
+    return $('<div/>').text(value == null ? '' : String(value)).html();
+}
+
+function invoiceText(value) {
+    return value == null || typeof value === 'object' ? '' : $.trim(String(value));
+}
+
+function invoiceCardOptions(value) {
+    var saved = invoiceText(value.CreditCard) || invoiceText(value.CreditCardNumber) || invoiceText(value.CreditCardNo);
+    var options = '<option value="">Select</option>', found = false, seen = {};
+    $.each(cardnames ? cardnames.split('/') : [], function (_, name) {
+        name = invoiceText(name);
+        var key = name.toLowerCase();
+        if (!name || seen[key]) return;
+        seen[key] = true;
+        var selected = saved && key === saved.toLowerCase();
+        if (selected) found = true;
+        options += '<option value="' + invoiceEscape(name).replace(/"/g, '&quot;') + '"' + (selected ? ' selected' : '') + '>' + invoiceEscape(name) + '</option>';
+    });
+    if (saved && !found)
+        options += '<option value="' + invoiceEscape(saved).replace(/"/g, '&quot;') + '" selected>' + invoiceEscape(saved) + '</option>';
+    return options;
+}
+
+function invoiceAttachmentLink(value, month, year) {
+    var url = '';
+    if (invoiceText(value.Attachment)) {
+        url = 'DownloadFiles.aspx?HeaderID=' + encodeURIComponent(value.HeaderID) + '&amp;Month=' + encodeURIComponent(month) + '&amp;Year=' + encodeURIComponent(year);
+    } else if (parseInt(value.DocumentID, 10) > 0 && invoiceText(value.DocumentPath)) {
+        url = 'InvoiceVerificationUpload.ashx?DocumentID=' + parseInt(value.DocumentID, 10);
+    }
+    return url ? '<a class="btn-invoice btn-invoice-soft" href="' + url + '"><i class="fas fa-download" aria-hidden="true"></i>Download</a>' : '<span class="text-muted">No attachment</span>';
+}
+
+function invoiceDateValue(value) {
+    if (value == null || value === '' || typeof value === 'object') return '';
+    var text = String(value), isoDate = /^(\d{4}-\d{2}-\d{2})/.exec(text);
+    if (isoDate) return isoDate[1];
+    var dotNetDate = /^\/Date\((-?\d+)(?:[+-]\d{4})?\)\/$/.exec(text);
+    var date = new Date(dotNetDate ? Number(dotNetDate[1]) : text);
+    if (isNaN(date.getTime())) return '';
+    var year = dotNetDate ? date.getUTCFullYear() : date.getFullYear();
+    var month = (dotNetDate ? date.getUTCMonth() : date.getMonth()) + 1;
+    var day = dotNetDate ? date.getUTCDate() : date.getDate();
+    return year + '-' + ('0' + month).slice(-2) + '-' + ('0' + day).slice(-2);
+}
+
+function invoiceProjectName(value) {
+    if (value.ProjectName) return value.ProjectName;
+    for (var i = 0; i < invoiceProjects.length; i++)
+        if (String(invoiceProjects[i].ProjectID) === String(value.ProjectID)) return invoiceProjects[i].ProjectName || '';
+    return '';
+}
+
+function BindInvoiceProjects() {
+    if (invoiceProjectsLoaded) return $.Deferred().resolve().promise();
+    return $.ajax({ type: 'POST', url: 'InvoiceVerification.aspx/GetInvoiceProjects', data: '{}', dataType: 'json', contentType: 'application/json; charset=utf-8' })
+        .done(function (response) { invoiceProjects = JSON.parse(response.d || '[]'); invoiceProjectsLoaded = true; });
+}
+
+function BindInvoiceDomains(selectedDomain) {
+    return $.ajax({ type: 'POST', url: 'InvoiceVerification.aspx/GetInvoiceDomains', data: '{}', dataType: 'json', contentType: 'application/json; charset=utf-8' })
+        .done(function (response) {
+            var domains = JSON.parse(response.d || '[]'), filter = $('#inv_domain'), product = $('#invetails_NewProdDomain');
+            var selected = selectedDomain || filter.val() || '';
+            filter.empty().append($('<option>').val('').text('All Domains'));
+            product.empty().append($('<option>').val('').text('Select'));
+            $.each(domains, function (_, domain) {
+                filter.append($('<option>').val(domain).text(domain));
+                product.append($('<option>').val(domain).text(domain));
+            });
+            product.append($('<option>').val('__add_new__').text('Add New Domain'));
+            filter.val(selected);
+        });
+}
+
+function invoiceDomainChanged() {
+    $('#invdetails_NewDomainField').toggle($('#invetails_NewProdDomain').val() === '__add_new__');
+}
+
+function invoiceFileChanged(input) {
+    var file = input.files[0], box = $(input).closest('.invoice-upload');
+    if (file && (file.size > 10 * 1024 * 1024 || !/\.(pdf|png|jpe?g|docx?|xlsx?)$/i.test(file.name))) {
+        alert('Choose a PDF, image, Word or Excel file up to 10 MB.');
+        input.value = ''; file = null;
+    }
+    box.toggleClass('has-file', !!file);
+    box.find('.invoice-file-name').text(file ? file.name : 'Choose or drop a file');
+    box.find('.invoice-file-remove').prop('hidden', !file);
+}
+
+function invoiceFileDrop(event, id) {
+    event.preventDefault();
+    var input = document.getElementById('inv_attach_' + id);
+    $(input).closest('.invoice-upload').removeClass('drag-over');
+    if (input.disabled || !event.dataTransfer || !event.dataTransfer.files.length) return;
+    if (event.dataTransfer.files.length !== 1) { alert('Choose one file per invoice.'); return; }
+    try { input.files = event.dataTransfer.files; invoiceFileChanged(input); }
+    catch (error) { alert('Use Choose file to attach your document.'); }
+}
+
+function invoiceFileRemove(button) {
+    var input = $(button).closest('.invoice-upload').find('input[type=file]')[0];
+    input.value = ''; invoiceFileChanged(input);
+}
 
 function invver_bindusers() {
     var select = document.getElementById("invdetails_users");
@@ -45,38 +178,6 @@ function BindYear_INV() {
     for (var i = start; i > start - 5; i--) {
         $("#inv_year").append($("<option></option>").val(i).html(i));
     }
-}
-
-function BindInvoiceDomains(selectedDomain) {
-    return $.ajax({
-        type: "POST",
-        url: "InvoiceVerification.aspx/GetInvoiceDomains",
-        data: "{}",
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
-        success: function (res) {
-            var domains = JSON.parse(res.d);
-            var filter = $("#inv_domain").empty().append($("<option></option>").val("").text("All Domains"));
-            var product = $("#invetails_NewProdDomain").empty().append($("<option></option>").val("").text("Select"));
-            $.each(domains, function (_, domain) {
-                filter.append($("<option></option>").val(domain).text(domain));
-                product.append($("<option></option>").val(domain).text(domain));
-            });
-            product.append($("<option></option>").val("__add_new__").text("Add New Domain"));
-            if (selectedDomain) {
-                filter.val(selectedDomain);
-                product.val(selectedDomain);
-            }
-        }
-    });
-}
-
-function invoiceDomainChanged() {
-    var adding = $("#invetails_NewProdDomain").val() === "__add_new__";
-    $("#invdetails_NewDomainField").toggle(adding);
-    if (!adding)
-        $("#invdetails_NewDomain").val("");
-    return false;
 }
 
 function BindYear_INV_Rec() {
@@ -123,16 +224,48 @@ function updaterowdata(HeaderID) {
     var year = ddlyear.options[ddlyear.selectedIndex].value;
     var diff = document.getElementById("inv_AmountDifference_" + HeaderID).value;
 
-
     var ddlCC = document.getElementById("sel_cardname_" + HeaderID);
     var ccNo = ddlCC.options[ddlCC.selectedIndex].value;
+
+    var billingdate = document.getElementById("inv_billingdate_" + HeaderID).value;
+
 
     if (ccNo == "") {
         alert("Please select Credit Card.");
         return false;
     }
 
-    PageMethods.InsertCCMonthlyData(HeaderID, month, year, remark, invoiceno, Invoiceamount, utilization, diff, ccNo, inv_OnSuccess, inv_OnError);
+    if (billingdate == "") {
+        alert("Please enter Billing Date.");
+        return false;
+    }
+
+    if (!month || month === 'All' || !year) { alert('Please select a specific invoice month and year.'); return false; }
+    if (Invoiceamount === '' || !isFinite(Number(Invoiceamount)) || Number(Invoiceamount) < 0) { alert('Please enter a valid invoice amount.'); return false; }
+    var input = document.getElementById('inv_attach_' + HeaderID);
+    var file = input && input.files.length ? input.files[0] : null;
+    if (file && (!file.size || file.size > 10 * 1024 * 1024 || !/\.(pdf|png|jpe?g|docx?|xlsx?)$/i.test(file.name))) {
+        alert('Choose a non-empty PDF, image, Word or Excel file up to 10 MB.');
+        return false;
+    }
+    var button = $('#btn_inv_' + HeaderID);
+    if (button.prop('disabled')) return false;
+    var form = new FormData();
+    form.append('HeaderID', HeaderID); form.append('Month', month); form.append('Year', year);
+    form.append('Remark', remark); form.append('InvoiceNo', invoiceno); form.append('InvoiceAmount', Invoiceamount);
+    form.append('Utilization', utilization); form.append('Difference', diff); form.append('CCNo', ccNo); form.append('BillingDate', billingdate);
+    if (file) form.append('InvoiceFile', file, file.name);
+    button.prop('disabled', true);
+    showInvoiceLoader();
+    $.ajax({ url: 'InvoiceVerificationUpload.ashx', type: 'POST', data: form, processData: false, contentType: false, dataType: 'json' })
+        .done(function (result) {
+            if (result && result.success) inv_OnSuccess(1);
+            else alert(result && result.message ? result.message : 'Unable to save the invoice.');
+        })
+        .fail(function (request) {
+            alert(request.responseJSON && request.responseJSON.message ? request.responseJSON.message : 'Unable to save the invoice. Please retry.');
+        })
+        .always(function () { button.prop('disabled', false); hideInvoiceLoader(); });
     return false;
 }
 
@@ -201,9 +334,6 @@ function BindInvoiceGrid() {
     var year = ddlyear.options[ddlyear.selectedIndex].value;
     var domain = document.getElementById("inv_domain").value;
 
-    /// month = "July";
-    //year = "2025";
-
     if (month == "") {
         alert("Please select month");
         return false;
@@ -214,150 +344,164 @@ function BindInvoiceGrid() {
     }
     $('#load1').show();
     inv_html = '';
-    $.when(GetCardNames()).always(function () {
+    registerInvoiceStatusFilter();
+    $.when(GetCardNames(), BindInvoiceProjects()).always(function () {
         $.ajax({
-        url: "InvoiceVerification.aspx/getAllInvocieHeaders",
-        type: "POST",
-        data: JSON.stringify({ Month: month, Year: year, Domain: domain }),
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
+            url: "InvoiceVerification.aspx/getAllInvocieHeaders",
+            type: "POST",
+            data: JSON.stringify({ Month: month, Year: year, Domain: domain }),
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
 
-        success: function (data) {
-            var dataArray = JSON.parse(data.d);//
-            $.each(dataArray, function (index, value) {
+            success: function (data) {
+                try {
+                var dataArray = JSON.parse(data.d);//
+                $.each(dataArray, function (index, value) {
 
-                var isDisabled = String(value.HeaderStatus || '').trim().toLowerCase() === 'disabled';
-                inv_html += '<tr' + (isDisabled ? ' class="invoice-row-disabled"' : '') + '>';
-                inv_html += '<td style="display:none;">' + value.Attachment + '</td>';
-                inv_html += '<td class=""><div class="btn-group">';
-                inv_html += '<div class="btn-group">';
-                inv_html += '<div type="button" data-toggle="dropdown" aria-expanded="false"><i style="color: dodgerblue; font-size:14px;" class="uil fs-0 me-2 uil-cog"></i>';
-                inv_html += '<span class="sr-only"></span></div><div class="dropdown-menu" role="menu" style="">';
-                inv_html += '<a class="dropdown-item" href="#!" id="ActionsEx" onclick="invoice_ViewDetails(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
+                    var isDisabled = invoiceHeaderIsDeactivated(value.HeaderStatus);
+                    inv_html += '<tr' + (isDisabled ? ' class="invoice-row-disabled"' : '') + '>';
+                    inv_html += '<td style="display:none;">' + invoiceEscape(invoiceText(value.Attachment)) + '</td>';
+                    inv_html += '<td class="invoice-details-cell"><div class="btn-group">';
+                    inv_html += '<a href="#" role="button" class="invoice-settings" data-toggle="dropdown" aria-expanded="false" aria-label="Invoice actions"><i class="uil uil-cog" aria-hidden="true"></i></a><div class="dropdown-menu" role="menu">';
+                    inv_html += '<a class="dropdown-item" href="#!" id="ActionsEx" onclick="invoice_ViewDetails(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
 
-                if (LoginID == 9858) {
-                    if (value.HeaderStatus == "Enable")
-                        inv_html += '<a class="dropdown-item" href="#!" id="ActionsDisb" onclick="invoice_EnableDisabled(' + value.HeaderID + ',' + index + ');"><span style="color: red;"><i class=" uil-toggle-off"></i></span>&nbsp;&nbsp;Disable</a>';
-                    else
-                        inv_html += '<a class="dropdown-item" href="#!" id="ActionsDisb" onclick="invoice_EnableDisabled(' + value.HeaderID + ',' + index + ');"><span style="color: green;"><i class=" uil-toggle-on"></i></span>&nbsp;&nbsp;Enable</a>';
-                }
-
-                inv_html += '<a class="dropdown-item" href="#!" id="Actions" onclick="invoice_downloadinvoice(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-cloud-download"></i></span>&nbsp;&nbsp;Download Attachment</a><div class="dropdown-divider"></div></div></td>';
-                inv_html += '<td style="display:none;">' + blankForNull(value.Header) + '</td>';
-                inv_html += '<td>' + blankForNull(value.Subheader) + '</td>';
-                inv_html += '<td style="text-wrap: wrap;">' + blankForNull(value.DomainName) + '</td>';
-                inv_html += '<td style="text-wrap: wrap;"><label style=" width:150px;">' + blankForNull(value.Product) + '</label></td>';
-                inv_html += '<td style="text-wrap: wrap;">' + blankForNull(value.PayTo) + '</td>';
-                inv_html += '<td>' + blankForNull(value.Subscription) + '</td>';
-                inv_html += '<td>' + blankForNull(value.CostType) + '</td>';
-                inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.ContractualQuantity) + '</td>';
-                inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.PerUnit) + '</td>';
-                inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.ContractualCost) + '</td>';
-                inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.PrevMonthContCost) + '</td>';
-                inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.PrevMonthQuantity) + '</td>';
-                inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.CurrentQuantity) + '</td>';
-                inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.ContractualUsage) + '</td>';
-                inv_html += '<td><input  type="number" step="0.01" onpaste="return false;" style="width:70px;" id="inv_invoiceAmount_' + value.HeaderID + '" value="' + blankForNull(value.ContractualCost1) + '" onchange="return GetDifference(this,' + value.HeaderID + ',' + index + ');" /></td>';
-
-                if (blankForNull(value.Diff) != null && blankForNull(value.Diff) != '') {
-                    if (parseFloat(blankForNull(value.Diff)) > 0)
-                        inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px; color:red;" id="inv_AmountDifference_' + value.HeaderID + '" value="' + blankForNull(value.Diff) + '" /></td>';
-                    else if (parseFloat(blankForNull(value.Diff)) < 0)
-                        inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px; color:green;" id="inv_AmountDifference_' + value.HeaderID + '" value="' + blankForNull(value.Diff) + '" /></td>';
-                    else
-                        inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px; color:black;" id="inv_AmountDifference_' + value.HeaderID + '" value="' + blankForNull(value.Diff) + '" /></td>';
-                }
-                else
-                    inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px;" id="inv_AmountDifference_' + value.HeaderID + '" /></td>';
-                if (blankForNull(value.Remark) != '' && blankForNull(value.Remark) != null)
-                    inv_html += '<td><textarea type="text" id="inv_remark_' + value.HeaderID + '"  >' + blankForNull(value.Remark) + '</textarea></td>';
-                else
-                    inv_html += '<td><textarea type="text" id="inv_remark_' + value.HeaderID + '" ></textarea></td>';
-                if (blankForNull(value.InvoiceNo) != '' && blankForNull(value.InvoiceNo) != null)
-                    inv_html += '<td><input type="text" id="inv_invoiceno_' + value.HeaderID + '"  value="' + blankForNull(value.InvoiceNo) + '"/></td>';
-                else
-                    inv_html += '<td><input type="text" id="inv_invoiceno_' + value.HeaderID + '" /></td>';
-                inv_html += '<td><input type="file" id="inv_attach_' + value.HeaderID + '" class="upload" onclick="return GetFiles(this);" /></td>';
-                if (blankForNull(value.Utilization) != '' && blankForNull(value.Utilization) != null)
-                    inv_html += '<td><input type="text" style="width:100px;" id="inv_utilization_' + value.HeaderID + '" value="' + blankForNull(value.Utilization) + '" /></td>';
-                else
-                    inv_html += '<td><input type="text" style="width:100px;" id="inv_utilization_' + value.HeaderID + '" /></td>';
-                inv_html += '<td style="display:none;">' + blankForNull(value.Provider) + '</td>';
-                inv_html += '<td style="display:none;">' + blankForNull(value.Product) + '</td>';
-                inv_html += '<td style="text-wrap: nowrap;"><button id="btn_inv_' + value.HeaderID + '" class="btn btn-primary" onclick="return updaterowdata(' + value.HeaderID + ')";>Update</button></td>';
-                /* inv_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.CreditCardNumber) + '</td>';*/
-              
-                inv_html += '<td style="text-wrap:nowrap;"><select id="sel_cardname_' + value.HeaderID + '">';
-                inv_html += '<option value="">Select</option>';
-                if (cardnames != '') {
-                    var cardname = cardnames.split("/");
-                    for (var i = 0; i < cardname.length; i++) {
-                        var options = cardname[i];
-
-                        if (value.CreditCardNumber == options) {
-
-                            inv_html += '<option value="' + options + '" selected>' + options + '</option>';
-                        }
+                    if (LoginID == 9858) {
+                        if (value.HeaderStatus == "Enable")
+                            inv_html += '<a class="dropdown-item" href="#!" id="ActionsDisb" onclick="invoice_EnableDisabled(' + value.HeaderID + ',' + index + ');"><span style="color: red;"><i class=" uil-toggle-off"></i></span>&nbsp;&nbsp;Disable</a>';
                         else
-                            inv_html += '<option value="' + options + '">' + options + '</option>';
+                            inv_html += '<a class="dropdown-item" href="#!" id="ActionsDisb" onclick="invoice_EnableDisabled(' + value.HeaderID + ',' + index + ');"><span style="color: green;"><i class=" uil-toggle-on"></i></span>&nbsp;&nbsp;Enable</a>';
                     }
+
+                    inv_html += '<a class="dropdown-item" href="#!" id="Actions" onclick="invoice_downloadinvoice(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-cloud-download"></i></span>&nbsp;&nbsp;Download Attachment</a><div class="dropdown-divider"></div></div></div></td>';
+                    inv_html += '<td style="display:none;">' + blankForNull(value.Header) + '</td>';
+                    inv_html += '<td>' + blankForNull(value.Subheader) + '</td>';
+                    inv_html += '<td style="text-wrap: wrap;">' + blankForNull(value.DomainName) + '</td>';
+                    // inv_html += '<td>' + invoiceEscape(invoiceProjectName(value)) + '<input type="hidden" id="inv_project_' + value.HeaderID + '" value="' + (parseInt(value.ProjectID, 10) || '') + '" /></td>';
+                    inv_html += '<td class="invoice-product-cell"><span class="invoice-product-text">' + invoiceEscape(value.Product) + '</span></td>';
+                    inv_html += '<td style="text-wrap: wrap;">' + blankForNull(value.PayTo) + '</td>';
+                    inv_html += '<td>' + blankForNull(value.Subscription) + '</td>';
+                    inv_html += '<td>' + blankForNull(value.CostType) + '</td>';
+                    inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.ContractualQuantity) + '</td>';
+                    inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.PerUnit) + '</td>';
+                    inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.ContractualCost) + '</td>';
+                    inv_html += '<td style="text-wrap: nowrap; text-align:center;">' + blankForNull(value.PrevMonthContCost) + '</td>';
+                    inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.PrevMonthQuantity) + '</td>';
+                    inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.CurrentQuantity) + '</td>';
+                    inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.ContractualUsage) + '</td>';
+                    var activeFrom = invoiceDateValue(value.EffectiveDate);
+                    var activeThrough = invoiceDateValue(value.DisabledDate);
+                    // inv_html += '<td id="inv_activefrom_' + value.HeaderID + '" data-date-value="' + activeFrom + '">' + invoiceEscape(activeFrom) + '</td>';
+                    // inv_html += '<td id="inv_activethrough_' + value.HeaderID + '" data-date-value="' + activeThrough + '">' + invoiceEscape(activeThrough) + '</td>';
+
+                    // inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.EffectiveDate) + '</td>';
+                    // inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.DisabledDate) + '</td>';
+
+                    inv_html += '<td style="text-wrap: wrap; text-align:center;">' + invoiceEscape(activeFrom) + '</td>';
+                    inv_html += '<td style="text-wrap: wrap; text-align:center;">' + invoiceEscape(activeThrough) + '</td>';
+
+                    inv_html += '<td><input  type="number" step="0.01" onpaste="return false;" style="width:70px;" id="inv_invoiceAmount_' + value.HeaderID + '" value="' + blankForNull(value.ContractualCost1) + '" onchange="return GetDifference(this,' + value.HeaderID + ',' + index + ');" /></td>';
+
+                    if (blankForNull(value.Diff) != null && blankForNull(value.Diff) != '') {
+                        if (parseFloat(blankForNull(value.Diff)) > 0)
+                            inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px; color:red;" id="inv_AmountDifference_' + value.HeaderID + '" value="' + blankForNull(value.Diff) + '" /></td>';
+                        else if (parseFloat(blankForNull(value.Diff)) < 0)
+                            inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px; color:green;" id="inv_AmountDifference_' + value.HeaderID + '" value="' + blankForNull(value.Diff) + '" /></td>';
+                        else
+                            inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px; color:black;" id="inv_AmountDifference_' + value.HeaderID + '" value="' + blankForNull(value.Diff) + '" /></td>';
+                    }
+                    else
+                        inv_html += '<td style="text-wrap: nowrap; text-align:center;"><input type="text" style="width:70px;" id="inv_AmountDifference_' + value.HeaderID + '" /></td>';
+                    if (blankForNull(value.Remark) != '' && blankForNull(value.Remark) != null)
+                        inv_html += '<td><textarea type="text" id="inv_remark_' + value.HeaderID + '"  >' + blankForNull(value.Remark) + '</textarea></td>';
+                    else
+                        inv_html += '<td><textarea type="text" id="inv_remark_' + value.HeaderID + '" ></textarea></td>';
+                    if (blankForNull(value.InvoiceNo) != '' && blankForNull(value.InvoiceNo) != null)
+                        inv_html += '<td><input type="text" id="inv_invoiceno_' + value.HeaderID + '"  value="' + blankForNull(value.InvoiceNo) + '"/></td>';
+                    else
+                        inv_html += '<td><input type="text" id="inv_invoiceno_' + value.HeaderID + '" /></td>';
+                    inv_html += '<td><input type="date" id="inv_billingdate_' + value.HeaderID + '" aria-label="Billing Date" value="' + invoiceDateValue(value.BillingDate) + '" /></td>';
+                    inv_html += '<td>';
+                    inv_html += '<div class="invoice-upload" ondragover="event.preventDefault(); if (!this.querySelector(\'input\').disabled) this.classList.add(\'drag-over\');" ondragleave="this.classList.remove(\'drag-over\');" ondrop="invoiceFileDrop(event,' + value.HeaderID + ')"><label class="invoice-file-picker"><input type="file" id="inv_attach_' + value.HeaderID + '" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx" onchange="invoiceFileChanged(this)" /><span class="invoice-file-name">Choose or drop a file</span><small>PDF, image, Word, Excel · Max 10 MB</small></label><button type="button" class="invoice-file-remove" hidden onclick="invoiceFileRemove(this)" aria-label="Remove selected file">&times;</button></div></td>';
+                    if (blankForNull(value.Utilization) != '' && blankForNull(value.Utilization) != null)
+                        inv_html += '<td><input type="text" style="width:100px;" id="inv_utilization_' + value.HeaderID + '" value="' + blankForNull(value.Utilization) + '" /></td>';
+                    else
+                        inv_html += '<td><input type="text" style="width:100px;" id="inv_utilization_' + value.HeaderID + '" /></td>';
+                    inv_html += '<td style="display:none;">' + blankForNull(value.Provider) + '</td>';
+                    inv_html += '<td style="display:none;">' + blankForNull(value.Product) + '</td>';
+                    /* inv_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.CreditCardNumber) + '</td>';*/
+
+                    inv_html += '<td style="text-wrap:nowrap;"><select id="sel_cardname_' + value.HeaderID + '">';
+                    inv_html += invoiceCardOptions(value);
+                    inv_html += '</select></td>';
+
+                    inv_html += '<td style="display:none;">' + blankForNull(value.HeaderStatus) + '</td>';
+                    inv_html += '<td><button type="button" id="btn_inv_' + value.HeaderID + '" class="invoice-update-btn" onclick="return updaterowdata(' + value.HeaderID + ')"><i class="fas fa-check" aria-hidden="true"></i><span>Update</span></button></td>';
+                    inv_html += '<td>' + invoiceAttachmentLink(value, month, year) + '</td>';
+                    inv_html += '</tr>';
+                });
+
+                if ($.fn.dataTable.isDataTable('#invtable')) {
+                    $('#invtable').DataTable().clear().destroy();
                 }
-                inv_html += '</select></td>';
+                $('#invtable tbody').empty();
+                $('#invtable tbody').html(inv_html);
 
-                inv_html += '<td style="display:none;">' + blankForNull(value.HeaderStatus) + '</td>';
-                inv_html += '</tr>';
-            });
+                inv_table = $('#invtable').DataTable({
+                    // One table inside a scroll container keeps header/body widths identical.
+                    dom: '<"invoice-grid-toolbar"lf><"invoice-grid-scroll"t><"invoice-grid-footer"ip>',
+                    scrollX: false,
+                    destroy: true,
+                    paging: true,
+                    pageLength: 25,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+                    autoWidth: false,
+                    select: true,
+                    ordering: true,
+                    order: [],
+                    columnDefs: [{ targets: [0, 1, 2, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], orderable: false }],
+                    language: { search: '', searchPlaceholder: 'Search invoices...', lengthMenu: 'Show _MENU_', info: '_START_–_END_ of _TOTAL_ invoices', infoEmpty: 'No invoices', emptyTable: 'No invoices available', zeroRecords: 'No invoices match your search', paginate: { previous: 'Previous', next: 'Next' } },
+                    processing: true,
+                    'select': {
+                        'style': 'single'
+                    },
 
-            if ($.fn.dataTable.isDataTable('#invtable')) {
-                $('#invtable').DataTable().clear().destroy();
-            }
-            $('#invtable tbody').empty();
-            $('#invtable tbody').html(inv_html);
+                    initComplete: function () {
+                        var disabledCount = dataArray.filter(function (item) { return invoiceHeaderIsDeactivated(item.HeaderStatus); }).length;
+                        $('#invtab_active .invoice-tab-count').text(dataArray.length - disabledCount);
+                        $('#invtab_deactivated .invoice-tab-count').text(disabledCount);
+                        $('<button type="button" class="invoice-search-clear">Clear search</button>').appendTo('#invtable_wrapper .invoice-grid-toolbar').on('click', function () { inv_table.search('').draw(); });
+                        $('#load1').hide();
+                    },
 
-            inv_table = $('#invtable').DataTable({
-                // One table inside a scroll container keeps header/body widths identical.
-                dom: 'f<"invoice-grid-scroll"t>i',
-                scrollX: false,
-                destroy: true,
-                "paging": false,
-                "autoWidth": true,
-                select: true,
-                "ordering": false,
-                processing: true,
-                'select': {
-                    'style': 'single'
-                },
+                    "rowCallback": function (row, data) {
+                        // HeaderStatus is the same hidden column used by Enable/Disable.
+                        var disabled = invoiceHeaderIsDeactivated(data[28]);
+                        $(row).toggleClass('invoice-row-disabled', disabled);
+                        $(row).find('input, textarea, select, button')
+                            .prop('disabled', disabled)
+                            .attr('aria-disabled', disabled ? 'true' : 'false');
+                    },
+                });
 
-                initComplete: function () {
-
+                //$('#fnalize tbody').on('click', 'tr', function () {
+                //    row = table.row(this).data();
+                //});
+                } catch (error) {
                     $('#load1').hide();
-                },
+                    alert('Unable to display invoices: ' + error.message);
+                }
+            },
 
-                "rowCallback": function (row, data) {
-                    // HeaderStatus is the same hidden column used by Enable/Disable.
-                    var status = String(data[26] || '').trim().toLowerCase();
-                    var disabled = status === 'disable' || status === 'disabled';
-                    $(row).toggleClass('invoice-row-disabled', disabled);
-                    $(row).find('input, textarea, select, button')
-                        .prop('disabled', disabled)
-                        .attr('aria-disabled', disabled ? 'true' : 'false');
-                },
-            });
-
-            //$('#fnalize tbody').on('click', 'tr', function () {
-            //    row = table.row(this).data();
-            //});
-        },
-
-        error: function (error) {
-            $('#load1').hide();
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
-        }
+            error: function (error) {
+                $('#load1').hide();
+                var response = error.responseJSON;
+                alert(response && response.Message ? response.Message : 'Unable to load invoices. Please retry.');
+            }
         });
     });
     return false;
 }
+
 
 function invoice_ViewDetails(HeaderID, Index) {
     document.getElementById("invdetails_headerid").innerHTML = HeaderID;
@@ -381,14 +525,14 @@ function invoice_EnableDisabled(HeaderID, index) {
     document.getElementById("nvdetails_EnableDisableRemark").value = '';
 
     inv_Disable_HeaderID = HeaderID;
-    DisableEnableStatus = row[26];
+    DisableEnableStatus = row[28];
 
     if (DisableEnableStatus == "Enable") {
-        lblName = "Disable : " + row[3] + ' - ' + row[22];
+        lblName = "Disable : " + row[3] + ' - ' + row[25];
         invdetails_btnEnableDisable.textContent = 'Disable';
     }
     else {
-        lblName = "Enable : " + row[3] + ' - ' + row[22];
+        lblName = "Enable : " + row[3] + ' - ' + row[25];
         invdetails_btnEnableDisable.textContent = 'Enable';
     }
 
@@ -512,9 +656,7 @@ function invuser_OnError(error) {
 
 /* Add New Product */
 function addNewProduct() {
-    BindInvoiceDomains();
-    $("#invdetails_NewDomainField").hide();
-    $("#invdetails_NewDomain").val("");
+
     $('#invdetailspopup_AddNewProduct').modal('show');
 
 }
@@ -523,15 +665,13 @@ function invdetails_btnAddNewProd() {
 
     var PopUp_Header = document.getElementById("invdetails_NewProdHeader").value;
     var PopUp_Domain = document.getElementById("invetails_NewProdDomain").value;
-    if (PopUp_Domain === "__add_new__")
-        PopUp_Domain = $.trim(document.getElementById("invdetails_NewDomain").value);
     var PopUp_Product = document.getElementById("invetails_NewProdProduct").value;
     var PopUp_PayTo = document.getElementById("invdetails_NewProdPayTo").value;
     var PopUp_EffDate = document.getElementById("invdetails_NewProdEffDate").value;
     var ContQuantity = document.getElementById("invdetails_NewProdContQuantity").value;
     var ContPerUnitCost = document.getElementById("invdetails_NewProdContPerUnitCost").value;
     var ChargeableAmt = document.getElementById("invdetails_NewProdCharAmt").value;
-
+    var ContractualUsage = document.getElementById("invdetails_ContractualUsage").value;
 
     var PaymentFreq = document.getElementById("invdetails_NewProdPaymentFreq");
     var PopUp_PaymentFreq = PaymentFreq.options[PaymentFreq.selectedIndex].value;
@@ -545,11 +685,8 @@ function invdetails_btnAddNewProd() {
         return false;
     }
     if (PopUp_Domain == "") {
-        alert("Please select or enter Domain.");
-        if (document.getElementById("invetails_NewProdDomain").value === "__add_new__")
-            document.getElementById("invdetails_NewDomain").focus();
-        else
-            document.getElementById("invetails_NewProdDomain").focus();
+        alert("Please enter Domain.");
+        document.getElementById("invetails_NewProdDomain").focus();
         return false;
     }
     if (PopUp_Product == "") {
@@ -588,13 +725,18 @@ function invdetails_btnAddNewProd() {
         document.getElementById("invdetails_NewProdContPerUnitCost").focus();
         return false;
     }
+    if (ContractualUsage == "") {
+        alert("Please enter Contractual Usage.");
+        document.getElementById("invdetails_ContractualUsage").focus();
+        return false;
+    }
     if (ChargeableAmt == "") {
         alert("Please enter Chargeable Amount.");
         document.getElementById("invdetails_NewProdCharAmt").focus();
         return false;
     }
 
-    PageMethods.InsertCCInvoiceHeaders(PopUp_Header, PopUp_Domain, PopUp_Product, PopUp_PayTo, PopUp_PaymentFreq, PopUp_CostType, PopUp_EffDate, ContQuantity, ContPerUnitCost, ChargeableAmt, OnSuccess_AddNewProd, OnError_AddNewProd)
+    PageMethods.InsertCCInvoiceHeaders(PopUp_Header, PopUp_Domain, PopUp_Product, PopUp_PayTo, PopUp_PaymentFreq, PopUp_CostType, PopUp_EffDate, ContQuantity, ContPerUnitCost, ChargeableAmt, ContractualUsage, OnSuccess_AddNewProd, OnError_AddNewProd)
     return false
 }
 
@@ -603,15 +745,8 @@ function OnSuccess_AddNewProd(result) {
     if (result > 0) {
 
         alert("Data added successfully.");
-        var addedDomain = $("#invetails_NewProdDomain").val() === "__add_new__"
-            ? $.trim($("#invdetails_NewDomain").val())
-            : $("#invetails_NewProdDomain").val();
-        $('#invdetailspopup_AddNewProduct').modal('hide');
-        BindInvoiceDomains(addedDomain);
-        BindInvoiceGrid();
-        $("#invdetails_NewProdHeader, #invetails_NewProdProduct, #invdetails_NewProdPayTo, #invdetails_NewProdEffDate, #invdetails_NewProdContQuantity, #invdetails_NewProdContPerUnitCost, #invdetails_NewProdCharAmt, #invdetails_NewDomain").val("");
-        $("#invdetails_NewProdPaymentFreq, #invdetails_NewProdCostType").prop('selectedIndex', 0);
-        $("#invdetails_NewDomainField").hide();
+        // BindInvoiceGrid();
+        location.reload();
         return false;
     }
     else {
@@ -723,6 +858,7 @@ function BindInvDetails(HeaderID) {
                 invd_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.PsuedoName) + '</td>';
                 invd_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Branch) + '</td>';
                 invd_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Domain) + '</td>';
+                invd_html += '<td style="text-wrap: nowrap;">' + blankForNull(value.Project) + '</td>';
                 invd_html += '<td>' + blankForNull(value.CurrentStatus) + '</td>';
                 invd_html += '<td style="text-align:center;"><a class="dropdown-item" href="#!" id="ActionsEx1" onclick="invdetails_Removeuser(' + value.InvID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-1 me-2 uil-x"></i></span></a></td>';
                 invd_html += '</tr>';
@@ -782,7 +918,7 @@ function invoice_downloadinvoice(HeaderID, Index) {
         alert("No attachment found.");
         return;
     }
-    var lastindex = row[0].lastIndexOf('\\');
+    var lastindex = Math.max(row[0].lastIndexOf('\\'), row[0].lastIndexOf('/'));
     var filename = row[0].substring(lastindex + 1, row[0].length);
     var url = '/DownloadAttachment';
     var currenturl = window.location.href;

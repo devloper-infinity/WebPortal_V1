@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
-using System.Collections.Generic;
+using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Admin
 {
@@ -28,14 +29,30 @@ namespace WebPortal.Admin
             }
             return new JavaScriptSerializer().Serialize(rows);
         }
-        [WebMethod(EnableSession=true)] public static string GetRequests(){ return Json(new PettyCashBLL().GetRequests(LoginId(),null)); }
-        [WebMethod(EnableSession=true)] public static string GetCategories(){ return Json(new PettyCashBLL().GetCategories(false)); }
-        [WebMethod(EnableSession=true)] public static string GetEmployees(){ return Json(new PettyCashBLL().GetEmployees()); }
-        [WebMethod(EnableSession=true)] public static string SaveRequest(long requestId,long employeeId,long categoryId,string requestDate,string requiredDate,string purpose,decimal amount,string priority,string remark,bool submit)
+        [WebMethod(EnableSession = true)]
+        public static string GetRequests()
         {
-            DateTime rd, reqd; if(!DateTime.TryParse(requestDate,out rd)||!DateTime.TryParse(requiredDate,out reqd)) throw new Exception("Invalid date.");
-            if(employeeId<=0||categoryId<=0) throw new Exception("Employee and Category are mandatory."); if(string.IsNullOrWhiteSpace(purpose)) throw new Exception("Purpose is mandatory."); if(amount<=0) throw new Exception("Amount must be greater than zero."); if(reqd<rd) throw new Exception("Required Date cannot be before Request Date.");
-            return Json(new PettyCashBLL().SaveRequest(requestId,employeeId,categoryId,null,rd,reqd,purpose.Trim(),amount,priority,remark,LoginId(),submit));
+            return Json(new bllMaster().GetRequests(LoginId(), null));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetCategories()
+        {
+            return Json(new bllMaster().GetCategories(false));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetEmployees()
+        {
+            return Json(new bllMaster().GetEmployees());
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string SaveRequest(long requestId, long employeeId, long categoryId, string requestDate, string requiredDate, string purpose, decimal amount, string priority, string remark, bool submit)
+        {
+            DateTime rd, reqd; if (!DateTime.TryParse(requestDate, out rd) || !DateTime.TryParse(requiredDate, out reqd)) throw new Exception("Invalid date.");
+            if (employeeId <= 0 || categoryId <= 0) throw new Exception("Employee and Category are mandatory."); if (string.IsNullOrWhiteSpace(purpose)) throw new Exception("Purpose is mandatory."); if (amount <= 0) throw new Exception("Amount must be greater than zero."); if (reqd < rd) throw new Exception("Required Date cannot be before Request Date.");
+            return Json(new bllMaster().SaveRequest(requestId, employeeId, categoryId, null, rd, reqd, purpose.Trim(), amount, priority, remark, LoginId(), submit));
         }
     }
 }

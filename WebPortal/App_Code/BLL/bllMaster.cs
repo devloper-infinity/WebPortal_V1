@@ -8,10 +8,11 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.DynamicData;
+using WebPortal.Admin;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
-using WebPortal.Admin;
 using static WebPortal.Admin.ChildPages;
+using static WebPortal.App_Code.BLL.bllMaster;
 
 
 namespace WebPortal.App_Code.BLL
@@ -1533,6 +1534,26 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.InsertCCInvoiceMonthlyData(htParam);
         }
 
+        public int SaveCCInvoiceMonthlyData(Hashtable htParam)
+        {
+            return dalMaster.SaveCCInvoiceMonthlyData(htParam);
+        }
+
+        public DataTable GetInvoiceVerificationDetails()
+        {
+            return null;// dalMaster.GetInvoiceVerificationDetails();
+        }
+
+        public string GetInvoiceHeaderName(int headerID)
+        {
+            return dalMaster.GetInvoiceHeaderName(headerID);
+        }
+
+        public DataTable GetInvoiceDocument(int documentID)
+        {
+            return dalMaster.GetInvoiceDocument(documentID);
+        }
+
         public DataTable GetAllInvoiceHeadersSummary(string Month, string Year)
         {
             return dalMaster.GetAllInvoiceHeadersSummary(Month, Year);
@@ -2873,5 +2894,32 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.getViewShortlistedCandidate(EmpId);
         }
+
+
+        #region Petty_Cash
+        public DataTable GetEmployees() { return dalMaster.ExecuteTable("usp_PettyCashEmployee_List"); }
+        public DataTable GetCategories(bool includeInactive) { return dalMaster.ExecuteTable("usp_PettyCashCategory_List", new SqlParameter("@IncludeInactive", includeInactive)); }
+        public DataTable SaveCategory(long id, string name, string desc, bool active, long user) { return dalMaster.ExecuteTable("usp_PettyCashCategory_Save", new SqlParameter("@CategoryID", id), new SqlParameter("@CategoryName", name), new SqlParameter("@Description", (object)desc ?? DBNull.Value), new SqlParameter("@IsActive", active), new SqlParameter("@UserID", user)); }
+        public DataTable GetRequests(long? employeeId, string status) { return dalMaster.ExecuteTable("usp_PettyCashRequest_List", new SqlParameter("@EmployeeID", (object)employeeId ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value)); }
+        public DataTable SaveRequest(long requestId, long employeeId, long categoryId, long? subCategoryId, DateTime requestDate, DateTime requiredDate, string purpose, decimal amount, string priority, string remark, long userId, bool submit) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Save", new SqlParameter("@RequestID", requestId), new SqlParameter("@EmployeeID", employeeId), new SqlParameter("@CategoryID", categoryId), new SqlParameter("@SubCategoryID", (object)subCategoryId ?? DBNull.Value), new SqlParameter("@RequestDate", requestDate), new SqlParameter("@RequiredDate", requiredDate), new SqlParameter("@Purpose", purpose), new SqlParameter("@RequestedAmount", amount), new SqlParameter("@Priority", (object)priority ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", userId), new SqlParameter("@Submit", submit)); }
+        public DataTable GetApprovalRequests(string status) { return dalMaster.ExecuteTable("usp_PettyCashApproval_List", new SqlParameter("@Status", (object)status ?? DBNull.Value)); }
+        public DataTable ActionRequest(long id, string action, long user, decimal? amount, string remark) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Action", new SqlParameter("@RequestID", id), new SqlParameter("@Action", action), new SqlParameter("@ApproverID", user), new SqlParameter("@ApprovalLevel", 1), new SqlParameter("@ApprovedAmount", (object)amount ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value)); }
+        public DataTable GetApprovedRequests() { return dalMaster.ExecuteTable("usp_PettyCashApprovedRequest_List"); }
+        public DataTable IssuePayment(long id, DateTime dt, string mode, string refno, decimal amt, long paidBy, long receiver, string remark) { return dalMaster.ExecuteTable("usp_PettyCashPayment_Issue", new SqlParameter("@RequestID", id), new SqlParameter("@PaymentDate", dt), new SqlParameter("@PaymentMode", mode), new SqlParameter("@ReferenceNo", (object)refno ?? DBNull.Value), new SqlParameter("@AmountPaid", amt), new SqlParameter("@PaidBy", paidBy), new SqlParameter("@ReceiverID", receiver), new SqlParameter("@Remark", (object)remark ?? DBNull.Value)); }
+        public DataTable GetPayments() { return dalMaster.ExecuteTable("usp_PettyCashPayment_List"); }
+        public DataTable GetExpenseOpenRequests(long user) { return dalMaster.ExecuteTable("usp_PettyCashExpenseRequest_List", new SqlParameter("@EmployeeID", user)); }
+        public DataTable SaveExpense(long req, DateTime dt, long cat, long? sub, string vendor, string inv, string desc, decimal amt, decimal tax, string mode, string remark, long user) { return dalMaster.ExecuteTable("usp_PettyCashExpense_Save", new SqlParameter("@RequestID", req), new SqlParameter("@ExpenseDate", dt), new SqlParameter("@CategoryID", cat), new SqlParameter("@SubCategoryID", (object)sub ?? DBNull.Value), new SqlParameter("@VendorName", (object)vendor ?? DBNull.Value), new SqlParameter("@InvoiceNo", (object)inv ?? DBNull.Value), new SqlParameter("@Description", desc), new SqlParameter("@ExpenseAmount", amt), new SqlParameter("@TaxAmount", tax), new SqlParameter("@PaymentMode", (object)mode ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", user)); }
+        public DataTable GetExpenses(long requestId) { return dalMaster.ExecuteTable("usp_PettyCashExpense_List", new SqlParameter("@RequestID", requestId)); }
+        public DataTable GetSettlementRequests(long employee) { return dalMaster.ExecuteTable("usp_PettyCashSettlementRequest_List", new SqlParameter("@EmployeeID", employee)); }
+        public DataTable GetSettlementPreview(long id) { return dalMaster.ExecuteTable("usp_PettyCashSettlement_Preview", new SqlParameter("@RequestID", id)); }
+        public DataTable SubmitSettlement(long id, DateTime dt, string remark, long user) { return dalMaster.ExecuteTable("usp_PettyCashSettlement_Submit", new SqlParameter("@RequestID", id), new SqlParameter("@SettlementDate", dt), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", user)); }
+        public DataTable GetSettlements() { return dalMaster.ExecuteTable("usp_PettyCashSettlement_List"); }
+        public DataTable GetLedger(DateTime? from, DateTime? to) { return dalMaster.ExecuteTable("usp_PettyCashLedger_List", new SqlParameter("@FromDate", (object)from ?? DBNull.Value), new SqlParameter("@ToDate", (object)to ?? DBNull.Value)); }
+        public DataTable GetReport(DateTime? from, DateTime? to, string status) { return dalMaster.ExecuteTable("usp_PettyCashReport", new SqlParameter("@FromDate", (object)from ?? DBNull.Value), new SqlParameter("@ToDate", (object)to ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value)); }
+        public DataTable GetDashboardSummary() { return dalMaster.ExecuteTable("usp_PettyCashDashboard_Summary"); }
+        public DataTable GetRecentRequests() { return dalMaster.ExecuteTable("usp_PettyCashDashboard_Recent"); }
+
+        #endregion
     }
 }
+

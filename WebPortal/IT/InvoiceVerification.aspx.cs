@@ -13,6 +13,8 @@ using WebPortal.App_Code.BLL;
 using System.Net.Mail;
 using System.Data.SqlClient;
 using System.Text;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 
 namespace WebPortal.IT
@@ -20,39 +22,8 @@ namespace WebPortal.IT
     public partial class InvoiceVerification : System.Web.UI.Page
     {
         static SqlConnection con = new SqlConnection("Data Source=23.111.175.186;Initial Catalog=InfinityERP;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=10; Connect Timeout=200; Packet Size=8192");
-        static string NewFileName = "";
-        static string GUIDFile = "";
-        static string FolderPath = "";
-        static string SubPath = "";
         protected void Page_Load(object sender, EventArgs e)
         {
-
-            // SendEmail_InvoiceNotification(1, "March", "2025");
-
-            FolderPath = Server.MapPath(@"~\InvoiceDocs");
-            try
-            {
-                NewFileName = "";
-                HttpContext postedContext = HttpContext.Current;
-                HttpPostedFile file = postedContext.Request.Files[0];
-
-                string name = file.FileName;
-                byte[] binaryWriteArray = new byte[file.InputStream.Length];
-                file.InputStream.Read(binaryWriteArray, 0,
-                (int)file.InputStream.Length);
-
-                FileInfo file_Info = new FileInfo(file.FileName);
-                string ext = file_Info.Extension;
-
-                string file_Name = name.Replace(ext, "") + "_" + DateTime.Now.ToString("ddMMyyyyhhmmss") + ext;
-                GUIDFile = file_Name;
-                NewFileName = Server.MapPath("..//TempFiles//" + file_Name);
-                FileStream objfilestream = new FileStream(NewFileName, FileMode.Create, FileAccess.ReadWrite);
-                objfilestream.Write(binaryWriteArray, 0,
-                binaryWriteArray.Length);
-                objfilestream.Close();
-            }
-            catch { }
         }
 
         [WebMethod]
@@ -68,7 +39,12 @@ namespace WebPortal.IT
                     row = new Dictionary<string, object>();
                     foreach (DataColumn col in dt1.Columns)
                     {
-                        row.Add(col.ColumnName, dr[col]);
+                        object value = dr.IsNull(col) ? null : dr[col];
+                        if (value is DateTime && (string.Equals(col.ColumnName, "BillingDate", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(col.ColumnName, "EffectiveDate", StringComparison.OrdinalIgnoreCase)
+                            || string.Equals(col.ColumnName, "DisabledDate", StringComparison.OrdinalIgnoreCase)))
+                            value = ((DateTime)value).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        row.Add(col.ColumnName, value);
                     }
                     rows.Add(row);
                 }
@@ -84,15 +60,26 @@ namespace WebPortal.IT
             DataTable domains = new bllMaster().GetInvoiceDomains();
             List<string> values = new List<string>();
             if (domains != null)
-            {
                 foreach (DataRow row in domains.Rows)
                 {
                     string domain = Convert.ToString(row["DomainName"]).Trim();
-                    if (domain.Length > 0)
-                        values.Add(domain);
+                    if (domain.Length > 0) values.Add(domain);
                 }
-            }
             return new JavaScriptSerializer().Serialize(values);
+        }
+
+        [WebMethod]
+        public static string GetInvoiceProjects()
+        {
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            if (HttpContext.Current.User != null && HttpContext.Current.User.Identity.IsAuthenticated)
+            {
+                DataTable projects = new bllMaster().GetAllProjectByUserRights(HttpContext.Current.User.Identity.Name);
+                if (projects != null && projects.Columns.Contains("ProjectID") && projects.Columns.Contains("ProjectName"))
+                    foreach (DataRow row in projects.Rows)
+                        rows.Add(new Dictionary<string, object> { { "ProjectID", row["ProjectID"] }, { "ProjectName", row["ProjectName"] } });
+            }
+            return new JavaScriptSerializer().Serialize(rows);
         }
 
         [WebMethod]
@@ -142,8 +129,28 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
-        public static int InsertCCMonthlyData(int HeaderID, string Month, string Year, string Remark, string InvoiceNo, string InvoiceAmount, string Utilization, string Difference, string CredidCardNo)
+        public static int InsertCCMonthlyData(int HeaderID, string Month, string Year, string Remark, string InvoiceNo, string InvoiceAmount, string Utilization, string Difference, string CCNo, string BillingDate)
         {
+            int result = SaveInvoiceRow(HeaderID, Month, Year, Remark, InvoiceNo, InvoiceAmount, Utilization, Difference, CCNo, BillingDate, ExistingInvoiceAttachment(HeaderID, Month, Year));
+            if (result > 0)
+                SendEmail_InvoiceNotification(HeaderID, Month, Year);
+                return result;
+        }
+
+        private static string ExistingInvoiceAttachment(int headerID, string month, string year)
+        {
+            DataTable existing = new bllMaster().DownloadInvoice(headerID, month, year);
+            if (existing == null) throw new InvalidOperationException("Unable to read the existing invoice. Please retry.");
+            return existing.Rows.Count > 0 && existing.Columns.Contains("Attachment") ? Convert.ToString(existing.Rows[0]["Attachment"]) : "";
+        }
+
+        private static int SaveInvoiceRow(int HeaderID, string Month, string Year, string Remark, string InvoiceNo, string InvoiceAmount, string Utilization, string Difference, string CCNo, string BillingDate, string attachment)
+        {
+            if (HttpContext.Current.User == null || !HttpContext.Current.User.Identity.IsAuthenticated)
+                throw new InvalidOperationException("Please sign in again.");
+            DateTime date;
+            if (!DateTime.TryParseExact(BillingDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+                throw new InvalidOperationException("Please enter a valid Billing Date.");
             int returnvalue = 0;
             Hashtable htParam = new Hashtable();
             htParam.Add("HeaderID", HeaderID);
@@ -152,41 +159,94 @@ namespace WebPortal.IT
             htParam.Add("Remark", Remark);
             htParam.Add("InvoiceNo", InvoiceNo);
             htParam.Add("InvoiceAmount", InvoiceAmount);
-            htParam.Add("", CredidCardNo);
-            if (NewFileName != "")
-            {
-                if (!Directory.Exists(FolderPath))
-                {
-                    Directory.CreateDirectory(FolderPath);
-                }
-                string DatePath = FolderPath + "\\" + Month + "-" + Year;
-                if (!Directory.Exists(DatePath))
-                {
-                    Directory.CreateDirectory(DatePath);
-                }
-                SubPath = DatePath + "\\" + Convert.ToString(HeaderID);
-                if (!Directory.Exists(SubPath))
-                {
-                    Directory.CreateDirectory(SubPath);
-                }
-                File.Copy(NewFileName, SubPath + "\\" + GUIDFile);
-                htParam.Add("Attachment", SubPath + "\\" + GUIDFile);
-            }
-            else
-            {
-                htParam.Add("Attachment", "");
-            }
+            htParam.Add("CreditCard", CCNo);
+            htParam.Add("BillingDate", date);
+            htParam.Add("Attachment", attachment);
             htParam.Add("Utilization", Utilization);
             htParam.Add("Difference", Difference);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             returnvalue = new bllMaster().InsertCCInvoiceMonthlyData(htParam);
 
-            if (returnvalue > 0)
-            {
-                SendEmail_InvoiceNotification(HeaderID, Month, Year);
-            }
-
             return returnvalue;
+        }
+
+        public static object SaveInvoiceMonthlyRequest(HttpContext context)
+        {
+            string savedPath = null;
+            bool saved = false;
+            try
+            {
+                int headerID;
+                if (context.User == null || !context.User.Identity.IsAuthenticated)
+                    throw new InvalidOperationException("Please sign in again.");
+                if (!int.TryParse(context.Request.Form["HeaderID"], out headerID) || headerID <= 0)
+                    throw new InvalidOperationException("Select a valid invoice.");
+                string month = context.Request.Form["Month"] ?? "", year = context.Request.Form["Year"] ?? "";
+                DateTime period, billingDate;
+                if (!DateTime.TryParseExact("01 " + month + " " + year, "dd MMMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out period))
+                    throw new InvalidOperationException("Please select a specific invoice month and year.");
+                if (!DateTime.TryParseExact(context.Request.Form["BillingDate"], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out billingDate))
+                    throw new InvalidOperationException("Please enter a valid Billing Date.");
+                string amount = context.Request.Form["InvoiceAmount"] ?? "";
+                decimal parsedAmount;
+                if (!decimal.TryParse(amount, NumberStyles.Number, CultureInfo.InvariantCulture, out parsedAmount) || parsedAmount < 0)
+                    throw new InvalidOperationException("Please enter a valid invoice amount.");
+                string ccNo = (context.Request.Form["CCNo"] ?? "").Trim();
+                if (ccNo.Length == 0 || ccNo.Length > 100) throw new InvalidOperationException("Please select a valid credit card.");
+                if (string.IsNullOrWhiteSpace(new bllMaster().GetInvoiceHeaderName(headerID)))
+                    throw new InvalidOperationException("Invoice was not found.");
+                string attachment = ExistingInvoiceAttachment(headerID, month, year);
+                HttpPostedFile file = context.Request.Files["InvoiceFile"];
+                if (file != null && !string.IsNullOrEmpty(file.FileName))
+                {
+                    if (file.ContentLength <= 0 || file.ContentLength > 10 * 1024 * 1024)
+                        throw new InvalidOperationException("Choose a non-empty file up to 10 MB.");
+                    string name = Path.GetFileName(file.FileName), extension = Path.GetExtension(name).ToLowerInvariant();
+                    if (!Regex.IsMatch(extension, @"^\.(pdf|png|jpe?g|docx?|xlsx?)$"))
+                        throw new InvalidOperationException("Choose a PDF, image, Word or Excel file.");
+                    ValidateInvoiceFile(file, extension);
+                    string baseName = Regex.Replace(Path.GetFileNameWithoutExtension(name), @"[^A-Za-z0-9_-]", "_");
+                    if (baseName.Length > 80) baseName = baseName.Substring(0, 80);
+                    if (baseName.Length == 0) baseName = "Invoice";
+                    string relativeFolder = "InvoiceDocuments/" + period.ToString("yyyy-MM", CultureInfo.InvariantCulture) + "/" + headerID;
+                    string directory = context.Server.MapPath("~/App_Data/" + relativeFolder);
+                    Directory.CreateDirectory(directory);
+                    string storedName = baseName + "_" + Guid.NewGuid().ToString("N") + extension;
+                    savedPath = Path.Combine(directory, storedName);
+                    file.SaveAs(savedPath);
+                    attachment = relativeFolder + "/" + storedName;
+                }
+                int result = SaveInvoiceRow(headerID, month, year, context.Request.Form["Remark"], context.Request.Form["InvoiceNo"], amount,
+                    context.Request.Form["Utilization"], context.Request.Form["Difference"], ccNo, billingDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), attachment);
+                if (result <= 0) throw new InvalidOperationException("Invoice was not saved. Please retry.");
+                saved = true;
+                SendEmail_InvoiceNotification(headerID, month, year);
+                return new { success = true, message = "Invoice saved successfully." };
+            }
+            catch (Exception ex)
+            {
+                if (!saved && savedPath != null)
+                {
+                    try { File.Delete(savedPath); } catch { }
+                }
+                if (saved) return new { success = true, message = "Invoice saved successfully." };
+                return new { success = false, message = ex is InvalidOperationException ? ex.Message : "Unable to save the invoice. Please contact support." };
+            }
+        }
+
+        private static void ValidateInvoiceFile(HttpPostedFile file, string extension)
+        {
+            byte[] signature = new byte[8];
+            int count = file.InputStream.Read(signature, 0, signature.Length);
+            file.InputStream.Position = 0;
+            bool zip = count >= 4 && signature[0] == 0x50 && signature[1] == 0x4b && signature[2] == 0x03 && signature[3] == 0x04;
+            bool office = count >= 8 && signature[0] == 0xd0 && signature[1] == 0xcf && signature[2] == 0x11 && signature[3] == 0xe0 && signature[4] == 0xa1 && signature[5] == 0xb1 && signature[6] == 0x1a && signature[7] == 0xe1;
+            bool valid = extension == ".pdf" && count >= 4 && signature[0] == 0x25 && signature[1] == 0x50 && signature[2] == 0x44 && signature[3] == 0x46
+                || extension == ".png" && count >= 8 && signature[0] == 0x89 && signature[1] == 0x50 && signature[2] == 0x4e && signature[3] == 0x47 && signature[4] == 0x0d && signature[5] == 0x0a && signature[6] == 0x1a && signature[7] == 0x0a
+                || (extension == ".jpg" || extension == ".jpeg") && count >= 3 && signature[0] == 0xff && signature[1] == 0xd8 && signature[2] == 0xff
+                || (extension == ".docx" || extension == ".xlsx") && zip
+                || (extension == ".doc" || extension == ".xls") && office;
+            if (!valid) throw new InvalidOperationException("The selected file content does not match its file type.");
         }
 
         [WebMethod]
@@ -206,19 +266,9 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
-        public static int InsertCCInvoiceHeaders(string Header, string Domain, string Product, string PayTo, string PaymentFreq, string CostType, string EffectiveDate, string ContQuantity, string ContPerUnitCost, string ChargeableAmt)
+        public static int InsertCCInvoiceHeaders(string Header, string Domain, string Product, string PayTo, string PaymentFreq, string CostType, string EffectiveDate, string ContQuantity, string ContPerUnitCost, string ChargeableAmt, string ContractualUsage)
         {
             int returnvalue = 0;
-
-            Domain = (Domain ?? string.Empty).Trim();
-            DataTable existingDomains = new bllMaster().GetInvoiceDomains();
-            if (existingDomains != null)
-            {
-                DataRow existingDomain = existingDomains.AsEnumerable().FirstOrDefault(row =>
-                    string.Equals(Convert.ToString(row["DomainName"]).Trim(), Domain, StringComparison.OrdinalIgnoreCase));
-                if (existingDomain != null)
-                    Domain = Convert.ToString(existingDomain["DomainName"]).Trim();
-            }
 
             Hashtable htParam = new Hashtable();
             htParam.Add("Header", Header);
@@ -230,7 +280,8 @@ namespace WebPortal.IT
             htParam.Add("EffectiveDate", EffectiveDate);
             htParam.Add("ContQuantity", ContQuantity);
             htParam.Add("ContPerUnitCost", ContPerUnitCost);
-            htParam.Add("ChargeableAmt", ChargeableAmt);
+            htParam.Add("ChargeableAmt", ChargeableAmt); 
+            htParam.Add("ContractualUsage", ContractualUsage);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
             returnvalue = new bllMaster().InsertCCInvoiceHeaders(htParam);
@@ -286,10 +337,14 @@ namespace WebPortal.IT
 
                 if (dt.Rows.Count > 0)
                 {
-                    ToAddress = Convert.ToString(dt.Rows[0]["ToAddress"]);
-                    ToCC = Convert.ToString(dt.Rows[0]["ToCC"]);
-                    ToBCC = Convert.ToString(dt.Rows[0]["ToBCC"]);
+                    //ToAddress = Convert.ToString(dt.Rows[0]["ToAddress"]);
+                    //ToCC = Convert.ToString(dt.Rows[0]["ToCC"]);
+                    //ToBCC = Convert.ToString(dt.Rows[0]["ToBCC"]);
                     FromMailAddress = Convert.ToString(dt.Rows[0]["FromMailAddress"]);
+
+                    ToAddress = "b.shubhangi@infinity-data.com";
+                    ToCC = "b.shubhangi@infinity-data.com";
+                    ToBCC = "b.shubhangi@infinity-data.com";
 
                     Subject = "IT Invoice - " + Convert.ToString(dt.Rows[0]["Header"]);
 

@@ -5,6 +5,7 @@ using System.Web.Script.Serialization;
 using System.Web.Services;
 using System.Web.UI;
 using System.Collections.Generic;
+using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Admin
 {
@@ -28,10 +29,32 @@ namespace WebPortal.Admin
             }
             return new JavaScriptSerializer().Serialize(rows);
         }
-        [WebMethod(EnableSession=true)] public static string GetOpenRequests(){ return Json(new PettyCashBLL().GetExpenseOpenRequests(LoginId())); }
-        [WebMethod(EnableSession=true)] public static string GetCategories(){ return Json(new PettyCashBLL().GetCategories(false)); }
-        [WebMethod(EnableSession=true)] public static string GetExpenses(long requestId){ return Json(new PettyCashBLL().GetExpenses(requestId)); }
-        [WebMethod(EnableSession=true)] public static string SaveExpense(long requestId,string expenseDate,long categoryId,string vendorName,string invoiceNo,string description,decimal expenseAmount,decimal taxAmount,string paymentMode,string remark)
-        { DateTime d; if(!DateTime.TryParse(expenseDate,out d)) throw new Exception("Invalid expense date."); if(requestId<=0||categoryId<=0) throw new Exception("Request and Category are mandatory."); if(string.IsNullOrWhiteSpace(description)) throw new Exception("Description is mandatory."); if(expenseAmount<=0||taxAmount<0) throw new Exception("Invalid amount."); return Json(new PettyCashBLL().SaveExpense(requestId,d,categoryId,null,vendorName,invoiceNo,description.Trim(),expenseAmount,taxAmount,paymentMode,remark,LoginId())); }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetOpenRequests()
+        {
+            return Json(new bllMaster().GetExpenseOpenRequests(LoginId()));
+        }
+
+
+        [WebMethod(EnableSession = true)]
+        public static string GetCategories()
+        {
+            return Json(new bllMaster().GetCategories(false));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string GetExpenses(long requestId)
+        {
+            return Json(new bllMaster().GetExpenses(requestId));
+        }
+
+        [WebMethod(EnableSession = true)]
+        public static string SaveExpense(long requestId, string expenseDate, long categoryId, string vendorName, string invoiceNo, string description, decimal expenseAmount, decimal taxAmount, string paymentMode, string remark)
+        {
+            DateTime d; if (!DateTime.TryParse(expenseDate, out d)) throw new Exception("Invalid expense date."); if (requestId <= 0 || categoryId <= 0) throw new Exception("Request and Category are mandatory.");
+            if (string.IsNullOrWhiteSpace(description)) throw new Exception("Description is mandatory."); if (expenseAmount <= 0 || taxAmount < 0) throw new Exception("Invalid amount.");
+            return Json(new bllMaster().SaveExpense(requestId, d, categoryId, null, vendorName, invoiceNo, description.Trim(), expenseAmount, taxAmount, paymentMode, remark, LoginId()));
+        }
     }
 }

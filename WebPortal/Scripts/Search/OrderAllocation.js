@@ -68,6 +68,8 @@ function orderAllocationParseRows(response) {
 function orderAllocationPopulateSelect(selector, rows, valueField, textField, selectedValue) {
     var $select = $(selector);
 
+    alert(rows);
+
     if (!$select.length) {
         return;
     }
