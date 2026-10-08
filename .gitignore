@@ -385,6 +385,9 @@ FodyWeavers.xsd
 !/WebPortal/Accounts/BranchwiseSalaryAnalysis.aspx
 !/WebPortal/Accounts/BranchwiseSalaryAnalysis.aspx.cs
 !/WebPortal/Accounts/BranchwiseSalaryAnalysis.aspx.designer.cs
+!/WebPortal/Accounts/DiwaliExpenses.aspx
+!/WebPortal/Accounts/DiwaliExpenses.aspx.cs
+!/WebPortal/Accounts/DiwaliExpenses.aspx.designer.cs
 !/WebPortal/Admin/
 /WebPortal/Admin/*
 !/WebPortal/Admin/BillingChannelMaster.aspx
@@ -455,6 +458,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_023_ManagerLoanHold.sql
 !/WebPortal/DatabaseScripts/USFeedback_002_AddProcessID.sql
 !/WebPortal/DatabaseScripts/DashboardValidator_001_ValidationExceptionMaster.sql
+!/WebPortal/DatabaseScripts/DiwaliExpenses.sql
 !/WebPortal/DatabaseScripts/PendingData_001_BlockingWorkflow.sql
 !/WebPortal/DatabaseScripts/usp_GetAllProjectsBillingDetails.sql
 !/WebPortal/DatabaseScripts/ProjectBillingParameterRemarks.sql

@@ -126,6 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Accounts\BranchwiseSalaryAnalysis.aspx" />
+    <Content Include="Accounts\DiwaliExpenses.aspx" />
     <Content Include="Accounts\AdvanceMaster.aspx" />
     <Content Include="Accounts\BonusMaster.aspx" />
     <Content Include="Accounts\CompareReportDueSalary.aspx" />
@@ -169,6 +170,7 @@
     <Content Include="DatabaseScripts\UnderwritingBillingReminder.sql" />
     <Content Include="DatabaseScripts\CommitmentBillingReminder.sql" />
     <Content Include="DatabaseScripts\ClientBillingEmailMaster.sql" />
+    <Content Include="DatabaseScripts\DiwaliExpenses.sql" />
     <Content Include="DatabaseScripts\LoanLevelHistory_001_ServerPaging.sql" />
     <Content Include="DatabaseScripts\PendingData_001_BlockingWorkflow.sql" />
     <Content Include="DatabaseScripts\RNR\RNR_Feedback_Module.sql" />
@@ -3326,6 +3328,13 @@
     </Compile>
     <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.designer.cs">
       <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\DiwaliExpenses.aspx.cs">
+      <DependentUpon>DiwaliExpenses.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\DiwaliExpenses.aspx.designer.cs">
+      <DependentUpon>DiwaliExpenses.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\EditInfinityFeedbackHelpers.cs" />
     <Compile Include="Admin\FeedbackPerformanceExcelExporter.cs" />
