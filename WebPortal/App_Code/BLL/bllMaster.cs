@@ -662,6 +662,10 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.GetAllBranches();
         }
 
+        public int InsertBranch(string branchName, int addedBy) { return dalMaster.InsertBranch(branchName, addedBy); }
+        public int UpdateBranch(string branchName, int branchId, int updatedBy) { return dalMaster.UpdateBranch(branchName, branchId, updatedBy); }
+        public int DeleteBranch(int branchId, int deletedBy) { return dalMaster.DeleteBranch(branchId, deletedBy); }
+
         public DataTable GetAllProjectManager()
         {
             return dalMaster.GetAllProjectManager();
@@ -2893,6 +2897,11 @@ namespace WebPortal.App_Code.BLL
         public DataTable getViewShortlistedCandidate(int EmpId)
         {
             return dalMaster.getViewShortlistedCandidate(EmpId);
+        }
+
+        public DataTable GetAllComplaintsAndSuggestions()
+        {
+            return dalMaster.GetAllComplaintsAndSuggestions();
         }
 
 
