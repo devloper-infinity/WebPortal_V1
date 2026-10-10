@@ -6759,6 +6759,40 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             return dt;
         }
 
+        public int InsertBranch(string branchName, int addedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_InsertBranch");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", SqlDbType.VarChar, 100, ParameterDirection.Input, branchName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, addedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd); return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public int UpdateBranch(string branchName, int branchId, int updatedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateBranch");
+            SQLHelper.AddParamToSQLCmd(cmd, "@BranchId", SqlDbType.BigInt, 0, ParameterDirection.Input, branchId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BranchName", SqlDbType.VarChar, 100, ParameterDirection.Input, branchName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UpdatedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, updatedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd); return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public int DeleteBranch(int branchId, int deletedBy)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_deleteBranch");
+            SQLHelper.AddParamToSQLCmd(cmd, "@BranchId", SqlDbType.BigInt, 0, ParameterDirection.Input, branchId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DeletedBy", SqlDbType.BigInt, 0, ParameterDirection.Input, deletedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd); return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public DataTable GetAllComplaintsAndSuggestions()
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllComplaintsAndSuggestions");
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         #region Petty_Cash
 
         //  private readonly string _cs = ConfigurationManager.ConnectionStrings["constr"].ConnectionString; // change only if your WebPortal connection name differs

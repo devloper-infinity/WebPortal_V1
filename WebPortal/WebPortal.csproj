@@ -347,6 +347,8 @@
     <Content Include="Admin\ImportSecuritizationLoans.aspx" />
     <Content Include="Admin\LoanLevelHistory.aspx" />
     <Content Include="Admin\LogInDetails.aspx" />
+    <Content Include="Admin\ComplaintsAndSuggestionReport.aspx" />
+    <Content Include="Admin\BranchMaster.aspx" />
     <Content Include="Admin\ManagementVolumeReport.aspx" />
     <Content Include="Admin\OtherTask.aspx" />
     <Content Include="Admin\IncrementProposalReport_Step1.aspx" />
@@ -4554,6 +4556,20 @@
     </Compile>
     <Compile Include="Admin\LogInDetails.aspx.designer.cs">
       <DependentUpon>LogInDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ComplaintsAndSuggestionReport.aspx.cs">
+      <DependentUpon>ComplaintsAndSuggestionReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\ComplaintsAndSuggestionReport.aspx.designer.cs">
+      <DependentUpon>ComplaintsAndSuggestionReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\BranchMaster.aspx.cs">
+      <DependentUpon>BranchMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\BranchMaster.aspx.designer.cs">
+      <DependentUpon>BranchMaster.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\ManagementVolumeReport.aspx.cs">
       <DependentUpon>ManagementVolumeReport.aspx</DependentUpon>
