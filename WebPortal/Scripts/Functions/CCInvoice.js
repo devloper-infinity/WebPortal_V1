@@ -363,7 +363,8 @@ function BindInvoiceGrid() {
                     inv_html += '<td style="display:none;">' + invoiceEscape(invoiceText(value.Attachment)) + '</td>';
                     inv_html += '<td class="invoice-details-cell"><div class="btn-group">';
                     inv_html += '<a href="#" role="button" class="invoice-settings" data-toggle="dropdown" aria-expanded="false" aria-label="Invoice actions"><i class="uil uil-cog" aria-hidden="true"></i></a><div class="dropdown-menu" role="menu">';
-                    inv_html += '<a class="dropdown-item" href="#!" id="ActionsEx" onclick="invoice_ViewDetails(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
+                    inv_html += '<a class="dropdown-item" href="' + invoice_UserMappingUrl(value.HeaderID, month, year) + '" id="ActionsEx"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
+                    inv_html += '<a class="dropdown-item" href="#!" onclick="invoice_ViewDetailsLegacy(' + value.HeaderID + ',' + index + ');"><span style="color: slategray;"><i class="uil uil-window"></i></span>&nbsp;&nbsp;Legacy Details Popup</a>';
 
                     if (LoginID == 9858) {
                         if (value.HeaderStatus == "Enable")
@@ -388,8 +389,8 @@ function BindInvoiceGrid() {
                     inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.PrevMonthQuantity) + '</td>';
                     inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.CurrentQuantity) + '</td>';
                     inv_html += '<td style="text-wrap: wrap; text-align:center;">' + blankForNull(value.ContractualUsage) + '</td>';
-                    var activeFrom = invoiceDateValue(value.EffectiveDate);
-                    var activeThrough = invoiceDateValue(value.DisabledDate);
+                    var activeFrom = invoiceDateValue(value.EffectiveFrom);
+                    var activeThrough = invoiceDateValue(value.EffectiveTo);
                     // inv_html += '<td id="inv_activefrom_' + value.HeaderID + '" data-date-value="' + activeFrom + '">' + invoiceEscape(activeFrom) + '</td>';
                     // inv_html += '<td id="inv_activethrough_' + value.HeaderID + '" data-date-value="' + activeThrough + '">' + invoiceEscape(activeThrough) + '</td>';
 
@@ -503,10 +504,24 @@ function BindInvoiceGrid() {
 }
 
 
-function invoice_ViewDetails(HeaderID, Index) {
+function invoice_ViewDetails(HeaderID, Index, periodContext) {
+    var suffix = periodContext === 'rec' ? '_rec' : '';
+    var month = $('#inv_month' + suffix).val() || '';
+    var year = $('#inv_year' + suffix).val() || '';
+    window.location.href = 'UserMapping.aspx?HeaderID=' + encodeURIComponent(HeaderID) + '&Month=' + encodeURIComponent(month) + '&Year=' + encodeURIComponent(year);
+    return false;
+}
+
+function invoice_UserMappingUrl(HeaderID, month, year) {
+    
+    return 'UserMapping.aspx?HeaderID=' + encodeURIComponent(HeaderID) + '&amp;Month=' + encodeURIComponent(month || '') + '&amp;Year=' + encodeURIComponent(year || '');
+}
+
+function invoice_ViewDetailsLegacy(HeaderID, Index) {
     document.getElementById("invdetails_headerid").innerHTML = HeaderID;
     BindInvDetails(HeaderID);
     $("#inv_detailspop").modal("show");
+    return false;
 }
 
 function invdeatails_addnewuser() {
@@ -1020,7 +1035,7 @@ function BindInvoiceGrid_Rec() {
                 inv_html_rec += '<div class="btn-group">';
                 inv_html_rec += '<div type="button" data-toggle="dropdown" aria-expanded="false"><i style="color: dodgerblue; font-size:14px;" class="uil fs-0 me-2 uil-cog"></i>';
                 inv_html_rec += '<span class="sr-only"></span></div><div class="dropdown-menu" role="menu" style="">';
-                inv_html_rec += '<a class="dropdown-item" href="#!" id="ActionsEx" onclick="invoice_ViewDetails(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
+                inv_html_rec += '<a class="dropdown-item" href="' + invoice_UserMappingUrl(value.HeaderID, month, year) + '" id="ActionsEx"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
                 inv_html_rec += '<a class="dropdown-item" href="#!" id="Actions" onclick="invoice_downloadinvoice_Rec(' + value.HeaderID + ',' + index + ');"><span style="color: forestgreen;"><i class="uil fs-0 me-2 uil-cloud-download"></i></span>&nbsp;&nbsp;Download Attachment</a><div class="dropdown-divider"></div></div></td>';
                 inv_html_rec += '<td style="display:none;">' + blankForNull(value.Header) + '</td>';
                 inv_html_rec += '<td>' + blankForNull(value.VStatus) + '</td>';

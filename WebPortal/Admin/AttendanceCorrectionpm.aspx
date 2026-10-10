@@ -606,6 +606,7 @@
                                 <th>Actions</th>
                                 <th>Code</th>
                                 <th>Name</th>
+                                <th>Project Manager</th>
                                 <th>In Date</th>
                                 <th>In Time</th>
                                 <th>Out Date</th>

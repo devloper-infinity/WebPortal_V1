@@ -447,6 +447,7 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql
 !/WebPortal/DatabaseScripts/LoanLevelHistory_001_ServerPaging.sql
 !/WebPortal/DatabaseScripts/InvoiceVerification_001_MetadataAndDocuments.sql
+!/WebPortal/DatabaseScripts/CCCorporateResources_001_UserMapping.sql
 !/WebPortal/DatabaseScripts/OLTracking_015_ProductivityAndCollectionComments.sql
 !/WebPortal/DatabaseScripts/OLTracking_016_ManagerOperationalDashboard.sql
 !/WebPortal/DatabaseScripts/OLTracking_017_ProcessSpecificEligibility.sql
@@ -481,7 +482,9 @@ FodyWeavers.xsd
 /WebPortal/App_Code/BLL/*
 /WebPortal/App_Code/DAL/*
 !/WebPortal/App_Code/BLL/bllInfinityFeedbackRca.cs
+!/WebPortal/App_Code/BLL/bllCCUserMapping.cs
 !/WebPortal/App_Code/DAL/dalInfinityFeedbackRca.cs
+!/WebPortal/App_Code/DAL/dalCCUserMapping.cs
 !/WebPortal/DatabaseScripts/InfinityRCA/
 !/WebPortal/DatabaseScripts/InfinityRCA/**
 !/WebPortal/App_Code/Class/
@@ -497,6 +500,9 @@ FodyWeavers.xsd
 !/WebPortal/TrackingSheet/ManagerDashboard.Snd.js
 !/WebPortal/Scripts/
 /WebPortal/Scripts/*
+!/WebPortal/Scripts/Functions/
+/WebPortal/Scripts/Functions/*
+!/WebPortal/Scripts/Functions/UserMapping.js
 !/WebPortal/Scripts/Admin/
 /WebPortal/Scripts/Admin/*
 !/WebPortal/Scripts/Admin/ProjectBillingDetails.js

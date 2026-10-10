@@ -254,10 +254,24 @@ namespace WebPortal.IT
         {
             int returnvalue = 0;
 
+            string emailAddress = string.Empty;
+            DataTable employees = new bllMaster().GetAllUsers_1();
+            if (!string.Equals(Code, "Other", StringComparison.OrdinalIgnoreCase) && employees != null && employees.Columns.Contains("Code"))
+            {
+                DataRow employee = employees.AsEnumerable().FirstOrDefault(row => string.Equals(Convert.ToString(row["Code"]).Trim(), (Code ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase));
+                if (employee != null)
+                {
+                    string[] emailColumns = { "EmailAddress", "Email", "EmailID", "OfficialEmail" };
+                    string emailColumn = emailColumns.FirstOrDefault(employees.Columns.Contains);
+                    if (emailColumn != null && employee[emailColumn] != DBNull.Value) emailAddress = Convert.ToString(employee[emailColumn]).Trim();
+                }
+            }
+
             Hashtable htParam = new Hashtable();
             htParam.Add("HeaderID", HeaderID);
             htParam.Add("Code", Code);
             htParam.Add("OtherUser", OtherUser);
+            htParam.Add("EmailAddress", emailAddress);
             htParam.Add("EffectiveDate", EffectiveDate);
 
             returnvalue = new bllMaster().InsertCCDetails(htParam);
@@ -337,14 +351,14 @@ namespace WebPortal.IT
 
                 if (dt.Rows.Count > 0)
                 {
-                    //ToAddress = Convert.ToString(dt.Rows[0]["ToAddress"]);
-                    //ToCC = Convert.ToString(dt.Rows[0]["ToCC"]);
-                    //ToBCC = Convert.ToString(dt.Rows[0]["ToBCC"]);
+                    ToAddress = Convert.ToString(dt.Rows[0]["ToAddress"]);
+                    ToCC = Convert.ToString(dt.Rows[0]["ToCC"]);
+                    ToBCC = Convert.ToString(dt.Rows[0]["ToBCC"]);
                     FromMailAddress = Convert.ToString(dt.Rows[0]["FromMailAddress"]);
 
-                    ToAddress = "b.shubhangi@infinity-data.com";
-                    ToCC = "b.shubhangi@infinity-data.com";
-                    ToBCC = "b.shubhangi@infinity-data.com";
+                    //ToAddress = "b.shubhangi@infinity-data.com";
+                    //ToCC = "b.shubhangi@infinity-data.com";
+                    //ToBCC = "b.shubhangi@infinity-data.com";
 
                     Subject = "IT Invoice - " + Convert.ToString(dt.Rows[0]["Header"]);
 

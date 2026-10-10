@@ -789,8 +789,10 @@
     <Content Include="IT\Brand.aspx" />
     <Content Include="IT\DownloadFiles.aspx" />
     <Content Include="IT\InvoiceVerification.aspx" />
+    <Content Include="IT\UserMapping.aspx" />
     <Content Include="IT\InvoiceVerificationUpload.ashx" />
     <Content Include="DatabaseScripts\InvoiceVerification_001_MetadataAndDocuments.sql" />
+    <Content Include="DatabaseScripts\CCCorporateResources_001_UserMapping.sql" />
     <Content Include="Admin\LetterHeadManagement.aspx" />
     <Content Include="Admin\Log.aspx" />
     <Content Include="Admin\LogInDetailsOld.aspx" />
@@ -2883,6 +2885,7 @@
     <Content Include="Scripts\Functions\ProjectMaster.js" />
     <Content Include="Scripts\Functions\Canopy.js" />
     <Content Include="Scripts\Functions\CCInvoice.js" />
+    <Content Include="Scripts\Functions\UserMapping.js" />
     <Content Include="Scripts\Functions\CreditCard.js" />
     <Content Include="Scripts\Functions\Dashboard.js" />
     <Content Include="Scripts\Functions\EditInfinityFeedback.js" />
@@ -4928,7 +4931,9 @@
       <DependentUpon>WorkedHolidays.aspx</DependentUpon>
     </Compile>
     <Compile Include="App_Code\BLL\bllHelpdesk.cs" />
+    <Compile Include="App_Code\BLL\bllCCUserMapping.cs" />
     <Compile Include="App_Code\DAL\dalHelpdesk.cs" />
+    <Compile Include="App_Code\DAL\dalCCUserMapping.cs" />
     <Compile Include="App_Code\BLL\bllAsset.cs" />
     <Compile Include="App_Code\BLL\bllCRM.cs" />
     <Compile Include="App_Code\BLL\bllReport.cs" />
@@ -5166,6 +5171,13 @@
     </Compile>
     <Compile Include="IT\InvoiceVerification.aspx.designer.cs">
       <DependentUpon>InvoiceVerification.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="IT\UserMapping.aspx.cs">
+      <DependentUpon>UserMapping.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="IT\UserMapping.aspx.designer.cs">
+      <DependentUpon>UserMapping.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\LetterHeadManagement.aspx.cs">
       <DependentUpon>LetterHeadManagement.aspx</DependentUpon>

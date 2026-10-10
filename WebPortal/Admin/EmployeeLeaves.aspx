@@ -186,6 +186,20 @@
             white-space: nowrap;
         }
 
+        /* DataTables creates a visual header clone when scrollX is enabled.
+           Keep the original header in the scrolling body hidden. */
+        #empleaves_table_wrapper .dataTables_scrollBody #empleaves_table thead,
+        #empleaves_table_wrapper .dataTables_scrollBody #empleaves_table thead tr,
+        #empleaves_table_wrapper .dataTables_scrollBody #empleaves_table thead th {
+            height: 0 !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            font-size: 0 !important;
+            line-height: 0 !important;
+            visibility: hidden !important;
+        }
+
         .leave-data-table tbody td,
         table.dataTable tbody td {
             border-bottom: 1px solid #edf2f7;
@@ -607,6 +621,7 @@
                             <tr>
                                 <th>Actions</th>
                                 <th>Employee</th>
+                                <th>Project Manager</th>
                                 <th>Leave Type</th>
                                 <th># of days</th>
                                 <th>From Date</th>
