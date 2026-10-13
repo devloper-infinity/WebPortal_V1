@@ -4,11 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Web.Hosting;
@@ -16,6 +14,7 @@ using System.Web.Script.Services;
 using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using WebPortal.App_Code.Class;
 using WebPortal.App_Code.BLL;
 using WebPortal.App_Code.DAL;
 
@@ -60,7 +59,7 @@ namespace WebPortal
 
                 Hashtable passwordParameters = new Hashtable();
                 passwordParameters["EmployeeID"] = Convert.ToInt32(dtUser.Rows[0]["EmployeeID"]);
-                passwordParameters["Password"] = Encrypt(newPassword);
+                passwordParameters["Password"] = newPassword;
 
                 int updateResult = new bllMaster().ForgotPassword(passwordParameters);
                 if (updateResult <= 0)
@@ -75,30 +74,6 @@ namespace WebPortal
                 throw new Exception(ex.Message);
             }
         }
-
-        public static string Encrypt(string clearText)
-        {
-            string EncryptionKey = "MAKV2SPBNI99212";
-            byte[] clearBytes = Encoding.Unicode.GetBytes(clearText);
-            using (Aes encryptor = Aes.Create())
-            {
-                Rfc2898DeriveBytes pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
-                encryptor.Key = pdb.GetBytes(32);
-                encryptor.IV = pdb.GetBytes(16);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(clearBytes, 0, clearBytes.Length);
-                        cs.Close();
-                    }
-                    clearText = Convert.ToBase64String(ms.ToArray());
-                }
-            }
-
-            return clearText;
-        }
-
 
         [WebMethod(EnableSession = true)]
         public static string SendOTP(string username)
@@ -140,7 +115,17 @@ namespace WebPortal
                             mail.From = new MailAddress("ack@infinity-data.com", "ERP Password reset OTP", Encoding.UTF8);
                             mail.To.Add(email);
                             mail.Subject = "Password Reset OTP";
-                            mail.Body = "Your OTP is: " + otp;
+                            mail.SubjectEncoding = Encoding.UTF8;
+                            mail.Body = SelfLeavesEmailTemplate.Apply(
+                                "<p style='margin:0 0 12px;color:#1e293b;font-size:14px;line-height:22px;'>Hello,</p>" +
+                                "<p style='margin:0 0 20px;color:#475569;font-size:13px;line-height:21px;'>Your One-Time Password (OTP) to reset your WebPortal password is:</p>" +
+                                "<table role='presentation' width='100%' cellspacing='0' cellpadding='0' border='0' style='width:100%;background-color:#f1f5f9;border:1px solid #dbe4ee;border-radius:10px;'><tr><td align='center' style='padding:18px 16px 6px;color:#64748b;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;'>ONE-TIME PASSWORD (OTP)</td></tr><tr><td align='center' style='padding:4px 16px 18px;color:#173b70;font-family:Arial,sans-serif;font-size:30px;font-weight:700;letter-spacing:7px;line-height:38px;'>" +
+                                HttpUtility.HtmlEncode(otp) +
+                                "</td></tr></table>" +
+                                "<p style='margin:18px 0 0;color:#475569;font-size:12px;line-height:19px;'>This OTP is valid for 5 minutes and can be used only once. For your security, do not share it with anyone. If you did not request this password reset, please ignore this email.</p>",
+                                "Password Reset OTP",
+                                true);
+                            mail.BodyEncoding = Encoding.UTF8;
                             mail.IsBodyHtml = true;
                             mail.Priority = MailPriority.High;
 
