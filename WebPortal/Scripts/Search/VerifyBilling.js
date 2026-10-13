@@ -3,6 +3,7 @@ var title;
 var remark_orderid = 0;
 var remark_orderno = '';
 var verifyBillingSummaryRequest = null;
+var verifyBillingSummaryVersion = 0;
 
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
@@ -865,6 +866,7 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
 
     $('#load1').show();
     $('#totalOrdersSummary').empty();
+    var requestVersion = ++verifyBillingSummaryVersion;
 
     if (verifyBillingSummaryRequest && verifyBillingSummaryRequest.readyState !== 4) {
         verifyBillingSummaryRequest.abort();
@@ -878,6 +880,8 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
         contentType: "application/json; charset=utf-8",
 
         success: function (data) {
+            if (requestVersion !== verifyBillingSummaryVersion) return;
+
             var dataArray = JSON.parse(data.d);
 
             renderTotalOrdersSummary(dataArray);
@@ -930,7 +934,9 @@ function Bind_TotalOrders_Summary(prjno, fromdate, todate) {
         },
 
         complete: function () {
-            verifyBillingSummaryRequest = null;
+            if (requestVersion === verifyBillingSummaryVersion) {
+                verifyBillingSummaryRequest = null;
+            }
         }
     });
     return false;
@@ -1089,7 +1095,7 @@ function VerifyOrdres_SendToAccount() {
     var $billingCycle = $('#VerifyOrdres_BillingCycle');
     var $billingPeriod = $('#VerifyOrdres_dateperild');
     var $remark = $('#VerifyOrdres_Remark');
-    var $sendButton = $('#btnSendToAccount');
+    var $sendButton = $('#VerifyOrdres_btnSendToAccount');
 
     var projectNo = $.trim($project.val());
     var projectName = $.trim($project.find('option:selected').text());
@@ -1198,9 +1204,16 @@ function VerifyOrdres_SendToAccount() {
 
         success: function (response) {
 
+            Swal.close();
             var result = parseInt(response.d, 10) || 0;
 
             if (result > 0) {
+
+                try {
+                    verifyBilling_resetAfterAccountsEmail();
+                } catch (resetError) {
+                    console.error('Unable to reset the billing form after sending to Accounts.', resetError);
+                }
 
                 Swal.fire({
                     icon: 'success',
@@ -1237,6 +1250,8 @@ function VerifyOrdres_SendToAccount() {
 
         error: function (xhr) {
 
+            Swal.close();
+
             var errorMessage =
                 'An error occurred while sending the email to the Accounting Team.';
 
@@ -1269,6 +1284,45 @@ function VerifyOrdres_SendToAccount() {
             $sendButton.prop('disabled', false);
         }
     });
+}
+
+function verifyBilling_resetAfterAccountsEmail() {
+    var $page = $('.order-shell');
+
+    // Ignore or stop any summary request started before the send completed.
+    verifyBillingSummaryVersion++;
+    if (verifyBillingSummaryRequest && verifyBillingSummaryRequest.readyState !== 4) {
+        verifyBillingSummaryRequest.abort();
+    }
+    verifyBillingSummaryRequest = null;
+    $('#load1').hide();
+
+    $page.find('select').each(function () {
+        this.selectedIndex = 0;
+    });
+    $page.find('input[type="text"], input[type="number"], input[type="search"], input[type="file"], textarea').val('');
+    $page.find('input[type="checkbox"], input[type="radio"]').prop('checked', false);
+
+    if ($.fn.DataTable.isDataTable('#VerifyOrders_Search_Billing')) {
+        var billingTable = $('#VerifyOrders_Search_Billing').DataTable();
+        billingTable.search('').columns().search('');
+        billingTable.clear().draw();
+    } else {
+        $('#VerifyOrders_Search_Billing tbody').empty();
+    }
+
+    if ($.fn.DataTable.isDataTable('#table_grdPending')) {
+        var summaryTable = $('#table_grdPending').DataTable();
+        summaryTable.search('').columns().search('');
+        summaryTable.clear().draw();
+    } else {
+        $('#table_grdPending tbody').empty();
+    }
+
+    $('#totalOrdersSummary').empty();
+    $('#lbltotalcount, #lblfiltercount').text('');
+    $('#vrbil_fileName').text('or click to browse');
+    $('#costingDiffEmail_div').hide();
 }
 
 function escapeHtml(value) {

@@ -374,6 +374,26 @@ namespace WebPortal.App_Code.DAL
             return dblds;
         }
 
+        public static DataSet ExecuteDataSetCmd(SqlCommand sqlCmd, int commandTimeoutSeconds)
+        {
+            if (sqlCmd == null) throw new ArgumentNullException("sqlCmd");
+            if (commandTimeoutSeconds <= 0) throw new ArgumentOutOfRangeException("commandTimeoutSeconds");
+
+            DataSet dblds = new DataSet();
+            SqlConnectionStringBuilder connectionStringBuilder = new SqlConnectionStringBuilder(ConnectionString);
+            connectionStringBuilder.ConnectTimeout = 30;
+            using (sqlCmd)
+            using (SqlConnection MyCon = new SqlConnection(connectionStringBuilder.ConnectionString))
+            {
+                MyCon.Open();
+                sqlCmd.Connection = MyCon;
+                sqlCmd.CommandTimeout = commandTimeoutSeconds;
+                using (SqlDataAdapter dblsa = new SqlDataAdapter(sqlCmd))
+                    dblsa.Fill(dblds);
+            }
+            return dblds;
+        }
+
         public static DataSet ExecuteDataSetCmd_UWBilling(SqlCommand sqlCmd)
         {
             DataSet dblds = new DataSet();

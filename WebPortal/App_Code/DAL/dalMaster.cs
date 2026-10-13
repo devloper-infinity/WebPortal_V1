@@ -2395,7 +2395,7 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetAttritionReportForHRReport]");
             SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
             SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
-            DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd);
+            DataSet dt = SQLHelper.ExecuteDataSetCmd(cmd, 120);
             return dt;
         }
 
@@ -2683,23 +2683,46 @@ namespace WebPortal.App_Code.DAL
 
         public DataSet GetSkiplevelDetails(string Month, string Year)
         {
-            using (SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta_ICG]"))
+            const int maxAttempts = 3;
+            const int totalCommandTimeoutSeconds = 540;
+            System.Diagnostics.Stopwatch timer = System.Diagnostics.Stopwatch.StartNew();
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
-                SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
-                SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
-                // Preserve SQL exceptions for report diagnostics; the shared helper returns null.
-                using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
-                using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                int remainingSeconds = totalCommandTimeoutSeconds - (int)timer.Elapsed.TotalSeconds;
+                if (remainingSeconds <= 0)
+                    throw new TimeoutException("Skip Level report query exceeded its total SQL time limit.");
+
+                try
                 {
-                    cmd.Connection = connection;
-                    // Fail before the report's 600-second request limit so the error can be logged and returned.
-                    cmd.CommandTimeout = 540;
-                    connection.Open();
-                    DataSet result = new DataSet();
-                    adapter.Fill(result);
-                    return result;
+                    using (SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_GetExportDetailsForSkipMeeting_ForHRReport_Beta_ICG]"))
+                    {
+                        SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Month);
+                        SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Year);
+                        // Preserve SQL exceptions for report diagnostics; the shared helper returns null.
+                        using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
+                        {
+                            cmd.Connection = connection;
+                            // Share one 540-second SQL budget across all attempts, before the report's 600-second limit.
+                            cmd.CommandTimeout = remainingSeconds;
+                            connection.Open();
+                            DataSet result = new DataSet();
+                            adapter.Fill(result);
+                            return result;
+                        }
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number != 1205 || attempt == maxAttempts)
+                        throw;
+
+                    // SQL Server selects a deadlock victim before the read finishes; retry after a short backoff.
+                    System.Threading.Thread.Sleep(250 * attempt);
                 }
             }
+
+            throw new InvalidOperationException("Skip Level report query did not complete.");
         }
 
         public int InsertStampPaperDetails(Hashtable htParam)

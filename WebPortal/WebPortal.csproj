@@ -340,6 +340,8 @@
     <Content Include="Admin\GenerateAnnexure.aspx" />
     <Content Include="Admin\HRInvoice.aspx" />
     <Content Include="Admin\HRReport.aspx" />
+    <Content Include="Admin\HRReportNew.aspx" />
+    <Content Include="Scripts\Functions\HRReportNew.js" />
     <Content Include="Admin\HRReportInput.aspx" />
     <Content Include="Admin\CreditCardReconiliation.aspx" />
     <Content Include="Admin\ImportCCStatement.aspx" />
@@ -4507,6 +4509,13 @@
     </Compile>
     <Compile Include="Admin\HRReport.aspx.designer.cs">
       <DependentUpon>HRReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\HRReportNew.aspx.cs">
+      <DependentUpon>HRReportNew.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HRReportNew.aspx.designer.cs">
+      <DependentUpon>HRReportNew.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\HRReportInput.aspx.cs">
       <DependentUpon>HRReportInput.aspx</DependentUpon>

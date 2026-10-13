@@ -548,6 +548,24 @@ namespace WebPortal.Admin
             return (lastDataRow - firstDataRow) + 1;
         }
 
+        private static int GetContiguousReportRowCount(string sheetName, string keyColumn, int firstDataRow)
+        {
+            Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
+            if (reportSheet == null || firstDataRow <= 0)
+                return 0;
+
+            int count = 0;
+            for (int row = firstDataRow; row <= reportSheet.LastRow; row++)
+            {
+                string key = Convert.ToString(reportSheet.Range[keyColumn + row].Value);
+                if (string.IsNullOrWhiteSpace(key))
+                    break;
+                count++;
+            }
+
+            return count;
+        }
+
         private static int FindReportTextRow(string sheetName, string text)
         {
             Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
@@ -1772,16 +1790,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        foreach (string snapshot in Snaps)
-                        {
-                            if (snapshot != "")
-                            {
-                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                                picture.Height = 350;
-                                picture.Width = 350;
-                                ColCountPic = ColCountPic + 6;
-                            }
-                        }
+                        //foreach (string snapshot in Snaps)
+                        //{
+                        //    if (snapshot != "")
+                        //    {
+                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                        //        picture.Height = 350;
+                        //        picture.Width = 350;
+                        //        ColCountPic = ColCountPic + 6;
+                        //    }
+                        //}
 
                         rowCount = rowCount + 24;
                     }
@@ -2233,16 +2251,16 @@ namespace WebPortal.Admin
                         string[] Snaps = SnapsList.Split(',');
                         int ColCountPic = 1;
 
-                        foreach (string snapshot in Snaps)
-                        {
-                            if (snapshot != "")
-                            {
-                                ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
-                                picture.Height = 350;
-                                picture.Width = 350;
-                                ColCountPic = ColCountPic + 6;
-                            }
-                        }
+                        //foreach (string snapshot in Snaps)
+                        //{
+                        //    if (snapshot != "")
+                        //    {
+                        //        ExcelPicture picture = sheet.Pictures.Add(rowCount + 4, ColCountPic, snapshot);
+                        //        picture.Height = 350;
+                        //        picture.Width = 350;
+                        //        ColCountPic = ColCountPic + 6;
+                        //    }
+                        //}
 
                         rowCount = rowCount + 24;
                     }
@@ -3367,7 +3385,7 @@ namespace WebPortal.Admin
             sheet.Range["D11"].Value = "Completed";
             //Details
             Spire.Xls.Worksheet recsheet = book.Worksheets["Recruitment Summary"];
-            int rectarget = GetReportRowCount("Recruitment Summary", 15, -1);
+            int rectarget = GetContiguousReportRowCount("Recruitment Summary", "A", 15);
             sheet.Range["E11"].Value = "" + rectarget;
             sheet.Range["F11"].Value = "" + rectarget;
             sheet.Range["G11"].Value = "0";

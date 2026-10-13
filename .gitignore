@@ -396,6 +396,9 @@ FodyWeavers.xsd
 !/WebPortal/Admin/HRManpowerReport.aspx
 !/WebPortal/Admin/HRManpowerReport.aspx.cs
 !/WebPortal/Admin/HRManpowerReport.aspx.designer.cs
+!/WebPortal/Admin/HRReportNew.aspx
+!/WebPortal/Admin/HRReportNew.aspx.cs
+!/WebPortal/Admin/HRReportNew.aspx.designer.cs
 !/WebPortal/Admin/ErrorTypeMaster.aspx
 !/WebPortal/Admin/ErrorTypeMaster.aspx.cs
 !/WebPortal/Admin/ProjectManagerMaster.aspx
@@ -503,6 +506,7 @@ FodyWeavers.xsd
 !/WebPortal/Scripts/Functions/
 /WebPortal/Scripts/Functions/*
 !/WebPortal/Scripts/Functions/UserMapping.js
+!/WebPortal/Scripts/Functions/HRReportNew.js
 !/WebPortal/Scripts/Admin/
 /WebPortal/Scripts/Admin/*
 !/WebPortal/Scripts/Admin/ProjectBillingDetails.js

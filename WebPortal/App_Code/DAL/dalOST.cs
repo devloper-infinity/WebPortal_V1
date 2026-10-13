@@ -820,7 +820,7 @@ namespace WebPortal.App_Code.DAL
 
         public DataTable GetProjectWiseOrderDetailsForBilling_ForVerification_Bill(string Project, string FromDate, string ToDate, int AddedBy)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification_Bill");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification_Bill_Optimize"); /*usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification_Bill*/
             SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Project);
             SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
@@ -845,7 +845,7 @@ namespace WebPortal.App_Code.DAL
 
         public int VerifyOstOrdersForBilling(int OrderID, string Project, int AddedBy, string Remark, string BillingPeriod)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_VerifyOstordersForBilling");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_VerifyOstordersForBilling_NewERP"); /*usp_VerifyOstordersForBilling*/
             SQLHelper.AddParamToSQLCmd(cmd, "@OrderID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, OrderID);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, AddedBy);
             SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Project);
