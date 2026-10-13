@@ -1765,6 +1765,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.ResetUserPassword(htParam);
         }
 
+        public int ForgotPassword(Hashtable htParam)
+        {
+            return dalMaster.ForgotPassword(htParam);
+        }
+
         public DataTable GetAllAppreciationDisciplinary()
         {
             return dalMaster.GetAllAppreciationDisciplinary();

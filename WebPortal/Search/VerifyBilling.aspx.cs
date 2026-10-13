@@ -460,7 +460,7 @@ namespace WebPortal.Search
         public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark)
         {
             int returnValue = 0;
-            string ToAddress; string CC; string Bcc;
+            string ToAddress = ""; string CC = ""; string Bcc = "";
 
             string productionBillingDate = DateTime.Now.ToString("dd-MMM-yyyy");
 
@@ -483,7 +483,7 @@ namespace WebPortal.Search
                     Bcc = dt_Address.Rows[0]["Bcc"].ToString();
                 }
 
-                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
+                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc  );
 
                 if (returnValue > 0)
                     returnValue = new bllOST().HoldOrdersPending(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());

@@ -3979,6 +3979,22 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             return ReturnValue;
         }
 
+
+
+        public int ForgotPassword(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_ForgotPassword");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["EmployeeID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Password", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htParam["Password"]);
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue;
+        }
+
         public DataTable GetAllAppreciationDisciplinary()
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllAppreciationDisciplinary");

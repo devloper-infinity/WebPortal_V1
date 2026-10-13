@@ -1,5 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Wordprocessing;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -10,6 +11,7 @@ using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Script.Services;
 using System.Web.Services;
 using System.Web.UI;
@@ -56,21 +58,13 @@ namespace WebPortal
                     return new { status = "error", message = "User not found" };
                 }
 
-                string query = "UPDATE Login SET Password=@Password,PasswordChangedDate =@PasswordChangedDate WHERE UserName=@UserName";
+                Hashtable passwordParameters = new Hashtable();
+                passwordParameters["EmployeeID"] = Convert.ToInt32(dtUser.Rows[0]["EmployeeID"]);
+                passwordParameters["Password"] = Encrypt(newPassword);
 
-                using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString))
-                {
-                    using (SqlCommand cmd = new SqlCommand(query, con))
-                    {
-                        cmd.Parameters.AddWithValue("@UserName", username);
-                        cmd.Parameters.AddWithValue("@Password", Encrypt(newPassword)); // ⚠️ Hash in real apps
-                        cmd.Parameters.AddWithValue("@PasswordChangedDate", DateTime.Now);
-
-                        con.Open();
-                        if (cmd.ExecuteNonQuery() == 0)
-                            return new { status = "error", message = "User not found" };
-                    }
-                }
+                int updateResult = new bllMaster().ForgotPassword(passwordParameters);
+                if (updateResult <= 0)
+                    return new { status = "error", message = "Unable to update the password for this username." };
                 HttpContext.Current.Session.Remove("OTP");
                 HttpContext.Current.Session.Remove("OTPTime");
                 HttpContext.Current.Session.Remove("User");
@@ -132,31 +126,48 @@ namespace WebPortal
 
             string Pass = new bllMaster().GetPassword("ackdata");
 
-            // Send Email
-
-            MailMessage mail = new MailMessage();
-            mail.From = new MailAddress("ack@infinity-data.com", "ERP Password reset OTP", System.Text.Encoding.UTF8);
-            mail.To.Add(email);
-            mail.Subject = "Password Reset OTP";
-            mail.Body = "Your OTP is: " + otp;
-            mail.IsBodyHtml = true;
-            mail.Priority = System.Net.Mail.MailPriority.High;
-            SmtpClient client = new SmtpClient();
-            client.Credentials = new System.Net.NetworkCredential("ack@infinity-data.com", Pass);
-            client.Host = "smtp.office365.com";  //Gmail works on Server Secured Layer
-            client.Port = 587;
-            client.EnableSsl = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             try
             {
-                client.Send(mail);
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken =>
+                {
+                    try
+                    {
+                        using (MailMessage mail = new MailMessage())
+                        using (SmtpClient client = new SmtpClient())
+                        {
+                            mail.From = new MailAddress("ack@infinity-data.com", "ERP Password reset OTP", Encoding.UTF8);
+                            mail.To.Add(email);
+                            mail.Subject = "Password Reset OTP";
+                            mail.Body = "Your OTP is: " + otp;
+                            mail.IsBodyHtml = true;
+                            mail.Priority = MailPriority.High;
+
+                            client.Credentials = new NetworkCredential("ack@infinity-data.com", Pass);
+                            client.Host = "smtp.office365.com";
+                            client.Port = 587;
+                            client.EnableSsl = true;
+
+                            await client.SendMailAsync(mail);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.TraceError("Forgot password OTP email failed: {0}", ex);
+                    }
+                });
+
                 HttpContext.Current.Session["OTP"] = otp;
                 HttpContext.Current.Session["User"] = username;
                 HttpContext.Current.Session["OTPTime"] = DateTime.UtcNow;
-                return "OTP Sent";
+                return "OTP Queued";
             }
-            catch { return "Error sending in email"; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Forgot password OTP email could not be queued: {0}", ex);
+                return "Unable to start email delivery. Please try again.";
+            }
         }
 
         [WebMethod(EnableSession = true)]
