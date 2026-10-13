@@ -19,18 +19,30 @@ namespace WebPortal.Admin
         public static string GetManpowerData()
         {
             DataTable table = new bllMaster().GetCurrentManpowerSummary("All") ?? new DataTable();
-            bllMaster master = new bllMaster();
-            DataSet detailData = master.Getmanpower(
-                CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(DateTime.Now.Month), DateTime.Now.Year.ToString());
-            DataTable detailTable = detailData != null && detailData.Tables.Count > 0 ? detailData.Tables[0] : new DataTable();
-            DataTable employees = master.GetAllEmployeeDetails() ?? new DataTable();
-            DataTable employeeInfo = new DataTable();
+            DataTable employees = new DataTable();
             using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
-            using (SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM dbo.EmployeeInfo", connection))
-                adapter.Fill(employeeInfo);
+            using (SqlDataAdapter adapter = new SqlDataAdapter(@"
+                SELECT e.*, v.Name AS FullName, v.Branch AS BranchName,
+                       d.DepartmentName, dm.DomainName, ds.DesignationName,
+                       v.ReportingManager, dh.FirstName+' '+dh.LastName AS DomainHeadName,
+                       lh.FirstName+' '+lh.LastName AS LocationHeadName,
+                       v.ResignationDate, v.LastWorkingDate, v.Remark AS ExitRemark,
+                       ISNULL(ul.ApprovedLeaves,0) AS ApprovedLeaves
+                FROM dbo.EmployeeInfo e
+                LEFT JOIN dbo.vw_GetEmployeeAllInfo v ON v.EmployeeID=e.EmployeeID
+                LEFT JOIN dbo.Department d ON d.DepartmentID=e.Department
+                LEFT JOIN dbo.Domain dm ON dm.DomainID=e.Domain
+                LEFT JOIN dbo.Designation ds ON ds.DesignationID=e.Designation
+                LEFT JOIN dbo.EmployeeInfo dh ON dh.EmployeeID=e.DomainHead
+                LEFT JOIN dbo.EmployeeInfo lh ON lh.EmployeeID=e.LocationHead
+                LEFT JOIN (SELECT Code,SUM(ForDays) ApprovedLeaves FROM dbo.UserLeaves
+                           WHERE IsApproved=1 AND YEAR(ApprovedDate)=YEAR(GETDATE()) AND MONTH(ApprovedDate)=MONTH(GETDATE())
+                           GROUP BY Code) ul ON ul.Code=e.Code
+                WHERE e.JobType IN ('Work From Home','Work From Office')", connection))
+                adapter.Fill(employees);
 
             var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-            return serializer.Serialize(new { Rows = ToRows(table), Details = MergeEmployeeRows(employeeInfo, employees, detailTable), GeneratedOn = DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") });
+            return serializer.Serialize(new { Rows = ToRows(table), Details = ToRows(employees), GeneratedOn = DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") });
         }
 
         [WebMethod]
@@ -45,6 +57,7 @@ namespace WebPortal.Admin
 
             for (int month = 1; month <= TillMonth; month++)
             {
+                Dictionary<string, int> approvedLeaves = LoadApprovedLeaves(year, month);
                 string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
                 DataSet data = master.Getmanpower(monthName, year.ToString());
                 if (data == null || data.Tables.Count == 0) continue;
@@ -58,7 +71,9 @@ namespace WebPortal.Admin
                     if (!locations.ContainsKey(location)) locations[location] = new int[5];
                     string status = Read(row, "EmployeeStatus", "Status", "SubStatus").ToLowerInvariant();
                     locations[location][0]++;
-                    if (status.Contains("leave")) locations[location][1]++;
+                    string code = Read(row, "Code", "EmpCode", "EmployeeCode");
+                    int leaveDays;
+                    if (!String.IsNullOrWhiteSpace(code) && approvedLeaves.TryGetValue(code, out leaveDays)) locations[location][1] += leaveDays;
                     if (status.Contains("resign") || status.Contains("left") || status.Contains("drop") || status.Contains("abscond")) locations[location][2]++;
                     string mode = Read(row, "JobType", "WorkMode", "WorkingMode", "WorkLocation", "AttendanceMode", "WorkType").ToLowerInvariant();
                     string employeeKey = Read(row, "EmployeeID", "Code", "EmpCode", "EmployeeCode");
@@ -101,7 +116,7 @@ namespace WebPortal.Admin
             foreach (DataTable table in tables)
                 foreach (DataRow row in table.Rows)
                 {
-                    string key = Read(row, "EmployeeID", "Code", "EmpCode", "EmployeeCode");
+                    string key = Read(row, "Code", "EmpCode", "EmployeeCode", "EmployeeID");
                     if (String.IsNullOrWhiteSpace(key)) key = "row-" + (++fallback);
                     Dictionary<string, object> item;
                     if (!merged.TryGetValue(key, out item)) merged[key] = item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -126,6 +141,22 @@ namespace WebPortal.Admin
                         if (!String.IsNullOrWhiteSpace(id)) result[id] = jobType;
                         if (!String.IsNullOrWhiteSpace(code)) result[code] = jobType;
                     }
+            }
+            return result;
+        }
+
+        private static Dictionary<string, int> LoadApprovedLeaves(int year, int month)
+        {
+            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand(@"SELECT Code,SUM(ForDays) LeaveDays FROM dbo.UserLeaves
+                WHERE IsApproved=1 AND YEAR(ApprovedDate)=@Year AND MONTH(ApprovedDate)=@Month GROUP BY Code", connection))
+            {
+                command.Parameters.Add("@Year", SqlDbType.Int).Value = year;
+                command.Parameters.Add("@Month", SqlDbType.Int).Value = month;
+                connection.Open();
+                using (SqlDataReader reader = command.ExecuteReader())
+                    while (reader.Read()) result[Convert.ToString(reader["Code"])] = Convert.ToInt32(reader["LeaveDays"]);
             }
             return result;
         }
