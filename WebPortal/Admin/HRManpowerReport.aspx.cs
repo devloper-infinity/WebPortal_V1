@@ -14,9 +14,124 @@ namespace WebPortal.Admin
     public partial class HRManpowerReport : Page
     {
         protected void Page_Load(object sender, EventArgs e) { }
-
         [WebMethod]
         public static string GetManpowerData()
+        {
+            DataTable table = new bllMaster()
+                .GetCurrentManpowerSummary("All") ?? new DataTable();
+
+            DataTable employees = new DataTable();
+
+            // Salary cycle: 26th previous month to 25th current month
+            DateTime today = DateTime.Today;
+
+            DateTime fromDate = new DateTime(
+                today.Year, today.Month, 1).AddMonths(-1).AddDays(25);
+
+            DateTime toDate = new DateTime(
+                today.Year, today.Month, 25);
+
+            using (SqlConnection connection =
+                new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlDataAdapter adapter = new SqlDataAdapter(@"
+        SELECT
+            e.*,
+            v.Name AS FullName,
+            v.Branch AS BranchName,
+            d.DepartmentName,
+            dm.DomainName,
+            ds.DesignationName,
+            v.ReportingManager,
+            dh.FirstName + ' ' + dh.LastName AS DomainHeadName,
+            lh.FirstName + ' ' + lh.LastName AS LocationHeadName,
+            v.ResignationDate,
+            v.LastWorkingDate,
+            v.Remark AS ExitRemark,
+            ISNULL(ul.ApprovedLeaves, 0) AS ApprovedLeaves
+        FROM dbo.EmployeeInfo e
+        LEFT JOIN dbo.vw_GetEmployeeAllInfo v
+            ON v.EmployeeID = e.EmployeeID
+        LEFT JOIN dbo.Department d
+            ON d.DepartmentID = e.Department
+        LEFT JOIN dbo.Domain dm
+            ON dm.DomainID = e.Domain
+        LEFT JOIN dbo.Designation ds
+            ON ds.DesignationID = e.Designation
+        LEFT JOIN dbo.EmployeeInfo dh
+            ON dh.EmployeeID = e.DomainHead
+        LEFT JOIN dbo.EmployeeInfo lh
+            ON lh.EmployeeID = e.LocationHead
+        LEFT JOIN
+        (
+            SELECT
+                Code,
+                SUM(ForDays) AS ApprovedLeaves
+            FROM dbo.UserLeaves
+            WHERE IsApproved = 1
+              AND cast(LeaveFrom as date) >= @FromDate
+              AND cast(LeaveFrom as date) < DATEADD(DAY, 1, @ToDate)
+            GROUP BY Code
+        ) ul ON ul.Code = e.Code
+        WHERE e.JobType IN ('Work From Home', 'Work From Office')
+    ", connection))
+            {
+                adapter.SelectCommand.Parameters.Add(
+                    "@FromDate", SqlDbType.Date).Value = fromDate;
+
+                adapter.SelectCommand.Parameters.Add(
+                    "@ToDate", SqlDbType.Date).Value = toDate;
+
+                adapter.Fill(employees);
+            }
+
+            var serializer = new JavaScriptSerializer
+            {
+                MaxJsonLength = int.MaxValue
+            };
+
+            return serializer.Serialize(new
+            {
+                Rows = ToRows(table),
+                Details = ToRows(employees),
+                GeneratedOn = DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt")
+            });
+        }
+
+        [WebMethod]
+        public static string GetDomainWiseManpower()
+        {
+            DateTime today = DateTime.Today;
+            DateTime fromDate = new DateTime(today.Year, today.Month, 1).AddMonths(-1).AddDays(25);
+            DateTime toDate = new DateTime(today.Year, today.Month, 25);
+            DataTable table = new DataTable();
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlDataAdapter adapter = new SqlDataAdapter(@"
+                SELECT ISNULL(b.BranchName,'Unassigned') Location,
+                       ISNULL(d.DomainName,'Unassigned') Domain,
+                       SUM(CASE WHEN ISNULL(e.IsDelete,0)=0 AND v.ResignationDate IS NULL AND e.JobType='Work From Home' THEN 1 ELSE 0 END) WFH,
+                       SUM(CASE WHEN ISNULL(e.IsDelete,0)=0 AND v.ResignationDate IS NULL AND e.JobType='Work From Office' THEN 1 ELSE 0 END) WFO,
+                       SUM(CASE WHEN ISNULL(e.IsDelete,0)=0 AND v.ResignationDate IS NULL THEN ISNULL(l.LeaveDays,0) ELSE 0 END) Leaves,
+                       SUM(CASE WHEN (ISNULL(e.IsDelete,0)=1 OR v.ResignationDate IS NOT NULL) AND ISNULL(v.ResignationType,'') LIKE '%Abscond%' THEN 1 ELSE 0 END) Absconded,
+                       SUM(CASE WHEN (ISNULL(e.IsDelete,0)=1 OR v.ResignationDate IS NOT NULL) AND ISNULL(v.ResignationType,'') NOT LIKE '%Abscond%' THEN 1 ELSE 0 END) Exited
+                FROM dbo.EmployeeInfo e
+                LEFT JOIN dbo.Branch b ON b.BranchID=e.WorkingBranch
+                LEFT JOIN dbo.Domain d ON d.DomainID=e.Domain
+                LEFT JOIN dbo.vw_GetEmployeeAllInfo v ON v.EmployeeID=e.EmployeeID
+                LEFT JOIN (SELECT Code,SUM(ForDays) LeaveDays FROM dbo.UserLeaves
+                           WHERE IsApproved=1 AND CAST(LeaveFrom AS date)>=@FromDate AND CAST(LeaveFrom AS date)<DATEADD(day,1,@ToDate)
+                           GROUP BY Code) l ON l.Code=e.Code
+                WHERE e.JobType IN ('Work From Home','Work From Office')
+                GROUP BY ISNULL(b.BranchName,'Unassigned'),ISNULL(d.DomainName,'Unassigned')", connection))
+            {
+                adapter.SelectCommand.Parameters.Add("@FromDate", SqlDbType.Date).Value = fromDate;
+                adapter.SelectCommand.Parameters.Add("@ToDate", SqlDbType.Date).Value = toDate;
+                adapter.Fill(table);
+            }
+            return new JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(new { Rows = ToRows(table) });
+        }
+
+        [WebMethod]
+        public static string GetManpowerData_OLD()
         {
             DataTable table = new bllMaster().GetCurrentManpowerSummary("All") ?? new DataTable();
             DataTable employees = new DataTable();
@@ -145,19 +260,59 @@ namespace WebPortal.Admin
             return result;
         }
 
+        //private static Dictionary<string, int> LoadApprovedLeaves(int year, int month)
+        //{
+        //    var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        //    using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+        //    using (SqlCommand command = new SqlCommand(@"SELECT Code,SUM(ForDays) LeaveDays FROM dbo.UserLeaves
+        //        WHERE IsApproved=1 AND YEAR(ApprovedDate)=@Year AND MONTH(ApprovedDate)=@Month GROUP BY Code", connection))
+        //    {
+        //        command.Parameters.Add("@Year", SqlDbType.Int).Value = year;
+        //        command.Parameters.Add("@Month", SqlDbType.Int).Value = month;
+        //        connection.Open();
+        //        using (SqlDataReader reader = command.ExecuteReader())
+        //            while (reader.Read()) result[Convert.ToString(reader["Code"])] = Convert.ToInt32(reader["LeaveDays"]);
+        //    }
+        //    return result;
+        //}
         private static Dictionary<string, int> LoadApprovedLeaves(int year, int month)
         {
-            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
-            using (SqlCommand command = new SqlCommand(@"SELECT Code,SUM(ForDays) LeaveDays FROM dbo.UserLeaves
-                WHERE IsApproved=1 AND YEAR(ApprovedDate)=@Year AND MONTH(ApprovedDate)=@Month GROUP BY Code", connection))
+            var result = new Dictionary<string, int>(
+                StringComparer.OrdinalIgnoreCase);
+
+            // Salary cycle: 26th previous month to 25th selected month
+            DateTime fromDate = new DateTime(year, month, 1)
+                .AddMonths(-1).AddDays(25);
+
+            DateTime toDate = new DateTime(year, month, 25);
+
+            using (SqlConnection connection =
+                new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand(@"
+        SELECT
+            Code,
+            SUM(ForDays) AS LeaveDays
+        FROM dbo.UserLeaves
+        WHERE IsApproved = 1
+          AND LeaveFrom >= @FromDate
+          AND LeaveFrom < DATEADD(DAY, 1, @ToDate)
+        GROUP BY Code", connection))
             {
-                command.Parameters.Add("@Year", SqlDbType.Int).Value = year;
-                command.Parameters.Add("@Month", SqlDbType.Int).Value = month;
+                command.Parameters.Add("@FromDate", SqlDbType.Date).Value = fromDate;
+                command.Parameters.Add("@ToDate", SqlDbType.Date).Value = toDate;
+
                 connection.Open();
+
                 using (SqlDataReader reader = command.ExecuteReader())
-                    while (reader.Read()) result[Convert.ToString(reader["Code"])] = Convert.ToInt32(reader["LeaveDays"]);
+                {
+                    while (reader.Read())
+                    {
+                        result[Convert.ToString(reader["Code"])] =
+                            Convert.ToInt32(reader["LeaveDays"]);
+                    }
+                }
             }
+
             return result;
         }
 
