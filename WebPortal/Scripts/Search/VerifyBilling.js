@@ -1178,10 +1178,6 @@ function VerifyOrdres_SendToAccount() {
         }
     });
 
-    var toAddress = "anita@infinity-data.com";
-    var toCC = "p.patil@infinityinternationals.us,t.jason@infinityinternationals.us,e.mike@infinityinternationals.us,c.eva@infinityinternationals.us ";
-    var toBcc = "b.shubhangi@infinity-data.com";
-
 
     $.ajax({
         url: 'VerifyBilling.aspx/SendToAccounts',
@@ -1196,10 +1192,7 @@ function VerifyOrdres_SendToAccount() {
             BillingPeriod: billingPeriodText,
             FromDate: fromDate,
             ToDate: toDate,
-            Remark: remark,
-            ToAddress: toAddress,
-            CC: toCC,
-            Bcc: toBcc
+            Remark: remark
         }),
 
         success: function (response) {

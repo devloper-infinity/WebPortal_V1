@@ -457,9 +457,11 @@ namespace WebPortal.Search
 
 
         [WebMethod]
-        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark, string ToAddress, string CC, string Bcc)
+        public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark)
         {
             int returnValue = 0;
+            string ToAddress; string CC; string Bcc;
+
             string productionBillingDate = DateTime.Now.ToString("dd-MMM-yyyy");
 
             returnValue = new bllOST().UpdateBillingInBillingDB(ProjectID, BillingPeriod, BillingCycle, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), productionBillingDate, productionBillingDate, true, "", "Pending");
@@ -481,7 +483,7 @@ namespace WebPortal.Search
                     Bcc = dt_Address.Rows[0]["Bcc"].ToString();
                 }
 
-               // returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
+                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
 
                 if (returnValue > 0)
                     returnValue = new bllOST().HoldOrdersPending(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());
@@ -500,9 +502,9 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
-            CC = "b.shubhangi@infinity-data.com";
-            Bcc = "b.shubhangi@infinity-data.com";
+            //ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
+            //CC = "b.shubhangi@infinity-data.com";
+            //Bcc = "b.shubhangi@infinity-data.com";
 
             try
             {
