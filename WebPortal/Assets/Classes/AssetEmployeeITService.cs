@@ -26,6 +26,18 @@ FROM dbo.AssetEmployeeITFieldMaster WHERE (@ActiveOnly=0 OR IsActive=1) ORDER BY
                 P("@DependsOnValue", input.DependsOnValue), P("@UserID", userId)));
         }
 
+        public void DeleteField(long fieldId)
+        {
+            db.ExecText(@"IF EXISTS(SELECT 1 FROM dbo.AssetEmployeeITFieldMaster WHERE FieldID=@FieldID AND IsSystem=1)
+    RAISERROR('System fields cannot be deleted.',16,1);
+IF EXISTS(SELECT 1 FROM dbo.AssetEmployeeITValue WHERE FieldID=@FieldID)
+    RAISERROR('This field has employee data and cannot be deleted.',16,1);
+IF EXISTS(SELECT 1 FROM dbo.AssetEmployeeITFieldMaster d JOIN dbo.AssetEmployeeITFieldMaster f ON f.FieldID=@FieldID WHERE d.DependsOnFieldCode=f.FieldCode)
+    RAISERROR('Another field depends on this field. Remove the dependency first.',16,1);
+DELETE FROM dbo.AssetEmployeeITFieldMaster WHERE FieldID=@FieldID AND IsSystem=0;
+IF @@ROWCOUNT=0 RAISERROR('Field not found.',16,1);", P("@FieldID", fieldId));
+        }
+
         public DataTable Profile(long employeeId)
         {
             return db.QueryText(@"SELECT f.FieldID,f.FieldLabel,f.FieldCode,f.FieldType,f.DisplayOrder,f.IsRequired,f.IsReadOnly,f.DependsOnFieldCode,f.DependsOnValue,
