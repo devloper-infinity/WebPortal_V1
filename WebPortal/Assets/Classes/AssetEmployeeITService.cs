@@ -46,5 +46,35 @@ FROM dbo.EmployeeInfo e CROSS JOIN dbo.AssetEmployeeITFieldMaster f
 LEFT JOIN dbo.AssetEmployeeITValue v ON v.EmployeeID=e.EmployeeID AND v.FieldID=f.FieldID
 WHERE e.EmployeeID=@EmployeeID AND f.IsActive=1 ORDER BY f.DisplayOrder,f.FieldLabel", P("@EmployeeID", employeeId));
         }
+
+        public DataSet MasterReport(string search)
+        {
+            var result = new DataSet();
+            result.Tables.Add(db.QueryText(@"SELECT FieldCode,FieldLabel FROM dbo.AssetEmployeeITFieldMaster
+WHERE IsActive=1 AND FieldCode NOT IN ('USER_NAME','EMPLOYEE_CODE','OFFICIAL_EMAIL','DOMAIN','WORK_FROM_HOME','OFFICE_BRANCH',
+'LAPTOP','LAPTOP_SERIAL_NUMBER','LAPTOP_BARCODE','CPU_BRAND','CPU_SERIAL_NUMBER','CPU_BARCODE','MONITOR_BRAND','MONITOR_SERIAL_NUMBER','MONITOR_BARCODE',
+'KEYBOARD_BRAND','KEYBOARD_SERIAL_NUMBER','KEYBOARD_BARCODE','MOUSE_BRAND','MOUSE_SERIAL_NUMBER','MOUSE_BARCODE','HEADPHONE')
+ORDER BY DisplayOrder,FieldLabel"));
+            result.Tables.Add(db.QueryText(@"SELECT e.EmployeeID,
+LTRIM(RTRIM(ISNULL(e.FirstName,'')+' '+ISNULL(e.MiddleName,'')+' '+ISNULL(e.lastName,''))) UserName,
+e.Code EmployeeCode,e.OfficialEmailID PrimaryEmailID,e.Domain
+FROM dbo.EmployeeInfo e
+WHERE ISNULL(e.IsDelete,0)=0
+AND (EXISTS(SELECT 1 FROM dbo.AssetEmployeeITValue v WHERE v.EmployeeID=e.EmployeeID)
+ OR EXISTS(SELECT 1 FROM dbo.AssetsAllocation a WHERE a.EmployeeID=e.EmployeeID AND a.IsDeleted=0 AND a.Status='Allocated'))
+AND (@Search IS NULL OR e.Code LIKE '%'+@Search+'%' OR e.FirstName LIKE '%'+@Search+'%' OR e.lastName LIKE '%'+@Search+'%' OR e.OfficialEmailID LIKE '%'+@Search+'%')
+ORDER BY e.FirstName,e.lastName", P("@Search", string.IsNullOrWhiteSpace(search) ? null : search.Trim())));
+            result.Tables.Add(db.QueryText(@"SELECT a.EmployeeID,t.AssetTypeName,b.BrandName,m.SerialNumber,m.Barcode
+FROM dbo.AssetsAllocation a
+JOIN dbo.AssetsMaster m ON m.AssetID=a.AssetID AND m.IsDeleted=0
+JOIN dbo.AssetTypeMaster t ON t.AssetTypeID=m.AssetTypeID
+LEFT JOIN dbo.AssetBrandMaster b ON b.AssetBrandID=m.AssetBrandID
+WHERE a.IsDeleted=0 AND a.Status='Allocated'
+ORDER BY a.EmployeeID,t.AssetTypeName,m.AssetID"));
+            result.Tables.Add(db.QueryText(@"SELECT v.EmployeeID,f.FieldCode,v.FieldValue
+FROM dbo.AssetEmployeeITValue v JOIN dbo.AssetEmployeeITFieldMaster f ON f.FieldID=v.FieldID
+WHERE f.IsActive=1"));
+            return result;
+        }
     }
 }

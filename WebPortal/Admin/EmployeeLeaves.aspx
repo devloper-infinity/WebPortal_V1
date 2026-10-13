@@ -456,7 +456,7 @@
     <script>
         $(document).ready(function () {
             var currentUserName = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
-            var fullAccessUsers = ['7036', '12', '216', '285', '8535', '9738', '277', '99', '8128', '291', '255', '7171', '9858'];
+            var fullAccessUsers = ['7036', '12', '216', '285', '8535', '9738', '277', '99', '8128', '291', '255', '7171', '9858','5879'];
             var viewOnlyUsers = ['6836']; // Add view-only employee codes here, e.g. ['123', '456'].
             window.empleaveViewOnly = viewOnlyUsers.indexOf(currentUserName) !== -1;
 

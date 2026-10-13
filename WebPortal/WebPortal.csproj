@@ -230,6 +230,7 @@
     <Content Include="Assets\EmployeeITFieldMaster.aspx" />
     <Content Include="Assets\ImportAssets.aspx" />
     <Content Include="Assets\LocationWiseAssetReport.aspx" />
+    <Content Include="Assets\MasterReport.aspx" />
     <Content Include="Assets\MaintenanceCostReport.aspx" />
     <Content Include="Assets\PurchaseOrder.aspx" />
     <Content Include="Assets\PurchaseRequestApproval.aspx" />
@@ -3789,6 +3790,13 @@
     </Compile>
     <Compile Include="Assets\LocationWiseAssetReport.aspx.designer.cs">
       <DependentUpon>LocationWiseAssetReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\MasterReport.aspx.cs">
+      <DependentUpon>MasterReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\MasterReport.aspx.designer.cs">
+      <DependentUpon>MasterReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Assets\MaintenanceCostReport.aspx.cs">
       <DependentUpon>MaintenanceCostReport.aspx</DependentUpon>
