@@ -456,8 +456,24 @@
     <script>
         $(document).ready(function () {
             var currentUserName = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
-            if (currentUserName == 7036 || currentUserName == 12 || currentUserName == 216 || currentUserName == 285 || currentUserName == 8535 || currentUserName == 9738 || currentUserName == 277 || currentUserName == 99 || currentUserName == 8128 || currentUserName == 291 || currentUserName == 255 || currentUserName == 7171 || currentUserName == 9858) {
+            var fullAccessUsers = ['7036', '12', '216', '285', '8535', '9738', '277', '99', '8128', '291', '255', '7171', '9858'];
+            var viewOnlyUsers = ['6836']; // Add view-only employee codes here, e.g. ['123', '456'].
+            window.empleaveViewOnly = viewOnlyUsers.indexOf(currentUserName) !== -1;
+
+            if (fullAccessUsers.indexOf(currentUserName) !== -1 || window.empleaveViewOnly) {
                 document.getElementById("mainleaveuser").style.display = "";
+
+                if (window.empleaveViewOnly) {
+                    $('#empleave_btnsubmit, #empleave_approve_btnApprove, #empleave_extend_btnApprove, #empleave_cancel_btnYes').prop('disabled', true);
+
+                    document.addEventListener('click', function (event) {
+                        if (event.target.closest('.approve-btn, .extend-btn, .cancel-btn')) {
+                            event.preventDefault();
+                            event.stopImmediatePropagation();
+                        }
+                    }, true);
+                }
+
                 empleave_bindemployee();
                 empleave_bindgrid();
             }

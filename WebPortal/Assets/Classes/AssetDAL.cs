@@ -131,9 +131,9 @@ WHERE TransferID=@TransferID AND IsDeleted=0",
         public long SaveAsset(AssetInput x, long userId)
         {
             return Convert.ToInt64(db.Scalar("usp_Assets_SaveAsset",
-                P("@AssetID", x.AssetID), P("@AssetCode", x.AssetCode), P("@AssetTagNumber", x.AssetTagNumber),
-                P("@Barcode", x.Barcode), P("@QRCode", x.QRCode), P("@SerialNumber", x.SerialNumber),
-                P("@IMEINumber", x.IMEINumber), P("@HostName", x.HostName), P("@AssetCategoryID", x.AssetCategoryID),
+                P("@AssetID", x.AssetID), P("@AssetCode", null), P("@AssetTagNumber", x.AssetTagNumber),
+                P("@Barcode", x.Barcode), P("@QRCode", null), P("@SerialNumber", x.SerialNumber),
+                P("@IMEINumber", x.IMEINumber), P("@HostName", null), P("@AssetCategoryID", x.AssetCategoryID),
                 P("@AssetTypeID", x.AssetTypeID), P("@AssetBrandID", x.AssetBrandID), P("@AssetModelID", x.AssetModelID),
                 P("@AssetDescription", x.AssetDescription), P("@VendorID", x.VendorID), P("@InvoiceNumber", x.InvoiceNumber),
                 P("@InvoiceDate", x.InvoiceDate), P("@PurchaseDate", x.PurchaseDate), P("@PurchaseValue", x.PurchaseValue),

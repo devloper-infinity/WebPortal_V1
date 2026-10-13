@@ -15,19 +15,13 @@
                     <div class="hidden-id form-group">
                         <label class="">Asset ID</label><input id="assetId" type="hidden" class="form-control" /></div>
                     <div class="col-md-3 form-group">
-                        <label class="">Asset Code</label><input id="assetCode" type="text" class="form-control" /></div>
-                    <div class="col-md-3 form-group">
                         <label class="required">Asset Tag</label><input id="tag" type="text" class="form-control" /></div>
                     <div class="col-md-3 form-group">
                         <label class="">Serial Number</label><input id="serial" type="text" class="form-control" /></div>
                     <div class="col-md-3 form-group">
                         <label class="">Barcode</label><input id="barcode" type="text" class="form-control" /></div>
                     <div class="col-md-3 form-group">
-                        <label class="">QR Code</label><input id="qr" type="text" class="form-control" /></div>
-                    <div class="col-md-3 form-group">
                         <label class="">IMEI Number</label><input id="imei" type="text" class="form-control" /></div>
-                    <div class="col-md-3 form-group">
-                        <label class="">Host Name</label><input id="host" type="text" class="form-control" /></div>
                     <div class="col-md-3 form-group">
                         <label class="required">Category</label><select id="category" class="form-control"><option value="">-- Select --</option>
                         </select></div>
@@ -100,8 +94,8 @@
         </div>
         <script>
             function look() { [['Category', '#category'], ['Type', '#type'], ['Brand', '#brand'], ['Model', '#model'], ['Branch', '#branch'], ['Status', '#status'], ['Vendor', '#vendor']].forEach(function (x) { AssetUI.post('AddAsset.aspx/Lookup', { type: x[0], parentID: null }, r => AssetUI.fill(x[1], r, 'ID', 'Name')); }); }
-            function load() { var c = [{ data: 'AssetID', title: 'ID' }, { data: 'AssetCode', title: 'Asset Code' }, { data: 'AssetTagNumber', title: 'Asset Tag' }, { data: 'SerialNumber', title: 'Serial No.' }, { data: 'CategoryName', title: 'Category' }, { data: 'AssetTypeName', title: 'Type' }, { data: 'BrandName', title: 'Brand' }, { data: 'ModelName', title: 'Model' }, { data: 'BranchName', title: 'Branch' }, { data: 'StatusName', title: 'Status' }, { data: 'PurchaseValue', title: 'Purchase Value' }]; AssetUI.post('AddAsset.aspx/List', {}, r => AssetUI.table('#grid', r, c, [{ text: 'Edit', fn: 'editAsset', id: 'AssetID' }, { text: 'View', fn: 'viewAsset', id: 'AssetID', cls: 'btn-outline-secondary' }])); }
-            function saveAsset() { var x = { AssetID: +$('#assetId').val() || 0, AssetCode: $('#assetCode').val(), AssetTagNumber: $('#tag').val(), Barcode: $('#barcode').val(), QRCode: $('#qr').val(), SerialNumber: $('#serial').val(), IMEINumber: $('#imei').val(), HostName: $('#host').val(), AssetCategoryID: +$('#category').val(), AssetTypeID: +$('#type').val(), AssetBrandID: AssetUI.num('#brand'), AssetModelID: AssetUI.num('#model'), AssetDescription: $('#description').val(), VendorID: AssetUI.num('#vendor'), InvoiceNumber: $('#invoice').val(), InvoiceDate: $('#invoiceDate').val() || null, PurchaseDate: $('#purchaseDate').val() || null, PurchaseValue: +$('#purchaseValue').val() || 0, WarrantyStartDate: $('#warrantyStart').val() || null, WarrantyEndDate: $('#warrantyEnd').val() || null, CurrentBranchID: +$('#branch').val(), AssetStatusID: AssetUI.num('#status'), AssetCondition: $('#condition').val(), Processor: $('#processor').val(), RAM: $('#ram').val(), Storage: $('#storage').val(), OperatingSystem: $('#os').val(), IPAddress: $('#ip').val(), MACAddress: $('#mac').val(), Accessories: $('#accessories').val(), Remarks: $('#remarks').val() }; AssetUI.post('AddAsset.aspx/Save', { x: x }, function () { AssetUI.clear(); load(); }); }
+            function load() { var c = [{ data: 'AssetID', title: 'ID' }, { data: 'AssetTagNumber', title: 'Asset Tag' }, { data: 'SerialNumber', title: 'Serial No.' }, { data: 'CategoryName', title: 'Category' }, { data: 'AssetTypeName', title: 'Type' }, { data: 'BrandName', title: 'Brand' }, { data: 'ModelName', title: 'Model' }, { data: 'BranchName', title: 'Branch' }, { data: 'StatusName', title: 'Status' }, { data: 'PurchaseValue', title: 'Purchase Value' }]; AssetUI.post('AddAsset.aspx/List', {}, r => AssetUI.table('#grid', r, c, [{ text: 'Edit', fn: 'editAsset', id: 'AssetID' }, { text: 'View', fn: 'viewAsset', id: 'AssetID', cls: 'btn-outline-secondary' }])); }
+            function saveAsset() { var x = { AssetID: +$('#assetId').val() || 0, AssetTagNumber: $('#tag').val(), Barcode: $('#barcode').val(), SerialNumber: $('#serial').val(), IMEINumber: $('#imei').val(), AssetCategoryID: +$('#category').val(), AssetTypeID: +$('#type').val(), AssetBrandID: AssetUI.num('#brand'), AssetModelID: AssetUI.num('#model'), AssetDescription: $('#description').val(), VendorID: AssetUI.num('#vendor'), InvoiceNumber: $('#invoice').val(), InvoiceDate: $('#invoiceDate').val() || null, PurchaseDate: $('#purchaseDate').val() || null, PurchaseValue: +$('#purchaseValue').val() || 0, WarrantyStartDate: $('#warrantyStart').val() || null, WarrantyEndDate: $('#warrantyEnd').val() || null, CurrentBranchID: +$('#branch').val(), AssetStatusID: AssetUI.num('#status'), AssetCondition: $('#condition').val(), Processor: $('#processor').val(), RAM: $('#ram').val(), Storage: $('#storage').val(), OperatingSystem: $('#os').val(), IPAddress: $('#ip').val(), MACAddress: $('#mac').val(), Accessories: $('#accessories').val(), Remarks: $('#remarks').val() }; AssetUI.post('AddAsset.aspx/Save', { x: x }, function () { AssetUI.clear(); load(); }); }
             function editAsset(id) { location.href = 'AddAsset.aspx?id=' + id; } function viewAsset(id) { location.href = 'AssetDetails.aspx?id=' + id; } $(function () { look(); load(); });</script>
     </div>
     <script src="asset-common.js"></script>
