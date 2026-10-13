@@ -3043,7 +3043,6 @@
     <Content Include="User\EmployeeKYC.aspx" />
     <Content Include="US\AddFeedback.aspx" />
     <Content Include="US\BulkOrderAllocation.aspx" />
-    <Content Include="US\LMSearch.aspx" />
     <Content Include="US\ChangePassword.aspx" />
     <Content Include="US\ConditionAnalysis.aspx" />
     <Content Include="US\ConditionClearing.aspx" />
@@ -5805,13 +5804,6 @@
     </Compile>
     <Compile Include="US\BulkOrderAllocation.aspx.designer.cs">
       <DependentUpon>BulkOrderAllocation.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="US\LMSearch.aspx.cs">
-      <DependentUpon>LMSearch.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="US\LMSearch.aspx.designer.cs">
-      <DependentUpon>LMSearch.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\ChangePassword.aspx.cs">
       <DependentUpon>ChangePassword.aspx</DependentUpon>
