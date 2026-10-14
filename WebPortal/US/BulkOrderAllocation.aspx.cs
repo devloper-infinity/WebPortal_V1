@@ -393,7 +393,7 @@ namespace WebPortal.US
 
         private static bool ShouldUseServicing(string projectNumber)
         {
-            return projectNumber == "561" || projectNumber == "667" ||
+            return projectNumber == "561" || projectNumber == "2104" || projectNumber == "667" ||
                    projectNumber == "2088" || projectNumber == "2111";
         }
 

@@ -141,12 +141,12 @@
                 contentType: "application/json; charset=utf-8",
 
                 success: function (res) {
-                    if (res.d !== "OTP Sent") {
+                    if (res.d !== "OTP Queued") {
                         showMessage(res.d, "error");
                         $("#btnSend").prop("disabled", false).text("Send Code");
                         return;
                     }
-                    showMessage("OTP sent to your official email 📩", "success");
+                    showMessage("OTP request submitted. Check your official email shortly 📩", "success");
 
                     startResendTimer();
                     $("#otp").focus();
@@ -309,6 +309,7 @@
                     if (result.status === "success") {
                         resetOTPUI();
                         $("#otp, #newPassword, #confirmPassword").val("");
+                        setTimeout(function () { window.location.replace("Login.aspx"); }, 1200);
                     } else {
                         $("#btnSubmit").prop("disabled", false);
                     }

@@ -182,6 +182,7 @@ function empleave_bindgrid() {
                     },
 
                     { data: 'Code1', defaultContent: '' },
+                    { data: 'PmName', defaultContent: '' },
                     { data: 'LeaveType', defaultContent: '' },
                     { data: 'ForDays', defaultContent: '' },
                     { data: 'LeaveFrom', defaultContent: '' },
@@ -258,9 +259,16 @@ function empleave_bindgrid() {
 
             $('#load1').hide();
 
-            console.log(error);
+            // console.log(error);
 
             alert(error.responseText);
+        },
+
+        complete: function () {
+
+            // Always clear the page overlay, including when parsing or
+            // DataTables initialization fails inside the success callback.
+            $('#load1').hide();
         }
     });
 }
@@ -284,8 +292,21 @@ function EditAction(LeaveID, index) {
 
     var status = row.Status;
 
-    document.getElementById("leave_username").innerText = "Approve/Reject Leave - " + row.Code1;
-    
+    var leaveUsername = document.getElementById("leave_username");
+    leaveUsername.textContent = "Approve/Reject Leave - " + row.Code1 + " ";
+    leaveUsername.style.color = "black";
+    leaveUsername.style.fontWeight = "normal";
+    leaveUsername.style.fontSize = "17px";
+
+    var eligibility = String(row.Eligible || "").trim();
+    if (eligibility === "Eligible") {
+        var eligibilityText = document.createElement("span");
+        eligibilityText.textContent = " Eligible for Paid Leaves";
+        eligibilityText.style.color = "blue";
+        eligibilityText.style.fontWeight = "bold";
+        eligibilityText.style.fontSize = "19px";
+        leaveUsername.appendChild(eligibilityText);
+    }
     // Bind data to controls
     $('#empleave_approve_code').val(row.Code1 || '');
 
@@ -345,7 +366,7 @@ function ExtendAction(LeaveID, index) {
 
     var status = row.Status;
     document.getElementById("empleave_extend_username").innerText = "Extend/Reject Leave - " + row.Code1;
-    
+
     // Bind values
     $('#empleave_extend_code').val(row.Code1 || '');
 
@@ -690,7 +711,7 @@ function approverejectleave(leaveid, code, status, paidstatus, comment) {
                         document.getElementById('empleave_approve_ddaction').selectedIndex = 0;
                         document.getElementById('empleave_approve_comments').value = '';
 
-                        empleave_bindgrid()();
+                        empleave_bindgrid();
                     }
                 });
 
@@ -775,7 +796,7 @@ function empleave_extend_submit() {
                         document.getElementById('empleave_extend_fromdate').value = '';
                         document.getElementById('empleave_extend_todate').value = '';
 
-                        empleave_bindgrid()();
+                        empleave_bindgrid();
                     }
                 });
 

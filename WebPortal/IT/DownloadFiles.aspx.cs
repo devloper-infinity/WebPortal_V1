@@ -51,10 +51,18 @@ namespace WebPortal.IT
                             string Attachment = Convert.ToString(dt.Rows[0]["Attachment"]);
                             if (Attachment != "")
                             {
-                                //Attachment = Server.MapPath(Attachment);
+                                string invoicePath = Attachment;
+                                if (Attachment.StartsWith("InvoiceDocuments/", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (Attachment.Contains("..") || Attachment.Contains("\\")) return;
+                                    string root = System.IO.Path.GetFullPath(Server.MapPath("~/App_Data/InvoiceDocuments"));
+                                    invoicePath = System.IO.Path.GetFullPath(Server.MapPath("~/App_Data/" + Attachment.Replace('/', '\\')));
+                                    if (!invoicePath.StartsWith(root + System.IO.Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) return;
+                                }
+                                if (!System.IO.File.Exists(invoicePath)) return;
                                 Response.ContentType = "application/octet-stream";
-                                Response.AppendHeader("Content-Disposition", "attachment;filename=" + Attachment.Substring(Attachment.LastIndexOf("\\") + 1));
-                                Response.TransmitFile(Attachment);
+                                Response.AppendHeader("Content-Disposition", "attachment;filename=" + System.IO.Path.GetFileName(invoicePath));
+                                Response.TransmitFile(invoicePath);
                                 Response.End();
                             }
                         }

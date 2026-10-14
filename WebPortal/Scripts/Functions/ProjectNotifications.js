@@ -188,7 +188,9 @@ async function upnot_submitnotifications() {
     let effectiveDate = document.getElementById("upnot_effectivedate").value;
     let domainId = document.getElementById("upnot_domain").value;
     let subdomainId = document.getElementById("upnot_subdomain").value;
-    let project = document.getElementById("upnot_Project").value;
+    let projectSelect = document.getElementById("upnot_Project");
+    let projectId = projectSelect.value;
+    let project = projectSelect.options[projectSelect.selectedIndex]?.text || "";
 
     let selectedUsers = Array.from(document.querySelectorAll("#upnot_selectedusers li")).map(li => li.getAttribute("data-id")).join(",");
 
@@ -200,7 +202,7 @@ async function upnot_submitnotifications() {
     if (!message) return Swal.fire("Validation", "Message is required", "warning");
     if (!domainId || domainId === "0") return Swal.fire("Validation", "Domain is required", "warning");
     if (!subdomainId || subdomainId === "0") return Swal.fire("Validation", "Sub Domain is required", "warning");
-    if (!project || project === "0") return Swal.fire("Validation", "Project is required", "warning");
+    if (!projectId || projectId === "0" || project === "Select") return Swal.fire("Validation", "Project is required", "warning");
     if (!selectedUsers) return Swal.fire("Validation", "Please select at least one user", "warning");
 
     let formData = new FormData();

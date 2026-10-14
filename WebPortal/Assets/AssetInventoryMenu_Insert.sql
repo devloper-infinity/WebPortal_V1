@@ -64,7 +64,8 @@ VALUES
 (19507,'Maintenance Cost Report',19500,'../Assets/MaintenanceCostReport.aspx',NULL,7),
 (19508,'Allocation History',19500,'../Assets/AssetAllocationHistory.aspx',NULL,8),
 (19509,'Transfer History',19500,'../Assets/AssetTransferHistory.aspx',NULL,9),
-(19510,'Maintenance History',19500,'../Assets/AssetMaintenanceHistory.aspx',NULL,10);
+(19510,'Maintenance History',19500,'../Assets/AssetMaintenanceHistory.aspx',NULL,10),
+(19511,'Master Report',19500,'../Assets/MasterReport.aspx',NULL,11);
 
 BEGIN TRANSACTION;
 

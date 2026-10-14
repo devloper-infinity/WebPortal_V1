@@ -1,7 +1,12 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using DocumentFormat.OpenXml.Packaging;
+using OpenXmlCell = DocumentFormat.OpenXml.Spreadsheet.Cell;
+using OpenXmlCellValues = DocumentFormat.OpenXml.Spreadsheet.CellValues;
+using OpenXmlRow = DocumentFormat.OpenXml.Spreadsheet.Row;
+using OpenXmlSharedStringItem = DocumentFormat.OpenXml.Spreadsheet.SharedStringItem;
 using Spire.Xls;
 using System;
 using System.Collections.Generic;
@@ -9,6 +14,7 @@ using System.Data;
 using System.Data.OleDb;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -30,10 +36,10 @@ namespace WebPortal.Admin
         static string FileName = "";
         static string GUIDFile = "";
         static string FolderPath = "";
-        static Workbook book = new Workbook();
-        static Worksheet wksheet = null;
+        static Spire.Xls.Workbook book = new Spire.Xls.Workbook();
+        static Spire.Xls.Worksheet wksheet = null;
         static readonly object ServicingReportLock = new object();
-        static readonly Dictionary<Guid, Tuple<Workbook, string>> ServicingReports = new Dictionary<Guid, Tuple<Workbook, string>>();
+        static readonly Dictionary<Guid, Tuple<Spire.Xls.Workbook, string>> ServicingReports = new Dictionary<Guid, Tuple<Spire.Xls.Workbook, string>>();
         protected void Page_Load(object sender, EventArgs e)
         {
             servicingRegion.Visible = IsServicingUser();
@@ -50,20 +56,15 @@ namespace WebPortal.Admin
                 HttpPostedFile file = postedContext.Request.Files[0];
 
                 string name = file.FileName;
-                byte[] binaryWriteArray = new byte[file.InputStream.Length];
-                file.InputStream.Read(binaryWriteArray, 0,
-                (int)file.InputStream.Length);
-
                 FileInfo file_Info = new FileInfo(file.FileName);
                 string ext = file_Info.Extension;
 
 
                 string file_Name = Guid.NewGuid().ToString() + "_" + DateTime.Now.Day + DateTime.Now.Month + DateTime.Now.Year + ext;
                 NewFileName = Server.MapPath("..//TempFiles//" + file_Name);
-                FileStream objfilestream = new FileStream(NewFileName, FileMode.Create, FileAccess.ReadWrite);
-                objfilestream.Write(binaryWriteArray, 0,
-                binaryWriteArray.Length);
-                objfilestream.Close();
+                using (FileStream objfilestream = new FileStream(NewFileName, FileMode.Create, FileAccess.Write, FileShare.None, 81920, FileOptions.SequentialScan))
+                    file.InputStream.CopyTo(objfilestream, 81920);
+                Session["DetailedFeedbackImportFile"] = NewFileName;
             }
             catch { }
         }
@@ -143,7 +144,7 @@ namespace WebPortal.Admin
             lock (ServicingReportLock)
             {
                 Guid batchID = (Guid)HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"];
-                if (step > 0) { Tuple<Workbook, string> state; if (!ServicingReports.TryGetValue(batchID, out state)) throw new InvalidOperationException("Report session expired. Please try again."); book = state.Item1; FileName = state.Item2; }
+                if (step > 0) { Tuple<Spire.Xls.Workbook, string> state; if (!ServicingReports.TryGetValue(batchID, out state)) throw new InvalidOperationException("Report session expired. Please try again."); book = state.Item1; FileName = state.Item2; }
                 Action[] sheets = { () => GetGraphicalView("Servicing","Infinity"), () => CLientwiseErrorTrending("Servicing","Infinity"), () => ReviewersFeedbackSummary("Servicing","Infinity"), () => ReviewerVsQcerErrorCounts("Servicing","Infinity"), () => NoErrorFilesAnalysis("Servicing","Infinity"), () => Reviewerwiseclientwiseerrors("Servicing","Infinity"), () => ReviewerQCClientwiseerrors("Servicing","Infinity"), () => QCersPerformance("Servicing","Infinity"), () => CategorySheet("Servicing","Infinity"), () => SubcategorySheet("Servicing","Infinity"), () => getInternalFeedbacks("Servicing","Infinity"), () => getClientFeedbacks("Servicing","Infinity"), () => getReQCFeedbacks("Servicing","Infinity"), () => getRebuttalFeedbacks("Servicing","Infinity"), () => GetClientQualityReport("Servicing","Infinity") };
                 sheets[step]();
                 if (step == 14) CleanServicingWorkbook(FileName);
@@ -327,69 +328,137 @@ namespace WebPortal.Admin
         [ScriptMethod(UseHttpGet = false, ResponseFormat = ResponseFormat.Json)]
         public static int ImportExcel()
         {
-            DataTable dtSheet = new DataTable();
-            string SheetName = "";
-            string StrSource = "C:\\AMS";
-
-            if (NewFileName != "")
+            string uploadedFile = Convert.ToString(HttpContext.Current.Session["DetailedFeedbackImportFile"]);
+            if (!string.IsNullOrEmpty(uploadedFile) && File.Exists(uploadedFile))
             {
-                if (!Directory.Exists(FolderPath))
-                {
-                    Directory.CreateDirectory(FolderPath);
-                }
+                string reportFolder = HttpContext.Current.Server.MapPath(@"~\ReportDocument");
+                if (!Directory.Exists(reportFolder)) Directory.CreateDirectory(reportFolder);
+                FileName = Path.Combine(reportFolder, Path.GetFileName(uploadedFile));
+                File.Copy(uploadedFile, FileName, true);
 
-                FileName = FolderPath + "\\" + NewFileName.Substring(NewFileName.LastIndexOf("\\") + 1);
-                File.Copy(NewFileName, FileName);
-                string Extn = NewFileName.Substring(NewFileName.LastIndexOf(".") + 1);
-                DataTable Dt = new DataTable();
-                Dt = ReadExcelFile(FileName);
-                DataView dw = Dt.DefaultView;
-                dw.RowFilter = "[Loan Number] is not null";
-                DataTable dtResult = dw.ToTable();
-                if (Dt != null)
+                using (SqlConnection sqlConnection = new SqlConnection(SQLHelper.ConnectionString))
                 {
-                    string con = "";
-                    SqlConnection sqlConnection = new SqlConnection();
-                    sqlConnection.ConnectionString = "Data Source=23.111.175.186;Initial Catalog=InfinityERP;Persist Security Info=True;User ID=sa;Password=#Cl0ud^$ecure4; Pooling=true; Min Pool Size=1; Max Pool Size=100; Connect Timeout=200; Packet Size=8192";
-                    //assigning Destination table name
                     sqlConnection.Open();
-                    using (SqlBulkCopy objbulk = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.TableLock | SqlBulkCopyOptions.FireTriggers, null))
-                    {
-                        objbulk.DestinationTableName = "dbo.FeedbackImport";
-
-
-                        objbulk.BulkCopyTimeout = 0;
-
-                        objbulk.BatchSize = 5000;     // Commit 5k rows at a time
-                        objbulk.NotifyAfter = 5000;
-
-                        // Get destination structure
-                        DataTable dtDest = new DataTable();
-                        using (SqlCommand cmd = new SqlCommand("SELECT TOP 1 * FROM dbo.FeedbackImport", sqlConnection))
-                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-                        {
-                            da.Fill(dtDest);
-                        }
-
-                        // Add column mappings
-                        foreach (DataColumn col in dtDest.Columns)
-                        {
-                            if (dtResult.Columns.Contains(col.ColumnName))
-                            {
-                                objbulk.ColumnMappings.Add(col.ColumnName, col.ColumnName);
-                            }
-                        }
-
-                        // 🚀 Bulk Upload
-                        objbulk.WriteToServer(dtResult);
-                    }
-                    if (sqlConnection.State == ConnectionState.Open)
-                        sqlConnection.Close();
-
+                    DataTable destination = new DataTable();
+                    using (SqlCommand cmd = new SqlCommand("SELECT TOP 0 * FROM dbo.FeedbackImport", sqlConnection))
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(cmd)) adapter.Fill(destination);
+                    using (SpreadsheetDocument document = SpreadsheetDocument.Open(FileName, false))
+                        BulkImportFirstWorksheet(document, sqlConnection, destination);
                 }
-                // }
             }
+            else throw new InvalidOperationException("Please upload an Excel file before generating the output.");
             return 1;
+        }
+
+        private static void BulkImportFirstWorksheet(SpreadsheetDocument document, SqlConnection connection, DataTable destination)
+        {
+            WorkbookPart workbookPart = document.WorkbookPart;
+            DocumentFormat.OpenXml.Spreadsheet.Sheet sheet = workbookPart.Workbook.Sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>().First();
+            WorksheetPart worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id);
+            string[] sharedStrings = workbookPart.SharedStringTablePart == null ? new string[0] :
+                workbookPart.SharedStringTablePart.SharedStringTable.Elements<OpenXmlSharedStringItem>().Select(x => x.InnerText).ToArray();
+            using (OpenXmlReader reader = OpenXmlReader.Create(worksheetPart))
+            {
+                List<string> headers = null;
+                DataTable batch = null;
+                Dictionary<int, string> mappedColumns = null;
+                int loanNumberIndex = -1;
+                while (reader.Read())
+                {
+                    if (reader.ElementType != typeof(OpenXmlRow) || !reader.IsStartElement) continue;
+                    Dictionary<int, string> values = ReadRow((OpenXmlRow)reader.LoadCurrentElement(), sharedStrings);
+                    if (headers == null)
+                    {
+                        int lastColumn = values.Count == 0 ? -1 : values.Keys.Max();
+                        headers = Enumerable.Range(0, lastColumn + 1).Select(i => values.ContainsKey(i) ? values[i].Trim() : "").ToList();
+                        loanNumberIndex = headers.FindIndex(x => x.Equals("Loan Number", StringComparison.OrdinalIgnoreCase));
+                        if (loanNumberIndex < 0) throw new InvalidDataException("The Excel file does not contain the required 'Loan Number' column.");
+                        batch = new DataTable();
+                        mappedColumns = new Dictionary<int, string>();
+                        for (int i = 0; i < headers.Count; i++)
+                        {
+                            DataColumn target = destination.Columns.Cast<DataColumn>().FirstOrDefault(c => c.ColumnName.Equals(headers[i], StringComparison.OrdinalIgnoreCase));
+                            if (target == null || mappedColumns.Values.Contains(target.ColumnName)) continue;
+                            mappedColumns[i] = target.ColumnName;
+                            batch.Columns.Add(target.ColumnName, typeof(string));
+                        }
+                        if (mappedColumns.Count == 0) throw new InvalidDataException("No Excel columns match dbo.FeedbackImport.");
+                        continue;
+                    }
+                    string loanNumber;
+                    if (!values.TryGetValue(loanNumberIndex, out loanNumber) || string.IsNullOrWhiteSpace(loanNumber)) continue;
+                    DataRow dataRow = batch.NewRow();
+                    foreach (KeyValuePair<int, string> mapping in mappedColumns)
+                    {
+                        string value;
+                        value = values.TryGetValue(mapping.Key, out value) ? value : "";
+                        dataRow[mapping.Value] = IsFeedbackDateColumn(mapping.Value) ? ConvertExcelDate(value) : value;
+                    }
+                    batch.Rows.Add(dataRow);
+                    if (batch.Rows.Count >= 5000) { WriteBatch(connection, batch); batch.Clear(); }
+                }
+                if (batch != null && batch.Rows.Count > 0) WriteBatch(connection, batch);
+            }
+        }
+
+        private static Dictionary<int, string> ReadRow(OpenXmlRow row, string[] sharedStrings)
+        {
+            Dictionary<int, string> values = new Dictionary<int, string>();
+            foreach (OpenXmlCell cell in row.Elements<OpenXmlCell>())
+            {
+                int column = GetExcelColumnIndex(cell.CellReference == null ? "" : cell.CellReference.Value);
+                string value = cell.CellValue == null ? cell.InnerText : cell.CellValue.InnerText;
+                if (cell.DataType != null && cell.DataType.Value == OpenXmlCellValues.SharedString)
+                {
+                    int index;
+                    value = int.TryParse(value, out index) && index >= 0 && index < sharedStrings.Length ? sharedStrings[index] : "";
+                }
+                else if (cell.DataType != null && cell.DataType.Value == OpenXmlCellValues.InlineString) value = cell.InnerText;
+                values[column] = value ?? "";
+            }
+            return values;
+        }
+
+        private static int GetExcelColumnIndex(string reference)
+        {
+            int index = 0;
+            foreach (char character in reference)
+            {
+                if (!char.IsLetter(character)) break;
+                index = (index * 26) + (char.ToUpperInvariant(character) - 'A' + 1);
+            }
+            return index - 1;
+        }
+
+        private static bool IsFeedbackDateColumn(string columnName)
+        {
+            return columnName.Equals("Date Reviewed", StringComparison.OrdinalIgnoreCase)
+                || columnName.Equals("QC Date", StringComparison.OrdinalIgnoreCase)
+                || columnName.Equals("Feedback Received Date", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ConvertExcelDate(string value)
+        {
+            double serialDate;
+            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out serialDate)
+                && serialDate >= 1 && serialDate <= 2958465)
+            {
+                try { return DateTime.FromOADate(serialDate).ToString("MM/dd/yyyy", CultureInfo.InvariantCulture); }
+                catch (ArgumentException) { }
+            }
+            return value;
+        }
+
+        private static void WriteBatch(SqlConnection connection, DataTable batch)
+        {
+            using (SqlBulkCopy bulk = new SqlBulkCopy(connection, SqlBulkCopyOptions.TableLock | SqlBulkCopyOptions.FireTriggers, null))
+            {
+                bulk.DestinationTableName = "dbo.FeedbackImport";
+                bulk.BatchSize = batch.Rows.Count;
+                bulk.BulkCopyTimeout = 0;
+                foreach (DataColumn column in batch.Columns) bulk.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+                bulk.WriteToServer(batch);
+            }
         }
 
         [WebMethod]
@@ -1482,7 +1551,7 @@ namespace WebPortal.Admin
         {
             int returnvalue = 1;
             FileName = FolderPath + "\\Quality Report_" + domain + "_" + company + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
-            book = new Workbook();
+            book = new Spire.Xls.Workbook();
             book.Version = ExcelVersion.Version2016;
             DataTable dt = null;
             if (domain == "Credit")

@@ -347,7 +347,7 @@
     <script>
         $(document).ready(function () {
             hr_BindYear();
-            hr_buildSheetList();
+            hr_buildSheetList()
             hr_resetProgress();
         });
 

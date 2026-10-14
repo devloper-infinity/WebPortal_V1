@@ -548,6 +548,24 @@ namespace WebPortal.Admin
             return (lastDataRow - firstDataRow) + 1;
         }
 
+        private static int GetContiguousReportRowCount(string sheetName, string keyColumn, int firstDataRow)
+        {
+            Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
+            if (reportSheet == null || firstDataRow <= 0)
+                return 0;
+
+            int count = 0;
+            for (int row = firstDataRow; row <= reportSheet.LastRow; row++)
+            {
+                string key = Convert.ToString(reportSheet.Range[keyColumn + row].Value);
+                if (string.IsNullOrWhiteSpace(key))
+                    break;
+                count++;
+            }
+
+            return count;
+        }
+
         private static int FindReportTextRow(string sheetName, string text)
         {
             Spire.Xls.Worksheet reportSheet = GetReportWorksheet(sheetName);
@@ -3367,7 +3385,7 @@ namespace WebPortal.Admin
             sheet.Range["D11"].Value = "Completed";
             //Details
             Spire.Xls.Worksheet recsheet = book.Worksheets["Recruitment Summary"];
-            int rectarget = GetReportRowCount("Recruitment Summary", 15, -1);
+            int rectarget = GetContiguousReportRowCount("Recruitment Summary", "A", 15);
             sheet.Range["E11"].Value = "" + rectarget;
             sheet.Range["F11"].Value = "" + rectarget;
             sheet.Range["G11"].Value = "0";

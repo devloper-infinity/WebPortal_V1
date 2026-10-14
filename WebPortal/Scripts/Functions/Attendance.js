@@ -974,6 +974,7 @@ function pmatt_BindGrid() {
 
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.Code) + '</td>');
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.EmpName) + '</td>');
+                cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.PmName) + '</td>');
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.InDate) + '</td>');
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.InTime) + '</td>');
                 cells.push('<td style="text-wrap: nowrap;">' + blankForNull(value.OutDate) + '</td>');
