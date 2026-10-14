@@ -330,6 +330,10 @@ namespace WebPortal.Admin
                         msg = "Expense Details updated successfully!"; 
                     }
                 }
+                else if (ReturnValue == -1)
+                {
+                    msg = "Expense Details already exists!";
+                }
                 else
                 {
                     msg = "Error saving data";
