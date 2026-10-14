@@ -97,6 +97,13 @@ namespace WebPortal.US
             return SerializeTable(table);
         }
 
+        [WebMethod]
+        public static string GetCollectionCommentsFeedback_ByUser(string LoanNo)
+        {
+            return SerializeTable(new bllUS().GetCollectionCommentsFeedbackByUser(
+                LoanNo, int.Parse(HttpContext.Current.User.Identity.Name)));
+        }
+
 
         [WebMethod]
         public static int InsertUSImportedFeedback_NewERP(string LoanNo, string Client, string UWName, string DateReviewed, string QCDate, string Finding, string Severity, string Source, string FeedbackReceivedDate, string Task, int ProcessID, string DataField, string IsError)
@@ -208,10 +215,12 @@ namespace WebPortal.US
             DateTime endDateTime = DateTime.Now;
 
             string loanNumber = GetRowValue(row, "LoanNo", "OrderNumber");
-            DataTable feedback = new bllUS().GetUSImportedFeedback_ByUser_NewERP(
-                loanNumber,
-                int.Parse(HttpContext.Current.User.Identity.Name.ToString())
-            );
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            bool isCollectionComments = GetRowValue(row, "Process", "Task")
+                .Equals("Collection Comments ReQC", StringComparison.OrdinalIgnoreCase);
+            DataTable feedback = isCollectionComments
+                ? new bllUS().GetCollectionCommentsFeedbackByUser(loanNumber, employeeId)
+                : new bllUS().GetUSImportedFeedback_ByUser_NewERP(loanNumber, employeeId);
             if (feedback == null || feedback.Rows.Count == 0)
             {
                 return -2;

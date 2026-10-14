@@ -526,6 +526,21 @@ WHERE [Loan Number]=@LoanNo AND AddedBy=@EmployeeID;");
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
+        public DataTable GetCollectionCommentsFeedbackByUser(string loanNo, int employeeId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT FeedbackID,ROW_NUMBER() OVER(ORDER BY AddedDate) SrNo,[Loan Number] LoanNo,
+       ISNULL(Severity,'') Severity,ISNULL(Finding,'') Finding,
+       ISNULL(DataField,'') DataField,ISNULL(IsError,'') IsError,
+       '' AddedByName,AddedDate
+FROM dbo.ImportedFeedbacks_Servicing WITH(NOLOCK)
+WHERE [Loan Number]=@LoanNo AND AddedBy=@EmployeeID AND Source=N'Collection Comments ReQC'
+ORDER BY AddedDate;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNo", SqlDbType.NVarChar, 100, ParameterDirection.Input, loanNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.Int, 0, ParameterDirection.Input, employeeId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public bool IsCollectionCommentsDataFieldValid(string dataField)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, "SELECT COUNT(1) FROM dbo.CollectionCommentsReQCDataField WHERE IsActive=1 AND DataField=@DataField;");

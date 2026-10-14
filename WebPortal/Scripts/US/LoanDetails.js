@@ -438,7 +438,7 @@ function OnClickAddFeedback() {
                     title: 'Success',
                     text: 'Feedback added successfully.'
                 }).then(() => {
-                    location.reload();
+                    if (!isCollectionCommentsReQC) location.reload();
                 });
 
             } else {
@@ -557,11 +557,13 @@ function OnClickCompleteLoan() {
 
 function BindUSFeedbackDetails_Grid(loanNo) {
 
-    $('#load1').show();
+    $('#load1').css('display', 'flex');
 
     usfeedback_html = '';
     $.ajax({
-        url: "AddFeedback.aspx/GetUSImportedFeedback_ByUser_NewERP",
+        url: isCollectionCommentsReQC
+            ? "AddFeedback.aspx/GetCollectionCommentsFeedback_ByUser"
+            : "AddFeedback.aspx/GetUSImportedFeedback_ByUser_NewERP",
         type: "POST",
         data: JSON.stringify({ LoanNo: loanNo }),
         dataType: "json",
@@ -623,6 +625,7 @@ function BindUSFeedbackDetails_Grid(loanNo) {
         },
 
         error: function (error) {
+            $('#load1').hide();
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
         }
