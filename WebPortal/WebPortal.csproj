@@ -185,6 +185,15 @@
     <Content Include="All.aspx" />
     <Content Include="App_Data\AIAssistantSettings.json" />
     <Content Include="Admin\Birthday.aspx" />
+    <Content Include="OperationsBulletin\Dashboard.aspx" />
+    <Content Include="OperationsBulletin\AccessDenied.aspx" />
+    <Content Include="OperationsBulletin\Manage.aspx" />
+    <Content Include="OperationsBulletin\Manage.js" />
+    <Content Include="OperationsBulletin\Bulletin.css" />
+    <Content Include="OperationsBulletin\Bulletin.js" />
+    <Content Include="OperationsBulletin\BulletinNotifier.js" />
+    <Content Include="OperationsBulletin\DocumentHandler.ashx" />
+    <Content Include="OperationsBulletin\Database\OperationsBulletin.sql" />
     <Content Include="Admin\MonthlyBirthdays.aspx" />
     <Content Include="Admin\BranchAndDateWiseAttendanceReport.aspx" />
     <Content Include="Admin\DomainHealthReport.aspx" />
@@ -3313,6 +3322,24 @@
     <Compile Include="Admin\MonthlyBirthdays.aspx.cs">
       <DependentUpon>MonthlyBirthdays.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OperationsBulletin\BulletinRepository.cs" />
+    <Compile Include="OperationsBulletin\Dashboard.aspx.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OperationsBulletin\Dashboard.aspx.designer.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="OperationsBulletin\Manage.aspx.cs">
+      <DependentUpon>Manage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OperationsBulletin\Manage.aspx.designer.cs">
+      <DependentUpon>Manage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="OperationsBulletin\DocumentHandler.ashx.cs">
+      <DependentUpon>DocumentHandler.ashx</DependentUpon>
     </Compile>
     <Compile Include="Admin\MonthlyBirthdays.aspx.designer.cs">
       <DependentUpon>MonthlyBirthdays.aspx</DependentUpon>

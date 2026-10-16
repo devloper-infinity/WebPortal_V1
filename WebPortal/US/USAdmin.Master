@@ -667,6 +667,7 @@
 
 
         <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
+        <script src="../OperationsBulletin/BulletinNotifier.js?v=5"></script>
     </form>
 </body>
 </html>

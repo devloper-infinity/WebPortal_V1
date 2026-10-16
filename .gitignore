@@ -372,6 +372,8 @@ FodyWeavers.xsd
 # Keep versioned database migrations visible even though this legacy project root is ignored.
 !/WebPortal/
 /WebPortal/*
+!/WebPortal/OperationsBulletin/
+!/WebPortal/OperationsBulletin/**
 !/WebPortal/Helpdesk/
 /WebPortal/Helpdesk/*
 !/WebPortal/Helpdesk/ticket-details.css
