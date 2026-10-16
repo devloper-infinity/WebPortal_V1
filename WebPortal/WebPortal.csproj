@@ -144,6 +144,7 @@
     <Content Include="Accounts\SalaryReport_DepartmentWise.aspx" />
     <Content Include="Accounts\SalarySlipMaster.aspx" />
     <Content Include="Accounts\TotalSalaryReport.aspx" />
+    <Content Include="Admin\AutoBilling.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\ExpensesAdmin.aspx" />
     <Content Include="Admin\PettyCashCategoryMaster.aspx" />
@@ -230,6 +231,7 @@
     <Content Include="Assets\EmployeeITFieldMaster.aspx" />
     <Content Include="Assets\ImportAssets.aspx" />
     <Content Include="Assets\LocationWiseAssetReport.aspx" />
+    <Content Include="Assets\MasterReport.aspx" />
     <Content Include="Assets\MaintenanceCostReport.aspx" />
     <Content Include="Assets\PurchaseOrder.aspx" />
     <Content Include="Assets\PurchaseRequestApproval.aspx" />
@@ -3050,6 +3052,7 @@
     <Content Include="US\CreditConsolidatedReport.aspx" />
     <Content Include="US\Dashboard.aspx" />
     <Content Include="US\CanopySearch.aspx" />
+    <Content Include="US\LMSearch.aspx" />
     <Content Include="US\ResetPasswordSegment.aspx" />
     <Content Include="US\SetAppreciationDisciplinaryAction.aspx" />
     <Content Include="US\USDashboard.aspx" />
@@ -3176,6 +3179,13 @@
     <Compile Include="Accounts\SalaryReport_DepartmentWise.aspx.cs">
       <DependentUpon>SalaryReport_DepartmentWise.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\AutoBilling.aspx.cs">
+      <DependentUpon>AutoBilling.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\AutoBilling.aspx.designer.cs">
+      <DependentUpon>AutoBilling.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\PettyCashCategoryMaster.aspx.cs">
       <SubType>ASPXCodeBehind</SubType>
@@ -3789,6 +3799,13 @@
     </Compile>
     <Compile Include="Assets\LocationWiseAssetReport.aspx.designer.cs">
       <DependentUpon>LocationWiseAssetReport.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Assets\MasterReport.aspx.cs">
+      <DependentUpon>MasterReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Assets\MasterReport.aspx.designer.cs">
+      <DependentUpon>MasterReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Assets\MaintenanceCostReport.aspx.cs">
       <DependentUpon>MaintenanceCostReport.aspx</DependentUpon>
@@ -5853,6 +5870,13 @@
     </Compile>
     <Compile Include="US\CanopySearch.aspx.designer.cs">
       <DependentUpon>CanopySearch.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\LMSearch.aspx.cs">
+      <DependentUpon>LMSearch.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\LMSearch.aspx.designer.cs">
+      <DependentUpon>LMSearch.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\ResetPasswordSegment.aspx.cs">
       <DependentUpon>ResetPasswordSegment.aspx</DependentUpon>

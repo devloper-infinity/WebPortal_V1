@@ -472,24 +472,28 @@
         $(document).ready(function () {
 
             var currentUserName = '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
+            var fullAccessUsers = ['7036', '12', '216', '285', '8535', '9738', '277', '99', '8128', '291', '255', '209', '9858','5879'];
+            var viewOnlyUsers = ['6836']; // Add view-only employee codes here, e.g. ['123', '456'].
+            var isViewOnly = viewOnlyUsers.indexOf(currentUserName) !== -1;
+
             $.ajax({
                 type: "POST", url: "AttendanceCorrectionpm.aspx/GetLoggedInUser", dataType: "json", contentType: "application/json",
                 success: function (res) {
                     var dataArray = JSON.parse(res.d);
                     $.each(dataArray, function (data, value) {
-                        if (value.Domain == 9 && value.WorkingBranch == 2) {
+                        if (isViewOnly || (value.Domain == 9 && value.WorkingBranch == 2) || fullAccessUsers.indexOf(currentUserName) !== -1) {
                             document.getElementById("attmain").style.display = "";
-                            pmatt_bindusers();
-                            pmatt_bindReasons();
-                            pmatt_BindGrid();
-                            setTimeout(function () {
-                                if ($.fn.DataTable && $.fn.DataTable.isDataTable('#pmatt_table')) {
-                                    $('#pmatt_table').DataTable().columns.adjust();
-                                }
-                            }, 400);
-                        }
-                        else if (currentUserName == 7036 || currentUserName == 12 || currentUserName == 216 || currentUserName == 285 || currentUserName == 8535 || currentUserName == 9738 || currentUserName == 277 || currentUserName == 99 || currentUserName == 8128 || currentUserName == 291 || currentUserName == 255 || currentUserName == 209 || currentUserName == 9858) {
-                            document.getElementById("attmain").style.display = "";
+
+                            if (isViewOnly) {
+                                $('#selfatt_btnsubmit').prop('disabled', true);
+                                document.addEventListener('click', function (event) {
+                                    if (event.target.closest('#pmatt_table a.dropdown-item:not(.pmatt-approval-disabled-action)')) {
+                                        event.preventDefault();
+                                        event.stopImmediatePropagation();
+                                    }
+                                }, true);
+                            }
+
                             pmatt_bindusers();
                             pmatt_bindReasons();
                             pmatt_BindGrid();

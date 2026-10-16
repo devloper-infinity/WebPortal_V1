@@ -88,6 +88,7 @@ namespace WebPortal.App_Code.BLL
         }
 
         public DataTable GetCollectionCommentsDataFields() { return dalUS.GetCollectionCommentsDataFields(); }
+        public DataTable GetCollectionCommentsFeedbackByUser(string loanNo, int employeeId) { return dalUS.GetCollectionCommentsFeedbackByUser(loanNo, employeeId); }
         public bool IsCollectionCommentsDataFieldValid(string dataField) { return dalUS.IsCollectionCommentsDataFieldValid(dataField); }
         public int InsertCollectionCommentsFeedback(string loanNo, string client, string uwName, string dateReviewed, string qcDate, string feedbackReceivedDate, string dataField, string isError, string finding, int addedBy)
         { return dalUS.InsertCollectionCommentsFeedback(loanNo, client, uwName, dateReviewed, qcDate, feedbackReceivedDate, dataField, isError, finding, addedBy); }
