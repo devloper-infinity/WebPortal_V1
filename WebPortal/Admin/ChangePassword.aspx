@@ -1,8 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="ChangePassword.aspx.cs" Inherits="WebPortal.Admin.ChangePassword" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
         .cp-hero {
             position: relative;
@@ -234,6 +232,49 @@
             background: #f1f5f9;
         }
 
+        .cp-message {
+            margin-top: 18px;
+            padding: 12px 15px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .cp-message[hidden] {
+            display: none;
+        }
+
+        .cp-message-success {
+            color: #166534;
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .cp-message-warning {
+            color: #92400e;
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .cp-message-error {
+            color: #991b1b;
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .cp-message-info {
+            color: #1e40af;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .cp-btn-primary:disabled {
+            cursor: wait;
+            opacity: .7;
+            transform: none;
+        }
+
         .cp-help-card {
             padding: 22px;
         }
@@ -316,74 +357,54 @@
                 return false;
             }
 
-            Swal.fire({
-                title: "Please wait...",
-                text: "Changing your password.",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: function () {
-                    Swal.showLoading();
-                }
-            });
+            changepassword_setBusy(true);
+            changepassword_showMessage("info", "Please wait", "Changing your password.");
 
             PageMethods.ChangePasswords(currentPassword, newPassword, changepassword_OnSuccess, changepassword_OnError);
             return false;
         }
 
         function changepassword_OnSuccess(result) {
-            Swal.close();
+            changepassword_setBusy(false);
 
             if (result > 0) {
-                Swal.fire({
-                    icon: "success",
-                    title: "Success",
-                    text: "Password changed successfully.",
-                    confirmButtonColor: "#2563eb"
-                });
-
                 changepassword_clear();
+                changepassword_showMessage("success", "Success", "Password changed successfully.");
             }
             else if (result == -1) {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Wrong Password",
-                    text: "You have entered wrong current password.",
-                    confirmButtonColor: "#f59e0b"
-                });
+                changepassword_showMessage("warning", "Wrong Password", "You have entered wrong current password.");
             }
             else {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Error occurred while changing password. Please contact administrator.",
-                    confirmButtonColor: "#dc2626"
-                });
+                changepassword_showMessage("error", "Error", "Error occurred while changing password. Please contact administrator.");
             }
 
             return false;
         }
 
         function changepassword_OnError(error) {
-            Swal.close();
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error && error.responseText ? error.responseText : "Unable to change password.",
-                confirmButtonColor: "#dc2626"
-            });
+            changepassword_setBusy(false);
+            changepassword_showMessage("error", "Error", error && error.responseText ? error.responseText : "Unable to change password.");
 
             return false;
         }
 
         function changepassword_showValidation(message) {
-            Swal.fire({
-                icon: "warning",
-                title: "Validation",
-                text: message,
-                confirmButtonColor: "#f59e0b"
-            });
+            changepassword_showMessage("warning", "Please check", message);
+        }
+
+        function changepassword_showMessage(type, title, message) {
+            var notice = document.getElementById("changepassword_message");
+            notice.className = "cp-message cp-message-" + type;
+            notice.setAttribute("role", type === "error" || type === "warning" ? "alert" : "status");
+            notice.setAttribute("aria-live", type === "error" || type === "warning" ? "assertive" : "polite");
+            notice.textContent = title + ": " + message;
+            notice.hidden = false;
+        }
+
+        function changepassword_setBusy(isBusy) {
+            var button = document.getElementById("changepassword_btnsubmit");
+            button.disabled = isBusy;
+            button.setAttribute("aria-busy", isBusy ? "true" : "false");
         }
 
         function changepassword_clear() {
@@ -458,6 +479,8 @@
                         </div>
                     </div>
 
+                    <div id="changepassword_message" class="cp-message" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
                     <div class="cp-actions">
                         <button type="button" class="cp-btn-light" onclick="changepassword_clear(); return false;">
                             <i class="fas fa-undo-alt"></i>Clear
@@ -481,172 +504,3 @@
         </div>
     </div>
 </asp:Content>
-
-
-<%--<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-    <style>
-        .loading {
-            display: none;
-            position: fixed;
-            top: 350px;
-            left: 50%;
-            margin-top: -96px;
-            margin-left: -96px;
-            /*  background-color: #ccc;*/
-            opacity: .85;
-            border-radius: 25px;
-            width: 192px;
-            height: 192px;
-            z-index: 99999;
-        }
-    </style>
-
-    <script>
-        function changepassword_submit() {
-
-            var changepassword_currentpassword = document.getElementById("changepassword_currentpassword").value;
-            var changepassword_newpassword = document.getElementById("changepassword_newpassword").value;
-            var changepassword_confirmnewpassword = document.getElementById("changepassword_confirmnewpassword").value;
-
-            //var changepassword_currentpassword = document.getElementById("currentPassword").value;
-            //var changepassword_newpassword = document.getElementById("newPassword").value;
-            //var changepassword_confirmnewpassword = document.getElementById("confirmPassword").value;
-
-            if (changepassword_currentpassword == "") {
-                alert("Please enter current password.");
-                return false;
-            }
-            if (changepassword_newpassword == "") {
-                alert("Please enter new password.");
-                return false;
-            }
-            if (changepassword_confirmnewpassword == "") {
-                alert("Please enter confirm password.");
-                return false;
-            }
-            if (changepassword_confirmnewpassword != changepassword_newpassword) {
-                alert("New password and confirm password should be same.");
-                return false;
-            }
-
-
-            PageMethods.ChangePasswords(changepassword_currentpassword, changepassword_newpassword, changepassword_OnSuccess, changepassword_OnError);
-
-            return false;
-        }
-
-        function changepassword_OnSuccess(result) {
-            if (result > 0) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Password changed successfully',
-                    zIndex: 999999
-                });
-                $("#changepassword_currentpassword").val('');
-                $("#changepassword_newpassword").val('');
-                $("#changepassword_confirmnewpassword").val('');
-            }
-            else if (result == -1) {
-
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Warning',
-                    text: 'Oops! You have entered wrong password!',
-                    zIndex: 999999
-                });
-
-            }
-            else {
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Oops! Error occured while changing password. Please contact administrator!',
-                    zIndex: 999999
-                });
-            }
-
-            return false;
-
-        }
-
-        function changepassword_OnError(error) {
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.responseText,
-                zIndex: 999999
-            });
-            return false;
-        }
-
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</asp:Content>
-<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
-    <div class="content-header">
-        <div class="container">
-            <div class="row mb-2 callout callout-info">
-                <div class="col-sm-6">
-                    <h6 class="m-0"><i class="fas fa-copy"></i>&nbsp;&nbsp;<b>Change Password</b></h6>
-                </div>
-            </div>
-        </div>
-        <!-- /.container-fluid -->
-    </div>
-  
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-body">
-           
-                <table class="table">
-                    <tr>
-                        <td><b>Current Password:</b></td>
-                        <td>
-                            <input type="password" id="changepassword_currentpassword" name="changepassword_currentpassword" class="form-control" style="width: 350px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>New Password:</b></td>
-                        <td>
-                            <input type="password" id="changepassword_newpassword" name="changepassword_newpassword" class="form-control" style="width: 350px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><b>Confirm New Password:</b></td>
-                        <td>
-                            <input type="password" id="changepassword_confirmnewpassword" name="changepassword_confirmnewpassword" class="form-control" style="width: 350px;" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>
-                            <button type="submit" id="changepassword_btnsubmit" class="btn btn-primary" onclick="return changepassword_submit();" style="width: 350px;">Submit</button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="cp_dverror">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                
-                </div>
-
-                <div class="modal-footer align-content-center">
-                    <button class="btn btn-primary" type="button" id="cp_btnMessage" onclick="return cp_Message();">Okay</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
-    </div>
-
-</asp:Content>--%>

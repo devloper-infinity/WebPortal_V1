@@ -715,8 +715,9 @@ function btnverfybilling_AddRemark() {
 
     var ddldateprd = document.getElementById("VerifyOrdres_dateperild");
     var dateprd = ddldateprd.options[ddldateprd.selectedIndex].text;
-  
-    if (prjValue != 210 || prjValue != 74) {
+   
+    if (prjValue != 210 && prjValue != 74) {
+
         if (remark === "") {
 
             Swal.fire({
@@ -733,7 +734,7 @@ function btnverfybilling_AddRemark() {
 
     if (isAdditionalChecked) {
 
-        if (prjValue != 210 || prjValue != 74) {
+        if (prjValue != 210 && prjValue != 74) {
             if (vrbil_costDiff === "" || vrbil_costDiff === null || parseFloat(vrbil_costDiff) <= 0) {
 
                 Swal.fire({
@@ -1178,9 +1179,9 @@ function VerifyOrdres_SendToAccount() {
         }
     });
 
-
+// SendToAccounts
     $.ajax({
-        url: 'VerifyBilling.aspx/SendToAccounts',
+        url: 'VerifyBilling.aspx/SearchBilling',
         type: 'POST',
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',

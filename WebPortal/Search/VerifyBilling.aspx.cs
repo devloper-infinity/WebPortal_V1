@@ -1,11 +1,13 @@
 ﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using DocumentFormat.OpenXml.VariantTypes;
 using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -455,6 +457,146 @@ namespace WebPortal.Search
             return returnValue;
         }
 
+        #region Auto Billing
+
+        public static int VerifyOstOrdersForBilling(int ProjectID, string BillingPeriod)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_VerifyOstordersForBilling_AutoBilling"); /*usp_VerifyOstordersForBilling*/
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, ProjectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, BillingPeriod);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+        public static int UpdateBillingDetails(int ProjectID, string BillingPeriod)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "WBT_usp_UpdateBillingDetails_AutoBilling"); /*usp_VerifyOstordersForBilling*/
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, ProjectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, BillingPeriod);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+        public static DataTable GetBilledOrders(string ProjectNo, string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification_Bill_ICG"); /*usp_VerifyOstordersForBilling*/
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, ProjectNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, ToDate);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public static DataTable GetOrdersForSentToAccounts(string ProjectNo, string BillingPeriod, string Remark)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOrdersForSentToAccounts");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, BillingPeriod);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Remark", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, Remark);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+
+        public static DataTable GetSearchTaxOrders_AutoBilling(int ProjectID, string BillingPeriod)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SearchTaxAutoBilling");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, BillingPeriod);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public static DataTable GetSummaryProjectWise_Date(string ProjectNo, string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_DateWise_Billing");
+            SQLHelper.AddParamToSQLCmd(cmd, "@CurrentDate", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, ProjectNo);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public static DataTable ProjectEmailConfiguration(int ProjectID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_ProjectEmailConfiguration_ByProject");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, ProjectID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+        public static int HoldOrdersPending(string Project, string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "[usp_TMM_UpdateHoldOrders_Bill]");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Project);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            cmd.Dispose();
+            return ReturnValue; //-1=Exist, 0=Fail, >0=Success
+        }
+
+        public static DataTable GetCostEmailDetails(int projectId, string billingPeriod, bool includeRecordId = false)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
+                "SELECT " + (includeRecordId ? "CostEmailID, " : "") + @"Project, BillingPeriod, OrderID, CostDifference AS CostDiff,
+                         EmailNote AS EmailInput, AttachmentPath
+                    FROM Order_CostEmailDetails
+                   WHERE Project = @ProjectID
+                     AND BillingPeriod = @BillingPeriod
+                   ORDER BY OrderID");
+
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, projectId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, billingPeriod);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
+        //public int SearchBilling(int ProjectID, string ProjectNo, string BillingPeriod, string DomainName) usp_SearchTaxAutoBilling
+        [WebMethod]
+        public static int SearchBilling(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark)//, string DomainName)
+        {
+            int returnValue = 0;
+            string ToAddress = ""; string CC = ""; string Bcc = "";
+            string ProjectType = "";
+
+            if (ProjectNo == "763-005" || ProjectNo == "735-006") //(DomainName == "Title-Search")
+                ProjectType = "Title-Tax";
+            else if (ProjectNo == "735" || ProjectNo == "669" || ProjectNo == "656" || ProjectNo == "591" || ProjectNo == "547-002" || ProjectNo == "380-003" || ProjectNo == "380-001" || ProjectNo == "1017")
+                ProjectType = "Search Typing";
+
+            DataTable dtCheck = GetSearchTaxOrders_AutoBilling(ProjectID, BillingPeriod);
+            if (dtCheck.Rows.Count > 0)
+            {
+                DataTable dt = GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
+                DataTable summaryForEmail = GetSummaryProjectWise_Date(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());
+                DataTable costEmailDetails = GetCostEmailDetails(ProjectID, BillingPeriod);
+                DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
+
+                DataTable dt_Address = ProjectEmailConfiguration(ProjectID);
+                if (dt_Address.Rows.Count > 0)
+                {
+                    ToAddress = dt_Address.Rows[0]["ToAddress"].ToString();
+                    CC = dt_Address.Rows[0]["CC"].ToString();
+                    Bcc = dt_Address.Rows[0]["Bcc"].ToString();
+                }
+
+                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, ProjectType, BillingPeriod, "Auto Billing", ToAddress, CC, Bcc);
+            }
+            return returnValue;
+        }
+
+        #endregion
 
         [WebMethod]
         public static int SendToAccounts(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark)
@@ -483,7 +625,7 @@ namespace WebPortal.Search
                     Bcc = dt_Address.Rows[0]["Bcc"].ToString();
                 }
 
-                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc  );
+                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, "Search Typing", BillingPeriod, Remark, ToAddress, CC, Bcc);
 
                 if (returnValue > 0)
                     returnValue = new bllOST().HoldOrdersPending(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());
