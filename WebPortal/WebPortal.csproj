@@ -2978,6 +2978,7 @@
     <Content Include="Scripts\US\InfinityFeedbackOnshore.js" />
     <Content Include="Scripts\US\ReQcUtility.js" />
     <Content Include="Scripts\US\LoanDetails.js" />
+    <Content Include="Scripts\US\LMSearch.js" />
     <Content Include="Scripts\US\UserPerformanceReport.js" />
     <Content Include="Search\AbstractorReport.aspx" />
     <Content Include="Search\Costing.aspx" />
@@ -3069,6 +3070,7 @@
     <Content Include="US\ReQcUtility.aspx" />
     <Content Include="US\FeedbackDetails.aspx" />
     <Content Include="US\FeedbackCanopyDetails.aspx" />
+    <Content Include="US\LMSearchDetails.aspx" />
     <Content Include="US\GlobalSearch.aspx" />
     <Content Include="US\LoanDetails.aspx" />
     <Content Include="US\MyQueue.aspx" />
@@ -5953,6 +5955,13 @@
     </Compile>
     <Compile Include="US\FeedbackCanopyDetails.aspx.designer.cs">
       <DependentUpon>FeedbackCanopyDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\LMSearchDetails.aspx.cs">
+      <DependentUpon>LMSearchDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\LMSearchDetails.aspx.designer.cs">
+      <DependentUpon>LMSearchDetails.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\GlobalSearch.aspx.cs">
       <DependentUpon>GlobalSearch.aspx</DependentUpon>

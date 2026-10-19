@@ -988,8 +988,8 @@ function setappr_resetFilters() {
 }
 
 function setappr_bindFilters(table, hasMonthYear) {
-    var locationColumn = table.column(4);
-    var departmentColumn = table.column(5);
+    var locationColumn = table.column(3);
+    var departmentColumn = table.column(4);
 
     locationColumn.data().unique().sort().each(function (d) {
         if (blankForNull(d)) {
@@ -1029,11 +1029,11 @@ function setappr_bindFilters(table, hasMonthYear) {
     }
 
     $('#filterLocation').on('change', function () {
-        table.column(4).search(this.value).draw();
+        table.column(3).search(this.value).draw();
     });
 
     $('#filterDepartment').on('change', function () {
-        table.column(5).search(this.value).draw();
+        table.column(4).search(this.value).draw();
     });
 
     if (hasMonthYear) {

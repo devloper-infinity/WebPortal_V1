@@ -26,6 +26,29 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('dbo.usp_UpdateAutoBilledFreightProject','P') IS NULL EXEC('CREATE PROCEDURE dbo.usp_UpdateAutoBilledFreightProject AS BEGIN SET NOCOUNT ON; END');
+GO
+ALTER PROCEDURE dbo.usp_UpdateAutoBilledFreightProject
+ @ProjectName nvarchar(100),@From date,@To date,@ExpectedCount int,@BillingAddedBy int
+AS
+BEGIN
+ SET NOCOUNT ON;SET XACT_ABORT ON;
+ DECLARE @ProjectID int,@DateColumn sysname,@ActualCount int=0,@UpdatedCount int=0,@Sql nvarchar(max),@BillingPeriod nvarchar(100);
+ SELECT @ProjectID=P.ProjectID FROM dbo.Project P JOIN dbo.ClientFeedback C ON C.ProjectID=P.ProjectID AND C.DomainId=2 WHERE P.ProjectName=@ProjectName;
+ IF @ProjectID IS NULL BEGIN SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,0 ActualCount,0 UpdatedCount,'Freight project configuration not found.'Reason;RETURN;END;
+ SELECT @DateColumn=ColName FROM dbo.usf_GetColumnNameForReport_NonDD(@ProjectID,'Dispatched Date');IF NULLIF(@DateColumn,'')IS NULL SELECT @DateColumn=ColName FROM dbo.usf_GetColumnNameForReport_NonDD(@ProjectID,'Dispatch Date');
+ IF NULLIF(@DateColumn,'')IS NULL BEGIN SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,0 ActualCount,0 UpdatedCount,'Dispatch date mapping not found.'Reason;RETURN;END;
+ SET @BillingPeriod=REPLACE(CONVERT(nvarchar(11),@From,106),' ','-')+' ~ '+REPLACE(CONVERT(nvarchar(11),@To,106),' ','-');BEGIN TRANSACTION;
+ SET @Sql=N'SELECT @Actual=COUNT(1) FROM Commitment.dbo.WBT_TrackingSheet T WITH(UPDLOCK,HOLDLOCK) WHERE T.ProjectID=@ProjectID AND NULLIF(LTRIM(RTRIM(T.BillingPeriod)),'''') IS NULL AND ISDATE(T.'+QUOTENAME(@DateColumn)+N')=1 AND CONVERT(date,T.'+QUOTENAME(@DateColumn)+N') BETWEEN @From AND @To;';
+ EXEC sys.sp_executesql @Sql,N'@ProjectID int,@From date,@To date,@Actual int OUTPUT',@ProjectID,@From,@To,@ActualCount OUTPUT;
+ IF @ActualCount<>@ExpectedCount BEGIN ROLLBACK;SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,@ActualCount ActualCount,0 UpdatedCount,'Displayed and update counts do not match.'Reason;RETURN;END;
+ SET @Sql=N'UPDATE T SET IsVerify=1,BillingPeriod=@BillingPeriod,BillingAddedBy=CONVERT(nvarchar(100),@BillingAddedBy),BillingAddedDate=REPLACE(CONVERT(nvarchar(11),GETDATE(),106),'' '',''-'') FROM Commitment.dbo.WBT_TrackingSheet T WHERE T.ProjectID=@ProjectID AND NULLIF(LTRIM(RTRIM(T.BillingPeriod)),'''') IS NULL AND ISDATE(T.'+QUOTENAME(@DateColumn)+N')=1 AND CONVERT(date,T.'+QUOTENAME(@DateColumn)+N') BETWEEN @From AND @To;SET @Updated=@@ROWCOUNT;';
+ EXEC sys.sp_executesql @Sql,N'@ProjectID int,@From date,@To date,@BillingPeriod nvarchar(100),@BillingAddedBy int,@Updated int OUTPUT',@ProjectID,@From,@To,@BillingPeriod,@BillingAddedBy,@UpdatedCount OUTPUT;
+ IF @UpdatedCount<>@ExpectedCount BEGIN ROLLBACK;SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,@ActualCount ActualCount,@UpdatedCount UpdatedCount,'Updated count does not match displayed count.'Reason;RETURN;END;
+ COMMIT;SELECT CAST(1 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,@ActualCount ActualCount,@UpdatedCount UpdatedCount,''Reason;
+END
+GO
+
 IF OBJECT_ID('dbo.usp_ProcessCommitmentClientBilling','P') IS NULL
     EXEC('CREATE PROCEDURE dbo.usp_ProcessCommitmentClientBilling AS BEGIN SET NOCOUNT ON; END');
 GO
