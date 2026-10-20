@@ -5541,11 +5541,11 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             SQLHelper.AddParamToSQLCmd(cmd, "@IsPopup", System.Data.SqlDbType.Bit, 10, System.Data.ParameterDirection.Input, htParam["IsPopup"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@IsActive", System.Data.SqlDbType.Bit, 10, System.Data.ParameterDirection.Input, htParam["IsActive"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CreatedBy", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, htParam["AddedBy"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Branch"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Designation", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Designation"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Department", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Department"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Users", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Users"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@Gender", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Gender"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Branch", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["Branch"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Designation", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["Designation"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Department", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["Department"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Users", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["Users"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Gender", System.Data.SqlDbType.NVarChar, -1, System.Data.ParameterDirection.Input, htParam["Gender"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
 

@@ -562,7 +562,7 @@ namespace WebPortal.Search
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
-        //public int SearchBilling(int ProjectID, string ProjectNo, string BillingPeriod, string DomainName) usp_SearchTaxAutoBilling
+        //public int SearchBilling(int ProjectID, string ProjectNo, string BillingPeriod, string DomainName) 
         [WebMethod]
         public static int SearchBilling(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark)//, string DomainName)
         {
@@ -591,7 +591,7 @@ namespace WebPortal.Search
                     Bcc = dt_Address.Rows[0]["Bcc"].ToString();
                 }
 
-                returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, ProjectType, BillingPeriod, "Auto Billing", ToAddress, CC, Bcc);
+               // returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, ProjectType, BillingPeriod, "Auto Billing", ToAddress, CC, Bcc);
             }
             return returnValue;
         }
