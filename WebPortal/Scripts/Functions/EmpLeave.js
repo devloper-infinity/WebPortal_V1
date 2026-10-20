@@ -306,6 +306,13 @@ function EditAction(LeaveID, index) {
         eligibilityText.style.fontWeight = "bold";
         eligibilityText.style.fontSize = "19px";
         leaveUsername.appendChild(eligibilityText);
+
+        var BalanceLeaves = document.createElement("span");
+        BalanceLeaves.textContent = " Balance Leaves: " + (row.BalanceLeaves || 0);
+        BalanceLeaves.style.color = "green";
+        BalanceLeaves.style.fontWeight = "bold";
+        BalanceLeaves.style.fontSize = "19px";
+        leaveUsername.appendChild(BalanceLeaves); 
     }
     // Bind data to controls
     $('#empleave_approve_code').val(row.Code1 || '');
