@@ -36,6 +36,7 @@ namespace WebPortal.US
             if (!loans.Columns.Contains("_CanStart")) loans.Columns.Add("_CanStart", typeof(bool));
 
             DataTable statuses = new bllUS().GetLauraMacSearchProcessStatuses();
+            HashSet<string> allowedTasks = GetAllowedTasks(employeeId);
             List<DataRow> completedLoans = new List<DataRow>();
             foreach (DataRow loan in loans.Rows)
             {
@@ -65,15 +66,26 @@ namespace WebPortal.US
                     .OrderBy(row => Convert.ToString(row["ProcessName"]))
                     .Select(row => Convert.ToString(row["ProcessName"]) + ": " + Convert.ToString(row["ProcessStatus"]) + " - "
                         + Convert.ToString(row["ProcessEmployeeName"]) + " - " + Convert.ToString(row["ProcessStatusDate"])));
-                loan["_CanStart"] = status == null || !string.Equals(Convert.ToString(status["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase)
-                    || Convert.ToInt32(status["ProcessEmployeeID"]) == employeeId;
                 bool creditCompleted = matched.Any(row => string.Equals(Convert.ToString(row["ProcessName"]), "Credit QC", StringComparison.OrdinalIgnoreCase)
                     && string.Equals(Convert.ToString(row["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase));
                 bool complianceCompleted = matched.Any(row => string.Equals(Convert.ToString(row["ProcessName"]), "Compliance QC", StringComparison.OrdinalIgnoreCase)
                     && string.Equals(Convert.ToString(row["ProcessStatus"]), "Completed", StringComparison.OrdinalIgnoreCase));
+                bool creditOccupied = matched.Any(row => string.Equals(Convert.ToString(row["ProcessName"]), "Credit QC", StringComparison.OrdinalIgnoreCase));
+                bool complianceOccupied = matched.Any(row => string.Equals(Convert.ToString(row["ProcessName"]), "Compliance QC", StringComparison.OrdinalIgnoreCase));
+                loan["_CanStart"] = (allowedTasks.Contains("Credit QC") && !creditOccupied)
+                    || (allowedTasks.Contains("Compliance QC") && !complianceOccupied);
                 if (creditCompleted && complianceCompleted) completedLoans.Add(loan);
             }
             foreach (DataRow loan in completedLoans) loans.Rows.Remove(loan);
+        }
+
+        private static HashSet<string> GetAllowedTasks(int employeeId)
+        {
+            HashSet<string> tasks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string segment = new bllLogin().GetEmployeeSegment(employeeId);
+            if (string.Equals(segment, "Credit QC - Canopy", StringComparison.OrdinalIgnoreCase) || string.Equals(segment, "Management", StringComparison.OrdinalIgnoreCase)) tasks.Add("Credit QC");
+            if (string.Equals(segment, "Compliance QC - Canopy", StringComparison.OrdinalIgnoreCase) || string.Equals(segment, "Management", StringComparison.OrdinalIgnoreCase)) tasks.Add("Compliance QC");
+            return tasks;
         }
 
         [WebMethod]

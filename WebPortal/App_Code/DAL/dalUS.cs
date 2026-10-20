@@ -48,6 +48,7 @@ namespace WebPortal.App_Code.DAL
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
 SELECT
     ProductionTrackID,
+    ISNULL(loanRecord.Id, 0) AS LoanRecordID,
     ISNULL(ProcessID, 0) AS ProcessID,
     ISNULL(ProjectNumber, '') AS Client,
     DealNo,
@@ -65,6 +66,9 @@ SELECT
     END AS ElapsedMinutes,
     ISNULL([Status], 'Started') AS Status
 FROM dbo.USLoanProductionTrack
+OUTER APPLY (SELECT TOP (1) sourceLoan.Id FROM dbo.LoanRecord sourceLoan
+             WHERE CONVERT(nvarchar(100), sourceLoan.LoanID)=dbo.USLoanProductionTrack.LoanNo
+             ORDER BY sourceLoan.Id DESC) loanRecord
 WHERE EmployeeID = @EmployeeID
     AND EndDatetime IS NULL
     AND UPPER(ISNULL([Status], '')) <> 'COMPLETED'

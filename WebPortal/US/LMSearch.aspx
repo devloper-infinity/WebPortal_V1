@@ -13,7 +13,7 @@
         #lmsearch_loading .lmsearch-loading-box img { width:56px; height:56px; }
         .reqc-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}.reqc-pill i{font-size:10px}.reqc-not-assigned{background:#f1f5f9;color:#64748b;border-color:#e2e8f0}.reqc-assigned{background:#fff7ed;color:#b45309;border-color:#fed7aa}.reqc-completed{background:#ecfdf5;color:#047857;border-color:#a7f3d0}.reqc-cell{min-width:220px}.reqc-status-item+.reqc-status-item{margin-top:9px}.reqc-detail{display:block;margin-top:5px;color:#64748b;font-size:11px;line-height:1.35;white-space:normal;max-width:260px}.reqc-detail strong{color:#334155;font-weight:700}
     </style>
-    <script src="../Scripts/US/LMSearch.js?v=20261019.16"></script>
+    <script src="../Scripts/US/LMSearch.js?v=20261019.17"></script>
 </asp:Content>
 
 <asp:Content ID="lmsearch_content" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
