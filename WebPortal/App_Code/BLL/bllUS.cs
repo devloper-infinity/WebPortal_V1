@@ -105,10 +105,19 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.getLoansForGlobalSearch_Canopy(EmployeeID);
         }
+        public DataSet getLoansForGlobalSearch_Canopy_LauraMac()
+        {
+            return dalUS.getLoansForGlobalSearch_Canopy_LauraMac();
+        }
 
         public DataTable GetCanopySearchProcessStatuses()
         {
             return dalUS.GetCanopySearchProcessStatuses();
+        }
+
+        public DataTable GetLauraMacSearchProcessStatuses()
+        {
+            return dalUS.GetLauraMacSearchProcessStatuses();
         }
 
         public bool CanStartCanopyLoan(string DealNo, string LoanNo, string Script, int EmployeeID)
@@ -129,6 +138,10 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.GetLoanDetailsbyLoanNo_Canopy(DealNo, LoanNo, Script, TaskName);
         }
+        public DataTable GetLoanDetailsbyLoanID_LauraMac(long LoanID, string Process, string TaskName)
+        {
+            return dalUS.GetLoanDetailsbyLoanID_LauraMac(LoanID, Process, TaskName);
+        }
 
         public DataTable GetATRDetailsbyLoanNo(string DealNo, string LoanNo, string Type, int ProcessID)
         {
@@ -139,6 +152,11 @@ namespace WebPortal.App_Code.BLL
         {
             return dalUS.GetCanopyATRDetailsbyLoanNo(DealNo, LoanNo, Type, ProcessID, Script);
         }
+        public DataTable GetLauraMacFeedback(string LoanID, string Type, int ProcessID, string Script) { return dalUS.GetLauraMacFeedback(LoanID, Type, ProcessID, Script); }
+        public int InsertLauraMacFeedback(Hashtable values) { return dalUS.InsertLauraMacFeedback(values); }
+        public int InsertLauraMacATRFeedback(Hashtable values) { return dalUS.InsertLauraMacATRFeedback(values); }
+        public int UpdateLauraMacFeedback(Hashtable values) { return dalUS.UpdateLauraMacFeedback(values); }
+        public int DeleteLauraMacFeedback(Hashtable values) { return dalUS.DeleteLauraMacFeedback(values); }
 
         public DataTable GetAllProjectByUserRights(string EmployeeID)
         {

@@ -110,9 +110,9 @@ namespace WebPortal.Admin
             // Configure one recipient email per Domain.
             var domainEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Title", "v.rohan@infinityinternationals.us;prashant.patil@infinity-data.com" },
-                { "Valuation", "h.dashrath@infinityinternationals.us;s.santosh@infinityinternationals.us;prashant.patil@infinity-data.com" },
-                { "Freight", "v.rohan@infinityinternationals.us;prashant.patil@infinity-data.com" },
+                { "Title", "anita@infinity-data.com" },
+                { "Valuation", "anita@infinity-data.com" },
+                { "Freight", "anita@infinity-data.com" },
                 { "FTE", "update-fte-email@company.com" },
                 { "UnderwritingCredit", "update-uw-credit-email@company.com" },
                 { "UnderwritingServicing", "update-uw-servicing-email@company.com" }
@@ -120,9 +120,9 @@ namespace WebPortal.Admin
             // Configure optional CC recipients per Domain; separate multiple addresses with comma or semicolon.
             var domainCcEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Title", "" },
-                { "Valuation", "" },
-                { "Freight", "" },
+                { "Title", "v.rohan@infinityinternationals.us;prashant.patil@infinity-data.com" },
+                { "Valuation", "h.dashrath@infinityinternationals.us;s.santosh@infinityinternationals.us;prashant.patil@infinity-data.com" },
+                { "Freight", "v.rohan@infinityinternationals.us;prashant.patil@infinity-data.com" },
                 { "FTE", "" },
                 { "UnderwritingCredit", "" },
                 { "UnderwritingServicing", "" }
@@ -138,9 +138,10 @@ namespace WebPortal.Admin
             {
                 string project = item.Project;
                 DataTable table = item.Table;
-                if (domain.Equals("Title", StringComparison.OrdinalIgnoreCase))
+                bool validateUpdate = (domain.Equals("Title", StringComparison.OrdinalIgnoreCase) && project != "364-005") || domain.Equals("Valuation", StringComparison.OrdinalIgnoreCase) || domain.Equals("Freight", StringComparison.OrdinalIgnoreCase);
+                if (validateUpdate)
                 {
-                    DataRow validation = UpdateTitleProject(project, fromDate, toDate, table.Rows.Count, billingAddedBy);
+                    DataRow validation = UpdateBillingProject(domain, project, fromDate, toDate, table.Rows.Count, billingAddedBy);
                     if (validation == null || !Convert.ToBoolean(validation["Success"]))
                     {
                         failed.Add(new { Project = project, DisplayedCount = table.Rows.Count, ActualCount = validation == null ? 0 : Convert.ToInt32(validation["ActualCount"]), Reason = validation == null ? "Update validation returned no result." : Convert.ToString(validation["Reason"]) });
@@ -154,7 +155,7 @@ namespace WebPortal.Admin
                 using (var mail = new MailMessage()) using (var stream = new MemoryStream(attachment))
                 {
                     AddRecipients(mail.To, email); AddRecipients(mail.CC, ccEmail); mail.Bcc.Add("n.nilkanth@infinity-data.com"); mail.From = new MailAddress("ack@infinity-data.com", "Auto Billing", Encoding.UTF8); mail.Subject = project + " Auto Billing - " + period; mail.Body = body; mail.IsBodyHtml = true;
-                    mail.Attachments.Add(new Attachment(stream, project + "_Auto_Billing.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+                    mail.Attachments.Add(new Attachment(stream, project + "-Billing Details-" + period.Replace("~", "-") + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
                     using (var client = new SmtpClient("smtp.office365.com", 587)) { client.Credentials = new NetworkCredential("ack@infinity-data.com", new bllSendMail().GetPassword("ackdata")); client.EnableSsl = true; ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12; client.Send(mail); }
                 }
                 sent++;
@@ -162,9 +163,11 @@ namespace WebPortal.Admin
             return Serialize(new { Message = sent + " project email(s) sent successfully." + (failed.Count > 0 ? " " + failed.Count + " project(s) were not updated and no email was sent." : ""), Failed = failed });
         }
 
-        private static DataRow UpdateTitleProject(string project, DateTime from, DateTime to, int expectedCount, int employeeId)
+        private static DataRow UpdateBillingProject(string domain, string project, DateTime from, DateTime to, int expectedCount, int employeeId)
         {
-            SqlCommand command = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateAutoBilledCommitmentProject");
+            var procedures = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { "Title", "usp_UpdateAutoBilledCommitmentProject" }, { "Valuation", "usp_UpdateAutoBilledValuationProject" }, { "Freight", "usp_UpdateAutoBilledFreightProject" } };
+            string procedure; if (!procedures.TryGetValue(domain, out procedure)) throw new InvalidOperationException("Billing update procedure is not configured for " + domain + ".");
+            SqlCommand command = SQLHelper.GetCommand(CommandType.StoredProcedure, procedure);
             SQLHelper.AddParamToSQLCmd(command, "@ProjectName", SqlDbType.NVarChar, 100, ParameterDirection.Input, project);
             SQLHelper.AddParamToSQLCmd(command, "@From", SqlDbType.Date, 0, ParameterDirection.Input, from.Date);
             SQLHelper.AddParamToSQLCmd(command, "@To", SqlDbType.Date, 0, ParameterDirection.Input, to.Date);
