@@ -2979,6 +2979,7 @@
     <Content Include="Scripts\US\ReQcUtility.js" />
     <Content Include="Scripts\US\LoanDetails.js" />
     <Content Include="Scripts\US\LMSearch.js" />
+    <Content Include="Scripts\US\LMSearchNavigation.js" />
     <Content Include="Scripts\US\UserPerformanceReport.js" />
     <Content Include="Search\AbstractorReport.aspx" />
     <Content Include="Search\Costing.aspx" />

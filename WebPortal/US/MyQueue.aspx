@@ -185,6 +185,7 @@
 
     <script src="../Scripts/US/GlobalSearchFeedback.js?v=20260812.1"></script>
     <script src="../Scripts/US/CanopySearchFeedback.js?v=20260812.1"></script>
+    <script src="../Scripts/US/LMSearchNavigation.js?v=20261019.1"></script>
 
     <script>
         var myQueueRows = [];
@@ -269,6 +270,10 @@
             var sourcePage = $.trim(row.SourcePage || "").toLowerCase();
             var isCanopySearch = sourcePage === "canopysearch";
             var isAtrReview = $.trim(row.Process || "").toLowerCase() === "atr review";
+
+            if (sourcePage === "lmsearch") {
+                return LMSearchNavigation.resume(row, "MyQueue");
+            }
 
             if (isCanopySearch) {
                 return CanopySearchFeedback.resume(row, "MyQueue");
