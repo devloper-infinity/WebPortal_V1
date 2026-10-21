@@ -155,7 +155,9 @@ OUTER APPLY
            assignment.StartedDate,assignment.CompletedDate,assignment.ManualDurationMinutes
     FROM dbo.OLTracking_Assignment assignment
     WHERE assignment.ItemID=i.ItemID AND assignment.ProcessID=flow.ProcessID
-    ORDER BY assignment.AssignmentID DESC
+    ORDER BY CASE WHEN assignment.IsCurrent=1 THEN 0 ELSE 1 END,
+             COALESCE(assignment.CompletedDate,assignment.StartedDate,assignment.AssignedDate,assignment.AddedDate) DESC,
+             assignment.AssignmentID DESC
 ) a
 OUTER APPLY
 (

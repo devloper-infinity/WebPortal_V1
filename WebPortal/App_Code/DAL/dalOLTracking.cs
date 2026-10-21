@@ -265,21 +265,21 @@ ORDER BY effective.StageNo,effective.ProcessName;") { CommandType = CommandType.
         public DataTable GetConfiguredProcesses(int projectId)
         {
             SqlCommand command = new SqlCommand(@"
-SELECT ProcessID,MAX(ProcessName) ProcessName
+SELECT ProcessID,MAX(ProcessName) ProcessName,MIN(StageNo) StageNo
 FROM
 (
-    SELECT flow.ProcessID,flow.ProcessName
+    SELECT flow.ProcessID,flow.ProcessName,flow.StageNo
     FROM (SELECT DISTINCT DealNumber FROM dbo.OLTracking_Item
           WHERE ProjectID=@ProjectID AND IsDeleted=0) deal
     CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(@ProjectID,deal.DealNumber) flow
     UNION ALL
-    SELECT flow.ProcessID,flow.ProcessName
+    SELECT flow.ProcessID,flow.ProcessName,flow.StageNo
     FROM dbo.OLTracking_ProcessFlow flow
     WHERE flow.ProjectID=@ProjectID AND flow.IsActive=1
       AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Item item
                      WHERE item.ProjectID=@ProjectID AND item.IsDeleted=0)
 ) configured
-GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
+GROUP BY ProcessID ORDER BY MIN(StageNo),MAX(ProcessName);") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
             return Table(command);
         }

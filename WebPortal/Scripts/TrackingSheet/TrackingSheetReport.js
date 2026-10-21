@@ -84,7 +84,7 @@
         }).join('');
         return '<section class="tr-deal-card" data-deal="' + escapeHtml(deal.DealNumber) + '"><div class="tr-deal-overview">' +
             '<div class="tr-deal-identity"><div class="tr-deal-title"><strong>Deal ' + escapeHtml(deal.DealNumber) + '</strong><span>▣&nbsp; ' + deal.TotalLoans + ' Loan(s)</span></div></div>' +
-            '<div class="tr-summary-panel"><span class="tr-panel-label">Overall Progress</span><div class="tr-overall-value"><strong>' + deal.CompletionPercent + '%</strong><span>4-process average</span></div><div class="tr-progress-track"><div class="tr-progress-value" style="width:' + deal.CompletionPercent + '%"></div></div></div>' +
+            '<div class="tr-summary-panel"><span class="tr-panel-label">Overall Progress</span><div class="tr-overall-value"><strong>' + deal.CompletionPercent + '%</strong><span>' + (milestones || []).length + '-process average</span></div><div class="tr-progress-track"><div class="tr-progress-value" style="width:' + deal.CompletionPercent + '%"></div></div></div>' +
             '<div class="tr-summary-panel"><span class="tr-panel-label">Loan Status Summary</span><div class="tr-status-counters">' +
             '<div class="tr-status-counter assigned"><span>Assigned</span><strong>' + deal.Assigned + '</strong></div><div class="tr-status-counter inprocess"><span>In Process</span><strong>' + deal.InProcess + '</strong></div>' +
             '<div class="tr-status-counter pending"><span>Pending</span><strong>' + deal.Pending + '</strong></div><div class="tr-status-counter hold"><span>Hold</span><strong>' + deal.Hold + '</strong></div>' +

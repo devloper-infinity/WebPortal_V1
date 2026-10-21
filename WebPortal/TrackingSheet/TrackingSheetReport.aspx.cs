@@ -149,18 +149,16 @@ namespace WebPortal.TrackingSheet
 
         private static List<MilestoneDefinition> ResolveMilestones(DataTable configuredProcesses)
         {
-            string[] codes = { "CNCREVIEW", "CNCQC", "SSREVIEW", "SSQC" };
-            string[] labels = { "C&C Review", "C&C QC", "SS Review", "SS QC" };
             List<MilestoneDefinition> result = new List<MilestoneDefinition>();
-            for (int index = 0; index < codes.Length; index++)
+            foreach (DataRow process in configuredProcesses.Rows)
             {
-                string code = codes[index];
-                DataRow match = configuredProcesses.AsEnumerable().FirstOrDefault(row => NormalizeProcessCode(FirstValue(row, "ProcessName")) == code);
+                int processId = Convert.ToInt32(process["ProcessID"]);
+                string processName = FirstValue(process, "ProcessName");
                 result.Add(new MilestoneDefinition
                 {
-                    Code = code,
-                    ProcessID = match == null ? 0 : Convert.ToInt32(match["ProcessID"]),
-                    ProcessName = labels[index]
+                    Code = "PROCESS" + processId.ToString(CultureInfo.InvariantCulture),
+                    ProcessID = processId,
+                    ProcessName = processName
                 });
             }
             return result;
@@ -185,7 +183,9 @@ namespace WebPortal.TrackingSheet
                     AssignedTo = process == null ? string.Empty : (process.ProcessUser ?? string.Empty)
                 };
             }).ToList();
-            row.CompletionPercent = row.MilestoneStatuses.Count(status => StatusEquals(status.Status, "Completed")) * 25;
+            row.CompletionPercent = row.MilestoneStatuses.Count == 0 ? 0 :
+                (int)Math.Round(row.MilestoneStatuses.Count(status => StatusEquals(status.Status, "Completed")) * 100m /
+                                row.MilestoneStatuses.Count, MidpointRounding.AwayFromZero);
         }
 
         private static List<DealStatusView> BuildDealStatus(List<ReportRow> reportRows, List<MilestoneDefinition> milestones)
@@ -248,7 +248,8 @@ namespace WebPortal.TrackingSheet
         private static string CurrentStatus(ReportRow row)
         {
             if (row.Processes.Any(process => process.IsLoanHeld)) return "Hold by PM";
-            if (row.CompletionPercent == 100) return "Completed";
+            if (row.Processes.Any(process => process.IsFinalProcess && StatusIs(process, "Completed"))) return "Completed";
+            if (row.MilestoneStatuses.Count > 0 && row.CompletionPercent == 100) return "Completed";
             ProcessView current = row.Processes.FirstOrDefault(process => process.IsCurrent);
             return current == null ? "Pending" : NormalizeStatus(current.Status);
         }

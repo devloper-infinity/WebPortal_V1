@@ -332,6 +332,7 @@
     <Content Include="Admin\EmployeeKYCReport.aspx" />
     <Content Include="Admin\RecruitmentReport.aspx" />
     <Content Include="Admin\ViewShortlistedCandidate.aspx" />
+    <Content Include="Admin\HRDashboard.aspx" />
     <Content Include="Admin\EmployeeLeaves.aspx" />
     <Content Include="Admin\ExcelBillingReport.aspx" />
     <Content Include="Admin\GenerateEmpDocs.aspx" />
@@ -4423,6 +4424,13 @@
     </Compile>
     <Compile Include="Admin\ViewShortlistedCandidate.aspx.designer.cs">
       <DependentUpon>ViewShortlistedCandidate.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\HRDashboard.aspx.cs">
+      <DependentUpon>HRDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HRDashboard.aspx.designer.cs">
+      <DependentUpon>HRDashboard.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\EmployeeLeaves.aspx.cs">
       <DependentUpon>EmployeeLeaves.aspx</DependentUpon>
