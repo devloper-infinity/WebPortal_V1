@@ -366,7 +366,7 @@ function BindInvoiceGrid() {
                     inv_html += '<a class="dropdown-item" href="' + invoice_UserMappingUrl(value.HeaderID, month, year) + '" id="ActionsEx"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
                     inv_html += '<a class="dropdown-item" href="#!" onclick="invoice_ViewDetailsLegacy(' + value.HeaderID + ',' + index + ');"><span style="color: slategray;"><i class="uil uil-window"></i></span>&nbsp;&nbsp;Legacy Details Popup</a>';
 
-                    if (LoginID == 9858 || LoginID == 7910) {
+                    if (LoginID == 9858 || LoginID == 7910 || LoginID == 9528) {
                         if (value.HeaderStatus == "Enable")
                             inv_html += '<a class="dropdown-item" href="#!" id="ActionsDisb" onclick="invoice_EnableDisabled(' + value.HeaderID + ',' + index + ');"><span style="color: red;"><i class=" uil-toggle-off"></i></span>&nbsp;&nbsp;Disable</a>';
                         else

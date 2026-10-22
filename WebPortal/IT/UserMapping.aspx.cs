@@ -322,7 +322,7 @@ namespace WebPortal.IT
             DateTime? to = ParseOptionalDate(effectiveTo, "effective to date");
             if (to.HasValue && to.Value < from) throw new InvalidOperationException("Effective To cannot be earlier than Effective From.");
             int userID = CurrentUserID();
-            if (!ProjectExists(projectID)) throw new InvalidOperationException("Select a valid project.");
+            //if (!ProjectExists(projectID)) throw new InvalidOperationException("Select a valid project.");
             if (resourceID > 0) EnsureResourceAccess(resourceID);
             return new bllCCUserMapping().SaveResource(resourceID, resourceName, resourceType, accountIdentifier, projectID,
                 departmentDomain, description, from, to, isActive, remark, userID);
@@ -407,22 +407,16 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
-        public static string GetReport(int headerID, string month, string year, string recordType, int projectID, string departmentDomain,
-            string resourceType, string status, string effectiveFrom, string effectiveTo)
+        public static string GetReport(int headerID, string month, string year, string recordType, string resourceType, string status)
         {
             GetAuthorizedContext(headerID);
-            if (projectID < 0 || (projectID > 0 && !ProjectExists(projectID)))
-                throw new InvalidOperationException("Select a valid project filter.");
-            month = Clean(month); year = Clean(year); recordType = Clean(recordType); departmentDomain = Clean(departmentDomain); resourceType = Clean(resourceType); status = Clean(status);
-            DateTime? from = ParseOptionalDate(effectiveFrom, "effective from filter");
-            DateTime? to = ParseOptionalDate(effectiveTo, "effective to filter");
-            if (from.HasValue && to.HasValue && to.Value < from.Value) throw new InvalidOperationException("Report date range is invalid.");
+            month = Clean(month); year = Clean(year); recordType = Clean(recordType); resourceType = Clean(resourceType); status = Clean(status);
             List<Dictionary<string, object>> report = new List<Dictionary<string, object>>();
             if (recordType.Length == 0 || string.Equals(recordType, "Employee", StringComparison.OrdinalIgnoreCase))
             {
                 string reportMonth = month.Length == 0 ? "All" : month;
                 string reportYear = year.Length == 0 ? DateTime.Today.Year.ToString(CultureInfo.InvariantCulture) : year;
-                DataTable headers = new bllMaster().GetAllInvoiceHeaders(reportMonth, reportYear, departmentDomain);
+                DataTable headers = new bllMaster().GetAllInvoiceHeaders(reportMonth, reportYear, string.Empty);
                 if (headers != null && headers.Columns.Contains("HeaderID"))
                 {
                     foreach (DataRow header in headers.Rows)
@@ -430,14 +424,11 @@ namespace WebPortal.IT
                         int currentHeader = Convert.ToInt32(header["HeaderID"]);
                         DataRow context;
                         try { context = GetAuthorizedContext(currentHeader); } catch { continue; }
-                        int currentProject = Convert.ToInt32(context["ProjectID"]);
-                        if (projectID > 0 && currentProject != projectID) continue;
                         DataTable users = new bllMaster().GetHeaderwiseDetailsRevised(currentHeader, reportMonth, reportYear);
                         if (users == null) continue;
                         foreach (DataRow user in users.Rows)
                         {
                             DateTime? eff = TryDate(user, "StartDate", "EffectiveFrom", "EffectiveDate");
-                            if (!InRange(eff, from, to)) continue;
                             string userStatus = GetCell(user, "CurrentStatus", "Status");
                             if (status == "1" && IsInactive(userStatus) || status == "0" && !IsInactive(userStatus)) continue;
                             Dictionary<string, object> item = ReportRow("Employee", GetCell(user, "Name", "FullName"), GetCell(user, "Code"), "", GetCell(user, "Number", "EmailAddress"),
@@ -456,14 +447,10 @@ namespace WebPortal.IT
                 {
                     foreach (DataRow association in associations.Rows)
                     {
-                        int currentProject = Convert.ToInt32(association["ProjectID"]);
-                        if (projectID > 0 && currentProject != projectID) continue;
-                        if (departmentDomain.Length > 0 && !string.Equals(departmentDomain, GetCell(association, "DepartmentDomain"), StringComparison.OrdinalIgnoreCase)) continue;
                         if (resourceType.Length > 0 && !string.Equals(resourceType, GetCell(association, "ResourceType"), StringComparison.OrdinalIgnoreCase)) continue;
                         bool active = Convert.ToBoolean(association["IsActive"]);
                         if (status == "1" && !active || status == "0" && active) continue;
                         DateTime? eff = TryDate(association, "EffectiveFrom");
-                        if (!InRange(eff, from, to)) continue;
                         int resourceID = Convert.ToInt32(association["ResourceID"]);
                         string mapped = string.Empty;
                         DataTable mappings = new bllCCUserMapping().GetResourceMappings(resourceID);
@@ -524,13 +511,6 @@ namespace WebPortal.IT
         {
             string value = GetCell(row, names); DateTime result;
             return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out result) ? (DateTime?)result.Date : null;
-        }
-
-        private static bool InRange(DateTime? date, DateTime? from, DateTime? to)
-        {
-            if (from.HasValue && (!date.HasValue || date.Value < from.Value)) return false;
-            if (to.HasValue && (!date.HasValue || date.Value > to.Value)) return false;
-            return true;
         }
 
         private static bool IsInactive(string status)

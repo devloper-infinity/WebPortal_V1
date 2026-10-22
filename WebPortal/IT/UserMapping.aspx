@@ -419,49 +419,232 @@
             gap: 16px
         }
 
-        .um-mapping-grid .um-field label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 8px;
-            color: #435a75;
-            font-size: 11px;
-            font-weight: 750;
-            letter-spacing: .045em;
-            text-transform: uppercase
+            .um-mapping-grid .um-field label {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin-bottom: 8px;
+                color: #435a75;
+                font-size: 11px;
+                font-weight: 750;
+                letter-spacing: .045em;
+                text-transform: uppercase
+            }
+
+            .um-mapping-grid .form-control {
+                min-height: 43px;
+                border: 1px solid #d4dfeb;
+                border-radius: 10px;
+                color: #203b5d;
+                background-color: #fff;
+                box-shadow: 0 1px 2px rgba(22,54,91,.025);
+                transition: border-color .18s ease, box-shadow .18s ease
+            }
+
+                .um-mapping-grid .form-control:focus {
+                    border-color: #68a5df;
+                    box-shadow: 0 0 0 3px rgba(49,128,209,.13)
+                }
+
+        .um-employee-picker {
+            position: relative;
+            z-index: 3
         }
 
-        .um-mapping-grid .form-control {
+        .um-employee-picker-toggle {
+            display: flex;
+            width: 100%;
             min-height: 43px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 9px 12px;
             border: 1px solid #d4dfeb;
             border-radius: 10px;
             color: #203b5d;
-            background-color: #fff;
+            background: #fff;
             box-shadow: 0 1px 2px rgba(22,54,91,.025);
+            text-align: left;
             transition: border-color .18s ease, box-shadow .18s ease
         }
 
-            .um-mapping-grid .form-control:focus {
+            .um-employee-picker-toggle:hover,
+            .um-employee-picker.is-open .um-employee-picker-toggle {
                 border-color: #68a5df;
-                box-shadow: 0 0 0 3px rgba(49,128,209,.13)
+                box-shadow: 0 0 0 3px rgba(49,128,209,.11)
             }
 
-        .um-mapping-grid #um_mapping_employees {
-            min-height: 124px;
-            padding: 7px 9px;
-            line-height: 1.55
+            .um-employee-picker-toggle .um-employee-picker-summary {
+                overflow: hidden;
+                color: #536b86;
+                font-size: 13px;
+                font-weight: 500;
+                text-overflow: ellipsis;
+                white-space: nowrap
+            }
+
+            .um-employee-picker-toggle.has-selection .um-employee-picker-summary {
+                color: #173b63
+            }
+
+            .um-employee-picker-toggle > i {
+                color: #72869c;
+                font-size: 12px;
+                transition: transform .18s ease
+            }
+
+        .um-employee-picker.is-open .um-employee-picker-toggle > i {
+            transform: rotate(180deg)
         }
 
-        .um-mapping-grid #um_mapping_employees[aria-readonly="true"] {
+        .um-employee-picker[aria-readonly="true"] .um-employee-picker-toggle {
             border-color: #83b7df;
-            background-color: #f8fbff;
-            box-shadow: 0 0 0 3px rgba(49,128,209,.1)
+            background: #f8fbff
         }
 
-        .um-mapping-grid #um_mapping_employees option:checked {
-            color: #fff !important;
-            background-color: #2469ad !important;
-            background-image: linear-gradient(0deg,#2469ad,#2469ad) !important
+        .um-employee-picker-menu {
+            position: absolute;
+            top: calc(100% + 7px);
+            right: 0;
+            left: 0;
+            z-index: 30;
+            overflow: hidden;
+            border: 1px solid #d9e4f0;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 14px 34px rgba(24,54,89,.18)
+        }
+
+            .um-employee-picker-menu[hidden] {
+                display: none !important
+            }
+
+        .um-employee-picker-tools {
+            padding: 10px;
+            border-bottom: 1px solid #e8eef5;
+            background: #f8fbff
+        }
+
+            .um-employee-picker-tools input[type="search"] {
+                width: 100%;
+                min-height: 36px;
+                padding: 7px 10px;
+                border: 1px solid #d4dfeb;
+                border-radius: 8px;
+                color: #203b5d;
+                outline: 0
+            }
+
+                .um-employee-picker-tools input[type="search"]:focus {
+                    border-color: #68a5df;
+                    box-shadow: 0 0 0 3px rgba(49,128,209,.11)
+                }
+
+        .um-employee-picker-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 9px;
+            color: #536b86;
+            font-size: 11px
+        }
+
+        .um-mapping-grid .um-field .um-employee-picker-toolbar label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin: 0;
+            color: #536b86;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 650;
+            letter-spacing: 0;
+            text-transform: none
+        }
+
+        .um-employee-picker-toolbar input, .um-employee-option input {
+            width: 15px;
+            height: 15px;
+            margin: 0;
+            accent-color: #1769c2
+        }
+
+        .um-employee-picker-count {
+            color: #7b8ca1;
+            white-space: nowrap
+        }
+
+        .um-employee-picker-options {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 5px;
+            overscroll-behavior: contain
+        }
+
+        .um-mapping-grid .um-field label.um-employee-option {
+            display: flex;
+            min-height: 43px;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            padding: 7px 9px;
+            border-radius: 8px;
+            color: #294663;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0;
+            text-transform: none;
+            transition: background .14s ease, color .14s ease
+        }
+
+        .um-employee-option:hover {
+            background: #f0f6fc
+        }
+
+        .um-mapping-grid .um-field label.um-employee-option.is-selected {
+            color: #fff;
+            background: #2469ad
+        }
+
+            .um-mapping-grid .um-field label.um-employee-option.is-selected:hover {
+                color: #fff;
+                background: #1f5f9e
+            }
+
+        .um-employee-option input {
+            flex: 0 0 auto
+        }
+
+        .um-employee-option-copy {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            gap: 2px
+        }
+
+            .um-employee-option-copy strong {
+                overflow: hidden;
+                font-size: 12px;
+                font-weight: 650;
+                text-overflow: ellipsis;
+                white-space: nowrap
+            }
+
+        .um-mapping-grid .um-field .um-employee-option.is-selected .um-employee-option-copy strong {
+            color: #fff
+        }
+
+        .um-employee-picker-empty {
+            padding: 16px 12px;
+            color: #7b8ca1;
+            font-size: 12px;
+            text-align: center
+        }
+
+        .um-employee-values {
+            display: none !important
         }
 
         .um-mapping-grid .um-muted {
@@ -588,14 +771,14 @@
             font-size: 11px
         }
 
-        .um-mapping-card .dataTables_wrapper .dataTables_filter input,
-        .um-mapping-card .dataTables_wrapper .dataTables_length select {
-            min-height: 34px;
-            border: 1px solid #d6e1ec;
-            border-radius: 8px;
-            color: #294565;
-            background: #fff
-        }
+            .um-mapping-card .dataTables_wrapper .dataTables_filter input,
+            .um-mapping-card .dataTables_wrapper .dataTables_length select {
+                min-height: 34px;
+                border: 1px solid #d6e1ec;
+                border-radius: 8px;
+                color: #294565;
+                background: #fff
+            }
 
         .um-mapping-card #um_mappings_table {
             min-width: 680px !important;
@@ -734,9 +917,9 @@
                 text-transform: uppercase
             }
 
-            .um-user-grid .um-field label i {
-                color: #6387ad
-            }
+                .um-user-grid .um-field label i {
+                    color: #6387ad
+                }
 
             .um-user-grid .form-control {
                 min-height: 43px;
@@ -967,27 +1150,27 @@
             font-size: 11px
         }
 
-        .um-user-table-card .dataTables_paginate .paginate_button {
-            margin-left: 3px !important;
-            padding: 6px 10px !important;
-            border: 1px solid transparent !important;
-            border-radius: 7px !important;
-            color: #49617c !important;
-            background: transparent !important
-        }
-
-            .um-user-table-card .dataTables_paginate .paginate_button.current,
-            .um-user-table-card .dataTables_paginate .paginate_button.current:hover {
-                border-color: #c9dcef !important;
-                color: #1b5e9f !important;
-                background: #edf6ff !important
+            .um-user-table-card .dataTables_paginate .paginate_button {
+                margin-left: 3px !important;
+                padding: 6px 10px !important;
+                border: 1px solid transparent !important;
+                border-radius: 7px !important;
+                color: #49617c !important;
+                background: transparent !important
             }
 
-            .um-user-table-card .dataTables_paginate .paginate_button:hover {
-                border-color: #d6e4f2 !important;
-                color: #1d568e !important;
-                background: #f4f8fd !important
-            }
+                .um-user-table-card .dataTables_paginate .paginate_button.current,
+                .um-user-table-card .dataTables_paginate .paginate_button.current:hover {
+                    border-color: #c9dcef !important;
+                    color: #1b5e9f !important;
+                    background: #edf6ff !important
+                }
+
+                .um-user-table-card .dataTables_paginate .paginate_button:hover {
+                    border-color: #d6e4f2 !important;
+                    color: #1d568e !important;
+                    background: #f4f8fd !important
+                }
 
         .um-resources-card {
             padding: 20px;
@@ -1007,9 +1190,9 @@
                 font-weight: 750 !important
             }
 
-            .um-resources-card h2 i {
-                margin-right: 5px
-            }
+                .um-resources-card h2 i {
+                    margin-right: 5px
+                }
 
             .um-resources-card #um_resource_filter_project {
                 min-height: 38px;
@@ -1247,27 +1430,27 @@
             font-size: 11px
         }
 
-        .um-resources-card .dataTables_paginate .paginate_button {
-            margin-left: 3px !important;
-            padding: 6px 10px !important;
-            border: 1px solid transparent !important;
-            border-radius: 7px !important;
-            color: #49617c !important;
-            background: transparent !important
-        }
-
-            .um-resources-card .dataTables_paginate .paginate_button.current,
-            .um-resources-card .dataTables_paginate .paginate_button.current:hover {
-                border-color: #c9dcef !important;
-                color: #1b5e9f !important;
-                background: #edf6ff !important
+            .um-resources-card .dataTables_paginate .paginate_button {
+                margin-left: 3px !important;
+                padding: 6px 10px !important;
+                border: 1px solid transparent !important;
+                border-radius: 7px !important;
+                color: #49617c !important;
+                background: transparent !important
             }
 
-            .um-resources-card .dataTables_paginate .paginate_button:hover {
-                border-color: #d6e4f2 !important;
-                color: #1d568e !important;
-                background: #f4f8fd !important
-            }
+                .um-resources-card .dataTables_paginate .paginate_button.current,
+                .um-resources-card .dataTables_paginate .paginate_button.current:hover {
+                    border-color: #c9dcef !important;
+                    color: #1b5e9f !important;
+                    background: #edf6ff !important
+                }
+
+                .um-resources-card .dataTables_paginate .paginate_button:hover {
+                    border-color: #d6e4f2 !important;
+                    color: #1d568e !important;
+                    background: #f4f8fd !important
+                }
 
         .dataTables_wrapper .dataTables_filter input {
             margin-left: 6px
@@ -1332,9 +1515,9 @@
                 flex-direction: column
             }
 
-            .um-user-actions .btn-primary {
-                width: 100%
-            }
+                .um-user-actions .btn-primary {
+                    width: 100%
+                }
 
             .um-user-table-wrap {
                 padding: 10px 14px 15px
@@ -1345,9 +1528,9 @@
                 text-align: left
             }
 
-            .um-user-table-card .dataTables_filter input {
-                width: min(190px,52vw)
-            }
+                .um-user-table-card .dataTables_filter input {
+                    width: min(190px,52vw)
+                }
 
             .um-mapping-heading {
                 padding: 18px 16px 14px
@@ -1400,24 +1583,24 @@
                 padding: 14px
             }
 
-            .um-resources-card > .um-actions {
-                align-items: stretch;
-                flex-direction: column
-            }
+                .um-resources-card > .um-actions {
+                    align-items: stretch;
+                    flex-direction: column
+                }
 
-            .um-resources-card #um_resource_filter_project {
-                width: 100%;
-                max-width: none !important
-            }
+                .um-resources-card #um_resource_filter_project {
+                    width: 100%;
+                    max-width: none !important
+                }
 
-            .um-resources-card .dataTables_filter {
-                float: none;
-                justify-content: flex-start
-            }
+                .um-resources-card .dataTables_filter {
+                    float: none;
+                    justify-content: flex-start
+                }
 
-            .um-resources-card .dataTables_filter input {
-                width: min(190px,52vw)
-            }
+                    .um-resources-card .dataTables_filter input {
+                        width: min(190px,52vw)
+                    }
 
             .um-field.full {
                 grid-column: auto
@@ -1441,7 +1624,7 @@
             }
         }
     </style>
-    <script src="../Scripts/Functions/UserMapping.js?v=20261021-12"></script>
+    <script src="../Scripts/Functions/UserMapping.js?v=20261022-15"></script>
 </asp:Content>
 <asp:Content ID="UserMappingBody" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="um-page" id="um_page" data-header-id="<%= HeaderID %>" data-month="<%= System.Web.HttpUtility.HtmlAttributeEncode(Month) %>" data-year="<%= System.Web.HttpUtility.HtmlAttributeEncode(Year) %>">
@@ -1497,7 +1680,7 @@
                             </div>
                         </div>
                         <div class="um-user-actions">
-                            <button id="um_add_user" type="button" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Add User</button>
+                            <button id="um_add_user" type="button" class="btn btn-primary"><i class="fas fa-plus" aria-hidden="true"></i>Add User</button>
                             <span class="um-user-guidance"><i class="fas fa-info-circle" aria-hidden="true"></i>Existing duplicate and employee rules are applied by the invoice mapping procedure.</span>
                         </div>
                         <div class="um-validation um-user-validation" id="um_user_error"></div>
@@ -1513,7 +1696,7 @@
                                 <p>People currently associated with this invoice</p>
                             </div>
                         </div>
-                        <span class="um-user-table-tag"><i class="fas fa-file-invoice" aria-hidden="true"></i> Invoice mappings</span>
+                        <span class="um-user-table-tag"><i class="fas fa-file-invoice" aria-hidden="true"></i>Invoice mappings</span>
                     </div>
                     <div class="um-table-wrap um-user-table-wrap">
                         <table id="um_users_table" class="table table-striped table-hover um-table">
@@ -1560,7 +1743,7 @@
                             <label for="um_account">Email / Account Identifier</label><input id="um_account" class="form-control" maxlength="255" />
                         </div>
                         <div class="um-field">
-                            <label for="um_project">Project <span class="um-required">*</span></label>
+                            <label for="um_project">Project <%--<span class="um-required">*</span>--%></label>
                             <select id="um_project" class="form-control">
                                 <option value="">Select project</option>
                             </select>
@@ -1601,7 +1784,7 @@
                             <h2>Employee Mapping</h2>
                             <p>Connect employees to corporate resources and manage their active periods.</p>
                         </div>
-                        <span class="um-mapping-heading-tag"><i class="fas fa-shield-alt" aria-hidden="true"></i> Resource access</span>
+                        <span class="um-mapping-heading-tag"><i class="fas fa-shield-alt" aria-hidden="true"></i>Resource access</span>
                     </div>
                     <div class="um-mapping-callout"><i class="fas fa-info-circle" aria-hidden="true"></i><span>Each employee relationship keeps its own effective dates and history. Ending a mapping preserves the record.</span></div>
                     <div class="um-mapping-form">
@@ -1611,7 +1794,24 @@
                                 </select>
                             </div>
                             <div class="um-field">
-                                <label for="um_mapping_employees"><i class="fas fa-users" aria-hidden="true"></i>Employees <span class="um-required">*</span></label><select id="um_mapping_employees" class="form-control" multiple size="5"></select><small class="um-muted">Use Ctrl/Cmd to select more than one employee.</small>
+                                <label for="um_mapping_employee_toggle"><i class="fas fa-users" aria-hidden="true"></i>Employees <span class="um-required">*</span></label>
+                                <div class="um-employee-picker" id="um_mapping_employee_picker" spellcheck="false">
+                                    <button type="button" id="um_mapping_employee_toggle" class="um-employee-picker-toggle" aria-expanded="false" aria-controls="um_mapping_employee_menu">
+                                        <span class="um-employee-picker-summary" id="um_mapping_employee_summary">Select employees</span><i class="fas fa-chevron-down" aria-hidden="true"></i>
+                                    </button>
+                                    <div class="um-employee-picker-menu" id="um_mapping_employee_menu" hidden>
+                                        <div class="um-employee-picker-tools">
+                                            <input type="search" id="um_mapping_employee_search" placeholder="Search employees..." aria-label="Search employees" autocomplete="off" spellcheck="false" />
+                                            <div class="um-employee-picker-toolbar">
+                                                <label>
+                                                    <input type="checkbox" id="um_mapping_select_all" />Select all</label><span class="um-employee-picker-count" id="um_mapping_employee_count">0 selected</span></div>
+                                        </div>
+                                        <div class="um-employee-picker-options" id="um_mapping_employee_options" role="group" aria-label="Employees"></div>
+                                        <div class="um-employee-picker-empty" id="um_mapping_employee_empty" hidden>No matching employees.</div>
+                                    </div>
+                                </div>
+                                <select id="um_mapping_employees" class="um-employee-values" multiple aria-hidden="true" tabindex="-1"></select>
+                                <small class="um-muted">Select one or more employees.</small>
                             </div>
                             <div class="um-field">
                                 <label for="um_mapping_from"><i class="far fa-calendar-check" aria-hidden="true"></i>Effective From <span class="um-required">*</span></label><input type="date" id="um_mapping_from" class="form-control" />
@@ -1630,8 +1830,11 @@
                     <div class="um-validation um-mapping-validation" id="um_mapping_error"></div>
                     <div class="um-mapping-history">
                         <div class="um-mapping-history-heading">
-                            <div><h3>Employee assignments</h3><p>Current status and effective dates for this resource</p></div>
-                            <span class="um-mapping-history-tag"><i class="fas fa-history" aria-hidden="true"></i> Mapping history</span>
+                            <div>
+                                <h3>Employee assignments</h3>
+                                <p>Current status and effective dates for this resource</p>
+                            </div>
+                            <span class="um-mapping-history-tag"><i class="fas fa-history" aria-hidden="true"></i>Mapping history</span>
                         </div>
                         <div class="um-table-wrap">
                             <table id="um_mappings_table" class="table table-sm table-striped um-table">
@@ -1709,14 +1912,6 @@
                             </select>
                         </div>
                         <div class="um-field">
-                            <label for="um_report_project">Project</label><select id="um_report_project" class="form-control"><option value="">All</option>
-                            </select>
-                        </div>
-                        <div class="um-field">
-                            <label for="um_report_domain">Department / Domain</label><select id="um_report_domain" class="form-control"><option value="">All</option>
-                            </select>
-                        </div>
-                        <div class="um-field">
                             <label for="um_report_resource_type">Resource Type</label><select id="um_report_resource_type" class="form-control"><option value="">All</option>
                                 <option>Shared Mailbox</option>
                                 <option>Microsoft Teams Resource</option>
@@ -1731,12 +1926,6 @@
                                 <option value="1">Active</option>
                                 <option value="0">Deactivated</option>
                             </select>
-                        </div>
-                        <div class="um-field">
-                            <label for="um_report_from">Effective From</label><input type="date" id="um_report_from" class="form-control" />
-                        </div>
-                        <div class="um-field">
-                            <label for="um_report_to">Effective To</label><input type="date" id="um_report_to" class="form-control" />
                         </div>
                     </div>
                     <div class="um-actions mt-3">

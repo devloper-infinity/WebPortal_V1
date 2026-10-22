@@ -69,11 +69,19 @@
             um.employees = JSON.parse(res.d || '[]');
             var select = $('#um_employee').empty().append($('<option>').val('').text('Select'));
             var multi = $('#um_mapping_employees').empty();
+            var pickerOptions = $('#um_mapping_employee_options').empty();
             $.each(um.employees, function (_, item) {
                 $('<option>').val(item.Code).text(item.FullName).attr('data-email', item.EmailAddress || '').appendTo(select);
                 $('<option>').val(item.Code).text(item.FullName + ' (' + item.Code + ')').appendTo(multi);
+                var code = String(item.Code == null ? '' : item.Code), fullName = String(item.FullName == null ? '' : item.FullName);
+                var option = $('<label class="um-employee-option">').attr('data-code', code).attr('data-search', (fullName + ' ' + code).toLowerCase()).attr('spellcheck', 'false');
+                $('<input type="checkbox" class="um-mapping-employee-check">').val(code).appendTo(option);
+                var copy = $('<span class="um-employee-option-copy">').appendTo(option);
+                $('<strong>').text(fullName).appendTo(copy);
+                option.appendTo(pickerOptions);
             });
             $('<option>').val('Other').text('Other').appendTo(select);
+            syncEmployeePickerFromSelect();
         });
     }
 
@@ -87,10 +95,8 @@
             });
             var project = $('#um_project').empty().append($('<option>').val('').text('Select project'));
             var filter = $('#um_resource_filter_project').empty().append($('<option>').val('0').text('All projects'));
-            var report = $('#um_report_project').empty().append($('<option>').val('').text('All'));
             var currentProjectID = Number((um.context && um.context.ProjectID) || 0), hasCurrentProject = false;
             $.each(um.projects, function (_, item) {
-                report.append($('<option>').val(item.ProjectID).text(item.ProjectName));
                 project.append($('<option>').val(item.ProjectID).text(item.ProjectName));
                 filter.append($('<option>').val(item.ProjectID).text(item.ProjectName));
                 if (currentProjectID > 0 && Number(item.ProjectID) === currentProjectID) {
@@ -109,7 +115,6 @@
                 var value = typeof item === 'string' ? item : (item.DomainName || '');
                 if (value) {
                     $('#um_domain').append($('<option>').val(value).text(value));
-                    $('#um_report_domain').append($('<option>').val(value).text(value));
                 }
             });
             if (um.context && um.context.DomainName) $('#um_domain').val(um.context.DomainName);
@@ -198,27 +203,72 @@
         return '';
     }
 
-    function revealSelectedEmployee() {
-        var select = document.getElementById('um_mapping_employees');
-        if (!select || select.selectedIndex < 0) return;
-        var index = select.selectedIndex, option = select.options[index];
-        select.focus();
-
-        if (option && typeof option.scrollIntoView === 'function') {
-            try { option.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
-            catch (ignore) { option.scrollIntoView(false); }
-        }
-
-        var optionHeight = select.options.length && select.scrollHeight > select.clientHeight
-            ? select.scrollHeight / select.options.length
-            : select.clientHeight / Math.max(select.size || 5, 1);
-        optionHeight = Math.max(1, optionHeight);
-        var centeredTop = Math.max(0, (index * optionHeight) - ((select.clientHeight - optionHeight) / 2));
-        select.scrollTop = centeredTop;
-        window.requestAnimationFrame(function () {
-            select.scrollTop = centeredTop;
-            if (select.options[select.selectedIndex]) select.options[select.selectedIndex].selected = true;
+    function syncEmployeePickerFromSelect() {
+        var values = $('#um_mapping_employees').val() || [], selected = {};
+        $.each(values, function (_, value) { selected[String(value).toLowerCase()] = true; });
+        $('#um_mapping_employee_options .um-mapping-employee-check').each(function () {
+            var checked = !!selected[String(this.value).toLowerCase()];
+            this.checked = checked;
+            $(this).closest('.um-employee-option').toggleClass('is-selected', checked);
         });
+        var total = $('#um_mapping_employee_options .um-mapping-employee-check').length;
+        var visible = $('#um_mapping_employee_options .um-employee-option:visible .um-mapping-employee-check').length;
+        var checkedVisible = $('#um_mapping_employee_options .um-employee-option:visible .um-mapping-employee-check:checked').length;
+        var selectAll = document.getElementById('um_mapping_select_all');
+        if (selectAll) { selectAll.checked = visible > 0 && checkedVisible === visible; selectAll.indeterminate = checkedVisible > 0 && checkedVisible < visible; selectAll.disabled = um.editingMappingID > 0; }
+        $('#um_mapping_employee_count').text(values.length + ' selected' + (total ? ' of ' + total : ''));
+        var summary = 'Select employees';
+        if (values.length === 1) {
+            var match = $.grep(um.employees, function (employee) { return String(employee.Code).toLowerCase() === String(values[0]).toLowerCase(); })[0];
+            summary = match ? match.FullName + ' (' + match.Code + ')' : String(values[0]);
+        } else if (values.length > 1) summary = values.length + ' employees selected';
+        $('#um_mapping_employee_summary').text(summary);
+        $('#um_mapping_employee_toggle').toggleClass('has-selection', values.length > 0).attr('title', values.length ? values.join(', ') : 'Select employees');
+        $('#um_mapping_employee_empty').prop('hidden', $('#um_mapping_employee_options .um-employee-option:visible').length > 0);
+    }
+
+    function syncEmployeeSelectFromPicker() {
+        if (um.editingMappingID && um.editingEmployeeCode) {
+            $('#um_mapping_employees').val([um.editingEmployeeCode]);
+        } else {
+            var values = [];
+            $('#um_mapping_employee_options .um-mapping-employee-check:checked').each(function () { values.push(this.value); });
+            $('#um_mapping_employees').val(values);
+        }
+        syncEmployeePickerFromSelect();
+    }
+
+    function setEmployeePickerOpen(open) {
+        $('#um_mapping_employee_menu').prop('hidden', !open);
+        $('#um_mapping_employee_picker').toggleClass('is-open', !!open);
+        $('#um_mapping_employee_toggle').attr('aria-expanded', open ? 'true' : 'false');
+        if (open) syncEmployeePickerFromSelect();
+    }
+
+    function resetEmployeePicker() {
+        $('#um_mapping_employees').val([]).removeAttr('aria-readonly').prop('disabled', false);
+        $('#um_mapping_employee_picker').removeAttr('aria-readonly');
+        $('#um_mapping_employee_search').val('');
+        $('#um_mapping_employee_options .um-employee-option').show();
+        $('#um_mapping_select_all').prop('disabled', false);
+        setEmployeePickerOpen(false);
+        syncEmployeePickerFromSelect();
+    }
+
+    function revealSelectedEmployee() {
+        var target = $.trim(String(um.editingEmployeeCode || '')).toLowerCase();
+        if (!target) return;
+        $('#um_mapping_employee_search').val('');
+        $('#um_mapping_employee_options .um-employee-option').show();
+        setEmployeePickerOpen(true);
+        syncEmployeePickerFromSelect();
+        var option = $('#um_mapping_employee_options .um-employee-option').filter(function () {
+            return $.trim(String($(this).attr('data-code') || '')).toLowerCase() === target;
+        }).first();
+        if (!option.length) return;
+        var list = $('#um_mapping_employee_options'), rowTop = option.offset().top - list.offset().top + list.scrollTop();
+        list.scrollTop(Math.max(0, rowTop - (list.innerHeight() - option.outerHeight()) / 2));
+        $('#um_mapping_employee_toggle').trigger('focus');
     }
 
     function selectMappingEmployee(code) {
@@ -228,6 +278,9 @@
         });
         if (!selectedValue) return false;
         $('#um_mapping_employees').val([selectedValue]).prop('disabled', false).attr('aria-readonly', 'true');
+        um.editingEmployeeCode = selectedValue;
+        $('#um_mapping_employee_picker').attr('aria-readonly', 'true');
+        syncEmployeePickerFromSelect();
         window.setTimeout(revealSelectedEmployee, 50);
         return selectedValue;
     }
@@ -266,8 +319,8 @@
             from = $('#um_resource_from').val(),
             to = $('#um_resource_to').val();
 
-        if (!name || !type || !projectID || !from)
-            return fail('#um_resource_error', 'Resource Name, Resource Type, Project and Effective From are required.');
+        if (!name || !type  || !from)
+            return fail('#um_resource_error', 'Resource Name, Resource Type, Effective From are required.');
         if (to && to < from) return fail('#um_resource_error', 'Effective To cannot be earlier than Effective From.');
 
         busy(true);
@@ -298,8 +351,7 @@
         busy(true);
         api('GetReport', {
             headerID: um.headerID, month: $('#um_report_month').val(), year: $('#um_report_year').val(), recordType: $('#um_report_type').val(),
-            projectID: Number($('#um_report_project').val() || 0), departmentDomain: $('#um_report_domain').val(), resourceType: $('#um_report_resource_type').val(),
-            status: $('#um_report_status').val(), effectiveFrom: $('#um_report_from').val(), effectiveTo: $('#um_report_to').val()
+            resourceType: $('#um_report_resource_type').val(), status: $('#um_report_status').val()
         })
             .done(function (res) {
                 var rows = JSON.parse(res.d || '[]');
@@ -413,18 +465,46 @@
             var request = um.editingMappingID
                 ? api('UpdateMapping', { headerID: um.headerID, mappingID: um.editingMappingID, effectiveFrom: from, effectiveTo: to })
                 : api('SaveMappings', { headerID: um.headerID, resourceID: id, employeeCodes: codes, effectiveFrom: from, effectiveTo: to });
-            request.done(function () { $('#um_mapping_employees').val([]).removeAttr('aria-readonly').prop('disabled', false); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); um.editingMappingID = 0; um.editingEmployeeCode = ''; $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); bindMappings(); bindResources(); showMessage('Saved', 'Employee mappings saved. Previous values are retained in history.'); })
+            request.done(function () { um.editingMappingID = 0; um.editingEmployeeCode = ''; resetEmployeePicker(); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); bindMappings(); bindResources(); showMessage('Saved', 'Employee mappings saved. Previous values are retained in history.'); })
                 .fail(function (xhr) { fail('#um_mapping_error', errorMessage(xhr)); }).always(function () { busy(false); });
         });
 
-        $('#um_mapping_employees').on('change', function () {
+        $('#um_mapping_employee_toggle').on('click', function () {
+            setEmployeePickerOpen($('#um_mapping_employee_menu').prop('hidden'));
+        });
+
+        $('#um_mapping_employee_options').on('change', '.um-mapping-employee-check', function () {
             if (um.editingMappingID && um.editingEmployeeCode) {
-                $(this).val([um.editingEmployeeCode]);
-                revealSelectedEmployee();
+                syncEmployeePickerFromSelect();
+                return;
+            }
+            syncEmployeeSelectFromPicker();
+        });
+
+        $('#um_mapping_select_all').on('change', function () {
+            if (um.editingMappingID) { syncEmployeePickerFromSelect(); return; }
+            $('#um_mapping_employee_options .um-employee-option:visible .um-mapping-employee-check').prop('checked', this.checked);
+            syncEmployeeSelectFromPicker();
+        });
+
+        $('#um_mapping_employee_search').on('input', function () {
+            var query = $.trim($(this).val()).toLowerCase();
+            $('#um_mapping_employee_options .um-employee-option').each(function () {
+                $(this).toggle(!query || String($(this).attr('data-search') || '').indexOf(query) >= 0);
+            });
+            syncEmployeePickerFromSelect();
+        });
+
+        $(document).on('click', function (event) {
+            if (!$(event.target).closest('#um_mapping_employee_picker').length) setEmployeePickerOpen(false);
+        }).on('keydown', function (event) {
+            if (event.key === 'Escape' && !$('#um_mapping_employee_menu').prop('hidden')) {
+                setEmployeePickerOpen(false);
+                $('#um_mapping_employee_toggle').trigger('focus');
             }
         });
 
-        $('#um_cancel_mapping_edit').on('click', function () { um.editingMappingID = 0; um.editingEmployeeCode = ''; $('#um_mapping_employees').val([]).removeAttr('aria-readonly').prop('disabled', false); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); clearError('#um_mapping_error'); });
+        $('#um_cancel_mapping_edit').on('click', function () { um.editingMappingID = 0; um.editingEmployeeCode = ''; resetEmployeePicker(); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); clearError('#um_mapping_error'); });
 
         $('#um_mappings_table').on('click', '.um-edit-mapping', function () {
             var id = Number($(this).data('id')), apiTable = um.mappingTable, data = apiTable.row($(this).closest('tr')).data();
