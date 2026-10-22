@@ -567,7 +567,7 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.UpdateUserLeaves(LeaveId, Status, ApprovedBy, Remark, PaidStatus);
         }
 
-        public decimal GetPendingLeaveCount(string Code)
+        public DataTable GetPendingLeaveCount(string Code)
         {
             return dalMaster.GetPendingLeaveCount(Code);
         }
@@ -1527,6 +1527,17 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetHeaderwiseDetailsRevised(HeaderID, Month, Year);
         }
+
+        public DataTable GetHeaderwiseDetailsRevised(int HeaderID)
+        {
+            return GetInvoiceHeaders_ByHeaderID(HeaderID);
+        }
+
+        public DataTable GetInvoiceHeaders_ByHeaderID(int HeaderID)
+        {
+            return dalMaster.GetInvoiceHeaders_ByHeaderID(HeaderID);
+        }
+
 
         public DataTable GetCCDataForVerification(string Month, string Year)
         {

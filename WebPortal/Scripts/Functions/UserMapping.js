@@ -1,7 +1,7 @@
 (function ($, window, document) {
     'use strict';
 
-    var um = { headerID: 0, month: '', year: '', context: null, employees: [], projects: [], resources: [], userTable: null, resourceTable: null, mappingTable: null, reportTable: null, confirmAction: null, editingMappingID: 0 };
+    var um = { headerID: 0, month: '', year: '', context: null, employees: [], projects: [], resources: [], userTable: null, resourceTable: null, mappingTable: null, reportTable: null, confirmAction: null, editingMappingID: 0, editingEmployeeCode: '' };
     var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
     function esc(value) { return $('<div>').text(value == null ? '' : String(value)).html(); }
@@ -36,6 +36,15 @@
 
     function clearError(selector) { $(selector).hide().text(''); }
 
+    function projectValue(row, names) {
+        var keys = Object.keys(row || {});
+        for (var i = 0; i < names.length; i++) {
+            var key = keys.filter(function (candidate) { return candidate.toLowerCase() === names[i].toLowerCase(); })[0];
+            if (key && row[key] != null && String(row[key]).trim() !== '') return row[key];
+        }
+        return '';
+    }
+
     function formatStatus(active) { return '<span class="um-status' + (active ? '' : ' off') + '">' + (active ? 'Active' : 'Deactivated') + '</span>'; }
 
     function refreshUsers() { return api('GetInvoiceUsers', { headerID: um.headerID, month: um.month, year: um.year }).done(function (res) { drawUsers(JSON.parse(res.d || '[]')); }); }
@@ -46,8 +55,9 @@
                 { data: null, render: function (v, t, r, meta) { return meta.row + 1; } },
                 { data: 'Number', defaultContent: '' }, { data: 'Cost', defaultContent: '' }, { data: 'Code', defaultContent: '' },
                 { data: 'Name', defaultContent: '' }, { data: 'PsuedoName', defaultContent: '' }, { data: 'Branch', defaultContent: '' },
-                { data: 'Domain', defaultContent: '' }, { data: 'Project', defaultContent: '' }, { data: 'CurrentStatus', defaultContent: '' },
-                { data: null, render: function (v, t, row) { return '<button type="button" class="btn btn-sm btn-outline-danger um-end-user" data-id="' + Number(row.InvID || 0) + '" data-name="' + esc((row.Code || '') + ' ' + (row.Name || '')).replace(/"/g, '&quot;') + '">End mapping</button>'; } }
+                { data: 'Domain', defaultContent: '' }, { data: 'Project', defaultContent: '' },
+                { data: 'CurrentStatus', defaultContent: '', render: function (value) { return value ? '<span class="um-user-current-status">' + esc(value) + '</span>' : ''; } },
+                { data: null, render: function (v, t, row) { return '<button type="button" class="um-end-user" data-id="' + Number(row.InvID || 0) + '" data-name="' + esc((row.Code || '') + ' ' + (row.Name || '')).replace(/"/g, '&quot;') + '"><i class="fas fa-unlink" aria-hidden="true"></i><span>End mapping</span></button>'; } }
             ]
         };
         if (um.userTable) { um.userTable.clear().destroy(); um.userTable = null; }
@@ -69,17 +79,26 @@
 
     function loadProjects() {
         return api('GetProjects', { headerID: um.headerID }).done(function (res) {
-            um.projects = JSON.parse(res.d || '[]');
-            var project = $('#um_project').empty(), filter = $('#um_resource_filter_project').empty(), report = $('#um_report_project').empty().append($('<option>').val('').text('All'));
+            var rows = JSON.parse(res.d || '[]');
+            um.projects = $.map(rows, function (row) {
+                var id = projectValue(row, ['ProjectID', 'ProjectId', 'projectID', 'ID']);
+                var name = projectValue(row, ['ProjectName', 'ProjectNo', 'Name', 'Project']);
+                return id !== '' && name !== '' ? [{ ProjectID: id, ProjectName: name }] : [];
+            });
+            var project = $('#um_project').empty().append($('<option>').val('').text('Select project'));
+            var filter = $('#um_resource_filter_project').empty().append($('<option>').val('0').text('All projects'));
+            var report = $('#um_report_project').empty().append($('<option>').val('').text('All'));
+            var currentProjectID = Number((um.context && um.context.ProjectID) || 0), hasCurrentProject = false;
             $.each(um.projects, function (_, item) {
                 report.append($('<option>').val(item.ProjectID).text(item.ProjectName));
-                if (um.context && String(item.ProjectID) === String(um.context.ProjectID)) {
-                    project.append($('<option>').val(item.ProjectID).text(item.ProjectName));
-                    filter.append($('<option>').val(item.ProjectID).text(item.ProjectName));
+                project.append($('<option>').val(item.ProjectID).text(item.ProjectName));
+                filter.append($('<option>').val(item.ProjectID).text(item.ProjectName));
+                if (currentProjectID > 0 && Number(item.ProjectID) === currentProjectID) {
+                    hasCurrentProject = true;
                 }
             });
-            project.val(um.context && um.context.ProjectID ? String(um.context.ProjectID) : '');
-            filter.val(um.context && um.context.ProjectID ? String(um.context.ProjectID) : '');
+            project.val(currentProjectID > 0 && hasCurrentProject ? String(currentProjectID) : '');
+            filter.val(currentProjectID > 0 && hasCurrentProject ? String(currentProjectID) : '0');
         });
     }
 
@@ -113,7 +132,7 @@
             if (um.resourceTable) { um.resourceTable.clear().destroy(); um.resourceTable = null; }
             um.resourceTable = $('#um_resources_table').DataTable({
                 data: um.resources, destroy: true, scrollX: true, ordering: false, pageLength: 35,
-                dom: 'Bfrtip', buttons: [{ extend: 'excelHtml5', title: 'Corporate Resources' }],
+                dom: 'Bfrtip', buttons: [{ extend: 'excelHtml5', title: 'Corporate Resources', className: 'um-resource-export' }],
                 columns: [
                     { data: 'ResourceID' }, { data: 'ResourceName' }, { data: 'ResourceType' }, { data: 'AccountIdentifier', defaultContent: '' },
                     { data: 'ProjectName' }, { data: 'DepartmentDomain', defaultContent: '' }, { data: 'MappedEmployees', defaultContent: '' },
@@ -122,9 +141,9 @@
                     {
                         data: null, render: function (v, t, row) {
                             var active = row.IsActive === true || row.IsActive === 'True' || row.IsActive === 1;
-                            return '<div class="um-actions"><button type="button" class="btn btn-sm btn-outline-info um-view-resource" data-id="' + Number(row.ResourceID) + '">View</button><button type="button" class="btn btn-sm btn-outline-primary um-edit-resource" data-id="' + Number(row.ResourceID) + '">Edit</button>' +
-                                '<button type="button" class="btn btn-sm btn-outline-secondary um-toggle-resource" data-id="' + Number(row.ResourceID) + '" data-active="' + (active ? '0' : '1') + '">' + (active ? 'Deactivate' : 'Activate') + '</button>' +
-                                '<button type="button" class="btn btn-sm btn-outline-info um-manage-resource" data-id="' + Number(row.ResourceID) + '">Manage Mapping</button></div>';
+                            return '<div class="um-actions um-resource-actions"><button type="button" class="btn btn-sm btn-outline-info um-view-resource" data-id="' + Number(row.ResourceID) + '"><i class="fas fa-eye" aria-hidden="true"></i><span>View</span></button><button type="button" class="btn btn-sm btn-outline-primary um-edit-resource" data-id="' + Number(row.ResourceID) + '"><i class="fas fa-pen" aria-hidden="true"></i><span>Edit</span></button>' +
+                                '<button type="button" class="btn btn-sm ' + (active ? 'btn-outline-danger' : 'btn-outline-success') + ' um-toggle-resource" data-id="' + Number(row.ResourceID) + '" data-active="' + (active ? '0' : '1') + '"><i class="fas ' + (active ? 'fa-pause' : 'fa-play') + '" aria-hidden="true"></i><span>' + (active ? 'Deactivate' : 'Activate') + '</span></button>' +
+                                '<button type="button" class="btn btn-sm btn-outline-secondary um-manage-resource" data-id="' + Number(row.ResourceID) + '"><i class="fas fa-user-cog" aria-hidden="true"></i><span>Manage Mapping</span></button></div>';
                         }
                     }
                 ]
@@ -136,6 +155,81 @@
         var id = Number($('#um_mapping_resource').val() || 0);
         if (!id) { drawMappings([]); return $.Deferred().resolve().promise(); }
         return api('GetMappings', { headerID: um.headerID, resourceID: id }).done(function (res) { drawMappings(JSON.parse(res.d || '[]')); });
+    }
+
+    function selectedMappingResource() {
+        var id = Number($('#um_mapping_resource').val() || 0), selected = null;
+        $.each(um.resources, function (_, resource) {
+            if (Number(resource.ResourceID) === id) { selected = resource; return false; }
+        });
+        return selected;
+    }
+
+    function updateMappingDateBounds(clearOutOfRange) {
+        var resource = selectedMappingResource(), fromInput = $('#um_mapping_from'), toInput = $('#um_mapping_to');
+        if (!resource) {
+            fromInput.add(toInput).removeAttr('min max');
+            $('#um_mapping_period_note').text('Dates must fall within the selected resource’s effective period.');
+            return;
+        }
+
+        var resourceFrom = date(resource.EffectiveFrom), resourceTo = date(resource.EffectiveTo);
+        fromInput.attr('min', resourceFrom); toInput.attr('min', resourceFrom);
+        if (resourceTo) fromInput.add(toInput).attr('max', resourceTo);
+        else fromInput.add(toInput).removeAttr('max');
+
+        var from = fromInput.val(), to = toInput.val();
+        if (clearOutOfRange && from && (from < resourceFrom || (resourceTo && from > resourceTo))) fromInput.val('');
+        if (clearOutOfRange && to && (to < resourceFrom || (resourceTo && to > resourceTo) || (fromInput.val() && to < fromInput.val()))) toInput.val('');
+
+        $('#um_mapping_period_note').text('Allowed period: ' + resourceFrom + ' to ' + (resourceTo || 'open ended') +
+            (resourceTo ? '. Effective To is required.' : '.'));
+    }
+
+    function validateMappingDates(resource, from, to) {
+        if (!resource) return 'Select a valid corporate resource.';
+        var resourceFrom = date(resource.EffectiveFrom), resourceTo = date(resource.EffectiveTo);
+        if (from < resourceFrom || (resourceTo && from > resourceTo))
+            return 'Effective From must be within the resource period (' + resourceFrom + ' to ' + (resourceTo || 'open ended') + ').';
+        if (resourceTo && !to) return 'Effective To is required because the corporate resource has an end date (' + resourceTo + ').';
+        if (to && (to < resourceFrom || (resourceTo && to > resourceTo)))
+            return 'Effective To must be within the resource period (' + resourceFrom + ' to ' + (resourceTo || 'open ended') + ').';
+        if (to && to < from) return 'Mapping Effective To cannot be earlier than Effective From.';
+        return '';
+    }
+
+    function revealSelectedEmployee() {
+        var select = document.getElementById('um_mapping_employees');
+        if (!select || select.selectedIndex < 0) return;
+        var index = select.selectedIndex, option = select.options[index];
+        select.focus();
+
+        if (option && typeof option.scrollIntoView === 'function') {
+            try { option.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+            catch (ignore) { option.scrollIntoView(false); }
+        }
+
+        var optionHeight = select.options.length && select.scrollHeight > select.clientHeight
+            ? select.scrollHeight / select.options.length
+            : select.clientHeight / Math.max(select.size || 5, 1);
+        optionHeight = Math.max(1, optionHeight);
+        var centeredTop = Math.max(0, (index * optionHeight) - ((select.clientHeight - optionHeight) / 2));
+        select.scrollTop = centeredTop;
+        window.requestAnimationFrame(function () {
+            select.scrollTop = centeredTop;
+            if (select.options[select.selectedIndex]) select.options[select.selectedIndex].selected = true;
+        });
+    }
+
+    function selectMappingEmployee(code) {
+        var target = $.trim(String(code || '')).toLowerCase(), selectedValue = '';
+        $('#um_mapping_employees option').each(function () {
+            if ($.trim(String(this.value || '')).toLowerCase() === target) { selectedValue = this.value; return false; }
+        });
+        if (!selectedValue) return false;
+        $('#um_mapping_employees').val([selectedValue]).prop('disabled', false).attr('aria-readonly', 'true');
+        window.setTimeout(revealSelectedEmployee, 50);
+        return selectedValue;
     }
 
     function drawMappings(rows) {
@@ -164,23 +258,13 @@
     }
 
     function saveResource() {
-
-        alert($('#um_resource_name').val());
-
-        //clearError('#um_resource_error');
+        clearError('#um_resource_error');
 
         var name = $.trim($('#um_resource_name').val()),
             type = $('#um_resource_type').val(),
             projectID = Number($('#um_project').val() || 0),
             from = $('#um_resource_from').val(),
             to = $('#um_resource_to').val();
-
-        alert(name = $.trim($('#um_resource_name').val()),
-            type = $('#um_resource_type').val(),
-            projectID = Number($('#um_project').val() || 0),
-            from = $('#um_resource_from').val(),
-            to = $('#um_resource_to').val());
-
 
         if (!name || !type || !projectID || !from)
             return fail('#um_resource_error', 'Resource Name, Resource Type, Project and Effective From are required.');
@@ -242,11 +326,24 @@
         if (months.indexOf(um.month) >= 0) $('#um_report_month').val(um.month);
         if (um.year) $('#um_report_year').val(um.year);
         busy(true);
-        api('GetContext', { headerID: um.headerID }).done(function (res) {
-            um.context = JSON.parse(res.d || '{}');
-            $('#um_context').text((um.context.Header || 'Invoice') + ' · ' + (um.context.ProjectName || 'Project not assigned') + ' · ' + (um.context.DomainName || ''));
-            $.when(loadEmployees(), loadProjects(), loadDomains(), refreshUsers()).done(function () { bindResources(); }).fail(function (xhr) { showMessage('Unable to load page', errorMessage(xhr)); }).always(function () { busy(false); });
-        }).fail(function (xhr) { busy(false); showMessage('Unable to open invoice', errorMessage(xhr)); });
+        api('GetHeaderwiseDetailsRevised', { HeaderID: um.headerID }).done(function (details) {
+            var rows = JSON.parse(details.d || '[]');
+            if (!rows.length) { busy(false); showMessage('Unable to load invoice details', 'No details were returned for the selected invoice.'); return; }
+            var record = rows[0];
+            $('#um_invoice_header').text(record.SubHeader || '-');
+            $('#um_invoice_domain').text(record.DomainName || record.Domain || '-');
+            $('#um_invoice_product').text(record.Product || record.ProductName || '-');
+            api('GetContext', { headerID: um.headerID }).done(function (res) {
+                um.context = JSON.parse(res.d || '{}');
+                $('#um_context').text(um.context.AccessMessage || um.context.ProjectName || 'Project not assigned');
+                if (um.context.CanManage !== true) {
+                    $('.um-tabs, .tab-content').hide();
+                    busy(false);
+                    return;
+                }
+                $.when(loadEmployees(), loadProjects(), loadDomains(), refreshUsers()).done(function () { bindResources(); }).fail(function (xhr) { showMessage('Unable to load page', errorMessage(xhr)); }).always(function () { busy(false); });
+            }).fail(function (xhr) { busy(false); $('#um_context').text(errorMessage(xhr)); $('.um-tabs, .tab-content').hide(); });
+        }).fail(function (xhr) { busy(false); showMessage('Unable to load invoice details', errorMessage(xhr)); });
 
         $('#um_employee').on('change', function () { $('#um_other_wrap').toggle($(this).val() === 'Other'); });
 
@@ -302,29 +399,45 @@
             });
         });
 
-        $('#um_resources_table').on('click', '.um-manage-resource', function () { $('#um_mapping_resource').val(String($(this).data('id'))); bindMappings(); $('#um_mapping_resource')[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+        $('#um_resources_table').on('click', '.um-manage-resource', function () { $('#um_mapping_resource').val(String($(this).data('id'))); updateMappingDateBounds(true); bindMappings(); $('#um_mapping_resource')[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); });
 
         $('#um_mapping_resource').on('change', bindMappings);
+        $('#um_mapping_resource').on('change', function () { updateMappingDateBounds(true); });
 
         $('#um_save_mapping').on('click', function () {
             clearError('#um_mapping_error'); var id = Number($('#um_mapping_resource').val() || 0), codes = $('#um_mapping_employees').val() || [], from = $('#um_mapping_from').val(), to = $('#um_mapping_to').val();
             if (!id || (!um.editingMappingID && !codes.length) || !from) return fail('#um_mapping_error', 'Select a resource, at least one employee and an effective from date.');
-            if (to && to < from) return fail('#um_mapping_error', 'Mapping Effective To cannot be earlier than Effective From.');
+            var dateError = validateMappingDates(selectedMappingResource(), from, to);
+            if (dateError) return fail('#um_mapping_error', dateError);
             busy(true);
             var request = um.editingMappingID
                 ? api('UpdateMapping', { headerID: um.headerID, mappingID: um.editingMappingID, effectiveFrom: from, effectiveTo: to })
                 : api('SaveMappings', { headerID: um.headerID, resourceID: id, employeeCodes: codes, effectiveFrom: from, effectiveTo: to });
-            request.done(function () { $('#um_mapping_employees').val([]).prop('disabled', false); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); um.editingMappingID = 0; $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); bindMappings(); bindResources(); showMessage('Saved', 'Employee mappings saved. Previous values are retained in history.'); })
+            request.done(function () { $('#um_mapping_employees').val([]).removeAttr('aria-readonly').prop('disabled', false); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); um.editingMappingID = 0; um.editingEmployeeCode = ''; $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); bindMappings(); bindResources(); showMessage('Saved', 'Employee mappings saved. Previous values are retained in history.'); })
                 .fail(function (xhr) { fail('#um_mapping_error', errorMessage(xhr)); }).always(function () { busy(false); });
         });
 
-        $('#um_cancel_mapping_edit').on('click', function () { um.editingMappingID = 0; $('#um_mapping_employees').val([]).prop('disabled', false); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); clearError('#um_mapping_error'); });
+        $('#um_mapping_employees').on('change', function () {
+            if (um.editingMappingID && um.editingEmployeeCode) {
+                $(this).val([um.editingEmployeeCode]);
+                revealSelectedEmployee();
+            }
+        });
+
+        $('#um_cancel_mapping_edit').on('click', function () { um.editingMappingID = 0; um.editingEmployeeCode = ''; $('#um_mapping_employees').val([]).removeAttr('aria-readonly').prop('disabled', false); $('#um_mapping_resource').prop('disabled', false); $('#um_mapping_from,#um_mapping_to').val(''); $('#um_save_mapping').html('<i class="fas fa-user-plus"></i> Add Employee Mapping'); $('#um_cancel_mapping_edit').hide(); clearError('#um_mapping_error'); });
 
         $('#um_mappings_table').on('click', '.um-edit-mapping', function () {
             var id = Number($(this).data('id')), apiTable = um.mappingTable, data = apiTable.row($(this).closest('tr')).data();
             if (!data) return;
             um.editingMappingID = id; $('#um_mapping_resource').val(String(data.ResourceID)).prop('disabled', true);
-            $('#um_mapping_employees').val([data.EmployeeCode]).prop('disabled', true); $('#um_mapping_from').val(date(data.EffectiveFrom)); $('#um_mapping_to').val(date(data.EffectiveTo));
+            um.editingEmployeeCode = selectMappingEmployee(data.EmployeeCode);
+            if (!um.editingEmployeeCode) {
+                um.editingMappingID = 0;
+                $('#um_mapping_resource').prop('disabled', false);
+                return fail('#um_mapping_error', 'The mapped employee is not available in the employee list.');
+            }
+            $('#um_mapping_from').val(date(data.EffectiveFrom)); $('#um_mapping_to').val(date(data.EffectiveTo));
+            updateMappingDateBounds(false);
             $('#um_save_mapping').html('<i class="fas fa-save"></i> Update Mapping'); $('#um_cancel_mapping_edit').show();
         });
 

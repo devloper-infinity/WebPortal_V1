@@ -366,7 +366,7 @@ function BindInvoiceGrid() {
                     inv_html += '<a class="dropdown-item" href="' + invoice_UserMappingUrl(value.HeaderID, month, year) + '" id="ActionsEx"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
                     inv_html += '<a class="dropdown-item" href="#!" onclick="invoice_ViewDetailsLegacy(' + value.HeaderID + ',' + index + ');"><span style="color: slategray;"><i class="uil uil-window"></i></span>&nbsp;&nbsp;Legacy Details Popup</a>';
 
-                    if (LoginID == 9858) {
+                    if (LoginID == 9858 || LoginID == 7910) {
                         if (value.HeaderStatus == "Enable")
                             inv_html += '<a class="dropdown-item" href="#!" id="ActionsDisb" onclick="invoice_EnableDisabled(' + value.HeaderID + ',' + index + ');"><span style="color: red;"><i class=" uil-toggle-off"></i></span>&nbsp;&nbsp;Disable</a>';
                         else
@@ -375,7 +375,7 @@ function BindInvoiceGrid() {
 
                     inv_html += '<a class="dropdown-item" href="#!" id="Actions" onclick="invoice_downloadinvoice(' + value.HeaderID + ',' + index + ');"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-cloud-download"></i></span>&nbsp;&nbsp;Download Attachment</a><div class="dropdown-divider"></div></div></div></td>';
                     inv_html += '<td style="display:none;">' + blankForNull(value.Header) + '</td>';
-                    inv_html += '<td>' + blankForNull(value.Subheader) + '</td>';
+                    inv_html += '<td>' + blankForNull(value.SubHeader) + '</td>';
                     inv_html += '<td style="text-wrap: wrap;">' + blankForNull(value.DomainName) + '</td>';
                     // inv_html += '<td>' + invoiceEscape(invoiceProjectName(value)) + '<input type="hidden" id="inv_project_' + value.HeaderID + '" value="' + (parseInt(value.ProjectID, 10) || '') + '" /></td>';
                     inv_html += '<td class="invoice-product-cell"><span class="invoice-product-text">' + invoiceEscape(value.Product) + '</span></td>';

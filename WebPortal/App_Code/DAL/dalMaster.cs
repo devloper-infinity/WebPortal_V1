@@ -1022,14 +1022,21 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
-        public decimal GetPendingLeaveCount(string Code)
+        //public string GetPendingLeaveCount(string Code)
+        //{
+        //    SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "getPendingLeaves");
+        //    SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Code);
+        //    SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.ReturnValue, null);
+        //    string LeaveCount = (string)SQLHelper.ExecuteScalarCmd(cmd);
+        //    return LeaveCount;
+        //}
+
+        public DataTable GetPendingLeaveCount(string Code)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "getPendingLeaves");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Code);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-
-            decimal LeaveCount = (decimal)SQLHelper.ExecuteScalarCmd(cmd);
-            return LeaveCount;
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
         }
 
         public DataTable GetAllResignedEmployees(int EmpId)
@@ -3470,6 +3477,13 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             SQLHelper.AddParamToSQLCmd(cmd, "@HeaderID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, HeaderID);
             SQLHelper.AddParamToSQLCmd(cmd, "@Month", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Month);
             SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Year);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+        public DataTable GetInvoiceHeaders_ByHeaderID(int HeaderID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetInvoiceHeaders_ByHeaderID");
+            SQLHelper.AddParamToSQLCmd(cmd, "@HeaderID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, HeaderID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }

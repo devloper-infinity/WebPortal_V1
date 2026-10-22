@@ -29,14 +29,7 @@ namespace WebPortal.IT
                 SetLoadError("The invoice link does not contain a valid invoice ID.");
                 return;
             }
-            try
-            {
-                GetAuthorizedContext(headerID);
-                HeaderID = headerID;
-            }
-            catch (UnauthorizedAccessException ex) { SetLoadError(ex.Message); }
-            catch (InvalidOperationException ex) { SetLoadError(ex.Message); }
-            catch (Exception ex) { SetLoadError("Invoice loading failed: " + ex.Message); }
+            HeaderID = headerID;
         }
 
         private void SetLoadError(string message)
@@ -58,37 +51,33 @@ namespace WebPortal.IT
 
         private static DataRow GetAuthorizedContext(int headerID)
         {
-            int userID = CurrentUserID();
-            DataTable context = new bllCCUserMapping().GetInvoiceContext(headerID);
-            if (context == null || context.Rows.Count == 0)
-            {
-                HttpRequest request = HttpContext.Current.Request;
-                string month = Clean(request.QueryString["Month"]);
-                string year = Clean(request.QueryString["Year"]);
-                if (month.Length == 0) month = "All";
-                if (year.Length == 0) year = DateTime.Today.Year.ToString(CultureInfo.InvariantCulture);
-                DataTable listedInvoices = new bllMaster().GetAllInvoiceHeaders(month, year, string.Empty);
-                DataRow listedInvoice = listedInvoices == null || !listedInvoices.Columns.Contains("HeaderID") ? null :
-                    listedInvoices.AsEnumerable().FirstOrDefault(row =>
-                    {
-                        int listedHeaderID;
-                        return int.TryParse(Convert.ToString(row["HeaderID"]), out listedHeaderID) && listedHeaderID == headerID;
-                    });
-                if (listedInvoice == null) throw new InvalidOperationException("Invoice was not found in the selected billing period.");
-                context = listedInvoices.Clone();
-                context.ImportRow(listedInvoice);
-            }
-            DataRow invoice = context.Rows[0];
-            int projectID = Convert.ToInt32(invoice["ProjectID"]);
-            if (projectID <= 0) throw new InvalidOperationException("This invoice is not assigned to a project.");
-
-            DataTable allowedProjects = new bllMaster().GetAllProjectByUserRights(userID.ToString(CultureInfo.InvariantCulture));
-            bool allowed = false;
-            if (allowedProjects != null && allowedProjects.Columns.Contains("ProjectID"))
-                foreach (DataRow project in allowedProjects.Rows)
-                    if (project["ProjectID"] != DBNull.Value && Convert.ToInt32(project["ProjectID"]) == projectID) { allowed = true; break; }
-            if (!allowed) throw new UnauthorizedAccessException("You do not have access to this invoice.");
+            CurrentUserID();
+            DataRow invoice = GetInvoiceContextRow(headerID);
+            if (invoice == null) throw new InvalidOperationException("Invoice was not found in the selected billing period.");
             return invoice;
+        }
+
+        private static DataRow GetInvoiceContextRow(int headerID)
+        {
+            DataTable context = new bllCCUserMapping().GetInvoiceContext(headerID);
+            if (context != null && context.Rows.Count > 0) return context.Rows[0];
+
+            HttpRequest request = HttpContext.Current.Request;
+            string month = Clean(request.QueryString["Month"]);
+            string year = Clean(request.QueryString["Year"]);
+            if (month.Length == 0) month = "All";
+            if (year.Length == 0) year = DateTime.Today.Year.ToString(CultureInfo.InvariantCulture);
+            DataTable listedInvoices = new bllMaster().GetAllInvoiceHeaders(month, year, string.Empty);
+            DataRow listedInvoice = listedInvoices == null || !listedInvoices.Columns.Contains("HeaderID") ? null :
+                listedInvoices.AsEnumerable().FirstOrDefault(row =>
+                {
+                    int listedHeaderID;
+                    return int.TryParse(Convert.ToString(row["HeaderID"]), out listedHeaderID) && listedHeaderID == headerID;
+                });
+            if (listedInvoice == null) return null;
+            DataTable fallback = listedInvoices.Clone();
+            fallback.ImportRow(listedInvoice);
+            return fallback.Rows[0];
         }
 
         private static string Json(DataTable table)
@@ -127,6 +116,20 @@ namespace WebPortal.IT
 
         private static string Clean(string value) { return (value ?? string.Empty).Trim(); }
 
+        private static bool ProjectExists(int projectID)
+        {
+            if (projectID <= 0) return false;
+            DataTable projects = new bllMaster().GetAllProject();
+            if (projects == null) return false;
+            string[] projectColumns = { "ProjectID", "ProjectId", "projectID", "ID" };
+            string projectColumn = projectColumns.FirstOrDefault(projects.Columns.Contains);
+            return projectColumn != null && projects.AsEnumerable().Any(row =>
+            {
+                int listedProjectID;
+                return int.TryParse(Convert.ToString(row[projectColumn]), out listedProjectID) && listedProjectID == projectID;
+            });
+        }
+
         private static string FindEmployeeEmail(string code, bool requireEmployee)
         {
             DataTable employees = new bllMaster().GetAllUsers_1();
@@ -146,16 +149,16 @@ namespace WebPortal.IT
             return emailColumn == null || employee[emailColumn] == DBNull.Value ? string.Empty : Clean(Convert.ToString(employee[emailColumn]));
         }
 
-        private static void EnsureResourceAccess(DataRow invoice, int resourceID)
+        private static void EnsureResourceAccess(int resourceID)
         {
-            DataTable resources = new bllCCUserMapping().GetResources(Convert.ToInt32(invoice["ProjectID"]));
+            DataTable resources = new bllCCUserMapping().GetResources(0);
             if (resources == null || !resources.AsEnumerable().Any(row => Convert.ToInt32(row["ResourceID"]) == resourceID))
-                throw new UnauthorizedAccessException("Corporate resource is not part of this invoice project.");
+                throw new UnauthorizedAccessException("Corporate resource was not found.");
         }
 
-        private static void EnsureMappingAccess(DataRow invoice, int mappingID)
+        private static void EnsureMappingAccess(int mappingID)
         {
-            DataTable resources = new bllCCUserMapping().GetResources(Convert.ToInt32(invoice["ProjectID"]));
+            DataTable resources = new bllCCUserMapping().GetResources(0);
             bool belongs = false;
             if (resources != null)
                 foreach (DataRow resource in resources.Rows)
@@ -165,20 +168,51 @@ namespace WebPortal.IT
                         (!mappings.Columns.Contains("IsHistory") || !Convert.ToBoolean(mapping["IsHistory"])) && Convert.ToBoolean(mapping["IsActive"])))
                     { belongs = true; break; }
                 }
-            if (!belongs) throw new UnauthorizedAccessException("Active employee mapping is not part of this invoice project.");
+            if (!belongs) throw new UnauthorizedAccessException("Active employee mapping was not found.");
         }
 
         [WebMethod]
         public static string GetContext(int headerID)
         {
-            DataRow row = GetAuthorizedContext(headerID);
+            CurrentUserID();
+            DataRow row = GetInvoiceContextRow(headerID);
             Dictionary<string, object> result = new Dictionary<string, object>();
+            if (row == null)
+            {
+                result.Add("CanManage", false);
+                result.Add("AccessMessage", "Invoice was not found in the selected billing period.");
+                return new JavaScriptSerializer().Serialize(result);
+            }
             foreach (DataColumn column in row.Table.Columns)
             {
                 object value = row[column];
                 result[column.ColumnName] = value == DBNull.Value ? null : value;
             }
+            result["CanManage"] = true;
             return new JavaScriptSerializer().Serialize(result);
+        }
+
+        [WebMethod]
+        public static string GetHeaderwiseDetailsRevised(int HeaderID)
+        {
+            CurrentUserID();
+            HttpRequest request = HttpContext.Current.Request;
+            string month = Clean(request.QueryString["Month"]);
+            string year = Clean(request.QueryString["Year"]);
+            if (month.Length == 0) month = "All";
+            if (year.Length == 0) year = DateTime.Today.Year.ToString(CultureInfo.InvariantCulture);
+            DataTable invoices = new bllMaster().GetAllInvoiceHeaders(month, year, string.Empty);
+            bool isListed = false;
+            if (invoices != null && invoices.Columns.Contains("HeaderID"))
+                foreach (DataRow invoice in invoices.Rows)
+                {
+                    int listedHeaderID;
+                    if (int.TryParse(Convert.ToString(invoice["HeaderID"]), out listedHeaderID) && listedHeaderID == HeaderID)
+                    { isListed = true; break; }
+                }
+            if (!isListed)
+                throw new InvalidOperationException("Invoice was not found in the selected billing period.");
+            return Json(new bllMaster().GetHeaderwiseDetailsRevised(HeaderID));
         }
 
         [WebMethod]
@@ -243,8 +277,8 @@ namespace WebPortal.IT
         [WebMethod]
         public static string GetProjects(int headerID)
         {
-            GetAuthorizedContext(headerID);
-            return Json(new bllMaster().GetAllProjectByUserRights(CurrentUserID().ToString(CultureInfo.InvariantCulture)));
+            CurrentUserID();
+            return Json(new bllMaster().GetAllProject());
         }
 
         [WebMethod]
@@ -257,10 +291,9 @@ namespace WebPortal.IT
         [WebMethod]
         public static string GetResources(int headerID, int projectID)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
-            int invoiceProjectID = Convert.ToInt32(invoice["ProjectID"]);
-            if (projectID != 0 && projectID != invoiceProjectID) throw new UnauthorizedAccessException("Corporate resources are limited to the selected invoice project.");
-            projectID = invoiceProjectID;
+            GetAuthorizedContext(headerID);
+            if (projectID < 0 || (projectID > 0 && !ProjectExists(projectID)))
+                throw new InvalidOperationException("Select a valid project.");
             return Json(new bllCCUserMapping().GetResources(projectID));
         }
 
@@ -274,7 +307,7 @@ namespace WebPortal.IT
         public static int SaveResource(int headerID, int resourceID, string resourceName, string resourceType, string accountIdentifier,
             int projectID, string departmentDomain, string description, string effectiveFrom, string effectiveTo, bool isActive, string remark)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
+            GetAuthorizedContext(headerID);
             resourceName = Clean(resourceName); resourceType = Clean(resourceType); accountIdentifier = Clean(accountIdentifier);
             departmentDomain = Clean(departmentDomain); description = Clean(description); remark = Clean(remark);
             if (resourceName.Length == 0 || resourceName.Length > 255) throw new InvalidOperationException("Resource name is required (up to 255 characters).");
@@ -289,11 +322,8 @@ namespace WebPortal.IT
             DateTime? to = ParseOptionalDate(effectiveTo, "effective to date");
             if (to.HasValue && to.Value < from) throw new InvalidOperationException("Effective To cannot be earlier than Effective From.");
             int userID = CurrentUserID();
-            DataTable projects = new bllMaster().GetAllProjectByUserRights(userID.ToString(CultureInfo.InvariantCulture));
-            if (projects == null || !projects.Columns.Contains("ProjectID") || !projects.AsEnumerable().Any(r => Convert.ToInt32(r["ProjectID"]) == projectID))
-                throw new UnauthorizedAccessException("Select a project you can access.");
-            if (projectID != Convert.ToInt32(invoice["ProjectID"])) throw new InvalidOperationException("Corporate resources must belong to the invoice project.");
-            if (resourceID > 0) EnsureResourceAccess(invoice, resourceID);
+            if (!ProjectExists(projectID)) throw new InvalidOperationException("Select a valid project.");
+            if (resourceID > 0) EnsureResourceAccess(resourceID);
             return new bllCCUserMapping().SaveResource(resourceID, resourceName, resourceType, accountIdentifier, projectID,
                 departmentDomain, description, from, to, isActive, remark, userID);
         }
@@ -301,8 +331,8 @@ namespace WebPortal.IT
         [WebMethod]
         public static int SetResourceStatus(int headerID, int resourceID, bool isActive)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
-            EnsureResourceAccess(invoice, resourceID);
+            GetAuthorizedContext(headerID);
+            EnsureResourceAccess(resourceID);
             new bllCCUserMapping().SetResourceStatus(resourceID, isActive, CurrentUserID());
             return 1;
         }
@@ -310,16 +340,16 @@ namespace WebPortal.IT
         [WebMethod]
         public static string GetMappings(int headerID, int resourceID)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
-            EnsureResourceAccess(invoice, resourceID);
+            GetAuthorizedContext(headerID);
+            EnsureResourceAccess(resourceID);
             return Json(new bllCCUserMapping().GetResourceMappings(resourceID));
         }
 
         [WebMethod]
         public static int SaveMappings(int headerID, int resourceID, string[] employeeCodes, string effectiveFrom, string effectiveTo)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
-            EnsureResourceAccess(invoice, resourceID);
+            GetAuthorizedContext(headerID);
+            EnsureResourceAccess(resourceID);
             DateTime from = ParseDate(effectiveFrom, "mapping effective from date", true);
             DateTime? to = ParseOptionalDate(effectiveTo, "mapping effective to date");
             if (to.HasValue && to.Value < from) throw new InvalidOperationException("Mapping Effective To cannot be earlier than Effective From.");
@@ -337,8 +367,8 @@ namespace WebPortal.IT
         [WebMethod]
         public static int EndMapping(int headerID, int mappingID, string effectiveTo)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
-            EnsureMappingAccess(invoice, mappingID);
+            GetAuthorizedContext(headerID);
+            EnsureMappingAccess(mappingID);
             new bllCCUserMapping().EndMapping(mappingID, ParseDate(effectiveTo, "mapping end date", true), CurrentUserID());
             return 1;
         }
@@ -346,8 +376,8 @@ namespace WebPortal.IT
         [WebMethod]
         public static int UpdateMapping(int headerID, int mappingID, string effectiveFrom, string effectiveTo)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
-            EnsureMappingAccess(invoice, mappingID);
+            GetAuthorizedContext(headerID);
+            EnsureMappingAccess(mappingID);
             DateTime from = ParseDate(effectiveFrom, "mapping effective from date", true);
             DateTime? to = ParseOptionalDate(effectiveTo, "mapping effective to date");
             if (to.HasValue && to.Value < from) throw new InvalidOperationException("Mapping Effective To cannot be earlier than Effective From.");
@@ -358,15 +388,15 @@ namespace WebPortal.IT
         [WebMethod]
         public static int AssociateBilling(int headerID, string month, string year, int resourceID)
         {
-            DataRow invoice = GetAuthorizedContext(headerID);
+            GetAuthorizedContext(headerID);
             month = Clean(month); year = Clean(year);
             DateTime period;
             if (!DateTime.TryParseExact("01 " + month + " " + year, "dd MMMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out period))
                 throw new InvalidOperationException("A valid billing month and year are required.");
-            DataTable resources = new bllCCUserMapping().GetResources(Convert.ToInt32(invoice["ProjectID"]));
+            DataTable resources = new bllCCUserMapping().GetResources(0);
             DataRow resource = resources == null ? null : resources.AsEnumerable().FirstOrDefault(r => Convert.ToInt32(r["ResourceID"]) == resourceID);
             if (resource == null || !Convert.ToBoolean(resource["IsActive"]))
-                throw new InvalidOperationException("Select an active corporate resource for this invoice project.");
+                throw new InvalidOperationException("Select an active corporate resource.");
             DateTime periodEnd = period.AddMonths(1).AddDays(-1);
             DateTime resourceFrom = Convert.ToDateTime(resource["EffectiveFrom"]);
             DateTime? resourceTo = resource["EffectiveTo"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(resource["EffectiveTo"]);
@@ -381,6 +411,8 @@ namespace WebPortal.IT
             string resourceType, string status, string effectiveFrom, string effectiveTo)
         {
             GetAuthorizedContext(headerID);
+            if (projectID < 0 || (projectID > 0 && !ProjectExists(projectID)))
+                throw new InvalidOperationException("Select a valid project filter.");
             month = Clean(month); year = Clean(year); recordType = Clean(recordType); departmentDomain = Clean(departmentDomain); resourceType = Clean(resourceType); status = Clean(status);
             DateTime? from = ParseOptionalDate(effectiveFrom, "effective from filter");
             DateTime? to = ParseOptionalDate(effectiveTo, "effective to filter");
