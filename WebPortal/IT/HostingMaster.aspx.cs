@@ -62,9 +62,20 @@ namespace WebPortal.IT
             return ser.Serialize(rows);
         }
 
+        [WebMethod]
+        public static List<Branch> GetBranches()
+        {
+            DataTable dt = new bllMaster().GetAllBranches();
+            return dt.AsEnumerable().Select(row => new Branch
+            {
+                BranchID = Convert.ToInt32(row["BranchID"]),
+                BranchName = Convert.ToString(row["BranchName"])
+            }).ToList();
+        }
+
 
         [WebMethod]
-        public static int InsertAssets(string Type, string DomainName, string Provider, string RenewedDate, string AdvanceRenewalDate, string ExpiryDate, string RenewelPeriod, string CostPaid, string NextRenewalCost, string AveragePerYear, string EmailID, string CreditCardNo, string CPanelLink, string WebLink, string Remark)
+        public static int InsertAssets(string Type, string DomainName, string Provider, string RenewedDate, string AdvanceRenewalDate, string ExpiryDate, string RenewelPeriod, string CostPaid, string NextRenewalCost, string AveragePerYear, string Location, string EmailID, string CreditCardNo, string CPanelLink, string WebLink, string Remark)
         {
             Hashtable htParam = new Hashtable();
             htParam.Add("Type", Type);
@@ -77,6 +88,7 @@ namespace WebPortal.IT
             htParam.Add("CostPaid", CostPaid);
             htParam.Add("NextRenewalCost", NextRenewalCost);
             htParam.Add("AveragePerYear", AveragePerYear);
+            htParam.Add("Location", Location);
             htParam.Add("EmailID", EmailID);
             htParam.Add("CreditCardNo", CreditCardNo);
             htParam.Add("CPanelLink", CPanelLink);

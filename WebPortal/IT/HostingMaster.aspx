@@ -133,6 +133,11 @@
             resize: vertical;
         }
 
+        .host-location-picker { position: relative; }
+        .host-location-menu { display: none; position: absolute; z-index: 1050; width: 100%; max-height: 220px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 8px 12px; box-shadow: var(--asset-shadow); }
+        .host-location-menu label { display: block; margin: 4px 0; cursor: pointer; }
+        .host-location-menu input { margin-right: 7px; }
+
         .asset-field.full-width { grid-column: 1 / -1; }
         .asset-field.half-width { grid-column: span 2; }
 
@@ -235,6 +240,7 @@
 
     <script type="text/javascript">
         $(document).ready(function () {
+            BindHostLocations();
             BindHostingMaster_Grid();
             //Bind
             $('#host_btnreset').on('click', function () {
@@ -279,8 +285,10 @@
                         <label for="host_type">Type</label>
                         <select id="host_type" name="host_type" class="form-control">
                             <option value="Select">Select</option>
+                            <option value="Domain Name">Domain Name</option>
                             <option value="Hosting">Hosting</option>
-                            <option value="Domain">Domain</option>
+                            <option value="Internet Services">Internet Services</option>
+                            <option value="Miscellaneous Services">Miscellaneous Services</option>
                             <option value="SSL">SSL</option>
                         </select>
                     </div>
@@ -336,8 +344,11 @@
                     </div>
 
                     <div class="asset-field">
-                        <label for="host_avgyear">Average/Year</label>
-                        <input type="text" id="host_avgyear" name="host_avgyear" class="form-control" />
+                        <label for="host_location">Location <span class="text-danger">*</span></label>
+                        <div class="host-location-picker">
+                            <button type="button" id="host_location" class="form-control text-left">Select Location</button>
+                            <div id="host_location_menu" class="host-location-menu"></div>
+                        </div>
                     </div>
 
                     <div class="asset-field">
@@ -396,7 +407,7 @@
                                 <th class="sort border-top" style="text-wrap: nowrap;">Cost Paid</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Next Renewal Cost</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Credit Card #</th>
-                                <th class="sort border-top" style="text-wrap: nowrap;">Average/Year</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Location</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Registered Email Address</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">C Panel Link</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Web Link</th>

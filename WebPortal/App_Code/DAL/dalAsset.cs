@@ -375,6 +375,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@CostPaid", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["CostPaid"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@NextRenewalCost", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["NextRenewalCost"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AveragePerYear", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["AveragePerYear"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Location", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Location"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmailID", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["EmailID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CreditCardNo", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["CreditCardNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CPanelLink", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["CPanelLink"]);

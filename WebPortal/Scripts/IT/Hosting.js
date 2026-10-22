@@ -1,6 +1,69 @@
 ﻿var global_hostID = 0;
 var hostingMaster_table;
 
+function BindHostLocations() {
+    var $menu = $('#host_location_menu').empty();
+    addHostLocationOption('0', 'All');
+    $.ajax({
+        type: 'POST',
+        url: 'HostingMaster.aspx/GetBranches',
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function (res) {
+            $.each(res.d, function (_, value) {
+                addHostLocationOption(value.BranchID, value.BranchName);
+            });
+            if (window.pendingHostLocations !== undefined) {
+                SetHostLocations(window.pendingHostLocations);
+                window.pendingHostLocations = undefined;
+            } else {
+                SetHostLocations('0');
+            }
+        }
+    });
+}
+
+function addHostLocationOption(value, text) {
+    $('#host_location_menu').append($('<label></label>').append(
+        $('<input type="checkbox" class="host-location-option" />').val(value),
+        document.createTextNode(text)
+    ));
+}
+
+$(document).on('click', '#host_location', function (e) {
+    e.stopPropagation();
+    $('#host_location_menu').toggle();
+}).on('click', '#host_location_menu', function (e) {
+    e.stopPropagation();
+}).on('change', '.host-location-option', function () {
+    if (this.value === '0' && this.checked) $('.host-location-option').not(this).prop('checked', false);
+    if (this.value !== '0' && this.checked) $('.host-location-option[value="0"]').prop('checked', false);
+    updateHostLocationText();
+}).on('click', function () {
+    $('#host_location_menu').hide();
+});
+
+function getHostLocations() {
+    return $('.host-location-option:checked').map(function () { return this.value; }).get().join(',');
+}
+
+function SetHostLocations(value) {
+    if (!$('.host-location-option').length) {
+        window.pendingHostLocations = value;
+        return;
+    }
+    var selected = String(value == null || value === '' ? '0' : value).split(',');
+    $('.host-location-option').prop('checked', false).each(function () {
+        this.checked = selected.indexOf(String(this.value)) !== -1;
+    });
+    updateHostLocationText();
+}
+
+function updateHostLocationText() {
+    var names = $('.host-location-option:checked').map(function () { return $(this).parent().text(); }).get();
+    $('#host_location').text(names.length ? names.join(', ') : 'Select Location');
+}
+
 function BindHostingMaster_Grid() {
 
     $('#load1').show();
@@ -48,7 +111,7 @@ function BindHostingMaster_Grid() {
                     { data: 'CostPaid' },
                     { data: 'NextRenewalCost' },
                     { data: 'CreditCardNo' },
-                    { data: 'AveragePerYear' },
+                    { data: 'Location1' },
                     { data: 'EmailID' },
                     { data: 'CPanelLink' },
                     { data: 'WebLink' },
@@ -93,7 +156,8 @@ function host_submit() {
     var host_costpaid = document.getElementById("host_costpaid").value;
     var host_nextrenewalcost = document.getElementById("host_nextrenewalcost").value;
 
-    var host_avgyear = document.getElementById("host_avgyear").value;
+    var host_avgyear = "";
+    var host_location = getHostLocations();
     var host_email = document.getElementById("host_email").value;
     var host_creditcard = document.getElementById("host_creditcard").value;
 
@@ -102,11 +166,11 @@ function host_submit() {
     var host_weblink = document.getElementById("host_weblink").value;
     var host_remark = document.getElementById("host_remark").value;
 
-    if (!isValidEmail(host_email)) {
-        alert("Please enter a valid Email ID.");
-        document.getElementById("host_email").focus();
-        return false;
-    }
+    // if (!isValidEmail(host_email)) {
+    //     alert("Please enter a valid Email ID.");
+    //     document.getElementById("host_email").focus();
+    //     return false;
+    // }
 
     if (host_type === "Select") {
         alert("Please select Type.");
@@ -114,11 +178,11 @@ function host_submit() {
         return false;
     }
 
-    if (host_domainname.trim() === "") {
-        alert("Please enter Domain Name.");
-        document.getElementById("host_domainname").focus();
-        return false;
-    }
+    // if (host_domainname.trim() === "") {
+    //     alert("Please enter Domain Name.");
+    //     document.getElementById("host_domainname").focus();
+    //     return false;
+    // }
 
     if (host_provider.trim() === "") {
         alert("Please enter Provider.");
@@ -126,17 +190,23 @@ function host_submit() {
         return false;
     }
 
-    if (host_renewdate.trim() === "") {
-        alert("Please enter Renewed Date.");
-        document.getElementById("host_renewdate").focus();
+    if (host_location === "") {
+        alert("Please select Location.");
+        document.getElementById("host_location").focus();
         return false;
     }
 
-    if (host_advrendate.trim() === "") {
-        alert("Please enter Advance Renewal Date.");
-        document.getElementById("host_advrendate").focus();
-        return false;
-    }
+    // if (host_renewdate.trim() === "") {
+    //     alert("Please enter Renewed Date.");
+    //     document.getElementById("host_renewdate").focus();
+    //     return false;
+    // }
+
+    // if (host_advrendate.trim() === "") {
+    //     alert("Please enter Advance Renewal Date.");
+    //     document.getElementById("host_advrendate").focus();
+    //     return false;
+    // }
 
     if (host_expdate.trim() === "") {
         alert("Please enter Expiry Date.");
@@ -144,53 +214,47 @@ function host_submit() {
         return false;
     }
 
-    if (host_renewperiod === "Select") {
-        alert("Please select Renewed Period.");
-        document.getElementById("host_renewperiod").focus();
-        return false;
-    }
+    // if (host_renewperiod === "Select") {
+    //     alert("Please select Renewed Period.");
+    //     document.getElementById("host_renewperiod").focus();
+    //     return false;
+    // }
 
-    if (host_costpaid === "" || Number(host_costpaid) <= 0) {
-        alert("Please enter Cost Paid.");
-        document.getElementById("host_costpaid").focus();
-        return false;
-    }
+    // if (host_costpaid === "" || Number(host_costpaid) <= 0) {
+    //     alert("Please enter Cost Paid.");
+    //     document.getElementById("host_costpaid").focus();
+    //     return false;
+    // }
 
-    if (host_nextrenewalcost === "" || Number(host_nextrenewalcost) <= 0) {
-        alert("Please enter Next Renewal Cost.");
-        document.getElementById("host_nextrenewalcost").focus();
-        return false;
-    }
+    // if (host_nextrenewalcost === "" || Number(host_nextrenewalcost) <= 0) {
+    //     alert("Please enter Next Renewal Cost.");
+    //     document.getElementById("host_nextrenewalcost").focus();
+    //     return false;
+    // }
 
-    if (host_avgyear === "" || Number(host_avgyear) <= 0) {
-        alert("Please enter Average / Year.");
-        document.getElementById("host_avgyear").focus();
-        return false;
-    }
+    // if (host_email.trim() === "") {
+    //     alert("Please enter Registered Email Address.");
+    //     document.getElementById("host_email").focus();
+    //     return false;
+    // }
 
-    if (host_email.trim() === "") {
-        alert("Please enter Registered Email Address.");
-        document.getElementById("host_email").focus();
-        return false;
-    }
+    // if (host_creditcard.trim() === "") {
+    //     alert("Please enter Credit Card number.");
+    //     document.getElementById("host_creditcard").focus();
+    //     return false;
+    // }
 
-    if (host_creditcard.trim() === "") {
-        alert("Please enter Credit Card number.");
-        document.getElementById("host_creditcard").focus();
-        return false;
-    }
+    // if (host_cplink.trim() === "") {
+    //     alert("Please enter C Panel Link.");
+    //     document.getElementById("host_cplink").focus();
+    //     return false;
+    // }
 
-    if (host_cplink.trim() === "") {
-        alert("Please enter C Panel Link.");
-        document.getElementById("host_cplink").focus();
-        return false;
-    }
-
-    if (host_weblink.trim() === "") {
-        alert("Please enter Web Link.");
-        document.getElementById("host_weblink").focus();
-        return false;
-    }
+    // if (host_weblink.trim() === "") {
+    //     alert("Please enter Web Link.");
+    //     document.getElementById("host_weblink").focus();
+    //     return false;
+    // }
 
     if (host_remark.trim() === "") {
         alert("Please enter Remark.");
@@ -198,7 +262,7 @@ function host_submit() {
         return false;
     }
 
-    PageMethods.InsertAssets(host_type, host_domainname, host_provider, host_renewdate, host_advrendate, host_expdate, host_renewperiod, host_costpaid, host_nextrenewalcost, host_avgyear, host_email, host_creditcard, host_cplink, host_weblink, host_remark, host_OnSuccess, host_OnError)
+    PageMethods.InsertAssets(host_type, host_domainname, host_provider, host_renewdate, host_advrendate, host_expdate, host_renewperiod, host_costpaid, host_nextrenewalcost, host_avgyear, host_location, host_email, host_creditcard, host_cplink, host_weblink, host_remark, host_OnSuccess, host_OnError)
     return false;
 }
 
@@ -273,7 +337,7 @@ function Edit_hosting(hostId, index) {
     $("#host_renewperiod").val(rowData.RenewelPeriod);
     document.getElementById("host_costpaid").value = rowData.CostPaid;
     document.getElementById("host_nextrenewalcost").value = rowData.NextRenewalCost;
-    document.getElementById("host_avgyear").value = rowData.AveragePerYear;
+    SetHostLocations(rowData.Location);
     document.getElementById("host_email").value = rowData.EmailID;
     document.getElementById("host_creditcard").value = rowData.CreditCardNo;
     document.getElementById("host_cplink").value = rowData.CPanelLink;
@@ -318,7 +382,8 @@ function clear_HostFields() {
     document.getElementById("host_renewperiod").selectedIndex = 0;
     document.getElementById("host_costpaid").value = "";
     document.getElementById("host_nextrenewalcost").value = "";
-    document.getElementById("host_avgyear").value = "";
+    $('.host-location-option').prop('checked', false);
+    updateHostLocationText();
     document.getElementById("host_email").value = "";
     document.getElementById("host_creditcard").value = "";
     document.getElementById("host_cplink").value = "";
