@@ -236,7 +236,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             BindHostingMaster_Grid();
-
+            //Bind
             $('#host_btnreset').on('click', function () {
                 $('#table_hostingMaster')
                     .removeAttr('style')
