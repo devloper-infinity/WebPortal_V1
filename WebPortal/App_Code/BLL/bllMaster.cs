@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.VariantTypes;
+using DocumentFormat.OpenXml.VariantTypes;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Collections;
@@ -20,6 +20,8 @@ namespace WebPortal.App_Code.BLL
     public class bllMaster
     {
         dalMaster dalMaster = new dalMaster();
+        private static readonly object PettyCashEmployeesCacheLock = new object();
+        private const string PettyCashEmployeesCacheKey = "PettyCash.EmployeeDirectory";
 
         public DataTable GetMenuForUser(int UserID)
         {
@@ -2924,51 +2926,64 @@ namespace WebPortal.App_Code.BLL
         #region Petty_Cash
         public DataTable GetEmployees()
         {
-            // Reuse the existing employee directory query for both Petty Cash selectors.
-            DataTable users = GetAllUsers_1();
-            DataTable employees = new DataTable();
-            employees.Columns.Add("EmployeeID", typeof(object));
-            employees.Columns.Add("EmployeeName", typeof(string));
+            DataTable cachedEmployees = HttpRuntime.Cache[PettyCashEmployeesCacheKey] as DataTable;
+            if (cachedEmployees != null) return cachedEmployees.Copy();
 
-            if (users == null) return employees;
-
-            string idColumn = users.Columns.Contains("EmployeeID") ? "EmployeeID" :
-                users.Columns.Contains("ID") ? "ID" : null;
-            if (idColumn == null) return employees;
-
-            foreach (DataRow user in users.Rows)
+            lock (PettyCashEmployeesCacheLock)
             {
-                if (user[idColumn] == DBNull.Value) continue;
+                cachedEmployees = HttpRuntime.Cache[PettyCashEmployeesCacheKey] as DataTable;
+                if (cachedEmployees != null) return cachedEmployees.Copy();
 
-                string code = users.Columns.Contains("Code") ? Convert.ToString(user["Code"]).Trim() : string.Empty;
-                string fullName = users.Columns.Contains("FullName") ? Convert.ToString(user["FullName"]).Trim() : string.Empty;
-                if (fullName.Length == 0)
+                // Reuse the existing employee directory query for both Petty Cash selectors.
+                DataTable users = GetAllUsers_1();
+                DataTable employees = new DataTable();
+                employees.Columns.Add("EmployeeID", typeof(object));
+                employees.Columns.Add("EmployeeName", typeof(string));
+
+                if (users != null)
                 {
-                    string firstName = users.Columns.Contains("FirstName") ? Convert.ToString(user["FirstName"]).Trim() : string.Empty;
-                    string middleName = users.Columns.Contains("MiddleName") ? Convert.ToString(user["MiddleName"]).Trim() : string.Empty;
-                    string lastName = users.Columns.Contains("lastName") ? Convert.ToString(user["lastName"]).Trim() :
-                        users.Columns.Contains("LastName") ? Convert.ToString(user["LastName"]).Trim() : string.Empty;
-                    fullName = string.Join(" ", new[] { firstName, middleName, lastName }.Where(part => part.Length > 0));
+                    string idColumn = users.Columns.Contains("EmployeeID") ? "EmployeeID" :
+                        users.Columns.Contains("ID") ? "ID" : null;
+
+                    if (idColumn != null)
+                    {
+                        foreach (DataRow user in users.Rows)
+                        {
+                            if (user[idColumn] == DBNull.Value) continue;
+
+                            string code = users.Columns.Contains("Code") ? Convert.ToString(user["Code"]).Trim() : string.Empty;
+                            string fullName = users.Columns.Contains("FullName") ? Convert.ToString(user["FullName"]).Trim() : string.Empty;
+                            if (fullName.Length == 0)
+                            {
+                                string firstName = users.Columns.Contains("FirstName") ? Convert.ToString(user["FirstName"]).Trim() : string.Empty;
+                                string middleName = users.Columns.Contains("MiddleName") ? Convert.ToString(user["MiddleName"]).Trim() : string.Empty;
+                                string lastName = users.Columns.Contains("lastName") ? Convert.ToString(user["lastName"]).Trim() :
+                                    users.Columns.Contains("LastName") ? Convert.ToString(user["LastName"]).Trim() : string.Empty;
+                                fullName = string.Join(" ", new[] { firstName, middleName, lastName }.Where(part => part.Length > 0));
+                            }
+
+                            if (code.Length > 0)
+                            {
+                                string codePrefix = code + " :";
+                                if (fullName.StartsWith(codePrefix, StringComparison.OrdinalIgnoreCase))
+                                    fullName = fullName.Substring(codePrefix.Length).Trim();
+
+                                string codeSuffix = "(" + code + ")";
+                                if (fullName.EndsWith(codeSuffix, StringComparison.OrdinalIgnoreCase))
+                                    fullName = fullName.Substring(0, fullName.Length - codeSuffix.Length).Trim();
+                            }
+
+                            string displayName = code.Length > 0
+                                ? (fullName.Length > 0 ? code + " : " + fullName + " (" + code + ")" : code)
+                                : fullName;
+                            employees.Rows.Add(user[idColumn], displayName);
+                        }
+                    }
                 }
 
-                if (code.Length > 0)
-                {
-                    string codePrefix = code + " :";
-                    if (fullName.StartsWith(codePrefix, StringComparison.OrdinalIgnoreCase))
-                        fullName = fullName.Substring(codePrefix.Length).Trim();
-
-                    string codeSuffix = "(" + code + ")";
-                    if (fullName.EndsWith(codeSuffix, StringComparison.OrdinalIgnoreCase))
-                        fullName = fullName.Substring(0, fullName.Length - codeSuffix.Length).Trim();
-                }
-
-                string displayName = code.Length > 0
-                    ? (fullName.Length > 0 ? code + " : " + fullName + " (" + code + ")" : code)
-                    : fullName;
-                employees.Rows.Add(user[idColumn], displayName);
+                HttpRuntime.Cache.Insert(PettyCashEmployeesCacheKey, employees, null, DateTime.UtcNow.AddMinutes(10), System.Web.Caching.Cache.NoSlidingExpiration);
+                return employees.Copy();
             }
-
-            return employees;
         }
         public DataTable GetCategories(bool includeInactive)
         {
@@ -3001,8 +3016,21 @@ namespace WebPortal.App_Code.BLL
         private DataTable AddEmployeeNames(DataTable rows)
         {
             if (rows == null || !rows.Columns.Contains("EmployeeID")) return rows;
+            if (rows.Rows.Count == 0) return rows;
 
             if (!rows.Columns.Contains("EmployeeName")) rows.Columns.Add("EmployeeName", typeof(string));
+
+            bool employeeNamesComplete = true;
+            foreach (DataRow row in rows.Rows)
+            {
+                if (row["EmployeeName"] == DBNull.Value || string.IsNullOrWhiteSpace(Convert.ToString(row["EmployeeName"])))
+                {
+                    employeeNamesComplete = false;
+                    break;
+                }
+            }
+            if (employeeNamesComplete) return rows;
+
             Dictionary<long, string> employeeNames = new Dictionary<long, string>();
             DataTable employees = GetEmployees();
             foreach (DataRow employee in employees.Rows)
@@ -3039,17 +3067,61 @@ namespace WebPortal.App_Code.BLL
             DataTable requests = dalMaster.ExecuteTable("usp_PettyCashRequest_List", new SqlParameter("@EmployeeID", (object)employeeId ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value));
             return AddEmployeeNames(requests);
         }
+
         public DataTable SaveRequest(long requestId, long employeeId, long categoryId, long? subCategoryId, DateTime requestDate, DateTime requiredDate, string purpose, decimal amount, string priority, string remark, long userId, bool submit) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Save", new SqlParameter("@RequestID", requestId), new SqlParameter("@EmployeeID", employeeId), new SqlParameter("@CategoryID", categoryId), new SqlParameter("@SubCategoryID", (object)subCategoryId ?? DBNull.Value), new SqlParameter("@RequestDate", requestDate), new SqlParameter("@RequiredDate", requiredDate), new SqlParameter("@Purpose", purpose), new SqlParameter("@RequestedAmount", amount), new SqlParameter("@Priority", (object)priority ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", userId), new SqlParameter("@Submit", submit)); }
-        public DataTable GetApprovalRequests(string status) { return GetRequests(null, status); }
-        public DataTable ActionRequest(long id, string action, long user, decimal? amount, string remark) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Action", new SqlParameter("@RequestID", id), new SqlParameter("@Action", action), new SqlParameter("@ApproverID", user), new SqlParameter("@ApprovalLevel", 1), new SqlParameter("@ApprovedAmount", (object)amount ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value)); }
+
+        public DataTable GetApprovalRequests(string status)
+        {
+            DataTable requests = GetRequests(null, status);
+            string requestedStatus = (status ?? string.Empty).Trim();
+            if (requests == null || requestedStatus.Length == 0 || requestedStatus.Equals("All", StringComparison.OrdinalIgnoreCase) || !requests.Columns.Contains("Status"))
+                return requests;
+
+            DataTable filtered = requests.Clone();
+            foreach (DataRow request in requests.Rows)
+            {
+                if (string.Equals(Convert.ToString(request["Status"]).Trim(), requestedStatus, StringComparison.OrdinalIgnoreCase))
+                    filtered.ImportRow(request);
+            }
+            return filtered;
+        }
+
+        public DataTable ActionRequest(long id, string action, long user, decimal? amount, string remark)
+        {
+            if (id <= 0) throw new InvalidOperationException("Invalid request.");
+            if (!string.Equals(action, "Approve", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(action, "Reject", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(action, "SendBack", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Choose a valid approval action.");
+            if (user <= 0) throw new InvalidOperationException("Your login session has expired. Please sign in again.");
+            if (string.Equals(action, "Approve", StringComparison.OrdinalIgnoreCase) && (!amount.HasValue || amount.Value <= 0))
+                throw new InvalidOperationException("Approved amount must be greater than zero.");
+            if ((string.Equals(action, "Reject", StringComparison.OrdinalIgnoreCase) || string.Equals(action, "SendBack", StringComparison.OrdinalIgnoreCase)) && string.IsNullOrWhiteSpace(remark))
+                throw new InvalidOperationException("A remark is required to reject or send back a request.");
+
+            DataTable currentRequest = dalMaster.ExecuteQueryTable("SELECT Status FROM dbo.PettyCashRequest WHERE RequestID=@RequestID", new SqlParameter("@RequestID", id));
+            if (currentRequest == null || currentRequest.Rows.Count == 0)
+                throw new InvalidOperationException("The petty cash request could not be found.");
+            string currentStatus = Convert.ToString(currentRequest.Rows[0]["Status"]).Trim();
+            if (!string.Equals(currentStatus, "Submitted", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(currentStatus, "Pending Approval", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(currentStatus, "Sent Back", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Only submitted requests can be approved, rejected, or sent back.");
+
+            return dalMaster.ExecuteTable("usp_PettyCashRequest_Action", new SqlParameter("@RequestID", id), new SqlParameter("@Action", action), new SqlParameter("@ApproverID", user), new SqlParameter("@ApprovalLevel", 1), new SqlParameter("@ApprovedAmount", (object)amount ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value));
+        }
+
         public DataTable GetApprovedRequests() { return AddRequestDisplayText(GetRequests(null, "Approved")); }
+
         public DataTable IssuePayment(long id, DateTime dt, string mode, string refno, decimal amt, long paidBy, long receiver, string remark) { return dalMaster.ExecuteTable("usp_PettyCashPayment_Issue", new SqlParameter("@RequestID", id), new SqlParameter("@PaymentDate", dt), new SqlParameter("@PaymentMode", mode), new SqlParameter("@ReferenceNo", (object)refno ?? DBNull.Value), new SqlParameter("@AmountPaid", amt), new SqlParameter("@PaidBy", paidBy), new SqlParameter("@ReceiverID", receiver), new SqlParameter("@Remark", (object)remark ?? DBNull.Value)); }
+
         public DataTable GetPayments()
         {
             DataTable payments = dalMaster.ExecuteQueryTable(@"SELECT P.PaymentNo,R.RequestNo,P.ReceiverID AS EmployeeID,P.PaymentDate,P.PaymentMode,P.ReferenceNo,P.AmountPaid
                 FROM dbo.PettyCashPayment P INNER JOIN dbo.PettyCashRequest R ON R.RequestID=P.RequestID ORDER BY P.PaymentID DESC");
             return AddEmployeeNames(payments);
         }
+
         public DataTable GetExpenseOpenRequests(long user)
         {
             DataTable requests = GetRequests(user, null);

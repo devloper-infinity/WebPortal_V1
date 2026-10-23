@@ -23,9 +23,7 @@ namespace WebPortal
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static List<MenuItem> LoadMenu()
         {
-            int userId = Convert.ToInt32(
-                HttpContext.Current.User.Identity.Name.ToString()
-            );
+            int userId = Convert.ToInt32(HttpContext.Current.User.Identity.Name.ToString());
 
             // Load all menus for complete parent-child hierarchy
             DataTable dtAll = new bllMaster().GetAllMenus();

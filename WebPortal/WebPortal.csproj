@@ -163,6 +163,7 @@
     <Content Include="Admin\ProjectBillingDetails.aspx" />
     <Content Include="Admin\ClientBillingEmailMaster.aspx" />
     <Content Include="Admin\BillingChannelMaster.aspx" />
+    <Content Include="Content\PettyCashTheme.css" />
     <Content Include="Content\ProjectBillingDetails.css" />
     <Content Include="Helpdesk\ticket-details.css" />
     <Content Include="Helpdesk\ticket-details.js" />

@@ -23,7 +23,17 @@ namespace WebPortal.Admin
             }
             return new JavaScriptSerializer().Serialize(rows);
         }
-        [WebMethod(EnableSession=true)] public static string GetApprovalRequests(string status){ return Json(new bllMaster().GetApprovalRequests(status)); }
-        [WebMethod(EnableSession=true)] public static string ActionRequest(long requestId,string action,decimal? approvedAmount,string remark){ if(requestId<=0) throw new Exception("Invalid request."); return Json(new bllMaster().ActionRequest(requestId,action,int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString()),approvedAmount,remark)); }
+        [WebMethod(EnableSession = true)] public static string GetApprovalRequests(string status) { return Json(new bllMaster().GetApprovalRequests(status)); }
+
+        [WebMethod(EnableSession = true)]
+        public static string ActionRequest(long requestId, string action, decimal? approvedAmount, string remark)
+        {
+            if (requestId <= 0) throw new InvalidOperationException("Invalid request.");
+            int approverId;
+            if (System.Web.HttpContext.Current == null || System.Web.HttpContext.Current.User == null ||
+                !int.TryParse(System.Web.HttpContext.Current.User.Identity.Name, out approverId) || approverId <= 0)
+                throw new InvalidOperationException("Your login session has expired. Please sign in again.");
+            return Json(new bllMaster().ActionRequest(requestId, action, approverId, approvedAmount, remark));
+        }
     }
 }

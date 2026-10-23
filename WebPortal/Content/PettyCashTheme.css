@@ -2,18 +2,19 @@
 .pc-page {
     padding-top: 18px !important;
     padding-bottom: 28px;
-    color: #17324f;
+    /* color: #17324f;*/
+    background-color:white!important;
 }
 
 .pc-page .pc-hero {
     position: relative;
     display: flex;
-    min-height: 144px;
+    min-height: 112px;
     align-items: center;
     justify-content: space-between;
     overflow: hidden;
-    gap: 24px;
-    padding: 26px 30px;
+    gap: 18px;
+    padding: 18px 24px;
     margin-bottom: 20px;
     border-radius: 18px;
     color: #fff;
@@ -50,7 +51,7 @@
     z-index: 1;
     margin: 0 0 7px !important;
     color: #fff;
-    font-size: clamp(23px, 3vw, 30px);
+    font-size: clamp(18px, 2.2vw, 24px);
     font-weight: 750;
     letter-spacing: -.035em;
 }
@@ -71,24 +72,24 @@
     position: relative;
     z-index: 1;
     color: rgba(240, 249, 255, .83);
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .pc-page .pc-hero-mark {
     position: relative;
     z-index: 1;
     display: flex;
-    width: 66px;
-    height: 66px;
+    width: 50px;
+    height: 50px;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(255, 255, 255, .28);
-    border-radius: 20px;
+    border-radius: 15px;
     background: rgba(255, 255, 255, .13);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
     color: #fff;
-    font-size: 27px;
+    font-size: 21px;
 }
 
 .pc-page .pc-card {
@@ -437,16 +438,17 @@
     }
 
     .pc-page .pc-hero {
-        min-height: 124px;
-        padding: 22px;
+        min-height: 100px;
+        gap: 14px;
+        padding: 16px 18px;
         border-radius: 15px;
     }
 
     .pc-page .pc-hero-mark {
-        width: 52px;
-        height: 52px;
-        border-radius: 16px;
-        font-size: 22px;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        font-size: 19px;
     }
 
     .pc-page .pc-card .card-body {

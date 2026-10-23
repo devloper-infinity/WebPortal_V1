@@ -1,13 +1,11 @@
 <%@ Page Title="" Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="PettyCashReports.aspx.cs" Inherits="WebPortal.Admin.PettyCashReports" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <link href="<%= ResolveUrl("~/Content/PettyCashTheme.css?v=20261022-4") %>" rel="stylesheet" />
+    <link href="<%= ResolveUrl("~/Content/PettyCashTheme.css?v=20261023-1") %>" rel="stylesheet" />
     <div class="container-fluid py-3 pc-page">
-        <div class="pc-hero">
-            <div class="pc-hero-copy">
+        <div class="pc-hero"><span class="pc-hero-mark" aria-hidden="true"><i class="fas fa-chart-line"></i></span><div class="pc-hero-copy">
                 <h4 class="mb-1">Petty Cash Reports</h4>
-                <small>Petty Cash Management</small></div>
-            <span class="pc-hero-mark" aria-hidden="true"><i class="fas fa-chart-line"></i></span></div>
+                <small>Petty Cash Management</small></div></div>
         <div class="card pc-card">
             <div class="card-body">
                 <div class="pc-card-heading">

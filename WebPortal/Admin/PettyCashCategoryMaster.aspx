@@ -12,11 +12,11 @@
             position: relative;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 24px;
+            justify-content: flex-start;
+            gap: 16px;
             overflow: hidden;
-            /*  min-height: 144px;*/
-            padding: 20px 25px;
+            min-height: 112px;
+            padding: 16px 22px;
             margin-bottom: 20px;
             border-radius: 18px;
             color: #fff;
@@ -52,6 +52,15 @@
             z-index: 1
         }
 
+        .pc-hero-copy {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 0;
+            text-align: left
+        }
+
         .pc-eyebrow {
             display: inline-block;
             margin-bottom: 7px;
@@ -65,28 +74,29 @@
         .pc-hero h1 {
             margin: 0;
             color: #fff;
-            font-size: clamp(20px,3vw,23px);
+            font-size: clamp(18px,2.1vw,22px);
             font-weight: 650;
             letter-spacing: -.035em
         }
 
         .pc-hero p {
-            margin: 7px 0 0;
+            margin: 5px 0 0;
             color: rgba(240,249,255,.83);
-            font-size: 13px
+            font-size: 11px
         }
 
         .pc-hero-mark {
             display: flex;
-            width: 66px;
-            height: 66px;
+            width: 50px;
+            height: 50px;
+            flex: 0 0 auto;
             align-items: center;
             justify-content: center;
             border: 1px solid rgba(255,255,255,.28);
-            border-radius: 20px;
+            border-radius: 15px;
             background: rgba(255,255,255,.13);
             box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
-            font-size: 27px;
+            font-size: 21px;
             color: #fff
         }
 
@@ -377,16 +387,17 @@
             }
 
             .pc-hero {
-                min-height: 124px;
-                padding: 22px;
+                min-height: 100px;
+                gap: 12px;
+                padding: 16px 18px;
                 border-radius: 15px
             }
 
             .pc-hero-mark {
-                width: 52px;
-                height: 52px;
-                border-radius: 16px;
-                font-size: 22px
+                width: 44px;
+                height: 44px;
+                border-radius: 14px;
+                font-size: 19px
             }
 
             .pc-card .card-body, .pc-table-card .card-body {
@@ -404,11 +415,11 @@
     </style>
     <div class="container-fluid py-3 pc-page" style="color: white!important;">
         <header class="pc-hero">
+            <div class="pc-hero-mark" aria-hidden="true"><i class="fas fa-layer-group"></i></div>
             <div class="pc-hero-copy">
                 <%--<span class="pc-eyebrow">Finance · Configuration</span>--%><h1>Petty Cash Category Master</h1>
                 <p>Organize expense categories and keep request options up to date.</p>
             </div>
-            <div class="pc-hero-mark" aria-hidden="true"><i class="fas fa-layer-group"></i></div>
         </header>
         <section class="card pc-card pc-form-card">
             <div class="card-body">
