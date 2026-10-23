@@ -7,7 +7,7 @@
         display: flex;
         gap: 6px;
         margin: 15px 0;
-        border-bottom: 1px solid #d7e2ee
+        border-bottom: 1px solid #d7e2ee;
     }
 
     .mgr-tab {
