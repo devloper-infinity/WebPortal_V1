@@ -445,6 +445,7 @@ FodyWeavers.xsd
 /WebPortal/Content/*
 !/WebPortal/Content/erp-modern-common.css
 !/WebPortal/Content/ProjectBillingDetails.css
+!/WebPortal/Content/PettyCashTheme.css
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
 !/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql

@@ -2922,27 +2922,252 @@ namespace WebPortal.App_Code.BLL
 
 
         #region Petty_Cash
-        public DataTable GetEmployees() { return dalMaster.ExecuteTable("usp_PettyCashEmployee_List"); }
-        public DataTable GetCategories(bool includeInactive) { return dalMaster.ExecuteTable("usp_PettyCashCategory_List", new SqlParameter("@IncludeInactive", includeInactive)); }
-        public DataTable SaveCategory(long id, string name, string desc, bool active, long user) { return dalMaster.ExecuteTable("usp_PettyCashCategory_Save", new SqlParameter("@CategoryID", id), new SqlParameter("@CategoryName", name), new SqlParameter("@Description", (object)desc ?? DBNull.Value), new SqlParameter("@IsActive", active), new SqlParameter("@UserID", user)); }
-        public DataTable GetRequests(long? employeeId, string status) { return dalMaster.ExecuteTable("usp_PettyCashRequest_List", new SqlParameter("@EmployeeID", (object)employeeId ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value)); }
+        public DataTable GetEmployees()
+        {
+            // Reuse the existing employee directory query for both Petty Cash selectors.
+            DataTable users = GetAllUsers_1();
+            DataTable employees = new DataTable();
+            employees.Columns.Add("EmployeeID", typeof(object));
+            employees.Columns.Add("EmployeeName", typeof(string));
+
+            if (users == null) return employees;
+
+            string idColumn = users.Columns.Contains("EmployeeID") ? "EmployeeID" :
+                users.Columns.Contains("ID") ? "ID" : null;
+            if (idColumn == null) return employees;
+
+            foreach (DataRow user in users.Rows)
+            {
+                if (user[idColumn] == DBNull.Value) continue;
+
+                string code = users.Columns.Contains("Code") ? Convert.ToString(user["Code"]).Trim() : string.Empty;
+                string fullName = users.Columns.Contains("FullName") ? Convert.ToString(user["FullName"]).Trim() : string.Empty;
+                if (fullName.Length == 0)
+                {
+                    string firstName = users.Columns.Contains("FirstName") ? Convert.ToString(user["FirstName"]).Trim() : string.Empty;
+                    string middleName = users.Columns.Contains("MiddleName") ? Convert.ToString(user["MiddleName"]).Trim() : string.Empty;
+                    string lastName = users.Columns.Contains("lastName") ? Convert.ToString(user["lastName"]).Trim() :
+                        users.Columns.Contains("LastName") ? Convert.ToString(user["LastName"]).Trim() : string.Empty;
+                    fullName = string.Join(" ", new[] { firstName, middleName, lastName }.Where(part => part.Length > 0));
+                }
+
+                if (code.Length > 0)
+                {
+                    string codePrefix = code + " :";
+                    if (fullName.StartsWith(codePrefix, StringComparison.OrdinalIgnoreCase))
+                        fullName = fullName.Substring(codePrefix.Length).Trim();
+
+                    string codeSuffix = "(" + code + ")";
+                    if (fullName.EndsWith(codeSuffix, StringComparison.OrdinalIgnoreCase))
+                        fullName = fullName.Substring(0, fullName.Length - codeSuffix.Length).Trim();
+                }
+
+                string displayName = code.Length > 0
+                    ? (fullName.Length > 0 ? code + " : " + fullName + " (" + code + ")" : code)
+                    : fullName;
+                employees.Rows.Add(user[idColumn], displayName);
+            }
+
+            return employees;
+        }
+        public DataTable GetCategories(bool includeInactive)
+        {
+            if (includeInactive)
+                return dalMaster.ExecuteQueryTable("SELECT CategoryID,CategoryName,Description,IsActive FROM dbo.PettyCashCategory ORDER BY CategoryName");
+
+            DataTable categories = dalMaster.ExecuteTable("usp_PettyCashCategory_List");
+            if (categories == null || !categories.Columns.Contains("IsActive")) return categories;
+
+            DataTable activeCategories = categories.Clone();
+            foreach (DataRow category in categories.Rows)
+            {
+                if (category["IsActive"] != DBNull.Value && Convert.ToBoolean(category["IsActive"]))
+                    activeCategories.ImportRow(category);
+            }
+            return activeCategories;
+        }
+        public DataTable SaveCategory(long id, string name, string desc, bool active, long user)
+        {
+            return dalMaster.ExecuteQueryTable(@"IF @CategoryID=0
+                BEGIN
+                    INSERT dbo.PettyCashCategory(CategoryName,Description,IsActive,CreatedBy) VALUES(@CategoryName,@Description,@IsActive,@UserID);
+                    SET @CategoryID=SCOPE_IDENTITY();
+                END
+                ELSE
+                    UPDATE dbo.PettyCashCategory SET CategoryName=@CategoryName,Description=@Description,IsActive=@IsActive,ModifiedBy=@UserID,ModifiedDate=GETDATE() WHERE CategoryID=@CategoryID;
+                SELECT CategoryID,CategoryName,Description,IsActive FROM dbo.PettyCashCategory WHERE CategoryID=@CategoryID;",
+                new SqlParameter("@CategoryID", id), new SqlParameter("@CategoryName", name), new SqlParameter("@Description", (object)desc ?? DBNull.Value), new SqlParameter("@IsActive", active), new SqlParameter("@UserID", user));
+        }
+        private DataTable AddEmployeeNames(DataTable rows)
+        {
+            if (rows == null || !rows.Columns.Contains("EmployeeID")) return rows;
+
+            if (!rows.Columns.Contains("EmployeeName")) rows.Columns.Add("EmployeeName", typeof(string));
+            Dictionary<long, string> employeeNames = new Dictionary<long, string>();
+            DataTable employees = GetEmployees();
+            foreach (DataRow employee in employees.Rows)
+            {
+                long employeeID;
+                if (employee["EmployeeID"] != DBNull.Value && long.TryParse(Convert.ToString(employee["EmployeeID"]), out employeeID))
+                    employeeNames[employeeID] = Convert.ToString(employee["EmployeeName"]);
+            }
+
+            foreach (DataRow row in rows.Rows)
+            {
+                long employeeID;
+                if (row["EmployeeID"] != DBNull.Value && long.TryParse(Convert.ToString(row["EmployeeID"]), out employeeID) && employeeNames.ContainsKey(employeeID))
+                    row["EmployeeName"] = employeeNames[employeeID];
+            }
+            return rows;
+        }
+
+        private static DataTable AddRequestDisplayText(DataTable rows)
+        {
+            if (rows == null) return null;
+            if (!rows.Columns.Contains("DisplayText")) rows.Columns.Add("DisplayText", typeof(string));
+            foreach (DataRow row in rows.Rows)
+            {
+                string requestNo = rows.Columns.Contains("RequestNo") ? Convert.ToString(row["RequestNo"]).Trim() : string.Empty;
+                string employeeName = rows.Columns.Contains("EmployeeName") ? Convert.ToString(row["EmployeeName"]).Trim() : string.Empty;
+                row["DisplayText"] = requestNo + (employeeName.Length > 0 ? " : " + employeeName : string.Empty);
+            }
+            return rows;
+        }
+
+        public DataTable GetRequests(long? employeeId, string status)
+        {
+            DataTable requests = dalMaster.ExecuteTable("usp_PettyCashRequest_List", new SqlParameter("@EmployeeID", (object)employeeId ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value));
+            return AddEmployeeNames(requests);
+        }
         public DataTable SaveRequest(long requestId, long employeeId, long categoryId, long? subCategoryId, DateTime requestDate, DateTime requiredDate, string purpose, decimal amount, string priority, string remark, long userId, bool submit) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Save", new SqlParameter("@RequestID", requestId), new SqlParameter("@EmployeeID", employeeId), new SqlParameter("@CategoryID", categoryId), new SqlParameter("@SubCategoryID", (object)subCategoryId ?? DBNull.Value), new SqlParameter("@RequestDate", requestDate), new SqlParameter("@RequiredDate", requiredDate), new SqlParameter("@Purpose", purpose), new SqlParameter("@RequestedAmount", amount), new SqlParameter("@Priority", (object)priority ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", userId), new SqlParameter("@Submit", submit)); }
-        public DataTable GetApprovalRequests(string status) { return dalMaster.ExecuteTable("usp_PettyCashApproval_List", new SqlParameter("@Status", (object)status ?? DBNull.Value)); }
+        public DataTable GetApprovalRequests(string status) { return GetRequests(null, status); }
         public DataTable ActionRequest(long id, string action, long user, decimal? amount, string remark) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Action", new SqlParameter("@RequestID", id), new SqlParameter("@Action", action), new SqlParameter("@ApproverID", user), new SqlParameter("@ApprovalLevel", 1), new SqlParameter("@ApprovedAmount", (object)amount ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value)); }
-        public DataTable GetApprovedRequests() { return dalMaster.ExecuteTable("usp_PettyCashApprovedRequest_List"); }
+        public DataTable GetApprovedRequests() { return AddRequestDisplayText(GetRequests(null, "Approved")); }
         public DataTable IssuePayment(long id, DateTime dt, string mode, string refno, decimal amt, long paidBy, long receiver, string remark) { return dalMaster.ExecuteTable("usp_PettyCashPayment_Issue", new SqlParameter("@RequestID", id), new SqlParameter("@PaymentDate", dt), new SqlParameter("@PaymentMode", mode), new SqlParameter("@ReferenceNo", (object)refno ?? DBNull.Value), new SqlParameter("@AmountPaid", amt), new SqlParameter("@PaidBy", paidBy), new SqlParameter("@ReceiverID", receiver), new SqlParameter("@Remark", (object)remark ?? DBNull.Value)); }
-        public DataTable GetPayments() { return dalMaster.ExecuteTable("usp_PettyCashPayment_List"); }
-        public DataTable GetExpenseOpenRequests(long user) { return dalMaster.ExecuteTable("usp_PettyCashExpenseRequest_List", new SqlParameter("@EmployeeID", user)); }
+        public DataTable GetPayments()
+        {
+            DataTable payments = dalMaster.ExecuteQueryTable(@"SELECT P.PaymentNo,R.RequestNo,P.ReceiverID AS EmployeeID,P.PaymentDate,P.PaymentMode,P.ReferenceNo,P.AmountPaid
+                FROM dbo.PettyCashPayment P INNER JOIN dbo.PettyCashRequest R ON R.RequestID=P.RequestID ORDER BY P.PaymentID DESC");
+            return AddEmployeeNames(payments);
+        }
+        public DataTable GetExpenseOpenRequests(long user)
+        {
+            DataTable requests = GetRequests(user, null);
+            if (requests == null || !requests.Columns.Contains("Status")) return requests;
+            DataTable openRequests = requests.Clone();
+            foreach (DataRow request in requests.Rows)
+            {
+                string status = Convert.ToString(request["Status"]);
+                if (status == "Cash Issued" || status == "Expense Submitted" || status == "Under Verification")
+                    openRequests.ImportRow(request);
+            }
+            return AddRequestDisplayText(openRequests);
+        }
         public DataTable SaveExpense(long req, DateTime dt, long cat, long? sub, string vendor, string inv, string desc, decimal amt, decimal tax, string mode, string remark, long user) { return dalMaster.ExecuteTable("usp_PettyCashExpense_Save", new SqlParameter("@RequestID", req), new SqlParameter("@ExpenseDate", dt), new SqlParameter("@CategoryID", cat), new SqlParameter("@SubCategoryID", (object)sub ?? DBNull.Value), new SqlParameter("@VendorName", (object)vendor ?? DBNull.Value), new SqlParameter("@InvoiceNo", (object)inv ?? DBNull.Value), new SqlParameter("@Description", desc), new SqlParameter("@ExpenseAmount", amt), new SqlParameter("@TaxAmount", tax), new SqlParameter("@PaymentMode", (object)mode ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", user)); }
-        public DataTable GetExpenses(long requestId) { return dalMaster.ExecuteTable("usp_PettyCashExpense_List", new SqlParameter("@RequestID", requestId)); }
-        public DataTable GetSettlementRequests(long employee) { return dalMaster.ExecuteTable("usp_PettyCashSettlementRequest_List", new SqlParameter("@EmployeeID", employee)); }
-        public DataTable GetSettlementPreview(long id) { return dalMaster.ExecuteTable("usp_PettyCashSettlement_Preview", new SqlParameter("@RequestID", id)); }
+        public DataTable GetExpenses(long requestId)
+        {
+            return dalMaster.ExecuteQueryTable(@"SELECT E.ExpenseDate,R.RequestNo,E.VendorName,E.InvoiceNo,E.Description,E.ExpenseAmount,E.TaxAmount,E.VerificationStatus
+                FROM dbo.PettyCashExpense E INNER JOIN dbo.PettyCashRequest R ON R.RequestID=E.RequestID
+                WHERE E.RequestID=@RequestID ORDER BY E.ExpenseID DESC", new SqlParameter("@RequestID", requestId));
+        }
+        public DataTable GetSettlementRequests(long employee)
+        {
+            return dalMaster.ExecuteQueryTable(@"SELECT R.RequestID,R.RequestNo,R.EmployeeID,R.RequestNo+' : '+R.Purpose AS DisplayText
+                FROM dbo.PettyCashRequest R INNER JOIN dbo.PettyCashPayment P ON P.RequestID=R.RequestID
+                LEFT JOIN dbo.PettyCashSettlement S ON S.RequestID=R.RequestID
+                WHERE R.EmployeeID=@EmployeeID AND S.SettlementID IS NULL AND R.Status IN ('Cash Issued','Expense Submitted')
+                ORDER BY R.RequestID DESC", new SqlParameter("@EmployeeID", employee));
+        }
+        public DataTable GetSettlementPreview(long id)
+        {
+            return dalMaster.ExecuteQueryTable(@"SELECT P.AmountPaid AS PaidAmount,
+                    ISNULL(SUM(E.ExpenseAmount+E.TaxAmount),0) AS TotalExpense,
+                    CASE WHEN P.AmountPaid>ISNULL(SUM(E.ExpenseAmount+E.TaxAmount),0) THEN P.AmountPaid-ISNULL(SUM(E.ExpenseAmount+E.TaxAmount),0) ELSE 0 END AS RefundAmount,
+                    CASE WHEN ISNULL(SUM(E.ExpenseAmount+E.TaxAmount),0)>P.AmountPaid THEN ISNULL(SUM(E.ExpenseAmount+E.TaxAmount),0)-P.AmountPaid ELSE 0 END AS ReimbursementAmount
+                FROM dbo.PettyCashPayment P LEFT JOIN dbo.PettyCashExpense E ON E.RequestID=P.RequestID
+                WHERE P.RequestID=@RequestID GROUP BY P.AmountPaid", new SqlParameter("@RequestID", id));
+        }
         public DataTable SubmitSettlement(long id, DateTime dt, string remark, long user) { return dalMaster.ExecuteTable("usp_PettyCashSettlement_Submit", new SqlParameter("@RequestID", id), new SqlParameter("@SettlementDate", dt), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", user)); }
-        public DataTable GetSettlements() { return dalMaster.ExecuteTable("usp_PettyCashSettlement_List"); }
-        public DataTable GetLedger(DateTime? from, DateTime? to) { return dalMaster.ExecuteTable("usp_PettyCashLedger_List", new SqlParameter("@FromDate", (object)from ?? DBNull.Value), new SqlParameter("@ToDate", (object)to ?? DBNull.Value)); }
-        public DataTable GetReport(DateTime? from, DateTime? to, string status) { return dalMaster.ExecuteTable("usp_PettyCashReport", new SqlParameter("@FromDate", (object)from ?? DBNull.Value), new SqlParameter("@ToDate", (object)to ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value)); }
-        public DataTable GetDashboardSummary() { return dalMaster.ExecuteTable("usp_PettyCashDashboard_Summary"); }
-        public DataTable GetRecentRequests() { return dalMaster.ExecuteTable("usp_PettyCashDashboard_Recent"); }
+        public DataTable GetSettlements()
+        {
+            DataTable settlements = dalMaster.ExecuteQueryTable(@"SELECT R.RequestNo,R.EmployeeID,S.PaidAmount,S.TotalExpense,S.RefundAmount,S.ReimbursementAmount,S.SettlementDate,S.Status
+                FROM dbo.PettyCashSettlement S INNER JOIN dbo.PettyCashRequest R ON R.RequestID=S.RequestID ORDER BY S.SettlementID DESC");
+            return AddEmployeeNames(settlements);
+        }
+        public DataTable GetLedger(DateTime? from, DateTime? to)
+        {
+            DataTable ledger = dalMaster.ExecuteTable("usp_PettyCashLedger_List");
+            if (ledger == null) return null;
+
+            DataTable requests = GetRequests(null, null);
+            Dictionary<long, string> requestNumbers = new Dictionary<long, string>();
+            foreach (DataRow request in requests.Rows)
+            {
+                long requestID;
+                if (request["RequestID"] != DBNull.Value && long.TryParse(Convert.ToString(request["RequestID"]), out requestID))
+                    requestNumbers[requestID] = Convert.ToString(request["RequestNo"]);
+            }
+
+            if (!ledger.Columns.Contains("RequestNo")) ledger.Columns.Add("RequestNo", typeof(string));
+            if (ledger.Columns.Contains("RequestID"))
+            {
+                foreach (DataRow row in ledger.Rows)
+                {
+                    long requestID;
+                    if (row["RequestID"] != DBNull.Value && long.TryParse(Convert.ToString(row["RequestID"]), out requestID) && requestNumbers.ContainsKey(requestID))
+                        row["RequestNo"] = requestNumbers[requestID];
+                }
+            }
+            AddEmployeeNames(ledger);
+
+            if ((from.HasValue || to.HasValue) && ledger.Columns.Contains("TransactionDate"))
+            {
+                DataTable filtered = ledger.Clone();
+                foreach (DataRow row in ledger.Rows)
+                {
+                    if (row["TransactionDate"] == DBNull.Value) continue;
+                    DateTime transactionDate = Convert.ToDateTime(row["TransactionDate"]);
+                    if ((!from.HasValue || transactionDate.Date >= from.Value.Date) && (!to.HasValue || transactionDate.Date <= to.Value.Date))
+                        filtered.ImportRow(row);
+                }
+                return filtered;
+            }
+            return ledger;
+        }
+        public DataTable GetReport(DateTime? from, DateTime? to, string status)
+        {
+            DataTable report = dalMaster.ExecuteQueryTable(@"SELECT R.RequestNo,R.RequestDate,R.EmployeeID,C.CategoryName,R.Purpose,R.RequestedAmount,
+                    ISNULL(R.ApprovedAmount,0) AS ApprovedAmount,ISNULL(P.PaidAmount,0) AS PaidAmount,ISNULL(E.ExpenseAmount,0) AS ExpenseAmount,R.Status
+                FROM dbo.PettyCashRequest R INNER JOIN dbo.PettyCashCategory C ON C.CategoryID=R.CategoryID
+                OUTER APPLY (SELECT SUM(PM.AmountPaid) AS PaidAmount FROM dbo.PettyCashPayment PM WHERE PM.RequestID=R.RequestID) P
+                OUTER APPLY (SELECT SUM(EX.ExpenseAmount+EX.TaxAmount) AS ExpenseAmount FROM dbo.PettyCashExpense EX WHERE EX.RequestID=R.RequestID) E
+                WHERE (@FromDate IS NULL OR R.RequestDate>=@FromDate) AND (@ToDate IS NULL OR R.RequestDate<DATEADD(day,1,@ToDate))
+                    AND (@Status IS NULL OR @Status='' OR R.Status=@Status) ORDER BY R.RequestID DESC",
+                new SqlParameter("@FromDate", (object)from ?? DBNull.Value), new SqlParameter("@ToDate", (object)to ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value));
+            return AddEmployeeNames(report);
+        }
+        public DataTable GetDashboardSummary()
+        {
+            return dalMaster.ExecuteQueryTable(@"SELECT
+                    ISNULL((SELECT SUM(Credit-Debit) FROM dbo.PettyCashLedger),0) AS CurrentBalance,
+                    ISNULL((SELECT SUM(AmountPaid) FROM dbo.PettyCashPayment),0) AS TotalIssued,
+                    ISNULL((SELECT SUM(ExpenseAmount+TaxAmount) FROM dbo.PettyCashExpense),0) AS TotalExpense,
+                    (SELECT COUNT(*) FROM dbo.PettyCashRequest WHERE Status IN ('Submitted','Pending Approval')) AS PendingApprovals");
+        }
+        public DataTable GetRecentRequests()
+        {
+            DataTable requests = GetRequests(null, null);
+            if (requests == null || !requests.Columns.Contains("RequestDate")) return requests;
+
+            DataView sortedRequests = new DataView(requests);
+            sortedRequests.Sort = requests.Columns.Contains("RequestID")
+                ? "RequestDate DESC, RequestID DESC"
+                : "RequestDate DESC";
+
+            DataTable recentRequests = requests.Clone();
+            for (int i = 0; i < Math.Min(10, sortedRequests.Count); i++) recentRequests.ImportRow(sortedRequests[i].Row);
+            return recentRequests;
+        }
 
         #endregion
     }

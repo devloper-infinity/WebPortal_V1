@@ -147,6 +147,7 @@
     <Content Include="Admin\AutoBilling.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\ExpensesAdmin.aspx" />
+    <Content Include="Admin\PettyCashApproval.aspx" />
     <Content Include="Admin\PettyCashCategoryMaster.aspx" />
     <Content Include="Admin\PettyCashDashboard.aspx" />
     <Content Include="Admin\PettyCashExpense.aspx" />
@@ -3199,6 +3200,13 @@
     </Compile>
     <Compile Include="Admin\AutoBilling.aspx.designer.cs">
       <DependentUpon>AutoBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\OtherTask.Report.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\PettyCashApproval.aspx.cs">
+      <DependentUpon>PettyCashApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Admin\PettyCashCategoryMaster.aspx.cs">
       <SubType>ASPXCodeBehind</SubType>

@@ -4614,7 +4614,6 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
 
         public int InsertAttendanceCorrectRequestByPM(Hashtable htAttendance)
         {
-
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAttendanceCorrectRequestByPM");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InDate", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htAttendance["InDate"]);
@@ -4631,7 +4630,6 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             SQLHelper.AddParamToSQLCmd(cmd, "@IpAddress", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htAttendance["IpAddress"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htAttendance["ApprovedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
@@ -6855,6 +6853,15 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             using (SqlConnection cn = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand(procedure, cn))
             {
                 cmd.CommandType = CommandType.StoredProcedure; if (parameters != null) cmd.Parameters.AddRange(parameters);
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd)) { DataTable dt = new DataTable(); da.Fill(dt); return dt; }
+            }
+        }
+
+        public DataTable ExecuteQueryTable(string query, params SqlParameter[] parameters)
+        {
+            using (SqlConnection cn = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cmd.CommandType = CommandType.Text; if (parameters != null) cmd.Parameters.AddRange(parameters);
                 using (SqlDataAdapter da = new SqlDataAdapter(cmd)) { DataTable dt = new DataTable(); da.Fill(dt); return dt; }
             }
         }
