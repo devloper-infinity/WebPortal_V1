@@ -19,27 +19,17 @@
             <section id="createBulletin" class="tab-pane fade show active">
                 <div class="ob-panel">
                     <div class="form-row">
-                        <div class="form-group col-md-8">
+                        <div class="form-group col-md-12">
                             <label>Title</label><input id="bTitle" class="form-control" maxlength="250"></div>
-                        <div class="form-group col-md-4">
-                            <label>Category</label><select id="bCategory" class="form-control"><option>Operations</option>
-                                <option>Policy</option>
-                                <option>Client Update</option>
-                                <option>Process Update</option>
-                                <option>Training</option>
-                            </select></div>
                     </div>
+                    <input id="bCategory" type="hidden" value="Operations">
+                    <input id="bPriority" type="hidden" value="Normal">
                     <div class="form-row">
-                        <div class="form-group col-md-3">
-                            <label>Priority</label><select id="bPriority" class="form-control"><option>Normal</option>
-                                <option>Important</option>
-                                <option>Critical</option>
-                            </select></div>
-                        <div class="form-group col-md-3">
-                            <label>Schedule</label><input id="bSchedule" type="datetime-local" class="form-control"></div>
-                        <div class="form-group col-md-3">
+                        <div class="form-group col-md-4">
+                            <label>Issue Date</label><input id="bSchedule" type="datetime-local" class="form-control"></div>
+                        <div class="form-group col-md-4">
                             <label>Folder</label><select id="bFolder" class="form-control"></select></div>
-                        <div class="form-group col-md-3">
+                        <div class="form-group col-md-4">
                             <label>Teams</label><select id="bTeams" class="form-control" multiple></select></div>
                     </div>
                     <div class="form-group">
