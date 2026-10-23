@@ -1,4 +1,4 @@
-<%@ Page Title="Access Denied" Language="C#" MasterPageFile="~/Admin/Admin.Master" %>
+<%@ Page Title="Access Denied" Language="C#" MasterPageFile="~/OperationsBulletin/OperationsBulletin.Master" %>
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
 <style>.ob-denied{max-width:680px;margin:70px auto;padding:42px;text-align:center;background:#fff;border:1px solid #dce3ed;border-radius:14px;box-shadow:0 12px 32px rgba(24,45,78,.1)}.ob-denied i{font-size:48px;color:#e0a800}.ob-denied h2{margin:18px 0 10px;color:#24334b}.ob-denied p{color:#65758b}</style>
 </asp:Content>

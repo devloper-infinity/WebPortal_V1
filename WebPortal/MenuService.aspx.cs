@@ -9,6 +9,7 @@ using System.Web.Services;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using WebPortal.App_Code.BLL;
+using WebPortal.OperationsBulletin;
 
 namespace WebPortal
 {
@@ -74,7 +75,9 @@ namespace WebPortal
             var fullTree = BuildTree(allMenus, 0);
 
             // Filter tree based on user rights
-            return FilterTree(fullTree, allowed);
+            List<MenuItem> result = FilterTree(fullTree, allowed);
+            if (new BulletinRepository().HasAssignedBulletins(userId)) result.Add(new MenuItem { MenuId = -1001, MenuName = "My Bulletins", ParentMenuId = 0, Url = "../OperationsBulletin/UserHistory.aspx", SortOrder = 999, Children = new List<MenuItem>() });
+            return result;
         }
         public static List<MenuItem> LoadMenu_OLD()
         {

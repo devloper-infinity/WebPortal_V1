@@ -404,6 +404,7 @@
                 document.getElementById("importfeedback_errmsg").innerHTML = message;
             //$("#importfeedback_dverror").modal('show');
             if (message == "Excel validated Successfully.") {
+                $('#waitingpanel').modal('hide');
                 $("#importfeedback_dverror").modal('hide');
                 importfeedback_bindtable();
             }
@@ -447,6 +448,7 @@
                     $("#importfeedback_dverror").modal('show');
                     document.getElementById("importfeedback_btnsubmit").disabled = true;
                     document.getElementById("importfeedback_btnImport").style.display = '';
+                $('#waitingpanel').modal('hide');
                     $('#load1').hide();
                 }
                 else {
