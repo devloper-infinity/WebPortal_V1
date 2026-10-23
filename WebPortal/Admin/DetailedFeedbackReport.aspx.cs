@@ -144,19 +144,43 @@ namespace WebPortal.Admin
             lock (ServicingReportLock)
             {
                 Guid batchID = (Guid)HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"];
-                if (step > 0) { Tuple<Spire.Xls.Workbook, string> state; if (!ServicingReports.TryGetValue(batchID, out state)) throw new InvalidOperationException("Report session expired. Please try again."); book = state.Item1; FileName = state.Item2; }
+                if (step > 0)
+                {
+                    Tuple<Spire.Xls.Workbook, string> state;
+                    if (!ServicingReports.TryGetValue(batchID, out state)) throw new InvalidOperationException("Report session expired. Please try again.");
+                    FileName = state.Item2;
+                    book = state.Item1;
+                    if (book == null)
+                    {
+                        book = new Spire.Xls.Workbook();
+                        book.LoadFromFile(FileName);
+                    }
+                }
                 Action[] sheets = { () => GetGraphicalView("Servicing","Infinity"), () => CLientwiseErrorTrending("Servicing","Infinity"), () => ReviewersFeedbackSummary("Servicing","Infinity"), () => ReviewerVsQcerErrorCounts("Servicing","Infinity"), () => NoErrorFilesAnalysis("Servicing","Infinity"), () => Reviewerwiseclientwiseerrors("Servicing","Infinity"), () => ReviewerQCClientwiseerrors("Servicing","Infinity"), () => QCersPerformance("Servicing","Infinity"), () => CategorySheet("Servicing","Infinity"), () => SubcategorySheet("Servicing","Infinity"), () => getInternalFeedbacks("Servicing","Infinity"), () => getClientFeedbacks("Servicing","Infinity"), () => getReQCFeedbacks("Servicing","Infinity"), () => getRebuttalFeedbacks("Servicing","Infinity"), () => GetClientQualityReport("Servicing","Infinity") };
                 string[] sheetNames = { "Weekly - Graphical View", "Client-wise Error Trending", "Reviewer - Feedback Summary", "Reviewer Vs Qcer Error Count", "No Error Files Analysis", "Reviewer wise client wise error", "Reviewer, QC, Client wise error", "QCer Performance", "Category", "Sub Category", "Internal Feedbacks", "Client Feedbacks", "ReQC Feedbacks", "Rebuttal Feedbacks", "Client Quality Report" };
                 try
                 {
                     sheets[step]();
-                    if (step == 14) CleanServicingWorkbook(FileName);
+                    if (step < 14)
+                    {
+                        book.SaveToFile(FileName, ExcelVersion.Version2010);
+                        ServicingReports[batchID] = Tuple.Create((Spire.Xls.Workbook)null, FileName);
+                        ReleaseServicingWorkbook();
+                    }
+                    else
+                    {
+                        string completedFile = FileName;
+                        ServicingReports.Remove(batchID);
+                        ReleaseServicingWorkbook();
+                        CleanServicingWorkbook(completedFile);
+                    }
                 }
                 catch (Exception ex)
                 {
+                    ServicingReports.Remove(batchID);
+                    ReleaseServicingWorkbook();
                     throw new InvalidOperationException("Failed to generate " + sheetNames[step] + ": " + ex.Message, ex);
                 }
-                ServicingReports[batchID] = Tuple.Create(book, FileName);
             }
             if (step == 14) { HttpContext.Current.Session["ServicingDetailedFeedbackFile"] = FileName; ClearServicingSelection(userID); }
             return step + 1;
@@ -173,6 +197,34 @@ namespace WebPortal.Admin
 
         [WebMethod(EnableSession = true)] public static void CancelServicingReport() { ClearServicingSelection(CurrentUserID()); }
 
+        static void ReleaseServicingWorkbook()
+        {
+            if (book != null)
+            {
+                try { book.Dispose(); } catch { }
+            }
+            book = null;
+            wksheet = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        static void PrepareServicingWorkbook()
+        {
+            for (int sheetIndex = book.Worksheets.Count - 1; sheetIndex >= 0; sheetIndex--)
+            {
+                Spire.Xls.Worksheet sheet = book.Worksheets[sheetIndex];
+                if (book.Worksheets.Count > 1 && sheet.AllocatedRange.IsBlank)
+                {
+                    book.Worksheets.RemoveAt(sheetIndex);
+                    continue;
+                }
+                foreach (CellRange column in sheet.Columns)
+                    if (column.ColumnWidth > 80D) column.ColumnWidth = 80D;
+            }
+        }
+
         static void CleanServicingWorkbook(string path)
         {
             using (SpreadsheetDocument document = SpreadsheetDocument.Open(path, true))
@@ -181,21 +233,11 @@ namespace WebPortal.Admin
                 var sheets = part.Workbook.Sheets.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>().ToList();
                 foreach (var sheet in sheets)
                 {
-                    WorksheetPart worksheet = (WorksheetPart)part.GetPartById(sheet.Id);
-                    bool blank = !worksheet.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Any();
-                    if (sheets.Count > 1 && (blank || sheet.Name.Value.IndexOf("Evaluation", StringComparison.OrdinalIgnoreCase) >= 0))
+                    if (sheets.Count > 1 && sheet.Name.Value.IndexOf("Evaluation", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
+                        WorksheetPart worksheet = (WorksheetPart)part.GetPartById(sheet.Id);
                         sheet.Remove();
                         part.DeletePart(worksheet);
-                    }
-                    else
-                    {
-                        foreach (DocumentFormat.OpenXml.Spreadsheet.Column column in worksheet.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Column>())
-                        {
-                            if (column.Width != null && column.Width.Value > 80D) column.Width.Value = 80D;
-                            column.RemoveAttribute("widthPt", string.Empty);
-                        }
-                        worksheet.Worksheet.Save();
                     }
                 }
                 part.Workbook.Save();
@@ -2593,7 +2635,12 @@ namespace WebPortal.Admin
             else
                 dt = new dalReport().GetClientQualityReport_Servicing_Infinity();
 
-            if (EmptyServicingResult(dt, "Client Quality Report")) { book.SaveToFile(FileName, ExcelVersion.Version2010); return 1; }
+            if (EmptyServicingResult(dt, "Client Quality Report"))
+            {
+                PrepareServicingWorkbook();
+                book.SaveToFile(FileName, ExcelVersion.Version2010);
+                return 1;
+            }
 
             wksheet = book.CreateEmptySheet("Client Quality Report");
             if (dt != null)
@@ -2611,6 +2658,7 @@ namespace WebPortal.Admin
                 wksheet.AllocatedRange.AutoFitRows();
                 wksheet.HideColumn(1);
             }
+            PrepareServicingWorkbook();
             book.SaveToFile(FileName, ExcelVersion.Version2010);
             return 1;
         }
