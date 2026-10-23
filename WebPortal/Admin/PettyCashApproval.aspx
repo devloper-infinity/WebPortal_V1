@@ -17,14 +17,17 @@
                     <span class="pc-context-badge"><i class="fas fa-clipboard-check" aria-hidden="true"></i>Review requests</span></div>
                 <div class="row">
                     <div class="col-md-3">
-                        <label class="pc-label">Status</label><select id="pc_apStatus" class="form-control"><option value="">All statuses</option>
-                            <option>Draft</option>
-                            <option>Submitted</option>
-                            <option>Pending Approval</option>
-                            <option>Approved</option>
-                            <option>Rejected</option>
-                            <option>Sent Back</option>
-                        </select></div>
+                        <label class="pc-label" for="pc_apStatus">Status</label>
+                        <select id="pc_apStatus" class="form-control">
+                            <option value="All">All statuses</option>
+                            <option value="Draft">Draft</option>
+                            <option value="Submitted" selected="selected">Submitted</option>
+                            <option value="Pending For Approval">Pending For Approval</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Sent Back">Sent Back</option>
+                        </select>
+                    </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="button" class="btn btn-primary" onclick="pc_approvalBind()"><i class="fas fa-search" aria-hidden="true"></i>Search</button></div>
                 </div>
@@ -73,9 +76,9 @@
                         <label class="pc-label">Remark</label><textarea id="pc_apRemark" maxlength="1000" class="form-control"></textarea></div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-success" onclick="pc_approvalAction('Approve')">Approve</button>
-                    <button class="btn btn-danger" onclick="pc_approvalAction('Reject')">Reject</button>
-                    <button class="btn btn-warning" onclick="pc_approvalAction('SendBack')">Send Back</button></div>
+                    <button type="button" class="btn btn-success" onclick="pc_approvalAction('Approve')">Approve</button>
+                    <button type="button" class="btn btn-danger" onclick="pc_approvalAction('Reject')">Reject</button>
+                    <button type="button" class="btn btn-warning" onclick="pc_approvalAction('SendBack')">Send Back</button></div>
             </div>
         </div>
     </div>
@@ -105,5 +108,5 @@
         </div>
     </div>
     <div id="load1" style="display: none; position: fixed; z-index: 20000; left: 50%; top: 50%; transform: translate(-50%,-50%); background: #fff; padding: 14px 18px; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,.2)"><span class="spinner-border spinner-border-sm mr-2"></span>Processing...</div>
-    <script src="<%= ResolveUrl("~/Scripts/Functions/PettyCash.js?v=20261023-1") %>"></script>
+<script src="<%= ResolveUrl("~/Scripts/Functions/PettyCash.js?v=20261023-5") %>"></script>
 </asp:Content>

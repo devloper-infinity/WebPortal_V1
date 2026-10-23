@@ -1,6 +1,8 @@
 using DocumentFormat.OpenXml.VariantTypes;
 using DocumentFormat.OpenXml.Wordprocessing;
+using OpenXmlPowerTools;
 using System;
+//using System.Activities.Expressions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -12,6 +14,7 @@ using WebPortal.Admin;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
 using static WebPortal.Admin.ChildPages;
+using static WebPortal.Admin.ResponsibilityDelegation;
 using static WebPortal.App_Code.BLL.bllMaster;
 
 
@@ -19,7 +22,7 @@ namespace WebPortal.App_Code.BLL
 {
     public class bllMaster
     {
-        dalMaster dalMaster = new dalMaster();
+       dalMaster dalMaster = new dalMaster();
         private static readonly object PettyCashEmployeesCacheLock = new object();
         private const string PettyCashEmployeesCacheKey = "PettyCash.EmployeeDirectory";
 
@@ -3070,17 +3073,32 @@ namespace WebPortal.App_Code.BLL
 
         public DataTable SaveRequest(long requestId, long employeeId, long categoryId, long? subCategoryId, DateTime requestDate, DateTime requiredDate, string purpose, decimal amount, string priority, string remark, long userId, bool submit) { return dalMaster.ExecuteTable("usp_PettyCashRequest_Save", new SqlParameter("@RequestID", requestId), new SqlParameter("@EmployeeID", employeeId), new SqlParameter("@CategoryID", categoryId), new SqlParameter("@SubCategoryID", (object)subCategoryId ?? DBNull.Value), new SqlParameter("@RequestDate", requestDate), new SqlParameter("@RequiredDate", requiredDate), new SqlParameter("@Purpose", purpose), new SqlParameter("@RequestedAmount", amount), new SqlParameter("@Priority", (object)priority ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", userId), new SqlParameter("@Submit", submit)); }
 
+        private static string ApprovalStatusKey(string status)
+        {
+            string key = (status ?? string.Empty).Trim().ToLowerInvariant().Replace(" ", string.Empty).Replace("-", string.Empty);
+            return key == "pendingforapproval" ? "pendingapproval" : key;
+        }
+
         public DataTable GetApprovalRequests(string status)
         {
-            DataTable requests = GetRequests(null, status);
             string requestedStatus = (status ?? string.Empty).Trim();
+            if (requestedStatus.Length == 0) requestedStatus = "Submitted";
+            // Do not rely on the list procedure's @Status rewriting for the approval queue.
+            DataTable requests = dalMaster.ExecuteQueryTable(@"SELECT R.RequestID, R.RequestNo, R.RequestDate, R.EmployeeID,
+                    R.CategoryID, C.CategoryName, R.Purpose, R.RequestedAmount, R.ApprovedAmount,
+                    R.RequiredDate, R.Priority, R.Status, R.Remark
+                FROM dbo.PettyCashRequest AS R
+                INNER JOIN dbo.PettyCashCategory AS C ON C.CategoryID = R.CategoryID
+                ORDER BY R.RequestID DESC");
+            requests = AddEmployeeNames(requests);
             if (requests == null || requestedStatus.Length == 0 || requestedStatus.Equals("All", StringComparison.OrdinalIgnoreCase) || !requests.Columns.Contains("Status"))
                 return requests;
 
             DataTable filtered = requests.Clone();
+            string requestedStatusKey = ApprovalStatusKey(requestedStatus);
             foreach (DataRow request in requests.Rows)
             {
-                if (string.Equals(Convert.ToString(request["Status"]).Trim(), requestedStatus, StringComparison.OrdinalIgnoreCase))
+                if (ApprovalStatusKey(Convert.ToString(request["Status"])) == requestedStatusKey)
                     filtered.ImportRow(request);
             }
             return filtered;
@@ -3089,13 +3107,17 @@ namespace WebPortal.App_Code.BLL
         public DataTable ActionRequest(long id, string action, long user, decimal? amount, string remark)
         {
             if (id <= 0) throw new InvalidOperationException("Invalid request.");
+
             if (!string.Equals(action, "Approve", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(action, "Reject", StringComparison.OrdinalIgnoreCase) &&
                 !string.Equals(action, "SendBack", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Choose a valid approval action.");
+
             if (user <= 0) throw new InvalidOperationException("Your login session has expired. Please sign in again.");
+
             if (string.Equals(action, "Approve", StringComparison.OrdinalIgnoreCase) && (!amount.HasValue || amount.Value <= 0))
                 throw new InvalidOperationException("Approved amount must be greater than zero.");
+
             if ((string.Equals(action, "Reject", StringComparison.OrdinalIgnoreCase) || string.Equals(action, "SendBack", StringComparison.OrdinalIgnoreCase)) && string.IsNullOrWhiteSpace(remark))
                 throw new InvalidOperationException("A remark is required to reject or send back a request.");
 
@@ -3103,9 +3125,8 @@ namespace WebPortal.App_Code.BLL
             if (currentRequest == null || currentRequest.Rows.Count == 0)
                 throw new InvalidOperationException("The petty cash request could not be found.");
             string currentStatus = Convert.ToString(currentRequest.Rows[0]["Status"]).Trim();
-            if (!string.Equals(currentStatus, "Submitted", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(currentStatus, "Pending Approval", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(currentStatus, "Sent Back", StringComparison.OrdinalIgnoreCase))
+            string currentStatusKey = ApprovalStatusKey(currentStatus);
+            if (currentStatusKey != "submitted" && currentStatusKey != "pendingapproval" && currentStatusKey != "sentback")
                 throw new InvalidOperationException("Only submitted requests can be approved, rejected, or sent back.");
 
             return dalMaster.ExecuteTable("usp_PettyCashRequest_Action", new SqlParameter("@RequestID", id), new SqlParameter("@Action", action), new SqlParameter("@ApproverID", user), new SqlParameter("@ApprovalLevel", 1), new SqlParameter("@ApprovedAmount", (object)amount ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value));
@@ -3124,16 +3145,14 @@ namespace WebPortal.App_Code.BLL
 
         public DataTable GetExpenseOpenRequests(long user)
         {
-            DataTable requests = GetRequests(user, null);
-            if (requests == null || !requests.Columns.Contains("Status")) return requests;
-            DataTable openRequests = requests.Clone();
-            foreach (DataRow request in requests.Rows)
-            {
-                string status = Convert.ToString(request["Status"]);
-                if (status == "Cash Issued" || status == "Expense Submitted" || status == "Under Verification")
-                    openRequests.ImportRow(request);
-            }
-            return AddRequestDisplayText(openRequests);
+            // Expense processors need all issued requests, not only requests owned by their login.
+            // A request is eligible only after a payment row exists and its workflow is still open.
+            return dalMaster.ExecuteQueryTable(@"SELECT R.RequestID, R.RequestNo, R.EmployeeID,
+                    R.RequestNo + ' : ' + ISNULL(R.Purpose, '') AS DisplayText
+                FROM dbo.PettyCashRequest AS R
+                INNER JOIN dbo.PettyCashPayment AS P ON P.RequestID = R.RequestID
+                WHERE R.Status IN ('Cash Issued', 'Expense Submitted', 'Under Verification')
+                ORDER BY R.RequestID DESC");
         }
         public DataTable SaveExpense(long req, DateTime dt, long cat, long? sub, string vendor, string inv, string desc, decimal amt, decimal tax, string mode, string remark, long user) { return dalMaster.ExecuteTable("usp_PettyCashExpense_Save", new SqlParameter("@RequestID", req), new SqlParameter("@ExpenseDate", dt), new SqlParameter("@CategoryID", cat), new SqlParameter("@SubCategoryID", (object)sub ?? DBNull.Value), new SqlParameter("@VendorName", (object)vendor ?? DBNull.Value), new SqlParameter("@InvoiceNo", (object)inv ?? DBNull.Value), new SqlParameter("@Description", desc), new SqlParameter("@ExpenseAmount", amt), new SqlParameter("@TaxAmount", tax), new SqlParameter("@PaymentMode", (object)mode ?? DBNull.Value), new SqlParameter("@Remark", (object)remark ?? DBNull.Value), new SqlParameter("@UserID", user)); }
         public DataTable GetExpenses(long requestId)
@@ -3147,8 +3166,9 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.ExecuteQueryTable(@"SELECT R.RequestID,R.RequestNo,R.EmployeeID,R.RequestNo+' : '+R.Purpose AS DisplayText
                 FROM dbo.PettyCashRequest R INNER JOIN dbo.PettyCashPayment P ON P.RequestID=R.RequestID
                 LEFT JOIN dbo.PettyCashSettlement S ON S.RequestID=R.RequestID
-                WHERE R.EmployeeID=@EmployeeID AND S.SettlementID IS NULL AND R.Status IN ('Cash Issued','Expense Submitted')
-                ORDER BY R.RequestID DESC", new SqlParameter("@EmployeeID", employee));
+                 
+WHERE S.SettlementID IS NULL AND R.Status IN ('Cash Issued','Expense Submitted')
+                ORDER BY R.RequestID DESC", new SqlParameter("@EmployeeID", employee)); /*R.EmployeeID = @EmployeeID AND*/
         }
         public DataTable GetSettlementPreview(long id)
         {

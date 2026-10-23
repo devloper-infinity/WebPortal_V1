@@ -6866,6 +6866,19 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             }
         }
 
+
+        public DataTable GetPettyCashRequest_ForApproval(long? employeeId, string status)
+        {
+            //DataTable requests = dalMaster.ExecuteTable("usp_PettyCashRequest_List", new SqlParameter("@EmployeeID", (object)employeeId ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value));
+            //return AddEmployeeNames(requests);
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_PettyCashRequest_List");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, employeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, status);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+
         #endregion
     }
 }

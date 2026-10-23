@@ -1,62 +1,215 @@
-var pc_confirmCallback=null;
-function pc_page(){return (location.pathname.split('/').pop()||'').toLowerCase();}
-function pc_api(method,data,ok){$('#load1').show();$.ajax({type:'POST',url:(location.pathname.split('/').pop())+'/'+method,data:JSON.stringify(data||{}),contentType:'application/json; charset=utf-8',dataType:'json',success:function(r){$('#load1').hide();var a=[];try{a=JSON.parse(r.d||'[]');}catch(e){}if(ok)ok(a);},error:function(x){$('#load1').hide();pc_showMessage('Error',pc_error(x));}});}
-function pc_error(x){try{var o=JSON.parse(x.responseText);return o.Message||o.ExceptionType||'Unable to process request.';}catch(e){return 'Unable to process request.';}}
-function pc_showMessage(title,message){$('#pcMessageTitle').text(title||'Message');$('#pcMessageBody').text(message||'');$('#pcMessageModal').modal('show');}
-function pc_showConfirm(title,message,callback){$('#pcConfirmTitle').text(title||'Confirmation');$('#pcConfirmMessage').text(message||'');pc_confirmCallback=callback;$('#pcConfirmModal').modal('show');}
-$(document).on('click','#pcConfirmYes',function(){$('#pcConfirmModal').modal('hide');var cb=pc_confirmCallback;pc_confirmCallback=null;if(typeof cb==='function')cb();});
-function pc_today(){var d=new Date(),m=('0'+(d.getMonth()+1)).slice(-2),day=('0'+d.getDate()).slice(-2);return d.getFullYear()+'-'+m+'-'+day;}
-function pc_dt(sel,data,cols){if(!$.fn.DataTable)return;$(sel).DataTable({destroy:true,data:data||[],scrollX:true,ordering:false,pageLength:35,autoWidth:false,columns:cols});}
-function pc_money(v){return Number(v||0).toFixed(2);}
-function pc_date(v){if(v==null||v==='')return '';var s=String(v),m=/^\/Date\((-?\d+)(?:[+-]\d+)?\)\/$/.exec(s),d;if(m){d=new Date(Number(m[1]));if(isNaN(d.getTime()))return '';return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}m=/^(\d{4}-\d{2}-\d{2})/.exec(s);return m?m[1]:s;}
-function pc_datetime(v){if(v==null||v==='')return '';var s=String(v),m=/^\/Date\((-?\d+)(?:[+-]\d+)?\)\/$/.exec(s),d;if(m){d=new Date(Number(m[1]));if(isNaN(d.getTime()))return '';return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)+':'+('0'+d.getSeconds()).slice(-2);}return s.replace('T',' ').substring(0,19);}
-function pc_html(v){return $('<div/>').text(v==null?'':v).html();}
-function pc_statusBadge(v){var text=$.trim(String(v==null?'':v)),key=text.toLowerCase(),tone='';if(/reject|inactive|deactivat|cancel/.test(key))tone='danger';else if(/draft|sent back|pending|submitted/.test(key))tone='warning';else if(/active|approv|closed|issued|paid/.test(key))tone='success';return '<span class="pc-status'+(tone?' pc-status-'+tone:'')+'">'+pc_html(text||'Unknown')+'</span>';}
-function pc_fillSelect(sel,data,value,text,first){var $s=$(sel).empty().append($('<option/>').val('').text(first||'Select'));$.each(data||[],function(_,x){$s.append($('<option/>').val(x[value]).text(x[text]));});}
+var pc_confirmCallback = null;
+function pc_page() { return (location.pathname.split('/').pop() || '').toLowerCase(); }
+function pc_api(method, data, ok) { $('#load1').show(); $.ajax({ type: 'POST', url: (location.pathname.split('/').pop()) + '/' + method, data: JSON.stringify(data || {}), contentType: 'application/json; charset=utf-8', dataType: 'json', success: function (r) { $('#load1').hide(); var a = []; try { a = JSON.parse(r.d || '[]'); } catch (e) { } if (ok) ok(a); }, error: function (x) { $('#load1').hide(); pc_showMessage('Error', pc_error(x)); } }); }
+function pc_error(x) { try { var o = JSON.parse(x.responseText); return o.Message || o.ExceptionType || 'Unable to process request.'; } catch (e) { return 'Unable to process request.'; } }
+function pc_showMessage(title, message) { $('#pcMessageTitle').text(title || 'Message'); $('#pcMessageBody').text(message || ''); $('#pcMessageModal').modal('show'); }
+function pc_showConfirm(title, message, callback) { $('#pcConfirmTitle').text(title || 'Confirmation'); $('#pcConfirmMessage').text(message || ''); pc_confirmCallback = callback; $('#pcConfirmModal').modal('show'); }
+$(document).on('click', '#pcConfirmYes', function () { $('#pcConfirmModal').modal('hide'); var cb = pc_confirmCallback; pc_confirmCallback = null; if (typeof cb === 'function') cb(); });
+function pc_today() { var d = new Date(), m = ('0' + (d.getMonth() + 1)).slice(-2), day = ('0' + d.getDate()).slice(-2); return d.getFullYear() + '-' + m + '-' + day; }
+function pc_dt(sel, data, cols) { if (!$.fn.DataTable) return; $(sel).DataTable({ destroy: true, data: data || [], scrollX: true, ordering: false, pageLength: 35, autoWidth: false, columns: cols }); }
+function pc_money(v) { return Number(v || 0).toFixed(2); }
+function pc_date(v) { if (v == null || v === '') return ''; var s = String(v), m = /^\/Date\((-?\d+)(?:[+-]\d+)?\)\/$/.exec(s), d; if (m) { d = new Date(Number(m[1])); if (isNaN(d.getTime())) return ''; return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); } m = /^(\d{4}-\d{2}-\d{2})/.exec(s); return m ? m[1] : s; }
+function pc_datetime(v) { if (v == null || v === '') return ''; var s = String(v), m = /^\/Date\((-?\d+)(?:[+-]\d+)?\)\/$/.exec(s), d; if (m) { d = new Date(Number(m[1])); if (isNaN(d.getTime())) return ''; return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2); } return s.replace('T', ' ').substring(0, 19); }
+function pc_html(v) { return $('<div/>').text(v == null ? '' : v).html(); }
+function pc_statusBadge(v) { var text = $.trim(String(v == null ? '' : v)), key = text.toLowerCase(), tone = ''; if (/reject|inactive|deactivat|cancel/.test(key)) tone = 'danger'; else if (/draft|sent back|pending|submitted/.test(key)) tone = 'warning'; else if (/active|approv|closed|issued|paid/.test(key)) tone = 'success'; return '<span class="pc-status' + (tone ? ' pc-status-' + tone : '') + '">' + pc_html(text || 'Unknown') + '</span>'; }
+function pc_fillSelect(sel, data, value, text, first) { var $s = $(sel).empty().append($('<option/>').val('').text(first || 'Select')); $.each(data || [], function (_, x) { $s.append($('<option/>').val(x[value]).text(x[text])); }); }
 
 // Category
-function pc_categoryBind(){pc_api('GetCategories',{},function(a){pc_dt('#pc_CategoryTable',a,[{data:'CategoryName'},{data:'Description',defaultContent:''},{data:'IsActive',render:function(v){var active=v===true||v==='True'||v===1;return '<span class="pc-status'+(active?'':' inactive')+'">'+(active?'Active':'Inactive')+'</span>'; }},{data:null,render:function(_,__,r){return '<button type="button" class="btn pc-edit-btn" onclick=\'pc_categoryEdit('+JSON.stringify(r).replace(/'/g,'&#39;')+')\'><i class="fas fa-pen" aria-hidden="true"></i><span>Edit</span></button>';}}]);});}
-function pc_categoryEdit(r){var active=r.IsActive===true||r.IsActive==='True'||r.IsActive===1;$('#pc_catId').val(r.CategoryID);$('#pc_catName').val(r.CategoryName);$('#pc_catDescription').val(r.Description||'');$('#pc_catActive').val(String(active));}
-function pc_categoryClear(){$('#pc_catId').val(0);$('#pc_catName,#pc_catDescription').val('');$('#pc_catActive').val('true');}
-function pc_categorySave(){var n=$.trim($('#pc_catName').val());if(!n){pc_showMessage('Validation','Category name is mandatory.');return;}pc_api('SaveCategory',{categoryId:Number($('#pc_catId').val()||0),categoryName:n,description:$.trim($('#pc_catDescription').val()),isActive:$('#pc_catActive').val()==='true'},function(){pc_showMessage('Success','Category saved successfully.');pc_categoryClear();pc_categoryBind();});}
+function pc_categoryBind() { pc_api('GetCategories', {}, function (a) { pc_dt('#pc_CategoryTable', a, [{ data: 'CategoryName' }, { data: 'Description', defaultContent: '' }, { data: 'IsActive', render: function (v) { var active = v === true || v === 'True' || v === 1; return '<span class="pc-status' + (active ? '' : ' inactive') + '">' + (active ? 'Active' : 'Inactive') + '</span>'; } }, { data: null, render: function (_, __, r) { return '<button type="button" class="btn pc-edit-btn" onclick=\'pc_categoryEdit(' + JSON.stringify(r).replace(/'/g, '&#39;') + ')\'><i class="fas fa-pen" aria-hidden="true"></i><span>Edit</span></button>'; } }]); }); }
+function pc_categoryEdit(r) { var active = r.IsActive === true || r.IsActive === 'True' || r.IsActive === 1; $('#pc_catId').val(r.CategoryID); $('#pc_catName').val(r.CategoryName); $('#pc_catDescription').val(r.Description || ''); $('#pc_catActive').val(String(active)); }
+function pc_categoryClear() { $('#pc_catId').val(0); $('#pc_catName,#pc_catDescription').val(''); $('#pc_catActive').val('true'); }
+function pc_categorySave() { var n = $.trim($('#pc_catName').val()); if (!n) { pc_showMessage('Validation', 'Category name is mandatory.'); return; } pc_api('SaveCategory', { categoryId: Number($('#pc_catId').val() || 0), categoryName: n, description: $.trim($('#pc_catDescription').val()), isActive: $('#pc_catActive').val() === 'true' }, function () { pc_showMessage('Success', 'Category saved successfully.'); pc_categoryClear(); pc_categoryBind(); }); }
 
 // Request
-function pc_requestValidate(){if(!$('#pc_Employee').val()){pc_showMessage('Validation','Please select Employee.');return false;}if(!$('#pc_Category').val()){pc_showMessage('Validation','Please select Category.');return false;}if(!$('#pc_RequestDate').val()||!$('#pc_RequiredDate').val()){pc_showMessage('Validation','Request Date and Required Date are mandatory.');return false;}if($('#pc_RequiredDate').val()<$('#pc_RequestDate').val()){pc_showMessage('Validation','Required Date cannot be before Request Date.');return false;}if(!$.trim($('#pc_Purpose').val())){pc_showMessage('Validation','Purpose is mandatory.');return false;}if(Number($('#pc_Amount').val())<=0){pc_showMessage('Validation','Amount must be greater than zero.');return false;}return true;}
-function pc_requestConfirmSubmit(){if(!pc_requestValidate())return;pc_showConfirm('Submit Request','Are you sure you want to submit this petty cash request?',function(){pc_requestSave(true);});}
-function pc_requestSave(submit){if(!pc_requestValidate())return;pc_api('SaveRequest',{requestId:Number($('#pc_RequestID').val()||0),employeeId:Number($('#pc_Employee').val()),categoryId:Number($('#pc_Category').val()),requestDate:$('#pc_RequestDate').val(),requiredDate:$('#pc_RequiredDate').val(),purpose:$.trim($('#pc_Purpose').val()),amount:Number($('#pc_Amount').val()),priority:$('#pc_Priority').val(),remark:$.trim($('#pc_Remark').val()),submit:!!submit},function(){pc_requestClear();pc_requestBind();pc_showMessage('Success',submit?'Request submitted successfully.':'Draft saved successfully.');});}
-function pc_requestClear(){$('#pc_RequestID').val(0);$('#pc_Employee,#pc_Category,#pc_Priority').val('');$('#pc_RequestDate,#pc_RequiredDate,#pc_Amount,#pc_Purpose,#pc_Remark').val('');}
-function pc_requestEdit(r){if(r.Status!=='Draft'&&r.Status!=='Sent Back'){pc_showMessage('Information','Only Draft or Sent Back requests can be edited.');return;}$('#pc_RequestID').val(r.RequestID);$('#pc_Employee').val(r.EmployeeID);$('#pc_Category').val(r.CategoryID);$('#pc_RequestDate').val(pc_date(r.RequestDate));$('#pc_RequiredDate').val(pc_date(r.RequiredDate));$('#pc_Purpose').val(r.Purpose);$('#pc_Amount').val(r.RequestedAmount);$('#pc_Priority').val(r.Priority||'Normal');$('#pc_Remark').val(r.Remark||'');window.scrollTo(0,0);}
-function pc_requestBind(){pc_api('GetRequests',{},function(a){pc_dt('#pc_RequestTable',a,[{data:'RequestNo'},{data:'RequestDate',render:pc_date},{data:'EmployeeName'},{data:'CategoryName'},{data:'Purpose'},{data:'RequestedAmount',render:pc_money},{data:'Status',render:pc_statusBadge},{data:null,render:function(_,__,r){return '<button class="btn btn-sm btn-primary" onclick=\'pc_requestEdit('+JSON.stringify(r).replace(/'/g,'&#39;')+')\'>Edit</button>';}}]);});}
-function pc_requestInit(){pc_api('GetEmployees',{},function(a){pc_fillSelect('#pc_Employee',a,'EmployeeID','EmployeeName');});pc_api('GetCategories',{},function(a){pc_fillSelect('#pc_Category',a,'CategoryID','CategoryName');});$('#pc_RequestDate,#pc_RequiredDate').val(pc_today());pc_requestBind();}
+function pc_requestValidate() { if (!$('#pc_Employee').val()) { pc_showMessage('Validation', 'Please select Employee.'); return false; } if (!$('#pc_Category').val()) { pc_showMessage('Validation', 'Please select Category.'); return false; } if (!$('#pc_RequestDate').val() || !$('#pc_RequiredDate').val()) { pc_showMessage('Validation', 'Request Date and Required Date are mandatory.'); return false; } if ($('#pc_RequiredDate').val() < $('#pc_RequestDate').val()) { pc_showMessage('Validation', 'Required Date cannot be before Request Date.'); return false; } if (!$.trim($('#pc_Purpose').val())) { pc_showMessage('Validation', 'Purpose is mandatory.'); return false; } if (Number($('#pc_Amount').val()) <= 0) { pc_showMessage('Validation', 'Amount must be greater than zero.'); return false; } return true; }
+function pc_requestConfirmSubmit() { if (!pc_requestValidate()) return; pc_showConfirm('Submit Request', 'Are you sure you want to submit this petty cash request?', function () { pc_requestSave(true); }); }
+function pc_requestSave(submit) { if (!pc_requestValidate()) return; pc_api('SaveRequest', { requestId: Number($('#pc_RequestID').val() || 0), employeeId: Number($('#pc_Employee').val()), categoryId: Number($('#pc_Category').val()), requestDate: $('#pc_RequestDate').val(), requiredDate: $('#pc_RequiredDate').val(), purpose: $.trim($('#pc_Purpose').val()), amount: Number($('#pc_Amount').val()), priority: $('#pc_Priority').val(), remark: $.trim($('#pc_Remark').val()), submit: !!submit }, function () { pc_requestClear(); pc_requestBind(); pc_showMessage('Success', submit ? 'Request submitted successfully.' : 'Draft saved successfully.'); }); }
+function pc_requestClear() { $('#pc_RequestID').val(0); $('#pc_Employee,#pc_Category,#pc_Priority').val(''); $('#pc_RequestDate,#pc_RequiredDate,#pc_Amount,#pc_Purpose,#pc_Remark').val(''); }
+function pc_requestEdit(r) {
+    var status = $.trim(String(r.Status || '')).toLowerCase();
+    if (status !== 'draft' && status !== 'sent back') {
+        pc_showMessage('Information', 'Only Draft or Sent Back requests can be edited.'); return;
+    }
+    var $category = $('#pc_Category'), categoryId = r.CategoryID;
+    if (!categoryId && r.CategoryName) {
+        var categoryName = $.trim(String(r.CategoryName)).toLowerCase();
+        $category.find('option').each(function () {
+            if ($.trim($(this).text()).toLowerCase() === categoryName) { categoryId = $(this).val(); return false; }
+        });
+    }
+    $('#pc_RequestID').val(r.RequestID);
+    $('#pc_Employee').val(r.EmployeeID);
+    $category.val(categoryId || '');
+    $('#pc_RequestDate').val(pc_date(r.RequestDate));
+    $('#pc_RequiredDate').val(pc_date(r.RequiredDate));
+    $('#pc_Purpose').val(r.Purpose || '');
+    $('#pc_Amount').val(r.RequestedAmount);
+    $('#pc_Priority').val(r.Priority || 'Normal');
+    $('#pc_Remark').val(r.Remark || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function pc_requestBind() {
+    pc_api('GetRequests', {},
+        function (a) {
+            pc_dt('#pc_RequestTable', a, [{ data: 'RequestNo' }, { data: 'RequestDate', render: pc_date }, { data: 'EmployeeName' }, { data: 'CategoryName' }, { data: 'Purpose' }, { data: 'RequestedAmount', render: pc_money }, { data: 'Status', render: pc_statusBadge }, { data: null, render: function (_, __, r) { var status = $.trim(String(r.Status || '')).toLowerCase(); return status === 'draft' || status === 'sent back' ? '<button type="button" class="btn btn-sm btn-primary" onclick=\'pc_requestEdit(' + JSON.stringify(r).replace(/'/g, '&#39;') + ')\'>Edit</button>' : '<span class="text-muted small">Locked after submission</span>'; } }]);
+        });
+}
+
+function pc_requestInit() {
+    pc_api('GetEmployees',
+        {},
+        function (a) {
+            pc_fillSelect('#pc_Employee', a, 'EmployeeID', 'EmployeeName');
+        }); pc_api('GetCategories', {}, function (a) {
+            pc_fillSelect('#pc_Category', a, 'CategoryID', 'CategoryName');
+        }); $('#pc_RequestDate,#pc_RequiredDate').val(pc_today());
+    pc_requestBind();
+}
 
 // Approval
-function pc_approvalBind(){pc_api('GetApprovalRequests',{status:$('#pc_apStatus').val()||''},function(a){pc_dt('#pc_ApprovalTable',a,[{data:'RequestNo'},{data:'RequestDate',render:pc_date},{data:'EmployeeName'},{data:'CategoryName'},{data:'Purpose'},{data:'RequestedAmount',render:pc_money},{data:'Status',render:pc_statusBadge},{data:null,render:function(_,__,r){var s=$.trim(r.Status||'').toLowerCase();if(s==='submitted'||s==='pending approval'||s==='sent back')return '<button type="button" class="btn btn-sm btn-primary" onclick=\'pc_approvalOpen('+JSON.stringify(r).replace(/'/g,'&#39;')+')\'>Review</button>';if(s==='draft')return '<span class="text-muted small">Awaiting submission</span>';return '<span class="text-muted">—</span>';}}]);});}
-function pc_approvalOpen(r){$('#pc_apRequestId').val(r.RequestID);$('#pc_apRequestNo').val(r.RequestNo);$('#pc_apRequestedAmount').val(r.RequestedAmount);$('#pc_apApprovedAmount').val(r.RequestedAmount);$('#pc_apRemark').val('');$('#pcApprovalModal').modal('show');}
-function pc_approvalAction(action){var req=Number($('#pc_apRequestId').val()),amt=Number($('#pc_apApprovedAmount').val()||0),rem=$.trim($('#pc_apRemark').val());if(!req){pc_showMessage('Validation','Select a request to review.');return;}if(action==='Approve'&&amt<=0){pc_showMessage('Validation','Approved Amount must be greater than zero.');return;}if((action==='Reject'||action==='SendBack')&&!rem){pc_showMessage('Validation','Remark is mandatory for '+action+'.');return;}pc_showConfirm(action+' Request','Are you sure you want to '+action.toLowerCase()+' this request?',function(){pc_api('ActionRequest',{requestId:req,action:action,approvedAmount:action==='Approve'?amt:null,remark:rem},function(){$('#pcApprovalModal').modal('hide');pc_showMessage('Success','Request updated successfully.');pc_approvalBind();});});}
+function pc_approvalBind() {
+    var selectedStatus = $('#pc_apStatus').val() || 'Submitted';
+    pc_api('GetApprovalRequests',
+        { status: selectedStatus },
+        function (a) {
+            pc_dt('#pc_ApprovalTable', a, [
+                { data: 'RequestNo' },
+                {
+                    data: 'RequestDate', render: pc_date
+                },
+                { data: 'EmployeeName' },
+                { data: 'CategoryName' },
+                { data: 'Purpose' },
+                { data: 'RequestedAmount', render: pc_money },
+                { data: 'Status', render: pc_statusBadge },
+                {
+                    data: null, render: function (_, __, r) {
+
+                        var s = $.trim(r.Status || '').toLowerCase().replace(/[- ]/g, '');
+                        if (s === 'submitted' || s === 'pendingapproval' || s === 'pendingforapproval' || s === 'sentback')
+                            return '<button type="button" class="btn btn-sm btn-primary" onclick=\'pc_approvalOpen(' + JSON.stringify(r).replace(/'/g, '&#39;') + ')\'>Review</button>';
+                        if (s === 'draft') return '<span class="text-muted small">Awaiting submission</span>';
+                        return '<span class="text-muted">—</span>';
+                    }
+                }]);
+        });
+}
+
+function pc_approvalOpen(r) { $('#pc_apRequestId').val(r.RequestID); $('#pc_apRequestNo').val(r.RequestNo); $('#pc_apRequestedAmount').val(r.RequestedAmount); $('#pc_apApprovedAmount').val(r.RequestedAmount); $('#pc_apRemark').val(''); $('#pcApprovalModal').modal('show'); }
+function pc_approvalAction(action) { var req = Number($('#pc_apRequestId').val()), amt = Number($('#pc_apApprovedAmount').val() || 0), rem = $.trim($('#pc_apRemark').val()); if (!req) { pc_showMessage('Validation', 'Select a request to review.'); return; } if (action === 'Approve' && amt <= 0) { pc_showMessage('Validation', 'Approved Amount must be greater than zero.'); return; } if ((action === 'Reject' || action === 'SendBack') && !rem) { pc_showMessage('Validation', 'Remark is mandatory for ' + action + '.'); return; } pc_showConfirm(action + ' Request', 'Are you sure you want to ' + action.toLowerCase() + ' this request?', function () { pc_api('ActionRequest', { requestId: req, action: action, approvedAmount: action === 'Approve' ? amt : null, remark: rem }, function () { $('#pcApprovalModal').modal('hide'); pc_showMessage('Success', 'Request updated successfully.'); pc_approvalBind(); }); }); }
 
 // Payment
-function pc_paymentInit(){pc_api('GetApprovedRequests',{},function(a){pc_fillSelect('#pc_payRequest',a,'RequestID','DisplayText');$('#pc_payRequest').data('rows',a);});pc_api('GetEmployees',{},function(a){pc_fillSelect('#pc_payReceiver',a,'EmployeeID','EmployeeName');});$('#pc_payDate').val(pc_today());pc_paymentBind();}
-$(document).on('change','#pc_payRequest',function(){var id=Number($(this).val()),rows=$(this).data('rows')||[],r=rows.filter(function(x){return Number(x.RequestID)===id;})[0];$('#pc_payApproved').val(r?pc_money(r.ApprovedAmount):'');if(r){$('#pc_payAmount').val(r.ApprovedAmount);$('#pc_payReceiver').val(r.EmployeeID);}});
-function pc_paymentConfirm(){var mode=$('#pc_payMode').val();if(!$('#pc_payRequest').val()||!$('#pc_payDate').val()||Number($('#pc_payAmount').val())<=0||!$('#pc_payReceiver').val()){pc_showMessage('Validation','Request, Payment Date, Amount and Receiver are mandatory.');return;}if(mode!=='Cash'&&!$.trim($('#pc_payReference').val())){pc_showMessage('Validation','Reference No is mandatory for non-cash payment.');return;}pc_showConfirm('Issue Payment','Are you sure you want to issue this payment?',pc_paymentSave);}
-function pc_paymentSave(){pc_api('IssuePayment',{requestId:Number($('#pc_payRequest').val()),paymentDate:$('#pc_payDate').val(),paymentMode:$('#pc_payMode').val(),referenceNo:$.trim($('#pc_payReference').val()),amountPaid:Number($('#pc_payAmount').val()),receiverId:Number($('#pc_payReceiver').val()),remark:$.trim($('#pc_payRemark').val())},function(){pc_showMessage('Success','Payment issued successfully.');pc_paymentInit();});}
-function pc_paymentBind(){pc_api('GetPayments',{},function(a){pc_dt('#pc_PaymentTable',a,[{data:'PaymentNo'},{data:'RequestNo'},{data:'PaymentDate',render:pc_date},{data:'EmployeeName'},{data:'PaymentMode'},{data:'ReferenceNo',defaultContent:''},{data:'AmountPaid',render:pc_money}]);});}
+function pc_paymentInit() { pc_api('GetApprovedRequests', {}, function (a) { pc_fillSelect('#pc_payRequest', a, 'RequestID', 'DisplayText'); $('#pc_payRequest').data('rows', a); }); pc_api('GetEmployees', {}, function (a) { pc_fillSelect('#pc_payReceiver', a, 'EmployeeID', 'EmployeeName'); }); $('#pc_payDate').val(pc_today()); pc_paymentBind(); }
+$(document).on('change', '#pc_payRequest', function () { var id = Number($(this).val()), rows = $(this).data('rows') || [], r = rows.filter(function (x) { return Number(x.RequestID) === id; })[0]; $('#pc_payApproved').val(r ? pc_money(r.ApprovedAmount) : ''); if (r) { $('#pc_payAmount').val(r.ApprovedAmount); $('#pc_payReceiver').val(r.EmployeeID); } });
+function pc_paymentConfirm() { var mode = $('#pc_payMode').val(); if (!$('#pc_payRequest').val() || !$('#pc_payDate').val() || Number($('#pc_payAmount').val()) <= 0 || !$('#pc_payReceiver').val()) { pc_showMessage('Validation', 'Request, Payment Date, Amount and Receiver are mandatory.'); return; } if (mode !== 'Cash' && !$.trim($('#pc_payReference').val())) { pc_showMessage('Validation', 'Reference No is mandatory for non-cash payment.'); return; } pc_showConfirm('Issue Payment', 'Are you sure you want to issue this payment?', pc_paymentSave); }
+function pc_paymentClear() {
+    $('#pc_payRequest,#pc_payReceiver').val('');
+    $('#pc_payApproved,#pc_payDate,#pc_payAmount,#pc_payReference,#pc_payRemark').val('');
+    $('#pc_payMode').prop('selectedIndex', 0);
+}
+function pc_paymentSave() { pc_api('IssuePayment', { requestId: Number($('#pc_payRequest').val()), paymentDate: $('#pc_payDate').val(), paymentMode: $('#pc_payMode').val(), referenceNo: $.trim($('#pc_payReference').val()), amountPaid: Number($('#pc_payAmount').val()), receiverId: Number($('#pc_payReceiver').val()), remark: $.trim($('#pc_payRemark').val()) }, function () { pc_paymentInit(); pc_paymentClear(); pc_showMessage('Success', 'Payment issued successfully.'); }); }
+function pc_paymentBind() { pc_api('GetPayments', {}, function (a) { pc_dt('#pc_PaymentTable', a, [{ data: 'PaymentNo' }, { data: 'RequestNo' }, { data: 'PaymentDate', render: pc_date }, { data: 'EmployeeName' }, { data: 'PaymentMode' }, { data: 'ReferenceNo', defaultContent: '' }, { data: 'AmountPaid', render: pc_money }]); }); }
 
 // Expense
-function pc_expenseInit(){pc_api('GetOpenRequests',{},function(a){pc_fillSelect('#pc_expRequest',a,'RequestID','DisplayText');});pc_api('GetCategories',{},function(a){pc_fillSelect('#pc_expCategory',a,'CategoryID','CategoryName');});$('#pc_expDate').val(pc_today());}
-$(document).on('change','#pc_expRequest',function(){pc_expenseBind();});
-function pc_expenseSave(){if(!$('#pc_expRequest').val()||!$('#pc_expDate').val()||!$('#pc_expCategory').val()||!$.trim($('#pc_expDescription').val())||Number($('#pc_expAmount').val())<=0){pc_showMessage('Validation','Request, Expense Date, Category, Description and Expense Amount are mandatory.');return;}pc_api('SaveExpense',{requestId:Number($('#pc_expRequest').val()),expenseDate:$('#pc_expDate').val(),categoryId:Number($('#pc_expCategory').val()),vendorName:$.trim($('#pc_expVendor').val()),invoiceNo:$.trim($('#pc_expInvoice').val()),description:$.trim($('#pc_expDescription').val()),expenseAmount:Number($('#pc_expAmount').val()),taxAmount:Number($('#pc_expTax').val()||0),paymentMode:$('#pc_expMode').val(),remark:$.trim($('#pc_expRemark').val())},function(){pc_showMessage('Success','Expense saved successfully.');$('#pc_expVendor,#pc_expInvoice,#pc_expDescription,#pc_expAmount,#pc_expRemark').val('');$('#pc_expTax').val(0);pc_expenseBind();});}
-function pc_expenseBind(){var id=Number($('#pc_expRequest').val()||0);if(!id){pc_dt('#pc_ExpenseTable',[],[]);return;}pc_api('GetExpenses',{requestId:id},function(a){pc_dt('#pc_ExpenseTable',a,[{data:'ExpenseDate',render:pc_date},{data:'RequestNo'},{data:'VendorName',defaultContent:''},{data:'InvoiceNo',defaultContent:''},{data:'Description'},{data:'ExpenseAmount',render:pc_money},{data:'TaxAmount',render:pc_money},{data:'VerificationStatus',render:pc_statusBadge}]);});}
+function pc_expenseInit() {
+    pc_api('GetOpenRequests', {}, function (a) {
+        pc_fillSelect('#pc_expRequest', a, 'RequestID', 'DisplayText');
+    }); pc_api('GetCategories', {}, function (a) { pc_fillSelect('#pc_expCategory', a, 'CategoryID', 'CategoryName'); });
+    $('#pc_expDate').val(pc_today());
+}
+
+$(document).on('change', '#pc_expRequest', function () {
+    pc_expenseBind();
+});
+
+function pc_expenseSave() {
+    if (!$('#pc_expRequest').val() || !$('#pc_expDate').val() || !$('#pc_expCategory').val() || !$.trim($('#pc_expDescription').val()) || Number($('#pc_expAmount').val()) <= 0) {
+        pc_showMessage('Validation', 'Request, Expense Date, Category, Description and Expense Amount are mandatory.');
+        return;
+    }
+    var savedRequestId = Number($('#pc_expRequest').val());
+    pc_api('SaveExpense',
+        {
+            requestId: savedRequestId, expenseDate: $('#pc_expDate').val(), categoryId: Number($('#pc_expCategory').val()), vendorName: $.trim($('#pc_expVendor').val()), invoiceNo: $.trim($('#pc_expInvoice').val()), description: $.trim($('#pc_expDescription').val()), expenseAmount: Number($('#pc_expAmount').val()), taxAmount: Number($('#pc_expTax').val() || 0), paymentMode: $('#pc_expMode').val(), remark: $.trim($('#pc_expRemark').val())
+        },
+        function () {
+            $('#pc_expRequest').val(savedRequestId);
+            $('#pc_expVendor,#pc_expInvoice,#pc_expDescription,#pc_expAmount,#pc_expRemark').val('');
+            $('#pc_expTax').val(0);
+            pc_expenseBind(savedRequestId);
+            pc_showMessage('Success', 'Expense saved successfully.');
+        });
+}
+function pc_expenseBind(requestId) {
+    var id = Number(requestId || $('#pc_expRequest').val() || 0); if (!id) {
+
+        pc_dt('#pc_ExpenseTable', [], []); return;
+    }
+    pc_api('GetExpenses',
+        { requestId: id },
+        function (a) {
+            pc_dt('#pc_ExpenseTable', a, [
+                { data: 'ExpenseDate', render: pc_date },
+                { data: 'RequestNo' },
+                { data: 'VendorName', defaultContent: '' },
+                { data: 'InvoiceNo', defaultContent: '' }, { data: 'Description' }, { data: 'ExpenseAmount', render: pc_money }, { data: 'TaxAmount', render: pc_money }, { data: 'VerificationStatus', render: pc_statusBadge }]);
+        });
+}
 
 // Settlement
-function pc_settlementInit(){pc_api('GetSettlementRequests',{},function(a){pc_fillSelect('#pc_setRequest',a,'RequestID','DisplayText');});$('#pc_setDate').val(pc_today());pc_settlementBind();}
-$(document).on('change','#pc_setRequest',function(){var id=Number($(this).val()||0);if(!id){$('#pc_setPaid,#pc_setExpense,#pc_setRefund,#pc_setReimburse').val('');return;}pc_api('GetSettlementPreview',{requestId:id},function(a){var r=a[0]||{};$('#pc_setPaid').val(pc_money(r.PaidAmount));$('#pc_setExpense').val(pc_money(r.TotalExpense));$('#pc_setRefund').val(pc_money(r.RefundAmount));$('#pc_setReimburse').val(pc_money(r.ReimbursementAmount));});});
-function pc_settlementConfirm(){if(!$('#pc_setRequest').val()||!$('#pc_setDate').val()){pc_showMessage('Validation','Request and Settlement Date are mandatory.');return;}pc_showConfirm('Submit Settlement','Are you sure you want to submit settlement?',function(){pc_api('SubmitSettlement',{requestId:Number($('#pc_setRequest').val()),settlementDate:$('#pc_setDate').val(),remark:$.trim($('#pc_setRemark').val())},function(){pc_showMessage('Success','Settlement submitted successfully.');pc_settlementInit();});});}
-function pc_settlementBind(){pc_api('GetSettlements',{},function(a){pc_dt('#pc_SettlementTable',a,[{data:'RequestNo'},{data:'EmployeeName'},{data:'PaidAmount',render:pc_money},{data:'TotalExpense',render:pc_money},{data:'RefundAmount',render:pc_money},{data:'ReimbursementAmount',render:pc_money},{data:'SettlementDate',render:pc_date},{data:'Status',render:pc_statusBadge}]);});}
+function pc_settlementInit() {
+    pc_api('GetSettlementRequests', {},
+        function (a) {
+            pc_fillSelect('#pc_setRequest', a, 'RequestID', 'DisplayText');
+        });
+    $('#pc_setDate').val(pc_today());
+    pc_settlementBind();
+}
+
+$(document).on('change', '#pc_setRequest', function () {
+    var id = Number($(this).val() || 0); if (!id) {
+        $('#pc_setPaid,#pc_setExpense,#pc_setRefund,#pc_setReimburse').val('');
+        return;
+    }
+    pc_api('GetSettlementPreview',
+        { requestId: id }, function (a) {
+            var r = a[0] || {}; $('#pc_setPaid').val(pc_money(r.PaidAmount)); $('#pc_setExpense').val(pc_money(r.TotalExpense)); $('#pc_setRefund').val(pc_money(r.RefundAmount)); $('#pc_setReimburse').val(pc_money(r.ReimbursementAmount));
+        });
+});
+
+function pc_settlementConfirm() {
+    if (!$('#pc_setRequest').val() || !$('#pc_setDate').val()) { pc_showMessage('Validation', 'Request and Settlement Date are mandatory.'); return; }
+    pc_showConfirm('Submit Settlement', 'Are you sure you want to submit settlement?', function () {
+        pc_api('SubmitSettlement', {
+            requestId: Number($('#pc_setRequest').val()),
+            settlementDate: $('#pc_setDate').val(),
+            remark: $.trim($('#pc_setRemark').val())
+        }, function () {
+            $('#pc_setRequest').val('');
+            $('#pc_setPaid,#pc_setExpense,#pc_setRefund,#pc_setReimburse,#pc_setRemark').val('');
+            $('#pc_setDate').val(pc_today());
+            pc_settlementBind();
+            pc_api('GetSettlementRequests', {}, function (a) {
+                pc_fillSelect('#pc_setRequest', a, 'RequestID', 'DisplayText');
+            });
+            pc_showMessage('Success', 'Settlement submitted successfully.');
+        });
+    });
+}
+
+function pc_settlementBind() {
+    pc_api('GetSettlements', {},
+        function (a) {
+            pc_dt('#pc_SettlementTable', a, [
+                { data: 'RequestNo' }, { data: 'EmployeeName' }, { data: 'PaidAmount', render: pc_money }, { data: 'TotalExpense', render: pc_money }, { data: 'RefundAmount', render: pc_money }, { data: 'ReimbursementAmount', render: pc_money }, { data: 'SettlementDate', render: pc_date }, { data: 'Status', render: pc_statusBadge }]);
+        });
+}
 
 // Ledger/report/dashboard
-function pc_ledgerBind(){pc_api('GetLedger',{fromDate:$('#pc_ledFrom').val()||'',toDate:$('#pc_ledTo').val()||''},function(a){pc_dt('#pc_LedgerTable',a,[{data:'TransactionDate',render:pc_datetime},{data:'TransactionNo'},{data:'TransactionType'},{data:'RequestNo',defaultContent:''},{data:'EmployeeName',defaultContent:''},{data:'Description',defaultContent:''},{data:'Debit',render:pc_money},{data:'Credit',render:pc_money},{data:'RunningBalance',render:pc_money}]);});}
-function pc_reportBind(){pc_api('GetReport',{fromDate:$('#pc_repFrom').val()||'',toDate:$('#pc_repTo').val()||'',status:$('#pc_repStatus').val()||''},function(a){pc_dt('#pc_ReportTable',a,[{data:'RequestNo'},{data:'RequestDate',render:pc_date},{data:'EmployeeName'},{data:'CategoryName'},{data:'Purpose'},{data:'RequestedAmount',render:pc_money},{data:'ApprovedAmount',render:pc_money},{data:'PaidAmount',render:pc_money},{data:'ExpenseAmount',render:pc_money},{data:'Status',render:pc_statusBadge}]);});}
-function pc_dashboardInit(){pc_api('GetSummary',{},function(a){var r=a[0]||{};$('#pc_dashBalance').text(pc_money(r.CurrentBalance));$('#pc_dashIssued').text(pc_money(r.TotalIssued));$('#pc_dashExpense').text(pc_money(r.TotalExpense));$('#pc_dashPending').text(r.PendingApprovals||0);});pc_api('GetRecentRequests',{},function(a){pc_dt('#pc_DashboardTable',a,[{data:'RequestNo'},{data:'RequestDate',render:pc_date},{data:'EmployeeName'},{data:'Purpose'},{data:'RequestedAmount',render:pc_money},{data:'Status',render:pc_statusBadge}]);});}
-function pc_exportTable(id,name){var table=document.getElementById(id);if(!table)return;var html=table.outerHTML.replace(/ /g,'%20'),a=document.createElement('a');a.href='data:application/vnd.ms-excel,'+html;a.download=(name||'Export')+'.xls';a.click();}
+function pc_ledgerBind() { pc_api('GetLedger', { fromDate: $('#pc_ledFrom').val() || '', toDate: $('#pc_ledTo').val() || '' }, function (a) { pc_dt('#pc_LedgerTable', a, [{ data: 'TransactionDate', render: pc_datetime }, { data: 'TransactionNo' }, { data: 'TransactionType' }, { data: 'RequestNo', defaultContent: '' }, { data: 'EmployeeName', defaultContent: '' }, { data: 'Description', defaultContent: '' }, { data: 'Debit', render: pc_money }, { data: 'Credit', render: pc_money }, { data: 'RunningBalance', render: pc_money }]); }); }
+function pc_reportBind() { pc_api('GetReport', { fromDate: $('#pc_repFrom').val() || '', toDate: $('#pc_repTo').val() || '', status: $('#pc_repStatus').val() || '' }, function (a) { pc_dt('#pc_ReportTable', a, [{ data: 'RequestNo' }, { data: 'RequestDate', render: pc_date }, { data: 'EmployeeName' }, { data: 'CategoryName' }, { data: 'Purpose' }, { data: 'RequestedAmount', render: pc_money }, { data: 'ApprovedAmount', render: pc_money }, { data: 'PaidAmount', render: pc_money }, { data: 'ExpenseAmount', render: pc_money }, { data: 'Status', render: pc_statusBadge }]); }); }
+function pc_dashboardInit() { pc_api('GetSummary', {}, function (a) { var r = a[0] || {}; $('#pc_dashBalance').text(pc_money(r.CurrentBalance)); $('#pc_dashIssued').text(pc_money(r.TotalIssued)); $('#pc_dashExpense').text(pc_money(r.TotalExpense)); $('#pc_dashPending').text(r.PendingApprovals || 0); }); pc_api('GetRecentRequests', {}, function (a) { pc_dt('#pc_DashboardTable', a, [{ data: 'RequestNo' }, { data: 'RequestDate', render: pc_date }, { data: 'EmployeeName' }, { data: 'Purpose' }, { data: 'RequestedAmount', render: pc_money }, { data: 'Status', render: pc_statusBadge }]); }); }
+function pc_exportTable(id, name) { var table = document.getElementById(id); if (!table) return; var html = table.outerHTML.replace(/ /g, '%20'), a = document.createElement('a'); a.href = 'data:application/vnd.ms-excel,' + html; a.download = (name || 'Export') + '.xls'; a.click(); }
 
-$(function(){var p=pc_page();if(p==='pettycashcategorymaster.aspx')pc_categoryBind();else if(p==='pettycashrequest.aspx')pc_requestInit();else if(p==='pettycashapproval.aspx')pc_approvalBind();else if(p==='pettycashpayment.aspx')pc_paymentInit();else if(p==='pettycashexpense.aspx')pc_expenseInit();else if(p==='pettycashsettlement.aspx')pc_settlementInit();else if(p==='pettycashledger.aspx')pc_ledgerBind();else if(p==='pettycashreports.aspx')pc_reportBind();else if(p==='pettycashdashboard.aspx')pc_dashboardInit();});
+$(function () { var p = pc_page(); if (p === 'pettycashcategorymaster.aspx') pc_categoryBind(); else if (p === 'pettycashrequest.aspx') pc_requestInit(); else if (p === 'pettycashapproval.aspx') pc_approvalBind(); else if (p === 'pettycashpayment.aspx') pc_paymentInit(); else if (p === 'pettycashexpense.aspx') pc_expenseInit(); else if (p === 'pettycashsettlement.aspx') pc_settlementInit(); else if (p === 'pettycashledger.aspx') pc_ledgerBind(); else if (p === 'pettycashreports.aspx') pc_reportBind(); else if (p === 'pettycashdashboard.aspx') pc_dashboardInit(); });
