@@ -146,8 +146,16 @@ namespace WebPortal.Admin
                 Guid batchID = (Guid)HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"];
                 if (step > 0) { Tuple<Spire.Xls.Workbook, string> state; if (!ServicingReports.TryGetValue(batchID, out state)) throw new InvalidOperationException("Report session expired. Please try again."); book = state.Item1; FileName = state.Item2; }
                 Action[] sheets = { () => GetGraphicalView("Servicing","Infinity"), () => CLientwiseErrorTrending("Servicing","Infinity"), () => ReviewersFeedbackSummary("Servicing","Infinity"), () => ReviewerVsQcerErrorCounts("Servicing","Infinity"), () => NoErrorFilesAnalysis("Servicing","Infinity"), () => Reviewerwiseclientwiseerrors("Servicing","Infinity"), () => ReviewerQCClientwiseerrors("Servicing","Infinity"), () => QCersPerformance("Servicing","Infinity"), () => CategorySheet("Servicing","Infinity"), () => SubcategorySheet("Servicing","Infinity"), () => getInternalFeedbacks("Servicing","Infinity"), () => getClientFeedbacks("Servicing","Infinity"), () => getReQCFeedbacks("Servicing","Infinity"), () => getRebuttalFeedbacks("Servicing","Infinity"), () => GetClientQualityReport("Servicing","Infinity") };
-                sheets[step]();
-                if (step == 14) CleanServicingWorkbook(FileName);
+                string[] sheetNames = { "Weekly - Graphical View", "Client-wise Error Trending", "Reviewer - Feedback Summary", "Reviewer Vs Qcer Error Count", "No Error Files Analysis", "Reviewer wise client wise error", "Reviewer, QC, Client wise error", "QCer Performance", "Category", "Sub Category", "Internal Feedbacks", "Client Feedbacks", "ReQC Feedbacks", "Rebuttal Feedbacks", "Client Quality Report" };
+                try
+                {
+                    sheets[step]();
+                    if (step == 14) CleanServicingWorkbook(FileName);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException("Failed to generate " + sheetNames[step] + ": " + ex.Message, ex);
+                }
                 ServicingReports[batchID] = Tuple.Create(book, FileName);
             }
             if (step == 14) { HttpContext.Current.Session["ServicingDetailedFeedbackFile"] = FileName; ClearServicingSelection(userID); }
@@ -175,7 +183,20 @@ namespace WebPortal.Admin
                 {
                     WorksheetPart worksheet = (WorksheetPart)part.GetPartById(sheet.Id);
                     bool blank = !worksheet.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>().Any();
-                    if (sheets.Count > 1 && (blank || sheet.Name.Value.IndexOf("Evaluation", StringComparison.OrdinalIgnoreCase) >= 0)) { sheet.Remove(); part.DeletePart(worksheet); }
+                    if (sheets.Count > 1 && (blank || sheet.Name.Value.IndexOf("Evaluation", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        sheet.Remove();
+                        part.DeletePart(worksheet);
+                    }
+                    else
+                    {
+                        foreach (DocumentFormat.OpenXml.Spreadsheet.Column column in worksheet.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Column>())
+                        {
+                            if (column.Width != null && column.Width.Value > 80D) column.Width.Value = 80D;
+                            column.RemoveAttribute("widthPt", string.Empty);
+                        }
+                        worksheet.Worksheet.Save();
+                    }
                 }
                 part.Workbook.Save();
             }
@@ -1546,11 +1567,19 @@ namespace WebPortal.Admin
             book.CreateEmptySheet(sheetName).Range["A1"].Text = "No records found";
             return true;
         }
+        static string CreateServicingReportPath(string domain, string company)
+        {
+            string folder = Path.Combine(Path.GetTempPath(), "WebPortal", "DetailedFeedbackReports");
+            Directory.CreateDirectory(folder);
+            return Path.Combine(folder, "Quality Report_" + domain + "_" + company + "_" + Guid.NewGuid().ToString("N") + ".xlsx");
+        }
         [WebMethod]
         public static int GetGraphicalView(string domain, string company)
         {
             int returnvalue = 1;
-            FileName = FolderPath + "\\Quality Report_" + domain + "_" + company + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx";
+            FileName = HttpContext.Current.Session["ServicingDetailedFeedbackBatchID"] == null
+                ? FolderPath + "\\Quality Report_" + domain + "_" + company + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".xlsx"
+                : CreateServicingReportPath(domain, company);
             book = new Spire.Xls.Workbook();
             book.Version = ExcelVersion.Version2016;
             DataTable dt = null;
@@ -2425,6 +2454,7 @@ namespace WebPortal.Admin
                 string RevColName1 = GetColumnName(CCount - 1);
                 HeaderFormat_Static(wksheet.Range["A1:" + RevColName1 + "1"]);
                 AllBorder_Static(wksheet.Range["A1:" + RevColName1 + "" + (dt.Rows.Count + 1)]);
+                wksheet.AutoFilters.Range = wksheet.Range["A1:" + RevColName1 + (dt.Rows.Count + 1)];
                 ContentCenter_Static(wksheet.AllocatedRange);
 
                 wksheet.AllocatedRange.AutoFitColumns();
@@ -2462,6 +2492,7 @@ namespace WebPortal.Admin
                 string RevColName1 = GetColumnName(CCount - 1);
                 HeaderFormat_Static(wksheet.Range["A1:" + RevColName1 + "1"]);
                 AllBorder_Static(wksheet.Range["A1:" + RevColName1 + "" + (dt.Rows.Count + 1)]);
+                wksheet.AutoFilters.Range = wksheet.Range["A1:" + RevColName1 + (dt.Rows.Count + 1)];
                 ContentCenter_Static(wksheet.AllocatedRange);
 
                 wksheet.AllocatedRange.AutoFitColumns();
@@ -2499,6 +2530,7 @@ namespace WebPortal.Admin
                 string RevColName1 = GetColumnName(CCount - 1);
                 HeaderFormat_Static(wksheet.Range["A1:" + RevColName1 + "1"]);
                 AllBorder_Static(wksheet.Range["A1:" + RevColName1 + "" + (dt.Rows.Count + 1)]);
+                wksheet.AutoFilters.Range = wksheet.Range["A1:" + RevColName1 + (dt.Rows.Count + 1)];
                 ContentCenter_Static(wksheet.AllocatedRange);
 
                 wksheet.AllocatedRange.AutoFitColumns();

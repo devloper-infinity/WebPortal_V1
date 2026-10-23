@@ -165,6 +165,9 @@
     <Content Include="Content\ProjectBillingDetails.css" />
     <Content Include="Helpdesk\ticket-details.css" />
     <Content Include="Helpdesk\ticket-details.js" />
+    <Content Include="OperationsBulletin\UserHistory.aspx" />
+    <Content Include="OperationsBulletin\UserHistory.js" />
+    <Content Include="OperationsBulletin\OperationsBulletin.Master" />
     <Content Include="Scripts\Admin\ProjectBillingDetails.js" />
     <Content Include="DatabaseScripts\usp_GetAllProjectsBillingDetails.sql" />
     <Content Include="DatabaseScripts\ProjectBillingParameterRemarks.sql" />
@@ -3264,6 +3267,13 @@
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
     <Compile Include="App_Code\PendingDataRepository.cs" />
     <Compile Include="App_Code\UnderwritingBillingValidationService.cs" />
+    <Compile Include="OperationsBulletin\UserHistory.aspx.cs">
+      <DependentUpon>UserHistory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OperationsBulletin\UserHistory.aspx.designer.cs">
+      <DependentUpon>UserHistory.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Services\FteClientAutoBillingService.cs" />
     <Compile Include="App_Code\RnrSecurity.cs" />
     <Compile Include="Admin\RNRAdmin.aspx.cs">
@@ -3328,6 +3338,13 @@
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="OperationsBulletin\BulletinRepository.cs" />
+    <Compile Include="OperationsBulletin\OperationsBulletin.Master.cs">
+      <DependentUpon>OperationsBulletin.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OperationsBulletin\OperationsBulletin.Master.designer.cs">
+      <DependentUpon>OperationsBulletin.Master</DependentUpon>
+    </Compile>
     <Compile Include="OperationsBulletin\Dashboard.aspx.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

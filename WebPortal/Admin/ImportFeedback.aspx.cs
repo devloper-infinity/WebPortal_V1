@@ -106,7 +106,7 @@ namespace WebPortal.Admin
                     if (firstRow)
                     {
                         foreach (var cell in row.Cells())
-                            dt.Columns.Add(cell.Value.ToString());
+                            dt.Columns.Add(cell.GetValue<string>().Trim());
                         firstRow = false;
                     }
                     else
@@ -173,12 +173,7 @@ namespace WebPortal.Admin
                                 objbulk.DestinationTableName = "dbo.ImportedFeedbacks_Temp_New_Credit";
                             else
                                 objbulk.DestinationTableName = "dbo.ImportedFeedbacks_Temp_New_Servicing";
-                            string destTableQuery = "";
-                            if (Subdomain == "Credit")
-                                destTableQuery = "Select top 1 FeedbackID, [Loan Number], Client, [UW Name], [QC Name], Category, [Sub category], [Error Field], Screen, [Error Type], Finding, [Feedback Type], Severity, RCA, Source, [Feedback Received Date], [Emp Status] from dbo.ImportedFeedbacks";
-                            else
-                                destTableQuery = "Select top 1 FeedbackID, [Loan Number], Client, [UW Name], [QC Name], Category, [Sub category], [Error Field], Screen, [Error Type], Finding, [Feedback Type], Severity, RCA, Source, [Feedback Received Date], [Emp Status] from dbo.ImportedFeedbacks_Servicing";
-                            //destTableQuery = "select top 1 FeedbackID,[Loan Number],Client,[UW Name],[UW Process],[QC Name],[QC Process],Category,[Sub category],[Error Field],Screen,Error Type,Finding,[Feedback Type],Severity,RCA,Comments,Source,[Feedback Received Date]";
+                            string destTableQuery = "Select top 0 * from " + objbulk.DestinationTableName;
                             SqlCommand cmd = new SqlCommand(destTableQuery);
                             sqlConnection.Open();
                             cmd.Connection = sqlConnection;
@@ -199,9 +194,6 @@ namespace WebPortal.Admin
                                     objbulk.ColumnMappings.Add(sourceColumnName, destinationColumnName);
                                 }
                             }
-                            objbulk.ColumnMappings.Add("UW Process", "UW Process");
-                            objbulk.ColumnMappings.Add("QC Process", "QC Process");
-
                             objbulk.WriteToServer(Dt);
                             sqlConnection.Close();
                             returnvalue = "Excel validated Successfully.";

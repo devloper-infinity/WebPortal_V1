@@ -1,6 +1,11 @@
 /* Servicing-only Detailed Feedback Report. SQL Server 2016 compatible. */
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET NUMERIC_ROUNDABORT OFF;
 GO
 IF OBJECT_ID('dbo.ServicingDetailedFeedbackSelection','U') IS NULL
 BEGIN
@@ -9,6 +14,20 @@ BEGIN
 END
 GO
 IF COL_LENGTH('dbo.ServicingDetailedFeedbackSelection','DispatchDate') IS NULL ALTER TABLE dbo.ServicingDetailedFeedbackSelection ADD DispatchDate date NULL;
+GO
+/* Normalized, indexable loan keys avoid a full feedback-table scan for every
+   worksheet.  Keep the key at 450 NVARCHAR characters (900-byte index limit). */
+IF COL_LENGTH('dbo.ServicingDetailedFeedbackSelection','LoanKey') IS NULL
+    ALTER TABLE dbo.ServicingDetailedFeedbackSelection ADD LoanKey AS CONVERT(nvarchar(450),LTRIM(RTRIM(LoanNo))) PERSISTED;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.ServicingDetailedFeedbackSelection') AND name='IX_ServicingDFR_LoanKey')
+    CREATE INDEX IX_ServicingDFR_LoanKey ON dbo.ServicingDetailedFeedbackSelection(BatchID,UserID,LoanKey) INCLUDE(ProjectID,DispatchDate);
+GO
+IF COL_LENGTH('dbo.ImportedFeedbacks_Servicing','LoanKey') IS NULL
+    ALTER TABLE dbo.ImportedFeedbacks_Servicing ADD LoanKey AS CONVERT(nvarchar(450),LTRIM(RTRIM(CONVERT(nvarchar(1000),[Loan Number])))) PERSISTED;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.ImportedFeedbacks_Servicing') AND name='IX_ImportedFeedbacks_Servicing_LoanKey')
+    CREATE INDEX IX_ImportedFeedbacks_Servicing_LoanKey ON dbo.ImportedFeedbacks_Servicing(LoanKey);
 GO
 IF OBJECT_ID('dbo.usp_ServicingDFR_GetProjects','P') IS NOT NULL DROP PROCEDURE dbo.usp_ServicingDFR_GetProjects;
 GO
@@ -83,10 +102,10 @@ insert into #LoopDates exec usp_GetMonthQuarterWeekDates_Optimized_Servicing_Inf
         SUM(CASE WHEN (F.[Severity]='Non-Critical' OR F.[Severity]='Non Critical') THEN 1 ELSE 0 END) AS TotalNonCritical        
         
     FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)        
     LEFT JOIN dbo.ImportedFeedbacks_Servicing F         
-        ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))        
+        ON F.LoanKey=S.LoanKey
 INNER JOIN Project P         
         ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID        
     WHERE ISNULL(F.[QC Date],'') <>'' and F.[QC Name]<>''
@@ -224,10 +243,10 @@ BEGIN
         SUM(CASE WHEN I.[Source] IN ('Internal','ReQC','Re QC','Re-QC') AND I.Severity IN ('Non Critical','Non-Critical') THEN 1 ELSE 0 END) AS TotalNonCritical            
 
     FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)
     INNER JOIN ImportedFeedbacks_Servicing I             
-        ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))            
+        ON I.LoanKey=S.LoanKey
     INNER JOIN Project P             
         ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID            
 
@@ -452,10 +471,10 @@ BEGIN
             SUM(CASE WHEN Severity='No Error' THEN 1 ELSE 0 END) AS NoErrorCount        
         
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)        
         INNER JOIN ImportedFeedbacks_Servicing I         
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))        
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P         
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID        
         
@@ -630,7 +649,7 @@ BEGIN
                 CONVERT(varchar(10), DATEADD(dd, @@DATEFIRST - DATEPART(dw, CAST(F1.[QC Date] AS date)) - 5, CAST(F1.[QC Date] AS date)), 101)          
                 + '~-'          
                 + CONVERT(varchar(10), DATEADD(dd, @@DATEFIRST - DATEPART(dw, CAST(F1.[QC Date] AS date)) + 1, CAST(F1.[QC Date] AS date)), 101)          
-        FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F1 ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F1.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))          
+        FROM (SELECT DISTINCT ProjectID,LoanNo,LoanKey FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F1 ON F1.LoanKey=S.LoanKey
         INNER JOIN Project P       
             ON P.ProjectName = F1.Client AND P.ProjectID=S.ProjectID      
         WHERE F1.[Emp Status] = 'Active'          
@@ -811,7 +830,7 @@ select [QC Name] as [QCer], count(distinct [Loan Number]) as [Loan QCed],
 sum(case when [Feedback Type]='No Error' then 1 else 0 end) as [No Error Files],      
 Floor((sum(case when [Feedback Type]='No Error' then 1 else 0 end) /     
 cast(count(distinct [Loan Number]) as decimal(18,2))) * 100) as [No Error %]      
-FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F1 ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F1.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))        
+FROM (SELECT DISTINCT ProjectID,LoanNo,LoanKey FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F1 ON F1.LoanKey=S.LoanKey
 INNER JOIN Project P     
 ON P.ProjectName = F1.Client AND P.ProjectID=S.ProjectID    
 and len([QC Name])>1    
@@ -863,10 +882,10 @@ BEGIN
             SUM(CASE WHEN Severity='No Error' THEN 1 ELSE 0 END) AS NoErrorCount            
             
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)            
         INNER JOIN ImportedFeedbacks_Servicing I             
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))            
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P             
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID            
             
@@ -1070,10 +1089,10 @@ BEGIN
             SUM(CASE WHEN Severity='No Error' THEN 1 ELSE 0 END) AS NoErrorCount        
         
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)        
         INNER JOIN ImportedFeedbacks_Servicing I         
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))        
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P         
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID        
           
@@ -1281,10 +1300,10 @@ BEGIN
             SUM(CASE WHEN Severity='No Error' THEN 1 ELSE 0 END) AS NoErrorCount              
               
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)              
         INNER JOIN ImportedFeedbacks_Servicing I               
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))              
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P               
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID              
         WHERE Len([QC Name])>1   --and [Source] in ('Client','ReQC','Re-QC')      -- and [UW Name]='Nicole Sullivan'  
@@ -1298,10 +1317,10 @@ BEGIN
             L.FromDate,              
             I.[Loan Number]          
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)              
         INNER JOIN ImportedFeedbacks_Servicing I               
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))              
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P               
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID              
         WHERE Len([QC Name])>1   and [Source] in ('Internal')      -- and [UW Name]='Nicole Sullivan'  
@@ -1330,10 +1349,10 @@ BEGIN
             isnull(SUM(CASE WHEN Severity='No Error' THEN 1 ELSE 0 END),0) AS NoErrorCount              
               
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)              
         INNER JOIN ImportedFeedbacks_Servicing I               
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))              
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P               
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID              
         WHERE Len([UW Name])>1   and [Source] in ('Client','ReQC','Re-QC')      -- and [UW Name]='Nicole Sullivan'  
@@ -1531,10 +1550,10 @@ BEGIN
             COUNT(DISTINCT I.[FeedbackID]) AS [Total Errors]      
       
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)        
         INNER JOIN ImportedFeedbacks_Servicing I         
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))        
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P         
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID        
         WHERE Len([QC Name])>1 and Len(Category)>1 and Category not in ('No Error')      
@@ -1683,10 +1702,10 @@ BEGIN
             COUNT(DISTINCT I.[FeedbackID]) AS [Total Errors]      
       
         FROM #LoopDates L
-        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
+        INNER JOIN (SELECT DISTINCT ProjectID,LoanNo,LoanKey,OrderID,DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S
             ON S.DispatchDate BETWEEN CAST(L.FromDate AS date) AND CAST(L.ToDate AS date)        
         INNER JOIN ImportedFeedbacks_Servicing I         
-            ON LTRIM(RTRIM(CONVERT(nvarchar(1000),I.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))        
+            ON I.LoanKey=S.LoanKey
         INNER JOIN Project P         
             ON P.ProjectName = I.Client AND P.ProjectID=S.ProjectID        
         WHERE Len([QC Name])>1 and Len([Sub Category])>1 and Category not in ('No Error')      
@@ -1799,58 +1818,76 @@ BEGIN
     DROP TABLE #LoopDates        
     DROP TABLE #FinalData        
     DROP TABLE #UnpivotData        
-        
+
 END
 GO
 IF OBJECT_ID('dbo.usp_ServicingDFR_InternalFeedbacks','P') IS NOT NULL DROP PROCEDURE dbo.usp_ServicingDFR_InternalFeedbacks;
 GO
-CREATE PROCEDURE dbo.usp_ServicingDFR_InternalFeedbacks @BatchID uniqueidentifier, @UserID int AS            
-begin            
-select FeedbackID, [Loan Number], Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)         
-as [QC Date], Category, [Sub category], [Error Field], Screen,          
-[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]          
-FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))    
-INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID      
-WHERE [Source]='Internal' and     
-cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)    
-      
+CREATE PROCEDURE dbo.usp_ServicingDFR_InternalFeedbacks @BatchID uniqueidentifier, @UserID int AS
+begin
+select FeedbackID, [Loan Number],
+convert(varchar(10),P1.WeekStart,101)+' ~ '+convert(varchar(10),dateadd(day,6,P1.WeekStart),101) as [Week],
+replace(right(convert(varchar(11),S.DispatchDate,106),8),' ','-') as [Month],
+replace(right(convert(varchar(11),P1.QuarterStart,106),8),' ','-')+' ~ '+replace(right(convert(varchar(11),eomonth(dateadd(month,2,P1.QuarterStart)),106),8),' ','-') as [Quarter],
+Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)
+as [QC Date], Category, [Sub category], [Error Field], Screen,
+[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]
+FROM (SELECT ProjectID,LoanNo,LoanKey,MAX(DispatchDate) DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID GROUP BY ProjectID,LoanNo,LoanKey) S
+INNER JOIN dbo.ImportedFeedbacks_Servicing F ON F.LoanKey=S.LoanKey
+INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID
+CROSS APPLY (SELECT dateadd(day,-(datediff(day,0,S.DispatchDate)%7),S.DispatchDate) WeekStart,dateadd(quarter,datediff(quarter,0,S.DispatchDate),0) QuarterStart) P1
+WHERE [Source]='Internal' and
+cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)
+
 end
 GO
 IF OBJECT_ID('dbo.usp_ServicingDFR_ReQCFeedbacks','P') IS NOT NULL DROP PROCEDURE dbo.usp_ServicingDFR_ReQCFeedbacks;
 GO
-CREATE PROCEDURE dbo.usp_ServicingDFR_ReQCFeedbacks @BatchID uniqueidentifier, @UserID int AS            
-begin            
-select FeedbackID, [Loan Number], Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)         
-as [QC Date], Category, [Sub category], [Error Field], Screen,          
-[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]          
-FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))    
-INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID      
-WHERE [Source]='ReQC' and     
-cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)    
-     
+CREATE PROCEDURE dbo.usp_ServicingDFR_ReQCFeedbacks @BatchID uniqueidentifier, @UserID int AS
+begin
+select FeedbackID, [Loan Number],
+convert(varchar(10),P1.WeekStart,101)+' ~ '+convert(varchar(10),dateadd(day,6,P1.WeekStart),101) as [Week],
+replace(right(convert(varchar(11),S.DispatchDate,106),8),' ','-') as [Month],
+replace(right(convert(varchar(11),P1.QuarterStart,106),8),' ','-')+' ~ '+replace(right(convert(varchar(11),eomonth(dateadd(month,2,P1.QuarterStart)),106),8),' ','-') as [Quarter],
+Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)
+as [QC Date], Category, [Sub category], [Error Field], Screen,
+[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]
+FROM (SELECT ProjectID,LoanNo,LoanKey,MAX(DispatchDate) DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID GROUP BY ProjectID,LoanNo,LoanKey) S
+INNER JOIN dbo.ImportedFeedbacks_Servicing F ON F.LoanKey=S.LoanKey
+INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID
+CROSS APPLY (SELECT dateadd(day,-(datediff(day,0,S.DispatchDate)%7),S.DispatchDate) WeekStart,dateadd(quarter,datediff(quarter,0,S.DispatchDate),0) QuarterStart) P1
+WHERE [Source]='ReQC' and
+cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)
+
 end
 GO
 IF OBJECT_ID('dbo.usp_ServicingDFR_ClientFeedbacks','P') IS NOT NULL DROP PROCEDURE dbo.usp_ServicingDFR_ClientFeedbacks;
 GO
-CREATE PROCEDURE dbo.usp_ServicingDFR_ClientFeedbacks @BatchID uniqueidentifier, @UserID int AS              
-begin              
-select FeedbackID, [Loan Number], Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)           
-as [QC Date], Category, [Sub category], [Error Field], Screen,            
-[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]            
-FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))      
-INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID        
-WHERE [Source]='Client' and       
-cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)          
+CREATE PROCEDURE dbo.usp_ServicingDFR_ClientFeedbacks @BatchID uniqueidentifier, @UserID int AS
+begin
+select FeedbackID, [Loan Number],
+convert(varchar(10),P1.WeekStart,101)+' ~ '+convert(varchar(10),dateadd(day,6,P1.WeekStart),101) as [Week],
+replace(right(convert(varchar(11),S.DispatchDate,106),8),' ','-') as [Month],
+replace(right(convert(varchar(11),P1.QuarterStart,106),8),' ','-')+' ~ '+replace(right(convert(varchar(11),eomonth(dateadd(month,2,P1.QuarterStart)),106),8),' ','-') as [Quarter],
+Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)
+as [QC Date], Category, [Sub category], [Error Field], Screen,
+[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]
+FROM (SELECT ProjectID,LoanNo,LoanKey,MAX(DispatchDate) DispatchDate FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID GROUP BY ProjectID,LoanNo,LoanKey) S
+INNER JOIN dbo.ImportedFeedbacks_Servicing F ON F.LoanKey=S.LoanKey
+INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID
+CROSS APPLY (SELECT dateadd(day,-(datediff(day,0,S.DispatchDate)%7),S.DispatchDate) WeekStart,dateadd(quarter,datediff(quarter,0,S.DispatchDate),0) QuarterStart) P1
+WHERE [Source]='Client' and
+cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)
 end
 GO
 IF OBJECT_ID('dbo.usp_ServicingDFR_RebuttalFeedbacks','P') IS NOT NULL DROP PROCEDURE dbo.usp_ServicingDFR_RebuttalFeedbacks;
 GO
-CREATE PROCEDURE dbo.usp_ServicingDFR_RebuttalFeedbacks @BatchID uniqueidentifier, @UserID int AS            
-begin            
-select FeedbackID, [Loan Number], Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)         
-as [QC Date], Category, [Sub category], [Error Field], Screen,          
-[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]          
-FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))    
+CREATE PROCEDURE dbo.usp_ServicingDFR_RebuttalFeedbacks @BatchID uniqueidentifier, @UserID int AS
+begin
+select FeedbackID, [Loan Number], Client, [UW Name], [QC Name], convert(nvarchar(12),cast([Date Reviewed] as date),101) as [Date Reviewed], convert(nvarchar(12),cast([QC Date] as date),101)
+as [QC Date], Category, [Sub category], [Error Field], Screen,
+[Error Type], Finding, [Feedback Type], Severity, RCA,  Source, convert(nvarchar(12),cast([Feedback Received Date] as date),101) as [Feedback Received Date], [Emp Status]
+FROM (SELECT DISTINCT ProjectID,LoanNo,LoanKey FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON F.LoanKey=S.LoanKey
 INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID      
 WHERE [Source]='Rebuttal' and     
 cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)    
@@ -1870,7 +1907,7 @@ select
 sum(case when [Severity]='No Error' then 1 else 0 end) as [No Error],          
 sum(case when [Severity]='Critical' then 1 else 0 end) as [Critical]  ,      
 sum(case when [Severity]='Non Critical' then 1 else 0 end) as [Non Critical]         
-FROM (SELECT DISTINCT ProjectID,LoanNo FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON LTRIM(RTRIM(CONVERT(nvarchar(1000),F.[Loan Number])))=LTRIM(RTRIM(S.LoanNo))    
+FROM (SELECT DISTINCT ProjectID,LoanNo,LoanKey FROM dbo.ServicingDetailedFeedbackSelection WHERE BatchID=@BatchID AND UserID=@UserID) S INNER JOIN dbo.ImportedFeedbacks_Servicing F ON F.LoanKey=S.LoanKey
 INNER JOIN Project P ON P.ProjectName = F.Client AND P.ProjectID=S.ProjectID      
 WHERE     
 cast([QC Date] as date) between cast(dateadd(year,-1,cast(getdate() as date)) as date) and cast(getdate() as date)           
