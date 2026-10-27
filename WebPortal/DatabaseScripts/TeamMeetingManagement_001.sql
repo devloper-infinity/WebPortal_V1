@@ -255,13 +255,3 @@ INSERT dbo.team_Team(TeamName,ProjectID,Description,IsActive,CreatedBy)
 SELECT s.TeamName,p.ProjectID,'Initial Team Meeting Management setup',1,@SeedBy FROM (VALUES(N'561 Servicing',N'561'),(N'561 C&C',N'561'),(N'667',N'667'))s(TeamName,ProjectToken) CROSS APPLY(SELECT TOP(1) ProjectID FROM dbo.Project WHERE ProjectName LIKE s.ProjectToken+'%' ORDER BY ProjectID)p WHERE @SeedBy IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.team_Team t WHERE t.ProjectID=p.ProjectID AND t.TeamName=s.TeamName AND t.IsActive=1);
 GO
 
-/* Navigation: uses the ERP MenuMaster shape only when the expected columns exist. Rights remain assigned through the existing Groups/User Rights screen. */
-IF OBJECT_ID(N'dbo.MenuMaster',N'U') IS NOT NULL AND COL_LENGTH('dbo.MenuMaster','MenuId') IS NOT NULL AND COL_LENGTH('dbo.MenuMaster','MenuName') IS NOT NULL AND COL_LENGTH('dbo.MenuMaster','ParentMenuId') IS NOT NULL AND COL_LENGTH('dbo.MenuMaster','Url') IS NOT NULL AND COL_LENGTH('dbo.MenuMaster','SectionName') IS NOT NULL AND COL_LENGTH('dbo.MenuMaster','SortOrder') IS NOT NULL
-BEGIN
- EXEC(N'IF NOT EXISTS(SELECT 1 FROM dbo.MenuMaster WHERE Url=''TeamMeetingMaster.aspx'') INSERT dbo.MenuMaster(MenuName,ParentMenuId,Url,SectionName,SortOrder) VALUES(''Team Meetings'',0,''TeamMeetingMaster.aspx'',NULL,900);
- DECLARE @Parent int=(SELECT TOP(1) MenuId FROM dbo.MenuMaster WHERE Url=''TeamMeetingMaster.aspx'');
- IF NOT EXISTS(SELECT 1 FROM dbo.MenuMaster WHERE Url=''TeamMaster.aspx'') INSERT dbo.MenuMaster(MenuName,ParentMenuId,Url,SectionName,SortOrder) VALUES(''Team Master'',@Parent,''TeamMaster.aspx'',NULL,1);
- IF NOT EXISTS(SELECT 1 FROM dbo.MenuMaster WHERE Url=''TeamMeetingReport.aspx'') INSERT dbo.MenuMaster(MenuName,ParentMenuId,Url,SectionName,SortOrder) VALUES(''Meeting History'',@Parent,''TeamMeetingReport.aspx'',NULL,2);
- IF NOT EXISTS(SELECT 1 FROM dbo.MenuMaster WHERE Url=''TeamMeetingActionTracker.aspx'') INSERT dbo.MenuMaster(MenuName,ParentMenuId,Url,SectionName,SortOrder) VALUES(''Action Tracker'',@Parent,''TeamMeetingActionTracker.aspx'',NULL,3);');
-END
-GO
