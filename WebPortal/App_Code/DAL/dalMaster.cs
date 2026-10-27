@@ -5772,7 +5772,7 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
 
         public DataTable GetWorkAnniversary()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetWorkAnniversary_New");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetWorkAnniversary"); /*use for local testing usp_GetWorkAnniversary_New*/
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
