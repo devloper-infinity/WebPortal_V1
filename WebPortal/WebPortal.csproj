@@ -156,6 +156,19 @@
     <Content Include="Admin\PettyCashReports.aspx" />
     <Content Include="Admin\PettyCashRequest.aspx" />
     <Content Include="Admin\PettyCashSettlement.aspx" />
+    <Content Include="Admin\TeamMaster.aspx" />
+    <Content Include="Admin\TeamEmployeeMapping.aspx" />
+    <Content Include="Admin\TeamMeetingMaster.aspx" />
+    <Content Include="Admin\TeamMeetingReport.aspx" />
+    <Content Include="Admin\TeamMeetingDetails.aspx" />
+    <Content Include="Admin\TeamMeetingActionTracker.aspx" />
+    <Content Include="Admin\TeamMeeting.css" />
+    <Content Include="Admin\TeamMaster.js" />
+    <Content Include="Admin\TeamMeeting.js" />
+    <Content Include="Admin\TeamMeetingReport.js" />
+    <Content Include="Admin\TeamMeetingDetails.js" />
+    <Content Include="Admin\TeamMeetingActionTracker.js" />
+    <Content Include="DatabaseScripts\TeamMeetingManagement_001.sql" />
     <Content Include="Admin\RNRAdmin.aspx" />
     <Content Include="Admin\RNRReport.aspx" />
     <Content Include="Admin\RNRFeedback.aspx" />
@@ -3244,6 +3257,29 @@
       <DependentUpon>PettyCashSettlement.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="Admin\TeamMeetingPageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\TeamMaster.aspx.cs">
+      <DependentUpon>TeamMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\TeamMeetingMaster.aspx.cs">
+      <DependentUpon>TeamMeetingMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\TeamMeetingReport.aspx.cs">
+      <DependentUpon>TeamMeetingReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\TeamMeetingDetails.aspx.cs">
+      <DependentUpon>TeamMeetingDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\TeamMeetingActionTracker.aspx.cs">
+      <DependentUpon>TeamMeetingActionTracker.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Admin\ProjectBillingDetails.aspx.cs">
       <DependentUpon>ProjectBillingDetails.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3500,6 +3536,7 @@
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="App_Code\SoftwareRequestRepository.cs" />
+    <Compile Include="App_Code\TeamMeetingRepository.cs" />
     <Compile Include="Helpdesk\Administration.aspx.cs">
       <DependentUpon>Administration.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
