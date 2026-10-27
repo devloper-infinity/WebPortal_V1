@@ -1457,7 +1457,7 @@
 
 
         function dash_anniversaryDismissalKey() {
-            return "dashboardWorkAnniversaryDismissed_" + '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
+            return "dashboardWorkAnniversaryDismissed_v5_" + '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
         }
 
         function dash_anniversaryTodayKey() {
@@ -1484,8 +1484,9 @@
             }
         }
 
-        function New_workAnniversary() {
+        function New_workAnniversary(callback) {
             if (dash_anniversaryWasDismissedToday()) {
+                if (typeof callback === "function") callback();
                 return;
             }
 
@@ -1495,14 +1496,14 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (response) {
-                    new_renderWorkAnniversary(response.d);
+                    new_renderWorkAnniversary(response.d, callback);
                 },
                 error: function () {
                     console.error("Anniversary API error");
+                    if (typeof callback === "function") callback();
                 }
             });
         }
-
         function dash_escapeAnniversary(value) {
             return $("<div>").text(value == null ? "" : value).html();
         }
@@ -1530,8 +1531,9 @@
             return Math.max(0, isNaN(years) ? 0 : years);
         }
 
-        function new_renderWorkAnniversary(data) {
+        function new_renderWorkAnniversary(data, callback) {
             if (!data || data.length === 0) {
+                if (typeof callback === "function") callback();
                 return false;
             }
 
@@ -1545,6 +1547,8 @@
                 var domain = dash_escapeAnniversary(emp.DomainName || "");
                 var years = dash_completedServiceYears(emp.JoiningDate, emp.YearsCompleted);
                 var yearLabel = years === 1 ? "YEAR" : "YEARS";
+                var anniversaryMessage = dash_escapeAnniversary(getAnniversaryMessage(years, emp.EmpName));
+                var anniversaryTitle = anniversaryMessage.replace(/^(\d+)/, '<span class="anniv-title-years">$1</span>');
                 return '<div class="carousel-item' + (index === 0 ? ' active' : '') + '">' +
                     '<article class="anniv-profile">' +
                     '<div class="anniv-profile-left">' +
@@ -1562,8 +1566,8 @@
                         '<div class="anniv-service-badge"><span class="anniv-trophy-mark">♛</span><strong>' + years + ' ' + yearLabel.charAt(0) + yearLabel.slice(1).toLowerCase() + '</strong></div>' +
                     '</div>' +
                     '<div class="anniv-profile-right">' +
-                        '<span class="anniv-kicker">✦ CELEBRATION TIME</span>' +
-                        '<h2>HAPPY WORK<br><em>ANNIVERSARY!</em></h2>' +
+                        '<span class="anniv-kicker">✦ CELEBRATING YOUR JOURNEY!</span>' +
+                        '<h2>' + anniversaryTitle + '</h2>' +
                         '<p class="anniv-intro">Today we celebrate <strong>' + name + '</strong> and ' + years + ' ' + yearLabel.toLowerCase() + ' of dedication, growth, and outstanding contribution to our team.</p>' +
                         '<div class="anniv-details">' +
                             '<div><i>▣</i><span><small>DATE OF JOINING</small><strong>' + joiningDate + '</strong></span></div>' +
@@ -1571,8 +1575,13 @@
                             '<div><i>♧</i><span><small>DEPARTMENT</small><strong>' + department + '</strong></span></div>' +
                             '<div><i>●</i><span><small>REPORTING MANAGER</small><strong>' + manager + '</strong></span></div>' +
                             // (domain ? '<div><i>◇</i><span><small>DOMAIN</small><strong>' + domain + '</strong></span></div>' : '') +
-                        '</div>' +
-                        '<div class="anniv-thanks">✦ <span>Thank you for being an invaluable part of the Infinity IPS family. Here’s to many more years of success together!</span></div>' +
+                    '</div>' +
+                    // '<div class="anniv-thanks">✦ <span>Thank you for being an invaluable part of the Infinity IPS family. Here’s to many more years of success together!</span></div>' +
+                    '<div class="anniv-thanks"><div class="anniv-thanks-copy">' +
+                    '<div class="anniv-thanks-row"><span class="anniv-thanks-star">✦</span><span>Thank you for being an integral part of the Infinity IPS journey.Your dedication and contribution have made a lasting difference!</span></div>' +
+                    '<div class="anniv-thanks-row"><span class="anniv-thanks-star">✦</span><span>Congratulations on completing ' + years + ' wonderful ' + yearLabel.toLowerCase() + ' with us!</span></div>' +
+                    '<div class="anniv-thanks-row"><span class="anniv-thanks-star">✦</span><span>Here&#8217;s to many more milestones and successes together!</span></div>' +
+                    '</div></div>' +
                     '</div>' +
                     '</article>' +
                 '</div>';
@@ -1597,7 +1606,14 @@
                 $("#dash_anniversaryIndicators .anniv-carousel-dot").removeClass("active").eq(nextIndex).addClass("active");
             });
 
+            $("#dash_anniversaryModal")
+                .off("hidden.bs.modal.workAnniversarySequence")
+                .on("hidden.bs.modal.workAnniversarySequence", function () {
+                    if (typeof callback === "function") callback();
+                });
+
             $("#dash_anniversaryModal").modal("show");
+            markPopupAsShown({ key: "workAnniversary_v5", type: "once_per_day" });
             return false;
         }
 
@@ -3798,9 +3814,19 @@
             margin: 10px 0 9px;
             color: #17265e;
             font-family: Georgia, "Times New Roman", serif;
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.06;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.18;
+            letter-spacing: .25px;
+        }
+
+        .anniv-profile-right h2 .anniv-title-years {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 20px !important;
+            font-weight: 700;
+            line-height: 1.18;
+            letter-spacing: .25px;
+            vertical-align: baseline;
         }
 
         .anniv-profile-right h2 em {
@@ -3863,7 +3889,7 @@
         }
 
         .anniv-thanks {
-            display: flex;
+            display: block;
             margin-top: 12px;
             padding: 10px 13px;
             align-items: flex-start;
@@ -3880,7 +3906,21 @@
             
         }
 
-        .anniv-thanks:first-letter { color: #d5a91f; }
+        .anniv-thanks-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .anniv-thanks-row {
+            display: grid;
+            grid-template-columns: 12px minmax(0, 1fr);
+            column-gap: 4px;
+            align-items: start;
+        }
+        .anniv-thanks-star {
+            color: #d5a91f;
+            font-style: normal;
+        }
 
         @media (max-width: 767px) {
             .anniversary-dialog { width: calc(100% - 18px); margin: 9px auto; }
@@ -3889,12 +3929,12 @@
             .anniv-profile { grid-template-columns: 1fr; }
             .anniv-profile-left { min-height: 395px; padding: 58px 22px 28px; }
             .anniv-profile-right { padding: 32px 24px 28px; }
-            .anniv-profile-right h2 { font-size: 28px; }
+            .anniv-profile-right h2 { font-size: 22px; line-height: 1.2; }
+            .anniv-profile-right h2 .anniv-title-years { font-size: 22px !important; line-height: 1.2; }
             .anniv-details { grid-template-columns: 1fr; }
             .anniv-details strong { white-space: normal; }
         }
     </style>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.x.x/css/all.min.css">
     <script src="../Scripts/Functions/FestivalPopupForAdmin.js"></script>
 </asp:Content>

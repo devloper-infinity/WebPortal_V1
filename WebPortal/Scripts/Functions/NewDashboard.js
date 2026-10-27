@@ -246,7 +246,7 @@ function runPopupSequence() {
         { id: "welcomeIntro", type: "first_time" },
 
         { id: "birthdayModal", key: "birthday", type: "once_per_day" },
-        { id: "dash_anniversaryModal", key: "workAnniversary", type: "once_per_day" },
+        { id: "dash_anniversaryModal", key: "workAnniversary_v5", type: "once_per_day" },
         { id: "dash_birthdayModal_all", key: "allBirthday", type: "once_per_day" },
         { id: "dash_festWish_PopUp", key: "festival", type: "once_per_day" },
         { id: "dash_projectNotifications", key: "projectNotifications", type: "once_per_day" },
@@ -275,8 +275,11 @@ function openPopup(id, callback) {
 
     // 🎂 Work Anniversary Popup (API based) --  3
     if (id === "dash_anniversaryModal") {
-        // console.log("🔥 Work Anniversary Triggered");
-        dash_workAnniversary(callback);
+        if (document.getElementById("dash_anniversaryList") && typeof New_workAnniversary === "function") {
+            New_workAnniversary(callback);
+        } else {
+            dash_workAnniversary(callback);
+        }
         return;
     }
 
@@ -384,6 +387,8 @@ function showPopupsSequentially(popups, index) {
 
 function shouldShowPopup(popup) {
 
+    if (popup.id === "dash_anniversaryModal" && document.getElementById("dash_anniversaryList")) return false;
+
     let today = new Date().toDateString();
 
     // ✅ First time
@@ -404,7 +409,7 @@ function shouldShowPopup(popup) {
 
         if (localStorage.getItem(key) === today) return false;
 
-        localStorage.setItem(key, today);
+        if (popup.id !== "dash_anniversaryModal") localStorage.setItem(key, today);
         return true;
     }
 
@@ -423,17 +428,13 @@ function shouldShowPopup(popup) {
 }
 
 function markPopupAsShown(popup) {
-
-    let key = "popup_" + popup.id + "_" + currentUserName;
+    let key = (popup.key || popup.id) + "_" + currentUserName;
     let today = new Date().toDateString();
 
-    if (popup.type === "first_time") {
+    if (popup.type === "first_time")
         localStorage.setItem(key, "done");
-    }
-
-    if (popup.type === "once_per_day") {
+    else if (popup.type === "once_per_day")
         localStorage.setItem(key, today);
-    }
 }
 
 
@@ -874,8 +875,8 @@ function dash_ownBirthday(callback) {
 
 /* Work Anniversary */
 function dash_workAnniversary(callback) {
-
-    $.ajax({
+    alert(callback);
+       $.ajax({
         type: "POST",
         url: "DashboardEmployee.aspx/GetEmpWorkAnniversary",
         contentType: "application/json; charset=utf-8",
@@ -920,17 +921,15 @@ function renderWorkAnniversary(data, callback) {
     $("#workAnn_header").html(headerHtml);
 
     var emp = firstEmp;
-    var jubileeEach = getJubileeDetails(emp.YearsCompleted);
 
     $("#name_header").html(emp.EmpName || "");
     $("#designation_header").html(emp.Designation || "");
     $("#years_header").html((emp.YearsCompleted || "0") + " Years of Excellence");
 
-    $("#message_header").html(
-        (jubileeEach && jubileeEach.message)? jubileeEach.message: getAnniversaryMessage(emp.YearsCompleted)
-    );
+    $("#message_header").html(getAnniversaryMessage(emp.YearsCompleted));
 
      $("#dash_anniversaryModal").modal("show");
+     markPopupAsShown({ key: "workAnniversary_v5", type: "once_per_day" });
 
     startConfetti();
 
@@ -985,41 +984,24 @@ function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-function getAnniversaryMessage(years) {
+function getAnniversaryMessage(years, employeeName) {
+    years = Number(years) || 0;
 
     if (years <= 1)
-        return "Wishing you a great start to a wonderful journey with us.";
-    else if (years <= 3)
-        return "Thank you for growing with us and being a valuable team member.";
-    else if (years <= 5)
-        return "Your dedication and hard work inspire everyone around you.";
-    else if (years <= 10)
-        return "We truly appreciate your long-term commitment and contribution.";
-    else if (years <= 15)
-        return "Your experience and dedication are truly valuable to our organization.";
-    else if (years <= 20)
-        return "Two decades of dedication – we sincerely appreciate your journey with us.";
-    else if (years < 25)
-        return "Your long-term commitment and contribution mean a lot to us.";
-
-    // Jubilee Messages
-    else if (years == 25)
-        return "Happy Silver Jubilee! Celebrating 25 years of dedication, loyalty, and excellence.";
-    else if (years == 30)
-        return "Happy Pearl Jubilee! Your journey with us is truly inspiring.";
-    else if (years == 35)
-        return "Happy Coral Jubilee! Thank you for your continued dedication and service.";
-    else if (years == 40)
-        return "Happy Ruby Jubilee! Your contribution over the years has been invaluable.";
-    else if (years == 45)
-        return "Happy Sapphire Jubilee! We deeply appreciate your incredible journey with us.";
-    else if (years >= 50)
-        return "Happy Golden Jubilee! A legendary milestone of dedication and loyalty.";
-
+        return "1 Year — Celebrating Your First Milestone!";
+    else if (years <= 4)
+        return years + " Years — Celebrating Your Growing Journey!";
+    else if (years === 5)
+        return "5 Years Of Commitment!";
+    else if (years === 10)
+        return "10 Years Of Excellence!";
+    else if (years === 15)
+        return "15 Years Of Dedication & Excellence!";
+    else if (years >= 20)
+        return years + " Years — Celebrating An Incredible Journey!";
     else
-        return "You are a pillar of our organization. Thank you for everything.";
+        return years + " Years — Celebrating Your Growing Journey!";
 }
-
 function getJubileeDetails(years) {
 
     if (years == 25) {
