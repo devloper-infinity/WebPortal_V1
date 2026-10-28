@@ -10,6 +10,11 @@
     .erp-panel-body { padding: 15px; }
     .erp-label { display: block; margin-bottom: 5px; color: #465568; font-size: 12px; font-weight: 600; }
     .erp-input { width: 100%; height: 34px; padding: 6px 10px; border: 1px solid #ccd4dd; border-radius: 4px; background: #fff; }
+    .erp-input:focus { border-color: #5d8fc5; box-shadow: 0 0 0 2px rgba(63,110,168,.12); outline: 0; }
+    .erp-date-wrap { position: relative; }
+    .erp-date-wrap .erp-input { padding-right: 34px; }
+    .erp-date-icon { position: absolute; right: 10px; top: 9px; color: #62758a; pointer-events: none; }
+    .erp-validation { min-height: 18px; margin-top: 8px; color: #b34040; font-size: 12px; }
     .erp-radio-group { padding-top: 8px; white-space: nowrap; }
     .erp-radio-group label { margin-right: 18px; font-weight: 500; }
     .erp-btn { border: 0; border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 13px; }
@@ -29,6 +34,9 @@
     table.dataTable { width: 100% !important; font-size: 12px; }
     table.dataTable thead th { white-space: nowrap; background: #edf2f7; color: #34495e; }
     table.dataTable tbody td { white-space: nowrap; vertical-align: middle; }
+    .grid-scroll thead th { position: sticky; top: 0; z-index: 2; }
+    #grdReport td, #grdReport th { text-align: center; }
+    #grdReport td:nth-child(3), #grdReport td:last-child { text-align: left; }
     .row-hold td { background: #fff4bf !important; }
     .row-cancel td { background: #f7d1d1 !important; }
     .text-purple { color: #7d3c98 !important; }
@@ -61,11 +69,11 @@
             <div class="row">
                 <div class="col-md-3 col-sm-6">
                     <label class="erp-label" for="txtFromDate">From Date</label>
-                    <input type="text" id="txtFromDate" class="erp-input erp-date" autocomplete="off" />
+                    <div class="erp-date-wrap"><input type="text" id="txtFromDate" class="erp-input erp-date" placeholder="dd-MMM-yyyy" autocomplete="off" /><i class="fa fa-calendar erp-date-icon"></i></div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="erp-label" for="txtToDate">To Date</label>
-                    <input type="text" id="txtToDate" class="erp-input erp-date" autocomplete="off" />
+                    <div class="erp-date-wrap"><input type="text" id="txtToDate" class="erp-input erp-date" placeholder="dd-MMM-yyyy" autocomplete="off" /><i class="fa fa-calendar erp-date-icon"></i></div>
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <label class="erp-label">Order View</label>
@@ -79,6 +87,7 @@
                     <button type="button" id="btnClear" class="erp-btn erp-btn-light"><i class="fa fa-eraser"></i> Clear</button>
                 </div>
             </div>
+            <div id="dateError" class="erp-validation" role="alert"></div>
         </div>
     </div>
 
@@ -154,13 +163,17 @@
     var reportTable = null;
     var reportRows = [];
     var isPM = false;
+    var currentUserId = 0;
 
     $(function () {
+        $('.erp-date').datepicker({ dateFormat: 'dd-M-yy', changeMonth: true, changeYear: true });
         setDefaultDates();
         checkPMAndLoad();
 
         $('#btnShow').on('click', loadOrders);
         $('#btnClear').on('click', function () { setDefaultDates(); $('#rdbMyOrders').prop('checked', true); loadOrders(); });
+        $('input[name="orderView"]').on('change', loadOrders);
+        $('.erp-date').on('change blur', validateDates);
         $('#btnExportExcel').on('click', function () { if (reportTable) reportTable.button('.buttons-excel').trigger(); });
         $('[data-close-modal]').on('click', function () { $(this).closest('.erp-modal').hide(); });
         $('.erp-modal').on('click', function (e) { if (e.target === this) $(this).hide(); });
@@ -179,7 +192,8 @@
 
     function checkPMAndLoad() {
         pageMethod('GetCurrentUserAccess').done(function (r) {
-            isPM = r.IsPM === true;
+            currentUserId = Number(r.EmployeeId || 0);
+            isPM = r.CanViewAll === true;
             if (!isPM) { $('#rdbProjectTracking').closest('label').hide(); $('#rdbMyOrders').prop('checked', true); }
             loadOrders();
         }).fail(showAjaxError);
@@ -197,6 +211,7 @@
     }
 
     function loadOrders() {
+        if (!validateDates()) return;
         $('#mainLoader').addClass('show');
         pageMethod('GetOrders', {
             fromDate: $('#txtFromDate').val(),
@@ -216,13 +231,20 @@
         table.find('thead tr').empty();
         table.find('tbody').empty();
 
-        var keys = getColumns(rows);
-        var columns = [{ title: 'Action', data: null, orderable: false, searchable: false, render: renderActions }];
-        table.find('thead tr').append('<th>Action</th>');
-
-        $.each(keys, function (_, key) {
-            table.find('thead tr').append($('<th/>').text(displayName(key)));
-            columns.push({ title: displayName(key), data: key, defaultContent: '', render: function (v, type, row) { return renderCell(key, v, row); } });
+        var columns = [
+            { title: 'Sr#', data: null, width: '40px', searchable: false, render: function (_, type, row, meta) { return meta.row + 1; } },
+            { title: 'Project#', data: 'ProjectNumber', defaultContent: '' },
+            { title: 'Order#', data: 'OrderNo', defaultContent: '' },
+            { title: 'Complete Order', data: 'TaskId', defaultContent: '', searchable: false, render: renderCompleteLink },
+            { title: 'OrderDate', data: 'OrderDate', defaultContent: '', render: renderDate },
+            { title: 'Count', data: 'NoOfRecords', defaultContent: '0' },
+            { title: 'Process', data: 'ProcessStatus', defaultContent: '' },
+            { title: 'VM', data: 'VM', defaultContent: '' },
+            { title: 'Assign Date', data: 'ETAT', defaultContent: '', render: renderDateTime },
+            { title: 'Remark', data: 'Remark', defaultContent: '', render: function (v) { return '<span class="remark-text">' + html(v) + '</span>'; } }
+        ];
+        $.each(columns, function (_, col) {
+            table.find('thead tr:first').append($('<th/>').text(col.title));
         });
 
         reportTable = table.DataTable({
@@ -233,11 +255,9 @@
             info: false,
             ordering: true,
             autoWidth: false,
-            scrollX: true,
-            scrollY: '55vh',
-            scrollCollapse: true,
-            fixedHeader: true,
-            dom: 'Bfrtip',
+            scrollX: false,
+            fixedHeader: false,
+            dom: 'Brt',
             buttons: [{ extend: 'excelHtml5', title: 'VM Order Queue', className: 'buttons-excel', exportOptions: { columns: ':not(:first-child)' } }],
             createdRow: function (row, data) {
                 var status = String(data.ProcessStatus || '').toLowerCase();
@@ -249,12 +269,34 @@
         });
     }
 
+    function renderCompleteLink(value, type, row) {
+        if (type !== 'display') return 'Complete Order';
+        return '<a href="javascript:void(0)" onclick="openEdit(' + q(value || row.OrderId || row.OrderID || 0) + ')">Complete Order</a>';
+    }
+
+    function renderDate(value, type) { return type === 'display' ? html(formatNetDate(value, false)) : value || ''; }
+    function renderDateTime(value, type) { return type === 'display' ? html(formatNetDate(value, true)) : value || ''; }
+    function formatNetDate(value, includeTime) {
+        if (!value) return '';
+        var match = /\/Date\((-?\d+)\)\//.exec(String(value));
+        var date = match ? new Date(Number(match[1])) : new Date(value);
+        if (isNaN(date.getTime())) return String(value);
+        var result = ('0' + date.getDate()).slice(-2) + '-' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][date.getMonth()] + '-' + date.getFullYear();
+        if (includeTime) result += ' ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        return result;
+    }
+
     function getColumns(rows) {
-        var keys = [];
+        var preferred = ['ProjectNumber','OrderNo','ClientOrderNo','OrderDate','NoOfRecords','ProcessStatus','VM','ETAT','Remark','SearchBy','SearchDate','ReSearchBy','ReSearchDate','TypingBy','TypingDate','QABy','QADate','DispBy','DispDate'];
+        var found = {}, keys = [];
         $.each(rows, function (_, row) {
             $.each(row, function (key) {
-                if ($.inArray(key, keys) === -1 && key !== 'TaskAssignedId') keys.push(key);
+                found[key] = true;
             });
+        });
+        $.each(preferred, function (_, key) { if (found[key]) keys.push(key); });
+        $.each(found, function (key) {
+            if ($.inArray(key, keys) === -1 && $.inArray(key, ['TaskAssignedId','OrderId','OrderID','TaskId']) === -1) keys.push(key);
         });
         return keys;
     }
@@ -278,7 +320,7 @@
     function renderProcessLink(key, text, row) {
         if (!text) return '';
         var endField = { SearchBy:'SearchDate', ReSearchBy:'ReSearchDate', TypingBy:'TypingDate', QABy:'QADate', DispBy:'DispDate' }[key];
-        var allowed = !row[endField] && (Number(row.TaskAssignedId || 0) === Number(<%= CurrentUserId %>) || isPM) && String(row.ProcessStatus || '') === 'In-Process';
+        var allowed = !row[endField] && (Number(row.TaskAssignedId || 0) === currentUserId || isPM) && String(row.ProcessStatus || '') === 'In-Process';
         var url = (isPM ? 'ProcessOrderPMPopUp.aspx' : 'ProcessOrderPopUp.aspx') + '?OrderId=' + encodeURIComponent(row.OrderId) + '&Project=' + encodeURIComponent(row.ProjectNumber || '591');
         return '<a class="process-link ' + (allowed ? '' : 'disabled') + '" href="javascript:void(0)" onclick="openProcess(\'' + js(url) + '\')">' + html(text) + '</a>';
     }
@@ -349,6 +391,16 @@
         var message = 'Unable to process request.';
         try { message = xhr.responseJSON.Message || xhr.responseJSON.ExceptionMessage || message; } catch (e) { }
         alert(message);
+    }
+    function validateDates() {
+        var from, to, message = '';
+        try {
+            from = $.datepicker.parseDate('dd-M-yy', $('#txtFromDate').val());
+            to = $.datepicker.parseDate('dd-M-yy', $('#txtToDate').val());
+            if (from > to) message = 'From Date cannot be later than To Date.';
+        } catch (e) { message = 'Enter dates in dd-MMM-yyyy format.'; }
+        $('#dateError').text(message);
+        return !message;
     }
     function html(v) { return $('<div/>').text(v == null ? '' : String(v)).html(); }
     function htmlAttr(v) { return html(v).replace(/"/g, '&quot;'); }

@@ -81,6 +81,22 @@ namespace WebPortal.Admin
             return ser.Serialize(rows);
         }
 
+        private static bool IsUnreadDashboardAlert(DataRow row)
+        {
+            string[] statusColumns = { "IsRead", "ReadStatus", "IsViewed" };
+            foreach (string column in statusColumns)
+            {
+                if (!row.Table.Columns.Contains(column) || row[column] == DBNull.Value)
+                    continue;
+
+                string value = Convert.ToString(row[column]).Trim();
+                return value == "0" || value.Equals("false", StringComparison.OrdinalIgnoreCase) ||
+                       value.Equals("unread", StringComparison.OrdinalIgnoreCase);
+            }
+
+            return true;
+        }
+
         [WebMethod]
         public static string GetDashboardAlerts()
         {
@@ -91,6 +107,9 @@ namespace WebPortal.Admin
             {
                 foreach (DataRow dr in dt1.Rows)
                 {
+                    if (!IsUnreadDashboardAlert(dr))
+                        continue;
+
                     row = new Dictionary<string, object>();
                     foreach (DataColumn col in dt1.Columns)
                     {
