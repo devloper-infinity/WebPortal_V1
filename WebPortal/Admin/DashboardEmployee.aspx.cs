@@ -107,9 +107,6 @@ namespace WebPortal.Admin
             {
                 foreach (DataRow dr in dt1.Rows)
                 {
-                    if (!IsUnreadDashboardAlert(dr))
-                        continue;
-
                     row = new Dictionary<string, object>();
                     foreach (DataColumn col in dt1.Columns)
                     {
@@ -121,6 +118,48 @@ namespace WebPortal.Admin
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static string GetUnreadDashboardAlerts()
+        {
+            DataTable alerts = new bllMaster().GetAllReadUnreradDashboardAlert();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            if (alerts != null)
+            {
+                foreach (DataRow alert in alerts.Rows)
+                {
+                    if (!IsUnreadDashboardAlert(alert))
+                        continue;
+
+                    Dictionary<string, object> row = new Dictionary<string, object>();
+                    foreach (DataColumn column in alerts.Columns)
+                        row.Add(column.ColumnName, alert[column]);
+                    rows.Add(row);
+                }
+            }
+
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            serializer.MaxJsonLength = int.MaxValue;
+            return serializer.Serialize(rows);
+        }
+
+        [WebMethod]
+        public static bool MarkDashboardAlertAsRead(int alertId)
+        {
+            if (alertId <= 0)
+                return false;
+
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand(
+                "UPDATE dbo.DashboardAlertDetails SET isRead = 1, ReadDate = GETDATE() " +
+                "WHERE AlertId = @AlertId AND EmployeeID = @EmployeeID AND ISNULL(isRead, 0) = 0", connection))
+            {
+                command.Parameters.Add("@AlertId", SqlDbType.Int).Value = alertId;
+                command.Parameters.Add("@EmployeeID", SqlDbType.Int).Value = int.Parse(HttpContext.Current.User.Identity.Name);
+                connection.Open();
+                return command.ExecuteNonQuery() > 0;
+            }
         }
 
         [WebMethod]

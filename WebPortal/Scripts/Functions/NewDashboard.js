@@ -1584,7 +1584,7 @@ function dash_PendingTaskNotifications(callback) {
 
 function dash_showUnreadDashboardAlerts(callback) {
     $.ajax({
-        url: "DashboardEmployee.aspx/GetDashboardAlerts",
+        url: "DashboardEmployee.aspx/GetUnreadDashboardAlerts",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
@@ -1606,6 +1606,24 @@ function dash_showUnreadDashboardAlerts(callback) {
                 var alert = alerts[index++];
                 $("#dasboard_popalertsubject").text(alert.Subject || "Dashboard Alert");
                 $("#dasboard_popalertmessage").html(alert.Message || "");
+                $("#dashboard_markAlertRead").off("click.dashboardAlert").on("click.dashboardAlert", function () {
+                    var button = $(this).prop("disabled", true);
+                    $.ajax({
+                        url: "DashboardEmployee.aspx/MarkDashboardAlertAsRead",
+                        type: "POST",
+                        data: JSON.stringify({ alertId: alert.AlertId }),
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (result) {
+                            if (result.d) {
+                                $("#dashboard_alertdetails").modal("hide");
+                            } else {
+                                button.prop("disabled", false);
+                            }
+                        },
+                        error: function () { button.prop("disabled", false); }
+                    });
+                }).prop("disabled", false);
                 $("#dashboard_alertdetails")
                     .off("hidden.bs.modal.dashboardAlert")
                     .one("hidden.bs.modal.dashboardAlert", showNext)
