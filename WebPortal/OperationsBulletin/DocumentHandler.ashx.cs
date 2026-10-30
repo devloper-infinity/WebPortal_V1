@@ -43,7 +43,16 @@ namespace WebPortal.OperationsBulletin
         {
             long version; if (!long.TryParse(c.Request.QueryString["version"], out version)) throw new ArgumentException("Invalid document."); DataRow row = new BulletinRepository().AuthorizedVersion(version, BulletinSecurity.EmployeeID);
             bool preview = c.Request.QueryString["mode"] == "preview"; if (preview && string.IsNullOrWhiteSpace(Convert.ToString(row["PdfStoredFileName"])) && !Convert.ToString(row["ContentType"]).Equals("application/pdf", StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("PDF preview is unavailable. Download the original Word document, or configure LibreOffice on the server."); string stored = preview && !string.IsNullOrWhiteSpace(Convert.ToString(row["PdfStoredFileName"])) ? Convert.ToString(row["PdfStoredFileName"]) : Convert.ToString(row["StoredFileName"]); string path = BulletinSecurity.SafePath(stored); if (!File.Exists(path)) throw new FileNotFoundException("File not found.");
-            c.Response.Clear(); c.Response.ContentType = preview ? "application/pdf" : Convert.ToString(row["ContentType"]); c.Response.AddHeader("X-Content-Type-Options", "nosniff"); c.Response.AddHeader("Content-Disposition", (preview ? "inline" : "attachment") + "; filename=\"" + Path.GetFileName(Convert.ToString(row["OriginalFileName"])).Replace("\"", "") + (preview ? ".pdf" : "") + "\""); c.Response.TransmitFile(path);
+            string originalName = Path.GetFileName(Convert.ToString(row["OriginalFileName"]));
+            string responseName = preview ? Path.GetFileNameWithoutExtension(originalName) + ".pdf" : originalName;
+            string safeName = responseName.Replace("\"", "").Replace("\r", "").Replace("\n", "");
+            c.Response.Clear();
+            c.Response.ContentType = preview ? "application/pdf" : Convert.ToString(row["ContentType"]);
+            c.Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            c.Response.Cache.SetNoStore();
+            c.Response.AddHeader("X-Content-Type-Options", "nosniff");
+            c.Response.AddHeader("Content-Disposition", (preview ? "inline" : "attachment") + "; filename=\"" + safeName + "\"; filename*=UTF-8''" + Uri.EscapeDataString(responseName));
+            c.Response.TransmitFile(path);
         }
         private static long? ParseLong(string value) { long x; return long.TryParse(value, out x) ? x : (long?)null; }
         private static void SafeDelete(string path) { try { if (File.Exists(path) && Path.GetFullPath(path).StartsWith(BulletinSecurity.StorageRoot, StringComparison.OrdinalIgnoreCase)) File.Delete(path); } catch { } }

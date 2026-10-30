@@ -918,7 +918,12 @@ END CATCH", connection) { CommandTimeout = 90 })
             EnsureProcessFlowColumns();
             SqlCommand timeValidation = new SqlCommand(@"
 DECLARE @ProcessName nvarchar(200),@MinMinutes int,@ElapsedSeconds bigint,@Message nvarchar(2048);
-SELECT @ProcessName=flow.ProcessName,@MinMinutes=flow.MinCompletionMinutes,
+SELECT @ProcessName=flow.ProcessName,
+       @MinMinutes=CASE WHEN i.RecordSource='Import' AND
+           (a.AssignedDate IS NULL OR a.StartedDate IS NULL OR a.StartedDate>GETDATE()
+            OR a.HoldTATSeconds IS NULL OR a.HoldTATSeconds<0
+            OR a.HoldTATSeconds>DATEDIFF(second,a.StartedDate,GETDATE()))
+           THEN NULL ELSE flow.MinCompletionMinutes END,
        @ElapsedSeconds=CASE WHEN DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
                             ELSE DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0) END
 FROM dbo.OLTracking_Assignment a
@@ -1008,7 +1013,12 @@ ORDER BY IsAcknowledged,a.AssignedDate;") { CommandType = CommandType.Text };
         {
             EnsureProcessFlowColumns();
             SqlCommand command = new SqlCommand(@"
-SELECT flow.ProcessName,flow.MinCompletionMinutes,
+SELECT flow.ProcessName,
+       CASE WHEN i.RecordSource='Import' AND
+           (a.AssignedDate IS NULL OR a.StartedDate IS NULL OR a.StartedDate>GETDATE()
+            OR a.HoldTATSeconds IS NULL OR a.HoldTATSeconds<0
+            OR a.HoldTATSeconds>DATEDIFF(second,a.StartedDate,GETDATE()))
+           THEN NULL ELSE flow.MinCompletionMinutes END MinCompletionMinutes,
        CONVERT(int,CASE WHEN a.StartedDate IS NULL THEN 0 WHEN DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
                         ELSE (DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0))/60 END) ElapsedMinutes,
        CONVERT(int,CASE WHEN flow.MinCompletionMinutes IS NULL OR a.StartedDate IS NULL THEN 0
