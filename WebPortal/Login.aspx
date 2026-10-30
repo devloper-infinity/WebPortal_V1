@@ -735,6 +735,7 @@
                 font-size: 21px;
             }
         }
+        .mfa-screen{display:none}.mfa-choice{width:100%;display:flex;align-items:center;gap:14px;margin:12px 0;padding:15px;border:1px solid #dbe5f1;border-radius:12px;background:#f8fbff;color:#172554;text-align:left;cursor:pointer}.mfa-choice.selected{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}.mfa-choice i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#e6f1ff;color:#2563eb;font-size:20px}.mfa-choice strong,.mfa-choice small{display:block}.mfa-choice small{margin-top:3px;color:#64748b}.mfa-primary{width:100%;margin-top:12px}.mfa-step{text-align:center;color:#64748b;font-size:13px}.mfa-qr{width:170px;height:170px;margin:18px auto;padding:10px;border:1px solid #dbe5f1;border-radius:12px;background:#fff}.mfa-qr img,.mfa-qr canvas{width:148px!important;height:148px!important}.mfa-secret{text-align:center;color:#64748b;font-size:12px}.mfa-secret code{display:block;margin-top:5px;word-break:break-all;color:#172554}.mfa-code{height:52px!important;margin:17px 0;text-align:center;letter-spacing:12px;font-size:22px!important;font-weight:700}.mfa-code::placeholder{letter-spacing:0;font-size:14px;font-weight:400}.mfa-email{margin:14px 0;padding:11px;border-radius:9px;background:#eef6ff;text-align:center;color:#173b70}.mfa-link{display:block;margin:14px auto 0;border:0;background:none;color:#2563eb;cursor:pointer}.mfa-back{margin-top:10px}.mfa-message{display:none;margin-bottom:14px;padding:11px;border-radius:9px;font-size:13px}.mfa-message.error{display:block;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}.mfa-message.success{display:block;background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
     </style>
 </head>
 <body class="login-page">
@@ -802,7 +803,7 @@
                 <!-- Bottom Visual Note -->
                 <div class="visual-footer">
                     <i class="fas fa-lock"></i>
-                    <span>Authorized personnel access only • Enterprise Grade Infrastructure</span>
+                    <span>Authorized personnel access only &bull; Enterprise Grade Infrastructure</span>
                 </div>
             </div>
         </section>
@@ -831,6 +832,8 @@
 
                 <!-- ASP.NET Server Form -->
                 <form id="form1" runat="server" autocomplete="on">
+                    <div id="mfaMessage" class="mfa-message" role="alert"></div>
+                    <div id="credentialFields">
                     
                     <!-- Username Field -->
                     <div class="login-field">
@@ -885,12 +888,30 @@
                         CssClass="btn btn-login-primary" 
                         OnClientClick="return showAuthenticatingEffect(this);" 
                         OnClick="btnSubmit_Click" />
+                    </div>
+
+                    <div id="mfaSelection" class="mfa-screen">
+                        <button class="mfa-choice" data-method="Authenticator" type="button"><i class="fas fa-mobile-alt"></i><span><strong>Authenticator App</strong><small>Use a 6-digit code from your app</small></span></button>
+                        <button class="mfa-choice" data-method="Email" type="button"><i class="fas fa-envelope"></i><span><strong>Official Email Address</strong><small>Receive an OTP on your work email</small></span></button>
+                        <button id="mfaMethodContinue" class="btn btn-login-primary mfa-primary" type="button" disabled>Continue</button>
+                    </div>
+
+                    <div id="mfaAuthSetup" class="mfa-screen">
+                        <p class="mfa-step">Scan this QR code with Microsoft or Google Authenticator.</p><div id="mfaQr" class="mfa-qr"></div>
+                        <div class="mfa-secret">Can't scan? Enter setup key:<code id="mfaSecret"></code></div>
+                        <input id="mfaSetupCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code" />
+                        <button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaSetupCode" type="button">Verify &amp; Enable MFA</button><button class="mfa-link mfa-change" type="button">Try another way</button>
+                    </div>
+
+                    <div id="mfaAuthVerify" class="mfa-screen"><p class="mfa-step">Enter the current code from your Authenticator App.</p><input id="mfaAuthCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code"/><button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaAuthCode" type="button">Verify &amp; Continue</button><button class="mfa-link mfa-change" type="button">Try another way</button></div>
+                    <div id="mfaEmailVerify" class="mfa-screen"><p class="mfa-step">Enter the OTP sent to your official email.</p><div id="mfaMaskedEmail" class="mfa-email"></div><input id="mfaEmailCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code"/><button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaEmailCode" type="button">Verify &amp; Continue</button><button id="mfaResend" class="mfa-link" type="button" disabled>Resend OTP in 00:30</button><button class="mfa-link mfa-change" type="button">Try another way</button></div>
+                    <button id="mfaBack" class="btn btn-outline-secondary mfa-back mfa-screen" type="button">Back to login</button>
                 </form>
 
                 <!-- Security Trust Footnote -->
                 <div class="login-card-footer">
                     <i class="fas fa-check-circle"></i>
-                    <span>256-bit SSL Encrypted • Protected Session</span>
+                    <span>256-bit SSL Encrypted &bull; Protected Session</span>
                 </div>
             </div>
         </section>
@@ -901,6 +922,7 @@
     <script src="plugins/jquery/jquery.min.js"></script>
     <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="dist/js/adminlte.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script type="text/javascript">
         // Show/Hide Password Toggle
         function togglePasswordVisibility() {
@@ -925,11 +947,13 @@
         }
 
         // Authenticating state feedback on submit
+        var selectedMfaMethod = '', mfaTimer = null;
         function showAuthenticatingEffect(btn) {
             var form = document.getElementById('form1');
             if (form && typeof form.checkValidity === 'function') {
                 if (!form.checkValidity()) {
-                    return true;
+                    form.reportValidity();
+                    return false;
                 }
             }
 
@@ -943,8 +967,25 @@
                 btn.classList.add('btn-authenticating');
             }
 
-            return true;
+            callMfa('ValidateMfaLogin', { username: document.getElementById('<%= txtUserName.ClientID %>').value, password: document.getElementById('<%= txtPassword.ClientID %>').value, rememberMe: document.getElementById('chkRemember').checked }, handleMfa);
+            return false;
         }
+
+        document.querySelectorAll('.mfa-choice').forEach(function (button) { button.addEventListener('click', function () { document.querySelectorAll('.mfa-choice').forEach(function (x) { x.classList.remove('selected'); }); button.classList.add('selected'); selectedMfaMethod = button.getAttribute('data-method'); document.getElementById('mfaMethodContinue').disabled = false; }); });
+        document.getElementById('mfaMethodContinue').addEventListener('click', function () { callMfa('SelectMfaMethod', { method: selectedMfaMethod }, handleMfa); });
+        document.querySelectorAll('.mfa-verify').forEach(function (button) { button.addEventListener('click', function () { callMfa('VerifyMfa', { code: document.getElementById(button.getAttribute('data-input')).value }, handleMfa); }); });
+        document.querySelectorAll('.mfa-code').forEach(function (input) { input.addEventListener('input', function () { input.value = input.value.replace(/\D/g, '').slice(0, 6); }); input.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); var verifyButton = input.closest('.mfa-screen').querySelector('.mfa-verify'); if (verifyButton) verifyButton.click(); } }); });
+        document.getElementById('mfaResend').addEventListener('click', function () { callMfa('ResendMfaEmail', {}, handleMfa); });
+        document.querySelectorAll('.mfa-change').forEach(function (button) { button.addEventListener('click', function () { selectedMfaMethod = ''; document.querySelectorAll('.mfa-choice').forEach(function (x) { x.classList.remove('selected'); }); showMfaScreen('mfaSelection', 'Try another way', 'Choose a different verification method.'); document.getElementById('mfaMethodContinue').disabled = true; }); });
+        document.getElementById('mfaBack').addEventListener('click', resetMfa);
+
+        function callMfa(method, data, done) { setMfaBusy(true); fetch('Login.aspx/' + method, { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify(data || {}) }).then(function (r) { return r.json(); }).then(function (r) { setMfaBusy(false); done(r.d); }).catch(function () { setMfaBusy(false); showMfaMessage('Server error. Please try again.', 'error'); }); }
+        function handleMfa(result) { if (result.status === 'success' || result.status === 'redirect') { window.location.href = result.url; return; } if (result.status === 'error') { showMfaMessage(result.message, 'error'); return; } if (result.status === 'expired') { resetMfa(); showMfaMessage(result.message, 'error'); return; } if (result.status === 'mfa_selection') { selectedMfaMethod = ''; showMfaScreen('mfaSelection', 'Secure your account', 'Choose how you want to verify your identity.'); document.getElementById('mfaMethodContinue').disabled = true; return; } if (result.status === 'authenticator_setup') { showMfaScreen('mfaAuthSetup', 'Set up Authenticator App', 'Scan the QR code, then verify the generated code.'); document.getElementById('mfaSecret').textContent = result.secret; document.getElementById('mfaQr').innerHTML = ''; new QRCode(document.getElementById('mfaQr'), { text: result.uri, width: 148, height: 148 }); return; } if (result.status === 'authenticator_verify') { showMfaScreen('mfaAuthVerify', 'Verification required', 'Confirm the code from your Authenticator App.'); return; } if (result.status === 'email_verify') { showMfaScreen('mfaEmailVerify', 'Check your official email', 'We sent a 6-digit verification code.'); document.getElementById('mfaMaskedEmail').textContent = result.email; startMfaTimer(); } }
+        function showMfaScreen(id, title, subtitle) { document.getElementById('credentialFields').style.display = 'none'; document.querySelectorAll('.mfa-screen').forEach(function (x) { x.style.display = 'none'; }); document.getElementById(id).style.display = 'block'; document.getElementById('mfaBack').style.display = 'block'; document.querySelector('.logo-box h2').textContent = title; document.querySelector('.logo-box p').textContent = subtitle; clearMfaMessage(); }
+        function resetMfa() { if (mfaTimer) clearInterval(mfaTimer); document.querySelectorAll('.mfa-screen').forEach(function (x) { x.style.display = 'none'; }); document.getElementById('credentialFields').style.display = 'block'; document.querySelector('.logo-box h2').textContent = 'Sign In'; document.querySelector('.logo-box p').textContent = 'Enter your credentials to access your workspace'; document.getElementById('<%= txtPassword.ClientID %>').value = ''; clearMfaMessage(); }
+        function startMfaTimer() { var left = 30, button = document.getElementById('mfaResend'); button.disabled = true; if (mfaTimer) clearInterval(mfaTimer); mfaTimer = setInterval(function () { left--; button.textContent = left > 0 ? 'Resend OTP in 00:' + String(left).padStart(2, '0') : 'Resend OTP'; button.disabled = left > 0; if (left <= 0) clearInterval(mfaTimer); }, 1000); }
+        function setMfaBusy(on) { document.getElementById('authLoader').style.display = on ? 'flex' : 'none'; document.querySelectorAll('#form1 button,#form1 input[type=submit]').forEach(function (x) { x.disabled = on; }); if (!on && selectedMfaMethod) document.getElementById('mfaMethodContinue').disabled = false; }
+        function showMfaMessage(text, type) { var box = document.getElementById('mfaMessage'); box.className = 'mfa-message ' + type; box.textContent = text; } function clearMfaMessage() { var box = document.getElementById('mfaMessage'); box.className = 'mfa-message'; box.textContent = ''; }
     </script>
 </body>
 </html>

@@ -251,9 +251,9 @@ function runPopupSequence() {
         { id: "dash_festWish_PopUp", key: "festival", type: "once_per_day" },
         { id: "dash_projectNotifications", key: "projectNotifications", type: "once_per_day" },
         { id: "adminimagePreviewModalpopup", key: "adminFestivalPreview", type: "once_per_day" },
-        /*{ id: "dashboard_alertdetails", type: "every_login" },*/
         { id: "dash_expiryModal", key: "passwordExpirary", type: "every_login" },
-        { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" }
+        { id: "dash_pendingnotifications", key: "pendingNotifications", type: "every_login" },
+        { id: "dashboard_alertdetails", type: "every_login" }
     ];
 
     showPopupsSequentially(popups, 0);
@@ -320,6 +320,12 @@ function openPopup(id, callback) {
     //  Pending Notification --  9
     if (id === "dash_pendingnotifications") {
         dash_PendingTaskNotifications(callback);
+        return;
+    }
+
+    // Dashboard alerts must be the final popup in the login sequence.
+    if (id === "dashboard_alertdetails") {
+        dash_showUnreadDashboardAlerts(callback);
         return;
     }
 
@@ -1573,6 +1579,60 @@ function dash_PendingTaskNotifications(callback) {
         error: function () {
             callback(); // continue even if error
         }
+    });
+}
+
+function dash_showUnreadDashboardAlerts(callback) {
+    $.ajax({
+        url: "DashboardEmployee.aspx/GetUnreadDashboardAlerts",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            var alerts = typeof response.d === "string" ? JSON.parse(response.d) : response.d;
+            var index = 0;
+
+            if (!alerts || alerts.length === 0) {
+                callback();
+                return;
+            }
+
+            function showNext() {
+                if (index >= alerts.length) {
+                    callback();
+                    return;
+                }
+
+                var alert = alerts[index++];
+                $("#dasboard_popalertsubject").text(alert.Subject || "Dashboard Alert");
+                $("#dasboard_popalertmessage").html(alert.Message || "");
+                $("#dashboard_markAlertRead").off("click.dashboardAlert").on("click.dashboardAlert", function () {
+                    var button = $(this).prop("disabled", true);
+                    $.ajax({
+                        url: "DashboardEmployee.aspx/MarkDashboardAlertAsRead",
+                        type: "POST",
+                        data: JSON.stringify({ alertId: alert.AlertId }),
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (result) {
+                            if (result.d) {
+                                $("#dashboard_alertdetails").modal("hide");
+                            } else {
+                                button.prop("disabled", false);
+                            }
+                        },
+                        error: function () { button.prop("disabled", false); }
+                    });
+                }).prop("disabled", false);
+                $("#dashboard_alertdetails")
+                    .off("hidden.bs.modal.dashboardAlert")
+                    .one("hidden.bs.modal.dashboardAlert", showNext)
+                    .modal("show");
+            }
+
+            showNext();
+        },
+        error: callback
     });
 }
 

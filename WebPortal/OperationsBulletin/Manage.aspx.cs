@@ -1,15 +1,28 @@
-using System;using System.Collections.Generic;using System.Data;using System.Globalization;using System.Web;using System.Web.Script.Serialization;using System.Web.Services;using System.Web.UI;using WebPortal.App_Code.Class;
-namespace WebPortal.OperationsBulletin{public partial class Manage:Page{
-protected void Page_Load(object s,EventArgs e){if(!Allowed())Server.Transfer("~/OperationsBulletin/AccessDenied.aspx");}
-private static bool Allowed(){try{return EmployeeInfo.Current!=null;}catch{return false;}}
-private static void Check(){if(!Allowed())throw new UnauthorizedAccessException("You do not have access.");}
-[WebMethod]public static string Setup(){Check();return Json(new BulletinRepository().TeamSetup(BulletinSecurity.EmployeeID));}
-[WebMethod]public static string ProjectUsers(int projectId,int? locationId){Check();return Json(new BulletinRepository().ProjectUsers(projectId,locationId));}
-[WebMethod]public static int SaveTeam(string action,int teamId,string teamName,int? domainId,int? subdomainId,int? locationId,int? projectId,int[] memberIds){Check();return new BulletinRepository().SaveTeam(action,teamId,teamName,domainId,subdomainId,locationId,projectId,memberIds,BulletinSecurity.EmployeeID);}
-[WebMethod]public static long SaveBulletin(string title,string category,string priority,string summary,string scheduleDate,bool requireAcknowledgement,string teamIds,long? folderId){Check();var a=new JavaScriptSerializer().Deserialize<List<string>>(teamIds)??new List<string>();return new BulletinRepository().SaveBulletin(0,folderId,title,category,priority,summary,Date(scheduleDate),requireAcknowledgement,new JavaScriptSerializer().Serialize(new{type="Team",values=a}),BulletinSecurity.EmployeeID);}
-[WebMethod]public static void Publish(long bulletinId,string action){Check();new BulletinRepository().Publish(bulletinId,action,BulletinSecurity.EmployeeID);}
-[WebMethod]public static void Discard(long bulletinId){Check();new BulletinRepository().DiscardDraft(bulletinId,BulletinSecurity.EmployeeID);}
-private static DateTime? Date(string v){DateTime d;if(!DateTime.TryParse(v,CultureInfo.InvariantCulture,DateTimeStyles.None,out d))return null;return TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(d,DateTimeKind.Unspecified),TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));}
-private static string Json(DataSet d){var all=new List<object>();foreach(DataTable t in d.Tables){var rows=new List<Dictionary<string,object>>();foreach(DataRow r in t.Rows){var x=new Dictionary<string,object>();foreach(DataColumn c in t.Columns)x[c.ColumnName]=r[c]==DBNull.Value?null:r[c];rows.Add(x);}all.Add(rows);}return new JavaScriptSerializer{MaxJsonLength=int.MaxValue}.Serialize(all);}
-private static string Json(DataTable t){var rows=new List<Dictionary<string,object>>();foreach(DataRow r in t.Rows){var x=new Dictionary<string,object>();foreach(DataColumn c in t.Columns)x[c.ColumnName]=r[c]==DBNull.Value?null:r[c];rows.Add(x);}return new JavaScriptSerializer().Serialize(rows);}
-}}
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
+using System.Web;
+using System.Web.Script.Serialization;
+using System.Web.Services;
+using System.Web.UI;
+using WebPortal.App_Code.Class;
+namespace WebPortal.OperationsBulletin
+{
+    public partial class Manage : Page
+    {
+        protected void Page_Load(object s, EventArgs e) { if (!Allowed()) Server.Transfer("~/OperationsBulletin/AccessDenied.aspx"); }
+        private static bool Allowed() { try { return EmployeeInfo.Current != null; } catch { return false; } }
+        private static void Check() { if (!Allowed()) throw new UnauthorizedAccessException("You do not have access."); }
+        [WebMethod] public static string Setup() { Check(); return Json(new BulletinRepository().TeamSetup(BulletinSecurity.EmployeeID)); }
+        [WebMethod] public static string ProjectUsers(int projectId, int? locationId) { Check(); return Json(new BulletinRepository().ProjectUsers(projectId, locationId)); }
+        [WebMethod] public static int SaveTeam(string action, int teamId, string teamName, int? domainId, int? subdomainId, int? locationId, int? projectId, int[] memberIds) { Check(); return new BulletinRepository().SaveTeam(action, teamId, teamName, domainId, subdomainId, locationId, projectId, memberIds, BulletinSecurity.EmployeeID); }
+        [WebMethod] public static long SaveBulletin(string title, string category, string priority, string summary, string scheduleDate, bool requireAcknowledgement, string teamIds, long? folderId) { Check(); var a = new JavaScriptSerializer().Deserialize<List<string>>(teamIds) ?? new List<string>(); 
+            return new BulletinRepository().SaveBulletin(0, folderId, title, category, priority, summary, Date(scheduleDate), requireAcknowledgement, new JavaScriptSerializer().Serialize(new { type = "Team", values = a }), BulletinSecurity.EmployeeID); }
+        [WebMethod] public static void Publish(long bulletinId, string action) { Check(); new BulletinRepository().Publish(bulletinId, action, BulletinSecurity.EmployeeID); }
+        [WebMethod] public static void Discard(long bulletinId) { Check(); new BulletinRepository().DiscardDraft(bulletinId, BulletinSecurity.EmployeeID); }
+        private static DateTime? Date(string v) { DateTime d; if (!DateTime.TryParse(v, CultureInfo.InvariantCulture, DateTimeStyles.None, out d)) return null; return TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(d, DateTimeKind.Unspecified), TimeZoneInfo.FindSystemTimeZoneById("India Standard Time")); }
+        private static string Json(DataSet d) { var all = new List<object>(); foreach (DataTable t in d.Tables) { var rows = new List<Dictionary<string, object>>(); foreach (DataRow r in t.Rows) { var x = new Dictionary<string, object>(); foreach (DataColumn c in t.Columns) x[c.ColumnName] = r[c] == DBNull.Value ? null : r[c]; rows.Add(x); } all.Add(rows); } return new JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(all); }
+        private static string Json(DataTable t) { var rows = new List<Dictionary<string, object>>(); foreach (DataRow r in t.Rows) { var x = new Dictionary<string, object>(); foreach (DataColumn c in t.Columns) x[c.ColumnName] = r[c] == DBNull.Value ? null : r[c]; rows.Add(x); } return new JavaScriptSerializer().Serialize(rows); }
+    }
+}

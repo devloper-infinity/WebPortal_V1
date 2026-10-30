@@ -957,7 +957,6 @@
     <Content Include="IT\TIcketQueue.aspx" />
     <Content Include="IT\VendorMaster.aspx" />
     <Content Include="Login.aspx" />
-    <Content Include="LoginNew.aspx" />
     <Content Include="Logout.aspx" />
     <Content Include="LogoutNew.aspx" />
     <Content Include="Scripts\Functions\LeavesReport.js" />
@@ -5606,13 +5605,6 @@
     </Compile>
     <Compile Include="Login.aspx.designer.cs">
       <DependentUpon>Login.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="LoginNew.aspx.cs">
-      <DependentUpon>LoginNew.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="LoginNew.aspx.designer.cs">
-      <DependentUpon>LoginNew.aspx</DependentUpon>
     </Compile>
     <Compile Include="Logout.aspx.cs">
       <DependentUpon>Logout.aspx</DependentUpon>
