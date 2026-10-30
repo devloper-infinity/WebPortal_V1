@@ -1185,6 +1185,7 @@ namespace WebPortal.Admin
                         if (locationHead == "")
                             locationHead = domainHead;
 
+                        int NoOfDays_1 = 0;
                         string ResignationStatus = "";
                         if (Convert.ToString(dtResigned.Rows[0]["Status"]) == "Accept")
                         {
@@ -1197,7 +1198,7 @@ namespace WebPortal.Admin
 
                         head.Append(GetProfessionalResignationEmailHead());
                         body.Append(GetProfessionalResignationEmailHeader());
-                        body.Append("<tr><td colspan=\"2\" style=\"padding:20px 16px;background-color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#52637a;text-align:left;\"><b>Dear Sir/Madam,<br />Resignation of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been cancelled.</b></td></tr>");
+                        body.Append("<tr><td colspan=\"2\" style=\"padding:20px 16px;background-color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#52637a;text-align:left;\"><b>Dear Sir/Madam,<br />Resignation of employee " + Convert.ToString(dt.Rows[0]["FullName"]) + " has been Cancelled.<br /><br /></b></td></tr>");
 
                         AppendNoticeEmailSection(body, "Employee Basic Details");
                         AppendNoticeEmailRow(body, "Name:", Convert.ToString(dt.Rows[0]["Code"]) + " : " + Convert.ToString(dt.Rows[0]["FullName"]));
@@ -1208,41 +1209,46 @@ namespace WebPortal.Admin
                         AppendNoticeEmailRow(body, "Department:", Convert.ToString(dt.Rows[0]["DepartmentName"]));
                         AppendNoticeEmailRow(body, "Designation:", Convert.ToString(dt.Rows[0]["DesignationName"]));
                         AppendNoticeEmailRow(body, "Reporting Manager:", Convert.ToString(dt.Rows[0]["ReportingManager"]));
-                        AppendNoticeEmailRow(body, "Domain Head:", domainHead);
-                        AppendNoticeEmailRow(body, "Location Head:", locationHead);
+                        AppendNoticeEmailRow(body, "Domain Head", domainHead);
+                        AppendNoticeEmailRow(body, "Location Head", locationHead);
 
                         AppendNoticeEmailSection(body, "Resignation Details");
-                        AppendNoticeEmailSection(body, ":: Step 1 ::");
+                        AppendNoticeEmailSection(body, " :: Step 1 :: ");
                         AppendNoticeEmailRow(body, "Resignation Type:", Convert.ToString(dtResigned.Rows[0]["ResignationType"]));
                         if (Convert.ToString(dtResigned.Rows[0]["ResignationType"]) == "Termination")
                         {
+                            string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
+                            NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
                             AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> 0");
                             AppendNoticeEmailRow(body, "Reason to terminate:", Convert.ToString(dtResigned.Rows[0]["Reasontoterminate"]));
                             AppendNoticeEmailRow(body, "Step 1 Remark:", Convert.ToString(dtResigned.Rows[0]["Remark"]));
                         }
                         else if (Convert.ToString(dtResigned.Rows[0]["ResignationType"]) == "Absconding")
                         {
+                            string NoOfDays1 = (Convert.ToDateTime(dt.Rows[0]["LastLoginDate"]) - Convert.ToDateTime(dt.Rows[0]["LastLoginDate"])).TotalDays.ToString();
+                            NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
                             AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " <b>To:</b> " + Convert.ToString(dt.Rows[0]["LastLoginDate"]) + " :: <b>No of Days:</b> 0");
                             AppendNoticeEmailRow(body, "Step 1 Remark:", Convert.ToString(dtResigned.Rows[0]["Remark"]));
                         }
                         else
                         {
-                            int noOfDays = Convert.ToInt32((Convert.ToDateTime(dtResigned.Rows[0]["LastWorkingDate"]) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays) + 1;
-                            AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(noOfDays));
+                            string NoOfDays1 = (Convert.ToDateTime(dtResigned.Rows[0]["LastWorkingDate"]) - Convert.ToDateTime(dtResigned.Rows[0]["ResignationDate"])).TotalDays.ToString();
+                            NoOfDays_1 = Convert.ToInt32(NoOfDays1) + 1;
+                            AppendNoticeEmailRow(body, "Notice Period:", "<b>From:</b> " + Convert.ToString(dtResigned.Rows[0]["ResignationDate"]) + " <b>To:</b> " + Convert.ToString(dtResigned.Rows[0]["LastWorkingDate"]) + " :: <b>No of Days:</b> " + Convert.ToString(NoOfDays_1));
                             AppendNoticeEmailRow(body, "Step 1 Remark:", Convert.ToString(dtResigned.Rows[0]["Remark"]));
                         }
-                        AppendNoticeEmailSection(body, ":: Step 2 ::");
+                        AppendNoticeEmailSection(body, " :: Step 2 :: ");
                         AppendNoticeEmailRow(body, "Resignation Status:", ResignationStatus);
                         AppendNoticeEmailRow(body, "Step 2 Remark:", Convert.ToString(dtResigned.Rows[0]["UnitHeadRemark"]));
                         AppendNoticeEmailRow(body, "Latest Login Date:", Convert.ToString(dt.Rows[0]["LastLoginDate"]));
                         if (Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesCompleted"]) == "True")
                         {
-                            AppendNoticeEmailSection(body, ":: Exit Formality Details ::");
+                            AppendNoticeEmailSection(body, " :: Exit Formality Details :: ");
                             AppendNoticeEmailRow(body, "Exit Formalities Completed?:", "Yes");
                             AppendNoticeEmailRow(body, "Exit Formalities Completion Remark:", Convert.ToString(dtResigned.Rows[0]["ExitFormalitiesRemark"]));
                         }
 
-                        AppendNoticeEmailSection(body, ":: Resignation Cancellation Details ::");
+                        AppendNoticeEmailSection(body, " :: Resignation Cancellation Details :: ");
                         string PM = new bllMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                         AppendNoticeEmailRow(body, "Resignation Status:", "Cancelled");
                         AppendNoticeEmailRow(body, "Remark:", PM + " :: " + DateTime.Now.ToString("dd-MMM-yyyy hh:mm tt") + " :: " + Convert.ToString(Remark));

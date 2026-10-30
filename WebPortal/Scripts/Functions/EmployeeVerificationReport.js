@@ -385,7 +385,10 @@ function OnSuccessExEmpForm(result) {
         : Number(result);
 
     if (responseCode > 0) {
-        showExEmpFormMessage("Information submitted successfully!", false);
+        var successMessage = responseCode === 2
+            ? "The verification details were saved, but the email could not be sent. Please contact the administrator to resend it."
+            : "Information submitted successfully!";
+        showExEmpFormMessage(successMessage, responseCode === 2);
     }
     else {
         showExEmpFormMessage("The information could not be submitted. Please contact the administrator.", true);
