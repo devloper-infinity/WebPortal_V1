@@ -16,7 +16,6 @@ namespace WebPortal.OperationsBulletin
         private static void Check() { if (!Allowed()) throw new UnauthorizedAccessException("You do not have access."); }
         [WebMethod] public static string Setup() { Check(); return Json(new BulletinRepository().TeamSetup(BulletinSecurity.EmployeeID)); }
         [WebMethod] public static string ProjectUsers(int projectId, int? locationId) { Check(); return Json(new BulletinRepository().ProjectUsers(projectId, locationId)); }
-        [WebMethod] public static int SaveTeam(string action, int teamId, string teamName, int? domainId, int? subdomainId, int? locationId, int? projectId, int[] memberIds) { Check(); return new BulletinRepository().SaveTeam(action, teamId, teamName, domainId, subdomainId, locationId, projectId, memberIds, BulletinSecurity.EmployeeID); }
         [WebMethod] public static long SaveBulletin(string title, string category, string priority, string summary, string scheduleDate, bool requireAcknowledgement, string teamIds, long? folderId) { Check(); var a = new JavaScriptSerializer().Deserialize<List<string>>(teamIds) ?? new List<string>(); 
             return new BulletinRepository().SaveBulletin(0, folderId, title, category, priority, summary, Date(scheduleDate), requireAcknowledgement, new JavaScriptSerializer().Serialize(new { type = "Team", values = a }), BulletinSecurity.EmployeeID); }
         [WebMethod] public static void Publish(long bulletinId, string action) { Check(); new BulletinRepository().Publish(bulletinId, action, BulletinSecurity.EmployeeID); }
