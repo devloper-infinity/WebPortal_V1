@@ -1155,7 +1155,8 @@
                                     <th class="sort border-top text-center">Contractual Usage</th>
                                     <th class="sort border-top">Effective From</th>
                                     <th class="sort border-top">Effective To</th>
-                                    <th class="sort border-top text-center">Amount Charged</th>
+                                    <th class="sort border-top text-center">Unit Price</th>
+                                    <th class="sort border-top text-center">Amount Charge + Tax</th>
                                     <th class="sort border-top">Difference</th>
                                     <th class="sort border-top">Remark</th>
                                     <th class="sort border-top">Invoice #</th>
