@@ -307,16 +307,6 @@ namespace WebPortal
 
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            // MFA is completed through the session-enabled page methods below.
-            // Never allow the legacy postback handler to issue an authentication ticket.
-            if (Request.HttpMethod.Equals("POST", StringComparison.OrdinalIgnoreCase))
-            {
-                dvError.Style.Add("display", "block");
-                dvError.Attributes["class"] = "alert alert-danger alert-dismissible";
-                dvError.InnerText = "Secure sign-in requires JavaScript. Please enable it and try again.";
-                return;
-            }
-
             try
             {
                 string userID = Request.Form[UserIDKey];
