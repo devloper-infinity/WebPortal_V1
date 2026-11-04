@@ -378,7 +378,10 @@ function formatFteBillingPeriod(value) {
     }
 
     function formatDatePart(dateText, fallbackMonth, fallbackYear) {
-        var match = dateText.trim().match(/^(\d{1,2})(?:[-\/]([A-Za-z]+))?(?:[-\/](\d{2}|\d{4}))?$/);
+        // Some legacy billing periods contain an omitted end year with a
+        // trailing separator (for example, "31-October-"). Treat that the
+        // same as an omitted year and inherit the year from the start date.
+        var match = dateText.trim().match(/^(\d{1,2})(?:[-\/]([A-Za-z]+))?(?:[-\/](\d{2}|\d{4})?)?$/);
         if (!match) {
             return null;
         }

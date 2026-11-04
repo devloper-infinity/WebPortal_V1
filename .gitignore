@@ -448,6 +448,7 @@ FodyWeavers.xsd
 !/WebPortal/Content/PettyCashTheme.css
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
+!/WebPortal/DatabaseScripts/AutoBillingCycleFilter.sql
 !/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql
 !/WebPortal/DatabaseScripts/ServicingDetailedFeedbackReport_001_SelectedLoans.sql
 !/WebPortal/DatabaseScripts/MonthlyBirthdays_001_Report.sql

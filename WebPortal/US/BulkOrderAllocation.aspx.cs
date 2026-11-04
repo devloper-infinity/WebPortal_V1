@@ -100,7 +100,7 @@ namespace WebPortal.US
                             Clean(row["Deal #"]),
                             Clean(row["Loan #"])))
                     {
-                        error = "Deal # and Loan # combination does not match Tracking Sheet for the specified project.";
+                        error = "Deal # and Loan # combination does not match the old or ERP Tracking Sheet for the specified project.";
                     }
 
                     string allocationKey = projectId + "|" + Clean(row["Deal #"]) + "|" +
