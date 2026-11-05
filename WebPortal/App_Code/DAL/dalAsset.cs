@@ -528,6 +528,17 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
+        public bool UpdateTicketAttachment(int ticketId, string attachment)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
+                "UPDATE dbo.Ticket SET Attachment = @Attachment WHERE TicketId = @TicketId");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Attachment", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, attachment);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TicketId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, ticketId);
+            bool wasUpdated = SQLHelper.ExecuteNonQueryCmd(cmd);
+            cmd.Dispose();
+            return wasUpdated;
+        }
+
         public int InsertTicket(Hashtable htTicket)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertTicket");

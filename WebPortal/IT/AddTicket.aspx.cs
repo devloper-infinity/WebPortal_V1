@@ -229,17 +229,14 @@ namespace WebPortal.IT
             htTicket["Users"] = "";
             htTicket["GroupName"] = "";
 
-            if (filelist.ToString() != "")
-            {
-                htTicket["Attachment"] = FolderPath + "\\" + DateTime.Now.ToString("dd-MMM-yyyy") + "*" + NewFileName.Substring(NewFileName.LastIndexOf("\\") + 1);
-            }
+            // The ticket ID is required to build the final attachment path, so do not
+            // store a placeholder path (previously marked with '*') during the insert.
+            htTicket["Attachment"] = "";
 
             ReturnValue =  new bllAsset().InsertTicketForSoftware(htTicket);
 
             if (ReturnValue > 0)
             {
-                SendTicketEmail(htTicket, ReturnValue);
-
                 if (filelist.ToString() != "")
                 {
                     SubPath = FolderPath + "\\" + DateTime.Now.ToString("dd-MMM-yyyy");
@@ -260,7 +257,11 @@ namespace WebPortal.IT
                     }
 
                     File.Copy(NewFileName, UniquePath);
+                    htTicket["Attachment"] = UniquePath;
+                    new bllAsset().UpdateTicketAttachment(ReturnValue, UniquePath);
                 }
+
+                SendTicketEmail(htTicket, ReturnValue);
             }
             return ReturnValue;
         }

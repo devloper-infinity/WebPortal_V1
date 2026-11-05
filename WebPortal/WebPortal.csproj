@@ -126,6 +126,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Accounts\BranchwiseSalaryAnalysis.aspx" />
+    <Content Include="Accounts\ApprovedEmployee.aspx" />
+    <Content Include="Accounts\ProfileApproval.aspx" />
     <Content Include="Accounts\DiwaliExpenses.aspx" />
     <Content Include="Accounts\AdvanceMaster.aspx" />
     <Content Include="Accounts\BonusMaster.aspx" />
@@ -3433,6 +3435,20 @@
     <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.cs">
       <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\ApprovedEmployee.aspx.cs">
+      <DependentUpon>ApprovedEmployee.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\ApprovedEmployee.aspx.designer.cs">
+      <DependentUpon>ApprovedEmployee.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\ProfileApproval.aspx.cs">
+      <DependentUpon>ProfileApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\ProfileApproval.aspx.designer.cs">
+      <DependentUpon>ProfileApproval.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.designer.cs">
       <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>

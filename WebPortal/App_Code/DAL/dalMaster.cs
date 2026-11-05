@@ -22,6 +22,31 @@ namespace WebPortal.App_Code.DAL
 {
     public class dalMaster
     {
+        public int UpdateEmployeeInfoForApproved(string code, string approvedDate, string approvedRemark, int approvedBy, string joiningType, string ans1, string ans2, string ans3, string ans4, string ans5, string ans6)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateEmployeeInfoForApproved");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", SqlDbType.NVarChar, 10, ParameterDirection.Input, code);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, approvedDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedRemark", SqlDbType.NVarChar, 4000, ParameterDirection.Input, approvedRemark);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedBy", SqlDbType.Int, 0, ParameterDirection.Input, approvedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JoiningType", SqlDbType.NVarChar, 100, ParameterDirection.Input, joiningType);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans1", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans1);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans2", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans2);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans3", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans3);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans4", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans4);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans5", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans5);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans6", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans6);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public DataTable GetAllEmployeeDetailsForApproved(int employeeId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllEmployeeDetailsForApproved");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.BigInt, 0, ParameterDirection.Input, employeeId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
         public DataTable GetMenuForUser(int UserID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetUserMenus");

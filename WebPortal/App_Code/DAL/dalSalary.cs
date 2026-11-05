@@ -11,6 +11,15 @@ namespace WebPortal.App_Code.DAL
 {
     public class dalSalary
     {
+        public DataTable CheckUserRejoinee(string firstName, string lastName, string dateOfBirth, string code)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetCheckRejoinee");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstName", SqlDbType.NVarChar, 100, ParameterDirection.Input, firstName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LastName", SqlDbType.NVarChar, 100, ParameterDirection.Input, lastName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DateOfBirth", SqlDbType.NVarChar, 100, ParameterDirection.Input, dateOfBirth);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", SqlDbType.NVarChar, 100, ParameterDirection.Input, code);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
         public DataSet GetBranchwiseSalaryAnalysis(int branchId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_getBranchwiseSalaryAnalysis");

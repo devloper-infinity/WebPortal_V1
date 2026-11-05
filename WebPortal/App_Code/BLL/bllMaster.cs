@@ -23,6 +23,16 @@ namespace WebPortal.App_Code.BLL
     public class bllMaster
     {
        dalMaster dalMaster = new dalMaster();
+
+        public int UpdateEmployeeInfoForApproved(string code, string approvedDate, string approvedRemark, int approvedBy, string joiningType, string ans1, string ans2, string ans3, string ans4, string ans5, string ans6)
+        {
+            return dalMaster.UpdateEmployeeInfoForApproved(code, approvedDate, approvedRemark, approvedBy, joiningType, ans1, ans2, ans3, ans4, ans5, ans6);
+        }
+
+        public DataTable GetAllEmployeeDetailsForApproved(int employeeId)
+        {
+            return dalMaster.GetAllEmployeeDetailsForApproved(employeeId);
+        }
         private static readonly object PettyCashEmployeesCacheLock = new object();
         private const string PettyCashEmployeesCacheKey = "PettyCash.EmployeeDirectory";
 
