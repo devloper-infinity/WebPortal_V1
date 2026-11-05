@@ -538,6 +538,24 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetChequeMasterEmployeeCodes(string Month, string Year, DateTime ChequeDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+                SELECT DISTINCT employee.Code
+                FROM dbo.ChequeMaster cheque
+                INNER JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = cheque.EmployeeID
+                WHERE cheque.[Month] = @Month
+                  AND cheque.[Year] = @Year
+                  AND CONVERT(date, cheque.AddedDate) = @ChequeDate");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Month", SqlDbType.NVarChar, 100, ParameterDirection.Input, Month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", SqlDbType.NVarChar, 100, ParameterDirection.Input, Year);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ChequeDate", SqlDbType.Date, 0, ParameterDirection.Input, ChequeDate.Date);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            if (dt == null)
+                throw new InvalidOperationException("Unable to read cheque details from ChequeMaster.");
+            return dt;
+        }
+
         public DataTable GenerateOtherSalaryBankFormat(string Month, string Year, string BankName, string Type)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GenerateAxisBankFormatOtherThanSalary_Revised"); //"usp_PrepareCheque_GetIncrementDifferenceRecords"

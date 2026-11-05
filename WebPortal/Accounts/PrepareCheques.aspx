@@ -56,6 +56,38 @@
         .table.dataTable tr td {
             background: none;
         }
+
+        .preparecheque-filters > tbody > tr {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .preparecheque-filters > tbody > tr > td {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+        }
+
+        .preparecheque-filters #preparecheque_month,
+        .preparecheque-filters #preparecheque_year,
+        .preparecheque-filters #preparecheque_bank {
+            width: 220px !important;
+        }
+
+        .preparecheque-filters #preparecheque_date {
+            width: 180px !important;
+        }
+
+        @media (max-width: 768px) {
+            .preparecheque-filters > tbody > tr > td,
+            .preparecheque-filters select {
+                width: 100% !important;
+            }
+        }
         /*.form-control {
             font-size: 11px !important;
         }*/
@@ -74,7 +106,33 @@
             var year = ddlyear.options[ddlyear.selectedIndex].value;
             var ddlbank = document.getElementById("preparecheque_bank");
             var bank = ddlbank.options[ddlbank.selectedIndex].value;
-            PageMethods.getRegularSalaryExport(month, year, bank, preparecheque_excel_OnSuccess, preparecheque_excel_OnError);
+            var chequeDate = document.getElementById("preparecheque_date").value;
+
+            if (bank === "") {
+                $('#waitingpanel').modal('hide');
+                alert("Please select a bank.");
+                return false;
+            }
+            if (chequeDate === "") {
+                $('#waitingpanel').modal('hide');
+                alert("Please select a cheque date.");
+                return false;
+            }
+
+            $.ajax({
+                url: "PrepareCheques.aspx/getRegularSalaryExport",
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    Month: month,
+                    Year: year,
+                    BankName: bank,
+                    ChequeDate: chequeDate
+                }),
+                success: preparecheque_excel_OnSuccess,
+                error: preparecheque_excel_OnError
+            });
             return false;
         }
 
@@ -85,7 +143,18 @@
         }
 
         function preparecheque_excel_OnError(error) {
-            alert(error.get_message());
+            $('#waitingpanel').modal('hide');
+            var message = "Unable to generate the bank file.";
+
+            if (error && error.responseJSON && error.responseJSON.Message)
+                message = error.responseJSON.Message;
+            else if (error && error.responseText) {
+                try {
+                    message = JSON.parse(error.responseText).Message || message;
+                } catch (e) { }
+            }
+
+            alert(message);
         }
 
         function preparehold_submitchequeno() {
@@ -107,30 +176,22 @@
                 alert("Please select at least one record.");
                 return;
             }
-            var paramData = "";
-            var params = "";
-            //console.log(selectedRows); // See selected data in console
-            selectedRows.forEach(function (item) {
-                params = "";
-                var empId = item.EmployeeID;
-                var salary = item.NetSalary;
-                var ddlmonth = document.getElementById("preparehold_month");
-                var month = ddlmonth.options[ddlmonth.selectedIndex].value;
-                var ddlyear = document.getElementById("preparehold_year");
-                var year = ddlyear.options[ddlyear.selectedIndex].value;
-                var chequeno = document.getElementById("preparehold_chequeno").value;
-
-                params = empId + '|' + salary + '|' + chequeno + '|' + month + '|' + year;
-                if (paramData == "")
-                    paramData = params;
-                else
-                    paramData = paramData + "," + params;
+            var ddlmonth = document.getElementById("preparehold_month");
+            var month = ddlmonth.options[ddlmonth.selectedIndex].value;
+            var ddlyear = document.getElementById("preparehold_year");
+            var year = ddlyear.options[ddlyear.selectedIndex].value;
+            var chequeno = document.getElementById("preparehold_chequeno").value;
+            var chequeDetails = selectedRows.map(function (item) {
+                return {
+                    EmployeeID: item.EmployeeID,
+                    Salary: String(item.NetSalary).replace(/,/g, ''),
+                    ChequeNo: chequeno,
+                    Month: month,
+                    Year: year
+                };
             });
-          
-            if (paramData != "")
-                PageMethods.InsertChequeDetails(paramData, preparehold_insert_OnSuccess, preparehold_insert_OnError);
-            else
-                alert("Please select at least one employee.");
+
+            PageMethods.InsertChequeDetails(JSON.stringify(chequeDetails), preparehold_insert_OnSuccess, preparehold_insert_OnError);
             return false;
         }
 
@@ -268,7 +329,7 @@
                     <div class="card-body">
                         <div class="tab-content" id="custom-tabs-one-tabContent">
                             <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
-                                <table class="table">
+                                <table class="table preparecheque-filters" style="width: 100%;">
                                     <tr>
                                         <td><b>Month:</b></td>
                                         <td>
@@ -304,6 +365,11 @@
                                                 <option value="">Select</option>
                                                 <option value="Axis Bank">Axis Bank</option>
                                                 <option value="ICICI Bank">ICICI Bank</option>
+                                            </select>
+                                        </td>
+                                        <td id="preparecheque_generate_date" style="display: none;">
+                                            <select id="preparecheque_date" name="preparecheque_date" class="form-control" style="width: 180px;">
+                                                <option value="">Select Cheque Date</option>
                                             </select>
                                         </td>
                                         <td id="preparecheque_generate_2" style="display: none;">
@@ -388,6 +454,7 @@
                                     <thead>
                                         <tr>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Action</th>
+                                            <th class="sort border-top ps-3" style="text-wrap: nowrap;">View Log</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Sr. #</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Branch</th>
                                             <th class="sort border-top ps-3" style="text-wrap: nowrap;">Department</th>
@@ -403,7 +470,7 @@
                                     </thead>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="8" style="text-align: right">Total:</th>
+                                            <th colspan="10" style="text-align: right">Total:</th>
                                             <th></th>
                                             <th colspan="2"></th>
                                         </tr>

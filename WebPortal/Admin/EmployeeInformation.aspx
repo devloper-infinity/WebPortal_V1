@@ -202,8 +202,8 @@
 
         #empveri_table {
             margin: 0 !important;
-            border-collapse: separate !important;
-            border-spacing: 0;
+            width: max-content !important;
+            min-width: 100% !important;
         }
 
             #empveri_table thead th {
@@ -360,8 +360,6 @@
     </script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/4.3.0/css/fixedColumns.dataTables.min.css">
-    <script src="https://cdn.datatables.net/fixedcolumns/4.3.0/js/dataTables.fixedColumns.min.js"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -400,6 +398,7 @@
                                 <th class="sort border-top" style="text-wrap: nowrap;">Sr. #</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Code</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Name</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Pseudoname</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Salary</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Joining Date</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Date of Birth</th>
@@ -422,11 +421,18 @@
                                 <th class="sort border-top" style="text-wrap: nowrap;">Resignation Date</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Last Working Date</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Latest Login Date</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Aadhar #</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">PAN</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Bank Name</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Account #</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">IFSC Code</th>
+
                             </tr>
                             <tr>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Sr. #</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Code</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Name</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Pseudoname</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Salary</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Joining Date</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Date of Birth</th>
@@ -449,6 +455,11 @@
                                 <th class="sort border-top" style="text-wrap: nowrap;">Resignation Date</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Last Working Date</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Latest Login Date</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Aadhar #</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">PAN</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Bank Name</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">Account #</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">IFSC Code</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

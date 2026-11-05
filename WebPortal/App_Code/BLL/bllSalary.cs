@@ -256,6 +256,11 @@ namespace WebPortal.App_Code.BLL
             return dalSalary.GenerateRegularBankFormat(Month, Year, BankName);
         }
 
+        public DataTable GetChequeMasterEmployeeCodes(string Month, string Year, DateTime ChequeDate)
+        {
+            return dalSalary.GetChequeMasterEmployeeCodes(Month, Year, ChequeDate);
+        }
+
         public DataTable GenerateOtherSalaryBankFormat(string Month, string Year, string BankName, string Type)
         {
             return dalSalary.GenerateOtherSalaryBankFormat(Month, Year, BankName, Type);

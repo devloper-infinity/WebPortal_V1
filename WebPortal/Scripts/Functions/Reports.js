@@ -980,8 +980,6 @@ function EmployeeInformationDetails() {
                 dom: 'Bftip',
                 destroy: true,
                 orderCellsTop: true,
-                fixedHeader: true,
-                scrollX: true,
                 paging: true,
                 autoWidth: false,
                 ordering: false,
@@ -993,10 +991,6 @@ function EmployeeInformationDetails() {
                 },
 
                 data: dataArray,
-
-                fixedColumns: {
-                    leftColumns: 3   // Sr.No + first 3 columns
-                },
 
                 columns: [
                     // {
@@ -1013,6 +1007,7 @@ function EmployeeInformationDetails() {
                     },
                     { data: 'Code' },
                     { data: 'Name' },
+                    { data: 'Pseudoname' },
                     { data: 'Salary' },
                     { data: 'JoiningDate' },
                     { data: 'DateOfBirth' },
@@ -1034,13 +1029,19 @@ function EmployeeInformationDetails() {
                     { data: 'CurrentStatus' },
                     { data: 'ResignationDate' },
                     { data: 'LastWorkingDate' },
-                    { data: 'LatestLoginDate' }
+                    { data: 'LatestLoginDate' },
+                    { data: 'AadharNo' },
+                    { data: 'PAN' },
+                    { data: 'BankName' },
+                    { data: 'BankAccNo' },
+                    { data: 'IFSCCode' }
                 ],
 
                 columnDefs: [
                     {
                         targets: '_all',
-                        className: 'dt-nowrap'
+                        className: 'dt-nowrap',
+                        defaultContent: ''
                     },
                     {
                         targets: 0,
@@ -1062,6 +1063,7 @@ function EmployeeInformationDetails() {
                     }
                 ]
             });
+
         },
 
         error: function (error) {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Globalization;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.Services;
@@ -50,12 +51,48 @@ namespace WebPortal.Accounts
         }
 
         [WebMethod]
-        public static int getRegularSalaryExport(string Month, string Year, string BankName)
+        public static int getRegularSalaryExport(string Month, string Year, string BankName, string ChequeDate)
         {
             int returnvalue = 1;
             DataTable dt = new bllSalary().GenerateRegularBankFormat(Month, Year, BankName);
             if (dt != null)
             {
+                DateTime selectedChequeDate;
+                if (!DateTime.TryParseExact(ChequeDate, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out selectedChequeDate))
+                    throw new ArgumentException("Invalid cheque date.");
+
+                DataColumn chequeDateColumn = dt.Columns.Cast<DataColumn>().FirstOrDefault(column =>
+                    column.ColumnName.Equals("AddedDate", StringComparison.OrdinalIgnoreCase) ||
+                    column.ColumnName.Equals("ChequeDate", StringComparison.OrdinalIgnoreCase) ||
+                    column.ColumnName.Equals("ReleaseDate", StringComparison.OrdinalIgnoreCase));
+
+                DataTable chequeMasterEmployees = new bllSalary().GetChequeMasterEmployeeCodes(Month, Year, selectedChequeDate);
+                DataColumn bankEmployeeColumn = FindColumn(dt, "Code", "Employee Code", "EmployeeCode");
+
+                if (bankEmployeeColumn == null)
+                    throw new InvalidOperationException("The bank file data does not contain employee Code.");
+
+                HashSet<string> selectedEmployees = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                if (chequeMasterEmployees != null)
+                {
+                    foreach (DataRow chequeRow in chequeMasterEmployees.Rows)
+                    {
+                        if (chequeRow["Code"] != DBNull.Value)
+                            selectedEmployees.Add(Convert.ToString(chequeRow["Code"]).Trim());
+                    }
+                }
+
+                DataTable filteredData = dt.Clone();
+                foreach (DataRow bankRow in dt.Rows)
+                {
+                    if (selectedEmployees.Contains(Convert.ToString(bankRow[bankEmployeeColumn]).Trim()))
+                        filteredData.ImportRow(bankRow);
+                }
+                dt = filteredData;
+
+                if (dt.Rows.Count == 0)
+                    throw new InvalidOperationException("No salary records were found for the selected cheque date.");
+
                 try
                 {
                     if (dt.Columns.Contains("Hold"))
@@ -72,9 +109,11 @@ namespace WebPortal.Accounts
                         dt.Columns.Remove("Code");
                     if (dt.Columns.Contains("Employee Code"))
                         dt.Columns.Remove("Employee Code");
+                    if (chequeDateColumn != null && dt.Columns.Contains(chequeDateColumn.ColumnName))
+                        dt.Columns.Remove(chequeDateColumn.ColumnName);
                 }
                 catch { }
-                FileName = HttpContext.Current.Server.MapPath(@"~\ReportDocument\RegularSalary_BankFile_" + Month + "-" + Year + ".xlsx");
+                FileName = HttpContext.Current.Server.MapPath(@"~\ReportDocument\RegularSalary_BankFile_" + Month + "-" + Year + "-" + selectedChequeDate.ToString("dd-MMM-yyyy") + ".xlsx");
                 book = new Spire.Xls.Workbook();
                 book.DefaultFontSize = 9;
                 book.DefaultFontName = "biome";
@@ -105,6 +144,15 @@ namespace WebPortal.Accounts
 
             }
             return returnvalue;
+        }
+
+        private static DataColumn FindColumn(DataTable table, params string[] columnNames)
+        {
+            if (table == null)
+                return null;
+
+            return table.Columns.Cast<DataColumn>().FirstOrDefault(column =>
+                columnNames.Any(columnName => column.ColumnName.Equals(columnName, StringComparison.OrdinalIgnoreCase)));
         }
 
         protected void btn1_Click(object sender, EventArgs e)
@@ -175,21 +223,30 @@ namespace WebPortal.Accounts
         public static int InsertChequeDetails(string Params)
         {
             int returnvalue = 0;
-            string[] OuterParams = Params.Split(',');
-            foreach (string par in OuterParams)
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            List<HoldChequeDetail> chequeDetails = serializer.Deserialize<List<HoldChequeDetail>>(Params);
+
+            foreach (HoldChequeDetail detail in chequeDetails)
             {
-                if (par != "")
-                {
-                    string[] innerParams = par.Split('|');
-                    int EmployeeID = Convert.ToInt32(innerParams[0]);
-                    string Salary = Convert.ToString(innerParams[1]);
-                    string Chequeno = Convert.ToString(innerParams[2]);
-                    string Month = Convert.ToString(innerParams[3]);
-                    string Year = Convert.ToString(innerParams[4]);
-                    returnvalue = new bllSalary().InsertChequeDetails(Chequeno, Convert.ToDecimal(Salary), Month, Year, EmployeeID, int.Parse(HttpContext.Current.User.Identity.Name.ToString()), "23.111.175.186");
-                }
+                returnvalue = new bllSalary().InsertChequeDetails(
+                    detail.ChequeNo,
+                    Convert.ToDecimal(detail.Salary),
+                    detail.Month,
+                    detail.Year,
+                    detail.EmployeeID,
+                    int.Parse(HttpContext.Current.User.Identity.Name.ToString()),
+                    "23.111.175.186");
             }
             return returnvalue;
+        }
+
+        public class HoldChequeDetail
+        {
+            public int EmployeeID { get; set; }
+            public string Salary { get; set; }
+            public string ChequeNo { get; set; }
+            public string Month { get; set; }
+            public string Year { get; set; }
         }
         #endregion
 
