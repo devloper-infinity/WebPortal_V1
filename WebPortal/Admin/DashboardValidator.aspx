@@ -33,7 +33,7 @@
                 <div class="erp-dashboard-icon"><i class="fas fa-file-excel"></i></div>
                 <div>
                     <h1 class="erp-dashboard-title">Dashboard Validator</h1>
-                    <p class="erp-dashboard-subtitle">Generate the cleaned dashboard workbook from the uploaded report.</p>
+                    <p class="erp-dashboard-subtitle">Generate the Dashboard Clean up and D&amp;C Validation workbooks.</p>
                 </div>
             </div>
         </div>
@@ -45,18 +45,18 @@
 
         <section class="erp-section-card p-4 dv-form erp-modern-form">
             <div class="form-group">
-                <label for="dashboardReportFile">Dashboard Report</label>
+                <label for="dashboardReportFile">PRP Dashboard</label>
                 <input id="dashboardReportFile" name="dashboardReportFile" type="file" class="form-control" accept=".xlsx" required />
-                <div class="dv-note">Upload an unprotected .xlsx file. Password-protected workbooks are not supported.</div>
+                <div class="dv-note">Upload the unprotected PRP dashboard .xlsx file containing the Dashboard sheet.</div>
             </div>
             <div class="form-group mt-3">
-                <label for="validationFile">Validation File</label>
+                <label for="validationFile">Disposition &amp; Comments Report</label>
                 <input id="validationFile" name="validationFile" type="file" class="form-control" accept=".xlsx" required />
-                <div class="dv-note">Upload an unprotected .xlsx file used to validate Phase 1 exception keywords against the Grade columns.</div>
+                <div class="dv-note">Upload the D&amp;C .xlsx report. Grade 1 is optional and the D&amp;C sheet does not need to be the first tab.</div>
             </div>
             <div class="dv-actions">
                 <button id="generateButton" type="submit" class="btn btn-success">
-                    Generate Output
+                    Generate Both Outputs
                 </button>
                 <span id="generateStatus" class="dv-note" style="display: none">Processing workbook...</span>
             </div>
