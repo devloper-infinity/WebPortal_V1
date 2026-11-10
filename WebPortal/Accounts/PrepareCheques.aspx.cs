@@ -228,7 +228,8 @@ namespace WebPortal.Accounts
 
             foreach (HoldChequeDetail detail in chequeDetails)
             {
-                returnvalue = new bllSalary().InsertChequeDetails(
+                bllSalary salaryService = new bllSalary();
+                returnvalue = salaryService.InsertChequeDetails(
                     detail.ChequeNo,
                     Convert.ToDecimal(detail.Salary),
                     detail.Month,
@@ -236,6 +237,9 @@ namespace WebPortal.Accounts
                     detail.EmployeeID,
                     int.Parse(HttpContext.Current.User.Identity.Name.ToString()),
                     "23.111.175.186");
+
+                if (returnvalue > 0)
+                    salaryService.UpdateHoldRemark(detail.EmployeeID, detail.Month, detail.Year);
             }
             return returnvalue;
         }

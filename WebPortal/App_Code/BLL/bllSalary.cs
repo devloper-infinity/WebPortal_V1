@@ -276,6 +276,11 @@ namespace WebPortal.App_Code.BLL
             return dalSalary.InsertChequeDetails(ChequeNo, Amount, SalMonth, SalYear, EmployeeId, Addedby, Ip);
         }
 
+        public int UpdateHoldRemark(int EmployeeID, string Month, string Year)
+        {
+            return dalSalary.UpdateHoldRemark(EmployeeID, Month, Year);
+        }
+
         public DataTable GetOtherThanSalaryRecords(string Month, string year, string Type)
         {
             return dalSalary.GetOtherThanSalaryRecords(Month, year, Type);

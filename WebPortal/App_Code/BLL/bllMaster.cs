@@ -22,7 +22,7 @@ namespace WebPortal.App_Code.BLL
 {
     public class bllMaster
     {
-       dalMaster dalMaster = new dalMaster();
+        dalMaster dalMaster = new dalMaster();
 
         public int UpdateEmployeeInfoForApproved(string code, string approvedDate, string approvedRemark, int approvedBy, string joiningType, string ans1, string ans2, string ans3, string ans4, string ans5, string ans6)
         {
@@ -3272,6 +3272,16 @@ WHERE S.SettlementID IS NULL AND R.Status IN ('Cash Issued','Expense Submitted')
         }
 
         #endregion
+
+        public DataTable getHRInductionQuestionPaper(int EmployeeId)//, string PaperSet)
+        {
+            return dalMaster.getHRInductionQuestionPaper(EmployeeId);
+        }
+        public int InsertHRAnswerSet(Hashtable htParam)
+        {
+            return dalMaster.InsertHRAnswerSet(htParam);
+        }
     }
+
 }
 

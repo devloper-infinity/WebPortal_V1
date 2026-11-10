@@ -70,7 +70,7 @@ namespace WebPortal.App_Code.BLL
                                                 int invoiceId,
                                                 string projectNumber,
                                                 string action,
-                                                long employeeId)
+                                                string employeeId)
         {
             return new dalVendors().CompleteInCompleteFile(vendorCode,
                                               invoiceId,

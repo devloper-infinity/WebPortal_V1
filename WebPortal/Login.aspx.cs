@@ -127,13 +127,13 @@ namespace WebPortal
                     Response.Redirect("~/Admin/EmployeeKYC.aspx");
                 }
 
-                //int HRQU = bllLogin.CheckHRQuesionnaire();
-                //if (HRQU == 0)
-                //{
-                //    Response.Redirect("~/Admin/HRQuestionPaper.aspx");
-                //}
+                int HRQU = bllLogin.CheckHRQuesionnaire();
+                if (HRQU == 0)
+                {
+                    Response.Redirect("~/Admin/HRQuestionPaper.aspx");
+                }
 
-               
+
                 string UptoTime = "";
                 string empID = Convert.ToString(HttpContext.Current.User.Identity.Name.ToString());
                 DataTable dtLogin = GetAllEmployeeDetailsByIDsForProductivity(Convert.ToString(HttpContext.Current.User.Identity.Name.ToString()));
@@ -761,7 +761,10 @@ namespace WebPortal
             cookie.HttpOnly = true; cookie.Secure = HttpContext.Current.Request.IsSecureConnection; cookie.SameSite = SameSiteMode.Lax;
             if (remember) cookie.Expires = ticket.Expiration; HttpContext.Current.Response.Cookies.Add(cookie);
             new bllLogin().InsertErpLogHistory(user, "Login", new Login().GetLocalIPaddress(), "User"); ClearPending();
-            return new { status = "success", url = "Admin/DashboardEmployee.aspx" };
+            // Start a new request after the authentication cookie has been issued.
+            // Page_Load then runs with an authenticated principal and applies the
+            // POSH, KYC and HR-questionnaire prerequisite redirects.
+            return new { status = "success", url = "Login.aspx" };
         }
 
         private static object SendEmailOtp(string user)

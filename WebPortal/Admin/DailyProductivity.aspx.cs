@@ -432,6 +432,10 @@ namespace WebPortal.Admin
             dtProd = ds.Tables[0];
             dtAuto = ds.Tables[1];
 
+            DataTable newTracker = new bllOLTracking().GetDailyProductivityForUser(
+                Convert.ToDateTime(Date), int.Parse(HttpContext.Current.User.Identity.Name.ToString()), DomainID);
+            dtAuto = MergeAutoProductivity(dtAuto, newTracker);
+
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
 
@@ -448,6 +452,49 @@ namespace WebPortal.Admin
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        private static DataTable MergeAutoProductivity(DataTable legacy, DataTable newTracker)
+        {
+            if (legacy == null || legacy.Columns.Count == 0)
+                return newTracker == null ? new DataTable() : newTracker.Copy();
+
+            DataTable merged = legacy.Clone();
+            HashSet<string> newKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (newTracker != null)
+            {
+                foreach (DataRow row in newTracker.Rows)
+                    newKeys.Add(AutoProductivityKey(row));
+            }
+
+            foreach (DataRow row in legacy.Rows)
+                if (!newKeys.Contains(AutoProductivityKey(row))) merged.ImportRow(row);
+
+            if (newTracker != null)
+            {
+                foreach (DataRow source in newTracker.Rows)
+                {
+                    DataRow target = merged.NewRow();
+                    foreach (DataColumn column in merged.Columns)
+                        if (newTracker.Columns.Contains(column.ColumnName)) target[column.ColumnName] = source[column.ColumnName];
+                    merged.Rows.Add(target);
+                }
+            }
+            return merged;
+        }
+
+        private static string AutoProductivityKey(DataRow row)
+        {
+            return AutoValue(row, "Code") + "|" + AutoValue(row, "Date") + "|" +
+                   AutoValue(row, "Project") + "|" + AutoValue(row, "TrackingProcess") + "|" +
+                   AutoValue(row, "Process") + "|" + AutoValue(row, "Production") + "|" +
+                   AutoValue(row, "ClientOrderDate");
+        }
+
+        private static string AutoValue(DataRow row, string column)
+        {
+            return row.Table.Columns.Contains(column) ? Convert.ToString(row[column]).Trim() : string.Empty;
         }
 
         [WebMethod]
@@ -483,6 +530,10 @@ namespace WebPortal.Admin
 
             dtProd = ds.Tables[0];
             dtAuto = ds.Tables[1];
+
+            DataTable newTracker = new bllOLTracking().GetDailyProductivityForUser(
+                Convert.ToDateTime(Date), int.Parse(HttpContext.Current.User.Identity.Name.ToString()), DomainID);
+            dtAuto = MergeAutoProductivity(dtAuto, newTracker);
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;

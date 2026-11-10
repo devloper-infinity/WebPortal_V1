@@ -161,7 +161,7 @@ namespace WebPortal.App_Code.DAL
     int invoiceId,
     string projectNumber,
     string action,
-    long addedBy)
+    string addedBy)
         {
             return ExecuteTable(
                 SpCompleteInCompleteFile,
@@ -181,9 +181,9 @@ namespace WebPortal.App_Code.DAL
                 {
                     Value = action ?? string.Empty
                 },
-                new SqlParameter("@GenBy", SqlDbType.BigInt)
+                new SqlParameter("@GenBy", SqlDbType.NVarChar, 500)
                 {
-                    Value = addedBy
+                    Value = addedBy ?? string.Empty
                 });
         }
 

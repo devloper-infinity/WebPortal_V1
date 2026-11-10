@@ -593,6 +593,20 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
+        public int UpdateHoldRemark(int EmployeeID, string Month, string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateHold_NewJoineeRemark");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@month", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Year);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
         public int InsertChequeDetails_Other(string ChequeNo, decimal Amount, string SalMonth, string SalYear, int EmployeeId, int Addedby, string Ip, string Type)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usb_Insert_ChequeDetails_Generalised");

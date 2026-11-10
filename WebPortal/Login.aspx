@@ -59,30 +59,24 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Ambient Animated Mesh Background */
-        body.login-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 32px 20px;
-            position: relative;
-            background: 
-                radial-gradient(ellipse 70% 50% at 15% 15%, rgba(37, 99, 235, 0.16), transparent 70%),
-                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(6, 182, 212, 0.14), transparent 65%),
-                radial-gradient(ellipse 50% 60% at 50% 90%, rgba(30, 58, 138, 0.10), transparent 70%),
-                linear-gradient(140deg, #eff6ff 0%, #f8fafc 45%, #ecfeff 100%);
-            background-attachment: fixed;
-        }
+            /* Ambient Animated Mesh Background */
+            body.login-page {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 32px 20px;
+                position: relative;
+                background: radial-gradient(ellipse 70% 50% at 15% 15%, rgba(37, 99, 235, 0.16), transparent 70%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(6, 182, 212, 0.14), transparent 65%), radial-gradient(ellipse 50% 60% at 50% 90%, rgba(30, 58, 138, 0.10), transparent 70%), linear-gradient(140deg, #eff6ff 0%, #f8fafc 45%, #ecfeff 100%);
+                background-attachment: fixed;
+            }
 
         /* Subtle Grid Pattern Overlay */
         .bg-grid-overlay {
             position: fixed;
             inset: 0;
             background-size: 36px 36px;
-            background-image: 
-                linear-gradient(to right, rgba(37, 99, 235, 0.035) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(37, 99, 235, 0.035) 1px, transparent 1px);
+            background-image: linear-gradient(to right, rgba(37, 99, 235, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(37, 99, 235, 0.035) 1px, transparent 1px);
             pointer-events: none;
             z-index: 0;
         }
@@ -117,9 +111,17 @@
         }
 
         @keyframes floatSlow {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(35px, 25px) scale(1.06); }
-            100% { transform: translate(-25px, 35px) scale(0.96); }
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(35px, 25px) scale(1.06);
+            }
+
+            100% {
+                transform: translate(-25px, 35px) scale(0.96);
+            }
         }
 
         /* Main Login Shell Container */
@@ -148,39 +150,36 @@
             position: relative;
             padding: 48px 44px;
             color: #ffffff;
-            background: 
-                radial-gradient(circle at top right, rgba(6, 182, 212, 0.38), transparent 50%),
-                radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.42), transparent 55%),
-                linear-gradient(145deg, #0b192c 0%, #172554 38%, #1e40af 75%, #0284c7 100%);
+            background: radial-gradient(circle at top right, rgba(6, 182, 212, 0.38), transparent 50%), radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.42), transparent 55%), linear-gradient(145deg, #0b192c 0%, #172554 38%, #1e40af 75%, #0284c7 100%);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
-        .login-visual::before {
-            content: "";
-            position: absolute;
-            width: 380px;
-            height: 380px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            top: -120px;
-            right: -100px;
-            pointer-events: none;
-        }
+            .login-visual::before {
+                content: "";
+                position: absolute;
+                width: 380px;
+                height: 380px;
+                border-radius: 50%;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                top: -120px;
+                right: -100px;
+                pointer-events: none;
+            }
 
-        .login-visual::after {
-            content: "";
-            position: absolute;
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            border: 1px solid rgba(6, 182, 212, 0.22);
-            bottom: -60px;
-            left: -50px;
-            pointer-events: none;
-        }
+            .login-visual::after {
+                content: "";
+                position: absolute;
+                width: 260px;
+                height: 260px;
+                border-radius: 50%;
+                border: 1px solid rgba(6, 182, 212, 0.22);
+                bottom: -60px;
+                left: -50px;
+                pointer-events: none;
+            }
 
         .visual-pattern {
             position: absolute;
@@ -229,39 +228,47 @@
         }
 
         @keyframes pulseGreen {
-            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
-            70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+            }
         }
 
         .brand-title {
             margin-top: 18px;
         }
 
-        .brand-title h1 {
-            font-size: 38px;
-            line-height: 1.15;
-            font-weight: 800;
-            letter-spacing: -0.8px;
-            color: #ffffff;
-            margin: 0;
-        }
+            .brand-title h1 {
+                font-size: 38px;
+                line-height: 1.15;
+                font-weight: 800;
+                letter-spacing: -0.8px;
+                color: #ffffff;
+                margin: 0;
+            }
 
-        .brand-title h1 span.gradient-text {
-            background: linear-gradient(120deg, #ffffff 30%, #7dd3fc 80%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }
+                .brand-title h1 span.gradient-text {
+                    background: linear-gradient(120deg, #ffffff 30%, #7dd3fc 80%, #38bdf8 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    display: inline-block;
+                }
 
-        .brand-title p {
-            margin: 14px 0 0;
-            color: rgba(255, 255, 255, 0.82);
-            font-size: 14.5px;
-            line-height: 1.6;
-            font-weight: 400;
-            max-width: 480px;
-        }
+            .brand-title p {
+                margin: 14px 0 0;
+                color: rgba(255, 255, 255, 0.82);
+                font-size: 14.5px;
+                line-height: 1.6;
+                font-weight: 400;
+                max-width: 480px;
+            }
 
         .feature-grid {
             display: grid;
@@ -284,11 +291,11 @@
             justify-content: flex-start;
         }
 
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.28);
-            transform: translateY(-2px);
-        }
+            .feature-card:hover {
+                background: rgba(255, 255, 255, 0.14);
+                border-color: rgba(255, 255, 255, 0.28);
+                transform: translateY(-2px);
+            }
 
         .feature-icon-box {
             width: 36px;
@@ -330,9 +337,9 @@
             font-weight: 500;
         }
 
-        .visual-footer i {
-            color: #38bdf8;
-        }
+            .visual-footer i {
+                color: #38bdf8;
+            }
 
         /* ============================================================
            RIGHT PANEL - LOGIN FORM
@@ -372,17 +379,17 @@
             transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
-        .logo-frame:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.14);
-        }
+            .logo-frame:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 14px 28px rgba(37, 99, 235, 0.14);
+            }
 
-        .logo-frame img {
-            max-width: 54px;
-            max-height: 54px;
-            object-fit: contain;
-            transition: transform 0.2s ease;
-        }
+            .logo-frame img {
+                max-width: 54px;
+                max-height: 54px;
+                object-fit: contain;
+                transition: transform 0.2s ease;
+            }
 
         .logo-box h2 {
             margin: 0;
@@ -411,8 +418,15 @@
         }
 
         @keyframes fadeInAlert {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .alert-danger {
@@ -444,22 +458,22 @@
             animation: fadeInAlert 0.2s ease;
         }
 
-        /* Reset any conflicting inherited styles for span or text inside loader */
-        .auth-loader span,
-        .auth-loader .auth-loader-text {
-            animation: none !important;
-            transform: none !important;
-            width: auto !important;
-            height: auto !important;
-            border: none !important;
-            border-radius: 0 !important;
-            display: inline-block !important;
-            vertical-align: middle !important;
-            margin: 0 !important;
-            color: var(--brand-primary) !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
-        }
+            /* Reset any conflicting inherited styles for span or text inside loader */
+            .auth-loader span,
+            .auth-loader .auth-loader-text {
+                animation: none !important;
+                transform: none !important;
+                width: auto !important;
+                height: auto !important;
+                border: none !important;
+                border-radius: 0 !important;
+                display: inline-block !important;
+                vertical-align: middle !important;
+                margin: 0 !important;
+                color: var(--brand-primary) !important;
+                font-size: 13px !important;
+                font-weight: 700 !important;
+            }
 
         .auth-spinner {
             width: 18px !important;
@@ -474,8 +488,13 @@
         }
 
         @keyframes spinRing {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .login-field {
@@ -500,31 +519,31 @@
             align-items: center;
         }
 
-        .login-input-wrap .form-control {
-            width: 100%;
-            height: 46px;
-            padding: 10px 42px 10px 38px;
-            border: 1.5px solid var(--input-border);
-            border-radius: 12px;
-            background: #ffffff;
-            color: var(--text-heading);
-            font-size: 13.5px;
-            font-weight: 600;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-            outline: none;
-        }
+            .login-input-wrap .form-control {
+                width: 100%;
+                height: 46px;
+                padding: 10px 42px 10px 38px;
+                border: 1.5px solid var(--input-border);
+                border-radius: 12px;
+                background: #ffffff;
+                color: var(--text-heading);
+                font-size: 13.5px;
+                font-weight: 600;
+                box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+                outline: none;
+            }
 
-        .login-input-wrap .form-control:focus {
-            border-color: var(--brand-primary);
-            box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.14);
-            background: #ffffff;
-        }
+                .login-input-wrap .form-control:focus {
+                    border-color: var(--brand-primary);
+                    box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.14);
+                    background: #ffffff;
+                }
 
-        .login-input-wrap .form-control::placeholder {
-            color: var(--text-light);
-            font-weight: 400;
-        }
+                .login-input-wrap .form-control::placeholder {
+                    color: var(--text-light);
+                    font-weight: 400;
+                }
 
         .input-lead-icon {
             position: absolute;
@@ -559,10 +578,10 @@
             transition: color 0.2s ease, background-color 0.2s ease;
         }
 
-        .password-toggle-btn:hover {
-            color: var(--brand-primary);
-            background-color: #f1f5f9;
-        }
+            .password-toggle-btn:hover {
+                color: var(--brand-primary);
+                background-color: #f1f5f9;
+            }
 
         .login-options {
             display: flex;
@@ -582,14 +601,14 @@
             user-select: none;
         }
 
-        .remember-box input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 1.5px solid #94a3b8;
-            accent-color: var(--brand-primary);
-            cursor: pointer;
-        }
+            .remember-box input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                border: 1.5px solid #94a3b8;
+                accent-color: var(--brand-primary);
+                cursor: pointer;
+            }
 
         .forgot-link {
             color: var(--brand-primary);
@@ -598,10 +617,10 @@
             transition: color 0.2s ease;
         }
 
-        .forgot-link:hover {
-            color: var(--brand-primary-hover);
-            text-decoration: underline;
-        }
+            .forgot-link:hover {
+                color: var(--brand-primary-hover);
+                text-decoration: underline;
+            }
 
         .btn-login-primary {
             width: 100%;
@@ -622,16 +641,16 @@
             gap: 8px !important;
         }
 
-        .btn-login-primary:hover {
-            background: linear-gradient(135deg, #1d4ed8 0%, #0369a1 100%) !important;
-            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.36) !important;
-            transform: translateY(-1px);
-        }
+            .btn-login-primary:hover {
+                background: linear-gradient(135deg, #1d4ed8 0%, #0369a1 100%) !important;
+                box-shadow: 0 12px 24px rgba(37, 99, 235, 0.36) !important;
+                transform: translateY(-1px);
+            }
 
-        .btn-login-primary:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
-        }
+            .btn-login-primary:active {
+                transform: translateY(0);
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+            }
 
         .btn-authenticating {
             opacity: 0.85;
@@ -652,10 +671,10 @@
             font-weight: 600;
         }
 
-        .login-card-footer i {
-            color: var(--status-success);
-            font-size: 12px;
-        }
+            .login-card-footer i {
+                color: var(--status-success);
+                font-size: 12px;
+            }
 
         @media (max-width: 980px) {
             body.login-page {
@@ -735,7 +754,148 @@
                 font-size: 21px;
             }
         }
-        .mfa-screen{display:none}.mfa-choice{width:100%;display:flex;align-items:center;gap:14px;margin:12px 0;padding:15px;border:1px solid #dbe5f1;border-radius:12px;background:#f8fbff;color:#172554;text-align:left;cursor:pointer}.mfa-choice.selected{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}.mfa-choice i{width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:#e6f1ff;color:#2563eb;font-size:20px}.mfa-choice strong,.mfa-choice small{display:block}.mfa-choice small{margin-top:3px;color:#64748b}.mfa-primary{width:100%;margin-top:12px}.mfa-step{text-align:center;color:#64748b;font-size:13px}.mfa-qr{width:170px;height:170px;margin:18px auto;padding:10px;border:1px solid #dbe5f1;border-radius:12px;background:#fff}.mfa-qr img,.mfa-qr canvas{width:148px!important;height:148px!important}.mfa-secret{text-align:center;color:#64748b;font-size:12px}.mfa-secret code{display:block;margin-top:5px;word-break:break-all;color:#172554}.mfa-code{height:52px!important;margin:17px 0;text-align:center;letter-spacing:12px;font-size:22px!important;font-weight:700}.mfa-code::placeholder{letter-spacing:0;font-size:14px;font-weight:400}.mfa-email{margin:14px 0;padding:11px;border-radius:9px;background:#eef6ff;text-align:center;color:#173b70}.mfa-link{display:block;margin:14px auto 0;border:0;background:none;color:#2563eb;cursor:pointer}.mfa-back{margin-top:10px}.mfa-message{display:none;margin-bottom:14px;padding:11px;border-radius:9px;font-size:13px}.mfa-message.error{display:block;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3}.mfa-message.success{display:block;background:#ecfdf5;color:#166534;border:1px solid #bbf7d0}
+
+        .mfa-screen {
+            display: none
+        }
+
+        .mfa-choice {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 12px 0;
+            padding: 15px;
+            border: 1px solid #dbe5f1;
+            border-radius: 12px;
+            background: #f8fbff;
+            color: #172554;
+            text-align: left;
+            cursor: pointer
+        }
+
+            .mfa-choice.selected {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37,99,235,.12)
+            }
+
+            .mfa-choice i {
+                width: 42px;
+                height: 42px;
+                display: grid;
+                place-items: center;
+                border-radius: 10px;
+                background: #e6f1ff;
+                color: #2563eb;
+                font-size: 20px
+            }
+
+            .mfa-choice strong, .mfa-choice small {
+                display: block
+            }
+
+            .mfa-choice small {
+                margin-top: 3px;
+                color: #64748b
+            }
+
+        .mfa-primary {
+            width: 100%;
+            margin-top: 12px
+        }
+
+        .mfa-step {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px
+        }
+
+        .mfa-qr {
+            width: 170px;
+            height: 170px;
+            margin: 18px auto;
+            padding: 10px;
+            border: 1px solid #dbe5f1;
+            border-radius: 12px;
+            background: #fff
+        }
+
+            .mfa-qr img, .mfa-qr canvas {
+                width: 148px !important;
+                height: 148px !important
+            }
+
+        .mfa-secret {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px
+        }
+
+            .mfa-secret code {
+                display: block;
+                margin-top: 5px;
+                word-break: break-all;
+                color: #172554
+            }
+
+        .mfa-code {
+            height: 52px !important;
+            margin: 17px 0;
+            text-align: center;
+            letter-spacing: 12px;
+            font-size: 22px !important;
+            font-weight: 700
+        }
+
+            .mfa-code::placeholder {
+                letter-spacing: 0;
+                font-size: 14px;
+                font-weight: 400
+            }
+
+        .mfa-email {
+            margin: 14px 0;
+            padding: 11px;
+            border-radius: 9px;
+            background: #eef6ff;
+            text-align: center;
+            color: #173b70
+        }
+
+        .mfa-link {
+            display: block;
+            margin: 14px auto 0;
+            border: 0;
+            background: none;
+            color: #2563eb;
+            cursor: pointer
+        }
+
+        .mfa-back {
+            margin-top: 10px
+        }
+
+        .mfa-message {
+            display: none;
+            margin-bottom: 14px;
+            padding: 11px;
+            border-radius: 9px;
+            font-size: 13px
+        }
+
+            .mfa-message.error {
+                display: block;
+                background: #fff1f2;
+                color: #9f1239;
+                border: 1px solid #fecdd3
+            }
+
+            .mfa-message.success {
+                display: block;
+                background: #ecfdf5;
+                color: #166534;
+                border: 1px solid #bbf7d0
+            }
     </style>
 </head>
 <body class="login-page">
@@ -747,12 +907,12 @@
 
     <!-- Main Login Shell -->
     <main class="login-shell" role="main">
-        
+
         <!-- Left Side: Brand Visual & Features Showcase -->
         <section class="login-visual" aria-label="Portal Overview">
             <div class="visual-pattern"></div>
             <div class="brand-content">
-                
+
                 <!-- Top Brand Header -->
                 <div>
                     <div class="brand-badge">
@@ -811,7 +971,7 @@
         <!-- Right Side: Login Form Panel -->
         <section class="login-panel" aria-label="Sign In Form">
             <div class="login-card-inner">
-                
+
                 <!-- Logo & Heading -->
                 <div class="logo-box">
                     <div class="logo-frame">
@@ -834,60 +994,60 @@
                 <form id="form1" runat="server" autocomplete="on">
                     <div id="mfaMessage" class="mfa-message" role="alert"></div>
                     <div id="credentialFields">
-                    
-                    <!-- Username Field -->
-                    <div class="login-field">
-                        <label class="form-label" for="<%= txtUserName.ClientID %>">
-                            <span>Username</span>
-                            <i class="fas fa-asterisk text-primary" style="font-size: 8px;"></i>
-                        </label>
-                        <div class="login-input-wrap">
-                            <i class="fas fa-user input-lead-icon" aria-hidden="true"></i>
-                            <asp:TextBox ID="txtUserName" runat="server" 
-                                placeholder="Enter your username" 
-                                required="required" 
-                                title="Please enter your username" 
-                                autocomplete="username" 
-                                Style="text-transform: uppercase;" 
-                                CssClass="form-control login-username-input"></asp:TextBox>
+
+                        <!-- Username Field -->
+                        <div class="login-field">
+                            <label class="form-label" for="<%= txtUserName.ClientID %>">
+                                <span>Username</span>
+                                <i class="fas fa-asterisk text-primary" style="font-size: 8px;"></i>
+                            </label>
+                            <div class="login-input-wrap">
+                                <i class="fas fa-user input-lead-icon" aria-hidden="true"></i>
+                                <asp:TextBox ID="txtUserName" runat="server"
+                                    placeholder="Enter your username"
+                                    required="required"
+                                    title="Please enter your username"
+                                    autocomplete="username"
+                                    Style="text-transform: uppercase;"
+                                    CssClass="form-control login-username-input"></asp:TextBox>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Password Field with Show/Hide Toggle -->
-                    <div class="login-field">
-                        <label class="form-label" for="<%= txtPassword.ClientID %>">
-                            <span>Password</span>
-                            <i class="fas fa-asterisk text-primary" style="font-size: 8px;"></i>
-                        </label>
-                        <div class="login-input-wrap">
-                            <i class="fas fa-lock input-lead-icon" aria-hidden="true"></i>
-                            <asp:TextBox ID="txtPassword" runat="server" 
-                                placeholder="Enter your password" 
-                                TextMode="Password" 
-                                CssClass="form-control login-password-input" 
-                                autocomplete="current-password" 
-                                required="required"></asp:TextBox>
-                            <button type="button" class="password-toggle-btn" id="btnTogglePassword" onclick="togglePasswordVisibility();" title="Show or hide password" aria-label="Toggle password visibility">
-                                <i class="fas fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
-                            </button>
+                        <!-- Password Field with Show/Hide Toggle -->
+                        <div class="login-field">
+                            <label class="form-label" for="<%= txtPassword.ClientID %>">
+                                <span>Password</span>
+                                <i class="fas fa-asterisk text-primary" style="font-size: 8px;"></i>
+                            </label>
+                            <div class="login-input-wrap">
+                                <i class="fas fa-lock input-lead-icon" aria-hidden="true"></i>
+                                <asp:TextBox ID="txtPassword" runat="server"
+                                    placeholder="Enter your password"
+                                    TextMode="Password"
+                                    CssClass="form-control login-password-input"
+                                    autocomplete="current-password"
+                                    required="required"></asp:TextBox>
+                                <button type="button" class="password-toggle-btn" id="btnTogglePassword" onclick="togglePasswordVisibility();" title="Show or hide password" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Options: Remember Me & Forgot Password -->
-                    <div class="login-options">
-                        <label class="remember-box" for="chkRemember">
-                            <input type="checkbox" id="chkRemember" runat="server" />
-                            <span>Remember me</span>
-                        </label>
-                        <a href="ForgotPassword.aspx" class="forgot-link">Forgot password?</a>
-                    </div>
+                        <!-- Options: Remember Me & Forgot Password -->
+                        <div class="login-options">
+                            <label class="remember-box" for="chkRemember">
+                                <input type="checkbox" id="chkRemember" runat="server" />
+                                <span>Remember me</span>
+                            </label>
+                            <a href="ForgotPassword.aspx" class="forgot-link">Forgot password?</a>
+                        </div>
 
-                    <!-- Sign In Submit Button -->
-                    <asp:Button ID="btnSubmit" runat="server" 
-                        Text="Sign In" 
-                        CssClass="btn btn-login-primary" 
-                        OnClientClick="return showAuthenticatingEffect(this);" 
-                        OnClick="btnSubmit_Click" />
+                        <!-- Sign In Submit Button -->
+                        <asp:Button ID="btnSubmit" runat="server"
+                            Text="Sign In"
+                            CssClass="btn btn-login-primary"
+                            OnClientClick="return showAuthenticatingEffect(this);"
+                            OnClick="btnSubmit_Click" />
                     </div>
 
                     <div id="mfaSelection" class="mfa-screen">
@@ -897,14 +1057,26 @@
                     </div>
 
                     <div id="mfaAuthSetup" class="mfa-screen">
-                        <p class="mfa-step">Scan this QR code with Microsoft or Google Authenticator.</p><div id="mfaQr" class="mfa-qr"></div>
+                        <p class="mfa-step">Scan this QR code with Microsoft or Google Authenticator.</p>
+                        <div id="mfaQr" class="mfa-qr"></div>
                         <div class="mfa-secret">Can't scan? Enter setup key:<code id="mfaSecret"></code></div>
                         <input id="mfaSetupCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code" />
-                        <button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaSetupCode" type="button">Verify &amp; Enable MFA</button><button class="mfa-link mfa-change" type="button">Try another way</button>
+                        <button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaSetupCode" type="button">Verify &amp; Enable MFA</button>
+                        <button class="mfa-link mfa-change" type="button">Try another way</button>
                     </div>
 
-                    <div id="mfaAuthVerify" class="mfa-screen"><p class="mfa-step">Enter the current code from your Authenticator App.</p><input id="mfaAuthCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code"/><button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaAuthCode" type="button">Verify &amp; Continue</button><button class="mfa-link mfa-change" type="button">Try another way</button></div>
-                    <div id="mfaEmailVerify" class="mfa-screen"><p class="mfa-step">Enter the OTP sent to your official email.</p><div id="mfaMaskedEmail" class="mfa-email"></div><input id="mfaEmailCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code"/><button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaEmailCode" type="button">Verify &amp; Continue</button><button id="mfaResend" class="mfa-link" type="button" disabled>Resend OTP in 00:30</button><button class="mfa-link mfa-change" type="button">Try another way</button></div>
+                    <div id="mfaAuthVerify" class="mfa-screen">
+                        <p class="mfa-step">Enter the current code from your Authenticator App.</p>
+                        <input id="mfaAuthCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code" />
+                        <button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaAuthCode" type="button">Verify &amp; Continue</button>
+                        <button class="mfa-link mfa-change" type="button">Try another way</button></div>
+                    <div id="mfaEmailVerify" class="mfa-screen">
+                        <p class="mfa-step">Enter the OTP sent to your official email.</p>
+                        <div id="mfaMaskedEmail" class="mfa-email"></div>
+                        <input id="mfaEmailCode" class="form-control mfa-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="Enter 6-digit code" />
+                        <button class="btn btn-login-primary mfa-primary mfa-verify" data-input="mfaEmailCode" type="button">Verify &amp; Continue</button>
+                        <button id="mfaResend" class="mfa-link" type="button" disabled>Resend OTP in 00:30</button>
+                        <button class="mfa-link mfa-change" type="button">Try another way</button></div>
                     <button id="mfaBack" class="btn btn-outline-secondary mfa-back mfa-screen" type="button">Back to login</button>
                 </form>
 
@@ -971,7 +1143,8 @@
             return false;
         }
 
-        document.querySelectorAll('.mfa-choice').forEach(function (button) { button.addEventListener('click', function () { document.querySelectorAll('.mfa-choice').forEach(function (x) { x.classList.remove('selected'); }); button.classList.add('selected'); selectedMfaMethod = button.getAttribute('data-method'); document.getElementById('mfaMethodContinue').disabled = false; }); });
+document.querySelectorAll('.mfa-choice').forEach(function (button)
+{ button.addEventListener('click', function () { document.querySelectorAll('.mfa-choice').forEach(function (x) { x.classList.remove('selected'); }); button.classList.add('selected'); selectedMfaMethod = button.getAttribute('data-method'); document.getElementById('mfaMethodContinue').disabled = false; }); });
         document.getElementById('mfaMethodContinue').addEventListener('click', function () { callMfa('SelectMfaMethod', { method: selectedMfaMethod }, handleMfa); });
         document.querySelectorAll('.mfa-verify').forEach(function (button) { button.addEventListener('click', function () { callMfa('VerifyMfa', { code: document.getElementById(button.getAttribute('data-input')).value }, handleMfa); }); });
         document.querySelectorAll('.mfa-code').forEach(function (input) { input.addEventListener('input', function () { input.value = input.value.replace(/\D/g, '').slice(0, 6); }); input.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); var verifyButton = input.closest('.mfa-screen').querySelector('.mfa-verify'); if (verifyButton) verifyButton.click(); } }); });

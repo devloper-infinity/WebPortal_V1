@@ -6905,5 +6905,27 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
 
 
         #endregion
+
+        public DataTable getHRInductionQuestionPaper(int EmployeeId)//, string PaperSet)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_getHRQuestionPaper");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeId);
+            //SQLHelper.AddParamToSQLCmd(cmd, "@PaperSet", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, PaperSet);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+        public int InsertHRAnswerSet(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_insertHRAnswerSet");
+            SQLHelper.AddParamToSQLCmd(cmd, "@QuestionId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["QuestionId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Answer", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Answer"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["EmployeeId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
     }
 }

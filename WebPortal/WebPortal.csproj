@@ -149,6 +149,7 @@
     <Content Include="Admin\AutoBilling.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\ExpensesAdmin.aspx" />
+    <Content Include="Admin\HRQuestionPaper.aspx" />
     <Content Include="Admin\PettyCashApproval.aspx" />
     <Content Include="Admin\PettyCashCategoryMaster.aspx" />
     <Content Include="Admin\PettyCashDashboard.aspx" />
@@ -3218,6 +3219,13 @@
     </Compile>
     <Compile Include="Admin\AutoBilling.aspx.designer.cs">
       <DependentUpon>AutoBilling.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\HRQuestionPaper.aspx.cs">
+      <DependentUpon>HRQuestionPaper.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HRQuestionPaper.aspx.designer.cs">
+      <DependentUpon>HRQuestionPaper.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\OtherTask.Report.cs">
       <SubType>ASPXCodeBehind</SubType>
@@ -6464,6 +6472,7 @@
     <Content Include="Templates\DashboardValidatorTemplate.xlsx" />
     <Content Include="App_Data\DashboardValidator\prp_to_cleanup.py" />
     <Content Include="App_Data\DashboardValidator\validate_dc.py" />
+    <Content Include="App_Data\DashboardValidator\pythonlibs\**\*.*" />
     <Content Include="Templates\IdemnityBond.dotx" />
     <Content Include="Templates\Appendix-A-Version1.dotx" />
     <Content Include="Templates\Employee Agreement Version 3-2023 ForAll.dotx" />

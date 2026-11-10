@@ -763,12 +763,16 @@
                 <div class="tab-content upr-tab-body" id="custom-tabs-one-tabContent">
                     <div class="tab-pane fade show active" id="custom-tabs-one-consolidated" role="tabpanel" aria-labelledby="custom-tabs-one-consolidated-tab">
                         <div class="upr-table-wrap">
-                            <table class="table table-hover upr-data-table" id="upr_consolidatedtable" style="width:100%;">
+                            <table class="table table-hover upr-data-table" id="upr_consolidatedtable" style="width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>Code</th>
                                         <th>Name</th>
                                         <th>Pseudoname</th>
+                                        <th>Location</th>
+                                        <th>Domain</th>
+                                        <th>Subdomain</th>
+                                        <th>Reporting Manager</th>
                                         <th>Live Production</th>
                                         <th>Training Production</th>
                                         <th>Practice Production</th>
@@ -787,7 +791,7 @@
 
                     <div class="tab-pane fade" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
                         <div class="upr-table-wrap">
-                            <table class="table table-hover upr-data-table" id="upr_table" style="width:100%;">
+                            <table class="table table-hover upr-data-table" id="upr_table" style="width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>Month</th>
@@ -795,6 +799,10 @@
                                         <th>Code</th>
                                         <th>Name</th>
                                         <th>Pseudoname</th>
+                                        <th>Location</th>
+                                        <th>Domain</th>
+                                        <th>Subdomain</th>
+                                        <th>Reporting Manager</th>
                                         <th>Live Production</th>
                                         <th>Training Production</th>
                                         <th>Practice Production</th>
@@ -859,6 +867,11 @@
                                 <thead>
                                     <tr>
                                         <th>Code</th>
+                                        <th>Employee Name</th>
+                                        <th>Location</th>
+                                        <th>Domain</th>
+                                        <th>Subdomain</th>
+                                        <th>Reporting Manager</th>
                                         <th>Total Days<br />
                                             (Calender Days)</th>
                                         <th>Absent Days<br />

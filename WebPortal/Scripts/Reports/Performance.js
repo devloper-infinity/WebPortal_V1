@@ -68,10 +68,10 @@ function perform_validations() {
     upr_bindSummary();
 }
 
-function upr_submit() {
+// function upr_submit() {
 
-    perform_validations();
-}
+//     perform_validations();
+// }
 
 function upr_submit() {
 
@@ -164,6 +164,10 @@ function upr_submit() {
                     { data: 'Code' },
                     { data: 'EmployeeName' },
                     { data: 'Employee' },
+                    { data: 'Location' },
+                    { data: 'Domain' },
+                    { data: 'SubDomain' },
+                    { data: 'ReportingManager' },
                     { data: 'LoanCount' },
                     { data: 'TrainingProduction' },
                     { data: 'PracticeProduction' },
@@ -232,6 +236,10 @@ function upr_bindConsolidatedReport(FromDate, ToDate) {
                     { data: 'Code' },
                     { data: 'EmployeeName' },
                     { data: 'Employee' },
+                    { data: 'Location' },
+                    { data: 'Domain' },
+                    { data: 'Subdomain' },
+                    { data: 'ReportingManager' },
                     { data: 'LoanCount' },
                     { data: 'TrainingProduction' },
                     { data: 'PracticeProduction' },
@@ -513,6 +521,11 @@ function upr_getAttendanceDetails() {
                 "data": dataArray,
                 columns: [
                     { data: 'Code' },
+                    { data: 'EmployeeName' },
+                    { data: 'Location' },
+                    { data: 'Domain' },
+                    { data: 'Subdomain' },
+                    { data: 'ReportingManager' },
                     { data: 'TotalCalenderDays' },
                     { data: 'AbsentDays' },
                     { data: 'PartialCount' },
