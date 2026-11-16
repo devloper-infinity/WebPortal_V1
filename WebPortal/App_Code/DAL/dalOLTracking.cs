@@ -265,21 +265,21 @@ ORDER BY effective.StageNo,effective.ProcessName;") { CommandType = CommandType.
         public DataTable GetConfiguredProcesses(int projectId)
         {
             SqlCommand command = new SqlCommand(@"
-SELECT ProcessID,MAX(ProcessName) ProcessName
+SELECT ProcessID,MAX(ProcessName) ProcessName,MIN(StageNo) StageNo
 FROM
 (
-    SELECT flow.ProcessID,flow.ProcessName
+    SELECT flow.ProcessID,flow.ProcessName,flow.StageNo
     FROM (SELECT DISTINCT DealNumber FROM dbo.OLTracking_Item
           WHERE ProjectID=@ProjectID AND IsDeleted=0) deal
     CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(@ProjectID,deal.DealNumber) flow
     UNION ALL
-    SELECT flow.ProcessID,flow.ProcessName
+    SELECT flow.ProcessID,flow.ProcessName,flow.StageNo
     FROM dbo.OLTracking_ProcessFlow flow
     WHERE flow.ProjectID=@ProjectID AND flow.IsActive=1
       AND NOT EXISTS(SELECT 1 FROM dbo.OLTracking_Item item
                      WHERE item.ProjectID=@ProjectID AND item.IsDeleted=0)
 ) configured
-GROUP BY ProcessID ORDER BY ProcessName;") { CommandType = CommandType.Text };
+GROUP BY ProcessID ORDER BY MIN(StageNo),MAX(ProcessName);") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
             return Table(command);
         }
@@ -918,7 +918,12 @@ END CATCH", connection) { CommandTimeout = 90 })
             EnsureProcessFlowColumns();
             SqlCommand timeValidation = new SqlCommand(@"
 DECLARE @ProcessName nvarchar(200),@MinMinutes int,@ElapsedSeconds bigint,@Message nvarchar(2048);
-SELECT @ProcessName=flow.ProcessName,@MinMinutes=flow.MinCompletionMinutes,
+SELECT @ProcessName=flow.ProcessName,
+       @MinMinutes=CASE WHEN i.RecordSource='Import' AND
+           (a.AssignedDate IS NULL OR a.StartedDate IS NULL OR a.StartedDate>GETDATE()
+            OR a.HoldTATSeconds IS NULL OR a.HoldTATSeconds<0
+            OR a.HoldTATSeconds>DATEDIFF(second,a.StartedDate,GETDATE()))
+           THEN NULL ELSE flow.MinCompletionMinutes END,
        @ElapsedSeconds=CASE WHEN DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
                             ELSE DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0) END
 FROM dbo.OLTracking_Assignment a
@@ -1008,7 +1013,12 @@ ORDER BY IsAcknowledged,a.AssignedDate;") { CommandType = CommandType.Text };
         {
             EnsureProcessFlowColumns();
             SqlCommand command = new SqlCommand(@"
-SELECT flow.ProcessName,flow.MinCompletionMinutes,
+SELECT flow.ProcessName,
+       CASE WHEN i.RecordSource='Import' AND
+           (a.AssignedDate IS NULL OR a.StartedDate IS NULL OR a.StartedDate>GETDATE()
+            OR a.HoldTATSeconds IS NULL OR a.HoldTATSeconds<0
+            OR a.HoldTATSeconds>DATEDIFF(second,a.StartedDate,GETDATE()))
+           THEN NULL ELSE flow.MinCompletionMinutes END MinCompletionMinutes,
        CONVERT(int,CASE WHEN a.StartedDate IS NULL THEN 0 WHEN DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0)<0 THEN 0
                         ELSE (DATEDIFF(second,a.StartedDate,GETDATE())-ISNULL(a.HoldTATSeconds,0))/60 END) ElapsedMinutes,
        CONVERT(int,CASE WHEN flow.MinCompletionMinutes IS NULL OR a.StartedDate IS NULL THEN 0
@@ -1453,6 +1463,75 @@ ORDER BY h.EntryDate,h.HourlyEntryID;") { CommandType = CommandType.Text };
             Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@FromDate", SqlDbType.Date, fromDate.Date);
             Add(command, "@ToDate", SqlDbType.Date, toDate.Date);
+            return Table(command);
+        }
+
+        public DataTable GetDailyProductivityForUser(DateTime productivityDate, int userId, int domainId)
+        {
+            SqlCommand command = new SqlCommand(@"
+SET NOCOUNT ON;
+;WITH Completed AS
+(
+    SELECT assignment.AssignmentID,assignment.ProjectID,project.ProjectName,
+           assignment.ProcessID,flow.ProcessName,item.ItemNumber,
+           assignment.StartedDate,assignment.CompletedDate,
+           CASE WHEN assignment.TotalTATSeconds IS NOT NULL THEN assignment.TotalTATSeconds
+                WHEN assignment.StartedDate IS NOT NULL THEN DATEDIFF(second,assignment.StartedDate,assignment.CompletedDate)
+                ELSE 0 END DurationSeconds
+    FROM dbo.OLTracking_Assignment assignment
+    JOIN dbo.OLTracking_Item item ON item.ItemID=assignment.ItemID AND ISNULL(item.IsDeleted,0)=0
+    JOIN dbo.Project project ON project.ProjectID=assignment.ProjectID
+    CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(assignment.ProjectID,item.DealNumber) flow
+    WHERE assignment.UserID=@UserID AND assignment.AssignmentStatus='Completed'
+      AND flow.ProcessID=assignment.ProcessID
+      AND ISNULL(flow.ProductivityType,N'Loan Based Productivity')<>N'Hourly Productivity'
+      AND assignment.CompletedDate>=@ProductivityDate
+      AND assignment.CompletedDate<DATEADD(day,1,@ProductivityDate)
+      AND (@DomainID=0 OR EXISTS
+          (SELECT 1 FROM dbo.WBT_ProjectWiseFieldMaster projectField
+           JOIN dbo.WBT_DomianWiseFieldMaster domainField ON domainField.DomainFieldID=projectField.FieldName
+           WHERE projectField.ProjectID=assignment.ProjectID AND ISNULL(projectField.IsDelete,0)=0
+             AND ISNULL(domainField.IsDelete,0)=0 AND domainField.DomainID=@DomainID))
+), Employee AS
+(
+    SELECT employee.Code
+    FROM dbo.EmployeeInfo employee WHERE employee.EmployeeID=@UserID
+)
+SELECT -MIN(completed.AssignmentID) TrackingProductionID,
+       MAX(employee.Code) Code,
+       REPLACE(CONVERT(char(11),@ProductivityDate,106),' ','-') [Date],
+       completed.ProjectName Project,completed.ProcessName TrackingProcess,
+       N'Default' Process,
+       COALESCE(NULLIF(MAX(userTarget.Target),''),NULLIF(MAX(processTarget.Maturity),''),N'0') Target,
+       COUNT(1) Production,
+       CONVERT(varchar(10),SUM(CASE WHEN completed.DurationSeconds<0 THEN 0 ELSE completed.DurationSeconds END)/3600)
+          +'.'+RIGHT('0'+CONVERT(varchar(2),(SUM(CASE WHEN completed.DurationSeconds<0 THEN 0 ELSE completed.DurationSeconds END)%3600)/60),2) TimeSpent,
+       REPLACE(CONVERT(char(11),@ProductivityDate,106),' ','-') ClientOrderDate,
+       N'' Approved,N'' RejectedRemark
+FROM Completed completed
+CROSS JOIN Employee employee
+OUTER APPLY
+(
+    SELECT TOP 1 target.Target
+    FROM dbo.UserTarget target
+    WHERE target.ProjectID=completed.ProjectID AND target.ProcessID=completed.ProcessID
+      AND RTRIM(target.Code)=RTRIM(employee.Code) AND ISNULL(target.IsDelete,0)=0
+    ORDER BY ISNULL(target.UpdatedDate,target.AddedDate) DESC,target.ID DESC
+) userTarget
+OUTER APPLY
+(
+    SELECT TOP 1 matrix.Maturity
+    FROM dbo.TargetMatrixMaster matrix
+    WHERE matrix.ProjectID=CONVERT(nvarchar(20),completed.ProjectID)
+      AND matrix.ProcessID=CONVERT(nvarchar(20),completed.ProcessID)
+      AND (matrix.ProductID IS NULL OR matrix.ProductID='' OR matrix.ProductID='0')
+    ORDER BY matrix.TargetMatrixID DESC
+) processTarget
+GROUP BY completed.ProjectID,completed.ProjectName,completed.ProcessID,completed.ProcessName
+ORDER BY completed.ProjectName,completed.ProcessName;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@ProductivityDate", SqlDbType.Date, productivityDate.Date);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            Add(command, "@DomainID", SqlDbType.Int, domainId);
             return Table(command);
         }
 

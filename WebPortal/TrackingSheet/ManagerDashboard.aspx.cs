@@ -15,6 +15,13 @@ namespace WebPortal.TrackingSheet
         
         [WebMethod] 
         public static string GetProjects() { return OLTrackingWeb.Json(Projects()); }
+
+        [WebMethod]
+        public static string GetTrackingSheetData(int projectId, string fromDate, string toDate)
+        {
+            ProjectIds(projectId);
+            return OLTrackingWeb.Json(TrackingSheetReport.GetReport(projectId, fromDate, toDate));
+        }
        
         [WebMethod] 
         public static string GetProcesses(int projectId) { RequiredProject(projectId); return OLTrackingWeb.Json(Collect(projectId, delegate (bllOLTracking b, int id) { return b.GetConfiguredProcesses(id); }, "ProcessID")); }

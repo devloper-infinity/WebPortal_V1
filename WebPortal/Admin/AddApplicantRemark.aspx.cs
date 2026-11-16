@@ -19,7 +19,6 @@ namespace WebPortal.Admin
 {
     public partial class AddApplicantRemark : System.Web.UI.Page
     {
-        static string UrlType = "";
         protected void Page_Load(object sender, EventArgs e)
         {
             string AppId = Convert.ToString(Request.QueryString["AppId"]);
@@ -30,17 +29,14 @@ namespace WebPortal.Admin
                 if (Convert.ToString(AppId) != "" && AppId != null)
                 {
                     BindGrid(int.Parse(AppId));
-                    UrlType = "AppId";
                 }
                 else if (Convert.ToString(shortlistremark) != "" && shortlistremark != null)
                 {
                     BindGrid(int.Parse(shortlistremark));
-                    UrlType = "ShortlistedRemark";
                 }
                 else if (Convert.ToString(InResult) != "" && InResult != null)
                 {
                     BindGrid(int.Parse(InResult));
-                    UrlType = "InResult";
                 }
             }
         }
@@ -177,7 +173,7 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int InsertApplicantRemark(int AppId, string Remark, int Domain, string Process, string Status, string Intdate, string Inttime, int Interviewer, string Method, string Location, string Currentsalary, string Expectedsalary, string Finalsalary, string Expjoiningdate, int Department, int Designation, int Reportingmanager, int Shift, string Cutofftime, string Otherremark, int RequisitionID, string Requisition, string Name, string PositionApplied, string DepartmentName, string DesignationName, string ManagerName)
+        public static int InsertApplicantRemark(int AppId, string Remark, int Domain, string Process, string Status, string Intdate, string Inttime, int Interviewer, string Method, string Location, string Currentsalary, string Expectedsalary, string Finalsalary, string Expjoiningdate, int Department, int Designation, int Reportingmanager, int Shift, string Cutofftime, string Otherremark, int RequisitionID, string Requisition, string Name, string PositionApplied, string DepartmentName, string DesignationName, string ManagerName, string UrlType)
         {
             int returnvalue = 0;
             Hashtable htParam = new Hashtable();
@@ -186,16 +182,15 @@ namespace WebPortal.Admin
             htParam.Add("Domain", Domain);
             htParam.Add("Process", Process);
             htParam.Add("Status", Status);
-            if (Status == "Proceed For Next Round")
-            {
-                htParam.Add("InterviewDate", Intdate);
-                htParam.Add("InterviewTime", Inttime);
-                htParam.Add("Interviewer", Interviewer);
-                htParam.Add("InterviewMethod", Method);
-                htParam.Add("InterviewLocation", Location);
-                htParam.Add("CurrentSalary", Currentsalary);
-                htParam.Add("ExpectedSalary", Expectedsalary);
-            }
+            // The DAL always supplies these stored-procedure parameters. Add them for
+            // every status so a Selected/Rejected update cannot produce a SQL 500.
+            htParam.Add("InterviewDate", Intdate ?? string.Empty);
+            htParam.Add("InterviewTime", Inttime ?? string.Empty);
+            htParam.Add("Interviewer", Interviewer);
+            htParam.Add("InterviewMethod", Method ?? string.Empty);
+            htParam.Add("InterviewLocation", Location ?? string.Empty);
+            htParam.Add("CurrentSalary", Currentsalary ?? string.Empty);
+            htParam.Add("ExpectedSalary", Expectedsalary ?? string.Empty);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             htParam.Add("FinalSalary", Finalsalary);
 
@@ -227,10 +222,10 @@ namespace WebPortal.Admin
             returnvalue = new bllRequisition().InsertApplicantRemark(htParam);
             if (returnvalue > 0)
             {
-                if (Status == "Proceed For Next Round" || (Status == "Selected" && UrlType == "ShortlistedRemark"))
-                {
-                    SendInterviewEmail(AppId, Remark, Domain, Process, Status, Intdate, Inttime, Interviewer, Method, Location, Currentsalary, Expectedsalary, Finalsalary, Expjoiningdate, Department, Designation, Reportingmanager, Shift, Cutofftime, Otherremark, RequisitionID, Requisition, Name, PositionApplied, DepartmentName, DesignationName, ManagerName);
-                }
+                //if (Status == "Proceed For Next Round" || (Status == "Selected" && UrlType == "ShortlistedRemark"))
+                //{
+                //    SendInterviewEmail(AppId, Remark, Domain, Process, Status, Intdate, Inttime, Interviewer, Method, Location, Currentsalary, Expectedsalary, Finalsalary, Expjoiningdate, Department, Designation, Reportingmanager, Shift, Cutofftime, Otherremark, RequisitionID, Requisition, Name, PositionApplied, DepartmentName, DesignationName, ManagerName);
+                //}
             }
             return returnvalue;
         }

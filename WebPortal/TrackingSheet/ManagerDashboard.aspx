@@ -7,7 +7,7 @@
         display: flex;
         gap: 6px;
         margin: 15px 0;
-        border-bottom: 1px solid #d7e2ee
+        border-bottom: 1px solid #d7e2ee;
     }
 
     .mgr-tab {
@@ -148,6 +148,23 @@
         font-size: 12px
     }
 
+    .allocation-form { align-items:start; }
+    .allocation-mode-tabs { display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid #d7e2ee; }
+    .allocation-mode-tab { padding:9px 15px;border:0;border-bottom:3px solid transparent;background:transparent;color:#526a81;font-weight:800;cursor:pointer; }
+    .allocation-mode-tab.active { border-bottom-color:#117a9b;color:#117a9b; }
+    .allocation-mode-panel { display:none; }
+    .allocation-mode-panel.active { display:block; }
+    .bulk-toolbar { display:grid;grid-template-columns:minmax(230px,.7fr) minmax(420px,1.3fr);gap:12px;align-items:start; }
+    .bulk-paste { min-height:92px!important;font-family:Consolas,monospace;font-size:12px;resize:vertical; }
+    .bulk-actions { display:flex;gap:8px;flex-wrap:wrap;margin-top:10px; }
+    .bulk-summary { margin-left:auto;padding:8px 0;color:#526a81;font-weight:700; }
+    .bulk-grid input { min-width:145px;width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #bdcad8;border-radius:5px; }
+    .bulk-grid .bulk-loan { min-width:115px; }
+    .bulk-status { display:inline-block;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:800;white-space:nowrap; }
+    .bulk-status.valid,.bulk-status.allocated { background:#dcf5e9;color:#176b41; }
+    .bulk-status.invalid,.bulk-status.failed { background:#fde8e8;color:#a52b2b; }
+    @media(max-width:850px) { .bulk-toolbar { grid-template-columns:1fr; } }
+
     @media(max-width:900px) {
         .mgr-kpis {
             grid-template-columns: repeat(2,1fr)
@@ -258,14 +275,33 @@
     .loan-hold-grid { display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px; }
     .loan-hold-table { max-height:390px;overflow:auto; }
     .loan-hold-table thead th { position:sticky;top:0;z-index:2; }
+    .tracking-toolbar { display:grid;grid-template-columns:minmax(240px,1.4fr) repeat(2,minmax(165px,.75fr)) auto;gap:10px;align-items:end; }
+    .tracking-column-filter { display:grid;grid-template-columns:minmax(220px,1.1fr) 180px minmax(220px,1fr) auto;gap:10px;align-items:end;margin-top:10px;padding-top:10px;border-top:1px solid #d7e2ee; }
+    .tracking-toolbar .olt-field,.tracking-column-filter .olt-field { grid-column:auto; }
+    .tracking-actions { display:flex;gap:8px;white-space:nowrap; }
+    .tracking-actions .olt-btn { min-height:38px; }
+    .tracking-sheet-wrap { overflow:auto;max-height:65vh; }
+    #trackingSheetTable { width:100%!important; }
+    #trackingSheetTable th,#trackingSheetTable td { white-space:nowrap; }
+    #trackingSheetTable th.tracking-process-column { min-width:145px;white-space:normal;line-height:1.25; }
+    #trackingSheetTable td.tracking-process-column { min-width:145px;padding:7px 9px;vertical-align:middle; }
+    .tracking-process-cell { display:flex;min-width:125px;flex-direction:column;align-items:flex-start;gap:4px; }
+    .tracking-process-status { display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.35; }
+    .tracking-process-status.completed { background:#e5f7ee;color:#087443; }
+    .tracking-process-status.in-process { background:#e1efff;color:#0759bd; }
+    .tracking-process-status.pending { background:#fff4d8;color:#9a5c00; }
+    .tracking-process-status.hold { background:#ffe9df;color:#a13b12; }
+    .tracking-process-status.skipped { background:#edf1f5;color:#536273; }
+    .tracking-process-user { max-width:135px;overflow:hidden;color:#40566c;font-size:10px;font-weight:600;text-overflow:ellipsis; }
     @media(max-width:1100px) { .snd-overview-grid,.snd-process-sections { grid-template-columns:1fr; } }
-    @media(max-width:700px) { .snd-grand { grid-template-columns:repeat(2,1fr); } .snd-title { align-items:flex-start;flex-direction:column; } .loan-hold-toolbar { grid-template-columns:1fr; } }
+    @media(max-width:950px) { .tracking-toolbar { grid-template-columns:1fr 1fr; } .tracking-column-filter { grid-template-columns:1fr 1fr; } }
+    @media(max-width:700px) { .snd-grand { grid-template-columns:repeat(2,1fr); } .snd-title { align-items:flex-start;flex-direction:column; } .loan-hold-toolbar,.tracking-toolbar,.tracking-column-filter { grid-template-columns:1fr; } .tracking-actions { flex-wrap:wrap; } }
 
     </style>
 
     <script src="OLTracking.js"></script>
     <script src="../plugins/chart.js/Chart.min.js"></script>
-    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20260818.1"></script>
+    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20261112.2"></script>
     <script src="ManagerDashboard.Snd.js?v=20260819.1"></script>
 
 </asp:Content>
@@ -296,6 +332,7 @@
             <button type="button" class="mgr-tab" data-panel="dailyProductionTab">Daily Production</button>
             <button type="button" class="mgr-tab" data-panel="holdReasonsTab">Hold Reasons</button>
             <button type="button" class="mgr-tab" data-panel="holdLoansTab">Hold Loans</button>
+            <button type="button" class="mgr-tab" data-panel="trackingSheetTab">Tracking Sheet</button>
             <button type="button" class="mgr-tab" data-panel="importDataTab">Import Data</button>
             <button type="button" class="mgr-tab" data-panel="allocationTab">Allocation</button>
             <button type="button" class="mgr-tab" data-panel="reallocationTab">Re-Allocation</button>
@@ -388,6 +425,27 @@
             </div>
         </section>
 
+        <section id="trackingSheetTab" class="mgr-panel">
+            <div class="snd-title"><h3>Tracking Sheet</h3><span>Configured columns and imported values</span></div>
+            <div class="olt-card snd-filter"><div class="olt-card-body">
+                <div class="tracking-toolbar">
+                    <div class="olt-field"><label>Project #</label><select id="trackingProject"><option value="">Select project</option></select></div>
+                    <div class="olt-field"><label>From Order Date</label><input id="trackingFrom" type="date" /></div>
+                    <div class="olt-field"><label>To Order Date</label><input id="trackingTo" type="date" /></div>
+                    <div class="tracking-actions"><button type="button" id="trackingLoad" class="olt-btn">Load Data</button><button type="button" id="trackingReset" class="olt-btn secondary">Reset</button></div>
+                </div>
+                <div class="tracking-column-filter">
+                    <div class="olt-field"><label>Filter Column</label><select id="trackingColumn"><option value="">Select column</option></select></div>
+                    <div class="olt-field"><label>Condition</label><select id="trackingCondition"><option value="contains">Contains</option><option value="equals">Equals</option><option value="blank">Not Updated (Blank)</option><option value="notblank">Updated (Not Blank)</option></select></div>
+                    <div class="olt-field"><label>Value</label><input id="trackingValue" type="search" placeholder="Search selected column" /></div>
+                    <div class="tracking-actions"><button type="button" id="trackingClearFilter" class="olt-btn secondary">Clear Filter</button></div>
+                </div>
+            </div></div>
+            <div class="snd-table-card mgr-section"><div class="olt-card-head">Configured Tracking Data <span id="trackingSummary" class="loan-hold-count">Load a project to view data.</span></div>
+                <div class="olt-table-wrap tracking-sheet-wrap"><table id="trackingSheetTable" class="olt-table"><thead></thead><tbody></tbody></table></div>
+            </div>
+        </section>
+
         <section id="importDataTab" class="mgr-panel">
             <asp:Label ID="lblMessage" runat="server" Visible="false" />
 
@@ -477,7 +535,12 @@
             <div class="olt-card">
                 <div class="olt-card-head">Allocation details</div>
                 <div class="olt-card-body">
-                    <div class="olt-form">
+                    <div class="allocation-mode-tabs">
+                        <button type="button" class="allocation-mode-tab active" data-allocation-mode="singleAllocationPanel">Single Allocation</button>
+                        <button type="button" class="allocation-mode-tab" data-allocation-mode="bulkAllocationPanel">Bulk Allocation</button>
+                    </div>
+                    <div id="singleAllocationPanel" class="allocation-mode-panel active">
+                    <div class="olt-form allocation-form">
                         <div class="olt-field wide">
                             <label>Project #</label><select id="pmaProject"><option value="">Select project</option>
                             </select>
@@ -503,6 +566,16 @@
                     </div>
                     <div class="olt-actions" style="        margin-top: 14px">
                         <button type="button" class="olt-btn" onclick="allocateSelected()">Allocate Selected Orders</button>
+                    </div>
+                    </div>
+                    <div id="bulkAllocationPanel" class="allocation-mode-panel">
+                        <div class="bulk-toolbar">
+                            <div class="olt-field full"><label>Project #</label><select id="bulkProject"><option value="">Select project</option></select><div class="pma-user-note">Only projects assigned to you are available.</div></div>
+                            <div class="olt-field full"><label>Paste from Excel (Deal #, Loan #, Employee, Process)</label><textarea id="bulkPaste" class="bulk-paste" placeholder="Deal #&#9;Loan #&#9;Employee&#9;Process&#10;Deal 101&#9;LN0001&#9;Employee Name&#9;SSReview"></textarea><div class="pma-user-note">Copy four columns from Excel and paste here, or add an empty row and type directly.</div></div>
+                        </div>
+                        <div class="bulk-actions"><button type="button" id="bulkAddPaste" class="olt-btn">Add Pasted Rows</button><button type="button" id="bulkAddRow" class="olt-btn secondary">Add Empty Row</button><button type="button" id="bulkValidate" class="olt-btn secondary">Validate</button><button type="button" id="bulkExportErrors" class="olt-btn secondary" style="display:none">Download Errors</button><button type="button" id="bulkClear" class="olt-btn secondary">Clear</button><span id="bulkSummary" class="bulk-summary">0 row(s)</span></div>
+                        <div class="olt-table-wrap mgr-orders"><table class="olt-table bulk-grid"><thead><tr><th>#</th><th>Deal #</th><th>Loan #</th><th>Employee</th><th>Process</th><th>Status</th><th>Message</th><th></th></tr></thead><tbody id="bulkRows"><tr><td colspan="8" class="olt-empty">Paste allocation rows or add an empty row.</td></tr></tbody></table></div>
+                        <div class="bulk-actions"><button type="button" id="bulkAllocate" class="olt-btn" disabled>Allocate Valid Rows</button></div>
                     </div>
                 </div>
             </div>

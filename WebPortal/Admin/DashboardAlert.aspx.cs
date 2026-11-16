@@ -109,7 +109,7 @@ namespace WebPortal.Admin
                 Add(cmd, "@EffectiveDate", SqlDbType.NVarChar, 12, date.ToString("dd-MMM-yyyy", CultureInfo.InvariantCulture));
                 Add(cmd, "@AddedBy", SqlDbType.Int, 10, int.Parse(HttpContext.Current.User.Identity.Name));
                 Add(cmd, "@DisplayTo", SqlDbType.NVarChar, 100, displayTo);
-                Add(cmd, "@Users", SqlDbType.NVarChar, 4000, users);
+                Add(cmd, "@Users", SqlDbType.NVarChar, -1, users);
                 Add(cmd, "@Attachment", SqlDbType.NVarChar, 4000, attachmentPath);
                 SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
                 SQLHelper.ExecuteNonQueryCmd(cmd);

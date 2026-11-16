@@ -301,14 +301,14 @@ function EditAction(LeaveID, index) {
     var eligibility = String(row.Eligible || "").trim();
     if (eligibility === "Eligible") {
         var eligibilityText = document.createElement("span");
-        eligibilityText.textContent = " Eligible for Paid Leaves";
+        eligibilityText.textContent = " [  " + " Eligible for Paid Leaves" + ", ";
         eligibilityText.style.color = "blue";
         eligibilityText.style.fontWeight = "bold";
         eligibilityText.style.fontSize = "19px";
         leaveUsername.appendChild(eligibilityText);
 
         var BalanceLeaves = document.createElement("span");
-        BalanceLeaves.textContent = " Balance Leaves: " + (row.BalanceLeaves || 0);
+        BalanceLeaves.textContent = "   " + (row.BalanceLeaves || 0) + " ] ";
         BalanceLeaves.style.color = "green";
         BalanceLeaves.style.fontWeight = "bold";
         BalanceLeaves.style.fontSize = "19px";

@@ -168,7 +168,9 @@ namespace WebPortal.Admin
             int verificationId = new bllMaster().GetVerificationIDFromEmployeeID(EmployeeID);
             if (verificationId <= 0)
             {
-                return 0;
+                // The verification details were already inserted. Report a partial
+                // success so the user is not prompted to submit the same record again.
+                return 2;
             }
 
             Hashtable htVerify = new Hashtable();
@@ -179,17 +181,17 @@ namespace WebPortal.Admin
             int emailDetailsResult = new bllMaster().InsertEmployeeVerificationEmailDetails(htVerify);
             if (emailDetailsResult <= 0)
             {
-                return 0;
+                return 2;
             }
 
             try
             {
                 int emailResult = SendVerificationEmailInternal(EmployeeID, CandidateName, EmployeeCode, Salary, CompanyName, EmployeePeriod, Designation, ReportingManagerName, ReportingManagerDesignation, ReportingManagerContact, HRName, HRContact, ReasonforLeaving, ExitFormality, Eligibilitytorehire, VerifiedBy, ReceiverEmail, attachmentPath);
-                return emailResult > 0 ? 1 : 0;
+                return emailResult > 0 ? 1 : 2;
             }
             catch (Exception)
             {
-                return 0;
+                return 2;
             }
         }
 

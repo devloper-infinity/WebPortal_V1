@@ -655,8 +655,9 @@ namespace WebPortal
 
                 HttpContext.Current.Response.Cookies.Add(authCookie);
 
-                // ✅ FINAL REDIRECT (KEEP YOUR EXISTING FLOW SIMPLE)
-                return new { status = "success", url = "../Admin/DashboardEmployee.aspx" };
+                // Start a new authenticated request so Page_Load can apply the
+                // KYC, HR-questionnaire and POSH prerequisite redirects.
+                return new { status = "success", url = "LoginNew.aspx" };
             }
             catch (Exception ex)
             {

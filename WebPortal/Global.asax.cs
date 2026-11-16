@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
 using System.Web.UI;
+using System.Web.Script.Serialization;
+using System.Web.UI.HtmlControls;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code;
 using WebPortal.App_Code.DAL;
@@ -104,6 +107,49 @@ namespace WebPortal
             if (page != null)
             {
                 page.PreRender += ApplyScriptVersions;
+                page.PreRender += ShowMissingChannelAlert;
+                page.PreRender += AddChatWidget;
+            }
+        }
+
+        private static void AddChatWidget(object sender, EventArgs e)
+        {
+            Page page = sender as Page; HttpContext context = HttpContext.Current;
+            string chatPath = context == null ? "" : (context.Request.AppRelativeCurrentExecutionFilePath ?? "");
+            if (page == null || context == null || context.User == null || !context.User.Identity.IsAuthenticated ||
+                chatPath.StartsWith("~/US/", StringComparison.OrdinalIgnoreCase) ||
+                chatPath.Equals("~/Chat/Chat.aspx", StringComparison.OrdinalIgnoreCase)) return;
+            if (page.Header != null)
+            {
+                var css = new HtmlLink(); css.Href = page.ResolveUrl("~/Chat/Chat.css"); css.Attributes["rel"] = "stylesheet"; page.Header.Controls.Add(css);
+                var groupCss = new HtmlLink(); groupCss.Href = page.ResolveUrl("~/Chat/ChatGroup.css"); groupCss.Attributes["rel"] = "stylesheet"; page.Header.Controls.Add(groupCss);
+            }
+            page.ClientScript.RegisterClientScriptInclude("InfinitySignalR", page.ResolveUrl("~/Scripts/jquery.signalR-2.4.3.min.js"));
+            page.ClientScript.RegisterClientScriptInclude("InfinitySignalRHubs", page.ResolveUrl("~/signalr/hubs"));
+            page.ClientScript.RegisterClientScriptInclude("InfinityChat", page.ResolveUrl("~/Chat/Chat.js"));
+            page.ClientScript.RegisterStartupScript(page.GetType(), "InfinityChatStart", "if(window.InfinityChat){InfinityChat.mount({full:false});}", true);
+        }
+
+        private static void ShowMissingChannelAlert(object sender, EventArgs e)
+        {
+            Page page = sender as Page;
+            HttpContext context = HttpContext.Current;
+            if (page == null || context == null || context.User == null || !context.User.Identity.IsAuthenticated ||
+                !String.Equals(context.User.Identity.Name, "277", StringComparison.Ordinal) ||
+                context.Session["Project561ChannelAlertChecked"] != null) return;
+
+            context.Session["Project561ChannelAlertChecked"] = true;
+            try
+            {
+                List<string> missing = new ChannelMasterAlertRepository().MissingChannels(561);
+                if (missing.Count == 0) return;
+                string message = "Project 561: The following Channel values are missing from InfinityBilling Channel Master:\n\n- " + String.Join("\n- ", missing.ToArray()) + "\n\nPlease add them to the Channel Master.";
+                string serialized = new JavaScriptSerializer().Serialize(message);
+                page.ClientScript.RegisterStartupScript(page.GetType(), "Project561MissingChannels", "window.setTimeout(function(){window.alert(" + serialized + ");},0);", true);
+            }
+            catch (SqlException)
+            {
+                // A notification lookup must never block ERP login.
             }
         }
 

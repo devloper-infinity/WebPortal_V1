@@ -75,9 +75,10 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static decimal getPendingLeaveCount(string Code)
+        public static string getPendingLeaveCount(string Code)
         {
-            decimal LeaveCount = new bllMaster().GetPendingLeaveCount(Code);
+            DataTable dt = new bllMaster().GetPendingLeaveCount(Code);
+            string LeaveCount = dt.Rows.Count > 0 ? Convert.ToString(dt.Rows[0]["PendingLeaves"]) : "0.00";
             return LeaveCount;
         }
 

@@ -16,11 +16,6 @@ namespace WebPortal.Vendor
 {
     public partial class ProjectTrackingReportVM : System.Web.UI.Page
     {
-        protected int CurrentUserId
-        {
-            get { return Convert.ToInt32(HttpContext.Current.User.Identity.Name); }
-        }
-
         protected void Page_Load(object sender, EventArgs e)
         {
             // No server controls or DevExpress binding is required.
@@ -32,7 +27,11 @@ namespace WebPortal.Vendor
         public static object GetCurrentUserAccess()
         {
             int employeeId = GetCurrentUserId();
-            return new { IsPM = new bllVendors().CheckIfPMVM(employeeId) == 1 };
+            return new
+            {
+                EmployeeId = employeeId,
+                CanViewAll = employeeId == 44 || new bllVendors().CheckIfPMVM(employeeId) == 1
+            };
         }
 
         [WebMethod(EnableSession = true)]
@@ -41,9 +40,11 @@ namespace WebPortal.Vendor
         {
             DateTime from = ParseDate(fromDate);
             DateTime to = ParseDate(toDate);
+            if (from > to)
+                throw new ArgumentException("From Date cannot be later than To Date.");
             int userId = GetCurrentUserId();
             bllVendors ost = new bllVendors();
-            bool isPM = ost.CheckIfPMVM(userId) == 1;
+            bool isPM = userId == 44 || ost.CheckIfPMVM(userId) == 1;
             DataTable dt;
 
             if (showAll && isPM)

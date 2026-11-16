@@ -12,12 +12,6 @@ namespace WebPortal.Admin
     public partial class PettyCashRequest : Page
     {
         protected void Page_Load(object sender, EventArgs e) { }
-        private static long LoginId()
-        {
-            object v = System.Web.HttpContext.Current.Session["EmployeeID"];
-            if (v == null || !long.TryParse(Convert.ToString(v), out long id)) throw new Exception("Session expired. Please login again.");
-            return id;
-        }
         private static string Json(DataTable dt)
         {
             var rows = new List<Dictionary<string, object>>();
@@ -32,7 +26,7 @@ namespace WebPortal.Admin
         [WebMethod(EnableSession = true)]
         public static string GetRequests()
         {
-            return Json(new bllMaster().GetRequests(LoginId(), null));
+            return Json(new bllMaster().GetRequests(null, null));
         }
 
         [WebMethod(EnableSession = true)]
@@ -52,7 +46,7 @@ namespace WebPortal.Admin
         {
             DateTime rd, reqd; if (!DateTime.TryParse(requestDate, out rd) || !DateTime.TryParse(requiredDate, out reqd)) throw new Exception("Invalid date.");
             if (employeeId <= 0 || categoryId <= 0) throw new Exception("Employee and Category are mandatory."); if (string.IsNullOrWhiteSpace(purpose)) throw new Exception("Purpose is mandatory."); if (amount <= 0) throw new Exception("Amount must be greater than zero."); if (reqd < rd) throw new Exception("Required Date cannot be before Request Date.");
-            return Json(new bllMaster().SaveRequest(requestId, employeeId, categoryId, null, rd, reqd, purpose.Trim(), amount, priority, remark, LoginId(), submit));
+            return Json(new bllMaster().SaveRequest(requestId, employeeId, categoryId, null, rd, reqd, purpose.Trim(), amount, priority, remark, int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString()), submit));
         }
     }
 }

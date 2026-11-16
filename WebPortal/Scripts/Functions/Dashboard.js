@@ -54,6 +54,7 @@ function dashboard_profileinfo() {
                 document.getElementById("dasboard_poppermanentaddress").innerHTML = value1.PermenentAddress;
                 document.getElementById("dasboard_popcontact").innerHTML = value1.CellNo;
                 document.getElementById("dasboard_poppan").innerHTML = value1.PAN;
+                document.getElementById("dasboard_popadhar").innerHTML = value1.AadharNo;
                 document.getElementById("dasboard_popqualification").innerHTML = value1.Qualification;
                 document.getElementById("dasboard_popbloodgroup").innerHTML = value1.BloodGroup;
                 document.getElementById("dasboard_popemail").innerHTML = value1.EmailID;

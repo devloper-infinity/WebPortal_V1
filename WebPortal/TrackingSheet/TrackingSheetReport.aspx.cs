@@ -34,14 +34,14 @@ namespace WebPortal.TrackingSheet
             if (from > to) throw new ArgumentException("From Order Date cannot be later than To Order Date.");
 
             bllOLTrackingImport tracking = new bllOLTrackingImport();
-            DataTable fields = tracking.GetTrackingReportFields(projectId);
-            DataTable source = tracking.GetTrackingReportRows(projectId, from, to);
-            DataTable processes = tracking.GetTrackingReportProcesses(projectId, from, to);
             bllOLTracking processTracking = new bllOLTracking();
-            DataTable configuredProcesses = processTracking.GetConfiguredProcesses(projectId);
-            DataTable hourlyEntries = processTracking.GetHourlyProductivityEntries(projectId, from, to);
             string projectName = GetProjects().Where(x => x.ID == projectId).Select(x => x.Name).FirstOrDefault() ?? projectId.ToString();
-            return BuildResponse(source, fields, processes, configuredProcesses, hourlyEntries, projectName);
+            using (DataTable fields = tracking.GetTrackingReportFields(projectId))
+            using (DataTable source = tracking.GetTrackingReportRows(projectId, from, to))
+            using (DataTable processes = tracking.GetTrackingReportProcesses(projectId, from, to))
+            using (DataTable configuredProcesses = processTracking.GetConfiguredProcesses(projectId))
+            using (DataTable hourlyEntries = processTracking.GetHourlyProductivityEntries(projectId, from, to))
+                return BuildResponse(source, fields, processes, configuredProcesses, hourlyEntries, projectName);
         }
 
         private static ReportResponse BuildResponse(DataTable source, DataTable fields, DataTable processes, DataTable configuredProcesses, DataTable hourlyEntries, string projectName)
@@ -142,25 +142,22 @@ namespace WebPortal.TrackingSheet
                 Columns = columns,
                 Rows = reportRows,
                 RowCount = reportRows.Count,
-                Milestones = milestones,
-                Deals = BuildDealStatus(reportRows, milestones)
+                Milestones = milestones
             };
         }
 
         private static List<MilestoneDefinition> ResolveMilestones(DataTable configuredProcesses)
         {
-            string[] codes = { "CNCREVIEW", "CNCQC", "SSREVIEW", "SSQC" };
-            string[] labels = { "C&C Review", "C&C QC", "SS Review", "SS QC" };
             List<MilestoneDefinition> result = new List<MilestoneDefinition>();
-            for (int index = 0; index < codes.Length; index++)
+            foreach (DataRow process in configuredProcesses.Rows)
             {
-                string code = codes[index];
-                DataRow match = configuredProcesses.AsEnumerable().FirstOrDefault(row => NormalizeProcessCode(FirstValue(row, "ProcessName")) == code);
+                int processId = Convert.ToInt32(process["ProcessID"]);
+                string processName = FirstValue(process, "ProcessName");
                 result.Add(new MilestoneDefinition
                 {
-                    Code = code,
-                    ProcessID = match == null ? 0 : Convert.ToInt32(match["ProcessID"]),
-                    ProcessName = labels[index]
+                    Code = "PROCESS" + processId.ToString(CultureInfo.InvariantCulture),
+                    ProcessID = processId,
+                    ProcessName = processName
                 });
             }
             return result;
@@ -185,7 +182,9 @@ namespace WebPortal.TrackingSheet
                     AssignedTo = process == null ? string.Empty : (process.ProcessUser ?? string.Empty)
                 };
             }).ToList();
-            row.CompletionPercent = row.MilestoneStatuses.Count(status => StatusEquals(status.Status, "Completed")) * 25;
+            row.CompletionPercent = row.MilestoneStatuses.Count == 0 ? 0 :
+                (int)Math.Round(row.MilestoneStatuses.Count(status => StatusEquals(status.Status, "Completed")) * 100m /
+                                row.MilestoneStatuses.Count, MidpointRounding.AwayFromZero);
         }
 
         private static List<DealStatusView> BuildDealStatus(List<ReportRow> reportRows, List<MilestoneDefinition> milestones)
@@ -248,7 +247,8 @@ namespace WebPortal.TrackingSheet
         private static string CurrentStatus(ReportRow row)
         {
             if (row.Processes.Any(process => process.IsLoanHeld)) return "Hold by PM";
-            if (row.CompletionPercent == 100) return "Completed";
+            if (row.Processes.Any(process => process.IsFinalProcess && StatusIs(process, "Completed"))) return "Completed";
+            if (row.MilestoneStatuses.Count > 0 && row.CompletionPercent == 100) return "Completed";
             ProcessView current = row.Processes.FirstOrDefault(process => process.IsCurrent);
             return current == null ? "Pending" : NormalizeStatus(current.Status);
         }
@@ -258,6 +258,7 @@ namespace WebPortal.TrackingSheet
             if (StatusEquals(status, "Completed")) return "Completed";
             if (StatusEquals(status, "In Process")) return "In Process";
             if (StatusEquals(status, "Hold") || StatusEquals(status, "On Hold")) return "Hold";
+            if (StatusEquals(status, "Skipped")) return "Skipped";
             return "Pending";
         }
 

@@ -1092,10 +1092,8 @@ function BindMissingProcess() {
             var dataArray = JSON.parse(data.d);
             if ($.fn.dataTable.isDataTable('#prosMissing_table')) {
                 $('#prosMissing_table').DataTable().destroy();
-
-
-
-                table_prosMissing = $('#prosMissing_table').DataTable({
+            }
+            table_prosMissing = $('#prosMissing_table').DataTable({
                     dom: 'ti',
                     destroy: true,
                     orderCellsTop: true,
@@ -1113,6 +1111,7 @@ function BindMissingProcess() {
                     "serverSide": false,
 
                     columns: [
+                        { data: null, render: function (_, __, ___, meta) { return meta.row + 1; } },
                         { data: 'Date' },
                         { data: 'ClientOrderDate' },
                         { data: 'Project' },
@@ -1129,7 +1128,6 @@ function BindMissingProcess() {
                         $('#load1').hide();
                     },
                 });
-            }
         },
 
         error: function (error) {
@@ -1151,7 +1149,7 @@ function checkProdID(ID) {
     }
     else {
         if (prodchkIds.includes(ID.id)) {
-            prodchkIds.splice(otherchkIds.indexOf(ID.id), 1);
+            prodchkIds.splice(prodchkIds.indexOf(ID.id), 1);
         }
     }
 
@@ -1178,13 +1176,23 @@ function approveProductivity() {
     let totalMinutes = 0;
 
     var ddlDomain = document.getElementById("autoDomain");
-    Domain = ddlDomain.options[ddlDomain.selectedIndex].value;
+    Domain = parseInt(ddlDomain.options[ddlDomain.selectedIndex].value, 10);
+    if (isNaN(Domain) || Domain <= 0) {
+        alert("Please select a valid Domain.");
+        return false;
+    }
 
     if (prodchk > 0) {
 
         for (let i = 0; i < prodchk; i++) {
 
-            var rows = $('#autoProd_table').DataTable().row(i).data();
+            var selectedIndex = parseInt(prodchkIds[i], 10);
+            var rows = $('#autoProd_table').DataTable().row(selectedIndex).data();
+            if (!rows) {
+                $('#Prodwaitingpanel').modal('hide');
+                alert('A selected productivity row is no longer available. Please refresh and try again.');
+                return false;
+            }
 
             const time = rows[7];
 
@@ -1212,8 +1220,6 @@ function approveProductivity() {
 
         // Format with leading zeros
         const formattedTime = String(totalHours).padStart(2, '0') + ":" + String(remainingMinutes).padStart(2, '0');
-
-        alert(formattedTime);
 
         $('#Prodwaitingpanel').modal('show');
         document.getElementById("spntext").innerHTML = "System is updating details. Please wait.";
@@ -1252,6 +1258,12 @@ function OnSuccess_approved(result) {
     else if (result == -5) {
         alert("The process does not match the project. Please contact your reporting manager for clarification.");
     }
+    else if (result == -6) {
+        alert("The project could not be matched to an ERP project. Please contact your reporting manager.");
+    }
+    else if (result == -99) {
+        alert("The productivity approval could not be completed. The technical error has been logged.");
+    }
     else {
         alert("error approving productivity, Please contact Reporting Manager!");
     }
@@ -1260,8 +1272,11 @@ function OnSuccess_approved(result) {
 }
 
 function OnError_approved(error) {
-
-    alert(error.responseText);
+    $('#Prodwaitingpanel').modal('hide');
+    var message = error && typeof error.get_message === 'function' ? error.get_message() :
+        error && error.get_timedOut && error.get_timedOut() ? 'The approval request timed out.' :
+        error && error.responseText ? error.responseText : 'The productivity approval could not be completed.';
+    alert(message);
 }
 
 function showAutoProdData(ID) {

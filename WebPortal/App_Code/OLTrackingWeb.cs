@@ -29,6 +29,8 @@ namespace WebPortal.App_Code
             return Serialize(result);
         }
 
+        internal static string Json(object value) { return Serialize(value); }
+
         internal static string Ok(object data)
         {
             return Serialize(new Dictionary<string, object> { { "ok", true }, { "data", data } });

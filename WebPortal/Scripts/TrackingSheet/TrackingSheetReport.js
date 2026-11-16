@@ -65,6 +65,41 @@
         return match.length ? match[0] : { Status: 'Pending' };
     }
 
+    function buildDealStatus(result) {
+        var latestByItem = {}, milestones = result.Milestones || [];
+        $.each(result.Rows || [], function (_, row) {
+            var loan = row.Values && row.Values["Loan #"] || "";
+            if (!row.ItemID || !loan) return;
+            var existing = latestByItem[row.ItemID];
+            if (!existing || String(row.EntryDate || "") > String(existing.EntryDate || "")) latestByItem[row.ItemID] = row;
+        });
+        var groups = {};
+        $.each(latestByItem, function (_, row) {
+            var dealNumber = row.Values && row.Values["Deal #"] || "";
+            (groups[dealNumber] = groups[dealNumber] || []).push(row);
+        });
+        result.Deals = $.map(groups, function (loans, dealNumber) {
+            var deal = { DealNumber: dealNumber, TotalLoans: loans.length, Assigned: 0, InProcess: 0, Pending: 0, Hold: 0, Completed: 0, CompletionPercent: 0, Processes: [], Loans: [] }, completionTotal = 0;
+            $.each(loans, function (_, row) {
+                var current = null, held = false, finalCompleted = false, assigned = false;
+                $.each(row.Processes || [], function (_, process) { if (process.HasAssignment) assigned = true; if (process.IsLoanHeld) held = true; if (process.IsFinalProcess && String(process.Status).toLowerCase() === "completed") finalCompleted = true; if (process.IsCurrent) current = process; });
+                if (assigned) deal.Assigned++;
+                var status = held ? "Hold by PM" : (finalCompleted || (+row.CompletionPercent === 100) ? "Completed" : (current ? String(current.Status || "Pending") : "Pending"));
+                if (/^completed$/i.test(status)) deal.Completed++; else if (/^in process$/i.test(status)) deal.InProcess++; else if (/hold/i.test(status)) deal.Hold++; else deal.Pending++;
+                completionTotal += +row.CompletionPercent || 0;
+                deal.Loans.push({ LoanNumber: row.Values["Loan #"] || "", OrderDate: row.Values["Order Date"] || "", DueDate: row.Values["Due Date"] || row.Values["DueDate"] || "", AssignedTo: current && current.ProcessUser || "", CurrentProcess: current && current.ProcessName || "", CurrentStatus: status, CompletionPercent: +row.CompletionPercent || 0, Processes: row.MilestoneStatuses || [] });
+            });
+            deal.CompletionPercent = loans.length ? Math.round(completionTotal * 10 / loans.length) / 10 : 0;
+            deal.Processes = $.map(milestones, function (definition) {
+                var summary = { Code: definition.Code, ProcessID: definition.ProcessID, ProcessName: definition.ProcessName, Completed: 0, InProcess: 0, Pending: 0, Hold: 0 };
+                $.each(loans, function (_, row) { var match = processFor({ Processes: row.MilestoneStatuses || [] }, definition.Code), key = String(match.Status || "Pending").toLowerCase().replace(/\s+/g, ""); if (key === "completed") summary.Completed++; else if (key === "inprocess") summary.InProcess++; else if (key === "hold") summary.Hold++; else summary.Pending++; });
+                return summary;
+            });
+            deal.Loans.sort(function (a, b) { return String(a.LoanNumber).localeCompare(String(b.LoanNumber)); });
+            return deal;
+        }).sort(function (a, b) { return String(a.DealNumber).localeCompare(String(b.DealNumber)); });
+    }
+
     function dealLoanTable(deal, milestones) {
         var headers = $.map(milestones || [], function (process) { return '<th>' + escapeHtml(process.ProcessName) + '</th>'; }).join('');
         var rows = $.map(deal.Loans || [], function (loan) {
@@ -84,7 +119,7 @@
         }).join('');
         return '<section class="tr-deal-card" data-deal="' + escapeHtml(deal.DealNumber) + '"><div class="tr-deal-overview">' +
             '<div class="tr-deal-identity"><div class="tr-deal-title"><strong>Deal ' + escapeHtml(deal.DealNumber) + '</strong><span>▣&nbsp; ' + deal.TotalLoans + ' Loan(s)</span></div></div>' +
-            '<div class="tr-summary-panel"><span class="tr-panel-label">Overall Progress</span><div class="tr-overall-value"><strong>' + deal.CompletionPercent + '%</strong><span>4-process average</span></div><div class="tr-progress-track"><div class="tr-progress-value" style="width:' + deal.CompletionPercent + '%"></div></div></div>' +
+            '<div class="tr-summary-panel"><span class="tr-panel-label">Overall Progress</span><div class="tr-overall-value"><strong>' + deal.CompletionPercent + '%</strong><span>' + (milestones || []).length + '-process average</span></div><div class="tr-progress-track"><div class="tr-progress-value" style="width:' + deal.CompletionPercent + '%"></div></div></div>' +
             '<div class="tr-summary-panel"><span class="tr-panel-label">Loan Status Summary</span><div class="tr-status-counters">' +
             '<div class="tr-status-counter assigned"><span>Assigned</span><strong>' + deal.Assigned + '</strong></div><div class="tr-status-counter inprocess"><span>In Process</span><strong>' + deal.InProcess + '</strong></div>' +
             '<div class="tr-status-counter pending"><span>Pending</span><strong>' + deal.Pending + '</strong></div><div class="tr-status-counter hold"><span>Hold</span><strong>' + deal.Hold + '</strong></div>' +
@@ -135,6 +170,7 @@
         $("#trShow").prop("disabled", true); $("#trLoading").show();
         webMethod("GetReport", { projectId: projectId, fromDate: fromDate, toDate: toDate }).done(function (response) {
             var result = response.d;
+            buildDealStatus(result);
             reportResult = result;
             var projectName = $("#trProject option:selected").text();
             var safeProjectName = projectName.replace(/[^a-z0-9_-]+/gi, "_");

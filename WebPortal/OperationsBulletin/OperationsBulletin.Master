@@ -1,0 +1,32 @@
+<%@ Master Language="C#" MasterPageFile="~/Admin/Admin.Master" AutoEventWireup="true" CodeBehind="OperationsBulletin.Master.cs" Inherits="WebPortal.OperationsBulletin.OperationsBulletinMaster" %>
+<asp:Content ID="ModuleHead" ContentPlaceHolderID="head" runat="server">
+    <script>
+        $(function () {
+            var adminHome = '<%= ResolveUrl("~/Admin/DashboardEmployee.aspx") %>';
+            $('#aLogo').attr('href', adminHome).css({ 'pointer-events': 'auto', 'opacity': '1' });
+            $('#divLogout a[href="ChangePassword.aspx"]').attr('href', '<%= ResolveUrl("~/Admin/ChangePassword.aspx") %>');
+            $.ajax({
+                type: 'POST',
+                url: '<%= ResolveUrl("~/MenuService.aspx/LoadMenu") %>',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json'
+            }).done(function (response) {
+                function fixUrls(items) {
+                    (items || []).forEach(function (item) {
+                        if (item.Url && /^~\//.test(item.Url)) item.Url = '<%= ResolveUrl("~/") %>' + item.Url.substring(2);
+                        else if (item.Url && !/^(?:[a-z]+:|\/|\.\.\/|#)/i.test(item.Url)) item.Url = '<%= ResolveUrl("~/Admin/") %>' + item.Url;
+                        fixUrls(item.Children);
+                    });
+                }
+                var html = '';
+                fixUrls(response.d);
+                (response.d || []).forEach(function (menu) { html += renderTopMenu(menu); });
+                $('#dynamicMenu').html(html);
+            });
+        });
+    </script>
+    <asp:ContentPlaceHolder ID="head" runat="server" />
+</asp:Content>
+<asp:Content ID="ModuleBody" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
+</asp:Content>

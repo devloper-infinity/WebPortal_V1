@@ -105,3 +105,160 @@ function exportTable(tableId, fileName) { var rows = [].slice.call(document.quer
 function fmtDate(v) { var n = parseInt(String(v || '').replace(/\D/g, ''), 10); return n ? new Date(n).toLocaleDateString() : ''; }
 function fmtTime(v) { var n = parseInt(String(v || '').replace(/\D/g, ''), 10); return n ? new Date(n).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''; }
 function duration(v) { var s = Math.max(0, +v || 0), d = Math.floor(s / 86400); s %= 86400; var h = Math.floor(s / 3600); s %= 3600; var m = Math.floor(s / 60); return (d ? d + 'd ' : '') + String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); } function workedDuration(minutes) { minutes = Math.max(0, +minutes || 0); return Math.floor(minutes / 60) + ':' + String(Math.floor(minutes % 60)).padStart(2, '0'); } function fmt(v) { var n = parseInt(String(v || '').replace(/\D/g, ''), 10); return n ? new Date(n).toLocaleString() : ''; } function esc(v) { return OLT.esc(v); } function showError() { OLT.alert('The report could not be loaded. Please try again.', true); }
+
+(function () {
+    var bulkData = [];
+    function rowFromInputs(row) { return { DealNumber: row.querySelector('.bulk-deal').value.trim(), LoanNumber: row.querySelector('.bulk-loan').value.trim(), Employee: row.querySelector('.bulk-employee').value.trim(), Process: row.querySelector('.bulk-process').value.trim() }; }
+    function readBulkRows() { return [].slice.call(bulkRows.querySelectorAll('tr[data-row]')).map(rowFromInputs).filter(function (x) { return x.DealNumber || x.LoanNumber || x.Employee || x.Process; }); }
+    function renderBulk(rows) {
+        bulkData = rows || [];
+        bulkRows.innerHTML = bulkData.length ? bulkData.map(function (x, i) { var status = x.Status || 'Not validated', css = String(status).toLowerCase().replace(/\s+/g, '-'); return '<tr data-row="' + i + '"><td>' + (i + 1) + '</td><td><input class="bulk-deal" value="' + esc(x.DealNumber || '') + '" /></td><td><input class="bulk-loan" value="' + esc(x.LoanNumber || '') + '" /></td><td><input class="bulk-employee" value="' + esc(x.Employee || '') + '" /></td><td><input class="bulk-process" value="' + esc(x.Process || '') + '" /></td><td><span class="bulk-status ' + css + '">' + esc(status) + '</span></td><td>' + esc(x.Message || 'Edit and validate this row.') + '</td><td><button type="button" class="olt-btn secondary bulk-remove" title="Remove row">×</button></td></tr>'; }).join('') : '<tr><td colspan="8" class="olt-empty">Paste allocation rows or add an empty row.</td></tr>';
+        var valid = bulkData.filter(function (x) { return x.Status === 'Valid'; }).length, invalid = bulkData.filter(function (x) { return x.Status === 'Invalid' || x.Status === 'Failed'; }).length;
+        bulkSummary.textContent = bulkData.length + ' row(s)' + (valid || invalid ? ' | ' + valid + ' valid | ' + invalid + ' require attention' : '');
+        bulkAllocate.disabled = !valid; bulkExportErrors.style.display = invalid ? '' : 'none';
+    }
+    function parsePaste() {
+        var existing = readBulkRows(), lines = bulkPaste.value.split(/\r?\n/), added = [];
+        lines.forEach(function (line, index) { if (!line.trim()) return; var cells = line.indexOf('\t') >= 0 ? line.split('\t') : line.split(','); if (index === 0 && /deal/i.test(cells[0] || '') && /loan/i.test(cells[1] || '')) return; if (cells.length < 4) return; added.push({ DealNumber: cells[0].trim(), LoanNumber: cells[1].trim(), Employee: cells[2].trim(), Process: cells.slice(3).join(',').trim() }); });
+        if (!added.length) { OLT.alert('Paste four columns in this order: Deal #, Loan #, Employee, Process.', true); return; }
+        bulkPaste.value = ''; renderBulk(existing.concat(added));
+    }
+    function validateBulk(allocate) {
+        var rows = readBulkRows(); if (!bulkProject.value) { OLT.alert('Select Project #.', true); return; } if (!rows.length) { OLT.alert('Add at least one allocation row.', true); return; }
+        OLT.call(page, allocate ? 'AllocateBulkOrders' : 'ValidateBulkAllocations', { projectId: +bulkProject.value, rows: rows }).then(function (result) { renderBulk(result.Rows || []); OLT.alert(result.Message || (allocate ? 'Bulk allocation completed.' : 'Validation completed.'), !result.Success); }, showAllocationError);
+    }
+    function exportErrors() {
+        var rows = bulkData.filter(function (x) { return x.Status === 'Invalid' || x.Status === 'Failed'; }), csv = ['Deal #,Loan #,Employee,Process,Status,Message'].concat(rows.map(function (x) { return [x.DealNumber, x.LoanNumber, x.Employee, x.Process, x.Status, x.Message].map(function (v) { return '"' + String(v || '').replace(/"/g, '""') + '"'; }).join(','); })).join('\r\n');
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Bulk_Allocation_Errors.csv'; a.click(); URL.revokeObjectURL(a.href);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        OLT.call(page, 'GetProjects').then(function (rows) { OLT.options(bulkProject, rows, ['ProjectID'], ['ProjectName'], 'Select project'); });
+        [].slice.call(document.querySelectorAll('.allocation-mode-tab')).forEach(function (button) { button.onclick = function () { document.querySelector('.allocation-mode-tab.active').classList.remove('active'); document.querySelector('.allocation-mode-panel.active').classList.remove('active'); button.classList.add('active'); document.getElementById(button.dataset.allocationMode).classList.add('active'); }; });
+        bulkAddPaste.onclick = parsePaste; bulkAddRow.onclick = function () { renderBulk(readBulkRows().concat({})); }; bulkValidate.onclick = function () { validateBulk(false); }; bulkAllocate.onclick = function () { if (window.confirm('Allocate all valid rows?')) validateBulk(true); }; bulkClear.onclick = function () { bulkPaste.value = ''; renderBulk([]); }; bulkExportErrors.onclick = exportErrors;
+        bulkRows.oninput = function () { bulkAllocate.disabled = true; bulkExportErrors.style.display = 'none'; bulkSummary.textContent = readBulkRows().length + ' row(s) | validation required'; };
+        bulkRows.onclick = function (event) { if (!event.target.classList.contains('bulk-remove')) return; event.target.closest('tr').remove(); renderBulk(readBulkRows()); };
+    });
+})();
+
+(function () {
+    var trackingTable, trackingColumnIndex = -1;
+    function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function milestoneFor(row, definition) {
+        var statuses = row.MilestoneStatuses || [], processId = +definition.ProcessID || 0;
+        for (var i = 0; i < statuses.length; i++) if ((+statuses[i].ProcessID || 0) === processId) return statuses[i];
+        return { Status: 'Pending', AssignedTo: '' };
+    }
+    function processText(status) {
+        var state = String(status.Status || 'Pending'), user = String(status.AssignedTo || '').trim() || 'Unassigned';
+        return 'Status: ' + state + '\nUser: ' + user;
+    }
+    function processCell(status) {
+        var state = String(status.Status || 'Pending'), normalized = state.toLowerCase().replace(/\s+/g, '-'), icon = '○';
+        if (normalized === 'completed') icon = '✓';
+        else if (normalized === 'in-process') icon = '●';
+        else if (normalized === 'hold') icon = 'Ⅱ';
+        else if (normalized === 'skipped') icon = '—';
+        else normalized = 'pending';
+        var user = String(status.AssignedTo || '').trim() || 'Unassigned';
+        return '<div class="tracking-process-cell"><span class="tracking-process-status ' + normalized + '">' + icon + ' ' + OLT.esc(state) + '</span><span class="tracking-process-user" title="' + OLT.esc(user) + '">' + OLT.esc(user) + '</span></div>';
+    }
+    function applyTrackingFilter() { if (!trackingTable) return; trackingColumnIndex = parseInt(trackingColumn.value, 10); trackingTable.draw(); }
+    function clearTrackingFilter() { trackingColumn.value = ''; trackingCondition.value = 'contains'; trackingValue.value = ''; trackingColumnIndex = -1; if (trackingTable) trackingTable.draw(); }
+    function customizeTrackingExcel(xlsx, baseColumnCount, processCount) {
+        var sheet = xlsx.xl.worksheets['sheet1.xml'], styles = xlsx.xl['styles.xml'];
+        var cellXfs = styles.getElementsByTagName('cellXfs')[0], xfs = cellXfs.getElementsByTagName('xf');
+        function wrappedStyle(sourceIndex, horizontal) {
+            var xf = xfs[Math.min(sourceIndex, xfs.length - 1)].cloneNode(true), old = xf.getElementsByTagName('alignment');
+            while (old.length) xf.removeChild(old[0]);
+            var alignment = styles.createElementNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'alignment');
+            alignment.setAttribute('vertical', 'center'); alignment.setAttribute('wrapText', '1');
+            if (horizontal) alignment.setAttribute('horizontal', horizontal);
+            xf.setAttribute('applyAlignment', '1'); xf.appendChild(alignment); cellXfs.appendChild(xf);
+            cellXfs.setAttribute('count', cellXfs.getElementsByTagName('xf').length.toString());
+            return cellXfs.getElementsByTagName('xf').length - 1;
+        }
+        var headerStyle = wrappedStyle(7, 'center'), processStyle = wrappedStyle(0, 'left');
+        var totalColumns = baseColumnCount + processCount, headerRow = null;
+        $('row', sheet).each(function () { if (!headerRow && $('c', this).length === totalColumns) headerRow = this; });
+        if (!headerRow) return;
+        var headerNumber = parseInt(headerRow.getAttribute('r'), 10);
+        $('c', headerRow).attr('s', headerStyle); $(headerRow).attr('ht', '32').attr('customHeight', '1');
+        $('row', sheet).each(function () {
+            var rowNumber = parseInt(this.getAttribute('r'), 10);
+            if (rowNumber <= headerNumber) return;
+            var hasProcessCell = false;
+            $('c', this).each(function () {
+                var letters = String(this.getAttribute('r') || '').replace(/[0-9]/g, ''), number = 0;
+                for (var i = 0; i < letters.length; i++) number = number * 26 + letters.charCodeAt(i) - 64;
+                if (number > baseColumnCount) { this.setAttribute('s', processStyle); hasProcessCell = true; }
+            });
+            if (hasProcessCell) $(this).attr('ht', '34').attr('customHeight', '1');
+        });
+        $('cols col', sheet).each(function (index) {
+            var width = index < baseColumnCount ? 18 : 24;
+            this.setAttribute('width', width); this.setAttribute('customWidth', '1');
+        });
+        var sheetView = sheet.getElementsByTagName('sheetView')[0];
+        if (sheetView) {
+            var panes = sheetView.getElementsByTagName('pane'); while (panes.length) sheetView.removeChild(panes[0]);
+            var pane = sheet.createElementNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'pane');
+            pane.setAttribute('ySplit', headerNumber.toString()); pane.setAttribute('topLeftCell', 'A' + (headerNumber + 1));
+            pane.setAttribute('activePane', 'bottomLeft'); pane.setAttribute('state', 'frozen'); sheetView.appendChild(pane);
+        }
+    }
+    function renderTracking(result) {
+        if (trackingTable) trackingTable.destroy();
+        var columns = result.Columns || [], milestones = result.Milestones || [];
+        var tableColumns = columns.map(function (name) { return { title: name, data: function (row) { return row.Values && row.Values[name] || ''; }, defaultContent: '' }; });
+        tableColumns = tableColumns.concat(milestones.map(function (definition) {
+            return {
+                title: definition.ProcessName,
+                className: 'tracking-process-column',
+                data: null,
+                defaultContent: '',
+                render: function (_, type, row) { var status = milestoneFor(row, definition); return type === 'display' ? processCell(status) : processText(status); }
+            };
+        }));
+        var projectName = trackingProject.options[trackingProject.selectedIndex].text, safeProject = projectName.replace(/[^a-z0-9_-]+/gi, '_');
+        $('#trackingSheetTable').empty();
+        trackingTable = $('#trackingSheetTable').DataTable({
+            data: result.Rows || [], scrollX: true, scrollY: '54vh', scrollCollapse: true, pageLength: 25, lengthMenu: [25, 50, 100], order: [], autoWidth: false,
+            columns: tableColumns,
+            dom: "<'row mb-2'<'col-sm-12 col-md-7'lB><'col-sm-12 col-md-5'f>>rt<'row mt-2'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [{
+                extend: 'excelHtml5', text: '<i class="fas fa-file-excel"></i> Export Excel', className: 'btn btn-success',
+                autoFilter: true,
+                title: 'Tracking Sheet - ' + projectName,
+                filename: 'Tracking_Sheet_' + safeProject + '_' + trackingFrom.value + '_to_' + trackingTo.value,
+                messageTop: 'Project: ' + projectName + ' | Order Date: ' + trackingFrom.value + ' to ' + trackingTo.value,
+                exportOptions: { orthogonal: 'export', modifier: { search: 'applied', order: 'applied', page: 'all' } },
+                customize: function (xlsx) { customizeTrackingExcel(xlsx, columns.length, milestones.length); }
+            }]
+        });
+        var filterNames = columns.concat(milestones.map(function (definition) { return definition.ProcessName; }));
+        trackingColumn.innerHTML = '<option value="">Select column</option>' + filterNames.map(function (name, i) { return '<option value="' + i + '">' + OLT.esc(name) + '</option>'; }).join('');
+        trackingSummary.textContent = result.RowCount + ' record(s), ' + columns.length + ' configured/base column(s), ' + milestones.length + ' process column(s).';
+        clearTrackingFilter();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        var today = new Date(), first = new Date(today.getFullYear(), today.getMonth(), 1);
+        $.fn.dataTable.ext.search.push(function (settings, data) {
+            if (!settings.nTable || settings.nTable.id !== 'trackingSheetTable' || trackingColumnIndex < 0) return true;
+            var actual = String(data[trackingColumnIndex] || '').trim(), expected = String(trackingValue.value || '').trim(), condition = trackingCondition.value;
+            if (condition === 'blank') return !actual;
+            if (condition === 'notblank') return !!actual;
+            if (condition === 'equals') return actual.toLowerCase() === expected.toLowerCase();
+            return actual.toLowerCase().indexOf(expected.toLowerCase()) >= 0;
+        });
+        trackingFrom.value = iso(first); trackingTo.value = iso(today);
+        OLT.call(page, 'GetProjects').then(function (rows) { OLT.options(trackingProject, rows, ['ProjectID'], ['ProjectName'], 'Select project'); });
+        trackingLoad.onclick = function () {
+            var projectId = parseInt(trackingProject.value, 10) || 0;
+            if (!projectId || !trackingFrom.value || !trackingTo.value) { OLT.alert('Select Project #, From Order Date and To Order Date.', true); return; }
+            if (trackingFrom.value > trackingTo.value) { OLT.alert('From Order Date cannot be later than To Order Date.', true); return; }
+            OLT.call(page, 'GetTrackingSheetData', { projectId: projectId, fromDate: trackingFrom.value, toDate: trackingTo.value }).then(renderTracking, function (error) { OLT.alert(error.message, true); });
+        };
+        trackingReset.onclick = function () { trackingProject.value = ''; trackingFrom.value = iso(first); trackingTo.value = iso(today); clearTrackingFilter(); };
+        trackingColumn.onchange = applyTrackingFilter; trackingCondition.onchange = applyTrackingFilter; trackingValue.oninput = applyTrackingFilter; trackingClearFilter.onclick = clearTrackingFilter;
+    });
+})();

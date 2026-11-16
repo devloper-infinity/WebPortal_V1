@@ -12,12 +12,6 @@ namespace WebPortal.Admin
     public partial class PettyCashSettlement : Page
     {
         protected void Page_Load(object sender, EventArgs e) { }
-        private static long LoginId()
-        {
-            object v = System.Web.HttpContext.Current.Session["EmployeeID"];
-            if (v == null || !long.TryParse(Convert.ToString(v), out long id)) throw new Exception("Session expired. Please login again.");
-            return id;
-        }
         private static string Json(DataTable dt)
         {
             var rows = new List<Dictionary<string, object>>();
@@ -32,7 +26,7 @@ namespace WebPortal.Admin
         [WebMethod(EnableSession = true)]
         public static string GetSettlementRequests()
         {
-            return Json(new bllMaster().GetSettlementRequests(LoginId()));
+            return Json(new bllMaster().GetSettlementRequests(int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString())));
         }
 
         [WebMethod(EnableSession = true)]
@@ -51,7 +45,7 @@ namespace WebPortal.Admin
         public static string SubmitSettlement(long requestId, string settlementDate, string remark)
         {
             DateTime d; if (!DateTime.TryParse(settlementDate, out d)) throw new Exception("Invalid settlement date.");
-            return Json(new bllMaster().SubmitSettlement(requestId, d, remark, LoginId()));
+            return Json(new bllMaster().SubmitSettlement(requestId, d, remark, int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString())));
         }
     }
 }

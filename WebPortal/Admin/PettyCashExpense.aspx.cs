@@ -12,12 +12,6 @@ namespace WebPortal.Admin
     public partial class PettyCashExpense : Page
     {
         protected void Page_Load(object sender, EventArgs e) { }
-        private static long LoginId()
-        {
-            object v = System.Web.HttpContext.Current.Session["EmployeeID"];
-            if (v == null || !long.TryParse(Convert.ToString(v), out long id)) throw new Exception("Session expired. Please login again.");
-            return id;
-        }
         private static string Json(DataTable dt)
         {
             var rows = new List<Dictionary<string, object>>();
@@ -33,7 +27,7 @@ namespace WebPortal.Admin
         [WebMethod(EnableSession = true)]
         public static string GetOpenRequests()
         {
-            return Json(new bllMaster().GetExpenseOpenRequests(LoginId()));
+            return Json(new bllMaster().GetExpenseOpenRequests(int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString())));
         }
 
 
@@ -54,7 +48,7 @@ namespace WebPortal.Admin
         {
             DateTime d; if (!DateTime.TryParse(expenseDate, out d)) throw new Exception("Invalid expense date."); if (requestId <= 0 || categoryId <= 0) throw new Exception("Request and Category are mandatory.");
             if (string.IsNullOrWhiteSpace(description)) throw new Exception("Description is mandatory."); if (expenseAmount <= 0 || taxAmount < 0) throw new Exception("Invalid amount.");
-            return Json(new bllMaster().SaveExpense(requestId, d, categoryId, null, vendorName, invoiceNo, description.Trim(), expenseAmount, taxAmount, paymentMode, remark, LoginId()));
+            return Json(new bllMaster().SaveExpense(requestId, d, categoryId, null, vendorName, invoiceNo, description.Trim(), expenseAmount, taxAmount, paymentMode, remark, int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString())));
         }
     }
 }

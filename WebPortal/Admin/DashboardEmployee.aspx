@@ -16,18 +16,65 @@
             border: none !important;
         }
 
-        #dash_performanceAckModal .modal-dialog { max-width: min(1400px, calc(100vw - 32px)); }
-        #dash_performanceAckModal .modal-content { border: 1px solid #deded8; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 70px rgba(24, 31, 28, .25); }
-        #dash_performanceAckModal .modal-header { align-items: center; background: linear-gradient(120deg, #24352f, #35483f); color: #fff; border-bottom: 3px solid #cda866; padding: 18px 24px; }
-        #dash_performanceAckModal .modal-title { font-size: 18px; font-weight: 700; }
-        #dash_performanceAckModal .modal-title i { color: #e5c384; }
-        #dash_performanceAckModal .modal-header .close { color: #fff; opacity: .9; text-shadow: none; }
-        #dash_performanceAckModal .modal-body { padding: 0; background: #f5f4f0; }
-        #dash_performanceAckFrame { display: block; width: 100%; height: min(84vh, 900px); border: 0; }
+        #dash_performanceAckModal .modal-dialog {
+            max-width: min(1400px, calc(100vw - 32px));
+        }
+
+        #dash_performanceAckModal .modal-content {
+            border: 1px solid #deded8;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(24, 31, 28, .25);
+        }
+
+        #dash_performanceAckModal .modal-header {
+            align-items: center;
+            background: linear-gradient(120deg, #24352f, #35483f);
+            color: #fff;
+            border-bottom: 3px solid #cda866;
+            padding: 18px 24px;
+        }
+
+        #dash_performanceAckModal .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+            #dash_performanceAckModal .modal-title i {
+                color: #e5c384;
+            }
+
+        #dash_performanceAckModal .modal-header .close {
+            color: #fff;
+            opacity: .9;
+            text-shadow: none;
+        }
+
+        #dash_performanceAckModal .modal-body {
+            padding: 0;
+            background: #f5f4f0;
+        }
+
+        #dash_performanceAckFrame {
+            display: block;
+            width: 100%;
+            height: min(84vh, 900px);
+            border: 0;
+        }
+
         @media (max-width: 575px) {
-            #dash_performanceAckModal .modal-dialog { margin: 8px; }
-            #dash_performanceAckModal .modal-header { padding: 14px 16px; }
-            #dash_performanceAckFrame { height: calc(100vh - 100px); min-height: 0; }
+            #dash_performanceAckModal .modal-dialog {
+                margin: 8px;
+            }
+
+            #dash_performanceAckModal .modal-header {
+                padding: 14px 16px;
+            }
+
+            #dash_performanceAckFrame {
+                height: calc(100vh - 100px);
+                min-height: 0;
+            }
         }
     </style>
     <style>
@@ -1457,7 +1504,7 @@
 
 
         function dash_anniversaryDismissalKey() {
-            return "dashboardWorkAnniversaryDismissed_" + '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
+            return "dashboardWorkAnniversaryDismissed_v5_" + '<%= HttpContext.Current.User.Identity.Name.ToString() %>';
         }
 
         function dash_anniversaryTodayKey() {
@@ -1484,8 +1531,9 @@
             }
         }
 
-        function New_workAnniversary() {
+        function New_workAnniversary(callback) {
             if (dash_anniversaryWasDismissedToday()) {
+                if (typeof callback === "function") callback();
                 return;
             }
 
@@ -1495,14 +1543,14 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (response) {
-                    new_renderWorkAnniversary(response.d);
+                    new_renderWorkAnniversary(response.d, callback);
                 },
                 error: function () {
                     console.error("Anniversary API error");
+                    if (typeof callback === "function") callback();
                 }
             });
         }
-
         function dash_escapeAnniversary(value) {
             return $("<div>").text(value == null ? "" : value).html();
         }
@@ -1530,8 +1578,9 @@
             return Math.max(0, isNaN(years) ? 0 : years);
         }
 
-        function new_renderWorkAnniversary(data) {
+        function new_renderWorkAnniversary(data, callback) {
             if (!data || data.length === 0) {
+                if (typeof callback === "function") callback();
                 return false;
             }
 
@@ -1545,6 +1594,8 @@
                 var domain = dash_escapeAnniversary(emp.DomainName || "");
                 var years = dash_completedServiceYears(emp.JoiningDate, emp.YearsCompleted);
                 var yearLabel = years === 1 ? "YEAR" : "YEARS";
+                var anniversaryMessage = dash_escapeAnniversary(getAnniversaryMessage(years, emp.EmpName));
+                var anniversaryTitle = anniversaryMessage.replace(/^(\d+)/, '<span class="anniv-title-years">$1</span>');
                 return '<div class="carousel-item' + (index === 0 ? ' active' : '') + '">' +
                     '<article class="anniv-profile">' +
                     '<div class="anniv-profile-left">' +
@@ -1562,8 +1613,8 @@
                         '<div class="anniv-service-badge"><span class="anniv-trophy-mark">♛</span><strong>' + years + ' ' + yearLabel.charAt(0) + yearLabel.slice(1).toLowerCase() + '</strong></div>' +
                     '</div>' +
                     '<div class="anniv-profile-right">' +
-                        '<span class="anniv-kicker">✦ CELEBRATION TIME</span>' +
-                        '<h2>HAPPY WORK<br><em>ANNIVERSARY!</em></h2>' +
+                        '<span class="anniv-kicker">✦ CELEBRATING YOUR JOURNEY!</span>' +
+                        '<h2>' + anniversaryTitle + '</h2>' +
                         '<p class="anniv-intro">Today we celebrate <strong>' + name + '</strong> and ' + years + ' ' + yearLabel.toLowerCase() + ' of dedication, growth, and outstanding contribution to our team.</p>' +
                         '<div class="anniv-details">' +
                             '<div><i>▣</i><span><small>DATE OF JOINING</small><strong>' + joiningDate + '</strong></span></div>' +
@@ -1571,8 +1622,13 @@
                             '<div><i>♧</i><span><small>DEPARTMENT</small><strong>' + department + '</strong></span></div>' +
                             '<div><i>●</i><span><small>REPORTING MANAGER</small><strong>' + manager + '</strong></span></div>' +
                             // (domain ? '<div><i>◇</i><span><small>DOMAIN</small><strong>' + domain + '</strong></span></div>' : '') +
-                        '</div>' +
-                        '<div class="anniv-thanks">✦ <span>Thank you for being an invaluable part of the Infinity IPS family. Here’s to many more years of success together!</span></div>' +
+                    '</div>' +
+                    // '<div class="anniv-thanks">✦ <span>Thank you for being an invaluable part of the Infinity IPS family. Here’s to many more years of success together!</span></div>' +
+                    '<div class="anniv-thanks"><div class="anniv-thanks-copy">' +
+                    '<div class="anniv-thanks-row"><span class="anniv-thanks-star">✦</span><span>Thank you for being an integral part of the Infinity IPS journey.Your dedication and contribution have made a lasting difference!</span></div>' +
+                    '<div class="anniv-thanks-row"><span class="anniv-thanks-star">✦</span><span>Congratulations on completing ' + years + ' wonderful ' + yearLabel.toLowerCase() + ' with us!</span></div>' +
+                    '<div class="anniv-thanks-row"><span class="anniv-thanks-star">✦</span><span>Here&#8217;s to many more milestones and successes together!</span></div>' +
+                    '</div></div>' +
                     '</div>' +
                     '</article>' +
                 '</div>';
@@ -1597,7 +1653,14 @@
                 $("#dash_anniversaryIndicators .anniv-carousel-dot").removeClass("active").eq(nextIndex).addClass("active");
             });
 
+            $("#dash_anniversaryModal")
+                .off("hidden.bs.modal.workAnniversarySequence")
+                .on("hidden.bs.modal.workAnniversarySequence", function () {
+                    if (typeof callback === "function") callback();
+                });
+
             $("#dash_anniversaryModal").modal("show");
+            markPopupAsShown({ key: "workAnniversary_v5", type: "once_per_day" });
             return false;
         }
 
@@ -1667,9 +1730,6 @@
     <%-- <script src="../Scripts/Functions/NewDashboard.js"></script>--%>
     <%-- <script src="../Scripts/Functions/NewDash.js"></script>--%>
     <%--<script src="../Scripts/Functions/NewDash2.js"></script>--%>
-
-      
-
 </asp:Content>
 
 
@@ -2192,8 +2252,10 @@
                                                 <td>
                                                     <label id="dasboard_popemail" class="form-control" style="width: 350px;"></label>
                                                 </td>
-                                                <td></td>
-                                                <td></td>
+                                                <td><b>Aadhar #:</b></td>
+                                                <td>
+                                                    <label id="dasboard_popadhar" class="form-control" style="width: 350px;"></label>
+                                                </td>
                                             </tr>
                                         </table>
                                     </div>
@@ -2592,23 +2654,24 @@
                 </div>
                 <div class="modal-body card-primary card-outline">
                     <div class="card card-tabs">
-                        <table class="table table-borderless">
+                        <table class="table table-borderless" style="font-size:13px;">
                             <tr>
                                 <td><b>Subject:</b></td>
                                 <td>
-                                    <label id="dasboard_popalertsubject" class="form-control" style="border: none;"></label>
+                                    <label id="dasboard_popalertsubject" class="form-control" style="border: none;font-size:13px;"></label>
                                 </td>
                             </tr>
                             <tr>
                                 <td><b>Message:</b></td>
                                 <td>
-                                    <label id="dasboard_popalertmessage" class="form-control" style="border: none; min-height: 100px; height: auto;"></label>
+                                    <label id="dasboard_popalertmessage" class="form-control" style="border: none; min-height: 100px; height: auto;font-size:13px;"></label>
                                 </td>
                             </tr>
                         </table>
                     </div>
                     <div class="modal-footer justify-content-between">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" id="dashboard_markAlertRead" class="btn btn-primary">Mark As Read</button>
                     </div>
                 </div>
                 <!-- /.modal-content -->
@@ -2728,15 +2791,15 @@
     </div>
 
 
-        <!-------------- (Arti Changes(YTU))Admin Festival Wish PopUp ------------->
+    <!-------------- (Arti Changes(YTU))Admin Festival Wish PopUp ------------->
     <div class="modal fade" id="adminimagePreviewModalpopup" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 700px;">
             <div class="modal-content">
                 <div class="modal-header bg-light position-relative justify-content-center py-3">
                     <div class="text-center">
-                        <h4 class="modal-title font-weight-bold mb-0 text-white" id="adminfestivalTitlepopup" style="letter-spacing: 1px; text-transform: capitalize; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"> ERP Event Alert 
-                    </h4>
-<%--                        <span style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Celebrate with Joy & Colors</span>--%>
+                        <h4 class="modal-title font-weight-bold mb-0 text-white" id="adminfestivalTitlepopup" style="letter-spacing: 1px; text-transform: capitalize; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">ERP Event Alert 
+                        </h4>
+                        <%--                        <span style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Celebrate with Joy & Colors</span>--%>
                     </div>
                     <button type="button" class="close position-absolute" data-dismiss="modal" aria-label="Close" style="right: 15px; top: 50%; transform: translateY(-50%); outline: none;">
                         <span aria-hidden="true" style="color: red;">&times;</span>
@@ -2744,9 +2807,9 @@
                 </div>
                 <div class="modal-body text-center bg-white position-relative">
                     <div id="adminMediaBox" class="mb-3" style="height: 440px; width: 100%; display: flex; align-items: center; justify-content: center; background-color: #000; border-radius: 8px; overflow: hidden;"></div>
-<button type="button" onclick="changeMedia(-1)" class="btn btn-dark position-absolute" style="left: 5px; top: 45%; border-radius: 50%; background: #fff; color: #000; font-size: 20px;">&#10094;</button>
+                    <button type="button" onclick="changeMedia(-1)" class="btn btn-dark position-absolute" style="left: 5px; top: 45%; border-radius: 50%; background: #fff; color: #000; font-size: 20px;">&#10094;</button>
 
-<button type="button" onclick="changeMedia(1)" class="btn btn-dark position-absolute" style="right: 5px; top: 45%; border-radius: 50%; background: #fff; color: #000; font-size: 20px;">&#10095;</button>
+                    <button type="button" onclick="changeMedia(1)" class="btn btn-dark position-absolute" style="right: 5px; top: 45%; border-radius: 50%; background: #fff; color: #000; font-size: 20px;">&#10095;</button>
                     <div id="adminDotsBox" class="d-flex justify-content-center" style="gap: 8px;"></div>
                 </div>
             </div>
@@ -3463,12 +3526,12 @@
             box-shadow: 0 5px 16px rgba(23, 39, 92, .12);
         }
 
-        .anniv-close:hover,
-        .anniv-close:focus {
-            color: #fff;
-            background: #17275c;
-            outline: 0;
-        }
+            .anniv-close:hover,
+            .anniv-close:focus {
+                color: #fff;
+                background: #17275c;
+                outline: 0;
+            }
 
         .anniv-modal-body {
             padding: 50px 58px 14px;
@@ -3480,13 +3543,13 @@
             padding-bottom: 78px;
         }
 
-        .anniv-carousel .carousel-inner {
-            overflow: visible;
-        }
+            .anniv-carousel .carousel-inner {
+                overflow: visible;
+            }
 
-        .anniv-carousel .carousel-item {
-            transition: transform .65s cubic-bezier(.22, .61, .36, 1), opacity .45s ease;
-        }
+            .anniv-carousel .carousel-item {
+                transition: transform .65s cubic-bezier(.22, .61, .36, 1), opacity .45s ease;
+            }
 
         .anniv-carousel-nav {
             position: absolute;
@@ -3517,13 +3580,13 @@
             pointer-events: auto;
         }
 
-        .anniv-carousel-arrow:hover,
-        .anniv-carousel-arrow:focus {
-            color: #fff;
-            background: #17265e;
-            outline: 0;
-            transform: translateY(-2px);
-        }
+            .anniv-carousel-arrow:hover,
+            .anniv-carousel-arrow:focus {
+                color: #fff;
+                background: #17265e;
+                outline: 0;
+                transform: translateY(-2px);
+            }
 
         .anniv-carousel-progress {
             position: absolute;
@@ -3557,16 +3620,16 @@
             transition: width .25s ease, border-radius .25s ease, background .25s ease;
         }
 
-        .anniv-carousel-dot.active {
-            width: 24px;
-            border-radius: 10px;
-            background: #d5a91f;
-        }
+            .anniv-carousel-dot.active {
+                width: 24px;
+                border-radius: 10px;
+                background: #d5a91f;
+            }
 
-        .anniv-carousel-dot:focus {
-            outline: 2px solid rgba(23, 38, 94, .28);
-            outline-offset: 2px;
-        }
+            .anniv-carousel-dot:focus {
+                outline: 2px solid rgba(23, 38, 94, .28);
+                outline-offset: 2px;
+            }
 
         .anniv-carousel-position {
             color: #70798f;
@@ -3602,8 +3665,10 @@
             background: #202b69;
         }
 
-        .anniv-profile-left::before,
-        .anniv-profile-left::after { display: none; }
+            .anniv-profile-left::before,
+            .anniv-profile-left::after {
+                display: none;
+            }
 
         .anniv-panel-orb {
             position: absolute;
@@ -3613,9 +3678,26 @@
             background: #111944;
         }
 
-        .anniv-panel-orb-top { top: -33px; left: -28px; width: 106px; height: 106px; }
-        .anniv-panel-orb-bottom { bottom: -67px; left: -52px; width: 96px; height: 96px; }
-        .anniv-panel-orb-corner { right: 10px; bottom: -34px; width: 58px; height: 58px; }
+        .anniv-panel-orb-top {
+            top: -33px;
+            left: -28px;
+            width: 106px;
+            height: 106px;
+        }
+
+        .anniv-panel-orb-bottom {
+            bottom: -67px;
+            left: -52px;
+            width: 96px;
+            height: 96px;
+        }
+
+        .anniv-panel-orb-corner {
+            right: 10px;
+            bottom: -34px;
+            width: 58px;
+            height: 58px;
+        }
 
         .anniv-brand {
             position: absolute;
@@ -3667,16 +3749,16 @@
             margin: 0 auto;
         }
 
-        .anniv-camera svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-            fill: none;
-            stroke: #dbe3ff;
-            stroke-width: 2.7;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
+            .anniv-camera svg {
+                width: 100%;
+                height: 100%;
+                overflow: visible;
+                fill: none;
+                stroke: #dbe3ff;
+                stroke-width: 2.7;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
 
         .anniv-avatar small {
             display: block;
@@ -3709,7 +3791,10 @@
             line-height: 1.35;
         }
 
-        .anniv-profile-left p b { padding: 0 3px; color: #f0c83d; }
+            .anniv-profile-left p b {
+                padding: 0 3px;
+                color: #f0c83d;
+            }
 
         .anniv-service-badge {
             position: relative;
@@ -3728,17 +3813,32 @@
             box-shadow: 0 0 0 4px #202b69;
         }
 
-        .anniv-service-badge::before {
-            content: "";
-            position: absolute;
-            inset: -7px;
-            border: 1px dashed #e2b735;
-            border-radius: 50%;
-        }
+            .anniv-service-badge::before {
+                content: "";
+                position: absolute;
+                inset: -7px;
+                border: 1px dashed #e2b735;
+                border-radius: 50%;
+            }
 
-        .anniv-service-badge strong { font-size: 10px; line-height: 1.1; }
-        .anniv-service-badge span { margin-top: 2px; font-size: 6px; font-weight: 900; letter-spacing: 1px; }
-        .anniv-service-badge .anniv-trophy-mark { margin: 0 0 3px; font-size: 15px; line-height: 1; letter-spacing: 0; }
+            .anniv-service-badge strong {
+                font-size: 10px;
+                line-height: 1.1;
+            }
+
+            .anniv-service-badge span {
+                margin-top: 2px;
+                font-size: 6px;
+                font-weight: 900;
+                letter-spacing: 1px;
+            }
+
+            .anniv-service-badge .anniv-trophy-mark {
+                margin: 0 0 3px;
+                font-size: 15px;
+                line-height: 1;
+                letter-spacing: 0;
+            }
 
         .anniv-balloons {
             position: absolute;
@@ -3749,19 +3849,37 @@
             height: 46px;
         }
 
-        .anniv-balloons i {
-            position: absolute;
-            top: 0;
-            width: 11px;
-            height: 16px;
-            border-radius: 50% 50% 48% 48%;
-            background: #e2b735;
-            transform: rotate(-12deg);
-        }
+            .anniv-balloons i {
+                position: absolute;
+                top: 0;
+                width: 11px;
+                height: 16px;
+                border-radius: 50% 50% 48% 48%;
+                background: #e2b735;
+                transform: rotate(-12deg);
+            }
 
-        .anniv-balloons i:first-child { left: 2px; }
-        .anniv-balloons i:last-child { top: 7px; right: 2px; transform: rotate(13deg); }
-        .anniv-balloons i::after { content: ""; position: absolute; top: 15px; left: 5px; width: 1px; height: 24px; background: #e2b735; transform: rotate(-13deg); transform-origin: top; }
+                .anniv-balloons i:first-child {
+                    left: 2px;
+                }
+
+                .anniv-balloons i:last-child {
+                    top: 7px;
+                    right: 2px;
+                    transform: rotate(13deg);
+                }
+
+                .anniv-balloons i::after {
+                    content: "";
+                    position: absolute;
+                    top: 15px;
+                    left: 5px;
+                    width: 1px;
+                    height: 24px;
+                    background: #e2b735;
+                    transform: rotate(-13deg);
+                    transform-origin: top;
+                }
 
         .anniv-confetti {
             position: absolute;
@@ -3773,8 +3891,16 @@
             box-shadow: 46px 33px 0 #ff6670, 90px -18px 0 #60c4da, 132px 40px 0 #fff, 23px 120px 0 #50acbe, 155px 155px 0 #f2c943, 72px 195px 0 #ff6670;
         }
 
-        .anniv-confetti-one { top: 75px; left: 38px; }
-        .anniv-confetti-two { right: 42px; bottom: 75px; transform: rotate(55deg); }
+        .anniv-confetti-one {
+            top: 75px;
+            left: 38px;
+        }
+
+        .anniv-confetti-two {
+            right: 42px;
+            bottom: 75px;
+            transform: rotate(55deg);
+        }
 
         .anniv-profile-right {
             position: relative;
@@ -3798,15 +3924,25 @@
             margin: 10px 0 9px;
             color: #17265e;
             font-family: Georgia, "Times New Roman", serif;
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.06;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.18;
+            letter-spacing: .25px;
         }
 
-        .anniv-profile-right h2 em {
-            color: #d5a91f;
-            font-style: normal;
-        }
+            .anniv-profile-right h2 .anniv-title-years {
+                font-family: Georgia, "Times New Roman", serif;
+                font-size: 20px !important;
+                font-weight: 700;
+                line-height: 1.18;
+                letter-spacing: .25px;
+                vertical-align: baseline;
+            }
+
+            .anniv-profile-right h2 em {
+                color: #d5a91f;
+                font-style: normal;
+            }
 
         .anniv-intro {
             max-width: 610px;
@@ -3822,48 +3958,50 @@
             gap: 8px;
         }
 
-        .anniv-details > div {
-            display: flex;
-            min-width: 0;
-            align-items: center;
-            gap: 10px;
-        }
+            .anniv-details > div {
+                display: flex;
+                min-width: 0;
+                align-items: center;
+                gap: 10px;
+            }
 
-        .anniv-details i {
-            display: grid;
-            width: 27px;
-            height: 27px;
-            flex: 0 0 27px;
-            place-items: center;
-            border-radius: 50%;
-            color: #c79d1f;
-            background: #fbf2d4;
-            font-size: 12px;
-            font-style: normal;
-        }
+            .anniv-details i {
+                display: grid;
+                width: 27px;
+                height: 27px;
+                flex: 0 0 27px;
+                place-items: center;
+                border-radius: 50%;
+                color: #c79d1f;
+                background: #fbf2d4;
+                font-size: 12px;
+                font-style: normal;
+            }
 
-        .anniv-details span { min-width: 0; }
+            .anniv-details span {
+                min-width: 0;
+            }
 
-        .anniv-details small {
-            display: block;
-            margin-bottom: 2px;
-            color: #7b8296;
-            font-size: 7px;
-            font-weight: 900;
-            letter-spacing: 1.2px;
-        }
+            .anniv-details small {
+                display: block;
+                margin-bottom: 2px;
+                color: #7b8296;
+                font-size: 7px;
+                font-weight: 900;
+                letter-spacing: 1.2px;
+            }
 
-        .anniv-details strong {
-            display: block;
-            overflow: hidden;
-            color: #1f2a50;
-            font-size: 11px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            .anniv-details strong {
+                display: block;
+                overflow: hidden;
+                color: #1f2a50;
+                font-size: 11px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
 
         .anniv-thanks {
-            display: flex;
+            display: block;
             margin-top: 12px;
             padding: 10px 13px;
             align-items: flex-start;
@@ -3875,26 +4013,74 @@
             font-size: 11px;
             font-style: italic;
             line-height: 1.5;
-            font-weight:bold;
+            font-weight: bold;
             /*padding-top:20px;*/
-            
         }
 
-        .anniv-thanks:first-letter { color: #d5a91f; }
+        .anniv-thanks-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .anniv-thanks-row {
+            display: grid;
+            grid-template-columns: 12px minmax(0, 1fr);
+            column-gap: 4px;
+            align-items: start;
+        }
+
+        .anniv-thanks-star {
+            color: #d5a91f;
+            font-style: normal;
+        }
 
         @media (max-width: 767px) {
-            .anniversary-dialog { width: calc(100% - 18px); margin: 9px auto; }
-            .anniv-modal-body { padding: 46px 28px 12px; }
-            .anniv-carousel { padding-bottom: 74px; }
-            .anniv-profile { grid-template-columns: 1fr; }
-            .anniv-profile-left { min-height: 395px; padding: 58px 22px 28px; }
-            .anniv-profile-right { padding: 32px 24px 28px; }
-            .anniv-profile-right h2 { font-size: 28px; }
-            .anniv-details { grid-template-columns: 1fr; }
-            .anniv-details strong { white-space: normal; }
+            .anniversary-dialog {
+                width: calc(100% - 18px);
+                margin: 9px auto;
+            }
+
+            .anniv-modal-body {
+                padding: 46px 28px 12px;
+            }
+
+            .anniv-carousel {
+                padding-bottom: 74px;
+            }
+
+            .anniv-profile {
+                grid-template-columns: 1fr;
+            }
+
+            .anniv-profile-left {
+                min-height: 395px;
+                padding: 58px 22px 28px;
+            }
+
+            .anniv-profile-right {
+                padding: 32px 24px 28px;
+            }
+
+                .anniv-profile-right h2 {
+                    font-size: 22px;
+                    line-height: 1.2;
+                }
+
+                    .anniv-profile-right h2 .anniv-title-years {
+                        font-size: 22px !important;
+                        line-height: 1.2;
+                    }
+
+            .anniv-details {
+                grid-template-columns: 1fr;
+            }
+
+                .anniv-details strong {
+                    white-space: normal;
+                }
         }
     </style>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.x.x/css/all.min.css">
     <script src="../Scripts/Functions/FestivalPopupForAdmin.js"></script>
 </asp:Content>

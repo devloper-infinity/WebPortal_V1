@@ -79,32 +79,32 @@ namespace WebPortal.Admin
 
             try
             {
-                int[] str_Index = Indexes.Substring(2).Split(',').Select(int.Parse).ToArray();
-                string[] str_TrackID = TrackIDs.Substring(2).Split(',');
-                string[] str_Code = Codes.Substring(2).Split(',');
-                string[] str_Date = Dates.Substring(2).Split(',');
-                string[] str_CDate = ClienODates.Substring(2).Split(',');
-                string[] str_Projects = Projects.Substring(2).Split(',');
-                string[] str_TrackProcess = TrackProcess.Substring(2).Split(',');
-                string[] str_Process = Process.Substring(2).Split(',');
-                string[] str_Traget = TragetIDs.Substring(2).Split(',');
-                string[] str_Prod = Productions.Substring(2).Split(',');
-                string[] str_TimeSpent = TimeSpent.Substring(2).Split(',');
+                string[] str_TrackID = ApprovalValues(TrackIDs);
+                string[] str_Code = ApprovalValues(Codes);
+                string[] str_Date = ApprovalValues(Dates);
+                string[] str_CDate = ApprovalValues(ClienODates);
+                string[] str_Projects = ApprovalValues(Projects);
+                string[] str_TrackProcess = ApprovalValues(TrackProcess);
+                string[] str_Process = ApprovalValues(Process);
+                string[] str_Traget = ApprovalValues(TragetIDs);
+                string[] str_Prod = ApprovalValues(Productions);
+                string[] str_TimeSpent = ApprovalValues(TimeSpent);
+                int recordCount = new[] { str_TrackID.Length, str_Code.Length, str_Date.Length, str_CDate.Length, str_Projects.Length, str_TrackProcess.Length, str_Process.Length, str_Traget.Length, str_Prod.Length, str_TimeSpent.Length }.Min();
 
-                foreach (int ind in str_Index)
+                for (int ind = 0; ind < recordCount; ind++)
                 {
-                    string ProjectID = new bllMaster().ValidateProject(Convert.ToString(str_Projects[ind]));
+                    string projectValue = Convert.ToString(str_Projects[ind]).Trim();
+                    string ProjectID = new bllMaster().ValidateProject(projectValue);
+                    int parsedProjectId;
+                    if (!Int32.TryParse(ProjectID, out parsedProjectId) && Int32.TryParse(projectValue, out parsedProjectId))
+                        ProjectID = parsedProjectId.ToString(CultureInfo.InvariantCulture);
+                    if (!Int32.TryParse(ProjectID, out parsedProjectId)) { ReturnValue = -6; return ReturnValue; }
                     string ProcessID = new bllMaster().ValidateProcess(ProjectID, Convert.ToString(str_TrackProcess[ind]));
                     string ProductType = new bllMaster().ValidateProductType(ProjectID, ProcessID, Convert.ToString(str_Process[ind]));
+                    if (String.IsNullOrWhiteSpace(ProductType)) ProductType = "0";
 
                     if (ProcessID != "0")
                     {
-                        if (DomainID == 9 && ProductType == "0")
-                        {
-                            ReturnValue = -1;
-                            return ReturnValue;
-                        }
-                        else
                         {
                             if (Convert.ToString(str_Process[ind]) != "")
                             {
@@ -143,7 +143,7 @@ namespace WebPortal.Admin
                             htParam.Add("Code", Convert.ToString(str_Code[ind]));
                             htParam.Add("Date", Convert.ToString(str_Date[ind]));
                             htParam.Add("ClientOrderDate", Convert.ToString(str_CDate[ind]));
-                            htParam.Add("Project", Convert.ToInt32(ProjectID));
+                            htParam.Add("Project", parsedProjectId);
                             htParam.Add("Process", Convert.ToInt32(ProcessID));
                             htParam.Add("ProductType", ProductType);
                             htParam.Add("Target", Convert.ToString(str_Traget[ind]));
@@ -167,18 +167,28 @@ namespace WebPortal.Admin
             }
             catch (Exception ex)
             {
-                if (con.State == ConnectionState.Closed)
-                    con.Open();
-
-                SqlCommand cmd1 = new SqlCommand("AddExeceptionMessage", con);
-                cmd1.CommandType = CommandType.StoredProcedure;
-                cmd1.Parameters.AddWithValue("@Message", ex.Message);
-                cmd1.CommandTimeout = 0;
-                cmd1.ExecuteNonQuery();
-                con.Close();
+                try
+                {
+                    if (con.State == ConnectionState.Closed) con.Open();
+                    SqlCommand cmd1 = new SqlCommand("AddExeceptionMessage", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.AddWithValue("@Message", ex.ToString());
+                    cmd1.CommandTimeout = 30;
+                    cmd1.ExecuteNonQuery();
+                }
+                catch { }
+                finally { if (con.State != ConnectionState.Closed) con.Close(); }
+                ReturnValue = -99;
             }
 
             return ReturnValue;
+        }
+
+        private static string[] ApprovalValues(string value)
+        {
+            if (String.IsNullOrEmpty(value)) return new string[0];
+            string normalized = value.StartsWith("0,", StringComparison.Ordinal) ? value.Substring(2) : value.TrimStart(',');
+            return normalized.Length == 0 ? new string[0] : normalized.Split(',');
         }
 
         [WebMethod]
@@ -432,6 +442,10 @@ namespace WebPortal.Admin
             dtProd = ds.Tables[0];
             dtAuto = ds.Tables[1];
 
+            DataTable newTracker = new bllOLTracking().GetDailyProductivityForUser(
+                Convert.ToDateTime(Date), int.Parse(HttpContext.Current.User.Identity.Name.ToString()), DomainID);
+            dtAuto = MergeAutoProductivity(dtAuto, newTracker);
+
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
 
@@ -448,6 +462,49 @@ namespace WebPortal.Admin
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
+        }
+
+        private static DataTable MergeAutoProductivity(DataTable legacy, DataTable newTracker)
+        {
+            if (legacy == null || legacy.Columns.Count == 0)
+                return newTracker == null ? new DataTable() : newTracker.Copy();
+
+            DataTable merged = legacy.Clone();
+            HashSet<string> newKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (newTracker != null)
+            {
+                foreach (DataRow row in newTracker.Rows)
+                    newKeys.Add(AutoProductivityKey(row));
+            }
+
+            foreach (DataRow row in legacy.Rows)
+                if (!newKeys.Contains(AutoProductivityKey(row))) merged.ImportRow(row);
+
+            if (newTracker != null)
+            {
+                foreach (DataRow source in newTracker.Rows)
+                {
+                    DataRow target = merged.NewRow();
+                    foreach (DataColumn column in merged.Columns)
+                        if (newTracker.Columns.Contains(column.ColumnName)) target[column.ColumnName] = source[column.ColumnName];
+                    merged.Rows.Add(target);
+                }
+            }
+            return merged;
+        }
+
+        private static string AutoProductivityKey(DataRow row)
+        {
+            return AutoValue(row, "Code") + "|" + AutoValue(row, "Date") + "|" +
+                   AutoValue(row, "Project") + "|" + AutoValue(row, "TrackingProcess") + "|" +
+                   AutoValue(row, "Process") + "|" + AutoValue(row, "Production") + "|" +
+                   AutoValue(row, "ClientOrderDate");
+        }
+
+        private static string AutoValue(DataRow row, string column)
+        {
+            return row.Table.Columns.Contains(column) ? Convert.ToString(row[column]).Trim() : string.Empty;
         }
 
         [WebMethod]
@@ -483,6 +540,10 @@ namespace WebPortal.Admin
 
             dtProd = ds.Tables[0];
             dtAuto = ds.Tables[1];
+
+            DataTable newTracker = new bllOLTracking().GetDailyProductivityForUser(
+                Convert.ToDateTime(Date), int.Parse(HttpContext.Current.User.Identity.Name.ToString()), DomainID);
+            dtAuto = MergeAutoProductivity(dtAuto, newTracker);
 
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;

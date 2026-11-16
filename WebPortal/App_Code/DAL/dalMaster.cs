@@ -22,6 +22,31 @@ namespace WebPortal.App_Code.DAL
 {
     public class dalMaster
     {
+        public int UpdateEmployeeInfoForApproved(string code, string approvedDate, string approvedRemark, int approvedBy, string joiningType, string ans1, string ans2, string ans3, string ans4, string ans5, string ans6)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateEmployeeInfoForApproved");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", SqlDbType.NVarChar, 10, ParameterDirection.Input, code);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, approvedDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedRemark", SqlDbType.NVarChar, 4000, ParameterDirection.Input, approvedRemark);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedBy", SqlDbType.Int, 0, ParameterDirection.Input, approvedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JoiningType", SqlDbType.NVarChar, 100, ParameterDirection.Input, joiningType);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans1", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans1);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans2", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans2);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans3", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans3);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans4", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans4);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans5", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans5);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans6", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans6);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public DataTable GetAllEmployeeDetailsForApproved(int employeeId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllEmployeeDetailsForApproved");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.BigInt, 0, ParameterDirection.Input, employeeId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
         public DataTable GetMenuForUser(int UserID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetUserMenus");
@@ -702,7 +727,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDaily["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InIP", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, htDaily["InIP"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["ProductType"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["TrackingProdcutionID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["TrackingProductionID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
@@ -1022,14 +1047,21 @@ namespace WebPortal.App_Code.DAL
             return ReturnValue;
         }
 
-        public decimal GetPendingLeaveCount(string Code)
+        //public string GetPendingLeaveCount(string Code)
+        //{
+        //    SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "getPendingLeaves");
+        //    SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Code);
+        //    SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.ReturnValue, null);
+        //    string LeaveCount = (string)SQLHelper.ExecuteScalarCmd(cmd);
+        //    return LeaveCount;
+        //}
+
+        public DataTable GetPendingLeaveCount(string Code)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "getPendingLeaves");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, Code);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-
-            decimal LeaveCount = (decimal)SQLHelper.ExecuteScalarCmd(cmd);
-            return LeaveCount;
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
         }
 
         public DataTable GetAllResignedEmployees(int EmpId)
@@ -3473,6 +3505,13 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
+        public DataTable GetInvoiceHeaders_ByHeaderID(int HeaderID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetInvoiceHeaders_ByHeaderID");
+            SQLHelper.AddParamToSQLCmd(cmd, "@HeaderID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, HeaderID);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
 
         public DataTable GetCCDataForVerification(string Month, string Year)
         {
@@ -4600,7 +4639,6 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
 
         public int InsertAttendanceCorrectRequestByPM(Hashtable htAttendance)
         {
-
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertAttendanceCorrectRequestByPM");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InDate", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htAttendance["InDate"]);
@@ -4617,7 +4655,6 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             SQLHelper.AddParamToSQLCmd(cmd, "@IpAddress", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htAttendance["IpAddress"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedBy", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htAttendance["ApprovedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
-
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
@@ -5760,7 +5797,7 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
 
         public DataTable GetWorkAnniversary()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetWorkAnniversary");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetWorkAnniversary"); /*use for local testing usp_GetWorkAnniversary_New*/
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 10, System.Data.ParameterDirection.Input, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
@@ -6853,6 +6890,50 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             }
         }
 
+        public DataTable ExecuteQueryTable(string query, params SqlParameter[] parameters)
+        {
+            using (SqlConnection cn = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand(query, cn))
+            {
+                cmd.CommandType = CommandType.Text; if (parameters != null) cmd.Parameters.AddRange(parameters);
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd)) { DataTable dt = new DataTable(); da.Fill(dt); return dt; }
+            }
+        }
+
+
+        public DataTable GetPettyCashRequest_ForApproval(long? employeeId, string status)
+        {
+            //DataTable requests = dalMaster.ExecuteTable("usp_PettyCashRequest_List", new SqlParameter("@EmployeeID", (object)employeeId ?? DBNull.Value), new SqlParameter("@Status", (object)status ?? DBNull.Value));
+            //return AddEmployeeNames(requests);
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_PettyCashRequest_List");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, employeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, status);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+
         #endregion
+
+        public DataTable getHRInductionQuestionPaper(int EmployeeId)//, string PaperSet)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_getHRQuestionPaper");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeId);
+            //SQLHelper.AddParamToSQLCmd(cmd, "@PaperSet", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, PaperSet);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+        public int InsertHRAnswerSet(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_insertHRAnswerSet");
+            SQLHelper.AddParamToSQLCmd(cmd, "@QuestionId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["QuestionId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Answer", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Answer"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["EmployeeId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
     }
 }

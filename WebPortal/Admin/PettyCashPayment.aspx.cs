@@ -12,12 +12,6 @@ namespace WebPortal.Admin
     public partial class PettyCashPayment : Page
     {
         protected void Page_Load(object sender, EventArgs e) { }
-        private static long LoginId()
-        {
-            object v = System.Web.HttpContext.Current.Session["EmployeeID"];
-            if (v == null || !long.TryParse(Convert.ToString(v), out long id)) throw new Exception("Session expired. Please login again.");
-            return id;
-        }
 
         private static string Json(DataTable dt)
         {
@@ -53,7 +47,7 @@ namespace WebPortal.Admin
         public static string IssuePayment(long requestId, string paymentDate, string paymentMode, string referenceNo, decimal amountPaid, long receiverId, string remark)
         {
             DateTime d;
-            if (!DateTime.TryParse(paymentDate, out d)) throw new Exception("Invalid payment date."); if (requestId <= 0 || receiverId <= 0) throw new Exception("Request and Receiver are mandatory."); if (amountPaid <= 0) throw new Exception("Amount must be greater than zero."); if (paymentMode != "Cash" && string.IsNullOrWhiteSpace(referenceNo)) throw new Exception("Reference No is mandatory for non-cash payments."); return Json(new bllMaster().IssuePayment(requestId, d, paymentMode, referenceNo, amountPaid, LoginId(), receiverId, remark));
+            if (!DateTime.TryParse(paymentDate, out d)) throw new Exception("Invalid payment date."); if (requestId <= 0 || receiverId <= 0) throw new Exception("Request and Receiver are mandatory."); if (amountPaid <= 0) throw new Exception("Amount must be greater than zero."); if (paymentMode != "Cash" && string.IsNullOrWhiteSpace(referenceNo)) throw new Exception("Reference No is mandatory for non-cash payments."); return Json(new bllMaster().IssuePayment(requestId, d, paymentMode, referenceNo, amountPaid, int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString()), receiverId, remark));
         }
     }
 }

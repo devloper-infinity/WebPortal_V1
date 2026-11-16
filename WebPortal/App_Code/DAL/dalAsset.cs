@@ -375,6 +375,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@CostPaid", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["CostPaid"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@NextRenewalCost", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["NextRenewalCost"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@AveragePerYear", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["AveragePerYear"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Location", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htParam["Location"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@EmailID", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["EmailID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CreditCardNo", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["CreditCardNo"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@CPanelLink", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["CPanelLink"]);
@@ -525,6 +526,17 @@ namespace WebPortal.App_Code.DAL
             int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
             cmd.Dispose();
             return ReturnValue;
+        }
+
+        public bool UpdateTicketAttachment(int ticketId, string attachment)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text,
+                "UPDATE dbo.Ticket SET Attachment = @Attachment WHERE TicketId = @TicketId");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Attachment", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, attachment);
+            SQLHelper.AddParamToSQLCmd(cmd, "@TicketId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, ticketId);
+            bool wasUpdated = SQLHelper.ExecuteNonQueryCmd(cmd);
+            cmd.Dispose();
+            return wasUpdated;
         }
 
         public int InsertTicket(Hashtable htTicket)

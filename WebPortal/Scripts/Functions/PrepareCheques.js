@@ -18,8 +18,44 @@ function preparecheque_bindyear() {
     }
 }
 
+function preparecheque_binddates(rows) {
+    var dateSelect = document.getElementById("preparecheque_date");
+    var uniqueDates = {};
+
+    dateSelect.innerHTML = '<option value="">Select Cheque Date</option>';
+
+    rows.forEach(function (row) {
+        var rawDate = row.AddedDate;
+        var date;
+        var serializedDate = typeof rawDate === 'string' && /\/Date\((\d+)\)\//.exec(rawDate);
+
+        if (serializedDate) {
+            date = new Date(parseInt(serializedDate[1], 10));
+        } else if (rawDate) {
+            date = new Date(rawDate);
+        }
+
+        if (date && !isNaN(date.getTime())) {
+            var year = date.getFullYear();
+            var month = ('0' + (date.getMonth() + 1)).slice(-2);
+            var day = ('0' + date.getDate()).slice(-2);
+            var value = year + '-' + month + '-' + day;
+
+            uniqueDates[value] = day + '-' + date.toLocaleString('en-US', { month: 'short' }) + '-' + year;
+        }
+    });
+
+    Object.keys(uniqueDates).sort().forEach(function (value) {
+        dateSelect.add(new Option(uniqueDates[value], value));
+    });
+
+    document.getElementById("preparecheque_generate_date").style.display = Object.keys(uniqueDates).length ? '' : 'none';
+}
+
 function preparecheque_show() {
     $('#load1').show();
+    document.getElementById("preparecheque_generate_date").style.display = 'none';
+    document.getElementById("preparecheque_date").innerHTML = '<option value="">Select Cheque Date</option>';
     var ddlmonth = document.getElementById("preparecheque_month");
     var ddlyear = document.getElementById("preparecheque_year");
     var month = ddlmonth.options[ddlmonth.selectedIndex].value;
@@ -38,6 +74,7 @@ function preparecheque_show() {
             if (dataArray != null) {
                 document.getElementById("preparecheque_generate_1").style.display = '';
                 document.getElementById("preparecheque_generate_2").style.display = '';
+                preparecheque_binddates(dataArray);
             }
             upr_table = $('#preparecheque_regular_table').DataTable({
                 dom: 'Bftip',
@@ -184,7 +221,7 @@ function preparehold_show() {
                 processing: true,
                 filter: true,
                 'select': {
-                    'style': 'single'
+                    'style': 'multi'
                 },
                 "serverSide": false,
                 "data": dataArray,
@@ -194,6 +231,17 @@ function preparehold_show() {
                         orderable: false,
                         render: function (data, type, row) {
                             return '<input type="checkbox" class="empCheckbox" value="' + row.Code + '">';
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        render: function (data, type, row) {
+                            var viewLogUrl = '../Admin/ViewLog.aspx?Code=' + encodeURIComponent(row.Code);
+
+                            return '<a class="btn btn-sm btn-outline-info" href="' + viewLogUrl + '" title="View Log Details" aria-label="View Log Details">' +
+                                '<i class="fas fa-eye" aria-hidden="true"></i>' +
+                                '</a>';
                         }
                     },
                     { data: 'SrNo' },

@@ -89,6 +89,7 @@ namespace WebPortal.Admin
         public static string GetUserPerformanceProdDetails(string FromDate, string ToDate)
         {
             DataTable dt1 = new bllMaster().GetUserPerformanceProdDetails(FromDate, ToDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            ApplyProductionColumnOrder(dt1);
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             foreach (DataRow dr in dt1.Rows)
@@ -176,6 +177,29 @@ namespace WebPortal.Admin
             return value;
         }
 
+        private static void ApplyProductionColumnOrder(DataTable table)
+        {
+            if (table == null)
+            {
+                return;
+            }
+
+            string[] displayOrder =
+            {
+                "Code", "Employee", "Location", "Domain", "Subdomain", "ReportingManager",
+                "ProjectName", "DealNo", "LoanNo", "OrderDate", "Process", "StartDate", "EndDate", "Status"
+            };
+
+            int ordinal = 0;
+            foreach (string columnName in displayOrder)
+            {
+                if (table.Columns.Contains(columnName))
+                {
+                    table.Columns[columnName].SetOrdinal(ordinal++);
+                }
+            }
+        }
+
         public static void HeaderFormat_Static(CellRange range)
         {
             range.Style.Borders.LineStyle = LineStyleType.Thin;
@@ -252,23 +276,28 @@ namespace WebPortal.Admin
                 dt.Columns["EmployeeName"].Caption = "Name";
                 dt.Columns["Employee"].SetOrdinal(2);
                 dt.Columns["Employee"].Caption = "Pseudoname";
-                dt.Columns["LoanCount"].SetOrdinal(3);
+                dt.Columns["Location"].SetOrdinal(3);
+                dt.Columns["Domain"].SetOrdinal(4);
+                dt.Columns["Subdomain"].SetOrdinal(5);
+                dt.Columns["ReportingManager"].SetOrdinal(6);
+                dt.Columns["ReportingManager"].Caption = "Reporting Manager";
+                dt.Columns["LoanCount"].SetOrdinal(7);
                 dt.Columns["LoanCount"].Caption = "Live Production";
-                dt.Columns["TrainingProduction"].SetOrdinal(4);
+                dt.Columns["TrainingProduction"].SetOrdinal(8);
                 dt.Columns["TrainingProduction"].Caption = "Training Production";
-                dt.Columns["PracticeProduction"].SetOrdinal(5);
+                dt.Columns["PracticeProduction"].SetOrdinal(9);
                 dt.Columns["PracticeProduction"].Caption = "Practice Production";
-                dt.Columns["ProdPerc"].SetOrdinal(6);
+                dt.Columns["ProdPerc"].SetOrdinal(10);
                 dt.Columns["ProdPerc"].Caption = "Production %";
-                dt.Columns["QualityPerc"].SetOrdinal(7);
+                dt.Columns["QualityPerc"].SetOrdinal(11);
                 dt.Columns["QualityPerc"].Caption = "Quality %";
-                dt.Columns["AttPerc"].SetOrdinal(8);
+                dt.Columns["AttPerc"].SetOrdinal(12);
                 dt.Columns["AttPerc"].Caption = "Attendance %";
-                dt.Columns["ProdGrade"].SetOrdinal(9);
+                dt.Columns["ProdGrade"].SetOrdinal(13);
                 dt.Columns["ProdGrade"].Caption = "Production Grade";
-                dt.Columns["QualGrade"].SetOrdinal(10);
+                dt.Columns["QualGrade"].SetOrdinal(14);
                 dt.Columns["QualGrade"].Caption = "Quality Grade";
-                dt.Columns["AttnGrade"].SetOrdinal(11);
+                dt.Columns["AttnGrade"].SetOrdinal(15);
                 dt.Columns["AttnGrade"].Caption = "Attendance Grade";
 
                 sheet.InsertDataTable(dt, true, 1, 1);
@@ -310,25 +339,30 @@ namespace WebPortal.Admin
                 dt.Columns["EmployeeName"].Caption = "Name";
                 dt.Columns["Employee"].SetOrdinal(4);
                 dt.Columns["Employee"].Caption = "Pseudoname";
-                dt.Columns["LoanCount"].SetOrdinal(5);
+                dt.Columns["Location"].SetOrdinal(5);
+                dt.Columns["Domain"].SetOrdinal(6);
+                dt.Columns["SubDomain"].SetOrdinal(7);
+                dt.Columns["ReportingManager"].SetOrdinal(8);
+                dt.Columns["ReportingManager"].Caption = "Reporting Manager";
+                dt.Columns["LoanCount"].SetOrdinal(9);
                 dt.Columns["LoanCount"].Caption = "Live Production";
-                dt.Columns["TrainingProduction"].SetOrdinal(6);
+                dt.Columns["TrainingProduction"].SetOrdinal(10);
                 dt.Columns["TrainingProduction"].Caption = "Training Production";
-                dt.Columns["PracticeProduction"].SetOrdinal(7);
+                dt.Columns["PracticeProduction"].SetOrdinal(11);
                 dt.Columns["PracticeProduction"].Caption = "Practice Production";
-                dt.Columns["ProdPerc"].SetOrdinal(8);
+                dt.Columns["ProdPerc"].SetOrdinal(12);
                 dt.Columns["ProdPerc"].Caption = "Production %";
-                dt.Columns["QualityPerc"].SetOrdinal(9);
+                dt.Columns["QualityPerc"].SetOrdinal(13);
                 dt.Columns["QualityPerc"].Caption = "Quality %";
-                dt.Columns["AttPerc"].SetOrdinal(10);
+                dt.Columns["AttPerc"].SetOrdinal(14);
                 dt.Columns["AttPerc"].Caption = "Attendance %";
-                dt.Columns["ProdGrade"].SetOrdinal(11);
+                dt.Columns["ProdGrade"].SetOrdinal(15);
                 dt.Columns["ProdGrade"].Caption = "Production Grade";
-                dt.Columns["QualGrade"].SetOrdinal(12);
+                dt.Columns["QualGrade"].SetOrdinal(16);
                 dt.Columns["QualGrade"].Caption = "Quality Grade";
-                dt.Columns["AttnGrade"].SetOrdinal(13);
+                dt.Columns["AttnGrade"].SetOrdinal(17);
                 dt.Columns["AttnGrade"].Caption = "Attendance Grade";
-                string[] internalColumns = { "QualId", "Subdomain", "Critical", "NonCritical", "TotalError" };
+                string[] internalColumns = { "QualId", "Critical", "NonCritical", "TotalError" };
                 foreach (string internalColumn in internalColumns)
                 {
                     if (dt.Columns.Contains(internalColumn))
@@ -374,6 +408,7 @@ namespace WebPortal.Admin
             DataTable dt = new bllMaster().GetUserPerformanceProdDetails(FromDate, ToDate, int.Parse(HttpContext.Current.User.Identity.Name.ToString())); ;
             if (dt != null)
             {
+                ApplyProductionColumnOrder(dt);
                 //dt.Columns["Code"].SetOrdinal(0);
                 //dt.Columns["Employee"].SetOrdinal(1);
                 //dt.Columns["ProjectName"].SetOrdinal(2);
@@ -512,24 +547,31 @@ namespace WebPortal.Admin
             if (dt != null)
             {
                 dt.Columns["Code"].SetOrdinal(0);
-                dt.Columns["TotalCalenderDays"].SetOrdinal(1);
+                dt.Columns["EmployeeName"].SetOrdinal(1);
+                dt.Columns["EmployeeName"].Caption = "Employee Name";
+                dt.Columns["Location"].SetOrdinal(2);
+                dt.Columns["Domain"].SetOrdinal(3);
+                dt.Columns["Subdomain"].SetOrdinal(4);
+                dt.Columns["ReportingManager"].SetOrdinal(5);
+                dt.Columns["ReportingManager"].Caption = "Reporting Manager";
+                dt.Columns["TotalCalenderDays"].SetOrdinal(6);
                 dt.Columns["TotalCalenderDays"].Caption = "Total Days (Calender Days)";
-                dt.Columns["AbsentDays"].SetOrdinal(2);
+                dt.Columns["AbsentDays"].SetOrdinal(7);
                 dt.Columns["AbsentDays"].Caption = "Absent Days";
-                dt.Columns["PartialCount"].SetOrdinal(3);
+                dt.Columns["PartialCount"].SetOrdinal(8);
                 dt.Columns["PartialCount"].Caption = "Partial Days";
-                dt.Columns["PartialDays"].SetOrdinal(4);
+                dt.Columns["PartialDays"].SetOrdinal(9);
                 dt.Columns["PartialDays"].Caption = "Partial days (equivalent full days)";
-                dt.Columns["TotalAbsentDays"].SetOrdinal(5);
+                dt.Columns["TotalAbsentDays"].SetOrdinal(10);
                 dt.Columns["TotalAbsentDays"].Caption = "Total Absents (Full day + Partial Days)";
-                dt.Columns["SalaryPresentDays"].SetOrdinal(6);
+                dt.Columns["SalaryPresentDays"].SetOrdinal(11);
                 dt.Columns["SalaryPresentDays"].Caption = "Present Days (as per Final Salary Calculation)";
-                dt.Columns["AttendancePercOnTotalDays"].SetOrdinal(7);
+                dt.Columns["AttendancePercOnTotalDays"].SetOrdinal(12);
                 dt.Columns["AttendancePercOnTotalDays"].Caption = "Attendance % on Total Days";
-                dt.Columns["Latemarks"].SetOrdinal(8);
-                dt.Columns["RemovedLatemarks"].SetOrdinal(9);
+                dt.Columns["Latemarks"].SetOrdinal(13);
+                dt.Columns["RemovedLatemarks"].SetOrdinal(14);
                 dt.Columns["RemovedLatemarks"].Caption = "Removed Latemarks";
-                dt.Columns["TotalLatemarks"].SetOrdinal(10);
+                dt.Columns["TotalLatemarks"].SetOrdinal(15);
                 dt.Columns["TotalLatemarks"].Caption = "Total Latemarks";
                 dt.Columns.Remove(dt.Columns["EmployeeID"]);
                 dt.Columns.Remove(dt.Columns["Month"]);

@@ -121,13 +121,17 @@ namespace WebPortal.TrackingSheet
                 using (MemoryStream stream = new MemoryStream())
                 {
                     workbook.SaveAs(stream);
+                    byte[] fileBytes = stream.ToArray();
                     string safeProject = SanitizeFileName(ddlProject.SelectedItem.Text);
                     Response.Clear();
-                    Response.Buffer = true;
+                    Response.ClearHeaders();
+                    Response.BufferOutput = true;
                     Response.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
                     Response.AddHeader("content-disposition", "attachment;filename=OLTracking_Import_" + safeProject + ".xlsx");
-                    Response.BinaryWrite(stream.ToArray());
+                    Response.AddHeader("content-length", fileBytes.Length.ToString(CultureInfo.InvariantCulture));
+                    Response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
                     Response.Flush();
+                    Response.SuppressContent = true;
                     HttpContext.Current.ApplicationInstance.CompleteRequest();
                 }
             }

@@ -13,13 +13,6 @@ namespace WebPortal.Admin
     {
         protected void Page_Load(object sender, EventArgs e) { }
 
-        private static long LoginId()
-        {
-            object v = System.Web.HttpContext.Current.Session["EmployeeID"];
-            if (v == null || !long.TryParse(Convert.ToString(v), out long id)) throw new Exception("Session expired. Please login again.");
-            return id;
-        }
-
         private static string Json(DataTable dt)
         {
             var rows = new List<Dictionary<string, object>>();

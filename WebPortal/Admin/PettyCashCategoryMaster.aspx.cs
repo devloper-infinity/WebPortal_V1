@@ -12,12 +12,6 @@ namespace WebPortal.Admin
     public partial class PettyCashCategoryMaster : Page
     {
         protected void Page_Load(object sender, EventArgs e) { }
-        private static long LoginId()
-        {
-            object v = System.Web.HttpContext.Current.Session["EmployeeID"];
-            if (v == null || !long.TryParse(Convert.ToString(v), out long id)) throw new Exception("Session expired. Please login again.");
-            return id;
-        }
         private static string Json(DataTable dt)
         {
             var rows = new List<Dictionary<string, object>>();
@@ -39,7 +33,7 @@ namespace WebPortal.Admin
         public static string SaveCategory(long categoryId, string categoryName, string description, bool isActive)
         {
             if (string.IsNullOrWhiteSpace(categoryName)) throw new Exception("Category name is mandatory.");
-            return Json(new bllMaster().SaveCategory(categoryId, categoryName.Trim(), description, isActive, LoginId()));
+            return Json(new bllMaster().SaveCategory(categoryId, categoryName.Trim(), description, isActive, int.Parse(System.Web.HttpContext.Current.User.Identity.Name.ToString())));
         }
     }
 }

@@ -119,9 +119,10 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static decimal getPendingLeaveCount(string Code)
+        public static string getPendingLeaveCount(string Code)
         {
-            decimal LeaveCount = new bllMaster().GetPendingLeaveCount(Code);
+            DataTable dt = new bllMaster().GetPendingLeaveCount(Code);
+            string LeaveCount = dt.Rows.Count > 0 ? Convert.ToString(dt.Rows[0]["PendingLeaves"]) : "0.00";
             return LeaveCount;
         }
 
@@ -143,7 +144,7 @@ namespace WebPortal.Admin
             htTeamLeaves.Add("ApprovalRemark", Reason);
             htTeamLeaves.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
 
-            returnvalue = new bllMaster().InsertTeamLeavesByPM(htTeamLeaves);
+            returnvalue =  new bllMaster().InsertTeamLeavesByPM(htTeamLeaves);
 
             if (returnvalue > 0)
             {
