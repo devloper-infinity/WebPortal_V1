@@ -102,7 +102,7 @@ SELECT i.ItemID,
        i.DealNumber,
        i.ItemNumber,
        d.EntryDate,
-       f.FieldConfigId,
+       v.FieldConfigId,
        v.FieldValue
 FROM dbo.OLTracking_Item i
 INNER JOIN
@@ -110,16 +110,18 @@ INNER JOIN
     SELECT DISTINCT ItemID, EntryDate
     FROM dbo.OLTracking_ImportBatchItem
 ) d ON d.ItemID = i.ItemID
-LEFT JOIN dbo.OLTracking_ImportItemValue v ON v.ItemID = i.ItemID
-LEFT JOIN dbo.WBT_ProjectTrackingFieldConfig f
-    ON f.FieldConfigId = v.FieldConfigId
-   AND f.ProjectID = @ProjectID
-   AND f.IsDeleted = 0
+LEFT JOIN
+(
+    SELECT value.ItemID,value.FieldConfigId,value.FieldValue,field.DisplayOrder
+    FROM dbo.OLTracking_ImportItemValue value
+    INNER JOIN dbo.WBT_ProjectTrackingFieldConfig field ON field.FieldConfigId=value.FieldConfigId
+    WHERE field.ProjectID=@ProjectID AND field.IsDeleted=0 AND ISNULL(field.IsBillingField,0)=0
+) v ON v.ItemID=i.ItemID
 WHERE i.ProjectID = @ProjectID
   AND i.IsDeleted = 0
   AND d.EntryDate >= @FromDate
   AND d.EntryDate <= @ToDate
-ORDER BY d.EntryDate, i.ItemID, f.DisplayOrder, f.FieldConfigId;"))
+ORDER BY d.EntryDate, i.ItemID, v.DisplayOrder, v.FieldConfigId;"))
             {
                 command.Connection = new SqlConnection(SQLHelper.ConnectionString);
                 command.Parameters.Add("@ProjectID", SqlDbType.Int).Value = projectId;

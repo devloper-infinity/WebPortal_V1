@@ -218,7 +218,24 @@ namespace WebPortal.Admin
                 if (!lookup.TryGetValue(project, out item)) { item = new ProjectTable { Project = project, Table = table.Clone(), Summary = mapped == null ? null : mapped.Summary }; lookup.Add(project, item); result.Add(item); }
                 item.Table.Merge(table, true, MissingSchemaAction.Add);
             }
+            foreach (ProjectTable item in result)
+                if (item.Project.Equals("694-010", StringComparison.OrdinalIgnoreCase)) Exclude694HoldOrders(item.Table);
             return result;
+        }
+
+        private static void Exclude694HoldOrders(DataTable table)
+        {
+            DataColumn statusColumn = null;
+            foreach (string name in new[] { "Final Status", "Status", "OrderStatus" })
+                if (table.Columns.Contains(name)) { statusColumn = table.Columns[name]; break; }
+            if (statusColumn == null) return;
+
+            for (int index = table.Rows.Count - 1; index >= 0; index--)
+            {
+                string status = Convert.ToString(table.Rows[index][statusColumn]).Trim();
+                if (status.Equals("Hold", StringComparison.OrdinalIgnoreCase) || status.StartsWith("On Hold", StringComparison.OrdinalIgnoreCase))
+                    table.Rows.RemoveAt(index);
+            }
         }
 
         private sealed class ProjectMetadata { public string Project { get; set; } public Dictionary<string, object> Summary { get; set; } }
@@ -255,12 +272,18 @@ namespace WebPortal.Admin
             // Configure one recipient email per Domain.
             var domainEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Title", "anita@infinity-data.com" },
-                { "Valuation", "anita@infinity-data.com" },
-                { "Freight", "anita@infinity-data.com" },
+                  { "Title", "v.rohan@infinityinternationals.us" },
+                { "Valuation", "h.dashrath@infinityinternationals.us;s.santosh@infinityinternationals.us" },
+                { "Freight", "v.rohan@infinityinternationals.us" },
                 { "FTE", "anita@infinity-data.com" },
                 { "UnderwritingCredit", "anita@infinity-data.com" },
                 { "UnderwritingServicing", "anita@infinity-data.com" }
+                //{ "Title", "anita@infinity-data.com" },
+                //{ "Valuation", "anita@infinity-data.com" },
+                //{ "Freight", "anita@infinity-data.com" },
+                //{ "FTE", "anita@infinity-data.com" },
+                //{ "UnderwritingCredit", "anita@infinity-data.com" },
+                //{ "UnderwritingServicing", "anita@infinity-data.com" }
             };
             // Configure optional CC recipients per Domain; separate multiple addresses with comma or semicolon.
             var domainCcEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -287,12 +310,12 @@ namespace WebPortal.Admin
                 bool validateUpdate = (domain.Equals("Title", StringComparison.OrdinalIgnoreCase) && project != "364-005") || domain.Equals("Valuation", StringComparison.OrdinalIgnoreCase) || domain.Equals("Freight", StringComparison.OrdinalIgnoreCase) || domain.StartsWith("Underwriting", StringComparison.OrdinalIgnoreCase);
                 if (validateUpdate)
                 {
-                    DataRow validation = UpdateBillingProject(domain, project, fromDate, toDate, table.Rows.Count, billingAddedBy);
-                    if (validation == null || !Convert.ToBoolean(validation["Success"]))
-                    {
-                        failed.Add(new { Project = project, DisplayedCount = table.Rows.Count, ActualCount = validation == null ? 0 : Convert.ToInt32(validation["ActualCount"]), Reason = validation == null ? "Update validation returned no result." : Convert.ToString(validation["Reason"]) });
-                        continue;
-                    }
+                    //DataRow validation = UpdateBillingProject(domain, project, fromDate, toDate, table.Rows.Count, billingAddedBy);
+                    //if (validation == null || !Convert.ToBoolean(validation["Success"]))
+                    //{
+                    //    failed.Add(new { Project = project, DisplayedCount = table.Rows.Count, ActualCount = validation == null ? 0 : Convert.ToInt32(validation["ActualCount"]), Reason = validation == null ? "Update validation returned no result." : Convert.ToString(validation["Reason"]) });
+                    //    continue;
+                    //}
                 }
                 string summary;
                 summaries.TryGetValue(project, out summary);
@@ -301,7 +324,7 @@ namespace WebPortal.Admin
                 using (var mail = new MailMessage()) using (var stream = new MemoryStream(attachment))
                 {
                     AddRecipients(mail.To, email);
-                    AddRecipients(mail.CC, ccEmail);
+                    //AddRecipients(mail.CC, ccEmail);
                     mail.Bcc.Add("n.nilkanth@infinity-data.com");
                     bool isFreight733 = domain.Equals("Freight", StringComparison.OrdinalIgnoreCase) && project == "733-002";
                     mail.From = new MailAddress("ack@infinity-data.com", "Auto Billing", Encoding.UTF8); mail.Subject = isFreight733 ? project + "-Client Billing - " + period + " ( Freight )" : project + " Auto Billing - " + period; mail.Body = body; mail.IsBodyHtml = true;
@@ -398,10 +421,41 @@ namespace WebPortal.Admin
         {
             using (var book = new XLWorkbook()) using (var stream = new MemoryStream())
             {
+                if (project.Equals("694-010", StringComparison.OrdinalIgnoreCase)) table = Add694FileType(table);
                 string name = project; foreach (char c in new[] { ':', '/', '\\', '?', '*', '[', ']' }) name = name.Replace(c, '_'); if (name.Length > 31) name = name.Substring(0, 31);
-                var sheet = book.Worksheets.Add(table, name); sheet.Row(1).Style.Font.Bold = true; sheet.Row(1).Style.Fill.BackgroundColor = XLColor.FromHtml("#DCEAF7"); sheet.SheetView.FreezeRows(1); sheet.Columns().AdjustToContents(8, 45);
+                var sheet = book.Worksheets.Add(table, name);
+                var header = sheet.Range(1, 1, 1, table.Columns.Count);
+                header.Style.Font.Bold = true; header.Style.Font.FontColor = XLColor.White; header.Style.Fill.BackgroundColor = XLColor.FromHtml("#1F4E78");
+                header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; header.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                header.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; header.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                sheet.Row(1).Height = 22; sheet.SheetView.FreezeRows(1); sheet.Columns().AdjustToContents(8, 45);
                 book.SaveAs(stream); return stream.ToArray();
             }
+        }
+
+        private static DataTable Add694FileType(DataTable source)
+        {
+            DataTable table = source.Copy();
+            if (table.Columns.Contains("File Type")) return table;
+
+            DataColumn orderColumn = null;
+            foreach (string name in new[] { "Order #", "Order#", "OrderNo", "Order No" })
+                if (table.Columns.Contains(name)) { orderColumn = table.Columns[name]; break; }
+
+            DataColumn fileTypeColumn = table.Columns.Add("File Type", typeof(string));
+            if (orderColumn != null) fileTypeColumn.SetOrdinal(orderColumn.Ordinal + 1);
+            foreach (DataRow row in table.Rows)
+            {
+                string order = orderColumn == null ? "" : Convert.ToString(row[orderColumn]);
+                string suffix = order.Length > 5 ? order.Substring(order.Length - 5) : order;
+                if (suffix.EndsWith("-01", StringComparison.OrdinalIgnoreCase)) suffix = suffix.Substring(0, suffix.Length - 3);
+                string code = suffix.Length > 2 ? suffix.Substring(suffix.Length - 2) : suffix;
+                code = code.ToUpperInvariant();
+                row[fileTypeColumn] = code == "SF" ? "SF files" : code == "CD" ? "CD files" :
+                    code == "RN" || code == "RS" || code == "RG" ? "RN, RS & RG files" :
+                    code == "KW" ? "KW files" : "All other files";
+            }
+            return table;
         }
 
         private static void AddRecipients(MailAddressCollection recipients, string addresses)

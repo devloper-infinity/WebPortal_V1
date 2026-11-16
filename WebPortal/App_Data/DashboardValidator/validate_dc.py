@@ -1336,8 +1336,11 @@ def run(prp, dcp, tmpl, out):
         """Same amount already raised in another exception used for this loan -> duplicate."""
         amts = set(amounts_in(x[2]))
         for row in rows_by_lid.get(lid, []):
-            if amts and any(f"${a:,.2f}" in (row.get("full") or "") for a in amts) and x[0] not in (row.get("full") or ""):
-                return f"Same amount also raised as {row['exc'].split(' (Lvl')[0]}; "
+            row_exception = row.get("exc") or ""
+            if (row_exception and amts
+                    and any(f"${a:,.2f}" in (row.get("full") or "") for a in amts)
+                    and x[0] not in (row.get("full") or "")):
+                return f"Same amount also raised as {row_exception.split(' (Lvl')[0]}; "
         return ""
 
     def mh_only_note(x):

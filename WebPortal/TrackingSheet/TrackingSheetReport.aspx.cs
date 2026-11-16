@@ -34,14 +34,14 @@ namespace WebPortal.TrackingSheet
             if (from > to) throw new ArgumentException("From Order Date cannot be later than To Order Date.");
 
             bllOLTrackingImport tracking = new bllOLTrackingImport();
-            DataTable fields = tracking.GetTrackingReportFields(projectId);
-            DataTable source = tracking.GetTrackingReportRows(projectId, from, to);
-            DataTable processes = tracking.GetTrackingReportProcesses(projectId, from, to);
             bllOLTracking processTracking = new bllOLTracking();
-            DataTable configuredProcesses = processTracking.GetConfiguredProcesses(projectId);
-            DataTable hourlyEntries = processTracking.GetHourlyProductivityEntries(projectId, from, to);
             string projectName = GetProjects().Where(x => x.ID == projectId).Select(x => x.Name).FirstOrDefault() ?? projectId.ToString();
-            return BuildResponse(source, fields, processes, configuredProcesses, hourlyEntries, projectName);
+            using (DataTable fields = tracking.GetTrackingReportFields(projectId))
+            using (DataTable source = tracking.GetTrackingReportRows(projectId, from, to))
+            using (DataTable processes = tracking.GetTrackingReportProcesses(projectId, from, to))
+            using (DataTable configuredProcesses = processTracking.GetConfiguredProcesses(projectId))
+            using (DataTable hourlyEntries = processTracking.GetHourlyProductivityEntries(projectId, from, to))
+                return BuildResponse(source, fields, processes, configuredProcesses, hourlyEntries, projectName);
         }
 
         private static ReportResponse BuildResponse(DataTable source, DataTable fields, DataTable processes, DataTable configuredProcesses, DataTable hourlyEntries, string projectName)
@@ -142,8 +142,7 @@ namespace WebPortal.TrackingSheet
                 Columns = columns,
                 Rows = reportRows,
                 RowCount = reportRows.Count,
-                Milestones = milestones,
-                Deals = BuildDealStatus(reportRows, milestones)
+                Milestones = milestones
             };
         }
 
@@ -259,6 +258,7 @@ namespace WebPortal.TrackingSheet
             if (StatusEquals(status, "Completed")) return "Completed";
             if (StatusEquals(status, "In Process")) return "In Process";
             if (StatusEquals(status, "Hold") || StatusEquals(status, "On Hold")) return "Hold";
+            if (StatusEquals(status, "Skipped")) return "Skipped";
             return "Pending";
         }
 

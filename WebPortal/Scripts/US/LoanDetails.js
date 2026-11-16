@@ -132,7 +132,7 @@ function BindUSLoanDetails_Grid() {
 
                 USLoanDetails_html += '<tr>';
                 USLoanDetails_html += '<td style="text-align:center; display:none;"></td>';
-                USLoanDetails_html += '<td style="text-wrap: nowrap; text-align:center;"><button type="button" class="my-btn success btn-start-loan" id="us_start_loan_' + blankForNull(value.ProcessID) + '" onclick="return start_Loan(this,\'' + blankForNull(value.ProcessID) + '\');">Start</button></td>';
+                USLoanDetails_html += '<td style="text-wrap: nowrap; text-align:center;"><button type="button" class="my-btn success btn-start-loan" data-assignment-id="' + blankForNull(value.AssignmentID) + '" id="us_start_loan_' + blankForNull(value.ProcessID) + '" onclick="return start_Loan(this,\'' + blankForNull(value.ProcessID) + '\');">Start</button></td>';
                 USLoanDetails_html += '<td style="text-wrap: nowrap; display:none;"></td>';
                 USLoanDetails_html += '<td style="text-wrap: nowrap; display:none;" class="processid">' + blankForNull(value.ProcessID1) + '</td>';
                 USLoanDetails_html += '<td style="text-wrap: nowrap;" class="client">' + blankForNull(value.ProjectNo) + '</td>';
@@ -184,6 +184,7 @@ function start_Loan(button, ProcessID) {
     var $row = $button.closest('tr');
     var processName = $row.find('.process').text().trim();
     var startDatetime = usfeedback_getNowDateTime();
+    var assignmentId = parseInt($button.attr('data-assignment-id'), 10) || 0;
 
     if (!ProcessID) {
         NativePopup.fire('Warning', 'Loan details are not available for this row.', 'warning');
@@ -215,10 +216,11 @@ function start_Loan(button, ProcessID) {
         $row.find('.recdate').text().trim(),
         $row.find('.process').text().trim(),
         $row.find('.uwname').text().trim(),
+        assignmentId,
 
         function (result) {
             if (result > 0) {
-                if (processName.toLowerCase() === "atr review") {
+                if (assignmentId > 0 || processName.toLowerCase() === "atr review") {
                     GetFeedbackPage(
                         $row.find('.loan').text().trim(),
                         $row.find('.deal').text().trim(),

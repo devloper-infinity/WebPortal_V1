@@ -43,6 +43,49 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetLoanDetailsFromOLTracking(int employeeId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT assignment.AssignmentID,
+       assignment.ProcessID,
+       assignment.ProcessID AS ProcessID1,
+       ISNULL(project.ProjectName,CONVERT(nvarchar(20),assignment.ProjectID)) AS ProjectNo,
+       ISNULL(item.DealNumber,'') AS DealNo,
+       ISNULL(item.ItemNumber,'') AS LoanNo,
+       CONVERT(varchar(10),importDate.EntryDate,101) AS OrderDate,
+       flow.ProcessName AS Process,
+       ISNULL(employee.Code,'') AS RemoteUW,
+       CONVERT(varchar(19),assignment.AssignedDate,120) AS ProcessDate,
+       'OLTracking' AS TrackerSource
+FROM dbo.OLTracking_Assignment assignment
+INNER JOIN dbo.OLTracking_Item item ON item.ItemID=assignment.ItemID AND item.IsDeleted=0
+INNER JOIN dbo.Project project ON project.ProjectID=assignment.ProjectID
+CROSS APPLY
+(
+    SELECT TOP (1) effective.ProcessName
+    FROM dbo.OLTracking_EffectiveProcessFlow(assignment.ProjectID,item.DealNumber) effective
+    WHERE effective.ProcessID=assignment.ProcessID
+) flow
+OUTER APPLY
+(
+    SELECT MAX(batchItem.EntryDate) EntryDate
+    FROM dbo.OLTracking_ImportBatchItem batchItem
+    WHERE batchItem.ItemID=item.ItemID
+) importDate
+LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID=assignment.UserID
+WHERE assignment.UserID=@EmployeeID
+  AND assignment.IsCurrent=1
+  AND assignment.AssignmentStatus='Pending'
+  AND NOT EXISTS
+  (
+      SELECT 1 FROM dbo.OLTracking_LoanHold loanHold
+      WHERE loanHold.ItemID=item.ItemID AND loanHold.ResumedDate IS NULL
+  )
+ORDER BY assignment.AssignedDate,item.ItemNumber;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.Int, 0, ParameterDirection.Input, employeeId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
+
         public DataTable GetUSLoanProductionMyQueue(int EmployeeID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"

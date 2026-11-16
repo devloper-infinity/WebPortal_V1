@@ -727,7 +727,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDaily["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InIP", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, htDaily["InIP"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["ProductType"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["TrackingProdcutionID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["TrackingProductionID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
 

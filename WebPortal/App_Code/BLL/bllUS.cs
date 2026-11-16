@@ -33,6 +33,11 @@ namespace WebPortal.App_Code.BLL
             return dalUS.GetLoanDetails_RemoteUW_REQC(EmpID);
         }
 
+        public DataTable GetLoanDetailsFromOLTracking(int employeeId)
+        {
+            return dalUS.GetLoanDetailsFromOLTracking(employeeId);
+        }
+
         public DataTable GetUSLoanProductionMyQueue(int EmployeeID)
         {
             return dalUS.GetUSLoanProductionMyQueue(EmployeeID);
