@@ -28,5 +28,5 @@
 <div id="obViewModal" class="modal fade"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content"><div class="modal-header"><div><h5 id="obViewTitle" class="modal-title"></h5><div id="obViewBadges" class="mt-1"></div></div><div><button type="button" class="btn btn-sm btn-primary mr-2" onclick="OB.screenshot()"><i class="fas fa-camera"></i> Take Screenshot</button><button type="button" class="close" data-dismiss="modal">&times;</button></div></div><div class="modal-body"><div id="obViewSummary" class="bulletin-html"></div><div id="obViewDocumentName" class="font-weight-bold mb-2"></div><iframe id="obViewFrame" title="Bulletin document"></iframe></div></div></div></div>
 <div id="obPreviewModal" class="modal fade"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5>Document Preview</h5><button class="close" data-dismiss="modal">&times;</button></div><div class="modal-body p-0"><iframe id="obPreviewFrame" title="Document preview"></iframe></div></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="Bulletin.js?v=11"></script>
+<script src="Bulletin.js?v=12"></script>
 </asp:Content>

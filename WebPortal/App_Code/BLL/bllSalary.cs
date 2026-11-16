@@ -16,6 +16,11 @@ namespace WebPortal.App_Code.BLL
     {
         dalSalary dalSalary = new dalSalary();
 
+        public DataTable CheckUserRejoinee(string firstName, string lastName, string dateOfBirth, string code)
+        {
+            return dalSalary.CheckUserRejoinee(firstName, lastName, dateOfBirth, code);
+        }
+
         public DataSet GetBranchwiseSalaryAnalysis(int branchId)
         {
             return dalSalary.GetBranchwiseSalaryAnalysis(branchId);
@@ -251,6 +256,11 @@ namespace WebPortal.App_Code.BLL
             return dalSalary.GenerateRegularBankFormat(Month, Year, BankName);
         }
 
+        public DataTable GetChequeMasterEmployeeCodes(string Month, string Year, DateTime ChequeDate)
+        {
+            return dalSalary.GetChequeMasterEmployeeCodes(Month, Year, ChequeDate);
+        }
+
         public DataTable GenerateOtherSalaryBankFormat(string Month, string Year, string BankName, string Type)
         {
             return dalSalary.GenerateOtherSalaryBankFormat(Month, Year, BankName, Type);
@@ -264,6 +274,11 @@ namespace WebPortal.App_Code.BLL
         public int InsertChequeDetails(string ChequeNo, decimal Amount, string SalMonth, string SalYear, int EmployeeId, int Addedby, string Ip)
         {
             return dalSalary.InsertChequeDetails(ChequeNo, Amount, SalMonth, SalYear, EmployeeId, Addedby, Ip);
+        }
+
+        public int UpdateHoldRemark(int EmployeeID, string Month, string Year)
+        {
+            return dalSalary.UpdateHoldRemark(EmployeeID, Month, Year);
         }
 
         public DataTable GetOtherThanSalaryRecords(string Month, string year, string Type)

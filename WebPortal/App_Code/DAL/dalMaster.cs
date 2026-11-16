@@ -22,6 +22,31 @@ namespace WebPortal.App_Code.DAL
 {
     public class dalMaster
     {
+        public int UpdateEmployeeInfoForApproved(string code, string approvedDate, string approvedRemark, int approvedBy, string joiningType, string ans1, string ans2, string ans3, string ans4, string ans5, string ans6)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_UpdateEmployeeInfoForApproved");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", SqlDbType.NVarChar, 10, ParameterDirection.Input, code);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedDate", SqlDbType.NVarChar, 100, ParameterDirection.Input, approvedDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedRemark", SqlDbType.NVarChar, 4000, ParameterDirection.Input, approvedRemark);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ApprovedBy", SqlDbType.Int, 0, ParameterDirection.Input, approvedBy);
+            SQLHelper.AddParamToSQLCmd(cmd, "@JoiningType", SqlDbType.NVarChar, 100, ParameterDirection.Input, joiningType);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans1", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans1);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans2", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans2);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans3", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans3);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans4", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans4);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans5", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans5);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Ans6", SqlDbType.NVarChar, 4000, ParameterDirection.Input, ans6);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", SqlDbType.BigInt, 0, ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+            return Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+        }
+
+        public DataTable GetAllEmployeeDetailsForApproved(int employeeId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetAllEmployeeDetailsForApproved");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.BigInt, 0, ParameterDirection.Input, employeeId);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
         public DataTable GetMenuForUser(int UserID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "GetUserMenus");
@@ -702,7 +727,7 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedBy", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, htDaily["AddedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InIP", System.Data.SqlDbType.NVarChar, 2000, System.Data.ParameterDirection.Input, htDaily["InIP"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ProductType", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["ProductType"]);
-            SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["TrackingProdcutionID"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.NVarChar, 200, System.Data.ParameterDirection.Input, htDaily["TrackingProductionID"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
             SQLHelper.ExecuteNonQueryCmd(cmd);
 
@@ -6844,6 +6869,14 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
+        public int GetWFHOnshoreLoginUsers(string userID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetWFHOnshoreLoginUsersCode_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeCode", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, userID);
+            object result = SQLHelper.ExecuteScalarCmd(cmd);
+            return (result != null && result != DBNull.Value) ? Convert.ToInt32(result) : 0;
+        }
+
         #region Petty_Cash
 
         //  private readonly string _cs = ConfigurationManager.ConnectionStrings["constr"].ConnectionString; // change only if your WebPortal connection name differs
@@ -6880,5 +6913,27 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
 
 
         #endregion
+
+        public DataTable getHRInductionQuestionPaper(int EmployeeId)//, string PaperSet)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_getHRQuestionPaper");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeId);
+            //SQLHelper.AddParamToSQLCmd(cmd, "@PaperSet", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, PaperSet);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+        public int InsertHRAnswerSet(Hashtable htParam)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_insertHRAnswerSet");
+            SQLHelper.AddParamToSQLCmd(cmd, "@QuestionId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["QuestionId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Answer", System.Data.SqlDbType.NVarChar, 5000, System.Data.ParameterDirection.Input, htParam["Answer"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Status", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htParam["Status"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, htParam["EmployeeId"]);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
     }
 }

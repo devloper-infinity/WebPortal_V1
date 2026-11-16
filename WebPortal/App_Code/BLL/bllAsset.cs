@@ -190,6 +190,11 @@ namespace WebPortal.App_Code.BLL
             return dalAsset.InsertTicketForSoftware(htTicket);
         }
 
+        public bool UpdateTicketAttachment(int ticketId, string attachment)
+        {
+            return dalAsset.UpdateTicketAttachment(ticketId, attachment);
+        }
+
         public int InsertTicket(Hashtable htTicket)
         {
             return dalAsset.InsertTicket(htTicket);

@@ -98,7 +98,6 @@
     </div>
 </div>
 
-<script src="../bootstrap/js/jquery.dataTables.min.js"></script>
 <script>
 (function(){
     var pageUrl = '<%= ResolveUrl("~/Vendor/ProjectWiseFileList.aspx") %>';
@@ -119,7 +118,20 @@
         });
     }
     $(function(){
-        table = $('#fileTable').DataTable({ paging:false, searching:true, ordering:true, info:false, scrollX:true, scrollY:'55vh', scrollCollapse:true, autoWidth:false, order:[] });
+        table = $('#fileTable').DataTable({
+            paging: false,
+            searching: true,
+            ordering: true,
+            info: false,
+            scrollX: true,
+            scrollY: '55vh',
+            scrollCollapse: true,
+            autoWidth: false,
+            order: [],
+            columnDefs: [
+                { targets: 0, orderable: false, searchable: false, className: 'select-cell' }
+            ]
+        });
         loadCounts(); loadFiles('UnVerify');
         $('input[name=fileType]').on('change', function(){ var t=this.value; $('#statusGroup,#btnAction').toggle(t==='UnVerify'); $('#selectAll').prop('checked',false); loadFiles(t); });
         $('input[name=actionStatus]').on('change', function(){ $('#btnAction').text(this.value==='InProcess'?'Complete Project':'Verify Selected'); });
@@ -179,12 +191,28 @@
         var action=$('input[name=actionStatus]:checked').val();
         if(action==='InProcess'){
             if(!confirm('Complete all pending files for this project?')) return;
-            showLoader(true); call('CompleteProject',{vendorCode:context.vendorCode,invoiceId:context.invoiceId,projectNumber:context.projectNumber}).done(function(r){var x=unwrap(r);showMessage(x.Message,x.Success);if(x.Success){loadCounts();loadFiles('UnVerify');}}).fail(ajaxFail).always(function(){showLoader(false);});
+            completeProject();
             return;
         }
-        var ids=[]; $('.row-check:checked').each(function(){ids.push(parseInt(this.value,10));});
-        if(!ids.length){showMessage('Please select at least one file.',false);return;}
-        showMessage('The legacy page collected selected InvoiceDetailID values but did not save them. Add the existing verification procedure/method before enabling this action.',false);
+        var selectedCount=$('.row-check:checked').length;
+        if(!selectedCount){showMessage('Please select at least one file.',false);return;}
+        if(!confirm('The existing verification procedure works at project level and will verify all pending files for this project. Continue?')) return;
+        completeProject();
+    }
+    function completeProject(){
+        showLoader(true);
+        call('CompleteProject',{vendorCode:context.vendorCode,invoiceId:context.invoiceId,projectNumber:context.projectNumber})
+            .done(function(r){
+                var x=unwrap(r);
+                showMessage(x.Message,x.Success);
+                if(x.Success){
+                    $('#selectAll').prop('checked',false);
+                    loadCounts();
+                    loadFiles('UnVerify');
+                }
+            })
+            .fail(ajaxFail)
+            .always(function(){showLoader(false);});
     }
     function goBack(){ window.location.href='<%= ResolveUrl("ProjectWiseSummary.aspx") %>?VendorCode='+encodeURIComponent(context.vendorCode)+'&InvoiceId='+context.invoiceId; }
     function call(method,data){ return $.ajax({type:'POST',url:pageUrl+'/'+method,data:JSON.stringify(data),contentType:'application/json; charset=utf-8',dataType:'json'}); }

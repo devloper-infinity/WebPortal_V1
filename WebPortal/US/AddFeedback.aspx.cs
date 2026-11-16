@@ -145,6 +145,7 @@ namespace WebPortal.US
             htParam.Add("Source", Source);
             htParam.Add("FeedbackReceivedDate", FeedbackReceivedDate);
             htParam.Add("AddedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            htParam.Add("ProcessID", ProcessID);
 
             ReturnValue = new bllUS().InsertUSImportedFeedback_NewERP(htParam);
 

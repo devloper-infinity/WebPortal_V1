@@ -713,11 +713,22 @@ ORDER BY allocation.UserCode, allocation.OrderNumber, allocation.[Process];");
         public bool BulkAllocationOrderExists(int projectId, string dealNo, string loanNo)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
-SELECT TOP (1) 1
-FROM dbo.OrderData WITH (NOLOCK)
-WHERE ProjectID = @ProjectID
-  AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo))
-  AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(@LoanNo));");
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.OrderData WITH (NOLOCK)
+    WHERE ProjectID = @ProjectID
+      AND LTRIM(RTRIM(ISNULL(DealNo, ''))) = LTRIM(RTRIM(@DealNo))
+      AND LTRIM(RTRIM(ISNULL(LoanNo, ''))) = LTRIM(RTRIM(@LoanNo))
+)
+    SELECT 1;
+ELSE
+    SELECT TOP (1) 1
+    FROM dbo.OLTracking_Item WITH (NOLOCK)
+    WHERE ProjectID = @ProjectID
+      AND IsDeleted = 0
+      AND LTRIM(RTRIM(ISNULL(DealNumber, ''))) = LTRIM(RTRIM(@DealNo))
+      AND LTRIM(RTRIM(ISNULL(ItemNumber, ''))) = LTRIM(RTRIM(@LoanNo));");
 
             SQLHelper.AddParamToSQLCmd(cmd, "@ProjectID", SqlDbType.Int, 0, ParameterDirection.Input, projectId);
             SQLHelper.AddParamToSQLCmd(cmd, "@DealNo", SqlDbType.NVarChar, 500, ParameterDirection.Input, dealNo);

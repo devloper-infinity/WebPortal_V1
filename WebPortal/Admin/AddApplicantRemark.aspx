@@ -1060,9 +1060,10 @@
                         if (AppId1 == null) {
                             AppId1 = urlParams1.get('InResult');
                         }
+                        var urlType = urlParams1.has('InResult') ? 'InResult'
+                            : (urlParams1.has('ShortlistedRemark') ? 'ShortlistedRemark' : 'AppId');
                         //PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, OnSucceed, OnError);
-                        alert(reqvalue);
-                        PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, expjoiningdate, department, designation, manager, shift, cutofftime, otherremark, reqvalue, reqtext, name, position, departmentName, designationName, managerName, OnSucceed, OnError);
+                        PageMethods.InsertApplicantRemark(AppId1, remark, domain, process, status, intdate, inttime, interviewer, method, location, currentsalary, expectedsalary, finalsalary, expjoiningdate, department, designation, manager, shift, cutofftime, otherremark, reqvalue, reqtext, name, position, departmentName, designationName, managerName, urlType, OnSucceed, OnError);
 
                         return false;
 
@@ -1074,7 +1075,9 @@
 
                     }
                     function OnError(error) {
-                        alert(error.responseText);
+                        $('#waitingpanel').modal('hide');
+                        var message = error && error.get_message ? error.get_message() : 'Unable to add the remark.';
+                        alert(message);
                     }
                     </script>
             </div>

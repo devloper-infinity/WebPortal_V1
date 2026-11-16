@@ -179,7 +179,7 @@ namespace WebPortal.Vendor
             try
             {
                 string userId = Convert.ToString(HttpContext.Current.User.Identity.Name);
-                DataTable table = new bllVendors().CompleteInCompleteFile(vendorCode, invoiceId, projectNumber, "Complete", int.Parse(userId));
+                DataTable table = new bllVendors().CompleteInCompleteFile(vendorCode, invoiceId, projectNumber, "Complete", userId);
                 return ApiResponse.Ok(ToRows(table), "Project files completed successfully.");
             }
             catch (Exception ex) { return ApiResponse.Fail(ex.Message); }

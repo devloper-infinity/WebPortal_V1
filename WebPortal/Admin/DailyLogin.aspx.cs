@@ -78,27 +78,50 @@ namespace WebPortal.Admin
         [WebMethod]
         public static string LoginUser()
         {
-            string usercode = new dalMaster().GetCodeFromEmployeeId(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            DateTime currentIst = GetIndianStandardTime(DateTime.UtcNow);
+            string usercode = new dalMaster().GetCodeFromEmployeeId(employeeId);
+            bool hasActiveCutoffException = new bllLogin().GetERPCutoffTimeExceptionsByCode(
+                usercode,
+                currentIst.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture));
+            string cutoffTime;
+
+            if (!hasActiveCutoffException && TryGetConfiguredCutoffTime(employeeId, out cutoffTime))
+            {
+                TimeSpan cutoff;
+                if (TryParseCutoffTime(cutoffTime, out cutoff))
+                {
+                    DateTime cutoffDateTime = currentIst.Date.Add(cutoff);
+                    DateTime loginWindowStart = cutoffDateTime.AddMinutes(-30);
+
+                    if (currentIst < loginWindowStart)
+                    {
+                        return SerializeLoginResult(
+                            false,
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                "Login is allowed only from {0} (30 minutes before the configured cutoff time of {1}) or after the cutoff time.",
+                                loginWindowStart.ToString("hh:mm tt", CultureInfo.InvariantCulture),
+                                cutoffDateTime.ToString("hh:mm tt", CultureInfo.InvariantCulture)),
+                            currentIst);
+                    }
+                }
+            }
 
             Hashtable htAttendance = new Hashtable();
 
             htAttendance.Add("Code", usercode);
             htAttendance.Add("InTime", GetAttendanceTimestamp());
             htAttendance.Add("IpAddress", HttpContext.Current.Request.UserHostAddress);
-            htAttendance.Add("ApprovedBy", int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            htAttendance.Add("ApprovedBy", employeeId);
 
             string ReturnValue =  new bllMaster().ValidateLogin(htAttendance);
             //string ReturnValue = "You Have Successfully Logged In";// 
 
-            var result = new
-            {
-                success = ReturnValue == "You Have Successfully Logged In",
-                message = ReturnValue,
-                currentIst = GetIndianStandardTime(DateTime.UtcNow).ToString("dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)
-            };
-
-            JavaScriptSerializer js = new JavaScriptSerializer();
-            return js.Serialize(result);
+            return SerializeLoginResult(
+                ReturnValue == "You Have Successfully Logged In",
+                ReturnValue,
+                currentIst);
         }
 
         [WebMethod]
@@ -196,6 +219,56 @@ namespace WebPortal.Admin
         private static string GetAttendanceTimestamp()
         {
             return GetIndianStandardTime(DateTime.UtcNow).ToString("MM/dd/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+        }
+
+        private static bool TryGetConfiguredCutoffTime(int employeeId, out string cutoffTime)
+        {
+            cutoffTime = string.Empty;
+            DataTable employee = new bllLogin().GetUserInformation(employeeId);
+
+            if (employee == null || employee.Rows.Count == 0 || !employee.Columns.Contains("CutOffTime"))
+            {
+                return false;
+            }
+
+            cutoffTime = Convert.ToString(employee.Rows[0]["CutOffTime"]).Trim();
+            return cutoffTime.Length > 0;
+        }
+
+        private static bool TryParseCutoffTime(string value, out TimeSpan cutoff)
+        {
+            DateTime parsed;
+            string[] formats =
+            {
+                "H:mm", "HH:mm", "H:mm:ss", "HH:mm:ss",
+                "h:mm tt", "hh:mm tt", "h:mm:ss tt", "hh:mm:ss tt"
+            };
+
+            if (DateTime.TryParseExact(
+                value.Trim(),
+                formats,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AllowWhiteSpaces,
+                out parsed))
+            {
+                cutoff = parsed.TimeOfDay;
+                return true;
+            }
+
+            cutoff = TimeSpan.Zero;
+            return false;
+        }
+
+        private static string SerializeLoginResult(bool success, string message, DateTime currentIst)
+        {
+            var result = new
+            {
+                success = success,
+                message = message,
+                currentIst = currentIst.ToString("dd-MMM-yyyy HH:mm:ss", CultureInfo.InvariantCulture)
+            };
+
+            return new JavaScriptSerializer().Serialize(result);
         }
     }
 }

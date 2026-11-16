@@ -73,6 +73,22 @@
       <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="office, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Vbe.Interop, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -126,6 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Accounts\BranchwiseSalaryAnalysis.aspx" />
+    <Content Include="Accounts\ApprovedEmployee.aspx" />
+    <Content Include="Accounts\ProfileApproval.aspx" />
     <Content Include="Accounts\DiwaliExpenses.aspx" />
     <Content Include="Accounts\AdvanceMaster.aspx" />
     <Content Include="Accounts\BonusMaster.aspx" />
@@ -147,6 +165,7 @@
     <Content Include="Admin\AutoBilling.aspx" />
     <Content Include="Admin\BuybackSettlement.aspx" />
     <Content Include="Admin\ExpensesAdmin.aspx" />
+    <Content Include="Admin\HRQuestionPaper.aspx" />
     <Content Include="Admin\PettyCashApproval.aspx" />
     <Content Include="Admin\PettyCashCategoryMaster.aspx" />
     <Content Include="Admin\PettyCashDashboard.aspx" />
@@ -971,6 +990,8 @@
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
+    <Content Include="Scripts\US\DownloadInvoice.js" />
+    <Content Include="Scripts\US\OnshoreDailyLogin.js" />
     <Content Include="Scripts\US\ResetPasswordSegment.js" />
     <Content Include="SoftwareRequests\Dashboard.aspx" />
     <Content Include="SoftwareRequests\NewRequest.aspx" />
@@ -3079,8 +3100,11 @@
     <Content Include="US\ConditionClearing.aspx" />
     <Content Include="US\ConditionClearingReport.aspx" />
     <Content Include="US\CreditConsolidatedReport.aspx" />
+    <Content Include="US\DailyLogin.aspx" />
     <Content Include="US\Dashboard.aspx" />
     <Content Include="US\CanopySearch.aspx" />
+    <Content Include="US\DownloadInvoice.aspx" />
+    <Content Include="US\EditDailyLogin.aspx" />
     <Content Include="US\LMSearch.aspx" />
     <Content Include="US\ResetPasswordSegment.aspx" />
     <Content Include="US\SetAppreciationDisciplinaryAction.aspx" />
@@ -3217,6 +3241,13 @@
     <Compile Include="Admin\AutoBilling.aspx.designer.cs">
       <DependentUpon>AutoBilling.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Admin\HRQuestionPaper.aspx.cs">
+      <DependentUpon>HRQuestionPaper.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HRQuestionPaper.aspx.designer.cs">
+      <DependentUpon>HRQuestionPaper.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Admin\OtherTask.Report.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -3309,6 +3340,7 @@
     </Compile>
     <Compile Include="App_Code\Class\ActivityCategorycls.cs" />
     <Compile Include="App_Code\RnrFeedbackRepository.cs" />
+    <Compile Include="App_Code\ChannelMasterAlertRepository.cs" />
     <Compile Include="App_Code\PendingDataRepository.cs" />
     <Compile Include="App_Code\UnderwritingBillingValidationService.cs" />
     <Compile Include="OperationsBulletin\UserHistory.aspx.cs">
@@ -3363,6 +3395,7 @@
     </Compile>
     <Compile Include="Admin\ExcelCrossCheckEngine.cs" />
     <Compile Include="Admin\DashboardValidatorEngine.cs" />
+    <Compile Include="Admin\DashboardPythonRunner.cs" />
     <Compile Include="Admin\FestivalsWishesMasterForAdmin.aspx.cs">
       <DependentUpon>FestivalsWishesMasterForAdmin.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -3433,6 +3466,20 @@
     <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.cs">
       <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\ApprovedEmployee.aspx.cs">
+      <DependentUpon>ApprovedEmployee.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\ApprovedEmployee.aspx.designer.cs">
+      <DependentUpon>ApprovedEmployee.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Accounts\ProfileApproval.aspx.cs">
+      <DependentUpon>ProfileApproval.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Accounts\ProfileApproval.aspx.designer.cs">
+      <DependentUpon>ProfileApproval.aspx</DependentUpon>
     </Compile>
     <Compile Include="Accounts\BranchwiseSalaryAnalysis.aspx.designer.cs">
       <DependentUpon>BranchwiseSalaryAnalysis.aspx</DependentUpon>
@@ -5950,6 +5997,13 @@
     <Compile Include="US\CreditConsolidatedReport.aspx.designer.cs">
       <DependentUpon>CreditConsolidatedReport.aspx</DependentUpon>
     </Compile>
+    <Compile Include="US\DailyLogin.aspx.cs">
+      <DependentUpon>DailyLogin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\DailyLogin.aspx.designer.cs">
+      <DependentUpon>DailyLogin.aspx</DependentUpon>
+    </Compile>
     <Compile Include="US\Dashboard.aspx.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5963,6 +6017,20 @@
     </Compile>
     <Compile Include="US\CanopySearch.aspx.designer.cs">
       <DependentUpon>CanopySearch.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\DownloadInvoice.aspx.cs">
+      <DependentUpon>DownloadInvoice.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\DownloadInvoice.aspx.designer.cs">
+      <DependentUpon>DownloadInvoice.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\EditDailyLogin.aspx.cs">
+      <DependentUpon>EditDailyLogin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\EditDailyLogin.aspx.designer.cs">
+      <DependentUpon>EditDailyLogin.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\LMSearch.aspx.cs">
       <DependentUpon>LMSearch.aspx</DependentUpon>
@@ -6445,6 +6513,9 @@
     <Content Include="Templates\Appointment Letter.dotx" />
     <Content Include="Templates\Confirmation letter1.dotx" />
     <Content Include="Templates\DashboardValidatorTemplate.xlsx" />
+    <Content Include="App_Data\DashboardValidator\prp_to_cleanup.py" />
+    <Content Include="App_Data\DashboardValidator\validate_dc.py" />
+    <Content Include="App_Data\DashboardValidator\pythonlibs\**\*.*" />
     <Content Include="Templates\IdemnityBond.dotx" />
     <Content Include="Templates\Appendix-A-Version1.dotx" />
     <Content Include="Templates\Employee Agreement Version 3-2023 ForAll.dotx" />
@@ -6511,44 +6582,6 @@
     <Folder Include="SoftwareRequests\Configuration\" />
     <Folder Include="TempFiles\" />
   </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="Microsoft.Office.Core">
-      <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>8</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="Microsoft.Office.Interop.Excel">
-      <Guid>{00020813-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>9</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="Microsoft.Office.Interop.Word">
-      <Guid>{00020905-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>8</VersionMajor>
-      <VersionMinor>7</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="VBIDE">
-      <Guid>{0002E157-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>5</VersionMajor>
-      <VersionMinor>3</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -6574,6 +6607,47 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNet.SignalR.Core">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.4.3\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.SystemWeb">
+      <HintPath>..\packages\Microsoft.AspNet.SignalR.SystemWeb.2.4.3\lib\net45\Microsoft.AspNet.SignalR.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin">
+      <HintPath>..\packages\Microsoft.Owin.2.1.0\lib\net45\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Host.SystemWeb">
+      <HintPath>..\packages\Microsoft.Owin.Host.SystemWeb.2.1.0\lib\net45\Microsoft.Owin.Host.SystemWeb.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Owin.Security">
+      <HintPath>..\packages\Microsoft.Owin.Security.2.1.0\lib\net45\Microsoft.Owin.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin">
+      <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Code\ChatRepository.cs" />
+    <Compile Include="Chat\Chat.aspx.cs">
+      <DependentUpon>Chat.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Chat\ChatApi.ashx.cs">
+      <DependentUpon>ChatApi.ashx</DependentUpon>
+    </Compile>
+    <Compile Include="Chat\ChatHub.cs" />
+    <Compile Include="Chat\Startup.cs" />
+    <Content Include="Chat\Chat.aspx" />
+    <Content Include="Chat\ChatApi.ashx" />
+    <Content Include="Chat\Chat.css" />
+    <Content Include="Chat\ChatGroup.css" />
+    <Content Include="Chat\Chat.js" />
+    <Content Include="Scripts\jquery.signalR-2.4.3.min.js" />
+    <Content Include="DatabaseScripts\Chat_001_Phase1.sql" />
+    <Content Include="DatabaseScripts\Chat_002_LegacyCompatibility.sql" />
+    <Content Include="DatabaseScripts\Chat_003_SubdomainTextMigration.sql" />
+  </ItemGroup>
   <Target Name="CheckHRReportRequestTimeout" BeforeTargets="CoreCompile">
     <PropertyGroup>
       <HRReportSourceText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\Admin\HRReport.aspx.cs'))</HRReportSourceText>

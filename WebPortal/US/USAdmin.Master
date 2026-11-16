@@ -257,6 +257,22 @@
                                 <a href="MyQueue.aspx" class="nav-link">My Queue</a>
                             </li>
                         </ul>
+
+
+                              <ul class="navbar-nav" style="display: none;">
+           <li class="nav-item dropdown">
+      <a  href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle">Billing</a>
+      <ul aria-labelledby="Billing" class="dropdown-menu border-0 shadow">
+          <li><a href="DailyLogin.aspx" class="dropdown-item">Daily Login</a></li>
+          <li><a href="EditDailyLogin.aspx" class="dropdown-item">Edit Daily Login</a></li>
+                    <li><a href="DownloadInvoice.aspx" class="dropdown-item">Download Invoice</a></li>
+
+      </ul>
+  </li>
+      </ul>
+
+
+
                         <ul class="navbar-nav" style="display: none;">
                             <li class="nav-item" style="display: none;">
                                 <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>

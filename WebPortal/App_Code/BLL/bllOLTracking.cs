@@ -96,6 +96,8 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetUserDailyStatus(int userId, int processId, DateTime? from, DateTime? to) { return dal.GetUserDailyStatus(userId, processId, from, to); }
         public DataTable GetUserDailyProcesses(int userId) { return dal.GetUserDailyProcesses(userId); }
         public DataTable GetHourlyProductivityEntries(int projectId, DateTime from, DateTime to) { return dal.GetHourlyProductivityEntries(projectId, from, to); }
+        public DataTable GetDailyProductivityForUser(DateTime productivityDate, int userId, int domainId)
+        { return dal.GetDailyProductivityForUser(productivityDate, userId, domainId); }
         public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
         public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId) { return dal.GetEligibleLoans(projectId, dealNumber, processId); }
        

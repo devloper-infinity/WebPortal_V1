@@ -11,6 +11,15 @@ namespace WebPortal.App_Code.DAL
 {
     public class dalSalary
     {
+        public DataTable CheckUserRejoinee(string firstName, string lastName, string dateOfBirth, string code)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_GetCheckRejoinee");
+            SQLHelper.AddParamToSQLCmd(cmd, "@FirstName", SqlDbType.NVarChar, 100, ParameterDirection.Input, firstName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LastName", SqlDbType.NVarChar, 100, ParameterDirection.Input, lastName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DateOfBirth", SqlDbType.NVarChar, 100, ParameterDirection.Input, dateOfBirth);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Code", SqlDbType.NVarChar, 100, ParameterDirection.Input, code);
+            return SQLHelper.ExecuteDataTableCmd(cmd);
+        }
         public DataSet GetBranchwiseSalaryAnalysis(int branchId)
         {
             SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "usp_getBranchwiseSalaryAnalysis");
@@ -529,6 +538,24 @@ namespace WebPortal.App_Code.DAL
             return dt;
         }
 
+        public DataTable GetChequeMasterEmployeeCodes(string Month, string Year, DateTime ChequeDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+                SELECT DISTINCT employee.Code
+                FROM dbo.ChequeMaster cheque
+                INNER JOIN dbo.EmployeeInfo employee ON employee.EmployeeID = cheque.EmployeeID
+                WHERE cheque.[Month] = @Month
+                  AND cheque.[Year] = @Year
+                  AND CONVERT(date, cheque.AddedDate) = @ChequeDate");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Month", SqlDbType.NVarChar, 100, ParameterDirection.Input, Month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", SqlDbType.NVarChar, 100, ParameterDirection.Input, Year);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ChequeDate", SqlDbType.Date, 0, ParameterDirection.Input, ChequeDate.Date);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            if (dt == null)
+                throw new InvalidOperationException("Unable to read cheque details from ChequeMaster.");
+            return dt;
+        }
+
         public DataTable GenerateOtherSalaryBankFormat(string Month, string Year, string BankName, string Type)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GenerateAxisBankFormatOtherThanSalary_Revised"); //"usp_PrepareCheque_GetIncrementDifferenceRecords"
@@ -558,6 +585,20 @@ namespace WebPortal.App_Code.DAL
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeId", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeId);
             SQLHelper.AddParamToSQLCmd(cmd, "@Addedby", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, Addedby);
             SQLHelper.AddParamToSQLCmd(cmd, "@AddedIP", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, Ip);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
+
+            SQLHelper.ExecuteNonQueryCmd(cmd);
+
+            int ReturnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+            return ReturnValue;
+        }
+
+        public int UpdateHoldRemark(int EmployeeID, string Month, string Year)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateHold_NewJoineeRemark");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.Input, EmployeeID);
+            SQLHelper.AddParamToSQLCmd(cmd, "@month", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Month);
+            SQLHelper.AddParamToSQLCmd(cmd, "@Year", System.Data.SqlDbType.NVarChar, 50, System.Data.ParameterDirection.Input, Year);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReturnValue", System.Data.SqlDbType.BigInt, 0, System.Data.ParameterDirection.ReturnValue, null);
 
             SQLHelper.ExecuteNonQueryCmd(cmd);

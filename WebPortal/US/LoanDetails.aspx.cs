@@ -22,7 +22,10 @@ namespace WebPortal.US
         [WebMethod]
         public static string GetLoanDetails_RemoteUW_REQC()
         {
-            DataTable dt1 = new bllUS().GetLoanDetails_RemoteUW_REQC(int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            bllUS loans = new bllUS();
+            DataTable dt1 = loans.GetLoanDetails_RemoteUW_REQC(employeeId);
+            DataTable trackerLoans = loans.GetLoanDetailsFromOLTracking(employeeId);
 
             List<Dictionary<string, object>> columns = new List<Dictionary<string, object>>();
             Dictionary<string, object> column;
@@ -49,6 +52,16 @@ namespace WebPortal.US
                     rows.Add(row);
                 }
             }
+            if (trackerLoans != null)
+            {
+                HashSet<string> existing = new HashSet<string>(rows.Select(LoanKey), StringComparer.OrdinalIgnoreCase);
+                foreach (DataRow dr in trackerLoans.Rows)
+                {
+                    row = new Dictionary<string, object>();
+                    foreach (DataColumn col in trackerLoans.Columns) row[col.ColumnName] = dr[col];
+                    if (existing.Add(LoanKey(row))) rows.Add(row);
+                }
+            }
             JavaScriptSerializer ser = new JavaScriptSerializer();
             ser.MaxJsonLength = int.MaxValue;
             return ser.Serialize(rows);
@@ -56,7 +69,7 @@ namespace WebPortal.US
 
 
         [WebMethod]
-        public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review)
+        public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, long AssignmentID)
         {
             DateTime startDateTime = DateTime.Now;
             int ReturnValue = SaveLoanTiming(
@@ -73,6 +86,8 @@ namespace WebPortal.US
 
             if (ReturnValue > 0)
             {
+                if (AssignmentID > 0)
+                    new bllOLTracking().StartLoan(AssignmentID, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 SaveLoanProductionTrack(
                     "Start",
                     ProcessID,
@@ -88,6 +103,18 @@ namespace WebPortal.US
             }
 
             return ReturnValue;
+        }
+
+        private static string LoanKey(Dictionary<string, object> row)
+        {
+            return KeyValue(row, "ProjectNo") + "|" + KeyValue(row, "DealNo") + "|" +
+                   KeyValue(row, "LoanNo") + "|" + KeyValue(row, "ProcessID1");
+        }
+
+        private static string KeyValue(Dictionary<string, object> row, string key)
+        {
+            object value;
+            return row.TryGetValue(key, out value) ? Convert.ToString(value).Trim() : string.Empty;
         }
 
         [WebMethod]
