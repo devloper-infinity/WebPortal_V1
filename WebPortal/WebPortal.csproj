@@ -953,6 +953,8 @@
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
+    <Content Include="Scripts\US\DownloadInvoice.js" />
+    <Content Include="Scripts\US\OnshoreDailyLogin.js" />
     <Content Include="Scripts\US\ResetPasswordSegment.js" />
     <Content Include="SoftwareRequests\Dashboard.aspx" />
     <Content Include="SoftwareRequests\NewRequest.aspx" />
@@ -3061,8 +3063,11 @@
     <Content Include="US\ConditionClearing.aspx" />
     <Content Include="US\ConditionClearingReport.aspx" />
     <Content Include="US\CreditConsolidatedReport.aspx" />
+    <Content Include="US\DailyLogin.aspx" />
     <Content Include="US\Dashboard.aspx" />
     <Content Include="US\CanopySearch.aspx" />
+    <Content Include="US\DownloadInvoice.aspx" />
+    <Content Include="US\EditDailyLogin.aspx" />
     <Content Include="US\LMSearch.aspx" />
     <Content Include="US\ResetPasswordSegment.aspx" />
     <Content Include="US\SetAppreciationDisciplinaryAction.aspx" />
@@ -5887,6 +5892,13 @@
     <Compile Include="US\CreditConsolidatedReport.aspx.designer.cs">
       <DependentUpon>CreditConsolidatedReport.aspx</DependentUpon>
     </Compile>
+    <Compile Include="US\DailyLogin.aspx.cs">
+      <DependentUpon>DailyLogin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\DailyLogin.aspx.designer.cs">
+      <DependentUpon>DailyLogin.aspx</DependentUpon>
+    </Compile>
     <Compile Include="US\Dashboard.aspx.cs">
       <DependentUpon>Dashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -5900,6 +5912,20 @@
     </Compile>
     <Compile Include="US\CanopySearch.aspx.designer.cs">
       <DependentUpon>CanopySearch.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\DownloadInvoice.aspx.cs">
+      <DependentUpon>DownloadInvoice.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\DownloadInvoice.aspx.designer.cs">
+      <DependentUpon>DownloadInvoice.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="US\EditDailyLogin.aspx.cs">
+      <DependentUpon>EditDailyLogin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="US\EditDailyLogin.aspx.designer.cs">
+      <DependentUpon>EditDailyLogin.aspx</DependentUpon>
     </Compile>
     <Compile Include="US\LMSearch.aspx.cs">
       <DependentUpon>LMSearch.aspx</DependentUpon>

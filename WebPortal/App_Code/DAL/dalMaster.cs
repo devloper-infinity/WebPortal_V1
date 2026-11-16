@@ -6832,6 +6832,14 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
+        public int GetWFHOnshoreLoginUsers(string userID)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetWFHOnshoreLoginUsersCode_YTU");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeCode", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, userID);
+            object result = SQLHelper.ExecuteScalarCmd(cmd);
+            return (result != null && result != DBNull.Value) ? Convert.ToInt32(result) : 0;
+        }
+
         #region Petty_Cash
 
         //  private readonly string _cs = ConfigurationManager.ConnectionStrings["constr"].ConnectionString; // change only if your WebPortal connection name differs

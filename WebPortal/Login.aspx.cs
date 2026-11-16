@@ -455,6 +455,16 @@ namespace WebPortal
                     //Password = Request.Form[PwdKey].ToUpper();
 
 
+                    //************************* Arti Changes(YTU)******************************//
+                    int userCount = new bllMaster().GetWFHOnshoreLoginUsers(userID);
+                    if (userCount > 0)
+                    {
+                        Response.Redirect("~/US/DailyLogin.aspx");
+                    }
+
+
+
+
                     if (returnUrl == null)
                     {
                         Response.Redirect("~/Login.aspx", true);

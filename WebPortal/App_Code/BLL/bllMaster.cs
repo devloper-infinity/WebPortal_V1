@@ -2908,7 +2908,10 @@ namespace WebPortal.App_Code.BLL
         {
             return dalMaster.GetAllComplaintsAndSuggestions();
         }
-
+        public int GetWFHOnshoreLoginUsers(string userID)
+        {
+            return dalMaster.GetWFHOnshoreLoginUsers(userID);
+        }
 
         #region Petty_Cash
         public DataTable GetEmployees() { return dalMaster.ExecuteTable("usp_PettyCashEmployee_List"); }

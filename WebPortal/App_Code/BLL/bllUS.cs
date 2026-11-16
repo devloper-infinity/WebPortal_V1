@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Web;
 using WebPortal.App_Code.Class;
 using WebPortal.App_Code.DAL;
@@ -332,5 +333,88 @@ namespace WebPortal.App_Code.BLL
         }
         #endregion
 
+
+        /*----- From Aarti (YTU) -----*/
+
+        public DataTable GetOnshoreDailyLogs(int EmployeeID)
+        {
+            return dalUS.GetOnshoreDailyLogs(EmployeeID);
+        }
+
+        public DataTable GetOnshoreDailyLogsBreakInOut(int employeeID)
+        {
+            return dalUS.GetOnshoreDailyLogsBreakInOut(employeeID);
+        }
+        public string AddOnshorelogin(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.AddOnshorelogin(htOnshoreAttendance);
+        }
+        public string AddOnshoreLogout(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.AddOnshoreLogout(htOnshoreAttendance);
+        }
+        public string AddOnshoreBreakIn(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.AddOnshoreBreakIn(htOnshoreAttendance);
+        }
+
+        public string AddOnshoreBreakOut(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.AddOnshoreBreakOut(htOnshoreAttendance);
+        }
+
+        public DataTable GetAllEmpOnshoreDailyLogs()
+        {
+            return dalUS.GetAllEmpOnshoreDailyLogs();
+        }
+
+        public string UpdateOnshorelogin(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.UpdateOnshorelogin(htOnshoreAttendance);
+        }
+
+        public string UpdateOnshoreBreakInOut(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.UpdateOnshoreBreakInOut(htOnshoreAttendance);
+        }
+
+        public string DeleteUserWiseOnshoreDailyLogin(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.DeleteUserWiseOnshoreDailyLogin(htOnshoreAttendance);
+        }
+        public string DeleteUserWiseOnshoreDailyBreakInOut(Hashtable htOnshoreAttendance)
+        {
+            return dalUS.DeleteUserWiseOnshoreDailyBreakInOut(htOnshoreAttendance);
+        }
+        public DataTable GetOnshoreEditDailyLogsBreakInOut(string ID,string Code)
+        {
+            return dalUS.GetOnshoreEditDailyLogsBreakInOut(ID, Code);
+        }
+
+        public DataTable GetAllLogInOutDataForInvoice()
+        {
+            return dalUS.GetAllLogInOutDataForInvoice();
+        }
+
+
+        public DataTable GetUserWiseLogInOutDataForInvoice(string Code, string StartDate, string EndDate)
+        {
+            return dalUS.GetUserWiseLogInOutDataForInvoice(Code, StartDate, EndDate);
+        }
+
+        public DataTable GetAllUSLoanProductionTrack(string EmpName, string StartDate, string EndDate)
+        {
+            return dalUS.GetAllUSLoanProductionTrack(EmpName, StartDate, EndDate);
+        }
+
+        public DataTable GetAllNonProductiveHoursForInvoice(string Code, string StartDate, string EndDate)
+        {
+            return dalUS.GetAllNonProductiveHoursForInvoice(Code, StartDate, EndDate);
+        }
+
+        public DataTable GetVendorsInformation(string EmpName)
+        {
+            return dalUS.GetVendorsInformation(EmpName);
+        }
     }
 }
