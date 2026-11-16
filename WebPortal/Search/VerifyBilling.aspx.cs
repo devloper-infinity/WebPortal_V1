@@ -567,10 +567,8 @@ namespace WebPortal.Search
 
                 if (!string.IsNullOrWhiteSpace(Remark))
                 {
-                    string encodedRemark = System.Web.HttpUtility.HtmlEncode(Remark.Trim())
-                        .Replace("\r\n", "<br />")
-                        .Replace("\n", "<br />")
-                        .Replace("\r", "<br />");
+                    string encodedRemark = System.Web.HttpUtility.HtmlEncode(Remark.Trim()).Replace("\r\n", "<br />").Replace("\n", "<br />").Replace("\r", "<br />");
+                    
                     htmlBody.AppendFormat(
                         @"<tr><td style='padding:8px 30px 16px;'>
                             <div style='color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:700;'>Verification Remark</div>
