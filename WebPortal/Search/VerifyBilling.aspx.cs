@@ -1451,7 +1451,7 @@ namespace WebPortal.Search
 
         public static DataTable GetSummaryProjectWise_Date(string ProjectNo, string FromDate, string ToDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_DateWise_Billing");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_OST_GetAllInfinityOrderStatus_DateWise_Billing_NewERP");
             SQLHelper.AddParamToSQLCmd(cmd, "@CurrentDate", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, FromDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, ToDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", System.Data.SqlDbType.NVarChar, 1000, System.Data.ParameterDirection.Input, ProjectNo);
@@ -1522,7 +1522,7 @@ namespace WebPortal.Search
             DataTable dtCheck = GetSearchTaxOrders_AutoBilling(ProjectID, BillingPeriod);
             if (dtCheck.Rows.Count > 0)
             {
-               
+
                 DataTable dt = GetOrderForEmailExcel(ProjectNo, BillingPeriod);
                 DataTable summaryForEmail = GetSummaryProjectWise_Date(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());
                 DataTable costEmailDetails = GetCostEmailDetails(ProjectID, BillingPeriod);
