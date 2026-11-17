@@ -658,6 +658,12 @@ namespace WebPortal
         {
             return MfaLoginService.ResendEmail();
         }
+
+        [System.Web.Services.WebMethod(EnableSession = true)]
+        public static object BeginAuthenticatorReset()
+        {
+            return MfaLoginService.BeginAuthenticatorReset();
+        }
     }
 
     public static class MfaLoginService
@@ -727,31 +733,76 @@ namespace WebPortal
 
         public static object Verify(string code)
         {
-            if (!HasPendingLogin()) return Expired();
-            code = (code ?? "").Trim();
-            if (!System.Text.RegularExpressions.Regex.IsMatch(code, "^[0-9]{6}$")) return Error("Enter a valid 6-digit code.");
-            int attempts = Convert.ToInt32(Session("MfaAttempts") ?? 0) + 1; Session("MfaAttempts", attempts);
-            if (attempts > 5) { ClearPending(); return Error("Too many attempts. Please sign in again."); }
+            try
+            {
+                if (!HasPendingLogin()) return Expired();
+                code = (code ?? "").Trim();
+                if (!System.Text.RegularExpressions.Regex.IsMatch(code, "^[0-9]{6}$")) return Error("Enter a valid 6-digit code.");
+                int attempts = Convert.ToInt32(Session("MfaAttempts") ?? 0) + 1; Session("MfaAttempts", attempts);
+                if (attempts > 5) { ClearPending(); return Error("Too many attempts. Please sign in again."); }
 
-            long employeeId = Convert.ToInt64(Session("MfaEmployeeId"));
-            string method = Convert.ToString(Session("MfaMethod"));
-            bool valid = false;
-            if (method == "Email")
-            {
-                DateTime expiry; DateTime.TryParse(Convert.ToString(Session("MfaOtpExpires")), out expiry);
-                valid = DateTime.UtcNow <= expiry && FixedEquals(code, Convert.ToString(Session("MfaEmailOtp")));
+                long employeeId = Convert.ToInt64(Session("MfaEmployeeId"));
+                string method = Convert.ToString(Session("MfaMethod"));
+                bool valid = false;
+                bool reset = Convert.ToBoolean(Session("MfaAuthenticatorReset") ?? false);
+                if (method == "Email")
+                {
+                    DateTime expiry; DateTime.TryParse(Convert.ToString(Session("MfaOtpExpires")), out expiry);
+                    valid = DateTime.UtcNow <= expiry && FixedEquals(code, Convert.ToString(Session("MfaEmailOtp")));
+                }
+                else if (method == "Authenticator")
+                {
+                    string secret = Convert.ToString(Session("MfaSetupSecret"));
+                    bool setup = secret.Length > 0;
+                    if (!setup) { DataRow row = GetSetting(employeeId); secret = row == null ? "" : Unprotect(Convert.ToString(row["AuthenticatorSecret"])); }
+                    valid = VerifyTotp(secret, code);
+                    if (valid && setup)
+                    {
+                        if (reset && !SaveAuthenticatorReset(employeeId, secret))
+                            return Error("Your one-time Authenticator reset is no longer available.");
+                        if (!reset) SaveSetting(employeeId, "Authenticator", secret);
+                    }
+                }
+                if (!valid) return Error("Invalid or expired verification code.");
+                if (method == "Email") SaveSetting(employeeId, "Email", null);
+                return CompleteLogin();
             }
-            else if (method == "Authenticator")
+            catch (Exception ex)
             {
-                string secret = Convert.ToString(Session("MfaSetupSecret"));
-                bool setup = secret.Length > 0;
-                if (!setup) { DataRow row = GetSetting(employeeId); secret = row == null ? "" : Unprotect(Convert.ToString(row["AuthenticatorSecret"])); }
-                valid = VerifyTotp(secret, code);
-                if (valid && setup) SaveSetting(employeeId, "Authenticator", secret);
+                System.Diagnostics.Trace.TraceError("MFA verification failed: {0}", ex);
+                long employeeId;
+                bool resetEligible = long.TryParse(Convert.ToString(Session("MfaEmployeeId")), out employeeId)
+                    && IsAuthenticatorResetAvailable(employeeId);
+                return new { status = "error", message = "Server error while verifying Authenticator MFA.", resetEligible = resetEligible };
             }
-            if (!valid) return Error("Invalid or expired verification code.");
-            if (method == "Email") SaveSetting(employeeId, "Email", null);
-            return CompleteLogin();
+        }
+
+        public static object BeginAuthenticatorReset()
+        {
+            try
+            {
+                if (!HasPendingLogin()) return Expired();
+                long employeeId = Convert.ToInt64(Session("MfaEmployeeId"));
+                DataRow setting = GetSetting(employeeId);
+                if (setting == null || !string.Equals(Convert.ToString(setting["MfaMethod"]), "Authenticator", StringComparison.Ordinal))
+                    return Error("Authenticator MFA is not registered for this account.");
+                if (Convert.ToBoolean(setting["AuthenticatorResetUsed"]))
+                    return Error("The one-time Authenticator reset has already been used.");
+
+                string secret = GenerateBase32Secret();
+                Session("MfaMethod", "Authenticator");
+                Session("MfaSetupSecret", secret);
+                Session("MfaAuthenticatorReset", true);
+                Session("MfaAttempts", 0);
+                string user = Convert.ToString(Session("MfaUserName"));
+                string uri = "otpauth://totp/Infinity%20ERP:" + HttpUtility.UrlEncode(user) + "?secret=" + secret + "&issuer=Infinity%20ERP&digits=6&period=30";
+                return new { status = "authenticator_setup", secret = secret, uri = uri, reset = true };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Authenticator reset initialization failed: {0}", ex);
+                return Error("Unable to start the Authenticator reset. Please try again.");
+            }
         }
 
         public static object ResendEmail()
@@ -805,13 +856,13 @@ namespace WebPortal
 
         private static void EnsureTable()
         {
-            const string sql = @"IF OBJECT_ID('dbo.EmployeeMfaSetting','U') IS NULL BEGIN CREATE TABLE dbo.EmployeeMfaSetting(EmployeeID bigint NOT NULL PRIMARY KEY,MfaMethod varchar(20) NOT NULL,AuthenticatorSecret varchar(500) NULL,IsEnabled bit NOT NULL CONSTRAINT DF_EmployeeMfaSetting_IsEnabled DEFAULT(1),CreatedOn datetime2 NOT NULL CONSTRAINT DF_EmployeeMfaSetting_CreatedOn DEFAULT(SYSUTCDATETIME()),UpdatedOn datetime2 NOT NULL CONSTRAINT DF_EmployeeMfaSetting_UpdatedOn DEFAULT(SYSUTCDATETIME()),CONSTRAINT FK_EmployeeMfaSetting_EmployeeInfo FOREIGN KEY(EmployeeID) REFERENCES dbo.EmployeeInfo(EmployeeID),CONSTRAINT CK_EmployeeMfaSetting_Method CHECK(MfaMethod IN('Authenticator','Email'))); END";
+            const string sql = @"IF OBJECT_ID('dbo.EmployeeMfaSetting','U') IS NULL BEGIN CREATE TABLE dbo.EmployeeMfaSetting(EmployeeID bigint NOT NULL PRIMARY KEY,MfaMethod varchar(20) NOT NULL,AuthenticatorSecret varchar(500) NULL,IsEnabled bit NOT NULL CONSTRAINT DF_EmployeeMfaSetting_IsEnabled DEFAULT(1),AuthenticatorResetUsed bit NOT NULL CONSTRAINT DF_EmployeeMfaSetting_AuthenticatorResetUsed DEFAULT(0),AuthenticatorResetOn datetime2 NULL,CreatedOn datetime2 NOT NULL CONSTRAINT DF_EmployeeMfaSetting_CreatedOn DEFAULT(SYSUTCDATETIME()),UpdatedOn datetime2 NOT NULL CONSTRAINT DF_EmployeeMfaSetting_UpdatedOn DEFAULT(SYSUTCDATETIME()),CONSTRAINT FK_EmployeeMfaSetting_EmployeeInfo FOREIGN KEY(EmployeeID) REFERENCES dbo.EmployeeInfo(EmployeeID),CONSTRAINT CK_EmployeeMfaSetting_Method CHECK(MfaMethod IN('Authenticator','Email'))); END ELSE BEGIN IF COL_LENGTH('dbo.EmployeeMfaSetting','AuthenticatorResetUsed') IS NULL ALTER TABLE dbo.EmployeeMfaSetting ADD AuthenticatorResetUsed bit NOT NULL CONSTRAINT DF_EmployeeMfaSetting_AuthenticatorResetUsed DEFAULT(0); IF COL_LENGTH('dbo.EmployeeMfaSetting','AuthenticatorResetOn') IS NULL ALTER TABLE dbo.EmployeeMfaSetting ADD AuthenticatorResetOn datetime2 NULL; END";
             using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand(sql, con)) { con.Open(); cmd.ExecuteNonQuery(); }
         }
 
         private static DataRow GetSetting(long id)
         {
-            DataTable table = new DataTable(); using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand("SELECT MfaMethod,AuthenticatorSecret FROM dbo.EmployeeMfaSetting WHERE EmployeeID=@ID AND IsEnabled=1", con)) using (SqlDataAdapter adapter = new SqlDataAdapter(cmd)) { cmd.Parameters.Add("@ID", SqlDbType.BigInt).Value = id; adapter.Fill(table); }
+            DataTable table = new DataTable(); using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand("SELECT MfaMethod,AuthenticatorSecret,AuthenticatorResetUsed FROM dbo.EmployeeMfaSetting WHERE EmployeeID=@ID AND IsEnabled=1", con)) using (SqlDataAdapter adapter = new SqlDataAdapter(cmd)) { cmd.Parameters.Add("@ID", SqlDbType.BigInt).Value = id; adapter.Fill(table); }
             return table.Rows.Count == 0 ? null : table.Rows[0];
         }
 
@@ -821,12 +872,41 @@ namespace WebPortal
             using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString)) using (SqlCommand cmd = new SqlCommand(sql, con)) { cmd.Parameters.Add("@ID", SqlDbType.BigInt).Value = id; cmd.Parameters.Add("@Method", SqlDbType.VarChar, 20).Value = method; cmd.Parameters.Add("@Secret", SqlDbType.VarChar, 500).Value = secret == null ? (object)DBNull.Value : Protect(secret); con.Open(); cmd.ExecuteNonQuery(); }
         }
 
+        private static bool SaveAuthenticatorReset(long id, string secret)
+        {
+            const string sql = @"UPDATE dbo.EmployeeMfaSetting SET AuthenticatorSecret=@Secret,AuthenticatorResetUsed=1,AuthenticatorResetOn=SYSUTCDATETIME(),IsEnabled=1,UpdatedOn=SYSUTCDATETIME() WHERE EmployeeID=@ID AND MfaMethod='Authenticator' AND AuthenticatorResetUsed=0;";
+            using (SqlConnection con = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, con))
+            {
+                cmd.Parameters.Add("@ID", SqlDbType.BigInt).Value = id;
+                cmd.Parameters.Add("@Secret", SqlDbType.VarChar, 500).Value = Protect(secret);
+                con.Open();
+                return cmd.ExecuteNonQuery() == 1;
+            }
+        }
+
+        private static bool IsAuthenticatorResetAvailable(long id)
+        {
+            try
+            {
+                DataRow setting = GetSetting(id);
+                return setting != null
+                    && string.Equals(Convert.ToString(setting["MfaMethod"]), "Authenticator", StringComparison.Ordinal)
+                    && !Convert.ToBoolean(setting["AuthenticatorResetUsed"]);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("Unable to determine Authenticator reset eligibility for employee {0}: {1}", id, ex);
+                return false;
+            }
+        }
+
         private static bool HasPendingLogin() { DateTime until; return Session("MfaEmployeeId") != null && DateTime.TryParse(Convert.ToString(Session("MfaPendingUntil")), out until) && DateTime.UtcNow <= until; }
         private static object Session(string key) { return HttpContext.Current.Session[key]; }
         private static void Session(string key, object value) { HttpContext.Current.Session[key] = value; }
         private static object Error(string message) { return new { status = "error", message = message }; }
         private static object Expired() { return new { status = "expired", message = "Your sign-in session expired. Please sign in again." }; }
-        private static void ClearPending() { foreach (string key in new[] { "MfaEmployeeId", "MfaUserName", "MfaRole", "MfaRememberMe", "MfaPendingUntil", "MfaAttempts", "MfaMethod", "MfaSetupSecret", "MfaEmailOtp", "MfaOtpExpires", "MfaOtpLastSent" }) HttpContext.Current.Session.Remove(key); }
+        private static void ClearPending() { foreach (string key in new[] { "MfaEmployeeId", "MfaUserName", "MfaRole", "MfaRememberMe", "MfaPendingUntil", "MfaAttempts", "MfaMethod", "MfaSetupSecret", "MfaAuthenticatorReset", "MfaEmailOtp", "MfaOtpExpires", "MfaOtpLastSent" }) HttpContext.Current.Session.Remove(key); }
         private static string GenerateOtp() { byte[] data = new byte[4]; using (RandomNumberGenerator rng = RandomNumberGenerator.Create()) rng.GetBytes(data); return (BitConverter.ToUInt32(data, 0) % 1000000).ToString("D6"); }
         private static string GenerateBase32Secret() { byte[] data = new byte[20]; using (RandomNumberGenerator rng = RandomNumberGenerator.Create()) rng.GetBytes(data); return Base32Encode(data); }
         private static string Base32Encode(byte[] data) { const string a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; StringBuilder result = new StringBuilder(); int buffer = 0, bits = 0; foreach (byte b in data) { buffer = (buffer << 8) | b; bits += 8; while (bits >= 5) { result.Append(a[(buffer >> (bits - 5)) & 31]); bits -= 5; } } if (bits > 0) result.Append(a[(buffer << (5 - bits)) & 31]); return result.ToString(); }
