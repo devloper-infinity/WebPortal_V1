@@ -148,23 +148,18 @@ function duration(v) { var s = Math.max(0, +v || 0), d = Math.floor(s / 86400); 
         for (var i = 0; i < statuses.length; i++) if ((+statuses[i].ProcessID || 0) === processId) return statuses[i];
         return { Status: 'Pending', AssignedTo: '' };
     }
-    function processText(status) {
-        var state = String(status.Status || 'Pending'), user = String(status.AssignedTo || '').trim() || 'Unassigned';
-        return 'Status: ' + state + '\nUser: ' + user;
-    }
-    function processCell(status) {
+    function processStatusCell(status) {
         var state = String(status.Status || 'Pending'), normalized = state.toLowerCase().replace(/\s+/g, '-'), icon = '○';
         if (normalized === 'completed') icon = '✓';
         else if (normalized === 'in-process') icon = '●';
         else if (normalized === 'hold') icon = 'Ⅱ';
         else if (normalized === 'skipped') icon = '—';
         else normalized = 'pending';
-        var user = String(status.AssignedTo || '').trim() || 'Unassigned';
-        return '<div class="tracking-process-cell"><span class="tracking-process-status ' + normalized + '">' + icon + ' ' + OLT.esc(state) + '</span><span class="tracking-process-user" title="' + OLT.esc(user) + '">' + OLT.esc(user) + '</span></div>';
+        return '<span class="tracking-process-status ' + normalized + '">' + icon + ' ' + OLT.esc(state) + '</span>';
     }
     function applyTrackingFilter() { if (!trackingTable) return; trackingColumnIndex = parseInt(trackingColumn.value, 10); trackingTable.draw(); }
     function clearTrackingFilter() { trackingColumn.value = ''; trackingCondition.value = 'contains'; trackingValue.value = ''; trackingColumnIndex = -1; if (trackingTable) trackingTable.draw(); }
-    function customizeTrackingExcel(xlsx, baseColumnCount, processCount) {
+    function customizeTrackingExcel(xlsx, baseColumns, milestones) {
         var sheet = xlsx.xl.worksheets['sheet1.xml'], styles = xlsx.xl['styles.xml'];
         var cellXfs = styles.getElementsByTagName('cellXfs')[0], xfs = cellXfs.getElementsByTagName('xf');
         function wrappedStyle(sourceIndex, horizontal) {
@@ -177,15 +172,41 @@ function duration(v) { var s = Math.max(0, +v || 0), d = Math.floor(s / 86400); 
             cellXfs.setAttribute('count', cellXfs.getElementsByTagName('xf').length.toString());
             return cellXfs.getElementsByTagName('xf').length - 1;
         }
+        function columnName(number) { var name = ''; while (number > 0) { number--; name = String.fromCharCode(65 + number % 26) + name; number = Math.floor(number / 26); } return name; }
+        function inlineCell(reference, value, style) {
+            var cell = sheet.createElementNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'c'), is = sheet.createElementNS(cell.namespaceURI, 'is'), text = sheet.createElementNS(cell.namespaceURI, 't');
+            cell.setAttribute('r', reference); cell.setAttribute('t', 'inlineStr'); cell.setAttribute('s', style); text.textContent = value; is.appendChild(text); cell.appendChild(is); return cell;
+        }
         var headerStyle = wrappedStyle(7, 'center'), processStyle = wrappedStyle(0, 'left');
-        var totalColumns = baseColumnCount + processCount, headerRow = null;
+        var baseColumnCount = baseColumns.length, totalColumns = baseColumnCount + milestones.length * 4, headerRow = null;
         $('row', sheet).each(function () { if (!headerRow && $('c', this).length === totalColumns) headerRow = this; });
         if (!headerRow) return;
         var headerNumber = parseInt(headerRow.getAttribute('r'), 10);
-        $('c', headerRow).attr('s', headerStyle); $(headerRow).attr('ht', '32').attr('customHeight', '1');
+        var rows = Array.prototype.slice.call(sheet.getElementsByTagName('row'));
+        for (var rowIndex = rows.length - 1; rowIndex >= 0; rowIndex--) {
+            var oldRowNumber = parseInt(rows[rowIndex].getAttribute('r'), 10); if (oldRowNumber < headerNumber) continue;
+            rows[rowIndex].setAttribute('r', oldRowNumber + 1);
+            Array.prototype.slice.call(rows[rowIndex].getElementsByTagName('c')).forEach(function (cell) { cell.setAttribute('r', String(cell.getAttribute('r')).replace(/[0-9]+$/, oldRowNumber + 1)); });
+        }
+        var lastRowNumber = Math.max.apply(null, rows.map(function (row) { return parseInt(row.getAttribute('r'), 10) || 1; }));
+        var dimension = sheet.getElementsByTagName('dimension')[0];
+        if (dimension) dimension.setAttribute('ref', 'A1:' + columnName(totalColumns) + lastRowNumber);
+        var autoFilter = sheet.getElementsByTagName('autoFilter')[0];
+        if (autoFilter) autoFilter.setAttribute('ref', 'A' + (headerNumber + 1) + ':' + columnName(totalColumns) + lastRowNumber);
+        var groupRow = sheet.createElementNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'row'); groupRow.setAttribute('r', headerNumber); groupRow.setAttribute('ht', '28'); groupRow.setAttribute('customHeight', '1');
+        baseColumns.forEach(function (name, index) { groupRow.appendChild(inlineCell(columnName(index + 1) + headerNumber, name, headerStyle)); });
+        milestones.forEach(function (definition, index) { var column = baseColumnCount + index * 4 + 1; groupRow.appendChild(inlineCell(columnName(column) + headerNumber, definition.ProcessName, headerStyle)); });
+        headerRow.parentNode.insertBefore(groupRow, headerRow);
+        $('c', headerRow).attr('s', headerStyle); $(headerRow).attr('ht', '28').attr('customHeight', '1');
+        var mergeCells = sheet.getElementsByTagName('mergeCells')[0];
+        if (!mergeCells) { mergeCells = sheet.createElementNS(groupRow.namespaceURI, 'mergeCells'); headerRow.parentNode.insertBefore(mergeCells, headerRow.parentNode.getElementsByTagName('pageMargins')[0] || null); }
+        function addMerge(reference) { var merge = sheet.createElementNS(groupRow.namespaceURI, 'mergeCell'); merge.setAttribute('ref', reference); mergeCells.appendChild(merge); }
+        baseColumns.forEach(function (_, index) { var column = columnName(index + 1); addMerge(column + headerNumber + ':' + column + (headerNumber + 1)); });
+        milestones.forEach(function (_, index) { var first = baseColumnCount + index * 4 + 1; addMerge(columnName(first) + headerNumber + ':' + columnName(first + 3) + headerNumber); });
+        mergeCells.setAttribute('count', mergeCells.getElementsByTagName('mergeCell').length);
         $('row', sheet).each(function () {
             var rowNumber = parseInt(this.getAttribute('r'), 10);
-            if (rowNumber <= headerNumber) return;
+            if (rowNumber <= headerNumber + 1) return;
             var hasProcessCell = false;
             $('c', this).each(function () {
                 var letters = String(this.getAttribute('r') || '').replace(/[0-9]/g, ''), number = 0;
@@ -195,32 +216,31 @@ function duration(v) { var s = Math.max(0, +v || 0), d = Math.floor(s / 86400); 
             if (hasProcessCell) $(this).attr('ht', '34').attr('customHeight', '1');
         });
         $('cols col', sheet).each(function (index) {
-            var width = index < baseColumnCount ? 18 : 24;
+            var processOffset = index < baseColumnCount ? -1 : (index - baseColumnCount) % 4;
+            var width = index < baseColumnCount ? 18 : (processOffset === 1 ? 20 : processOffset === 2 ? 22 : 14);
             this.setAttribute('width', width); this.setAttribute('customWidth', '1');
         });
         var sheetView = sheet.getElementsByTagName('sheetView')[0];
         if (sheetView) {
             var panes = sheetView.getElementsByTagName('pane'); while (panes.length) sheetView.removeChild(panes[0]);
             var pane = sheet.createElementNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'pane');
-            pane.setAttribute('ySplit', headerNumber.toString()); pane.setAttribute('topLeftCell', 'A' + (headerNumber + 1));
+            pane.setAttribute('ySplit', (headerNumber + 1).toString()); pane.setAttribute('topLeftCell', 'A' + (headerNumber + 2));
             pane.setAttribute('activePane', 'bottomLeft'); pane.setAttribute('state', 'frozen'); sheetView.appendChild(pane);
         }
     }
     function renderTracking(result) {
         if (trackingTable) trackingTable.destroy();
         var columns = result.Columns || [], milestones = result.Milestones || [];
-        var tableColumns = columns.map(function (name) { return { title: name, data: function (row) { return row.Values && row.Values[name] || ''; }, defaultContent: '' }; });
-        tableColumns = tableColumns.concat(milestones.map(function (definition) {
-            return {
-                title: definition.ProcessName,
-                className: 'tracking-process-column',
-                data: null,
-                defaultContent: '',
-                render: function (_, type, row) { var status = milestoneFor(row, definition); return type === 'display' ? processCell(status) : processText(status); }
-            };
-        }));
+        var tableColumns = columns.map(function (name) { return { data: function (row) { return row.Values && row.Values[name] || ''; }, defaultContent: '' }; });
+        milestones.forEach(function (definition) {
+            [{ key: 'Status', css: 'tracking-process-status-column' }, { key: 'AssignedTo', css: 'tracking-process-user-column' }, { key: 'CompletedDate', css: 'tracking-process-date-column' }, { key: 'TAT', css: 'tracking-process-tat-column' }].forEach(function (field) {
+                tableColumns.push({ className: 'tracking-process-column ' + field.css, data: null, defaultContent: '', render: function (_, type, row) { var status = milestoneFor(row, definition), value = String(status[field.key] || ''); return type === 'display' && field.key === 'Status' ? processStatusCell(status) : value; } });
+            });
+        });
         var projectName = trackingProject.options[trackingProject.selectedIndex].text, safeProject = projectName.replace(/[^a-z0-9_-]+/gi, '_');
-        $('#trackingSheetTable').empty();
+        var topHeader = '<tr>' + columns.map(function (name) { return '<th rowspan="2">' + OLT.esc(name) + '</th>'; }).join('') + milestones.map(function (definition) { return '<th colspan="4" class="tracking-process-group">' + OLT.esc(definition.ProcessName) + '</th>'; }).join('') + '</tr>';
+        var subHeader = '<tr>' + milestones.map(function () { return '<th>Status</th><th>User</th><th>Completed Date</th><th>TAT (HH:MM)</th>'; }).join('') + '</tr>';
+        $('#trackingSheetTable').empty().html('<thead>' + topHeader + subHeader + '</thead><tbody></tbody>');
         trackingTable = $('#trackingSheetTable').DataTable({
             data: result.Rows || [], scrollX: true, scrollY: '54vh', scrollCollapse: true, pageLength: 25, lengthMenu: [25, 50, 100], order: [], autoWidth: false,
             columns: tableColumns,
@@ -232,12 +252,13 @@ function duration(v) { var s = Math.max(0, +v || 0), d = Math.floor(s / 86400); 
                 filename: 'Tracking_Sheet_' + safeProject + '_' + trackingFrom.value + '_to_' + trackingTo.value,
                 messageTop: 'Project: ' + projectName + ' | Order Date: ' + trackingFrom.value + ' to ' + trackingTo.value,
                 exportOptions: { orthogonal: 'export', modifier: { search: 'applied', order: 'applied', page: 'all' } },
-                customize: function (xlsx) { customizeTrackingExcel(xlsx, columns.length, milestones.length); }
+                customizeData: function (data) { data.header = columns.concat([].concat.apply([], milestones.map(function () { return ['Status', 'User', 'Completed Date', 'TAT (HH:MM)']; }))); },
+                customize: function (xlsx) { customizeTrackingExcel(xlsx, columns, milestones); }
             }]
         });
-        var filterNames = columns.concat(milestones.map(function (definition) { return definition.ProcessName; }));
+        var filterNames = columns.concat([].concat.apply([], milestones.map(function (definition) { return ['Status', 'User', 'Completed Date', 'TAT'].map(function (field) { return definition.ProcessName + ' - ' + field; }); })));
         trackingColumn.innerHTML = '<option value="">Select column</option>' + filterNames.map(function (name, i) { return '<option value="' + i + '">' + OLT.esc(name) + '</option>'; }).join('');
-        trackingSummary.textContent = result.RowCount + ' record(s), ' + columns.length + ' configured/base column(s), ' + milestones.length + ' process column(s).';
+        trackingSummary.textContent = result.RowCount + ' record(s), ' + columns.length + ' configured/base column(s), ' + milestones.length + ' process group(s).';
         clearTrackingFilter();
     }
     document.addEventListener('DOMContentLoaded', function () {

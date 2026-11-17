@@ -70,6 +70,17 @@ namespace WebPortal.OperationsBulletin
             using (var c = Open()) using (var cmd = new SqlCommand(@"SELECT TOP(1)v.*,d.BulletinID,d.FolderID FROM dbo.BulletinDocumentVersions v JOIN dbo.BulletinDocuments d ON d.DocumentID=v.DocumentID OUTER APPLY dbo.ufn_BulletinFolderRights(d.FolderID,@E)r WHERE v.DocumentVersionID=@V AND v.IsDeleted=0 AND d.IsDeleted=0 AND ((d.BulletinID IS NULL AND r.CanView=1) OR EXISTS(SELECT 1 FROM dbo.BulletinUserTracking t WHERE t.BulletinID=d.BulletinID AND t.EmployeeID=@E) OR EXISTS(SELECT 1 FROM dbo.BulletinMaster b WHERE b.BulletinID=d.BulletinID AND b.CreatedBy=@E AND b.IsDeleted=0))", c))
             { Add(cmd, "@E", user); Add(cmd, "@V", version); using (var a = new SqlDataAdapter(cmd)) { var t = new DataTable(); a.Fill(t); if (t.Rows.Count == 0) throw new SecurityException("Document access denied."); return t.Rows[0]; } }
         }
+        internal string SaveGeneratedPdf(long version, string stored, string previousStored)
+        {
+            using (var c = Open())
+            using (var cmd = new SqlCommand(@"UPDATE dbo.BulletinDocumentVersions SET PdfStoredFileName=@P WHERE DocumentVersionID=@V AND IsDeleted=0 AND ISNULL(PdfStoredFileName,'')=ISNULL(@Old,''); SELECT PdfStoredFileName FROM dbo.BulletinDocumentVersions WHERE DocumentVersionID=@V AND IsDeleted=0;", c))
+            {
+                Add(cmd, "@P", stored);
+                Add(cmd, "@Old", previousStored);
+                Add(cmd, "@V", version);
+                return Convert.ToString(cmd.ExecuteScalar());
+            }
+        }
 
         internal long SaveUpload(long folder, long? bulletin, long? document, string original, string stored, string pdfStored, string contentType, long size, string hash, int user)
         {

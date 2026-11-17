@@ -384,7 +384,14 @@ namespace WebPortal.US
                 endDateTime
             );
 
-            return trackReturnValue > 0 ? trackReturnValue : ReturnValue;
+            int finalReturnValue = trackReturnValue > 0 ? trackReturnValue : ReturnValue;
+            if (finalReturnValue > 0)
+            {
+                SyncOnshoreCompletion(ProjectNumber, DealNo, OrderNumber, Process,
+                    int.Parse(HttpContext.Current.User.Identity.Name), startDateTime, endDateTime);
+            }
+
+            return finalReturnValue;
         }
 
         private static int SaveLoanTiming(string ProjectNumber, string DealNo, string OrderNumber, string Process, string Review, string StartTime, string EndTime, string ProductType, string Status)
@@ -431,6 +438,30 @@ namespace WebPortal.US
             catch
             {
                 return 0;
+            }
+        }
+
+        private static void SyncOnshoreCompletion(string projectNumber, string dealNumber, string loanNumber,
+            string processName, int employeeId, string startDateTime, string completedDateTime)
+        {
+            try
+            {
+                DateTime parsedStart;
+                DateTime parsedCompleted;
+                if (!DateTime.TryParse(completedDateTime, out parsedCompleted))
+                {
+                    parsedCompleted = DateTime.Now;
+                }
+
+                DateTime? startedDate = DateTime.TryParse(startDateTime, out parsedStart)
+                    ? parsedStart
+                    : (DateTime?)null;
+                new bllUS().SyncOnshoreCompletionToOLTracking(projectNumber, dealNumber, loanNumber,
+                    processName, employeeId, startedDate, parsedCompleted);
+            }
+            catch
+            {
+                // Tracker synchronization must never interrupt the existing onshore completion workflow.
             }
         }
 

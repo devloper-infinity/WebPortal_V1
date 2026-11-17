@@ -192,18 +192,24 @@ ALTER PROCEDURE dbo.usp_UpdateAutoBilledCommitmentProject
 AS
 BEGIN
  SET NOCOUNT ON;SET XACT_ABORT ON;
- DECLARE @ProjectID int,@DateColumn sysname,@ActualCount int=0,@UpdatedCount int=0,@Sql nvarchar(max),@BillingPeriod nvarchar(100);
+ DECLARE @ProjectID int,@DateColumn sysname,@FinalStatusColumn sysname,@ActualCount int=0,@UpdatedCount int=0,@Sql nvarchar(max),@BillingPeriod nvarchar(100),@StatusFilter nvarchar(max)=N'';
  SELECT @ProjectID=ProjectID FROM dbo.Project WHERE ProjectName=@ProjectName;
  IF @ProjectID IS NULL BEGIN SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,0 ActualCount,0 UpdatedCount,'Project configuration not found.'Reason;RETURN;END;
  SELECT @DateColumn=ColName FROM dbo.usf_GetColumnNameForReport_NonDD(@ProjectID,'Dispatched Date');
  IF NULLIF(@DateColumn,'')IS NULL SELECT @DateColumn=ColName FROM dbo.usf_GetColumnNameForReport_NonDD(@ProjectID,'Dispatch Date');
  IF NULLIF(@DateColumn,'')IS NULL BEGIN SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,0 ActualCount,0 UpdatedCount,'Dispatch date mapping not found.'Reason;RETURN;END;
+ IF @ProjectName='694-010'
+ BEGIN
+  SELECT @FinalStatusColumn=ColName FROM dbo.usf_GetColumnNameForReport_NonDD(@ProjectID,'Final Status');
+  IF NULLIF(@FinalStatusColumn,'')IS NULL BEGIN SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,0 ActualCount,0 UpdatedCount,'Final Status mapping not found.'Reason;RETURN;END;
+  SET @StatusFilter=N' AND LOWER(LTRIM(RTRIM(CONVERT(nvarchar(max),T.'+QUOTENAME(@FinalStatusColumn)+N'))))<>''hold'' AND LOWER(LTRIM(RTRIM(CONVERT(nvarchar(max),T.'+QUOTENAME(@FinalStatusColumn)+N')))) NOT LIKE ''on hold%''';
+ END;
  SET @BillingPeriod=REPLACE(CONVERT(nvarchar(11),@From,106),' ','-')+' ~ '+REPLACE(CONVERT(nvarchar(11),@To,106),' ','-');
  BEGIN TRANSACTION;
- SET @Sql=N'SELECT @Actual=COUNT(1) FROM Commitment.dbo.WBT_TrackingSheet T WITH(UPDLOCK,HOLDLOCK) WHERE T.ProjectID=@ProjectID AND NULLIF(LTRIM(RTRIM(T.BillingPeriod)),'''') IS NULL AND ISDATE(T.'+QUOTENAME(@DateColumn)+N')=1 AND CONVERT(date,T.'+QUOTENAME(@DateColumn)+N') BETWEEN @From AND @To'+CASE WHEN @ProjectID=5 THEN N' AND ISNULL(T.[Temp32],'''')<>''''' ELSE N'' END+N';';
+ SET @Sql=N'SELECT @Actual=COUNT(1) FROM Commitment.dbo.WBT_TrackingSheet T WITH(UPDLOCK,HOLDLOCK) WHERE T.ProjectID=@ProjectID AND NULLIF(LTRIM(RTRIM(T.BillingPeriod)),'''') IS NULL AND ISDATE(T.'+QUOTENAME(@DateColumn)+N')=1 AND CONVERT(date,T.'+QUOTENAME(@DateColumn)+N') BETWEEN @From AND @To'+@StatusFilter+CASE WHEN @ProjectID=5 THEN N' AND ISNULL(T.[Temp32],'''')<>''''' ELSE N'' END+N';';
  EXEC sys.sp_executesql @Sql,N'@ProjectID int,@From date,@To date,@Actual int OUTPUT',@ProjectID,@From,@To,@ActualCount OUTPUT;
  IF @ActualCount<>@ExpectedCount BEGIN ROLLBACK;SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,@ActualCount ActualCount,0 UpdatedCount,'Displayed and update counts do not match.'Reason;RETURN;END;
- SET @Sql=N'UPDATE T SET IsVerify=1,BillingPeriod=@BillingPeriod,BillingAddedBy=CONVERT(nvarchar(100),@BillingAddedBy),BillingAddedDate=REPLACE(CONVERT(nvarchar(11),GETDATE(),106),'' '',''-'') FROM Commitment.dbo.WBT_TrackingSheet T WHERE T.ProjectID=@ProjectID AND NULLIF(LTRIM(RTRIM(T.BillingPeriod)),'''') IS NULL AND ISDATE(T.'+QUOTENAME(@DateColumn)+N')=1 AND CONVERT(date,T.'+QUOTENAME(@DateColumn)+N') BETWEEN @From AND @To'+CASE WHEN @ProjectID=5 THEN N' AND ISNULL(T.[Temp32],'''')<>''''' ELSE N'' END+N';SET @Updated=@@ROWCOUNT;';
+ SET @Sql=N'UPDATE T SET IsVerify=1,BillingPeriod=@BillingPeriod,BillingAddedBy=CONVERT(nvarchar(100),@BillingAddedBy),BillingAddedDate=REPLACE(CONVERT(nvarchar(11),GETDATE(),106),'' '',''-'') FROM Commitment.dbo.WBT_TrackingSheet T WHERE T.ProjectID=@ProjectID AND NULLIF(LTRIM(RTRIM(T.BillingPeriod)),'''') IS NULL AND ISDATE(T.'+QUOTENAME(@DateColumn)+N')=1 AND CONVERT(date,T.'+QUOTENAME(@DateColumn)+N') BETWEEN @From AND @To'+@StatusFilter+CASE WHEN @ProjectID=5 THEN N' AND ISNULL(T.[Temp32],'''')<>''''' ELSE N'' END+N';SET @Updated=@@ROWCOUNT;';
  EXEC sys.sp_executesql @Sql,N'@ProjectID int,@From date,@To date,@BillingPeriod nvarchar(100),@BillingAddedBy int,@Updated int OUTPUT',@ProjectID,@From,@To,@BillingPeriod,@BillingAddedBy,@UpdatedCount OUTPUT;
  IF @UpdatedCount<>@ExpectedCount BEGIN ROLLBACK;SELECT CAST(0 AS bit)Success,@ProjectName ProjectName,@ExpectedCount ExpectedCount,@ActualCount ActualCount,@UpdatedCount UpdatedCount,'Updated count does not match displayed count.'Reason;RETURN;END;
  COMMIT;

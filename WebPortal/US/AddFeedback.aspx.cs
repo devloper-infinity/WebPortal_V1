@@ -259,6 +259,8 @@ namespace WebPortal.US
                     StartDatetime,
                     endDateTime.ToString("yyyy-MM-dd HH:mm:ss")
                 );
+
+                SyncOnshoreCompletion(ProjectNumber, DealNo, LoanNo, Process, employeeId, StartDatetime, endDateTime);
             }
 
             return ReturnValue;
@@ -311,6 +313,24 @@ namespace WebPortal.US
             }
             catch
             {
+            }
+        }
+
+        private static void SyncOnshoreCompletion(string projectNumber, string dealNumber, string loanNumber,
+            string processName, int employeeId, string startDateTime, DateTime completedDate)
+        {
+            try
+            {
+                DateTime parsedStart;
+                DateTime? startedDate = DateTime.TryParse(startDateTime, out parsedStart)
+                    ? parsedStart
+                    : (DateTime?)null;
+                new bllUS().SyncOnshoreCompletionToOLTracking(projectNumber, dealNumber, loanNumber,
+                    processName, employeeId, startedDate, completedDate);
+            }
+            catch
+            {
+                // Tracker synchronization must never interrupt the existing onshore completion workflow.
             }
         }
 

@@ -222,6 +222,13 @@ namespace WebPortal.App_Code.BLL
             return dalUS.SaveUSLoanProductionTrack(htParam);
         }
 
+        public int SyncOnshoreCompletionToOLTracking(string projectNumber, string dealNumber, string loanNumber,
+            string processName, int employeeId, DateTime? startedDate, DateTime completedDate)
+        {
+            return dalUS.SyncOnshoreCompletionToOLTracking(projectNumber, dealNumber, loanNumber, processName,
+                employeeId, startedDate, completedDate);
+        }
+
         public int InsertOnShoreUSFeedbacks(Hashtable htParam)
         {
             return dalUS.InsertOnShoreUSFeedbacks(htParam);
