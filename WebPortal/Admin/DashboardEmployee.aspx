@@ -1563,6 +1563,16 @@
 
         function dash_completedServiceYears(joiningDate, yearsCompleted) {
             var years = parseInt(yearsCompleted, 10);
+
+            // The server supplies the completed service years for the anniversary.
+            // Prefer it over a browser-side date calculation, which can differ due
+            // to date parsing and timezone boundaries on the anniversary itself.
+            if (!isNaN(years)) {
+                // This endpoint only returns employees whose anniversary is being
+                // celebrated, so its minimum valid milestone is one completed year.
+                return Math.max(1, years);
+            }
+
             var joined = new Date(joiningDate);
 
             if (!isNaN(joined.getTime())) {
@@ -1575,7 +1585,7 @@
                 }
             }
 
-            return Math.max(0, isNaN(years) ? 0 : years);
+            return Math.max(1, isNaN(years) ? 0 : years);
         }
 
         function new_renderWorkAnniversary(data, callback) {

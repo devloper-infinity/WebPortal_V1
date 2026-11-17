@@ -199,11 +199,11 @@ namespace WebPortal.Admin
             htParam.Add("SalaryRange", "");
             htParam.Add("Source", Source);
 
-            returnvalue = new bllRequisition().InsertRecruitment(htParam);
-           
+            returnvalue =  new bllRequisition().InsertRecruitment(htParam);
+
             if (returnvalue > 0)
             {
-               SendRequisitionEmail(returnvalue);
+                SendRequisitionEmail(returnvalue);
             }
 
             return returnvalue;
@@ -213,30 +213,27 @@ namespace WebPortal.Admin
         public static int SendRequisitionEmail(int RecId)
         {
             int ReturnValue = 1;
-            StringBuilder head = new StringBuilder();
             StringBuilder body = new StringBuilder();
-            StringBuilder footer = new StringBuilder();
             DataTable dt = new bllRequisition().GetRequisitionById_Email(RecId);
             if (dt != null)
             {
                 if (dt.Rows.Count > 0)
                 {
-                    head.Append("<html><head></head><body>");
-                    body.Append("<table style=\"width:802px;font-family:verdana; font-size:12px; border-radius:10px;\" bordercolor=\"Gray\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"CornflowerBlue\" style=\"height:70px;\" ><thead><th colspan=\"2\"><b style=\"color:White;font-size:24px; font-style:italic;\" >Infinity IPS</b></th></thead></tr></table>" +
-                        "<table border=\"0\" style=\"width:800px;font-family:verdana; font-size:11px; border-radius:10px;\" bordercolor =\"Gray\" cellspacing=\"0\" cellpadding=\"10\">" +
-                        "<tr><td style=\"text-align:left; font-size:11px;\" colspan=\"2\"><b>Dear HR Team,<br />New Requisition is added in system. Please find details below.<br /><br /></b></td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;\" width=\"120px\"><b>Domain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["DomainName"]) + " </td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Subdomain:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Subdomain"]) + "</td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Profile:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Profile"]) + "</td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Location:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Location"]) + "</td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>No. of Positions:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Noofpositions"]) + "</td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Initiated By:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["InitiatedBy"]) + "</td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Status:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["Status"]) + "</td></tr>" +
-                        "<tr><td style=\"border:solid 1px Gray;border-top:none;\"><b>Approved By:</b></td><td style=\"border:solid 1px Gray;border-top:none;\">" + Convert.ToString(dt.Rows[0]["ApprovedBy"]) + "</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:12px;\" colspan=\"2\"><br /><br />Thanks,<br />Infinity IPS</td></tr>" +
-                        "<tr><td style=\"text-align:left; font-size:11px; border-top:none!important;\" colspan=\"2\"><br /><br /><br />This email was sent from a notification email address that cannot accept incoming email. Please do not reply to this message.</td></tr>" +
-                        "</table>");
-                    footer.Append("</body></html>");
+                    DataRow requisition = dt.Rows[0];
+                    body.Append("<p style=\"margin:0 0 8px;color:#0f172a;font-size:16px;font-weight:700;line-height:24px;\">Hello HR Team,</p>" +
+                        "<p style=\"margin:0 0 24px;color:#475569;font-size:14px;line-height:22px;\">A new requisition has been submitted in HRMS. The key details are summarized below.</p>" +
+                        "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"width:100%;border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate;overflow:hidden;\">" +
+                        "<tr><td colspan=\"2\" style=\"padding:12px 14px;background-color:#173b70;color:#ffffff;font-size:14px;font-weight:700;line-height:20px;\">Requisition Details</td></tr>");
+
+                    AppendRequisitionEmailDetailRow(body, "Domain", requisition["DomainName"]);
+                    AppendRequisitionEmailDetailRow(body, "Subdomain", requisition["Subdomain"]);
+                    AppendRequisitionEmailDetailRow(body, "Profile", requisition["Profile"]);
+                    AppendRequisitionEmailDetailRow(body, "Location", requisition["Location"]);
+                    AppendRequisitionEmailDetailRow(body, "Number of positions", requisition["Noofpositions"]);
+                    AppendRequisitionEmailDetailRow(body, "Initiated by", requisition["InitiatedBy"]);
+                    AppendRequisitionEmailDetailRow(body, "Status", requisition["Status"]);
+                    AppendRequisitionEmailDetailRow(body, "Approved by", requisition["ApprovedBy"]);
+                    body.Append("</table>");
 
                     string Pass = new bllMaster().GetPassword("ackdata");
                     string ToAddress = string.Empty;
@@ -247,6 +244,10 @@ namespace WebPortal.Admin
                     ToAddress = Convert.ToString(dtEmail.Rows[0]["To"]);
                     ToCC = Convert.ToString(dtEmail.Rows[0]["CC"]);
                     ToBCC = Convert.ToString(dtEmail.Rows[0]["BCC"]);
+
+                    //ToAddress = "b.shubhangi@infinity-data.com";
+                    //ToCC = "b.shubhangi@infinity-data.com";
+                    //ToBCC = "b.shubhangi@infinity-data.com";
 
                     MailMessage mail = new MailMessage();
                     mail.From = new MailAddress("ack@infinity-data.com", "Infinity Requisitions", System.Text.Encoding.UTF8);
@@ -260,7 +261,10 @@ namespace WebPortal.Admin
                     mail.Bcc.Add(ToBCC);
 
                     mail.Subject = "New requisition added for position " + Convert.ToString(dt.Rows[0]["Profile"]) + ".";
-                    mail.Body = head.ToString() + body.ToString() + footer.ToString();
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(
+                        body.ToString(),
+                        "New requisition",
+                        true);
                     mail.IsBodyHtml = true;
                     mail.Priority = System.Net.Mail.MailPriority.High;
                     SmtpClient client = new SmtpClient();
@@ -281,6 +285,15 @@ namespace WebPortal.Admin
                 }
             }
             return ReturnValue;
+        }
+
+        private static void AppendRequisitionEmailDetailRow(StringBuilder email, string label, object value)
+        {
+            email.Append("<tr><td width=\"34%\" style=\"width:34%;padding:11px 14px;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;font-weight:700;line-height:19px;vertical-align:top;\">")
+                .Append(HttpUtility.HtmlEncode(label))
+                .Append("</td><td style=\"padding:11px 14px;border-top:1px solid #e2e8f0;color:#1e293b;font-size:13px;line-height:19px;vertical-align:top;\">")
+                .Append(HttpUtility.HtmlEncode(Convert.ToString(value)))
+                .Append("</td></tr>");
         }
 
         [WebMethod]
