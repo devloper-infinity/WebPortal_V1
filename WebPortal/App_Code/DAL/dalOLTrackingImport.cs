@@ -143,7 +143,7 @@ SELECT i.ItemID,d.EntryDate,flow.ProcessID,flow.ProcessName,flow.StageNo,flow.Is
        flow.IsFinalProcess,COALESCE(a.AssignmentStatus,'Pending') AS ProcessStatus,
        ISNULL(a.IsCurrent,0) AS IsCurrent,CAST(CASE WHEN a.AssignmentID IS NULL THEN 0 ELSE 1 END AS bit) HasAssignment,
        CAST(CASE WHEN EXISTS(SELECT 1 FROM dbo.OLTracking_LoanHold loanHold WHERE loanHold.ItemID=i.ItemID AND loanHold.ResumedDate IS NULL) THEN 1 ELSE 0 END AS bit) IsLoanHeld,
-       a.AssignedDate,a.StartedDate,a.CompletedDate,a.ManualDurationMinutes,
+       a.AssignedDate,a.StartedDate,a.CompletedDate,a.ManualDurationMinutes,a.TotalTATSeconds,
        CASE WHEN a.AssignmentStatus='Completed'
             THEN COALESCE(NULLIF(completedUser.UserName,''),CONVERT(nvarchar(30),a.UserID),'')
             ELSE '' END AS CompletedBy,
@@ -154,7 +154,7 @@ CROSS APPLY dbo.OLTracking_EffectiveProcessFlow(i.ProjectID,i.DealNumber) flow
 OUTER APPLY
 (
     SELECT TOP (1) assignment.AssignmentID,assignment.AssignmentStatus,assignment.IsCurrent,assignment.UserID,assignment.AssignedDate,
-           assignment.StartedDate,assignment.CompletedDate,assignment.ManualDurationMinutes
+           assignment.StartedDate,assignment.CompletedDate,assignment.ManualDurationMinutes,assignment.TotalTATSeconds
     FROM dbo.OLTracking_Assignment assignment
     WHERE assignment.ItemID=i.ItemID AND assignment.ProcessID=flow.ProcessID
     ORDER BY CASE WHEN assignment.IsCurrent=1 THEN 0 ELSE 1 END,

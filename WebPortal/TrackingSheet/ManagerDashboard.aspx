@@ -283,9 +283,14 @@
     .tracking-sheet-wrap { overflow:auto;max-height:65vh; }
     #trackingSheetTable { width:100%!important; }
     #trackingSheetTable th,#trackingSheetTable td { white-space:nowrap; }
-    #trackingSheetTable th.tracking-process-column { min-width:145px;white-space:normal;line-height:1.25; }
-    #trackingSheetTable td.tracking-process-column { min-width:145px;padding:7px 9px;vertical-align:middle; }
-    .tracking-process-cell { display:flex;min-width:125px;flex-direction:column;align-items:flex-start;gap:4px; }
+    #trackingSheetTable thead th { vertical-align:middle;text-align:center; }
+    #trackingSheetTable th.tracking-process-group { border-bottom:1px solid #fff;background:#173b61;color:#fff; }
+    #trackingSheetTable th.tracking-process-column { white-space:normal;line-height:1.25; }
+    #trackingSheetTable td.tracking-process-column { padding:7px 9px;vertical-align:middle; }
+    #trackingSheetTable .tracking-process-status-column { min-width:105px; }
+    #trackingSheetTable .tracking-process-user-column { min-width:125px; }
+    #trackingSheetTable .tracking-process-date-column { min-width:150px; }
+    #trackingSheetTable .tracking-process-tat-column { min-width:90px; }
     .tracking-process-status { display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;line-height:1.35; }
     .tracking-process-status.completed { background:#e5f7ee;color:#087443; }
     .tracking-process-status.in-process { background:#e1efff;color:#0759bd; }
@@ -301,7 +306,7 @@
 
     <script src="OLTracking.js"></script>
     <script src="../plugins/chart.js/Chart.min.js"></script>
-    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20261112.2"></script>
+    <script src="../Scripts/TrackingSheet/ManagerDashboard.js?v=20261117.1"></script>
     <script src="ManagerDashboard.Snd.js?v=20260819.1"></script>
 
 </asp:Content>

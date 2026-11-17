@@ -272,18 +272,18 @@ namespace WebPortal.Admin
             // Configure one recipient email per Domain.
             var domainEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                  { "Title", "v.rohan@infinityinternationals.us" },
-                { "Valuation", "h.dashrath@infinityinternationals.us;s.santosh@infinityinternationals.us" },
-                { "Freight", "v.rohan@infinityinternationals.us" },
-                { "FTE", "anita@infinity-data.com" },
-                { "UnderwritingCredit", "anita@infinity-data.com" },
-                { "UnderwritingServicing", "anita@infinity-data.com" }
-                //{ "Title", "anita@infinity-data.com" },
-                //{ "Valuation", "anita@infinity-data.com" },
-                //{ "Freight", "anita@infinity-data.com" },
+                //  { "Title", "v.rohan@infinityinternationals.us" },
+                //{ "Valuation", "h.dashrath@infinityinternationals.us;s.santosh@infinityinternationals.us" },
+                //{ "Freight", "v.rohan@infinityinternationals.us" },
                 //{ "FTE", "anita@infinity-data.com" },
                 //{ "UnderwritingCredit", "anita@infinity-data.com" },
                 //{ "UnderwritingServicing", "anita@infinity-data.com" }
+                { "Title", "anita@infinity-data.com" },
+                { "Valuation", "anita@infinity-data.com" },
+                { "Freight", "anita@infinity-data.com" },
+                { "FTE", "anita@infinity-data.com" },
+                { "UnderwritingCredit", "anita@infinity-data.com" },
+                { "UnderwritingServicing", "anita@infinity-data.com" }
             };
             // Configure optional CC recipients per Domain; separate multiple addresses with comma or semicolon.
             var domainCcEmails = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -310,12 +310,12 @@ namespace WebPortal.Admin
                 bool validateUpdate = (domain.Equals("Title", StringComparison.OrdinalIgnoreCase) && project != "364-005") || domain.Equals("Valuation", StringComparison.OrdinalIgnoreCase) || domain.Equals("Freight", StringComparison.OrdinalIgnoreCase) || domain.StartsWith("Underwriting", StringComparison.OrdinalIgnoreCase);
                 if (validateUpdate)
                 {
-                    //DataRow validation = UpdateBillingProject(domain, project, fromDate, toDate, table.Rows.Count, billingAddedBy);
-                    //if (validation == null || !Convert.ToBoolean(validation["Success"]))
-                    //{
-                    //    failed.Add(new { Project = project, DisplayedCount = table.Rows.Count, ActualCount = validation == null ? 0 : Convert.ToInt32(validation["ActualCount"]), Reason = validation == null ? "Update validation returned no result." : Convert.ToString(validation["Reason"]) });
-                    //    continue;
-                    //}
+                    DataRow validation = UpdateBillingProject(domain, project, fromDate, toDate, table.Rows.Count, billingAddedBy);
+                    if (validation == null || !Convert.ToBoolean(validation["Success"]))
+                    {
+                        failed.Add(new { Project = project, DisplayedCount = table.Rows.Count, ActualCount = validation == null ? 0 : Convert.ToInt32(validation["ActualCount"]), Reason = validation == null ? "Update validation returned no result." : Convert.ToString(validation["Reason"]) });
+                        continue;
+                    }
                 }
                 string summary;
                 summaries.TryGetValue(project, out summary);
@@ -324,7 +324,7 @@ namespace WebPortal.Admin
                 using (var mail = new MailMessage()) using (var stream = new MemoryStream(attachment))
                 {
                     AddRecipients(mail.To, email);
-                    //AddRecipients(mail.CC, ccEmail);
+                    AddRecipients(mail.CC, ccEmail);
                     mail.Bcc.Add("n.nilkanth@infinity-data.com");
                     bool isFreight733 = domain.Equals("Freight", StringComparison.OrdinalIgnoreCase) && project == "733-002";
                     mail.From = new MailAddress("ack@infinity-data.com", "Auto Billing", Encoding.UTF8); mail.Subject = isFreight733 ? project + "-Client Billing - " + period + " ( Freight )" : project + " Auto Billing - " + period; mail.Body = body; mail.IsBodyHtml = true;

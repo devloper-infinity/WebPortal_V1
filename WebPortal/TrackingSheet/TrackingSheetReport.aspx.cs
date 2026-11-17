@@ -91,7 +91,9 @@ namespace WebPortal.TrackingSheet
                     IsMandatory = Convert.ToBoolean(process["IsMandatory"]), IsFinalProcess = Convert.ToBoolean(process["IsFinalProcess"]),
                     IsCurrent = Convert.ToBoolean(process["IsCurrent"]), HasAssignment = Convert.ToBoolean(process["HasAssignment"]), IsLoanHeld = Convert.ToBoolean(process["IsLoanHeld"]), CompletedBy = FirstValue(process, "CompletedBy"),
                     ProcessUser = FirstValue(process, "ProcessUser"),
-                    ManualDurationMinutes = process["ManualDurationMinutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(process["ManualDurationMinutes"])
+                    ManualDurationMinutes = process["ManualDurationMinutes"] == DBNull.Value ? (int?)null : Convert.ToInt32(process["ManualDurationMinutes"]),
+                    CompletedDate = process["CompletedDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(process["CompletedDate"]),
+                    TotalTATSeconds = process["TotalTATSeconds"] == DBNull.Value ? (long?)null : Convert.ToInt64(process["TotalTATSeconds"])
                 });
             }
             List<ReportRow> reportRows = new List<ReportRow>();
@@ -134,7 +136,7 @@ namespace WebPortal.TrackingSheet
                 reportRows.Add(new ReportRow
                 {
                     Values = values,
-                    Processes = new List<ProcessView> { new ProcessView { ProcessID=Convert.ToInt32(entry["ProcessID"]), ProcessName=Convert.ToString(entry["ProcessName"]), Sequence=Convert.ToInt32(entry["StageNo"]), Status="Completed", IsCurrent=false, CompletedBy=Convert.ToString(entry["UserName"]), ProcessUser=Convert.ToString(entry["UserName"]), ManualDurationMinutes=minutes } }
+                    Processes = new List<ProcessView> { new ProcessView { ProcessID=Convert.ToInt32(entry["ProcessID"]), ProcessName=Convert.ToString(entry["ProcessName"]), Sequence=Convert.ToInt32(entry["StageNo"]), Status="Completed", IsCurrent=false, HasAssignment=true, CompletedBy=Convert.ToString(entry["UserName"]), ProcessUser=Convert.ToString(entry["UserName"]), ManualDurationMinutes=minutes, TotalTATSeconds=minutes * 60L } }
                 });
             }
             return new ReportResponse
@@ -179,7 +181,9 @@ namespace WebPortal.TrackingSheet
                     ProcessID = definition.ProcessID,
                     ProcessName = definition.ProcessName,
                     Status = process == null ? "Pending" : NormalizeStatus(process.Status),
-                    AssignedTo = process == null ? string.Empty : (process.ProcessUser ?? string.Empty)
+                    AssignedTo = process == null || !process.HasAssignment ? string.Empty : (process.ProcessUser ?? string.Empty),
+                    CompletedDate = process != null && StatusIs(process, "Completed") && process.CompletedDate.HasValue ? process.CompletedDate.Value.ToString("dd-MMM-yyyy HH:mm") : string.Empty,
+                    TAT = process != null && StatusIs(process, "Completed") ? FormatTAT(process.TotalTATSeconds) : string.Empty
                 };
             }).ToList();
             row.CompletionPercent = row.MilestoneStatuses.Count == 0 ? 0 :
@@ -298,6 +302,13 @@ namespace WebPortal.TrackingSheet
                    !StatusIs(process, "In Process") && !StatusIs(process, "Hold") && !StatusIs(process, "On Hold");
         }
 
+        private static string FormatTAT(long? totalSeconds)
+        {
+            if (!totalSeconds.HasValue) return string.Empty;
+            long seconds = Math.Max(0L, totalSeconds.Value), hours = seconds / 3600L, minutes = (seconds % 3600L) / 60L;
+            return hours.ToString(CultureInfo.InvariantCulture) + ":" + minutes.ToString("00", CultureInfo.InvariantCulture);
+        }
+
         private static string FirstValue(DataRow row, params string[] names)
         {
             foreach (string name in names) if (row.Table.Columns.Contains(name) && row[name] != DBNull.Value && !string.IsNullOrWhiteSpace(Convert.ToString(row[name]))) return Convert.ToString(row[name]).Trim();
@@ -306,9 +317,9 @@ namespace WebPortal.TrackingSheet
     }
 
     public sealed class ProjectOption { public int ID { get; set; } public string Name { get; set; } }
-    public sealed class ProcessView { public int ProcessID { get; set; } public string ProcessName { get; set; } public int Sequence { get; set; } public string Status { get; set; } public bool IsMandatory { get; set; } public bool IsFinalProcess { get; set; } public bool IsCurrent { get; set; } public bool HasAssignment { get; set; } public bool IsLoanHeld { get; set; } public string CompletedBy { get; set; } public string ProcessUser { get; set; } public int? ManualDurationMinutes { get; set; } }
+    public sealed class ProcessView { public int ProcessID { get; set; } public string ProcessName { get; set; } public int Sequence { get; set; } public string Status { get; set; } public bool IsMandatory { get; set; } public bool IsFinalProcess { get; set; } public bool IsCurrent { get; set; } public bool HasAssignment { get; set; } public bool IsLoanHeld { get; set; } public string CompletedBy { get; set; } public string ProcessUser { get; set; } public int? ManualDurationMinutes { get; set; } public DateTime? CompletedDate { get; set; } public long? TotalTATSeconds { get; set; } }
     public sealed class MilestoneDefinition { public string Code { get; set; } public int ProcessID { get; set; } public string ProcessName { get; set; } }
-    public sealed class MilestoneStatusView { public string Code { get; set; } public int ProcessID { get; set; } public string ProcessName { get; set; } public string Status { get; set; } public string AssignedTo { get; set; } }
+    public sealed class MilestoneStatusView { public string Code { get; set; } public int ProcessID { get; set; } public string ProcessName { get; set; } public string Status { get; set; } public string AssignedTo { get; set; } public string CompletedDate { get; set; } public string TAT { get; set; } }
     public sealed class ReportRow { public long ItemID { get; set; } public string EntryDate { get; set; } public int CompletionPercent { get; set; } public Dictionary<string, string> Values { get; set; } public List<ProcessView> Processes { get; set; } public List<MilestoneStatusView> MilestoneStatuses { get; set; } }
     public sealed class DealProcessStatusView { public string Code { get; set; } public int ProcessID { get; set; } public string ProcessName { get; set; } public int Completed { get; set; } public int InProcess { get; set; } public int Pending { get; set; } public int Hold { get; set; } }
     public sealed class DealLoanView { public string LoanNumber { get; set; } public string OrderDate { get; set; } public string DueDate { get; set; } public string AssignedTo { get; set; } public string CurrentProcess { get; set; } public string CurrentStatus { get; set; } public int CompletionPercent { get; set; } public List<MilestoneStatusView> Processes { get; set; } }

@@ -1215,6 +1215,24 @@ SELECT 1;");
             return result == null ? 0 : Convert.ToInt32(result);
         }
 
+        public int SyncOnshoreCompletionToOLTracking(string projectNumber, string dealNumber, string loanNumber,
+            string processName, int employeeId, DateTime? startedDate, DateTime completedDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.StoredProcedure, "OLTracking_SyncOnshoreCompletion");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNumber", SqlDbType.NVarChar, 100, ParameterDirection.Input, projectNumber);
+            SQLHelper.AddParamToSQLCmd(cmd, "@DealNumber", SqlDbType.NVarChar, 150, ParameterDirection.Input, dealNumber);
+            SQLHelper.AddParamToSQLCmd(cmd, "@LoanNumber", SqlDbType.NVarChar, 150, ParameterDirection.Input, loanNumber);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessName", SqlDbType.NVarChar, 250, ParameterDirection.Input, processName);
+            SQLHelper.AddParamToSQLCmd(cmd, "@UserID", SqlDbType.Int, 0, ParameterDirection.Input, employeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@StartedDate", SqlDbType.DateTime, 0, ParameterDirection.Input,
+                startedDate.HasValue ? (object)startedDate.Value : DBNull.Value);
+            SQLHelper.AddParamToSQLCmd(cmd, "@CompletedDate", SqlDbType.DateTime, 0, ParameterDirection.Input, completedDate);
+
+            object result = SQLHelper.ExecuteScalarCmd(cmd);
+            cmd.Dispose();
+            return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+        }
+
         public int InsertOnShoreUSFeedbacks(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_InsertOnShoreUSFeedbaks");
