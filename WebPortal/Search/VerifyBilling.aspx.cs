@@ -503,9 +503,9 @@ namespace WebPortal.Search
             string attachmentPath = string.Empty;
             string zipAttachmentPath = string.Empty;
 
-            //ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
-            //CC = "b.shubhangi@infinity-data.com";
-            //Bcc = "b.shubhangi@infinity-data.com";
+            ToAddress = "b.shubhangi@infinity-data.com";// "e.mike@infinityinternationals.us";
+            CC = "b.shubhangi@infinity-data.com";
+            Bcc = "b.shubhangi@infinity-data.com";
 
             try
             {
@@ -568,7 +568,7 @@ namespace WebPortal.Search
                 if (!string.IsNullOrWhiteSpace(Remark))
                 {
                     string encodedRemark = System.Web.HttpUtility.HtmlEncode(Remark.Trim()).Replace("\r\n", "<br />").Replace("\n", "<br />").Replace("\r", "<br />");
-                    
+
                     htmlBody.AppendFormat(
                         @"<tr><td style='padding:8px 30px 16px;'>
                             <div style='color:#172033;font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:700;'>Verification Remark</div>
@@ -1429,6 +1429,17 @@ namespace WebPortal.Search
             return dt;
         }
 
+
+        public static DataTable GetOrderForEmailExcel(string ProjectNo, string BillingPeriod)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOrderForEmailExcel");
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProjectNo", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@BillingPeriod", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, BillingPeriod);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
+
         public static DataTable GetSearchTaxOrders_AutoBilling(int ProjectID, string BillingPeriod)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_SearchTaxAutoBilling");
@@ -1485,6 +1496,16 @@ namespace WebPortal.Search
             return SQLHelper.ExecuteDataTableCmd(cmd);
         }
 
+        public static DataTable GetProjectWiseOrderDetailsForBilling_ForVerification(string ProjectNo, string FromDate, string ToDate)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_TMM_GetProjectWiseOrderDetailsForBilling_ForVerification");
+            SQLHelper.AddParamToSQLCmd(cmd, "@Project", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ProjectNo);
+            SQLHelper.AddParamToSQLCmd(cmd, "@FromDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, FromDate);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ToDate", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, ToDate);
+            DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
+            return dt;
+        }
+
         //public int SearchBilling(int ProjectID, string ProjectNo, string BillingPeriod, string DomainName) 
         [WebMethod]
         public static int SearchBilling(int ProjectID, string ProjectNo, string BillingCycle, string BillingPeriod, string FromDate, string ToDate, string Remark)//, string DomainName)
@@ -1501,10 +1522,11 @@ namespace WebPortal.Search
             DataTable dtCheck = GetSearchTaxOrders_AutoBilling(ProjectID, BillingPeriod);
             if (dtCheck.Rows.Count > 0)
             {
-                DataTable dt = GetOrdersForSentToAccounts(ProjectNo, BillingPeriod, Remark);
+               
+                DataTable dt = GetOrderForEmailExcel(ProjectNo, BillingPeriod);
                 DataTable summaryForEmail = GetSummaryProjectWise_Date(ProjectNo, BillingPeriod.Split('~')[0].Trim(), BillingPeriod.Split('~')[1].Trim());
                 DataTable costEmailDetails = GetCostEmailDetails(ProjectID, BillingPeriod);
-                DataTable dt_Email = BuildCostApprovalData(dtRecords, costEmailDetails);
+                DataTable dt_Email = BuildCostApprovalData(dt, costEmailDetails);
 
                 DataTable dt_Address = ProjectEmailConfiguration(ProjectID);
                 if (dt_Address.Rows.Count > 0)
@@ -1514,7 +1536,7 @@ namespace WebPortal.Search
                     Bcc = dt_Address.Rows[0]["Bcc"].ToString();
                 }
 
-                 returnValue = SendEmail_ClientBillingOrdersTyping(dtRecords, summaryForEmail, dtRecords, dt_Email, costEmailDetails, ProjectNo, ProjectType, BillingPeriod, "Auto Billing", ToAddress, CC, Bcc);
+                returnValue = SendEmail_ClientBillingOrdersTyping(dt, summaryForEmail, dt, dt_Email, costEmailDetails, ProjectNo, ProjectType, BillingPeriod, "Auto Billing", ToAddress, CC, Bcc);
             }
             return returnValue;
         }
