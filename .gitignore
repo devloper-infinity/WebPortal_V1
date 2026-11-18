@@ -392,6 +392,9 @@ FodyWeavers.xsd
 !/WebPortal/Accounts/DiwaliExpenses.aspx.designer.cs
 !/WebPortal/Admin/
 /WebPortal/Admin/*
+!/WebPortal/Admin/EmployeeLogHistory.aspx
+!/WebPortal/Admin/EmployeeLogHistory.aspx.cs
+!/WebPortal/Admin/EmployeeLogHistory.aspx.designer.cs
 !/WebPortal/Admin/BillingChannelMaster.aspx
 !/WebPortal/Admin/BillingChannelMaster.aspx.cs
 !/WebPortal/Admin/BillingChannelMaster.aspx.designer.cs
@@ -449,6 +452,9 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/
 /WebPortal/DatabaseScripts/*
 !/WebPortal/DatabaseScripts/OLTracking_025_OnshoreCompletionSync.sql
+!/WebPortal/DatabaseScripts/OLTracking_026_USProductionTrackSync.sql
+!/WebPortal/DatabaseScripts/OLTracking_027_BulkAllocationCapacity.sql
+!/WebPortal/DatabaseScripts/OLTracking_028_BulkEligibleLoans.sql
 !/WebPortal/DatabaseScripts/AutoBillingCycleFilter.sql
 !/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql
 !/WebPortal/DatabaseScripts/ServicingDetailedFeedbackReport_001_SelectedLoans.sql

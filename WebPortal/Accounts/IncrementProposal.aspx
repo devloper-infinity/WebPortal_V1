@@ -146,12 +146,16 @@
 
         .increment-table {
             border-collapse: collapse !important;
-            width: 100% !important;
+            margin-bottom: 0 !important;
+            min-width: 100%;
+            width: max-content !important;
         }
 
         .increment-table th,
         .increment-table td {
             font-size: 12px;
+            height: 42px;
+            padding: 8px 10px !important;
             vertical-align: middle !important;
             white-space: nowrap;
         }
@@ -161,6 +165,52 @@
             border-bottom: 1px solid #ced8e3 !important;
             color: #1f2937;
             font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 4;
+        }
+
+        .increment-table-wrap {
+            border: 1px solid #d8e2ec;
+            border-radius: 8px;
+            max-height: 65vh;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .increment-table-wrap .increment-table th:first-child,
+        .increment-table-wrap .increment-table td:first-child {
+            background: #ffffff;
+            left: 0;
+            min-width: 42px;
+            position: sticky;
+            text-align: center;
+            width: 42px;
+            z-index: 2;
+        }
+
+        .increment-table-wrap .increment-table thead th:first-child {
+            background: #eef3f8;
+            z-index: 6;
+        }
+
+        .increment-table-wrap::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+
+        .increment-table-wrap::-webkit-scrollbar-thumb {
+            background: #aebdcb;
+            border: 2px solid #f8fafc;
+            border-radius: 999px;
+        }
+
+        .increment-table-wrap::-webkit-scrollbar-track {
+            background: #f8fafc;
         }
 
         .increment-table .btn {
@@ -400,6 +450,7 @@
                             </div>
                         </div>
 
+                        <div class="increment-table-wrap" role="region" aria-label="Due for increment employees" tabindex="0">
                         <table class="table table-bordered table-hover increment-table" id="incprop_dueTable">
                             <thead>
                                 <tr>
@@ -423,6 +474,7 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
 
                     <div class="tab-pane fade" id="incprop_selected" role="tabpanel" aria-labelledby="incprop_selected_tab">
@@ -442,6 +494,7 @@
                             </div>
                         </div>
 
+                        <div class="increment-table-wrap" role="region" aria-label="Selected increment proposals" tabindex="0">
                         <table class="table table-bordered table-hover increment-table" id="incprop_selectedTable">
                             <thead>
                                 <tr>
@@ -478,6 +531,7 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
 
                     <div class="tab-pane fade" id="incprop_final" role="tabpanel" aria-labelledby="incprop_final_tab">
@@ -496,6 +550,7 @@
                             </div>
                         </div>
 
+                        <div class="increment-table-wrap" role="region" aria-label="Final increment proposals" tabindex="0">
                         <table class="table table-bordered table-hover increment-table" id="incprop_finalTable">
                             <thead>
                                 <tr>
@@ -528,6 +583,7 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

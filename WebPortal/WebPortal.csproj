@@ -365,6 +365,7 @@
     <Content Include="Admin\EditSecuritizationTracking.aspx" />
     <Content Include="Admin\EmployeeDocuments.aspx" />
     <Content Include="Admin\EmployeeInformation.aspx" />
+    <Content Include="Admin\EmployeeLogHistory.aspx" />
     <Content Include="Admin\EmployeeKYC.aspx" />
     <Content Include="Admin\EmployeeKYCReport.aspx" />
     <Content Include="Admin\RecruitmentReport.aspx" />
@@ -3057,6 +3058,9 @@
     <Content Include="DatabaseScripts\OLTracking_022_OutOfScopeAndHoldReasons.sql" />
     <Content Include="DatabaseScripts\OLTracking_023_ManagerLoanHold.sql" />
     <Content Include="DatabaseScripts\OLTracking_025_OnshoreCompletionSync.sql" />
+    <Content Include="DatabaseScripts\OLTracking_026_USProductionTrackSync.sql" />
+    <Content Include="DatabaseScripts\OLTracking_027_BulkAllocationCapacity.sql" />
+    <Content Include="DatabaseScripts\OLTracking_028_BulkEligibleLoans.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_001_FullModule.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_002_TaskAllocationImport.sql" />
@@ -4506,6 +4510,13 @@
     </Compile>
     <Compile Include="Admin\EmployeeInformation.aspx.designer.cs">
       <DependentUpon>EmployeeInformation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\EmployeeLogHistory.aspx.cs">
+      <DependentUpon>EmployeeLogHistory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\EmployeeLogHistory.aspx.designer.cs">
+      <DependentUpon>EmployeeLogHistory.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\EmployeeKYC.aspx.cs">
       <DependentUpon>EmployeeKYC.aspx</DependentUpon>

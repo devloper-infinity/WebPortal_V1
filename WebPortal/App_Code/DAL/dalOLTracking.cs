@@ -1540,13 +1540,14 @@ ORDER BY completed.ProjectName,completed.ProcessName;") { CommandType = CommandT
             SqlCommand command = Command("OLTracking_GetProjectUsers"); Add(command, "@ProjectID", SqlDbType.Int, projectId); return Table(command);
         }
 
-        public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId)
+        public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId, bool includeAll = false)
         {
             SqlCommand command = Command("OLTracking_GetEligibleLoans"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
-            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId); return Table(command);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@IncludeAll", SqlDbType.Bit, includeAll); return Table(command);
         }
 
-        public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId)
+        public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId, int capacityLimit = 2)
         {
             XElement loans = new XElement("loans");
             if (loanNumbers != null) foreach (string loan in loanNumbers)
@@ -1554,7 +1555,7 @@ ORDER BY completed.ProjectName,completed.ProcessName;") { CommandType = CommandT
             SqlCommand command = Command("OLTracking_ManagerAllocate"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
             Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId);
             Add(command, "@TargetUserID", SqlDbType.Int, targetUserId); Add(command, "@LoanXml", SqlDbType.Xml, loans.ToString(SaveOptions.DisableFormatting));
-            Add(command, "@ManagerID", SqlDbType.Int, managerId); return Execute(command);
+            Add(command, "@ManagerID", SqlDbType.Int, managerId); Add(command, "@CapacityLimit", SqlDbType.Int, capacityLimit); return Execute(command);
         }
 
         public void ValidateManagerAllocation(int projectId, int processId, string[] loanNumbers)
