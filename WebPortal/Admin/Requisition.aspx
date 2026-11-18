@@ -931,14 +931,15 @@
             $('#approve').modal('hide');
             alert('Requisition added successfully!');
             location.reload();
-
         }
+
         function OnError(error) {
             alert(error);
         }
 
     </script>
 </asp:Content>
+
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="loading" id="load1">
         <div class="loading-card">
@@ -975,7 +976,6 @@
         <div class="applicant-chip">
             <i class="fas fa-users-cog"></i>
             Recruitment Request
- 
         </div>
     </div>
     <div class="container-fluid req-page-shell">

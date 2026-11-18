@@ -251,20 +251,13 @@ namespace WebPortal.Admin
 
                     MailMessage mail = new MailMessage();
                     mail.From = new MailAddress("ack@infinity-data.com", "Infinity Requisitions", System.Text.Encoding.UTF8);
-                    //mail.To.Add("j.rucha@infinityinternationals.us");
-                    //mail.To.Add("g.trupti@infinityinternationals.us");
-                    ////mail.To.Add("n.nilkanth@infinityinternationals.us");
-                    //mail.Bcc.Add("n.nilkanth@infinityinternationals.us");
-
+                  
                     mail.To.Add(ToAddress);
                     mail.To.Add(ToCC);
                     mail.Bcc.Add(ToBCC);
 
                     mail.Subject = "New requisition added for position " + Convert.ToString(dt.Rows[0]["Profile"]) + ".";
-                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(
-                        body.ToString(),
-                        "New requisition",
-                        true);
+                    mail.Body = WebPortal.App_Code.Class.SelfLeavesEmailTemplate.Apply(body.ToString(),"New requisition",true);
                     mail.IsBodyHtml = true;
                     mail.Priority = System.Net.Mail.MailPriority.High;
                     SmtpClient client = new SmtpClient();
