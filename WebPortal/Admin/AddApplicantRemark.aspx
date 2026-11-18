@@ -928,6 +928,12 @@
                         var ddlreq = document.getElementById("requisition");
                         var reqvalue = ddlreq.options[ddlreq.selectedIndex].value;
                         var reqtext = ddlreq.options[ddlreq.selectedIndex].text;
+                        // RequisitionID is an Int32 WebMethod argument. The "Other"
+                        // option has a text value, so represent it with the existing
+                        // server-side sentinel value of 0.
+                        if (reqtext.trim().toLowerCase() === 'other') {
+                            reqvalue = 0;
+                        }
                         var process = document.getElementById("process").value;
                         var ddlstatus = document.getElementById("status");
                         var status = ddlstatus.options[ddlstatus.selectedIndex].text;

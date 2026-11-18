@@ -1005,6 +1005,13 @@ function EmployeeInformationDetails() {
                             return meta.settings._iDisplayStart + meta.row + 1;
                         }
                     },
+                    {
+                        data: 'Code', searchable: false, orderable: false,
+                        render: function (data, type) {
+                            if (type !== 'display') return data || '';
+                            return '<a class="btn btn-sm btn-primary" href="EmployeeLogHistory.aspx?Code=' + encodeURIComponent(data || '') + '"><i class="fa fa-eye"></i> View Log</a>';
+                        }
+                    },
                     { data: 'Code' },
                     { data: 'Name' },
                     { data: 'Pseudoname' },
@@ -1044,7 +1051,7 @@ function EmployeeInformationDetails() {
                         defaultContent: ''
                     },
                     {
-                        targets: 0,
+                        targets: [0, 1],
                         searchable: false,
                         orderable: false,
                         width: '60px'
@@ -1075,7 +1082,7 @@ function EmployeeInformationDetails() {
     var isSearch = 0;
 
     $('#empveri_table thead tr:eq(1) th').each(function () {
-        if (isSearch === 1 || isSearch === 2) {
+        if (isSearch === 2 || isSearch === 3) {
             var title = $(this).text();
             $(this).html(
                 '<input type="text" placeholder="Search ' + title + '" class="column_search" />'

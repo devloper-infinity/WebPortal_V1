@@ -396,6 +396,7 @@
                         <thead>
                             <tr>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Sr. #</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">View Log</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Code</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Name</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Pseudoname</th>
@@ -430,6 +431,7 @@
                             </tr>
                             <tr>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Sr. #</th>
+                                <th class="sort border-top" style="text-wrap: nowrap;">View Log</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Code</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Name</th>
                                 <th class="sort border-top" style="text-wrap: nowrap;">Pseudoname</th>

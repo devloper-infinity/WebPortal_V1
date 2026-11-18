@@ -99,11 +99,11 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetDailyProductivityForUser(DateTime productivityDate, int userId, int domainId)
         { return dal.GetDailyProductivityForUser(productivityDate, userId, domainId); }
         public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
-        public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId) { return dal.GetEligibleLoans(projectId, dealNumber, processId); }
+        public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId, bool includeAll = false) { return dal.GetEligibleLoans(projectId, dealNumber, processId, includeAll); }
        
-        public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId)
+        public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId, int capacityLimit = 2)
         {
-            return dal.ManagerAllocate(projectId, dealNumber, processId, targetUserId, loanNumbers, managerId);
+            return dal.ManagerAllocate(projectId, dealNumber, processId, targetUserId, loanNumbers, managerId, capacityLimit);
         }
         public void ValidateManagerAllocation(int projectId, int processId, string[] loanNumbers)
         { dal.ValidateManagerAllocation(projectId, processId, loanNumbers); }

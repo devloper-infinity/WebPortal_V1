@@ -64,6 +64,12 @@ namespace WebPortal.Accounts
                 Hashtable htParam = new Hashtable();
                 htParam["Code"] = code;
                 htParam["AddedBy"] = CurrentUserId();
+                htParam["IncrementPercentageByPM"] = 0;
+                htParam["IncrementAmount"] = 0;
+                htParam["PMRemark"] = "";
+                htParam["SalaryAfterIncrement"] = 0;
+                htParam["Month"] = "";
+                htParam["Year"] = "";
 
                 returnValue = isUnderwriting
                     ? salary.InsertProposedIncrementByPM_UnderWriting(htParam)

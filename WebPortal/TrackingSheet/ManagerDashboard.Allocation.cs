@@ -63,7 +63,8 @@ namespace WebPortal.TrackingSheet
                     {
                         string[] loan = new[] { row.LoanNumber };
                         tracking.ValidateManagerAllocation(projectId, row.ProcessID, loan);
-                        int count = tracking.ManagerAllocate(projectId, row.DealNumber, row.ProcessID, row.UserID, loan, OLTrackingWeb.UserId);
+                        int capacityLimit = BulkCapacityLimit(row.Process);
+                        int count = tracking.ManagerAllocate(projectId, row.DealNumber, row.ProcessID, row.UserID, loan, OLTrackingWeb.UserId, capacityLimit);
                         row.Status = count > 0 ? "Allocated" : "Failed"; row.Message = count > 0 ? "Allocated successfully." : "No order was allocated."; allocated += count;
                     }
                     catch (Exception ex) { row.Status = "Failed"; row.Message = AllocationMessage(ex); }
@@ -100,11 +101,16 @@ namespace WebPortal.TrackingSheet
                 string duplicateKey = row.DealNumber + "|" + row.LoanNumber + "|" + row.ProcessID;
                 if (!duplicates.Add(duplicateKey)) { row.Message = "Duplicate row in this batch."; continue; }
                 string eligibilityKey = row.DealNumber + "|" + row.ProcessID; HashSet<string> loans;
-                if (!eligible.TryGetValue(eligibilityKey, out loans)) { loans = new HashSet<string>(tracking.GetEligibleLoans(projectId, row.DealNumber, row.ProcessID).AsEnumerable().Select(x => RowText(x, "LoanNumber")), StringComparer.OrdinalIgnoreCase); eligible[eligibilityKey] = loans; }
+                if (!eligible.TryGetValue(eligibilityKey, out loans)) { loans = new HashSet<string>(tracking.GetEligibleLoans(projectId, row.DealNumber, row.ProcessID, true).AsEnumerable().Select(x => RowText(x, "LoanNumber")), StringComparer.OrdinalIgnoreCase); eligible[eligibilityKey] = loans; }
                 if (!loans.Contains(row.LoanNumber)) { row.Message = "Loan is not eligible for this deal/process."; continue; }
                 int active = user.Table.Columns.Contains("ActiveCount") && user["ActiveCount"] != DBNull.Value ? Convert.ToInt32(user["ActiveCount"]) : 0;
                 int pending; planned.TryGetValue(row.UserID, out pending);
-                if (active + pending >= 2) { row.Message = "Employee capacity of two active orders would be exceeded."; continue; }
+                int capacityLimit = BulkCapacityLimit(row.Process);
+                if (capacityLimit > 0 && active + pending >= capacityLimit)
+                {
+                    row.Message = "Employee capacity of " + capacityLimit + " active orders would be exceeded.";
+                    continue;
+                }
                 planned[row.UserID] = pending + 1; row.Status = "Valid"; row.Message = "Ready to allocate.";
             }
             int valid = rows.Count(x => x.Status == "Valid"), invalid = rows.Count - valid;
@@ -112,6 +118,16 @@ namespace WebPortal.TrackingSheet
         }
 
         private static string RowText(DataRow row, string column) { return row.Table.Columns.Contains(column) && row[column] != DBNull.Value ? Convert.ToString(row[column]).Trim() : string.Empty; }
+
+        private static int BulkCapacityLimit(string processName)
+        {
+            string normalized = new string((processName ?? string.Empty).Where(char.IsLetterOrDigit).ToArray());
+            return normalized.Equals("CollectionCommentsReQC", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("PHReQC", StringComparison.OrdinalIgnoreCase)
+                || normalized.Equals("DataFieldsReQC", StringComparison.OrdinalIgnoreCase)
+                ? 0
+                : 3;
+        }
 
         private static void Access(int projectId)
         {
