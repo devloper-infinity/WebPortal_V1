@@ -12,7 +12,7 @@
   function bindEmployeeLogHistory(){
    var request={Code:new URLSearchParams(window.location.search).get("Code")||"",Cycle:$("#<%= ddlSalaryCycle.ClientID %>").val()||""};
    if($.fn.DataTable.isDataTable("#employeeLogHistory"))employeeLogTable.destroy();
-   employeeLogTable=$("#employeeLogHistory").DataTable({ajax:{type:"POST",url:"EmployeeLogHistory.aspx/GetLogs",data:function(){return JSON.stringify(request);},contentType:"application/json; charset=utf-8",dataType:"json",dataSrc:function(r){return typeof r.d==="string"?JSON.parse(r.d):r.d;}},paging:false,searching:false,info:false,ordering:false,scrollX:true,processing:true,columns:[{data:"AttendanceDate",defaultContent:""},{data:"DayName",defaultContent:""},{data:"PresentDay",defaultContent:""},{data:"Hours",defaultContent:""},{data:"LateMark",defaultContent:""},{data:"Remark",defaultContent:""}],language:{emptyTable:"No log records found for this salary cycle",processing:"Loading logs..."}});
+   employeeLogTable=$("#employeeLogHistory").DataTable({ajax:{type:"POST",url:"EmployeeLogHistory.aspx/GetLogs",data:function(){return JSON.stringify(request);},contentType:"application/json; charset=utf-8",dataType:"json",dataSrc:function(r){return typeof r.d==="string"?JSON.parse(r.d):r.d;}},paging:false,searching:false,info:false,ordering:false,scrollX:true,processing:true,columns:[{data:"Code",defaultContent:""},{data:"Date",defaultContent:""},{data:"In Time",defaultContent:""},{data:"Out Time",defaultContent:""},{data:"Total Hours",defaultContent:""},{data:"Extra Hours",defaultContent:""},{data:"Latemark",defaultContent:""},{data:"Partial",defaultContent:""},{data:"Shift Remark",defaultContent:""},{data:"PM/ System Remark",defaultContent:""}],language:{emptyTable:"No log records found for this salary cycle",processing:"Loading logs..."}});
   }
   $(document).ready(function(){bindEmployeeLogHistory();$("#btnShowLogs").on("click",bindEmployeeLogHistory);});
  </script>
@@ -26,6 +26,6 @@
    <div class="elh-field"><label>Salary Cycle</label><asp:DropDownList ID="ddlSalaryCycle" runat="server" CssClass="form-control" /></div>
    <div class="elh-field"><label>&nbsp;</label><button type="button" id="btnShowLogs" class="elh-btn"><i class="fa fa-search"></i> Show Logs</button></div>
   </div><p class="elh-note">For dropout employees, the latest cycle containing a present day is selected automatically.</p></section>
-  <section class="elh-table-card"><div class="table-responsive"><table id="employeeLogHistory" class="table table-bordered table-hover" style="width:100%"><thead><tr><th>Date</th><th>Day</th><th>Present Day</th><th>Hours</th><th>Late Mark</th><th>Remark</th></tr></thead><tbody></tbody></table></div></section>
+  <section class="elh-table-card"><div class="table-responsive"><table id="employeeLogHistory" class="table table-bordered table-hover" style="width:100%"><thead><tr><th>Code</th><th>Date</th><th>In Time</th><th>Out Time</th><th>Total Hours</th><th>Extra Hours</th><th>Latemark</th><th>Partial</th><th>Shift Remark</th><th>PM/ System Remark</th></tr></thead><tbody></tbody></table></div></section>
  </div>
 </asp:Content>
