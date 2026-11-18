@@ -1077,7 +1077,7 @@ function setappr_renderGridRows(dataArray, includeMonthYear) {
 
 function setappr_initTable(hasMonthYear) {
     setappr_gr_table = $('#setappr_gr_table').DataTable({
-        dom: 'ftip',
+        dom: 'Bftip',
         scrollX: true,
         destroy: true,
         paging: true,
@@ -1094,7 +1094,18 @@ function setappr_initTable(hasMonthYear) {
             setappr_resetFilters();
             setappr_bindFilters(tableApi, hasMonthYear);
             $('#load1').hide();
-        }
+        },
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: 'Excel',
+                className: 'btn btn-success btn-sm',
+                // title: 'Set Approval Report',
+                exportOptions: {
+                    columns: ':visible'
+                }
+            }
+        ],
     });
 }
 

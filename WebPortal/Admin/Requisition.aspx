@@ -4,27 +4,27 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>
-      #load1.loading {
-          display:none;
-          position:fixed;
-          top:50%;
-          left:50%;
-          transform:translate(-50%,-50%);
-          margin:0;
-          width:auto;
-          height:auto;
-          padding:22px 28px;
-          background:rgba(255,255,255,.96);
-          border-radius:18px;
-          box-shadow:0 18px 45px rgba(15,23,42,.18);
-          text-align:center;
-          z-index:99999;
-          opacity:1;
-      }
+        #load1.loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            margin: 0;
+            width: auto;
+            height: auto;
+            padding: 22px 28px;
+            background: rgba(255,255,255,.96);
+            border-radius: 18px;
+            box-shadow: 0 18px 45px rgba(15,23,42,.18);
+            text-align: center;
+            z-index: 99999;
+            opacity: 1;
+        }
 
-      #load1 img {
-          max-width:70px;
-      }
+        #load1 img {
+            max-width: 70px;
+        }
 
 
         .dataTables_length, .dataTables_info {
@@ -694,7 +694,7 @@
 
         $(document).ready(function () {
             // $('#load1').show();
-             $('.loading-overlay, .loading').show();
+            $('.loading-overlay, .loading').show();
             html = '';
             $.ajax({
                 url: "Requisition.aspx/GetAllRequisitions",
@@ -923,17 +923,18 @@
                 return showReqValidation("Please select source.", "source");
             }
 
-            PageMethods.InsertRequisition(designation, noofpositions, domain, "", projects, process, shift, location, employmenttype, department, remark, deadline, source, OnSucceed, OnError);
+            PageMethods.InsertRequisition(designation, noofpositions, domain, "", projects, process, shift, location, employmenttype, department, remark, deadline, source, OnSucceed_req, OnError_req);
             return false;
         }
 
-        function OnSucceed(result) {
-            $('#approve').modal('hide');
+        function OnSucceed_req(result) {
+
+                      $('#approve').modal('hide');
             alert('Requisition added successfully!');
             location.reload();
         }
 
-        function OnError(error) {
+        function OnError_req(error) {
             alert(error);
         }
 
