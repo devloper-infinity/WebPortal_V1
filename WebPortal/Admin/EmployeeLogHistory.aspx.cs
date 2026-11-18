@@ -80,18 +80,34 @@ SELECT CycleEnd,LastPresentDate FROM Cycles ORDER BY CycleEnd DESC;", code);
             DataTable logs = ExecuteHistoryQuery(@"
 WITH History AS
 (
- SELECT [Date],P_Day,Hours,Let_Mark,Remark,1 SourcePriority FROM infinityus.dbo.Salary_Detail WITH (NOLOCK) WHERE User_Code=@Code
- UNION ALL SELECT [Date],P_Day,Hours,Let_Mark,Remark,2 FROM infinityus.dbo.last_Salary_Detail WITH (NOLOCK) WHERE User_Code=@Code
- UNION ALL SELECT [Date],P_Day,Hours,Let_Mark,Remark,3 FROM infinityus.dbo.last_last_Salary_Detail WITH (NOLOCK) WHERE User_Code=@Code
+ SELECT User_Code,[Date],In_Time,Out_Time2,Total_hrs,Extra_Hours,Let_Mark,P_Day,Remark,Remark_Admin,1 SourcePriority FROM infinityus.dbo.Salary_Detail WITH (NOLOCK) WHERE User_Code=@Code
+ UNION ALL SELECT User_Code,[Date],In_Time,Out_Time2,Total_hrs,Extra_Hours,Let_Mark,P_Day,Remark,Remark_Admin,2 FROM infinityus.dbo.last_Salary_Detail WITH (NOLOCK) WHERE User_Code=@Code
+ UNION ALL SELECT User_Code,[Date],In_Time,Out_Time2,Total_hrs,Extra_Hours,Let_Mark,P_Day,Remark,Remark_Admin,3 FROM infinityus.dbo.last_last_Salary_Detail WITH (NOLOCK) WHERE User_Code=@Code
 ), Ranked AS
 (
- SELECT CONVERT(datetime,[Date]) AttendanceDate,P_Day,Hours,Let_Mark,Remark,ROW_NUMBER() OVER(PARTITION BY CONVERT(datetime,[Date]) ORDER BY SourcePriority) RowNo
+ SELECT User_Code,CONVERT(datetime,[Date]) AttendanceDate,In_Time,Out_Time2,Total_hrs,Extra_Hours,Let_Mark,P_Day,Remark,Remark_Admin,
+        ROW_NUMBER() OVER(PARTITION BY CONVERT(datetime,[Date]) ORDER BY SourcePriority) RowNo
  FROM History WHERE ISDATE([Date])=1 AND CONVERT(datetime,[Date]) BETWEEN @FromDate AND @ToDate
+), Calendar AS
+(
+ SELECT CONVERT(datetime,@FromDate) AttendanceDate
+ UNION ALL
+ SELECT DATEADD(day,1,AttendanceDate) FROM Calendar WHERE AttendanceDate<@ToDate
 )
-SELECT CONVERT(varchar(11),AttendanceDate,106) AttendanceDate,DATENAME(weekday,AttendanceDate) DayName,
-       ISNULL(CONVERT(nvarchar(50),P_Day),'0') PresentDay,ISNULL(CONVERT(nvarchar(50),Hours),'') Hours,
-       ISNULL(CONVERT(nvarchar(50),Let_Mark),'') LateMark,ISNULL(CONVERT(nvarchar(500),Remark),'') Remark
-FROM Ranked WHERE RowNo=1 ORDER BY AttendanceDate;", Code, cycleStart, cycleEnd);
+SELECT @Code Code,
+       CONVERT(varchar(11),c.AttendanceDate,106) [Date],
+       ISNULL(CONVERT(nvarchar(50),r.In_Time),'') [In Time],
+       ISNULL(CONVERT(nvarchar(50),r.Out_Time2),'') [Out Time],
+       ISNULL(CONVERT(nvarchar(50),r.Total_hrs),'') [Total Hours],
+       ISNULL(CONVERT(nvarchar(50),r.Extra_Hours),'') [Extra Hours],
+       ISNULL(CONVERT(nvarchar(50),r.Let_Mark),'') [Latemark],
+       ISNULL(CONVERT(nvarchar(50),r.P_Day),'') [Partial],
+       ISNULL(CONVERT(nvarchar(500),r.Remark),'') [Shift Remark],
+       ISNULL(CONVERT(nvarchar(500),r.Remark_Admin),'') [PM/ System Remark]
+FROM Calendar c
+LEFT JOIN Ranked r ON r.AttendanceDate=c.AttendanceDate AND r.RowNo=1
+ORDER BY c.AttendanceDate
+OPTION (MAXRECURSION 40);", Code, cycleStart, cycleEnd);
 
             var rows = new List<Dictionary<string, object>>();
             foreach (DataRow dr in logs.Rows)
