@@ -455,6 +455,10 @@ FodyWeavers.xsd
 !/WebPortal/DatabaseScripts/OLTracking_026_USProductionTrackSync.sql
 !/WebPortal/DatabaseScripts/OLTracking_027_BulkAllocationCapacity.sql
 !/WebPortal/DatabaseScripts/OLTracking_028_BulkEligibleLoans.sql
+!/WebPortal/DatabaseScripts/OLTracking_029_ReQCLoanUniqueIdentity.sql
+!/WebPortal/DatabaseScripts/OLTracking_030_BulkAllocationUpsert.sql
+!/WebPortal/DatabaseScripts/OLTracking_031_GlobalLoanUniqueIdentity.sql
+!/WebPortal/DatabaseScripts/OLTracking_032_ExactProcessAllocationValidation.sql
 !/WebPortal/DatabaseScripts/AutoBillingCycleFilter.sql
 !/WebPortal/DatabaseScripts/UserPerformanceReport_001_Consolidated.sql
 !/WebPortal/DatabaseScripts/ServicingDetailedFeedbackReport_001_SelectedLoans.sql

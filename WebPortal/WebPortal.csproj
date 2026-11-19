@@ -3061,6 +3061,10 @@
     <Content Include="DatabaseScripts\OLTracking_026_USProductionTrackSync.sql" />
     <Content Include="DatabaseScripts\OLTracking_027_BulkAllocationCapacity.sql" />
     <Content Include="DatabaseScripts\OLTracking_028_BulkEligibleLoans.sql" />
+    <Content Include="DatabaseScripts\OLTracking_029_ReQCLoanUniqueIdentity.sql" />
+    <Content Include="DatabaseScripts\OLTracking_030_BulkAllocationUpsert.sql" />
+    <Content Include="DatabaseScripts\OLTracking_031_GlobalLoanUniqueIdentity.sql" />
+    <Content Include="DatabaseScripts\OLTracking_032_ExactProcessAllocationValidation.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_001_FullModule.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_002_TaskAllocationImport.sql" />

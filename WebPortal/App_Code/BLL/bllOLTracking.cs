@@ -100,6 +100,12 @@ namespace WebPortal.App_Code.BLL
         { return dal.GetDailyProductivityForUser(productivityDate, userId, domainId); }
         public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
         public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId, bool includeAll = false) { return dal.GetEligibleLoans(projectId, dealNumber, processId, includeAll); }
+        public DataTable GetCurrentLoanProcessAssignment(int projectId, string dealNumber, string loanNumber, int processId)
+        { return dal.GetCurrentLoanProcessAssignment(projectId, dealNumber, loanNumber, processId); }
+        public int ResolveEffectiveProcessId(int projectId, string dealNumber, string processName)
+        { return dal.ResolveEffectiveProcessId(projectId, dealNumber, processName); }
+        public int BulkReassignPending(long assignmentId, int targetUserId, int managerId, int capacityLimit)
+        { return dal.BulkReassignPending(assignmentId, targetUserId, managerId, capacityLimit); }
        
         public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId, int capacityLimit = 2)
         {

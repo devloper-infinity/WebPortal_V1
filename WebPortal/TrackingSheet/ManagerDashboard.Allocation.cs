@@ -56,21 +56,37 @@ namespace WebPortal.TrackingSheet
             {
                 Access(projectId);
                 BulkAllocationResult result = PrepareBulkAllocations(projectId, rows);
-                bllOLTracking tracking = new bllOLTracking(); int allocated = 0;
-                foreach (BulkAllocationRow row in result.Rows.Where(x => x.Status == "Valid"))
+                bllOLTracking tracking = new bllOLTracking(); int allocated = 0; int unchanged = 0;
+                foreach (BulkAllocationRow row in result.Rows.Where(x => x.Status == "Valid" || x.Status == "Reassign" || x.Status == "Existing"))
                 {
                     try
                     {
+                        if (row.Status == "Existing")
+                        {
+                            row.Status = "Allocated"; row.Message = "Already allocated to this employee."; unchanged++;
+                            continue;
+                        }
+                        if (row.Status == "Reassign")
+                        {
+                            int reassigned = tracking.BulkReassignPending(row.AssignmentID, row.UserID, OLTrackingWeb.UserId, BulkCapacityLimit(row.Process));
+                            row.Status = reassigned > 0 ? "Allocated" : "Failed";
+                            row.Message = reassigned > 0 ? "Pending assignment updated to this employee." : "Assignment was not updated.";
+                            allocated += reassigned;
+                            continue;
+                        }
                         string[] loan = new[] { row.LoanNumber };
-                        tracking.ValidateManagerAllocation(projectId, row.ProcessID, loan);
+                        int canonicalProcessId = tracking.ResolveEffectiveProcessId(projectId, row.DealNumber, row.Process);
+                        if (canonicalProcessId <= 0) throw new InvalidOperationException("Process is no longer configured for this deal.");
+                        row.ProcessID = canonicalProcessId;
+                        tracking.ValidateManagerAllocation(projectId, canonicalProcessId, loan);
                         int capacityLimit = BulkCapacityLimit(row.Process);
-                        int count = tracking.ManagerAllocate(projectId, row.DealNumber, row.ProcessID, row.UserID, loan, OLTrackingWeb.UserId, capacityLimit);
+                        int count = tracking.ManagerAllocate(projectId, row.DealNumber, canonicalProcessId, row.UserID, loan, OLTrackingWeb.UserId, capacityLimit);
                         row.Status = count > 0 ? "Allocated" : "Failed"; row.Message = count > 0 ? "Allocated successfully." : "No order was allocated."; allocated += count;
                     }
                     catch (Exception ex) { row.Status = "Failed"; row.Message = AllocationMessage(ex); }
                 }
                 result.AllocatedCount = allocated; result.ValidCount = result.Rows.Count(x => x.Status == "Valid"); result.InvalidCount = result.Rows.Count(x => x.Status == "Invalid" || x.Status == "Failed");
-                result.Success = allocated > 0; result.Message = allocated + " order(s) allocated. " + result.InvalidCount + " row(s) require attention."; return result;
+                result.Success = allocated > 0 || unchanged > 0; result.Message = allocated + " order(s) allocated/reassigned, " + unchanged + " already allocated. " + result.InvalidCount + " row(s) require attention."; return result;
             }
             catch (Exception ex) { return new BulkAllocationResult { Success = false, Message = AllocationMessage(ex), Rows = new List<BulkAllocationRow>() }; }
         }
@@ -87,6 +103,7 @@ namespace WebPortal.TrackingSheet
             bllOLTracking tracking = new bllOLTracking(); DataTable users = tracking.GetProjectUsers(projectId);
             Dictionary<string, DataTable> flows = new Dictionary<string, DataTable>(StringComparer.OrdinalIgnoreCase);
             Dictionary<string, HashSet<string>> eligible = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, DataRow> existingAssignments = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
             Dictionary<int, int> planned = new Dictionary<int, int>(); HashSet<string> duplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (BulkAllocationRow row in rows)
             {
@@ -100,6 +117,35 @@ namespace WebPortal.TrackingSheet
                 row.ProcessID = Convert.ToInt32(process["ProcessID"]); row.Process = RowText(process, "ProcessName");
                 string duplicateKey = row.DealNumber + "|" + row.LoanNumber + "|" + row.ProcessID;
                 if (!duplicates.Add(duplicateKey)) { row.Message = "Duplicate row in this batch."; continue; }
+                DataRow existing;
+                if (!existingAssignments.TryGetValue(duplicateKey, out existing))
+                {
+                    DataTable current = tracking.GetCurrentLoanProcessAssignment(projectId, row.DealNumber, row.LoanNumber, row.ProcessID);
+                    existing = current.Rows.Count == 0 ? null : current.Rows[0]; existingAssignments[duplicateKey] = existing;
+                }
+                if (existing != null)
+                {
+                    row.AssignmentID = Convert.ToInt64(existing["AssignmentID"]);
+                    int existingUserId = Convert.ToInt32(existing["UserID"]);
+                    string existingStatus = RowText(existing, "AssignmentStatus");
+                    if (existingUserId == row.UserID)
+                    {
+                        row.Status = "Existing"; row.Message = "Already allocated to this employee."; continue;
+                    }
+                    if (!existingStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+                    {
+                        row.Message = "Loan is already " + existingStatus + " under " + RowText(existing, "UserName") + "."; continue;
+                    }
+                    int reassignLimit = BulkCapacityLimit(row.Process);
+                    int reassignActive = user.Table.Columns.Contains("ActiveCount") && user["ActiveCount"] != DBNull.Value ? Convert.ToInt32(user["ActiveCount"]) : 0;
+                    int reassignPending; planned.TryGetValue(row.UserID, out reassignPending);
+                    if (reassignLimit > 0 && reassignActive + reassignPending >= reassignLimit)
+                    {
+                        row.Message = "Employee capacity of " + reassignLimit + " active orders would be exceeded."; continue;
+                    }
+                    planned[row.UserID] = reassignPending + 1; row.Status = "Reassign";
+                    row.Message = "Pending assignment will move from " + RowText(existing, "UserName") + "."; continue;
+                }
                 string eligibilityKey = row.DealNumber + "|" + row.ProcessID; HashSet<string> loans;
                 if (!eligible.TryGetValue(eligibilityKey, out loans)) { loans = new HashSet<string>(tracking.GetEligibleLoans(projectId, row.DealNumber, row.ProcessID, true).AsEnumerable().Select(x => RowText(x, "LoanNumber")), StringComparer.OrdinalIgnoreCase); eligible[eligibilityKey] = loans; }
                 if (!loans.Contains(row.LoanNumber)) { row.Message = "Loan is not eligible for this deal/process."; continue; }
@@ -113,7 +159,7 @@ namespace WebPortal.TrackingSheet
                 }
                 planned[row.UserID] = pending + 1; row.Status = "Valid"; row.Message = "Ready to allocate.";
             }
-            int valid = rows.Count(x => x.Status == "Valid"), invalid = rows.Count - valid;
+            int valid = rows.Count(x => x.Status == "Valid" || x.Status == "Reassign" || x.Status == "Existing"), invalid = rows.Count - valid;
             return new BulkAllocationResult { Success = valid > 0, Message = valid + " valid and " + invalid + " invalid row(s).", Rows = rows, ValidCount = valid, InvalidCount = invalid };
         }
 
@@ -149,7 +195,7 @@ namespace WebPortal.TrackingSheet
     public sealed class BulkAllocationRow
     {
         public int RowNumber { get; set; } public string DealNumber { get; set; } public string LoanNumber { get; set; }
-        public string Employee { get; set; } public string Process { get; set; } public int UserID { get; set; } public int ProcessID { get; set; }
+        public string Employee { get; set; } public string Process { get; set; } public int UserID { get; set; } public int ProcessID { get; set; } public long AssignmentID { get; set; }
         public string Status { get; set; } public string Message { get; set; }
     }
     public sealed class BulkAllocationResult
