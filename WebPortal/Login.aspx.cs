@@ -127,10 +127,13 @@ namespace WebPortal
                     Response.Redirect("~/Admin/EmployeeKYC.aspx");
                 }
 
-                int HRQU = bllLogin.CheckHRQuesionnaire();
-                if (HRQU == 0)
+                if (bllLogin.IsHRInductionRequired())
                 {
-                    Response.Redirect("~/Admin/HRQuestionPaper.aspx");
+                    int HRQU = bllLogin.CheckHRQuesionnaire();
+                    if (HRQU == 0)
+                    {
+                        Response.Redirect("~/Admin/HRQuestionPaper.aspx");
+                    }
                 }
 
 

@@ -26,6 +26,9 @@ namespace WebPortal
         {
             int userId = Convert.ToInt32(HttpContext.Current.User.Identity.Name.ToString());
 
+            if (!new bllLogin().CanAccessTopMenus())
+                return new List<MenuItem>();
+
             // Load all menus for complete parent-child hierarchy
             DataTable dtAll = new bllMaster().GetAllMenus();
 
