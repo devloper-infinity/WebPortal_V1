@@ -32,43 +32,33 @@
 
             $.ajax({
                 type: "POST",
-                url: "DashboardEmployee.aspx/BindInformation",
+                url: "../MenuService.aspx/CanAccessTopMenus",
                 contentType: "application/json",
                 dataType: "json",
                 success: function (data) {
-                    var dataArray = JSON.parse(data.d);
-                    var i = 0;
-                    $.each(dataArray, function (index, value) {
+                    if (!data.d) {
+                        $("#aLogo").css({ "pointer-events": "none", "opacity": "0.5" });
+                        $("#lipendingTask").css({ "pointer-events": "none", "opacity": "0.5" });
+                        $("#dynamicMenu").empty();
+                        return;
+                    }
 
-                        var Posh_Status = value.PoshStatus;
+                    $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
+                    $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
+                    getPendingTaskNotifications_Sidebar();
 
-                        if (Posh_Status && Posh_Status.toLowerCase() === "completed") {
-
-                            $("#aLogo").css({ "pointer-events": "auto", "opacity": "1" });
-                            $("#lipendingTask").css({ "pointer-events": "auto", "opacity": "1" });
-
-                            getPendingTaskNotifications_Sidebar();
-
-                            $.ajax({
-                                type: "POST",
-                                url: "../MenuService.aspx/LoadMenu",
-                                contentType: "application/json",
-                                dataType: "json",
-                                success: function (res) {
-                                    let menuTree = res.d;
-                                    console.log(res.d);
-                                    let html = "";
-                                    menuTree.forEach(m => html += renderTopMenu(m));
-                                    $("#dynamicMenu").html(html);
-                                }
-                            });
-                        }
-                        else {
-                            $("#aLogo").css({ "pointer-events": "none", "opacity": "0.5" });
-                            $("#lipendingTask").css({ "pointer-events": "none", "opacity": "0.5" });
+                    $.ajax({
+                        type: "POST",
+                        url: "../MenuService.aspx/LoadMenu",
+                        contentType: "application/json",
+                        dataType: "json",
+                        success: function (res) {
+                            let html = "";
+                            res.d.forEach(m => html += renderTopMenu(m));
+                            $("#dynamicMenu").html(html);
                         }
                     });
-                },
+                }
             });
         });
 

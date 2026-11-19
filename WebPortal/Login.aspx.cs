@@ -115,14 +115,14 @@ namespace WebPortal
                
 
                 int poshteststatus = new bllMaster().GetPostTestStatus();
-                if (poshteststatus == 0)
+                if (poshteststatus <= 0)
                 {
                     Response.Redirect("~/Admin/POSHVideo.aspx");
                 }
 
 
                 int KYC = bllLogin.CheckExistanceofKYC();
-                if (KYC == 0)
+                if (KYC <= 0)
                 {
                     Response.Redirect("~/Admin/EmployeeKYC.aspx");
                 }
@@ -130,7 +130,7 @@ namespace WebPortal
                 if (bllLogin.IsHRInductionRequired())
                 {
                     int HRQU = bllLogin.CheckHRQuesionnaire();
-                    if (HRQU == 0)
+                    if (HRQU <= 0)
                     {
                         Response.Redirect("~/Admin/HRQuestionPaper.aspx");
                     }

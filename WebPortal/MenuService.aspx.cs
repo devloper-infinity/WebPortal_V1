@@ -22,6 +22,13 @@ namespace WebPortal
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static bool CanAccessTopMenus()
+        {
+            return new bllLogin().CanAccessTopMenus();
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static List<MenuItem> LoadMenu()
         {
             int userId = Convert.ToInt32(HttpContext.Current.User.Identity.Name.ToString());

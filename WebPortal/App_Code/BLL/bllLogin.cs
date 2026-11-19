@@ -127,10 +127,10 @@ namespace WebPortal.App_Code.BLL
 
         public bool CanAccessTopMenus()
         {
-            if (new bllMaster().GetPostTestStatus() == 0 || CheckExistanceofKYC() == 0)
+            if (new bllMaster().GetPostTestStatus() <= 0 || CheckExistanceofKYC() <= 0)
                 return false;
 
-            return !IsHRInductionRequired() || CheckHRQuesionnaire() != 0;
+            return !IsHRInductionRequired() || CheckHRQuesionnaire() > 0;
         }
 
         public bool GetERPCutoffTimeExceptionsByCode(string Code, string Date)
