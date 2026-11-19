@@ -81,11 +81,7 @@ namespace WebPortal.TrackingSheet
                 instructions.Column(2).Width = 32;
 
                 IXLWorksheet dataSheet = workbook.Worksheets.Add(DataSheetName);
-                dataSheet.Cell(1, 1).Value = "Entry Date";
-                dataSheet.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#117A9B");
-                dataSheet.Cell(1, 1).Style.Font.FontColor = XLColor.White;
-
-                int column = 2;
+                int column = 1;
                 foreach (DataRow field in fields.Rows)
                 {
                     IXLCell header = dataSheet.Cell(1, column);
@@ -103,9 +99,8 @@ namespace WebPortal.TrackingSheet
 
                 dataSheet.Row(1).Style.Font.Bold = true;
                 dataSheet.SheetView.FreezeRows(1);
-                dataSheet.Range(1, 1, 1, fields.Rows.Count + 1).SetAutoFilter();
-                dataSheet.Column(1).Style.DateFormat.Format = "dd/mm/yyyy";
-                dataSheet.Columns(1, fields.Rows.Count + 1).Width = 22;
+                dataSheet.Range(1, 1, 1, fields.Rows.Count).SetAutoFilter();
+                dataSheet.Columns(1, fields.Rows.Count).Width = 22;
 
                 IXLWorksheet infoSheet = workbook.Worksheets.Add(InfoSheetName);
                 infoSheet.Cell("A1").Value = "TemplateVersion";
@@ -219,6 +214,12 @@ namespace WebPortal.TrackingSheet
 
             IXLRange usedRange = sheet.RangeUsed();
             if (usedRange == null) return values;
+            int orderDateIndex = FindOrderDateFieldIndex(fields);
+            if (orderDateIndex < 0)
+            {
+                errors.Add("The project import configuration must include an Order Date field.");
+                return values;
+            }
             int lastRow = usedRange.LastRow().RowNumber();
             if (lastRow - 1 > MaximumRows)
             {
@@ -230,24 +231,26 @@ namespace WebPortal.TrackingSheet
             for (int excelRow = 2; excelRow <= lastRow; excelRow++)
             {
                 bool hasData = false;
-                for (int c = 1; c <= fields.Rows.Count + 1; c++)
+                for (int c = 1; c <= fields.Rows.Count; c++)
                     if (!string.IsNullOrWhiteSpace(sheet.Cell(excelRow, c).GetFormattedString())) { hasData = true; break; }
                 if (!hasData) continue;
 
                 importRow++;
                 DateTime entryDate;
-                if (!TryReadDate(sheet.Cell(excelRow, 1), "", out entryDate))
+                DataRow orderDateField = fields.Rows[orderDateIndex];
+                IXLCell orderDateCell = sheet.Cell(excelRow, orderDateIndex + 1);
+                if (!TryReadDate(orderDateCell, Convert.ToString(orderDateField["DateFormat"]), out entryDate))
                 {
-                    errors.Add("Row " + excelRow + ": Entry Date is required and must be a valid date.");
+                    errors.Add("Row " + excelRow + ": Order Date is required and must be a valid date.");
                     continue;
                 }
 
                 for (int index = 0; index < fields.Rows.Count; index++)
                 {
                     DataRow field = fields.Rows[index];
-                    string raw = sheet.Cell(excelRow, index + 2).GetFormattedString().Trim();
+                    string raw = sheet.Cell(excelRow, index + 1).GetFormattedString().Trim();
                     string normalized;
-                    string error = ValidateValue(raw, sheet.Cell(excelRow, index + 2), field, out normalized);
+                    string error = ValidateValue(raw, sheet.Cell(excelRow, index + 1), field, out normalized);
                     if (!string.IsNullOrEmpty(error))
                     {
                         errors.Add("Row " + excelRow + ", " + Convert.ToString(field["FieldName"]) + ": " + error);
@@ -318,17 +321,26 @@ namespace WebPortal.TrackingSheet
                    DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
         }
 
+        private static int FindOrderDateFieldIndex(DataTable fields)
+        {
+            for (int index = 0; index < fields.Rows.Count; index++)
+            {
+                string fieldName = Convert.ToString(fields.Rows[index]["FieldName"]);
+                string normalized = new string(fieldName.Where(char.IsLetterOrDigit).ToArray());
+                if (normalized.Equals("OrderDate", StringComparison.OrdinalIgnoreCase)) return index;
+            }
+            return -1;
+        }
+
         private static void ValidateHeaders(IXLWorksheet sheet, DataTable fields)
         {
-            if (!sheet.Cell(1, 1).GetString().Trim().Equals("Entry Date", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Column 1 must be Entry Date.");
             for (int index = 0; index < fields.Rows.Count; index++)
             {
                 string expected = Convert.ToString(fields.Rows[index]["FieldName"]);
                 if (Convert.ToBoolean(fields.Rows[index]["IsRequired"])) expected += " *";
-                string actual = sheet.Cell(1, index + 2).GetString().Trim();
+                string actual = sheet.Cell(1, index + 1).GetString().Trim();
                 if (!actual.Equals(expected, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Template column " + (index + 2) + " must be '" + expected + "'. Please do not rename or reorder columns.");
+                    throw new InvalidOperationException("Template column " + (index + 1) + " must be '" + expected + "'. Please do not rename or reorder columns.");
             }
         }
 

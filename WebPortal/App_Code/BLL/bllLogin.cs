@@ -110,6 +110,29 @@ namespace WebPortal.App_Code.BLL
 
         }
 
+        public bool IsHRInductionRequired()
+        {
+            int employeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            DataTable employee = GetUserInformation(employeeId);
+
+            if (employee == null || employee.Rows.Count == 0 || !employee.Columns.Contains("JoiningDate"))
+                return false;
+
+            DateTime joiningDate;
+            if (!DateTime.TryParse(Convert.ToString(employee.Rows[0]["JoiningDate"]), out joiningDate))
+                return false;
+
+            return joiningDate.Date > new DateTime(2026, 11, 18);
+        }
+
+        public bool CanAccessTopMenus()
+        {
+            if (new bllMaster().GetPostTestStatus() <= 0 || CheckExistanceofKYC() <= 0)
+                return false;
+
+            return !IsHRInductionRequired() || CheckHRQuesionnaire() > 0;
+        }
+
         public bool GetERPCutoffTimeExceptionsByCode(string Code, string Date)
         {
             return dalLogin.GetERPCutoffTimeExceptionsByCode(Code, Date);

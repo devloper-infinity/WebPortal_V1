@@ -22,9 +22,19 @@ namespace WebPortal
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static bool CanAccessTopMenus()
+        {
+            return new bllLogin().CanAccessTopMenus();
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static List<MenuItem> LoadMenu()
         {
             int userId = Convert.ToInt32(HttpContext.Current.User.Identity.Name.ToString());
+
+            if (!new bllLogin().CanAccessTopMenus())
+                return new List<MenuItem>();
 
             // Load all menus for complete parent-child hierarchy
             DataTable dtAll = new bllMaster().GetAllMenus();

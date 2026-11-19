@@ -1547,6 +1547,53 @@ ORDER BY completed.ProjectName,completed.ProcessName;") { CommandType = CommandT
             Add(command, "@IncludeAll", SqlDbType.Bit, includeAll); return Table(command);
         }
 
+        public DataTable GetCurrentLoanProcessAssignment(int projectId, string dealNumber, string loanNumber, int processId)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT TOP (1) assignment.AssignmentID,assignment.UserID,assignment.AssignmentStatus,
+       COALESCE(NULLIF(configuration.PsuedoName,''),NULLIF(configuration.Code,''),
+                NULLIF(employee.Code,''),CONVERT(nvarchar(30),assignment.UserID)) UserName
+FROM dbo.OLTracking_Assignment assignment
+JOIN dbo.OLTracking_Item item ON item.ItemID=assignment.ItemID
+LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID=assignment.UserID
+OUTER APPLY
+(
+    SELECT TOP (1) config.Code,config.PsuedoName
+    FROM dbo.EmployeeConfiguration config
+    WHERE config.EmployeeID=assignment.UserID AND config.IsDelete=0
+    ORDER BY config.EmpConfigrationID DESC
+) configuration
+WHERE assignment.ProjectID=@ProjectID AND assignment.ProcessID=@ProcessID
+  AND assignment.IsCurrent=1
+  AND item.IsDeleted=0
+  AND LTRIM(RTRIM(ISNULL(item.DealNumber,'')))=LTRIM(RTRIM(ISNULL(@DealNumber,'')))
+  AND LTRIM(RTRIM(item.ItemNumber))=LTRIM(RTRIM(@LoanNumber))
+ORDER BY assignment.AssignmentID DESC;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId); Add(command, "@ProcessID", SqlDbType.Int, processId);
+            Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@LoanNumber", SqlDbType.NVarChar, loanNumber, 150);
+            return Table(command);
+        }
+
+        public int ResolveEffectiveProcessId(int projectId, string dealNumber, string processName)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT TOP (1) effective.ProcessID
+FROM dbo.OLTracking_EffectiveProcessFlow(@ProjectID,@DealNumber) effective
+WHERE UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(effective.ProcessName)),' ',''),'-',''),'_',''))
+      =UPPER(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(@ProcessName)),' ',''),'-',''),'_',''))
+ORDER BY effective.StageNo,effective.ProcessID;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId); Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150);
+            Add(command, "@ProcessName", SqlDbType.NVarChar, processName, 250); return Execute(command);
+        }
+
+        public int BulkReassignPending(long assignmentId, int targetUserId, int managerId, int capacityLimit)
+        {
+            SqlCommand command = Command("OLTracking_BulkReassignPending");
+            Add(command, "@AssignmentID", SqlDbType.BigInt, assignmentId); Add(command, "@TargetUserID", SqlDbType.Int, targetUserId);
+            Add(command, "@ManagerID", SqlDbType.Int, managerId); Add(command, "@CapacityLimit", SqlDbType.Int, capacityLimit);
+            return Execute(command);
+        }
+
         public int ManagerAllocate(int projectId, string dealNumber, int processId, int targetUserId, string[] loanNumbers, int managerId, int capacityLimit = 2)
         {
             XElement loans = new XElement("loans");
