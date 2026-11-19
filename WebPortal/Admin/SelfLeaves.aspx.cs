@@ -129,37 +129,11 @@ namespace WebPortal.Admin
         }
 
         [WebMethod]
-        public static int InsertLeave(string LeaveType, int ForDays, string FromDate, string ToDate, string Reason, string PaidStatus)
+        public static int InsertLeave_Self(string LeaveType, int ForDays, string FromDate, string ToDate, string Reason)
         {
             int returnvalue = 0;
             int employeeId = GetCurrentEmployeeId();
             string userCode = GetCurrentUserCode();
-
-            DataTable userInfo = new bllLogin().GetUserInformation(employeeId);
-            bool paidLeaveEligible = false;
-            if (userInfo != null && userInfo.Rows.Count > 0)
-            {
-                string domain = Convert.ToString(userInfo.Rows[0]["Domain"]);
-                string workingBranch = Convert.ToString(userInfo.Rows[0]["WorkingBranch"]);
-                paidLeaveEligible = domain == "9" || workingBranch == "11" || workingBranch == "3";
-            }
-
-            PaidStatus = paidLeaveEligible ? "Paid" : "Unpaid";
-
-            if (PaidStatus == "Paid")
-            {
-                DataTable leaveDetails = new bllMaster().GetLeaveDetails(userCode);
-                decimal pendingLeaves = 0;
-                if (leaveDetails != null && leaveDetails.Rows.Count > 0)
-                {
-                    decimal.TryParse(Convert.ToString(leaveDetails.Rows[0]["PendingLeaves"]), out pendingLeaves);
-                }
-
-                if (pendingLeaves < ForDays)
-                {
-                    return -2;
-                }
-            }
 
             Hashtable htParam = new Hashtable();
             htParam.Add("Code", userCode);

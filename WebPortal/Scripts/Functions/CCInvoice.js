@@ -400,9 +400,10 @@ function BindInvoiceGrid() {
                     inv_html += '<td style="text-wrap: wrap; text-align:center;">' + invoiceEscape(activeFrom) + '</td>';
                     inv_html += '<td style="text-wrap: wrap; text-align:center;">' + invoiceEscape(activeThrough) + '</td>';
 
+                    var savedUnitPrice = value.PerUnit == null ? '' : invoiceEscape(value.PerUnit);
                     var savedAmount = blankForNull(value.ContractualCost1);
                     var safeAmount = savedAmount == null ? '' : invoiceEscape(savedAmount);
-                    inv_html += '<td><input type="number" min="0" step="0.01" inputmode="decimal" onpaste="return false;" style="width:85px;" id="inv_unitPrice_' + value.HeaderID + '" aria-label="Unit Price" /></td>';
+                    // inv_html += '<td><input type="number" min="0" step="0.01" inputmode="decimal" onpaste="return false;" style="width:85px;" id="inv_unitPrice_' + value.HeaderID + '" value="' + savedUnitPrice + '" aria-label="Unit Price" /></td>';
                     inv_html += '<td><input type="number" min="0" step="0.01" inputmode="decimal" onpaste="return false;" style="width:100px;" id="inv_invoiceAmount_' + value.HeaderID + '" value="' + safeAmount + '" aria-label="Amount Charge plus Tax" onchange="return GetDifference(this,' + value.HeaderID + ',' + index + ');" /></td>';
 
                     if (blankForNull(value.Diff) != null && blankForNull(value.Diff) != '') {
@@ -462,7 +463,7 @@ function BindInvoiceGrid() {
                     select: true,
                     ordering: true,
                     order: [],
-                    columnDefs: [{ targets: [0, 1, 2, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], orderable: false }],
+                    columnDefs: [{ targets: [0, 1, 2, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], orderable: false }],
                     language: { search: '', searchPlaceholder: 'Search invoices...', lengthMenu: 'Show _MENU_', info: '_START_–_END_ of _TOTAL_ invoices', infoEmpty: 'No invoices', emptyTable: 'No invoices available', zeroRecords: 'No invoices match your search', paginate: { previous: 'Previous', next: 'Next' } },
                     processing: true,
                     'select': {
@@ -478,8 +479,8 @@ function BindInvoiceGrid() {
                     },
 
                     "rowCallback": function (row, data) {
-                        // HeaderStatus is the same hidden column used by Enable/Disable.
-                        var disabled = invoiceHeaderIsDeactivated(data[29]);
+                        // HeaderStatus is column 28 in the current grid (Unit Price is omitted).
+                        var disabled = invoiceHeaderIsDeactivated(data[28]);
                         $(row).toggleClass('invoice-row-disabled', disabled);
                         $(row).find('input, textarea, select, button')
                             .prop('disabled', disabled)

@@ -4,7 +4,7 @@ var selfleave_branch;
 var html;
 var userID;
 
-
+console.log('1');
 
 //Self Leave - START
 function blankForNull(s) {
@@ -157,8 +157,6 @@ function selfleave_Submit() {
     var selfleave_fromdate = $("#selfleave_fromdate").val();
     var selfleave_todate = $("#selfleave_todate").val();
     var selfleave_reason = $("#selfleave_reason").val().trim();
-    var paidDetailsVisible = $("#selfleave_paid_details").hasClass("is-visible");
-    var selfleave_paidstatus = paidDetailsVisible ? "Paid" : "Unpaid";
 
     if (selfleave_leavetype === "") {
         Swal.fire("Validation", "Please select leave type", "warning");
@@ -168,14 +166,6 @@ function selfleave_Submit() {
     if (selfleave_days === "" || selfleave_days === "0") {
         Swal.fire("Validation", "Please select days", "warning");
         return false;
-    }
-
-    if (selfleave_paidstatus === "Paid") {
-        var pendingLeaves = parseFloat($("#selfleave_pendingleaves").text()) || 0;
-        if (pendingLeaves < parseFloat(selfleave_days)) {
-            Swal.fire("Insufficient Paid Leaves", "You do not have sufficient paid leaves for the selected duration.", "warning");
-            return false;
-        }
     }
 
     if (selfleave_fromdate === "") {
@@ -206,13 +196,12 @@ function selfleave_Submit() {
         }
     });
 
-    PageMethods.InsertLeave(
+    PageMethods.InsertLeave_Self(
         selfleave_leavetype,
         selfleave_days,
         selfleave_fromdate,
         selfleave_todate,
         selfleave_reason,
-        selfleave_paidstatus,
         function (result) {
             $("#slefleave_waitingpanel").modal("hide");
 
