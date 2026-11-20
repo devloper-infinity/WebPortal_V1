@@ -1,6 +1,8 @@
 <%@ Page Title="" Language="C#" MasterPageFile="~/IT/Admin.Master" AutoEventWireup="true" CodeBehind="~/IT/InvoiceVerification.aspx.cs" Inherits="WebPortal.IT.InvoiceVerification" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
+    <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <style>
         :root {
             --inv-ink: #132238;
@@ -1007,6 +1009,10 @@
                 outline: 2px solid #93c5fd;
                 outline-offset: 2px;
             }
+        .revise-rate-invalid {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 .15rem rgba(220, 38, 38, .15) !important;
+        }
     </style>
     <script>
         function showInvoiceLoader() {
@@ -1176,6 +1182,62 @@
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <div class="modal fade invoice-modal" id="reviseRateModal" tabindex="-1" role="dialog" aria-labelledby="reviseRateModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="reviseRateModalTitle"><i class="fas fa-chart-line"></i> Revise Rate</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reviseRateHeaderID" />
+                    <div class="invoice-form-grid two-col">
+                        <div class="invoice-field">
+                            <label for="reviseRateHeader">Header</label>
+                            <input type="text" id="reviseRateHeader" class="form-control" readonly />
+                        </div>
+                        <div class="invoice-field">
+                            <label for="reviseRateDomain">Domain</label>
+                            <input type="text" id="reviseRateDomain" class="form-control" readonly />
+                        </div>
+                        <div class="invoice-field full">
+                            <label for="reviseRateProduct">Product</label>
+                            <input type="text" id="reviseRateProduct" class="form-control" readonly />
+                        </div>
+                        <div class="invoice-field">
+                            <label for="reviseRatePrevious">Previous Rate</label>
+                            <input type="text" id="reviseRatePrevious" class="form-control" readonly />
+                        </div>
+                        <div class="invoice-field">
+                            <label for="reviseRateNew">Revised Rate</label>
+                            <input type="text" id="reviseRateNew" class="form-control" inputmode="decimal" autocomplete="off" maxlength="30" placeholder="Enter revised rate" />
+                        </div>
+                        <div class="invoice-field">
+                            <label for="reviseRateMonth">Effective From Month</label>
+                            <select id="reviseRateMonth" class="form-control">
+                                <option value="">Select month</option>
+                                <option value="January">January</option><option value="February">February</option>
+                                <option value="March">March</option><option value="April">April</option>
+                                <option value="May">May</option><option value="June">June</option>
+                                <option value="July">July</option><option value="August">August</option>
+                                <option value="September">September</option><option value="October">October</option>
+                                <option value="November">November</option><option value="December">December</option>
+                            </select>
+                        </div>
+                        <div class="invoice-field">
+                            <label for="reviseRateYear">Effective From Year</label>
+                            <select id="reviseRateYear" class="form-control"><option value="">Select year</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn-invoice btn-invoice-soft" data-dismiss="modal"><i class="fas fa-times"></i> Close</button>
+                    <button type="button" id="reviseRateSubmit" class="btn-invoice btn-invoice-primary" onclick="return submitRevisedRate();"><i class="fas fa-save"></i> Submit Revised Rate</button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -320,6 +320,54 @@ namespace WebPortal.IT
         }
 
         [WebMethod]
+        public static object SaveRevisedRate(string HeaderID, string PreviousRate, string RevisedRate, string EffectivMonth, string EffectiveYear)
+        {
+            int headerID;
+            int effectiveYear;
+            decimal previousRate;
+            decimal revisedRate;
+            DateTime effectiveMonthDate;
+            int addedBy;
+
+            if (HttpContext.Current.User == null || !HttpContext.Current.User.Identity.IsAuthenticated
+                || !int.TryParse(HttpContext.Current.User.Identity.Name, out addedBy) || addedBy <= 0)
+                return new { Success = false, Message = "Your session has expired. Sign in again and retry." };
+
+            if (!int.TryParse(HeaderID, NumberStyles.None, CultureInfo.InvariantCulture, out headerID) || headerID <= 0)
+                return new { Success = false, Message = "The selected invoice header is invalid. Close the popup and try again." };
+
+            if (!decimal.TryParse(PreviousRate, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out previousRate) || previousRate < 0)
+                return new { Success = false, Message = "The previous rate is invalid. Refresh the invoice grid and try again." };
+
+            if (!decimal.TryParse(RevisedRate, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out revisedRate) || revisedRate < 0)
+                return new { Success = false, Message = "Enter a valid non-negative revised rate." };
+
+            if (!DateTime.TryParseExact(EffectivMonth, "MMMM", CultureInfo.InvariantCulture, DateTimeStyles.None, out effectiveMonthDate))
+                return new { Success = false, Message = "Select a valid effective month." };
+
+            int currentYear = DateTime.Now.Year;
+            if (!int.TryParse(EffectiveYear, NumberStyles.None, CultureInfo.InvariantCulture, out effectiveYear)
+                || effectiveYear < currentYear - 5 || effectiveYear > currentYear + 5)
+                return new { Success = false, Message = "Select a valid effective year." };
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(new bllMaster().GetInvoiceHeaderName(headerID)))
+                    return new { Success = false, Message = "The selected invoice header could not be found. Refresh the grid and try again." };
+
+                bool saved = new bllMaster().RevisedRate(headerID, previousRate, revisedRate, EffectivMonth, effectiveYear, addedBy);
+                return saved
+                    ? (object)new { Success = true, Message = "The revised rate was saved successfully." }
+                    : new { Success = false, Message = "The revised rate was not saved. Please try again." };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("SaveRevisedRate failed for HeaderID {0}: {1}", headerID, ex);
+                return new { Success = false, Message = "Unable to save the revised rate. Please retry or contact support." };
+            }
+        }
+
+        [WebMethod]
         public static int RemoveCCUser(int InvID, string EffectiveDate)
         {
             int returnvalue = 0;

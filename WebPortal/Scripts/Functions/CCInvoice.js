@@ -13,6 +13,7 @@ var invoiceProjects = [];
 var invoiceProjectsLoaded = false;
 var invoiceStatusTab = 'active';
 var invoiceStatusFilterRegistered = false;
+var revisedRateRequestInFlight = false;
 
 function invoiceHeaderIsDeactivated(value) {
     return /^(1|true|yes|disable|disabled|deactivated|inactive)$/.test($.trim(String(value == null ? '' : value)).toLowerCase());
@@ -38,6 +39,10 @@ function applyInvoiceStatusTab(tab) {
 
 function invoiceEscape(value) {
     return $('<div/>').text(value == null ? '' : String(value)).html();
+}
+
+function invoiceAttribute(value) {
+    return invoiceEscape(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function invoiceText(value) {
@@ -365,6 +370,7 @@ function BindInvoiceGrid() {
                     inv_html += '<a href="#" role="button" class="invoice-settings" data-toggle="dropdown" aria-expanded="false" aria-label="Invoice actions"><i class="uil uil-cog" aria-hidden="true"></i></a><div class="dropdown-menu" role="menu">';
                     inv_html += '<a class="dropdown-item" href="' + invoice_UserMappingUrl(value.HeaderID, month, year) + '" id="ActionsEx"><span style="color: dodgerblue;"><i class="uil fs-0 me-2 uil-file"></i></span>&nbsp;&nbsp;View Details</a>';
                     inv_html += '<a class="dropdown-item" href="#!" onclick="invoice_ViewDetailsLegacy(' + value.HeaderID + ',' + index + ');"><span style="color: slategray;"><i class="uil uil-window"></i></span>&nbsp;&nbsp;Legacy Details Popup</a>';
+                    inv_html += '<a class="dropdown-item" href="#!" onclick="return openReviseRateModal(this);" data-header-id="' + invoiceAttribute(value.HeaderID) + '" data-header="' + invoiceAttribute(value.Header) + '" data-domain="' + invoiceAttribute(value.DomainName) + '" data-product="' + invoiceAttribute(value.Product) + '" data-previous-rate="' + invoiceAttribute(value.PerUnit) + '"><span style="color: #0f766e;"><i class="fas fa-chart-line"></i></span>&nbsp;&nbsp;Revise Rate</a>';
 
                     if (LoginID == 9858 || LoginID == 7910 || LoginID == 9528) {
                         if (value.HeaderStatus == "Enable")
@@ -507,6 +513,121 @@ function BindInvoiceGrid() {
     return false;
 }
 
+
+function populateRevisedRateYears() {
+    var select = $('#reviseRateYear');
+    select.empty().append($('<option>').val('').text('Select year'));
+    var currentYear = new Date().getFullYear();
+    for (var year = currentYear - 5; year <= currentYear + 5; year++) {
+        select.append($('<option>').val(String(year)).text(String(year)));
+    }
+}
+
+function openReviseRateModal(actionElement) {
+    var element = $(actionElement);
+    $('#reviseRateHeaderID').val(element.attr('data-header-id') || '');
+    $('#reviseRateHeader').val(element.attr('data-header') || '');
+    $('#reviseRateDomain').val(element.attr('data-domain') || '');
+    $('#reviseRateProduct').val(element.attr('data-product') || '');
+    $('#reviseRatePrevious').val(element.attr('data-previous-rate') || '');
+    $('#reviseRateNew').val('').removeClass('revise-rate-invalid');
+    $('#reviseRateMonth').val('').removeClass('revise-rate-invalid');
+    populateRevisedRateYears();
+    $('#reviseRateYear').val('').removeClass('revise-rate-invalid');
+    $('#reviseRateModal').modal('show');
+    return false;
+}
+
+function revisedRateNumberIsValid(value) {
+    return /^(?:\d+(?:\.\d+)?|\.\d+)$/.test($.trim(String(value == null ? '' : value)));
+}
+
+function validateRevisedRate() {
+    var headerID = $.trim($('#reviseRateHeaderID').val() || '');
+    var previousRate = $.trim($('#reviseRatePrevious').val() || '');
+    var revisedRate = $.trim($('#reviseRateNew').val() || '');
+    var month = $('#reviseRateMonth').val();
+    var year = $('#reviseRateYear').val();
+
+    $('.revise-rate-invalid').removeClass('revise-rate-invalid');
+    if (!/^\d+$/.test(headerID) || parseInt(headerID, 10) <= 0) {
+        Swal.fire('Invalid Header', 'The selected invoice header is missing. Close the popup and try again.', 'warning');
+        return false;
+    }
+    if (!revisedRateNumberIsValid(previousRate)) {
+        Swal.fire('Invalid Previous Rate', 'The selected row does not contain a valid previous rate.', 'warning');
+        return false;
+    }
+    if (revisedRate === '') {
+        Swal.fire('Revised Rate Required', 'Enter the revised rate.', 'warning');
+        $('#reviseRateNew').addClass('revise-rate-invalid').trigger('focus');
+        return false;
+    }
+    if (!revisedRateNumberIsValid(revisedRate)) {
+        Swal.fire('Invalid Revised Rate', 'Enter a non-negative number. Decimals are allowed; letters, symbols, and negative values are not.', 'warning');
+        $('#reviseRateNew').addClass('revise-rate-invalid').trigger('focus');
+        return false;
+    }
+    if (!month) {
+        Swal.fire('Effective Month Required', 'Select the month when the revised rate takes effect.', 'warning');
+        $('#reviseRateMonth').addClass('revise-rate-invalid').trigger('focus');
+        return false;
+    }
+    if (!year) {
+        Swal.fire('Effective Year Required', 'Select the year when the revised rate takes effect.', 'warning');
+        $('#reviseRateYear').addClass('revise-rate-invalid').trigger('focus');
+        return false;
+    }
+    return true;
+}
+
+function submitRevisedRate() {
+    if (revisedRateRequestInFlight || !validateRevisedRate()) return false;
+
+    revisedRateRequestInFlight = true;
+    $('#reviseRateSubmit').prop('disabled', true);
+    Swal.fire({
+        title: 'Saving Revised Rate',
+        text: 'Please wait while the revised rate is saved.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: function () { Swal.showLoading(); }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: 'InvoiceVerification.aspx/SaveRevisedRate',
+        data: JSON.stringify({
+            HeaderID: $('#reviseRateHeaderID').val(),
+            PreviousRate: $('#reviseRatePrevious').val(),
+            RevisedRate: $('#reviseRateNew').val(),
+            EffectivMonth: $('#reviseRateMonth').val(),
+            EffectiveYear: $('#reviseRateYear').val()
+        }),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8'
+    }).done(function (response) {
+        var result = response && response.d ? response.d : null;
+        if (result && result.Success) {
+            Swal.close();
+            $('#reviseRateModal').modal('hide');
+            Swal.fire('Saved', result.Message || 'The revised rate was saved.', 'success').then(function () {
+                BindInvoiceGrid();
+            });
+        } else {
+            Swal.fire('Unable to Save', result && result.Message ? result.Message : 'The revised rate could not be saved. Please try again.', 'error');
+        }
+    }).fail(function (xhr) {
+        var message = 'The revised rate could not be saved. Please try again.';
+        if (xhr.responseJSON && xhr.responseJSON.Message) message = xhr.responseJSON.Message;
+        Swal.fire('Unable to Save', message, 'error');
+    }).always(function () {
+        revisedRateRequestInFlight = false;
+        $('#reviseRateSubmit').prop('disabled', false);
+    });
+    return false;
+}
 
 function invoice_ViewDetails(HeaderID, Index, periodContext) {
     var suffix = periodContext === 'rec' ? '_rec' : '';

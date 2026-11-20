@@ -1619,6 +1619,11 @@ namespace WebPortal.App_Code.BLL
             return dalMaster.InsertCCInvoiceHeaders(htParam);
         }
 
+        public bool RevisedRate(int headerID, decimal previousRate, decimal revisedRate, string effectivMonth, int effectiveYear, int addedBy)
+        {
+            return dalMaster.RevisedRate(headerID, previousRate, revisedRate, effectivMonth, effectiveYear, addedBy);
+        }
+
         public int DisabledCCHeader(Hashtable htParam)
         {
             return dalMaster.DisabledCCHeader(htParam);

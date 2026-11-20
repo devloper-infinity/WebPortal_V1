@@ -3614,6 +3614,35 @@ VALUES(@HeaderID,@OriginalFileName,@StoredFileName,@StoredPath,GETDATE(),@Upload
             return ReturnValue;
         }
 
+        public bool RevisedRate(int headerID, decimal previousRate, decimal revisedRate, string effectivMonth, int effectiveYear, int addedBy)
+        {
+            using (SqlConnection connection = new SqlConnection(SQLHelper.ConnectionString))
+            using (SqlCommand command = new SqlCommand("usp_RevisedRate", connection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = 60;
+                command.Parameters.Add("@HeaderID", SqlDbType.Int).Value = headerID;
+
+                SqlParameter previousRateParameter = command.Parameters.Add("@PreviousRate", SqlDbType.Decimal);
+                previousRateParameter.Precision = 18;
+                previousRateParameter.Scale = 4;
+                previousRateParameter.Value = previousRate;
+
+                SqlParameter revisedRateParameter = command.Parameters.Add("@RevisedRate", SqlDbType.Decimal);
+                revisedRateParameter.Precision = 18;
+                revisedRateParameter.Scale = 4;
+                revisedRateParameter.Value = revisedRate;
+
+                command.Parameters.Add("@EffectivMonth", SqlDbType.NVarChar, 20).Value = effectivMonth;
+                command.Parameters.Add("@EffectiveYear", SqlDbType.Int).Value = effectiveYear;
+                command.Parameters.Add("@AddedBy", SqlDbType.Int).Value = addedBy;
+
+                connection.Open();
+                command.ExecuteNonQuery();
+                return true;
+            }
+        }
+
         public int DisabledCCHeader(Hashtable htParam)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DisabledCCHeader");
