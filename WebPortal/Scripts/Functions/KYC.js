@@ -270,27 +270,16 @@ function ekyc_submit() {
         marriagedate, doctype, docno, docexpdate,
 
         function (result) {
+            if (result > 0) {
+                window.location.href = 'DashboardEmployee.aspx';
+            }
+            else {
+                alert('Error occurred while updating KYC information.');
+            }
 
-            Swal.fire({
-                icon: result > 0 ? 'success' : 'error',
-                title: result > 0 ? 'Success' : 'Oops!',
-                text: result > 0
-                    ? 'KYC information updated successfully!'
-                    : 'Error occurred while updating KYC information.'
-            }).then((response) => {
-
-                if (response.isConfirmed && result > 0) {
-
-                    window.location.href = 'DashboardEmployee.aspx';
-                }
-            });
         },
         function (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Server Error',
-                text: error.responseText || 'Something went wrong!'
-            });
+            alert('Error occurred while updating KYC information.');
         }
     );
 
