@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -6691,4 +6691,106 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Content Include="Admin\HousekeepingDashboard.aspx" />
+    <Compile Include="Admin\HousekeepingDashboard.aspx.cs">
+      <DependentUpon>HousekeepingDashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_BuildingMaster.aspx" />
+    <Compile Include="Admin\HK_BuildingMaster.aspx.cs">
+      <DependentUpon>HK_BuildingMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_FloorMaster.aspx" />
+    <Compile Include="Admin\HK_FloorMaster.aspx.cs">
+      <DependentUpon>HK_FloorMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_LocationMaster.aspx" />
+    <Compile Include="Admin\HK_LocationMaster.aspx.cs">
+      <DependentUpon>HK_LocationMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_StaffMaster.aspx" />
+    <Compile Include="Admin\HK_StaffMaster.aspx.cs">
+      <DependentUpon>HK_StaffMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_VendorMaster.aspx" />
+    <Compile Include="Admin\HK_VendorMaster.aspx.cs">
+      <DependentUpon>HK_VendorMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_ActivityMaster.aspx" />
+    <Compile Include="Admin\HK_ActivityMaster.aspx.cs">
+      <DependentUpon>HK_ActivityMaster.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_ActivitySchedule.aspx" />
+    <Compile Include="Admin\HK_ActivitySchedule.aspx.cs">
+      <DependentUpon>HK_ActivitySchedule.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_StaffAttendance.aspx" />
+    <Compile Include="Admin\HK_StaffAttendance.aspx.cs">
+      <DependentUpon>HK_StaffAttendance.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_DailyActivities.aspx" />
+    <Compile Include="Admin\HK_DailyActivities.aspx.cs">
+      <DependentUpon>HK_DailyActivities.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_WeeklyMonthlyActivities.aspx" />
+    <Compile Include="Admin\HK_WeeklyMonthlyActivities.aspx.cs">
+      <DependentUpon>HK_WeeklyMonthlyActivities.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_SupervisorInspection.aspx" />
+    <Compile Include="Admin\HK_SupervisorInspection.aspx.cs">
+      <DependentUpon>HK_SupervisorInspection.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_VendorPerformance.aspx" />
+    <Compile Include="Admin\HK_VendorPerformance.aspx.cs">
+      <DependentUpon>HK_VendorPerformance.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_ComplaintManagement.aspx" />
+    <Compile Include="Admin\HK_ComplaintManagement.aspx.cs">
+      <DependentUpon>HK_ComplaintManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_ConsumableInventory.aspx" />
+    <Compile Include="Admin\HK_ConsumableInventory.aspx.cs">
+      <DependentUpon>HK_ConsumableInventory.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_StaffPerformance.aspx" />
+    <Compile Include="Admin\HK_StaffPerformance.aspx.cs">
+      <DependentUpon>HK_StaffPerformance.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_Consumables.aspx" />
+    <Compile Include="Admin\HK_Consumables.aspx.cs">
+      <DependentUpon>HK_Consumables.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HK_ConsolidatedReport.aspx" />
+    <Compile Include="Admin\HK_ConsolidatedReport.aspx.cs">
+      <DependentUpon>HK_ConsolidatedReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Admin\HousekeepingShell.ascx" />
+    <Compile Include="Admin\HousekeepingShell.ascx.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Content Include="Content\Housekeeping.css" />
+    <Content Include="Scripts\Functions\Housekeeping\HK_Common.js" />
+    <Content Include="Database\Housekeeping\01_CreateTables.sql" />
+    <Content Include="Database\Housekeeping\02_CreateIndexes.sql" />
+    <Content Include="Database\Housekeeping\03_Procedures.sql" />
+    <Content Include="Database\Housekeeping\README.md" />
+  </ItemGroup>
 </Project>

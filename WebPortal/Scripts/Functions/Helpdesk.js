@@ -614,6 +614,7 @@ var approveTicket_table;
 var approveTicket_html;
 var approve_TicketId = 0;
 var approveRejectStatus = '';
+var approveTicketHistoryRequest = null;
 
 function approve_BindGrid() {
 
@@ -683,11 +684,20 @@ function approve_BindGrid() {
                     $('#load1').hide();
                 },
             });
+
+            // Hide as soon as the table has finished binding the returned rows.
+            $('#load1').stop(true, true).hide();
         },
 
         error: function (error) {
+            $('#load1').stop(true, true).hide();
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
+        },
+
+        complete: function () {
+            // Always release the page loader, including when parsing or binding fails.
+            $('#load1').stop(true, true).hide();
         }
     });
 
@@ -700,6 +710,13 @@ function ApproveTicket(id, index) {
     approve_TicketId = id;
 
     document.getElementById("approveTicket_popUpLabel").innerHTML = "Approve/Reject : " + row[6];
+    $('#approveTicket_popUp').one('hidden.bs.modal', function () {
+        if (approveTicketHistoryRequest && approveTicketHistoryRequest.readyState !== 4) {
+            approveTicketHistoryRequest.abort();
+        }
+        approveTicketHistoryRequest = null;
+        $('#load1').stop(true, true).hide();
+    });
     appTicketRemarkHistoryGrid_Bind(id);
     $('#approveTicket_popUp').modal('show');
     return false;
@@ -789,8 +806,11 @@ function appticket_OnError(error) {
 }
 
 function appTicketRemarkHistoryGrid_Bind(ticketID) {
-    $('#load1').show();
-    $.ajax({
+    if (approveTicketHistoryRequest && approveTicketHistoryRequest.readyState !== 4) {
+        approveTicketHistoryRequest.abort();
+    }
+    // $('#load1').show();
+    var historyRequest = $.ajax({
         url: "TicketApproval.aspx/GetTicketForApprval",
         type: "POST",
         dataType: "json",
@@ -833,16 +853,30 @@ function appTicketRemarkHistoryGrid_Bind(ticketID) {
                 ],
 
                 initComplete: function () {
-                    $('#load1').hide();
+                    // $('#load1').hide();
                 },
             });
+
+            // Hide the shared page loader once the approval history rows are bound.
+            $('#load1').stop(true, true).hide();
         },
 
         error: function (error) {
+            $('#load1').stop(true, true).hide();
+            if (error && error.statusText === 'abort') return;
             alert('error; ' + eval(error));
             alert('error; ' + error.responseText);
+        },
+
+        complete: function () {
+            // Always release the loader even if the history request fails.
+            $('#load1').stop(true, true).hide();
+            if (approveTicketHistoryRequest === historyRequest) {
+                approveTicketHistoryRequest = null;
+            }
         }
     });
+    approveTicketHistoryRequest = historyRequest;
 
     return false;
 }
