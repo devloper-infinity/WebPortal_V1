@@ -404,6 +404,7 @@
     <Content Include="Admin\ManagementVolumeReport.aspx" />
     <Content Include="Admin\OtherTask.aspx" />
     <Content Include="Admin\IncrementProposalReport_Step1.aspx" />
+    <Content Include="Admin\EmployeeEvaluationReport.aspx" />
     <Content Include="Admin\InfinityFeedback.aspx" />
     <Content Include="Admin\InfinityFeedbackOnshore.aspx" />
     <Content Include="Admin\ITCostReport.aspx" />
@@ -4780,6 +4781,13 @@
     </Compile>
     <Compile Include="Admin\IncrementProposalReport_Step1.aspx.designer.cs">
       <DependentUpon>IncrementProposalReport_Step1.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\EmployeeEvaluationReport.aspx.cs">
+      <DependentUpon>EmployeeEvaluationReport.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\EmployeeEvaluationReport.aspx.designer.cs">
+      <DependentUpon>EmployeeEvaluationReport.aspx</DependentUpon>
     </Compile>
     <Compile Include="Admin\InfinityFeedback.aspx.cs">
       <DependentUpon>InfinityFeedback.aspx</DependentUpon>

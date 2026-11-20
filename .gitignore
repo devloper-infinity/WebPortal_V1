@@ -392,6 +392,9 @@ FodyWeavers.xsd
 !/WebPortal/Accounts/DiwaliExpenses.aspx.designer.cs
 !/WebPortal/Admin/
 /WebPortal/Admin/*
+!/WebPortal/Admin/EmployeeEvaluationReport.aspx
+!/WebPortal/Admin/EmployeeEvaluationReport.aspx.cs
+!/WebPortal/Admin/EmployeeEvaluationReport.aspx.designer.cs
 !/WebPortal/Admin/EmployeeLogHistory.aspx
 !/WebPortal/Admin/EmployeeLogHistory.aspx.cs
 !/WebPortal/Admin/EmployeeLogHistory.aspx.designer.cs
