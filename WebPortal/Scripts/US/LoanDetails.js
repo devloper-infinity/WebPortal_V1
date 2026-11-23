@@ -11,6 +11,11 @@ var usfeedbackRecordCount = 0;
 var canopyfeedbackGridRows = [];
 var feedbackdetailsGridRows = [];
 
+function usfeedback_isAtrReviewProcess(value) {
+    value = $.trim(value || "").toLowerCase();
+    return value === "atr review" || value === "gap atr review";
+}
+
 function blankForNull(s) {
     return s == "null" || s == null ? "" : s;
 }
@@ -220,7 +225,7 @@ function start_Loan(button, ProcessID) {
 
         function (result) {
             if (result > 0) {
-                if (assignmentId > 0 || processName.toLowerCase() === "atr review") {
+                if (assignmentId > 0 || usfeedback_isAtrReviewProcess(processName)) {
                     GetFeedbackPage(
                         $row.find('.loan').text().trim(),
                         $row.find('.deal').text().trim(),
@@ -1555,7 +1560,7 @@ function getTaskwiseDetails(ddl) {
         usfeedback_getElement("tratr4").style.display = 'none';
         usfeedback_getElement("tratr5").style.display = 'none';
     }
-    else if (value == "ATR Review") {
+    else if (usfeedback_isAtrReviewProcess(value)) {
         if (usfeedback_isCanopyPage()) usfeedback_bindCanopyReviewer(value);
         usfeedback_getElement("trOther").style.display = 'none';
         usfeedback_getElement("tratr1").style.display = '';
@@ -1943,7 +1948,7 @@ function canopyfeedback_submitFeedback() {
         return false;
     }
 
-    if (value == "ATR Review") {
+    if (usfeedback_isAtrReviewProcess(value)) {
         var reviewer = usfeedback_getElement("usfeedback_reviewer").value;
         var reviewdate = usfeedback_getElement("usfeedback_reviewdate").value;
         var ddlatrsupported = usfeedback_getElement("usfeedback_atrsupported");
@@ -2158,7 +2163,7 @@ function usfeedback_submit() {
         return false;
     }
 
-    else if (value == "ATR Review") {
+    else if (usfeedback_isAtrReviewProcess(value)) {
         var reviewer = usfeedback_getElement("usfeedback_reviewer").value;
         var reviewdate = usfeedback_getElement("usfeedback_reviewdate").value;
         var ddlatrsupported = usfeedback_getElement("usfeedback_atrsupported");

@@ -13,5 +13,7 @@ namespace WebPortal.TrackingSheet
 
     public partial class ProcessFlowConfiguration
     {
+        protected global::System.Web.UI.HtmlControls.HtmlButton processDealTab;
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl processDealFlowPanel;
     }
 }

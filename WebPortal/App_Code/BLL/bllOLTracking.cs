@@ -8,6 +8,11 @@ namespace WebPortal.App_Code.BLL
     {
         private readonly dalOLTracking dal = new dalOLTracking();
         public DataTable GetProjects() { return dal.GetProjects(); }
+        public bool IsCanopyProject(int projectId) { return dal.IsCanopyProject(projectId); }
+        public DataTable GetCanopyProjects() { return dal.GetCanopyProjects(); }
+        public DataTable GetProcessDealFlow(int projectId, string configurationProcess, string dealNumber) { return dal.GetProcessDealFlow(projectId, configurationProcess, dealNumber); }
+        public void SaveProcessDealFlow(int projectId, string configurationProcess, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool finalProcess, string productivityType, int expectedMinutes, int? minMinutes, int? maxMinutes, bool outOfScope, int userId) { dal.SaveProcessDealFlow(projectId, configurationProcess, dealNumber, processId, processName, stageNo, mandatory, feedback, finalProcess, productivityType, expectedMinutes, minMinutes, maxMinutes, outOfScope, userId); }
+        public int RemoveProcessDealFlow(int projectId, string configurationProcess, string dealNumber, int processId, int userId) { return dal.RemoveProcessDealFlow(projectId, configurationProcess, dealNumber, processId, userId); }
         public DataTable GetProcesses(int projectId) { return dal.GetProcesses(projectId); }
         public DataTable GetFields(int projectId) { return dal.GetFields(projectId); }
         public int SaveField(int fieldId, int projectId, string name, string type, string dateFormat, string options, int order, bool required, bool visible, bool editable, bool unique, int userId)

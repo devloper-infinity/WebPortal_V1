@@ -517,6 +517,8 @@
 /* Global Tracking Sheet maximum-time alerts. The server remains authoritative. */
 (function (window, document) {
     "use strict";
+    // The OL Tracking maximum-time workflow is not enabled for onshore US pages yet.
+    if (/\/US\//i.test(window.location.pathname)) return;
     var script = document.currentScript;
     if (!script || !window.fetch) return;
     var root = new URL("../", script.src).href;

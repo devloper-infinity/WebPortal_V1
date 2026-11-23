@@ -326,7 +326,8 @@
 
             var sourcePage = $.trim(row.SourcePage || "").toLowerCase();
             var isCanopySearch = sourcePage === "canopysearch";
-            var isAtrReview = $.trim(row.Process || "").toLowerCase() === "atr review";
+            var processName = $.trim(row.Process || "").toLowerCase();
+            var isAtrReview = processName === "atr review" || processName === "gap atr review";
 
             if (sourcePage === "lmsearch") {
                 return LMSearchNavigation.resume(row, "Dashboard");

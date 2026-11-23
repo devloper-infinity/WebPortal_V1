@@ -62,6 +62,33 @@ namespace WebPortal.App_Code.DAL
             return Table(Command("usp_GetAllProject"));
         }
 
+        public bool IsCanopyProject(int projectId)
+        {
+            SqlCommand command = new SqlCommand("SELECT CASE WHEN EXISTS(SELECT 1 FROM dbo.Project WHERE ProjectID=@ProjectID AND SubdomainID=99) THEN 1 ELSE 0 END") { CommandType = CommandType.Text };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId); return Execute(command) == 1;
+        }
+
+        public DataTable GetCanopyProjects()
+        {
+            return Table(new SqlCommand("SELECT ProjectID,ProjectName FROM dbo.Project WHERE SubdomainID=99 AND ISNULL(IsDelete,0)=0 ORDER BY ProjectName") { CommandType = CommandType.Text });
+        }
+
+        public DataTable GetProcessDealFlow(int projectId, string configurationProcess, string dealNumber)
+        {
+            SqlCommand command = Command("OLTracking_GetProcessDealFlow"); Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@ConfigurationProcess", SqlDbType.NVarChar, configurationProcess, 40); Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); return Table(command);
+        }
+
+        public void SaveProcessDealFlow(int projectId, string configurationProcess, string dealNumber, int processId, string processName, int stageNo, bool mandatory, bool feedback, bool finalProcess, string productivityType, int expectedMinutes, int? minMinutes, int? maxMinutes, bool outOfScope, int userId)
+        {
+            SqlCommand command = Command("OLTracking_SaveProcessDealFlow"); Add(command, "@ProjectID", SqlDbType.Int, projectId); Add(command, "@ConfigurationProcess", SqlDbType.NVarChar, configurationProcess, 40); Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@ProcessName", SqlDbType.NVarChar, processName, 150); Add(command, "@StageNo", SqlDbType.Int, stageNo); Add(command, "@IsMandatory", SqlDbType.Bit, mandatory); Add(command, "@FeedbackRequiredOnComplete", SqlDbType.Bit, feedback); Add(command, "@IsFinalProcess", SqlDbType.Bit, finalProcess); Add(command, "@ProductivityType", SqlDbType.NVarChar, productivityType, 40); Add(command, "@ExpectedCompletionMinutes", SqlDbType.Int, expectedMinutes); Add(command, "@MinCompletionMinutes", SqlDbType.Int, minMinutes); Add(command, "@MaxCompletionMinutes", SqlDbType.Int, maxMinutes); Add(command, "@IsOutOfScope", SqlDbType.Bit, outOfScope); Add(command, "@UserID", SqlDbType.Int, userId); ExecuteNonQuery(command);
+        }
+
+        public int RemoveProcessDealFlow(int projectId, string configurationProcess, string dealNumber, int processId, int userId)
+        {
+            SqlCommand command = Command("OLTracking_RemoveProcessDealFlow"); Add(command, "@ProjectID", SqlDbType.Int, projectId); Add(command, "@ConfigurationProcess", SqlDbType.NVarChar, configurationProcess, 40); Add(command, "@DealNumber", SqlDbType.NVarChar, dealNumber, 150); Add(command, "@ProcessID", SqlDbType.Int, processId); Add(command, "@UserID", SqlDbType.Int, userId); return Execute(command);
+        }
+
         public DataTable GetProcesses(int projectId)
         {
             SqlCommand command = Command("GetProcessBYProject");

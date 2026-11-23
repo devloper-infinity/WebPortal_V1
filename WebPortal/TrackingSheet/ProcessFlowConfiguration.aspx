@@ -62,6 +62,8 @@
         .flow-grid-scroll .olt-table th:nth-child(2),.flow-grid-scroll .olt-table td:nth-child(2) { position:sticky; left:68px; z-index:6; width:220px; min-width:220px; background:#fff; box-shadow:5px 0 8px -8px rgba(15,23,42,.65) }
         .flow-grid-scroll .olt-table th:nth-child(1),.flow-grid-scroll .olt-table th:nth-child(2) { z-index:9; background:#e8f0f7 }
         .flow-grid-scroll .olt-table td.olt-empty { position:static; width:auto; max-width:none; text-align:center }
+        .flow-grid-scroll .context-flow-table th:nth-child(1),.flow-grid-scroll .context-flow-table td:nth-child(1) { width:88px; min-width:88px; max-width:88px; white-space:nowrap }
+        .flow-grid-scroll .context-flow-table th:nth-child(2),.flow-grid-scroll .context-flow-table td:nth-child(2) { left:88px }
         .flow-action-button { display:inline-flex; width:34px; height:32px; align-items:center; justify-content:center; border:1px solid #b9cad8; border-radius:6px; background:#fff; color:#0f6b8f; font-size:19px; cursor:pointer }
         .flow-action-button:hover,.flow-action-button[aria-expanded=true] { border-color:#0f6b8f; background:#e8f4f8 }
         .flow-action-menu { position:fixed; z-index:2000; min-width:142px; padding:5px; border:1px solid #cbd5e1; border-radius:7px; background:#fff; box-shadow:0 12px 28px rgba(15,23,42,.24) }
@@ -153,7 +155,7 @@
 
 
     <script src="OLTracking.js"></script>
-    <script src="../Scripts/TrackingSheet/ProcessFlowConfiguration.js?v=20260817.1"></script>
+    <script src="../Scripts/TrackingSheet/ProcessFlowConfiguration.js?v=20261123.1"></script>
 </asp:Content>
 
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -169,6 +171,7 @@
         <div class="flow-tabs">
             <button type="button" class="flow-tab active" data-panel="projectFlowPanel">Project-Wise Configuration</button>
             <button type="button" class="flow-tab" data-panel="dealFlowPanel">Deal-Wise Configuration</button>
+            <button id="processDealTab" runat="server" ClientIDMode="Static" type="button" class="flow-tab" data-panel="processDealFlowPanel">Process-Wise Configuration (Pre/Post Close)</button>
         </div>
         <div id="projectFlowPanel" class="flow-panel active"><div class="olt-grid">
             <section class="olt-card">
@@ -337,6 +340,26 @@
                 <div class="olt-card-body olt-muted">The complete project flow is shown automatically. Edit only the rows that need a deal-specific value; the full flow is preserved for the deal.</div>
                 <div class="flow-grid-scroll"><table class="olt-table deal-flow-table"><thead><tr><th>Actions</th><th>Process Name</th><th>Sequence</th><th>Requirement</th><th>Feedback mandatory</th><th>Final process</th><th>Source</th><th>Productivity Type</th><th>Min Minutes</th><th>Max Minutes</th></tr></thead><tbody id="dealRows"><tr><td colspan="10" class="olt-empty">Select a project and deal.</td></tr></tbody></table></div>
             </section>
+        </div></div>
+        <div id="processDealFlowPanel" runat="server" ClientIDMode="Static" class="flow-panel"><div class="olt-grid">
+            <section class="olt-card">
+                <div class="olt-card-head">Add or update Pre/Post Close process configuration</div>
+                <div class="olt-card-body"><div class="olt-form">
+                    <div class="olt-field wide"><label>Project</label><select id="contextProject"></select></div>
+                    <div class="olt-field wide"><label>Process</label><select id="contextType"><option value="">Select process</option><option>Pre Close Review</option><option>Post Close Review</option></select></div>
+                    <input id="contextProcess" type="hidden" /><input id="contextProcessName" type="hidden" />
+                    <div class="olt-field"><label>Sequence</label><input id="contextStageNo" type="number" min="1" value="1" /></div>
+                    <div class="olt-field"><label>Requirement</label><select id="contextRequirement" onchange="toggleContextScopeControls()"><option value="mandatory">Mandatory</option><option value="skippable">Can be skipped</option><option value="out-of-scope">Out of Scope</option></select></div>
+                    <div class="olt-field"><div class="checkbox-wrapper-22"><label class="switch" for="contextFeedback"><input id="contextFeedback" type="checkbox" /><span class="slider round"></span></label><label class="toggle-text" for="contextFeedback">Feedback mandatory while completing</label></div></div>
+                    <div class="olt-field"><div class="checkbox-wrapper-22"><label class="switch" for="contextFinalProcess"><input id="contextFinalProcess" type="checkbox" /><span class="slider round"></span></label><label class="toggle-text" for="contextFinalProcess">Final Process</label></div></div>
+                    <div class="olt-field wide"><label>Productivity Type</label><select id="contextProductivityType"><option value="Loan Based Productivity">Loan Based Productivity</option><option value="Hourly Productivity">Hourly Productivity</option></select></div>
+                    <div class="olt-field"><label>Min Completion Minutes <span class="olt-muted">(optional)</span></label><input id="contextMinCompletionMinutes" type="number" min="0" step="1" placeholder="No minimum" /></div>
+                    <div class="olt-field"><label>Max Completion Minutes <span class="olt-muted">(optional)</span></label><input id="contextMaxCompletionMinutes" type="number" min="0" step="1" placeholder="No maximum" /></div>
+                    <div class="olt-field full"><small class="olt-muted">Select Edit against a process below, update its flow settings, then save.</small></div>
+                    <div class="olt-field full olt-actions"><button type="button" class="olt-btn" onclick="saveContextFlow()">Save process</button><button type="button" class="olt-btn secondary" onclick="clearContextForm()">Clear</button></div>
+                </div></div>
+            </section>
+            <section class="olt-card"><div class="olt-card-head">Configured Pre/Post Close process flow</div><div class="flow-grid-scroll"><table class="olt-table deal-flow-table context-flow-table"><thead><tr><th>Actions</th><th>Process Name</th><th>Sequence</th><th>Requirement</th><th>Feedback mandatory</th><th>Final process</th><th>Source</th><th>Productivity Type</th><th>Min Minutes</th><th>Max Minutes</th></tr></thead><tbody id="contextRows"><tr><td colspan="10" class="olt-empty">Select a project and Pre/Post Close process.</td></tr></tbody></table></div></section>
         </div></div>
         <div id="flowActionMenu" class="flow-action-menu" hidden role="menu" onclick="event.stopPropagation()">
             <button type="button" role="menuitem" onclick="runFlowAction('edit')"><span aria-hidden="true">&#9998;</span> Edit</button>

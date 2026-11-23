@@ -1,7 +1,7 @@
 <%@ Page Title="Create Bulletin & Teams" Language="C#" MasterPageFile="~/OperationsBulletin/OperationsBulletin.Master" AutoEventWireup="true" CodeBehind="Manage.aspx.cs" Inherits="WebPortal.OperationsBulletin.Manage" %>
 
 <asp:Content ID="Head" ContentPlaceHolderID="head" runat="server">
-    <link href="Bulletin.css?v=2" rel="stylesheet" />
+    <link href="Bulletin.css?v=3" rel="stylesheet" />
 </asp:Content>
 <asp:Content ID="Body" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div id="obLoading">
@@ -25,11 +25,13 @@
                     <input id="bCategory" type="hidden" value="Operations">
                     <input id="bPriority" type="hidden" value="Normal">
                     <div class="form-row">
-                        <div class="form-group col-md-4">
-                            <label>Issue Date</label><input id="bSchedule" type="datetime-local" class="form-control"></div>
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
+                            <label>Issue Date &amp; Time</label><input id="bIssueDate" type="datetime-local" class="form-control"></div>
+                        <div class="form-group col-md-3">
+                            <label>Effective Date &amp; Time</label><input id="bEffectiveDate" type="datetime-local" class="form-control"></div>
+                        <div class="form-group col-md-3">
                             <label>Folder</label><select id="bFolder" class="form-control"></select></div>
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label>Teams</label><select id="bTeams" class="form-control" multiple></select></div>
                     </div>
                     <div class="form-group">
@@ -60,9 +62,9 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-6">
-                            <label>Location</label><select id="tLocation" class="form-control"></select></div>
+                            <label>Locations</label><select id="tLocation" class="form-control" multiple size="5"></select></div>
                         <div class="form-group col-md-6">
-                            <label>Project</label><select id="tProject" class="form-control"></select></div>
+                            <label>Projects</label><select id="tProject" class="form-control" multiple size="5"></select></div>
                     </div>
                     <label>Team Members</label><div class="form-row align-items-center">
                         <div class="col-md-5">
@@ -94,5 +96,5 @@
             </div>
         </div>
     </div>
-    <script src="Manage.js?v=6"></script>
+    <script src="Manage.js?v=7"></script>
 </asp:Content>

@@ -337,7 +337,8 @@ namespace WebPortal.US
                 return 0;
             }
 
-            string feedbackType = string.Equals(Process, "ATR Review", StringComparison.OrdinalIgnoreCase) ? "ATR" : "Other";
+            string feedbackType = string.Equals(Process, "ATR Review", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(Process, "Gap ATR Review", StringComparison.OrdinalIgnoreCase) ? "ATR" : "Other";
             DataTable feedback = new bllUS().GetATRDetailsbyLoanNo(DealNo, OrderNumber, feedbackType, ProcessID);
             if (feedback == null || feedback.Rows.Count == 0)
             {
