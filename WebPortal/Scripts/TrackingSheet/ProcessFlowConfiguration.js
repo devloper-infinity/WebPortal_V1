@@ -1,4 +1,4 @@
-var page = 'ProcessFlowConfiguration.aspx', processes = [], flow = [], dealProcesses = [], dealProjectFlow = [], dealFlow = [], eligibleAfterSelection = [], feedbackTargetSelection = [], activeFlowAction = null;
+var page = 'ProcessFlowConfiguration.aspx', processes = [], flow = [], dealProcesses = [], dealProjectFlow = [], dealFlow = [], contextProcesses = [], contextProjectFlow = [], contextFlow = [], eligibleAfterSelection = [], feedbackTargetSelection = [], activeFlowAction = null;
 
 document.addEventListener('DOMContentLoaded', function () {
     bindTabs();
@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', function () {
     feedbackAgainstSearch.oninput = renderFeedbackTargetOptions;
     dealProject.onchange = loadDealProject;
     dealNumber.onchange = loadDeal;
+    if (document.getElementById('contextProject')) {
+        OLT.call(page, 'GetCanopyProjects').then(function (r) { OLT.options(contextProject, r, ['ProjectID', 'projectID'], ['ProjectName', 'ProjectNo', 'Name'], 'Select project'); }).catch(showError);
+        contextProject.onchange = loadContextProject; contextType.onchange = loadContextFlow;
+    }
     document.addEventListener('click', closeFlowActionMenu);
     window.addEventListener('resize', closeFlowActionMenu);
     [].slice.call(document.querySelectorAll('.flow-grid-scroll')).forEach(function (wrapper) { wrapper.addEventListener('scroll', closeFlowActionMenu); });
@@ -21,10 +25,13 @@ document.addEventListener('DOMContentLoaded', function () {
 function bindTabs() {
     [].slice.call(document.querySelectorAll('.flow-tab')).forEach(function (button) {
         button.onclick = function () {
-            document.querySelector('.flow-tab.active').classList.remove('active');
-            document.querySelector('.flow-panel.active').classList.remove('active');
+            var target = document.getElementById(button.dataset.panel);
+            if (!target) return;
+            var activeTab = document.querySelector('.flow-tab.active'), activePanel = document.querySelector('.flow-panel.active');
+            if (activeTab) activeTab.classList.remove('active');
+            if (activePanel) activePanel.classList.remove('active');
             button.classList.add('active');
-            document.getElementById(button.dataset.panel).classList.add('active');
+            target.classList.add('active');
         };
     });
 }
@@ -50,6 +57,36 @@ function loadDeal() {
     OLT.call(page, 'GetDealFlow', { projectId: +dealProject.value, dealNumber: dealNumber.value })
         .then(function (r) { dealFlow = mergeDealFlow(r || []); renderDeal(); }).catch(showError);
 }
+
+function loadContextProject() {
+    contextProjectFlow = []; contextFlow = []; clearContextForm(); renderContext();
+    if (!contextProject.value) return;
+    OLT.call(page, 'GetFlow', { projectId: +contextProject.value }).then(function (r) { contextProjectFlow = r || []; loadContextFlow(); }).catch(showError);
+}
+function loadContextFlow() {
+    contextFlow = []; clearContextForm(); renderContext();
+    if (!contextProject.value || !contextType.value) return;
+    OLT.call(page, 'GetContextDealFlow', { projectId: +contextProject.value, configurationProcess: contextType.value, dealNumber: '' }).then(function (r) { contextFlow = mergeContextFlow(r || []); renderContext(); }).catch(showError);
+}
+function mergeContextFlow(overrides) {
+    var map = {}, seen = {}, result = []; overrides.forEach(function (x) { map[String(x.ProcessID)] = x; });
+    contextProjectFlow.forEach(function (x) { var key = String(x.ProcessID), source = map[key] || x, copy = {}; Object.keys(source).forEach(function (n) { copy[n] = source[n]; }); copy.IsDealOverride = !!map[key]; seen[key] = true; result.push(copy); });
+    overrides.forEach(function (x) { if (!seen[String(x.ProcessID)]) { x.IsDealOverride = true; result.push(x); } });
+    return result.sort(function (a, b) { return (+a.StageNo - +b.StageNo) || String(a.ProcessName).localeCompare(String(b.ProcessName)); });
+}
+function renderContext() {
+    if (!document.getElementById('contextRows')) return;
+    contextRows.innerHTML = contextFlow.length ? contextFlow.map(function (x) { var override = !!x.IsDealOverride, out = x.IsOutOfScope === true || x.IsOutOfScope === 1 || x.IsOutOfScope === '1'; return '<tr><td><button type="button" class="flow-action-button" onclick="editContextFlow(' + (+x.ProcessID) + ')">&#9998;</button> ' + (override ? '<button type="button" class="flow-action-button" onclick="removeContextFlow(' + (+x.ProcessID) + ')">&#128465;</button>' : '') + '</td><td>' + OLT.esc(x.ProcessName) + '</td><td><span class="flow-stage">' + x.StageNo + '</span></td><td>' + (out ? '<span class="flow-final">Out of Scope</span>' : (x.IsMandatory ? 'Mandatory' : 'Can be skipped')) + '</td><td>' + (x.FeedbackRequiredOnComplete ? 'Yes' : 'No') + '</td><td>' + (x.IsFinalProcess ? '<span class="flow-final">Final</span>' : 'No') + '</td><td><span class="flow-source ' + (override ? 'override">Process override' : 'inherited">Project default') + '</span></td><td>' + OLT.esc(x.ProductivityType || 'Loan Based Productivity') + '</td><td>' + (x.MinCompletionMinutes == null ? '&mdash;' : x.MinCompletionMinutes) + '</td><td>' + (x.MaxCompletionMinutes == null ? '&mdash;' : x.MaxCompletionMinutes) + '</td></tr>'; }).join('') : '<tr><td colspan="10" class="olt-empty">Select a project, process, and deal.</td></tr>';
+}
+function editContextFlow(id) { var x = find(contextFlow, id); if (!x) return; contextProcess.value = id; contextProcessName.value = x.ProcessName; contextStageNo.value = x.StageNo; contextRequirement.value = x.IsOutOfScope ? 'out-of-scope' : (x.IsMandatory ? 'mandatory' : 'skippable'); contextFeedback.checked = !!x.FeedbackRequiredOnComplete; contextFinalProcess.checked = !!x.IsFinalProcess; contextProductivityType.value = x.ProductivityType || 'Loan Based Productivity'; contextMinCompletionMinutes.value = x.MinCompletionMinutes == null ? '' : x.MinCompletionMinutes; contextMaxCompletionMinutes.value = x.MaxCompletionMinutes == null ? '' : x.MaxCompletionMinutes; toggleContextScopeControls(); }
+function clearContextForm() { contextProcess.value = ''; contextProcessName.value = ''; contextStageNo.value = 1; contextRequirement.value = 'mandatory'; contextFeedback.checked = false; contextFinalProcess.checked = false; contextProductivityType.value = 'Loan Based Productivity'; contextMinCompletionMinutes.value = ''; contextMaxCompletionMinutes.value = ''; toggleContextScopeControls(); }
+function toggleContextScopeControls() { var disabled = contextRequirement.value === 'out-of-scope'; [contextFeedback, contextFinalProcess, contextProductivityType, contextMinCompletionMinutes, contextMaxCompletionMinutes].forEach(function (x) { x.disabled = disabled; }); if (disabled) { contextFeedback.checked = false; contextFinalProcess.checked = false; } }
+function saveContextFlow() {
+    if (!contextProject.value || !contextType.value || !contextProcess.value || +contextStageNo.value < 1) return OLT.alert('Select Project and Pre/Post Close, then edit a process from the list.', true);
+    var min = optionalMinutes(contextMinCompletionMinutes), max = optionalMinutes(contextMaxCompletionMinutes); if (isNaN(min) || isNaN(max) || (min != null && max != null && max < min)) return OLT.alert('Enter valid Min/Max Completion Minutes.', true);
+    callSave('SaveContextDealFlow', { projectId: +contextProject.value, configurationProcess: contextType.value, dealNumber: '', processId: +contextProcess.value, processName: contextProcessName.value, stageNo: +contextStageNo.value, isMandatory: contextRequirement.value === 'mandatory', feedbackRequired: contextFeedback.checked, isFinalProcess: contextFinalProcess.checked, productivityType: contextProductivityType.value, expectedCompletionMinutes: 0, minCompletionMinutes: min, maxCompletionMinutes: max, isOutOfScope: contextRequirement.value === 'out-of-scope' }, clearContextForm, loadContextFlow);
+}
+function removeContextFlow(id) { if (!confirm('Delete this process-specific override?')) return; remove('RemoveContextDealFlow', { projectId: +contextProject.value, configurationProcess: contextType.value, dealNumber: '', processId: id }, loadContextFlow, true); }
 
 function mergeDealFlow(overrides) {
     var overrideMap = {}, merged = [], projectMap = {};

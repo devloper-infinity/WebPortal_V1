@@ -567,19 +567,3 @@ FodyWeavers.xsd
 !/WebPortal/Services/
 !/WebPortal/Services/FteClientAutoBillingService.cs
 !/IHMS.EmailService/CommitmentClientAutoBilling.cs
-
-# Housekeeping operations module.
-!/WebPortal/Admin/HousekeepingDashboard.aspx
-!/WebPortal/Admin/HousekeepingDashboard.aspx.cs
-!/WebPortal/Admin/HK_*.aspx
-!/WebPortal/Admin/HK_*.aspx.cs
-!/WebPortal/Admin/HousekeepingShell.ascx
-!/WebPortal/Admin/HousekeepingShell.ascx.cs
-!/WebPortal/Content/Housekeeping.css
-!/WebPortal/Scripts/Functions/Housekeeping/
-!/WebPortal/Scripts/Functions/Housekeeping/**
-!/WebPortal/Database/
-/WebPortal/Database/*
-!/WebPortal/Database/Housekeeping/
-!/WebPortal/Database/Housekeeping/
-!/WebPortal/Database/Housekeeping/**

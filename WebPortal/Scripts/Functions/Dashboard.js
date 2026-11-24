@@ -593,7 +593,7 @@ function getPendingTaskNotifications() {
     var sidebarnot = '';
     dash_nothtml = '';
     $.ajax({
-        url: "DashboardEmployee.aspx/GetPendingTask",
+        url: "../Admin/DashboardEmployee.aspx/GetPendingTask",
         type: "POST",
         data: "{Type:'" + Type + "'}",
         dataType: "json",
@@ -660,7 +660,7 @@ function getPendingTaskNotifications_Sidebar() {
     var i = 0;
     dash_nothtml = '';
     $.ajax({
-        url: "DashboardEmployee.aspx/GetPendingTask",
+        url: "../Admin/DashboardEmployee.aspx/GetPendingTask",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=utf-8",

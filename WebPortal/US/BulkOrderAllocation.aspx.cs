@@ -22,7 +22,7 @@ namespace WebPortal.US
 
         private static readonly string[] AllowedProcessNames =
         {
-            "PH ReQC", "ATR Review"
+            "PH ReQC", "ATR Review", "Gap PH ReQC", "Gap ATR Review"
         };
 
         protected void Page_Load(object sender, EventArgs e)
@@ -78,7 +78,7 @@ namespace WebPortal.US
                     int processId = 0;
 
                     if (string.IsNullOrWhiteSpace(error) && string.IsNullOrWhiteSpace(processName))
-                        error = "Process must be PH ReQC or ATR Review.";
+                        error = "Process must be PH ReQC, ATR Review, Gap PH ReQC or Gap ATR Review.";
 
                     if (string.IsNullOrWhiteSpace(error))
                     {

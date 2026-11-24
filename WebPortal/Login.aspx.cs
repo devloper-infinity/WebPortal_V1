@@ -214,10 +214,22 @@ namespace WebPortal
                         }
                     }
                     else
-                    {
-                        if (CompanyID == 6)
+                {
+                    //************************* Arti Changes(YTU)******************************//
+
+                    int userCount = new bllMaster().GetWFHOnshoreLoginUsers(User_Code);
+                    if (CompanyID == 6)
+                        if (userCount > 0)
+                        {
+                            Response.Redirect("~/US/DailyLogin.aspx");
+                        }
+                        else
+                        {
                             Response.Redirect("~/US/Dashboard.aspx");
-                        if (int.Parse(HttpContext.Current.User.Identity.Name.ToString()) == 7197)
+
+                        }
+
+                    if (int.Parse(HttpContext.Current.User.Identity.Name.ToString()) == 7197)
                             Response.Redirect("~/Admin/CustomizedDashboard.aspx");
                         if (HttpContext.Current.User.IsInRole("Admin"))
                         {
@@ -297,6 +309,8 @@ namespace WebPortal
             }
 
             txtUserName.Focus();
+
+           
 
         }
 
@@ -462,12 +476,7 @@ namespace WebPortal
                     //Password = Request.Form[PwdKey].ToUpper();
 
 
-                    //************************* Arti Changes(YTU)******************************//
-                    int userCount = new bllMaster().GetWFHOnshoreLoginUsers(userID);
-                    if (userCount > 0)
-                    {
-                        Response.Redirect("~/US/DailyLogin.aspx");
-                    }
+                   
 
 
 

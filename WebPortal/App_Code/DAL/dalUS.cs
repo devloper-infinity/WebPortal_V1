@@ -1724,7 +1724,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetOnshoreDailyLogs(int EmployeeID)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOnshoreDailyLogs_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOnshoreDailyLogs");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EmployeeID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
@@ -1732,14 +1732,14 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetOnshoreDailyLogsBreakInOut(int employeeID)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOnshoreDailyLogsBreakInOut_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetOnshoreDailyLogsBreakInOut");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, employeeID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
         public string AddOnshorelogin(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreLogin_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreLogin");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InTime", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htOnshoreAttendance["InTime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htOnshoreAttendance["Date"]);
@@ -1753,7 +1753,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public string AddOnshoreLogout(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreLogOut_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreLogOut");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@OutTime", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htOnshoreAttendance["OutTime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htOnshoreAttendance["Date"]);
@@ -1765,7 +1765,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public string AddOnshoreBreakOut(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreBreakOut_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreBreakOut");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakOutTime", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakOutTime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakReason", System.Data.SqlDbType.NVarChar, 500, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakReason"]);
@@ -1779,7 +1779,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public string AddOnshoreBreakIn(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreBreakIn_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_AddOnshoreBreakIn");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakInTime", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakInTime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakInOutId", System.Data.SqlDbType.NVarChar, 100, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakInOutId"]);
@@ -1792,7 +1792,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetAllEmpOnshoreDailyLogs()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllEmpOnshoreDailyLogs_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllEmpOnshoreDailyLogs");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
@@ -1800,7 +1800,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public string UpdateOnshorelogin(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateOnshoreDailyLogs_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateOnshoreDailyLogs");
             SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Date"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@InTime", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["InTime"]);
@@ -1815,7 +1815,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public string UpdateOnshoreBreakInOut(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateDailyLogsOnshoreBreakInOut_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_UpdateDailyLogsOnshoreBreakInOut");
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakOutTime", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakOutTime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakInTime", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakInTime"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakInOutId", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["ID"]);
@@ -1831,7 +1831,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public string DeleteUserWiseOnshoreDailyLogin(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteOnshoreDailyLogs_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteOnshoreDailyLogs");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Date", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Date"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@DeletedBy", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["DeletedBy"]);
@@ -1842,20 +1842,18 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
         }
         public string DeleteUserWiseOnshoreDailyBreakInOut(Hashtable htOnshoreAttendance)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteOnshoreDailyLogsBreakInOut_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_DeleteOnshoreDailyLogsBreakInOut");
             SQLHelper.AddParamToSQLCmd(cmd, "@BreakInOutId", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["BreakInOutId"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["Code"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@DeletedBy", System.Data.SqlDbType.NVarChar, 12, System.Data.ParameterDirection.Input, htOnshoreAttendance["DeletedBy"]);
             SQLHelper.AddParamToSQLCmd(cmd, "@ReMsg", System.Data.SqlDbType.NVarChar, 300, System.Data.ParameterDirection.Output, null);
-
             SQLHelper.ExecuteNonQueryCmd(cmd);
-
             string ReturnValue = Convert.ToString(cmd.Parameters["@ReMsg"].Value);
             return ReturnValue;
         }
         public DataTable GetOnshoreEditDailyLogsBreakInOut(string ID,string Code)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetEmpWiseOnshoreDailyLogsBreakInOut_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetEmpWiseOnshoreDailyLogsBreakInOut");
             SQLHelper.AddParamToSQLCmd(cmd, "@ID", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, ID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
@@ -1863,14 +1861,14 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetAllLogInOutDataForInvoice()
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllLogInOutDataForInvoice_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllLogInOutDataForInvoice");
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
         }
 
         public DataTable GetUserWiseLogInOutDataForInvoice(string Code, string StartDate, string EndDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUserWiseLogInOutDataForInvoice_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetUserWiseLogInOutDataForInvoice");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, Code);
             SQLHelper.AddParamToSQLCmd(cmd, "@StartDate", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, StartDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@EndDate", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EndDate);
@@ -1880,7 +1878,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetAllUSLoanProductionTrack(string EmpName, string StartDate, string EndDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllUSLoanProductionTrack_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllUSLoanProductionTrack");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmpName", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EmpName);
             SQLHelper.AddParamToSQLCmd(cmd, "@StartDate", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, StartDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@EndDate", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EndDate);
@@ -1890,7 +1888,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetAllNonProductiveHoursForInvoice(string Code, string StartDate, string EndDate)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllNonProductiveHoursForInvoice_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetAllNonProductiveHoursForInvoice");
             SQLHelper.AddParamToSQLCmd(cmd, "@Code", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, Code);
             SQLHelper.AddParamToSQLCmd(cmd, "@StartDate", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, StartDate);
             SQLHelper.AddParamToSQLCmd(cmd, "@EndDate", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EndDate);
@@ -1900,7 +1898,7 @@ ORDER BY Feedback.AddedDate DESC,Feedback.[Loan Number];");
 
         public DataTable GetVendorsInformation(string EmpName)
         {
-            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetVendorsInformation_YTU");
+            SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.StoredProcedure, "usp_GetVendorsInformation");
             SQLHelper.AddParamToSQLCmd(cmd, "@EmpName", System.Data.SqlDbType.VarChar, 50, System.Data.ParameterDirection.Input, EmpName);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;

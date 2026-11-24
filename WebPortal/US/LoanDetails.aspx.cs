@@ -86,8 +86,6 @@ namespace WebPortal.US
 
             if (ReturnValue > 0)
             {
-                if (AssignmentID > 0)
-                    new bllOLTracking().StartLoan(AssignmentID, int.Parse(HttpContext.Current.User.Identity.Name.ToString()));
                 SaveLoanProductionTrack(
                     "Start",
                     ProcessID,
