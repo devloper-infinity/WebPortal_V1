@@ -230,7 +230,7 @@
             max-width: 900px;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="../Scripts/Functions/AbscondingAndLeaveReport.js" type="text/javascript"></script>

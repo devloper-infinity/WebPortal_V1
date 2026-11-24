@@ -357,7 +357,7 @@
             filter: brightness(1.02);
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
     <script src="../Scripts/Functions/ExpensesAdmin.js" type="text/javascript"></script>

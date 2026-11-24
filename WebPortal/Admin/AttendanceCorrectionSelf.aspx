@@ -95,7 +95,7 @@
 
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
 
 
     <style>
@@ -400,7 +400,7 @@
         }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
 
 </asp:Content>
 
@@ -809,7 +809,7 @@
 
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
 
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

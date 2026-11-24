@@ -308,7 +308,7 @@ border-color: #28a745;*/
             font-weight: 600;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
     <script>
         function proconf_getsecondtab() {
             processconf_bindproject();

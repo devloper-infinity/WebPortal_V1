@@ -502,7 +502,7 @@
     </script>
 
     <script src="https://jsuites.net/v5/jsuites.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
     <portal:VersionedScript Src="~/Scripts/Functions/CreateprofileNew.js" runat="server"></portal:VersionedScript>
 
 </asp:Content>

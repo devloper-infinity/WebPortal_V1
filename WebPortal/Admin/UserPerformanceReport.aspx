@@ -558,7 +558,7 @@
     <link href="../dist/multi/chosen.min.css" rel="stylesheet" />
     <script src="../dist/multi/chosen.jquery.min.js"></script>
     <script src="../dist/multi/chosen.proto.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<%= ResolveUrl("~/plugins/sweetalert2/sweetalert2.all.min.js") %>"></script>
 
     <script>
 
