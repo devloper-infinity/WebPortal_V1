@@ -58,7 +58,10 @@ namespace WebPortal.OperationsBulletin
                 var teams = new StringBuilder("<teams>");
                 foreach (string value in a.values ?? new List<string>())
                     teams.Append("<id>").Append(System.Security.SecurityElement.Escape(value)).Append("</id>"); teams.Append("</teams>");
-                DataTable members = Table("dbo.usp_Bulletin_TeamEmployees", P("@TeamIDsXml", teams.ToString()), P("@EmployeeID", user)); a.type = "Employee";
+                DataTable members;
+                try { members = Table("dbo.usp_Bulletin_TeamEmployees", P("@TeamIDsXml", teams.ToString()), P("@EmployeeID", user)); }
+                catch (SqlException ex) { if (ex.Number != 8144) throw; members = Table("dbo.usp_Bulletin_TeamEmployees", P("@TeamIDsXml", teams.ToString())); }
+                a.type = "Employee";
                 a.values = members.AsEnumerable().Select(r => Convert.ToString(r["EmployeeID"])).ToList();
             }
             var xml = new StringBuilder("<audience type=\"").Append(System.Security.SecurityElement.Escape(a.type ?? "")).Append("\">"); foreach (string value in a.values ?? new List<string>()) xml.Append("<value>").Append(System.Security.SecurityElement.Escape(value)).Append("</value>"); xml.Append("</audience>"); DataTable t = Table("dbo.usp_Bulletin_Save", P("@BulletinID", id), P("@FolderID", folder), P("@Title", title), P("@Category", category), P("@Priority", priority), P("@Summary", summary), P("@IssueDate", issueDate), P("@EffectiveDate", effectiveDate), P("@RequireAcknowledgement", ack), P("@AudienceXml", xml.ToString()), P("@EmployeeID", user)); return Convert.ToInt64(t.Rows[0][0]);
@@ -68,7 +71,7 @@ namespace WebPortal.OperationsBulletin
 
         internal DataRow AuthorizedVersion(long version, int user)
         {
-            using (var c = Open()) using (var cmd = new SqlCommand(@"SELECT TOP(1)v.*,d.BulletinID,d.FolderID FROM dbo.BulletinDocumentVersions v JOIN dbo.BulletinDocuments d ON d.DocumentID=v.DocumentID JOIN dbo.BulletinFolderMaster f ON f.FolderID=d.FolderID OUTER APPLY dbo.ufn_BulletinFolderRights(d.FolderID,@E)r LEFT JOIN dbo.BulletinMaster b ON b.BulletinID=d.BulletinID WHERE v.DocumentVersionID=@V AND v.IsDeleted=0 AND d.IsDeleted=0 AND f.SubDomainID=dbo.ufn_BulletinEmployeeSubDomain(@E) AND (d.BulletinID IS NULL OR b.SubDomainID=f.SubDomainID) AND ((d.BulletinID IS NULL AND r.CanView=1) OR EXISTS(SELECT 1 FROM dbo.BulletinUserTracking t WHERE t.BulletinID=d.BulletinID AND t.EmployeeID=@E) OR (b.CreatedBy=@E AND b.IsDeleted=0))", c))
+            using (var c = Open()) using (var cmd = new SqlCommand(@"SELECT TOP(1)v.*,d.BulletinID,d.FolderID FROM dbo.BulletinDocumentVersions v JOIN dbo.BulletinDocuments d ON d.DocumentID=v.DocumentID JOIN dbo.BulletinFolderMaster f ON f.FolderID=d.FolderID OUTER APPLY dbo.ufn_BulletinFolderRights(d.FolderID,@E)r LEFT JOIN dbo.BulletinMaster b ON b.BulletinID=d.BulletinID WHERE v.DocumentVersionID=@V AND v.IsDeleted=0 AND d.IsDeleted=0 AND ((d.BulletinID IS NULL AND f.SubDomainID=dbo.ufn_BulletinEmployeeSubDomain(@E) AND r.CanView=1) OR (d.BulletinID IS NOT NULL AND b.IsDeleted=0 AND (EXISTS(SELECT 1 FROM dbo.BulletinUserTracking t WHERE t.BulletinID=d.BulletinID AND t.EmployeeID=@E) OR b.CreatedBy=@E)))", c))
             { Add(cmd, "@E", user); Add(cmd, "@V", version); using (var a = new SqlDataAdapter(cmd)) { var t = new DataTable(); a.Fill(t); if (t.Rows.Count == 0) throw new SecurityException("Document access denied."); return t.Rows[0]; } }
         }
         internal string SaveGeneratedPdf(long version, string stored, string previousStored)

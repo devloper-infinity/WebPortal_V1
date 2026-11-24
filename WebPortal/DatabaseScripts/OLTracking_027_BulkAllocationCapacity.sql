@@ -42,6 +42,7 @@ BEGIN
         IF @Requested<1 OR (@CapacityLimit>0 AND @Requested>@CapacityLimit)
             THROW 50130,'The selected order count exceeds the allocation limit.',1;
         IF NOT EXISTS(SELECT 1 FROM dbo.UserProjectConfiguration WHERE ProjectID=@ProjectID AND UserID=@TargetUserID)
+           AND dbo.OLTracking_IsCreditOnshoreEmployee(@ProjectID,@TargetUserID)=0
             THROW 50131,'Selected user is not configured for this project.',1;
         IF @CapacityLimit>0 AND
            (SELECT COUNT(1) FROM dbo.OLTracking_Assignment WITH(UPDLOCK,HOLDLOCK)

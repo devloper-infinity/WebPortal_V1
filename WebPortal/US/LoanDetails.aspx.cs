@@ -72,35 +72,40 @@ namespace WebPortal.US
         public static int StartLoan(int ProcessID, string ProjectNumber, string DealNo, string OrderNumber, string OrderDate, string Process, string Review, long AssignmentID)
         {
             DateTime startDateTime = DateTime.Now;
-            int ReturnValue = SaveLoanTiming(
-                ProjectNumber,
-                DealNo,
-                OrderNumber,
-                Process,
-                Review,
-                startDateTime.ToString("MM/dd/yyyy HH:mm:ss"),
-                "",
-                "Start",
-                "Pending"
-            );
-
-            if (ReturnValue > 0)
+            int ReturnValue = 0;
+            try
             {
-                SaveLoanProductionTrack(
-                    "Start",
-                    ProcessID,
+                ReturnValue = SaveLoanTiming(
                     ProjectNumber,
                     DealNo,
                     OrderNumber,
-                    OrderDate,
                     Process,
                     Review,
-                    startDateTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                    ""
+                    startDateTime.ToString("MM/dd/yyyy HH:mm:ss"),
+                    "",
+                    "Start",
+                    "Pending"
                 );
             }
+            catch
+            {
+                // The My Queue tracker is independent of the legacy underwriting timing database.
+            }
 
-            return ReturnValue;
+            int trackReturnValue = SaveLoanProductionTrack(
+                "Start",
+                ProcessID,
+                ProjectNumber,
+                DealNo,
+                OrderNumber,
+                OrderDate,
+                Process,
+                Review,
+                startDateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                ""
+            );
+
+            return trackReturnValue;
         }
 
         private static string LoanKey(Dictionary<string, object> row)
@@ -158,31 +163,25 @@ namespace WebPortal.US
             return string.IsNullOrWhiteSpace(value) ? "" : value.Replace("T", " ");
         }
 
-        private static void SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
+        private static int SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
         {
-            try
-            {
-                int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-                Hashtable htParam = new Hashtable();
-                htParam.Add("Action", Action);
-                htParam.Add("ProcessID", ProcessID);
-                htParam.Add("ProjectNumber", ProjectNumber);
-                htParam.Add("DealNo", DealNo);
-                htParam.Add("LoanNo", LoanNo);
-                htParam.Add("OrderDate", OrderDate);
-                htParam.Add("Process", Process);
-                htParam.Add("Review", Review);
-                htParam.Add("StartDatetime", StartDatetime);
-                htParam.Add("EndDatetime", EndDatetime);
-                htParam.Add("SourcePage", "MyTask");
-                htParam.Add("EmployeeID", currentEmployeeId);
-                htParam.Add("AddedBy", currentEmployeeId);
+            int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            Hashtable htParam = new Hashtable();
+            htParam.Add("Action", Action);
+            htParam.Add("ProcessID", ProcessID);
+            htParam.Add("ProjectNumber", ProjectNumber);
+            htParam.Add("DealNo", DealNo);
+            htParam.Add("LoanNo", LoanNo);
+            htParam.Add("OrderDate", OrderDate);
+            htParam.Add("Process", Process);
+            htParam.Add("Review", Review);
+            htParam.Add("StartDatetime", StartDatetime);
+            htParam.Add("EndDatetime", EndDatetime);
+            htParam.Add("SourcePage", "MyTask");
+            htParam.Add("EmployeeID", currentEmployeeId);
+            htParam.Add("AddedBy", currentEmployeeId);
 
-                new bllUS().SaveUSLoanProductionTrack(htParam);
-            }
-            catch
-            {
-            }
+            return new bllUS().SaveUSLoanProductionTrack(htParam);
         }
 
     }

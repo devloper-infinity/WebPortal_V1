@@ -44,6 +44,11 @@ namespace WebPortal.App_Code.BLL
             return dalUS.GetUSLoanProductionMyQueue(EmployeeID);
         }
 
+        public string GetReQCPseudoName(int employeeId, int processId)
+        {
+            return dalUS.GetReQCPseudoName(employeeId, processId);
+        }
+
         public DataTable GetDatewiseOnShoreProduction(string Date)
         {
             return dalUS.GetDatewiseOnShoreProduction(Date);

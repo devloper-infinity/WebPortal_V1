@@ -3068,6 +3068,7 @@
     <Content Include="DatabaseScripts\OLTracking_030_BulkAllocationUpsert.sql" />
     <Content Include="DatabaseScripts\OLTracking_031_GlobalLoanUniqueIdentity.sql" />
     <Content Include="DatabaseScripts\OLTracking_032_ExactProcessAllocationValidation.sql" />
+    <Content Include="DatabaseScripts\OLTracking_035_CreditOnshoreAllocation.sql" />
     <Content Include="DatabaseScripts\USCanopy_001_ScriptIdentity.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_001_FullModule.sql" />
     <Content Include="DatabaseScripts\SoftwareRequests_002_TaskAllocationImport.sql" />

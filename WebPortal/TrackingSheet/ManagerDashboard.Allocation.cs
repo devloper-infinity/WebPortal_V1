@@ -57,10 +57,17 @@ namespace WebPortal.TrackingSheet
                 Access(projectId);
                 BulkAllocationResult result = PrepareBulkAllocations(projectId, rows);
                 bllOLTracking tracking = new bllOLTracking(); int allocated = 0; int unchanged = 0;
+                Dictionary<int, bool> unlimitedUsers = new Dictionary<int, bool>();
                 foreach (BulkAllocationRow row in result.Rows.Where(x => x.Status == "Valid" || x.Status == "Reassign" || x.Status == "Existing"))
                 {
                     try
                     {
+                        bool unlimited;
+                        if (!unlimitedUsers.TryGetValue(row.UserID, out unlimited))
+                        {
+                            unlimited = IsUnlimitedCreditOnshoreUser(tracking, projectId, row.UserID);
+                            unlimitedUsers[row.UserID] = unlimited;
+                        }
                         if (row.Status == "Existing")
                         {
                             row.Status = "Allocated"; row.Message = "Already allocated to this employee."; unchanged++;
@@ -68,7 +75,7 @@ namespace WebPortal.TrackingSheet
                         }
                         if (row.Status == "Reassign")
                         {
-                            int reassigned = tracking.BulkReassignPending(row.AssignmentID, row.UserID, OLTrackingWeb.UserId, BulkCapacityLimit(row.Process));
+                            int reassigned = tracking.BulkReassignPending(row.AssignmentID, row.UserID, OLTrackingWeb.UserId, BulkCapacityLimit(row.Process, unlimited));
                             row.Status = reassigned > 0 ? "Allocated" : "Failed";
                             row.Message = reassigned > 0 ? "Pending assignment updated to this employee." : "Assignment was not updated.";
                             allocated += reassigned;
@@ -79,7 +86,7 @@ namespace WebPortal.TrackingSheet
                         if (canonicalProcessId <= 0) throw new InvalidOperationException("Process is no longer configured for this deal.");
                         row.ProcessID = canonicalProcessId;
                         tracking.ValidateManagerAllocation(projectId, canonicalProcessId, loan);
-                        int capacityLimit = BulkCapacityLimit(row.Process);
+                        int capacityLimit = BulkCapacityLimit(row.Process, unlimited);
                         int count = tracking.ManagerAllocate(projectId, row.DealNumber, canonicalProcessId, row.UserID, loan, OLTrackingWeb.UserId, capacityLimit);
                         row.Status = count > 0 ? "Allocated" : "Failed"; row.Message = count > 0 ? "Allocated successfully." : "No order was allocated."; allocated += count;
                     }
@@ -104,13 +111,29 @@ namespace WebPortal.TrackingSheet
             Dictionary<string, DataTable> flows = new Dictionary<string, DataTable>(StringComparer.OrdinalIgnoreCase);
             Dictionary<string, HashSet<string>> eligible = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
             Dictionary<string, DataRow> existingAssignments = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<int, bool> unlimitedUsers = new Dictionary<int, bool>();
             Dictionary<int, int> planned = new Dictionary<int, int>(); HashSet<string> duplicates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (BulkAllocationRow row in rows)
             {
                 if (row.DealNumber.Length == 0 || row.LoanNumber.Length == 0 || row.Employee.Length == 0 || row.Process.Length == 0) { row.Message = "Deal #, Loan #, Employee and Process are required."; continue; }
                 DataRow user = users.AsEnumerable().FirstOrDefault(x => RowText(x, "UserName").Equals(row.Employee, StringComparison.OrdinalIgnoreCase) || RowText(x, "UserID").Equals(row.Employee, StringComparison.OrdinalIgnoreCase));
+                if (user == null)
+                {
+                    DataTable globalUsers = tracking.ResolveBulkAllocationUser(projectId, row.Employee);
+                    if (globalUsers.Rows.Count > 0) user = globalUsers.Rows[0];
+                }
                 if (user == null) { row.Message = "Employee is not configured for this project."; continue; }
                 row.UserID = Convert.ToInt32(user["UserID"]); row.Employee = RowText(user, "UserName");
+                bool unlimited;
+                if (!unlimitedUsers.TryGetValue(row.UserID, out unlimited))
+                {
+                    DataTable eligibility = tracking.GetBulkAllocationUserEligibility(projectId, row.UserID);
+                    bool creditProject = eligibility.Rows.Count > 0 && Convert.ToBoolean(eligibility.Rows[0]["IsCreditProject"]);
+                    bool onshoreEligible = eligibility.Rows.Count > 0 && Convert.ToBoolean(eligibility.Rows[0]["IsOnshoreEligible"]);
+                    if (creditProject && !onshoreEligible) { row.Message = "Employee is not eligible for onshore Credit allocation."; continue; }
+                    unlimited = creditProject && onshoreEligible;
+                    unlimitedUsers[row.UserID] = unlimited;
+                }
                 DataTable flow; if (!flows.TryGetValue(row.DealNumber, out flow)) { flow = tracking.GetEffectiveProcessFlow(projectId, row.DealNumber); flows[row.DealNumber] = flow; }
                 DataRow process = flow.AsEnumerable().FirstOrDefault(x => RowText(x, "ProcessName").Equals(row.Process, StringComparison.OrdinalIgnoreCase) || RowText(x, "ProcessID").Equals(row.Process, StringComparison.OrdinalIgnoreCase));
                 if (process == null) { row.Message = "Process is not available for this deal."; continue; }
@@ -136,7 +159,7 @@ namespace WebPortal.TrackingSheet
                     {
                         row.Message = "Loan is already " + existingStatus + " under " + RowText(existing, "UserName") + "."; continue;
                     }
-                    int reassignLimit = BulkCapacityLimit(row.Process);
+                    int reassignLimit = BulkCapacityLimit(row.Process, unlimited);
                     int reassignActive = user.Table.Columns.Contains("ActiveCount") && user["ActiveCount"] != DBNull.Value ? Convert.ToInt32(user["ActiveCount"]) : 0;
                     int reassignPending; planned.TryGetValue(row.UserID, out reassignPending);
                     if (reassignLimit > 0 && reassignActive + reassignPending >= reassignLimit)
@@ -151,7 +174,7 @@ namespace WebPortal.TrackingSheet
                 if (!loans.Contains(row.LoanNumber)) { row.Message = "Loan is not eligible for this deal/process."; continue; }
                 int active = user.Table.Columns.Contains("ActiveCount") && user["ActiveCount"] != DBNull.Value ? Convert.ToInt32(user["ActiveCount"]) : 0;
                 int pending; planned.TryGetValue(row.UserID, out pending);
-                int capacityLimit = BulkCapacityLimit(row.Process);
+                int capacityLimit = BulkCapacityLimit(row.Process, unlimited);
                 if (capacityLimit > 0 && active + pending >= capacityLimit)
                 {
                     row.Message = "Employee capacity of " + capacityLimit + " active orders would be exceeded.";
@@ -165,14 +188,25 @@ namespace WebPortal.TrackingSheet
 
         private static string RowText(DataRow row, string column) { return row.Table.Columns.Contains(column) && row[column] != DBNull.Value ? Convert.ToString(row[column]).Trim() : string.Empty; }
 
-        private static int BulkCapacityLimit(string processName)
+        private static int BulkCapacityLimit(string processName, bool unlimitedUser = false)
         {
+            if (unlimitedUser) return 0;
             string normalized = new string((processName ?? string.Empty).Where(char.IsLetterOrDigit).ToArray());
             return normalized.Equals("CollectionCommentsReQC", StringComparison.OrdinalIgnoreCase)
                 || normalized.Equals("PHReQC", StringComparison.OrdinalIgnoreCase)
                 || normalized.Equals("DataFieldsReQC", StringComparison.OrdinalIgnoreCase)
                 ? 0
                 : 3;
+        }
+
+        private static bool IsUnlimitedCreditOnshoreUser(bllOLTracking tracking, int projectId, int userId)
+        {
+            DataTable eligibility = tracking.GetBulkAllocationUserEligibility(projectId, userId);
+            if (eligibility.Rows.Count == 0) throw new UnauthorizedAccessException("Employee is not eligible for allocation.");
+            bool creditProject = Convert.ToBoolean(eligibility.Rows[0]["IsCreditProject"]);
+            bool onshoreEligible = Convert.ToBoolean(eligibility.Rows[0]["IsOnshoreEligible"]);
+            if (creditProject && !onshoreEligible) throw new UnauthorizedAccessException("Employee is not eligible for onshore Credit allocation.");
+            return creditProject && onshoreEligible;
         }
 
         private static void Access(int projectId)
@@ -185,7 +219,11 @@ namespace WebPortal.TrackingSheet
         private static string AllocationMessage(Exception ex)
         {
             SqlException sql = ex as SqlException;
-            if (sql == null) return "The requested allocation could not be completed.";
+            if (sql == null)
+            {
+                if (ex is UnauthorizedAccessException || ex is ArgumentException || ex is InvalidOperationException) return ex.Message;
+                return "The requested allocation could not be completed.";
+            }
             if (sql.Number == 50110 || sql.Number == 50112 || sql.Number == 50128 || sql.Number == 50130 || sql.Number == 50131 || sql.Number == 50134 || sql.Number == 50136 || sql.Number == 50143 || sql.Number == 50160) return sql.Message;
             if (sql.Number == 2601 || sql.Number == 2627) return "The configured unique-field combination is already allocated to another user.";
             return "The requested allocation could not be completed. Please refresh and try again.";

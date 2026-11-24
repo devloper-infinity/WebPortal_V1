@@ -213,8 +213,8 @@ END
 GO
 IF OBJECT_ID('dbo.usp_Bulletin_TeamEmployees') IS NULL EXEC('CREATE PROCEDURE dbo.usp_Bulletin_TeamEmployees AS SELECT 1');
 GO
-ALTER PROCEDURE dbo.usp_Bulletin_TeamEmployees @TeamIDsXml xml AS
-BEGIN SELECT DISTINCT m.EmployeeID FROM @TeamIDsXml.nodes('/teams/id')x(n) JOIN dbo.BulletinTeamMaster t ON t.TeamID=x.n.value('.','int')AND t.IsDeleted=0 JOIN dbo.BulletinTeamMember m ON m.TeamID=t.TeamID AND m.IsDeleted=0;END
+ALTER PROCEDURE dbo.usp_Bulletin_TeamEmployees @TeamIDsXml xml,@EmployeeID int=NULL AS
+BEGIN DECLARE @S int=CASE WHEN @EmployeeID IS NULL THEN NULL ELSE dbo.ufn_BulletinEmployeeSubDomain(@EmployeeID)END;SELECT DISTINCT m.EmployeeID FROM @TeamIDsXml.nodes('/teams/id')x(n) JOIN dbo.BulletinTeamMaster t ON t.TeamID=x.n.value('.','int')AND(@S IS NULL OR t.SubDomainID=@S)AND t.IsDeleted=0 JOIN dbo.BulletinTeamMember m ON m.TeamID=t.TeamID AND m.IsDeleted=0;END
 GO
 ALTER PROCEDURE dbo.usp_Bulletin_Initialize @AdminEmployeeID int AS
 BEGIN SET XACT_ABORT ON;BEGIN TRAN;DECLARE @Root bigint=(SELECT TOP(1)FolderID FROM dbo.BulletinFolderMaster WHERE ParentFolderID IS NULL AND FolderName='Operations Documents'AND IsDeleted=0);IF @Root IS NULL BEGIN INSERT dbo.BulletinFolderMaster(ParentFolderID,FolderName,IsSystem,CreatedBy)VALUES(NULL,'Operations Documents',1,@AdminEmployeeID);SET @Root=SCOPE_IDENTITY();END;MERGE dbo.BulletinFolderRights t USING(SELECT @Root FolderID,@AdminEmployeeID EmployeeID)s ON t.FolderID=s.FolderID AND t.EmployeeID=s.EmployeeID WHEN MATCHED THEN UPDATE SET CanView=1,CanUpload=1,CanCreateFolder=1,CanRenameFolder=1,CanMoveFolder=1,CanDeleteFolder=1,CanManagePermissions=1,InheritToChildren=1,IsDeleted=0 WHEN NOT MATCHED THEN INSERT(FolderID,EmployeeID,CanView,CanUpload,CanCreateFolder,CanRenameFolder,CanMoveFolder,CanDeleteFolder,CanManagePermissions,InheritToChildren,GrantedBy)VALUES(@Root,@AdminEmployeeID,1,1,1,1,1,1,1,1,@AdminEmployeeID);COMMIT;SELECT @Root RootFolderID;END

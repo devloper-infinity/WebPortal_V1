@@ -56,7 +56,9 @@ SELECT assignment.AssignmentID,
        ISNULL(item.ItemNumber,'') AS LoanNo,
        CONVERT(varchar(10),importDate.EntryDate,101) AS OrderDate,
        flow.ProcessName AS Process,
-       ISNULL(employee.Code,'') AS RemoteUW,
+       CASE WHEN flow.ProcessName IN (N'Collection Comments ReQC',N'Data Fields ReQC')
+            THEN COALESCE(NULLIF(employeeConfiguration.PsuedoName,''),ISNULL(employee.Code,''))
+            ELSE ISNULL(employee.Code,'') END AS RemoteUW,
        CONVERT(varchar(19),assignment.AssignedDate,120) AS ProcessDate,
        'OLTracking' AS TrackerSource
 FROM dbo.OLTracking_Assignment assignment
@@ -75,6 +77,13 @@ OUTER APPLY
     WHERE batchItem.ItemID=item.ItemID
 ) importDate
 LEFT JOIN dbo.EmployeeInfo employee ON employee.EmployeeID=assignment.UserID
+OUTER APPLY
+(
+    SELECT TOP (1) configuration.PsuedoName
+    FROM dbo.EmployeeConfiguration configuration
+    WHERE configuration.EmployeeID=assignment.UserID AND ISNULL(configuration.IsDelete,0)=0
+    ORDER BY CASE WHEN configuration.DataSource='ERP' THEN 0 ELSE 1 END,configuration.EmpConfigrationID DESC
+) employeeConfiguration
 WHERE assignment.UserID=@EmployeeID
   AND assignment.IsCurrent=1
   AND assignment.AssignmentStatus='Pending'
@@ -91,6 +100,8 @@ ORDER BY assignment.AssignedDate,item.ItemNumber;");
         public DataTable GetUSLoanProductionMyQueue(int EmployeeID)
         {
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
+;WITH QueueRows AS
+(
 SELECT
     ProductionTrackID,
     ISNULL(loanRecord.Id, 0) AS LoanRecordID,
@@ -98,10 +109,14 @@ SELECT
     ISNULL(ProjectNumber, '') AS Client,
     DealNo,
     LoanNo,
-    ISNULL(OrderDate, '') AS OrderDate,
+    CASE WHEN [Process]=N'Collection Comments ReQC' AND ISDATE(OrderDate)=1
+         THEN CONVERT(varchar(10),CONVERT(datetime,OrderDate),101)
+         ELSE ISNULL(CONVERT(varchar(50),OrderDate),'') END AS OrderDate,
     ISNULL([Process], '') AS Process,
     ISNULL(Script, '') AS Script,
-    ISNULL(Review, '') AS Review,
+    CASE WHEN [Process] IN (N'Collection Comments ReQC',N'Data Fields ReQC')
+         THEN COALESCE(NULLIF(employeeConfiguration.PsuedoName,''),ISNULL(Review,''))
+         ELSE ISNULL(Review,'') END AS Review,
     ISNULL(SourcePage, CASE WHEN ISNULL(ProcessID, 0) = 0 THEN 'GlobalSearch' ELSE 'MyTask' END) AS SourcePage,
     CONVERT(VARCHAR(19), StartDatetime, 120) AS StartDatetime,
     CASE
@@ -109,19 +124,59 @@ SELECT
         WHEN DATEDIFF(MINUTE, StartDatetime, GETDATE()) < 0 THEN 0
         ELSE DATEDIFF(MINUTE, StartDatetime, GETDATE())
     END AS ElapsedMinutes,
-    ISNULL([Status], 'Started') AS Status
+    ISNULL([Status], 'Started') AS Status,
+    ROW_NUMBER() OVER (PARTITION BY EmployeeID,LTRIM(RTRIM(ISNULL(LoanNo,''))),LTRIM(RTRIM(ISNULL([Process],'')))
+                       ORDER BY StartDatetime DESC,ProductionTrackID DESC) AS QueueRowNumber
 FROM dbo.USLoanProductionTrack
 OUTER APPLY (SELECT TOP (1) sourceLoan.Id FROM dbo.LoanRecord sourceLoan
              WHERE CONVERT(nvarchar(100), sourceLoan.LoanID)=dbo.USLoanProductionTrack.LoanNo
              ORDER BY sourceLoan.Id DESC) loanRecord
+OUTER APPLY
+(
+    SELECT TOP (1) configuration.PsuedoName
+    FROM dbo.EmployeeConfiguration configuration
+    WHERE configuration.EmployeeID=dbo.USLoanProductionTrack.EmployeeID AND ISNULL(configuration.IsDelete,0)=0
+    ORDER BY CASE WHEN configuration.DataSource='ERP' THEN 0 ELSE 1 END,configuration.EmpConfigrationID DESC
+) employeeConfiguration
 WHERE EmployeeID = @EmployeeID
     AND EndDatetime IS NULL
     AND UPPER(ISNULL([Status], '')) <> 'COMPLETED'
+    AND (NULLIF(LTRIM(RTRIM(ISNULL([Process],''))),'') IS NOT NULL
+         OR NOT EXISTS
+         (
+             SELECT 1 FROM dbo.USLoanProductionTrack activeTrack
+             WHERE activeTrack.EmployeeID=dbo.USLoanProductionTrack.EmployeeID
+               AND LTRIM(RTRIM(ISNULL(activeTrack.LoanNo,'')))=LTRIM(RTRIM(ISNULL(dbo.USLoanProductionTrack.LoanNo,'')))
+               AND activeTrack.EndDatetime IS NULL
+               AND UPPER(ISNULL(activeTrack.[Status],''))<>'COMPLETED'
+               AND NULLIF(LTRIM(RTRIM(ISNULL(activeTrack.[Process],''))),'') IS NOT NULL
+         ))
+)
+SELECT ProductionTrackID,LoanRecordID,ProcessID,Client,DealNo,LoanNo,OrderDate,[Process],Script,Review,
+       SourcePage,StartDatetime,ElapsedMinutes,[Status]
+FROM QueueRows WHERE QueueRowNumber=1
 ORDER BY StartDatetime DESC, ProductionTrackID DESC;");
 
             SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", System.Data.SqlDbType.Int, 0, System.Data.ParameterDirection.Input, EmployeeID);
             DataTable dt = SQLHelper.ExecuteDataTableCmd(cmd);
             return dt;
+        }
+
+        public string GetReQCPseudoName(int employeeId, int processId)
+        {
+            SqlCommand cmd = SQLHelper.GetCommand(CommandType.Text, @"
+SELECT TOP (1) configuration.PsuedoName
+FROM dbo.USLoanProductionTrack track
+INNER JOIN dbo.EmployeeConfiguration configuration ON configuration.EmployeeID=track.EmployeeID
+WHERE track.EmployeeID=@EmployeeID
+  AND track.ProcessID=@ProcessID
+  AND LTRIM(RTRIM(ISNULL(track.[Process],''))) IN (N'Collection Comments ReQC',N'Data Fields ReQC')
+  AND ISNULL(configuration.IsDelete,0)=0
+ORDER BY CASE WHEN configuration.DataSource='ERP' THEN 0 ELSE 1 END,configuration.EmpConfigrationID DESC;");
+            SQLHelper.AddParamToSQLCmd(cmd, "@EmployeeID", SqlDbType.Int, 0, ParameterDirection.Input, employeeId);
+            SQLHelper.AddParamToSQLCmd(cmd, "@ProcessID", SqlDbType.Int, 0, ParameterDirection.Input, processId);
+            object value = SQLHelper.ExecuteScalarCmd(cmd);
+            return value == null || value == DBNull.Value ? string.Empty : Convert.ToString(value);
         }
 
         public DataTable GetProjectProcessLoanReport(string projectNumber)
@@ -646,7 +701,11 @@ ORDER BY AddedDate;");
 INSERT dbo.ImportedFeedbacks_Servicing
 ([Loan Number],Client,[UW Name],[QC Name],[Date Reviewed],[QC Date],Finding,Severity,Source,
  [Feedback Received Date],[Emp Status],AddedBy,AddedDate,IsDisplayFeedbackInERP,[Finding Status],DataField,IsError)
-VALUES(@LoanNo,@Client,@UWName,'',@DateReviewed,@QCDate,@Finding,'',N'Collection Comments ReQC',
+VALUES(@LoanNo,@Client,
+ COALESCE((SELECT TOP (1) NULLIF(PsuedoName,'') FROM dbo.EmployeeConfiguration
+           WHERE EmployeeID=@AddedBy AND ISNULL(IsDelete,0)=0
+           ORDER BY CASE WHEN DataSource='ERP' THEN 0 ELSE 1 END,EmpConfigrationID DESC),@UWName),
+ '',@DateReviewed,@QCDate,@Finding,'',N'Collection Comments ReQC',
  @FeedbackReceivedDate,'Active',@AddedBy,GETDATE(),1,'Pending',@DataField,@IsError);
 SELECT CONVERT(int,SCOPE_IDENTITY());");
             AddCollectionCommentsParameters(cmd, loanNo, client, dataField, isError, finding, addedBy);
@@ -989,29 +1048,39 @@ VALUES(@ProcessID,@LoanID,@Script,@Reviewer,@ReviewDate,@isATRSupported,@ReviewF
             SqlCommand cmd = SQLHelper.GetCommand(System.Data.CommandType.Text, @"
 DECLARE @StartValue DATETIME;
 
-IF ISDATE(@StartDatetime) = 1
+IF UPPER(ISNULL(@Action, '')) = 'START'
+BEGIN
+    SET @StartValue = GETDATE();
+END
+ELSE IF ISDATE(@StartDatetime) = 1
 BEGIN
     SET @StartValue = CONVERT(DATETIME, @StartDatetime);
 END
 ELSE
 BEGIN
-    SET @StartValue = CASE WHEN UPPER(ISNULL(@Action, '')) = 'START'
-                                AND UPPER(ISNULL(@SourcePage, '')) IN ('CANOPYSEARCH', 'LMSEARCH') THEN GETDATE() ELSE NULL END;
+    SET @StartValue = NULL;
 END
 
 DECLARE @EndValue DATETIME;
 
-IF ISDATE(@EndDatetime) = 1
+IF UPPER(ISNULL(@Action, '')) <> 'START'
 BEGIN
-    SET @EndValue = CONVERT(DATETIME, @EndDatetime);
+    SET @EndValue = GETDATE();
 END
 ELSE
 BEGIN
-    SET @EndValue = CASE WHEN UPPER(ISNULL(@Action, '')) <> 'START'
-                              AND UPPER(ISNULL(@SourcePage, '')) IN ('CANOPYSEARCH', 'LMSEARCH') THEN GETDATE() ELSE NULL END;
+    SET @EndValue = NULL;
 END
 
 DECLARE @TrackID BIGINT;
+DECLARE @ReviewValue NVARCHAR(500)=@Review;
+IF LTRIM(RTRIM(ISNULL(@Process,''))) IN (N'Collection Comments ReQC',N'Data Fields ReQC')
+BEGIN
+    SELECT TOP (1) @ReviewValue=COALESCE(NULLIF(configuration.PsuedoName,''),@Review)
+    FROM dbo.EmployeeConfiguration configuration
+    WHERE configuration.EmployeeID=@EmployeeID AND ISNULL(configuration.IsDelete,0)=0
+    ORDER BY CASE WHEN configuration.DataSource='ERP' THEN 0 ELSE 1 END,configuration.EmpConfigrationID DESC;
+END
 
 IF UPPER(@Action) = 'START'
 BEGIN
@@ -1035,6 +1104,11 @@ BEGIN
         FROM dbo.USLoanProductionTrack
         WHERE EndDatetime IS NULL
             AND (
+                (LTRIM(RTRIM(ISNULL(@Process,'')))=N'Collection Comments ReQC'
+                 AND EmployeeID=@EmployeeID
+                 AND LTRIM(RTRIM(ISNULL(LoanNo,'')))=LTRIM(RTRIM(ISNULL(@LoanNo,'')))
+                 AND LTRIM(RTRIM(ISNULL([Process],'')))=N'Collection Comments ReQC')
+                OR
                 (UPPER(ISNULL(@SourcePage, '')) = 'LMSEARCH'
                  AND EmployeeID = @EmployeeID
                  AND LTRIM(RTRIM(ISNULL(ProjectNumber, ''))) = LTRIM(RTRIM(ISNULL(@ProjectNumber, '')))
@@ -1068,7 +1142,7 @@ BEGIN
         )
         VALUES
         (
-            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Script, @Review, @SourcePage,
+            @ProcessID, @ProjectNumber, @DealNo, @LoanNo, @OrderDate, @Process, @Script, @ReviewValue, @SourcePage,
             @StartValue, NULL, @EmployeeID, @AddedBy, GETDATE(), 'Started'
         );
 
@@ -1084,7 +1158,7 @@ BEGIN
             OrderDate = @OrderDate,
             [Process] = @Process,
             Script = @Script,
-            Review = @Review,
+            Review = @ReviewValue,
             SourcePage = COALESCE(NULLIF(@SourcePage, ''), SourcePage),
             StartDatetime = CASE
                 WHEN UPPER(ISNULL(@SourcePage, '')) = 'MYTASK' THEN @StartValue

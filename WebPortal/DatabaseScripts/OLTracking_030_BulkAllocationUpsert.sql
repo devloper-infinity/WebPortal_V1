@@ -33,6 +33,7 @@ BEGIN
         IF EXISTS(SELECT 1 FROM dbo.OLTracking_LoanHold WHERE ItemID=@ItemID AND ResumedDate IS NULL)
             THROW 50160,'This loan is on manager hold and cannot be reassigned.',1;
         IF NOT EXISTS(SELECT 1 FROM dbo.UserProjectConfiguration WHERE ProjectID=@ProjectID AND UserID=@TargetUserID)
+           AND dbo.OLTracking_IsCreditOnshoreEmployee(@ProjectID,@TargetUserID)=0
             THROW 50131,'Selected user is not configured for this project.',1;
         IF @CapacityLimit>0 AND
            (SELECT COUNT(1) FROM dbo.OLTracking_Assignment WITH(UPDLOCK,HOLDLOCK)

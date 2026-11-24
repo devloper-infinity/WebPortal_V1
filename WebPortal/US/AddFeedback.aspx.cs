@@ -119,6 +119,13 @@ namespace WebPortal.US
                     FeedbackReceivedDate, DataField, IsError, Finding, int.Parse(HttpContext.Current.User.Identity.Name));
             }
 
+            if (Task.Equals("Data Fields ReQC", StringComparison.OrdinalIgnoreCase))
+            {
+                string pseudoName = new bllUS().GetReQCPseudoName(
+                    int.Parse(HttpContext.Current.User.Identity.Name), ProcessID);
+                if (!string.IsNullOrWhiteSpace(pseudoName)) UWName = pseudoName;
+            }
+
             Severity = (Severity ?? string.Empty).Trim();
             Finding = (Finding ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(Severity) || (Severity != "No Error" && string.IsNullOrEmpty(Finding)))

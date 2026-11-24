@@ -271,6 +271,7 @@
             var isCanopySearch = sourcePage === "canopysearch";
             var processName = $.trim(row.Process || "").toLowerCase();
             var isAtrReview = processName === "atr review" || processName === "gap atr review";
+            var isCollectionComments = processName === "collection comments reqc";
 
             if (sourcePage === "lmsearch") {
                 return LMSearchNavigation.resume(row, "MyQueue");
@@ -281,6 +282,10 @@
             }
 
             if (sourcePage === "globalsearch") {
+                return GlobalSearchFeedback.resume(row, "MyQueue");
+            }
+
+            if (isCollectionComments) {
                 return GlobalSearchFeedback.resume(row, "MyQueue");
             }
 

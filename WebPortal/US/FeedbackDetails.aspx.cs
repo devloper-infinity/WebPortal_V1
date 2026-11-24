@@ -70,6 +70,9 @@ namespace WebPortal.US
             }
 
             string QCName = (UWName ?? string.Empty).Trim();
+            string pseudoName = new bllUS().GetReQCPseudoName(
+                int.Parse(HttpContext.Current.User.Identity.Name), ProcessID);
+            if (!string.IsNullOrWhiteSpace(pseudoName)) QCName = pseudoName;
             UWName = string.Empty;
 
             Hashtable htParam = new Hashtable();
@@ -351,7 +354,7 @@ namespace WebPortal.US
                 startDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
             }
 
-            string endDateTime = DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+            string endDateTime = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
 
             int ReturnValue = 0;
             try
@@ -385,7 +388,7 @@ namespace WebPortal.US
                 endDateTime
             );
 
-            int finalReturnValue = trackReturnValue > 0 ? trackReturnValue : ReturnValue;
+            int finalReturnValue = trackReturnValue;
             if (finalReturnValue > 0)
             {
                 SyncOnshoreCompletion(ProjectNumber, DealNo, OrderNumber, Process,
@@ -416,30 +419,23 @@ namespace WebPortal.US
 
         private static int SaveLoanProductionTrack(string Action, int ProcessID, string ProjectNumber, string DealNo, string LoanNo, string OrderDate, string Process, string Review, string StartDatetime, string EndDatetime)
         {
-            try
-            {
-                int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
-                Hashtable htParam = new Hashtable();
-                htParam.Add("Action", Action);
-                htParam.Add("ProcessID", ProcessID);
-                htParam.Add("ProjectNumber", ProjectNumber);
-                htParam.Add("DealNo", DealNo);
-                htParam.Add("LoanNo", LoanNo);
-                htParam.Add("OrderDate", OrderDate);
-                htParam.Add("Process", Process);
-                htParam.Add("Review", Review);
-                htParam.Add("StartDatetime", StartDatetime);
-                htParam.Add("EndDatetime", EndDatetime);
-                htParam.Add("SourcePage", "GlobalSearch");
-                htParam.Add("EmployeeID", currentEmployeeId);
-                htParam.Add("AddedBy", currentEmployeeId);
+            int currentEmployeeId = int.Parse(HttpContext.Current.User.Identity.Name.ToString());
+            Hashtable htParam = new Hashtable();
+            htParam.Add("Action", Action);
+            htParam.Add("ProcessID", ProcessID);
+            htParam.Add("ProjectNumber", ProjectNumber);
+            htParam.Add("DealNo", DealNo);
+            htParam.Add("LoanNo", LoanNo);
+            htParam.Add("OrderDate", OrderDate);
+            htParam.Add("Process", Process);
+            htParam.Add("Review", Review);
+            htParam.Add("StartDatetime", StartDatetime);
+            htParam.Add("EndDatetime", EndDatetime);
+            htParam.Add("SourcePage", "GlobalSearch");
+            htParam.Add("EmployeeID", currentEmployeeId);
+            htParam.Add("AddedBy", currentEmployeeId);
 
-                return new bllUS().SaveUSLoanProductionTrack(htParam);
-            }
-            catch
-            {
-                return 0;
-            }
+            return new bllUS().SaveUSLoanProductionTrack(htParam);
         }
 
         private static void SyncOnshoreCompletion(string projectNumber, string dealNumber, string loanNumber,

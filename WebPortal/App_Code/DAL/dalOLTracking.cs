@@ -1567,6 +1567,84 @@ ORDER BY completed.ProjectName,completed.ProcessName;") { CommandType = CommandT
             SqlCommand command = Command("OLTracking_GetProjectUsers"); Add(command, "@ProjectID", SqlDbType.Int, projectId); return Table(command);
         }
 
+        public DataTable GetBulkAllocationUserEligibility(int projectId, int userId)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT CAST(CASE WHEN EXISTS
+(
+    SELECT 1
+    FROM dbo.Project project
+    INNER JOIN dbo.SubDomain subdomain ON subdomain.SubdomainID=project.SubdomainID
+    WHERE project.ProjectID=@ProjectID
+      AND LTRIM(RTRIM(subdomain.SubdomainName))='Credit'
+) THEN 1 ELSE 0 END AS bit) IsCreditProject,
+CAST(CASE WHEN LTRIM(RTRIM(CONVERT(nvarchar(20),ISNULL(employee.Company,''))))='6'
+    OR LOWER(LTRIM(RTRIM(ISNULL(employee.FirstName,'')+' '+ISNULL(employee.lastName,'')))) IN
+       ('sandy willoughby','sara chullino','damon davis','jonny toves','thomas welsh')
+    OR LOWER(LTRIM(RTRIM(ISNULL(configuration.PsuedoName,'')))) IN
+       ('sandy willoughby','sara chullino','damon davis','jonny toves','thomas welsh')
+THEN 1 ELSE 0 END AS bit) IsOnshoreEligible
+FROM dbo.EmployeeInfo employee
+OUTER APPLY
+(
+    SELECT TOP (1) configured.PsuedoName
+    FROM dbo.EmployeeConfiguration configured
+    WHERE configured.EmployeeID=employee.EmployeeID AND configured.IsDelete=0
+    ORDER BY configured.EmpConfigrationID DESC
+) configuration
+WHERE employee.EmployeeID=@UserID;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@UserID", SqlDbType.Int, userId);
+            return Table(command);
+        }
+
+        public DataTable ResolveBulkAllocationUser(int projectId, string employeeValue)
+        {
+            SqlCommand command = new SqlCommand(@"
+SELECT TOP (1) employee.EmployeeID UserID,
+       COALESCE(NULLIF(configuration.PsuedoName,''),NULLIF(configuration.Code,''),
+                NULLIF(employee.Code,''),LTRIM(RTRIM(ISNULL(employee.FirstName,'')+' '+ISNULL(employee.lastName,''))),
+                CONVERT(nvarchar(30),employee.EmployeeID)) UserName,
+       (SELECT COUNT(1) FROM dbo.OLTracking_Assignment assignment
+        WHERE assignment.UserID=employee.EmployeeID AND assignment.IsCurrent=1
+          AND assignment.AssignmentStatus IN('Pending','In Process')) ActiveCount
+FROM dbo.EmployeeInfo employee
+OUTER APPLY
+(
+    SELECT TOP (1) configured.Code,configured.PsuedoName
+    FROM dbo.EmployeeConfiguration configured
+    WHERE configured.EmployeeID=employee.EmployeeID AND configured.IsDelete=0
+    ORDER BY configured.EmpConfigrationID DESC
+) configuration
+WHERE ISNULL(employee.IsDelete,0)=0
+  AND EXISTS
+  (
+      SELECT 1 FROM dbo.Project project
+      INNER JOIN dbo.SubDomain subdomain ON subdomain.SubdomainID=project.SubdomainID
+      WHERE project.ProjectID=@ProjectID AND LTRIM(RTRIM(subdomain.SubdomainName))='Credit'
+  )
+  AND
+  (
+      LTRIM(RTRIM(CONVERT(nvarchar(20),ISNULL(employee.Company,''))))='6'
+      OR LOWER(LTRIM(RTRIM(ISNULL(employee.FirstName,'')+' '+ISNULL(employee.lastName,'')))) IN
+         ('sandy willoughby','sara chullino','damon davis','jonny toves','thomas welsh')
+      OR LOWER(LTRIM(RTRIM(ISNULL(configuration.PsuedoName,'')))) IN
+         ('sandy willoughby','sara chullino','damon davis','jonny toves','thomas welsh')
+  )
+  AND
+  (
+      CONVERT(nvarchar(30),employee.EmployeeID)=LTRIM(RTRIM(@EmployeeValue))
+      OR LOWER(LTRIM(RTRIM(ISNULL(employee.Code,''))))=LOWER(LTRIM(RTRIM(@EmployeeValue)))
+      OR LOWER(LTRIM(RTRIM(ISNULL(employee.FirstName,'')+' '+ISNULL(employee.lastName,''))))=LOWER(LTRIM(RTRIM(@EmployeeValue)))
+      OR LOWER(LTRIM(RTRIM(ISNULL(configuration.Code,''))))=LOWER(LTRIM(RTRIM(@EmployeeValue)))
+      OR LOWER(LTRIM(RTRIM(ISNULL(configuration.PsuedoName,''))))=LOWER(LTRIM(RTRIM(@EmployeeValue)))
+  )
+ORDER BY employee.EmployeeID;") { CommandType = CommandType.Text, CommandTimeout = 90 };
+            Add(command, "@ProjectID", SqlDbType.Int, projectId);
+            Add(command, "@EmployeeValue", SqlDbType.NVarChar, employeeValue, 250);
+            return Table(command);
+        }
+
         public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId, bool includeAll = false)
         {
             SqlCommand command = Command("OLTracking_GetEligibleLoans"); Add(command, "@ProjectID", SqlDbType.Int, projectId);

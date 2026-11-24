@@ -104,6 +104,8 @@ namespace WebPortal.App_Code.BLL
         public DataTable GetDailyProductivityForUser(DateTime productivityDate, int userId, int domainId)
         { return dal.GetDailyProductivityForUser(productivityDate, userId, domainId); }
         public DataTable GetProjectUsers(int projectId) { return dal.GetProjectUsers(projectId); }
+        public DataTable GetBulkAllocationUserEligibility(int projectId, int userId) { return dal.GetBulkAllocationUserEligibility(projectId, userId); }
+        public DataTable ResolveBulkAllocationUser(int projectId, string employeeValue) { return dal.ResolveBulkAllocationUser(projectId, employeeValue); }
         public DataTable GetEligibleLoans(int projectId, string dealNumber, int processId, bool includeAll = false) { return dal.GetEligibleLoans(projectId, dealNumber, processId, includeAll); }
         public DataTable GetCurrentLoanProcessAssignment(int projectId, string dealNumber, string loanNumber, int processId)
         { return dal.GetCurrentLoanProcessAssignment(projectId, dealNumber, loanNumber, processId); }
