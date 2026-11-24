@@ -6,8 +6,9 @@ namespace WebPortal.Admin
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Context.User == null || !Context.User.Identity.IsAuthenticated)
-                Response.Redirect("~/Login.aspx", true);
+            string consolidatedPage = HK_PageAccess.RequireShellPage();
+            if (!String.IsNullOrEmpty(consolidatedPage))
+                Response.Redirect(ResolveUrl(consolidatedPage), true);
         }
     }
 }

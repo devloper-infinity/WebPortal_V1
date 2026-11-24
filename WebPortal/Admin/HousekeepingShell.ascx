@@ -1,7 +1,7 @@
 <%@ Control Language="C#" AutoEventWireup="true" CodeBehind="HousekeepingShell.ascx.cs" Inherits="WebPortal.Admin.HousekeepingShell" %>
 <div id="hkApp" class="hk-app" data-module="<%= System.IO.Path.GetFileNameWithoutExtension(Request.Path) %>">
-  <header class="hk-hero"><div><div class="hk-eyebrow">OPERATIONS MANAGEMENT</div><h1 id="hkTitle">Housekeeping</h1><p>Attendance, cleaning work, quality checks, inventory and performance in one place.</p></div><a class="hk-button hk-button-light" href="HousekeepingDashboard.aspx">Dashboard</a></header>
-  <nav id="hkNav" class="hk-nav" aria-label="Housekeeping modules"></nav>
+  <header class="hk-hero"><div><div class="hk-eyebrow">OPERATIONS MANAGEMENT</div><h1 id="hkTitle">Housekeeping</h1><p>Attendance, cleaning work, quality checks, inventory and performance in one place.</p></div></header>
+  <nav id="hkModuleTabs" class="hk-module-tabs" aria-label="Housekeeping module tabs" role="tablist" hidden></nav>
   <section id="hkFilters" class="hk-card hk-filters" hidden></section>
   <section id="hkKpis" class="hk-kpis" hidden></section>
   <section id="hkEditor" class="hk-card" hidden><h2 id="hkEditorTitle">New record</h2><div id="hkForm" class="hk-form"></div><div class="hk-form-actions"><button type="button" class="hk-button hk-button-muted" id="hkReset">Clear</button><button type="button" class="hk-button" id="hkSave">Save</button></div></section>

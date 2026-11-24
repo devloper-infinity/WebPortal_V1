@@ -19,7 +19,7 @@ namespace WebPortal.Admin
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (Context.User == null || !Context.User.Identity.IsAuthenticated) Response.Redirect("~/Login.aspx", true);
+            HK_PageAccess.RequirePage("Admin/HousekeepingDashboard.aspx");
         }
 
         private static readonly Dictionary<string, string> Modules = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -72,6 +72,7 @@ namespace WebPortal.Admin
         [WebMethod(EnableSession = true), ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static Reply LoadModule(string module, string filtersJson)
         {
+            HK_PageAccess.RequireModule(module);
             try
             {
                 int employee = EmployeeId(); string role = Role(employee, module);
@@ -86,6 +87,12 @@ namespace WebPortal.Admin
         }
         [WebMethod(EnableSession = true), ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static Dictionary<string, object> LoadLookups()
+        {
+            HK_PageAccess.RequirePage("Admin/HousekeepingDashboard.aspx");
+            return LoadLookupsData();
+        }
+
+        internal static Dictionary<string, object> LoadLookupsData()
         {
             var answer = new Dictionary<string, object>();
             try
@@ -146,8 +153,24 @@ namespace WebPortal.Admin
             return answer;
         }
         [WebMethod(EnableSession = true), ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static List<Dictionary<string, object>> GetEmpsByDept(int DepartmentID)
+        {
+            HK_PageAccess.RequirePage("Admin/HousekeepingDashboard.aspx");
+            return GetEmpsByDeptData(DepartmentID);
+        }
+
+        internal static List<Dictionary<string, object>> GetEmpsByDeptData(int DepartmentID)
+        {
+            DataTable employees = new bllMaster().GetEmpsByDept(DepartmentID);
+            return employees.AsEnumerable()
+                .Select(row => employees.Columns.Cast<DataColumn>()
+                    .ToDictionary(column => column.ColumnName, column => row.IsNull(column) ? null : row[column]))
+                .ToList();
+        }
+        [WebMethod(EnableSession = true), ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static Reply SaveModule(string module, string payloadJson)
         {
+            HK_PageAccess.RequireModule(module);
             try
             {
                 int employee = EmployeeId(); string role = Role(employee, module);
@@ -181,6 +204,7 @@ namespace WebPortal.Admin
         [WebMethod(EnableSession = true), ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public static Reply DeactivateModule(string module, int id)
         {
+            HK_PageAccess.RequireModule(module);
             try
             {
                 int employee = EmployeeId(); string role = Role(employee, module);

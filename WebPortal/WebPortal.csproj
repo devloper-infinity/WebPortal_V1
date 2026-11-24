@@ -6703,6 +6703,33 @@
       <DependentUpon>HousekeepingDashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Content Include="Admin\HK_MasterManagement.aspx" />
+    <Compile Include="Admin\HK_MasterManagement.aspx.cs">
+      <DependentUpon>HK_MasterManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HK_MasterManagement.aspx.designer.cs">
+      <DependentUpon>HK_MasterManagement.aspx</DependentUpon>
+    </Compile>
+    <Content Include="Admin\HK_ActivityManagement.aspx" />
+    <Compile Include="Admin\HK_ActivityManagement.aspx.cs">
+      <DependentUpon>HK_ActivityManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HK_ActivityManagement.aspx.designer.cs">
+      <DependentUpon>HK_ActivityManagement.aspx</DependentUpon>
+    </Compile>
+    <Content Include="Admin\HK_ReportManagement.aspx" />
+    <Compile Include="Admin\HK_ReportManagement.aspx.cs">
+      <DependentUpon>HK_ReportManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Admin\HK_ReportManagement.aspx.designer.cs">
+      <DependentUpon>HK_ReportManagement.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\HK_ConsolidatedPageBase.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Content Include="Admin\HK_FloorMaster.aspx" />
     <Compile Include="Admin\HK_FloorMaster.aspx.cs">
       <DependentUpon>HK_FloorMaster.aspx</DependentUpon>
@@ -6784,6 +6811,9 @@
     </Compile>
     <Content Include="Content\Housekeeping.css" />
     <Content Include="Scripts\Functions\HK_Common.js" />
+    <Content Include="Scripts\Functions\HK_MasterManagement.js" />
+    <Content Include="Scripts\Functions\HK_ActivityManagement.js" />
+    <Content Include="Scripts\Functions\HK_ReportManagement.js" />
     <Content Include="Database\Housekeeping\01_CreateTables.sql" />
     <Content Include="Database\Housekeeping\02_CreateIndexes.sql" />
     <Content Include="Database\Housekeeping\03_Procedures.sql" />

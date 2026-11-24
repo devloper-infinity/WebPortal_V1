@@ -403,6 +403,16 @@ FodyWeavers.xsd
 !/WebPortal/Admin/EmployeeLogHistory.aspx.cs
 !/WebPortal/Admin/EmployeeLogHistory.aspx.designer.cs
 !/WebPortal/Admin/BillingChannelMaster.aspx
+!/WebPortal/Admin/HK_MasterManagement.aspx
+!/WebPortal/Admin/HK_MasterManagement.aspx.cs
+!/WebPortal/Admin/HK_MasterManagement.aspx.designer.cs
+!/WebPortal/Admin/HK_ActivityManagement.aspx
+!/WebPortal/Admin/HK_ActivityManagement.aspx.cs
+!/WebPortal/Admin/HK_ActivityManagement.aspx.designer.cs
+!/WebPortal/Admin/HK_ReportManagement.aspx
+!/WebPortal/Admin/HK_ReportManagement.aspx.cs
+!/WebPortal/Admin/HK_ReportManagement.aspx.designer.cs
+!/WebPortal/Admin/HK_ConsolidatedPageBase.cs
 !/WebPortal/Admin/BillingChannelMaster.aspx.cs
 !/WebPortal/Admin/BillingChannelMaster.aspx.designer.cs
 !/WebPortal/Admin/HRManpowerReport.aspx
@@ -530,6 +540,9 @@ FodyWeavers.xsd
 /WebPortal/Scripts/Functions/*
 !/WebPortal/Scripts/Functions/UserMapping.js
 !/WebPortal/Scripts/Functions/HRReportNew.js
+!/WebPortal/Scripts/Functions/HK_MasterManagement.js
+!/WebPortal/Scripts/Functions/HK_ActivityManagement.js
+!/WebPortal/Scripts/Functions/HK_ReportManagement.js
 !/WebPortal/Scripts/Admin/
 /WebPortal/Scripts/Admin/*
 !/WebPortal/Scripts/Admin/ProjectBillingDetails.js

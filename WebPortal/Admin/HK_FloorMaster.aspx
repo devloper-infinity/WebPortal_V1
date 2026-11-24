@@ -5,7 +5,7 @@
   <link rel="stylesheet" href="../plugins/sweetalert2/sweetalert2.min.css" />
   <link rel="stylesheet" href="../Content/Housekeeping.css?v=1" />
   <script src="../plugins/sweetalert2/sweetalert2.all.min.js"></script>
-  <script src="../Scripts/Functions/HK_Common.js?v=15"></script>
+  <script src="../Scripts/Functions/HK_Common.js?v=17"></script>
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
