@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Web.Hosting;
+using System.Xml;
 using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Infrastructure
@@ -207,18 +209,36 @@ namespace WebPortal.Infrastructure
             public int CacheSeconds;
             public static Settings Load()
             {
-                int seconds; if (!Int32.TryParse(ConfigurationManager.AppSettings["Authorization.CacheSeconds"], out seconds)) seconds = 60;
+                int seconds; if (!Int32.TryParse(Read("Authorization.CacheSeconds"), out seconds)) seconds = 60;
                 seconds = Math.Max(5, Math.Min(seconds, 300));
                 return new Settings
                 {
-                    PublicPages = Set(ConfigurationManager.AppSettings["Authorization.PublicPages"]),
-                    CommonPages = Set(ConfigurationManager.AppSettings["Authorization.CommonPages"]),
-                    CommonMethods = MethodSet(ConfigurationManager.AppSettings["Authorization.CommonMethods"]),
-                    PagePermissions = Map(ConfigurationManager.AppSettings["Authorization.PagePermissions"], false),
-                    MethodPermissions = Map(ConfigurationManager.AppSettings["Authorization.MethodPermissions"], true),
+                    PublicPages = Set(Read("Authorization.PublicPages")),
+                    CommonPages = Set(Read("Authorization.CommonPages")),
+                    CommonMethods = MethodSet(Read("Authorization.CommonMethods")),
+                    PagePermissions = Map(Read("Authorization.PagePermissions"), false),
+                    MethodPermissions = Map(Read("Authorization.MethodPermissions"), true),
                     CacheSeconds = seconds
                 };
             }
+            private static string Read(string key)
+            {
+                try
+                {
+                    string path = HostingEnvironment.MapPath("~/Authorization.config");
+                    if (!String.IsNullOrEmpty(path) && File.Exists(path))
+                    {
+                        var document = new XmlDocument();
+                        document.Load(path);
+                        XmlNode node = document.SelectSingleNode("/appSettings/add[@key=" + QuoteXPath(key) + "]");
+                        if (node != null && node.Attributes != null && node.Attributes["value"] != null)
+                            return node.Attributes["value"].Value;
+                    }
+                }
+                catch (Exception ex) { Trace.TraceError("Could not read authorization configuration: {0}", ex.Message); }
+                return ConfigurationManager.AppSettings[key];
+            }
+            private static string QuoteXPath(string value) { return "'" + value.Replace("'", "") + "'"; }
             private static HashSet<string> Set(string text) { return new HashSet<string>((text ?? "").Split(',').Select(NormalizeConfiguredUrl).Where(x => x != null), StringComparer.OrdinalIgnoreCase); }
             private static HashSet<string> MethodSet(string text)
             {
