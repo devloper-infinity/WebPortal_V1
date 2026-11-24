@@ -145,76 +145,80 @@
     <form id="form1" runat="server">
         <asp:ToolkitScriptManager ID="ToolkitScriptManager1" runat="server" EnablePageMethods="true">
             <Scripts>
-       <asp:ScriptReference Path="~/Scripts/Functions/AddressVerification.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/EmployeeVerificationReport.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/FunFriday.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Followup.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/LetterHeadManagement.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/RnR.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/SkipLevelMeeting.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/StampPaper.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Requisition.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Masters.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/HRReports.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/HRInduction.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/MasterData.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/UnderwritingTest.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Reports.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/CCInvoice.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Canopy.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ImportCC.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Attendance.js" />
-       <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js" />
-       <asp:ScriptReference Path="~/Scripts/Reports/ServicingConsolidatedReports.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/KYC.js" />
-       <asp:ScriptReference Path="~/Scripts/Reports/DetailedFeedbackOutput.js" />
-       <asp:ScriptReference Path="~/Scripts/Reports/IncrementProposal.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Securitization.js" />
-       <asp:ScriptReference Path="~/Scripts/Reports/Performance.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/InfinityFeedback.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ITCostReport.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/POSHQuestionMaster.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/PseudoName.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceAcknowledgement.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/PerformanceMarketing.js" />
-       <asp:ScriptReference Path="~/Scripts/HRReportInput.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ViewEmployee.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/EditInfinityFeedback.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/DailyProductivity.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/EditSecruitization.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/SecruitizationBilling.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/OtherBilling.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ImportSecuritizationLoans.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/AppreciationDisciplinaryAction.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/HoursSpent.js" />
-       <asp:ScriptReference Path="~/Scripts/Reports/CostPerLoan.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/OnlineTrackingSheet.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/CompensatoryOff.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/AgreementVersionsReport.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Festival.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/EmployeeComments.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/HRInvoice.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/DailyLogin.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceHR.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ClientHolidays.js" />
-       <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js" />
-       <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js" />
-       <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js" />
-       <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/Dashboard.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/NewDashboard.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/QualityReport.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/OtherTask.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/SLAReport.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/UpdateDomain.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ProjectNotifications.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/ProjectConfiguration.js" />
-       <asp:ScriptReference Path="~/Scripts/Functions/LogInDetails.js" />
-      <%-- <asp:ScriptReference Path="~/Scripts/Functions/Leaves.js?v=7" />
+                <asp:ScriptReference Path="~/Scripts/Functions/AddressVerification.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EmployeeVerificationReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/FunFriday.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Followup.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/LetterHeadManagement.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/RnR.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SkipLevelMeeting.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/StampPaper.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Requisition.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Masters.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRReports.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRInduction.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/MasterData.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UnderwritingTest.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Reports.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/CCInvoice.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Canopy.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ImportCC.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Attendance.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ConsolidatedReports.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/ServicingConsolidatedReports.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/KYC.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/DetailedFeedbackOutput.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/IncrementProposal.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Securitization.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/Performance.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/InfinityFeedback.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ITCostReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/POSHQuestionMaster.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/PseudoName.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceAcknowledgement.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/PerformanceMarketing.js" />
+                <asp:ScriptReference Path="~/Scripts/HRReportInput.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ViewEmployee.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EditInfinityFeedback.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/DailyProductivity.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EditSecruitization.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SecruitizationBilling.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/OtherBilling.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ImportSecuritizationLoans.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/AppreciationDisciplinaryAction.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HoursSpent.js" />
+                <asp:ScriptReference Path="~/Scripts/Reports/CostPerLoan.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/OnlineTrackingSheet.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/CompensatoryOff.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/AgreementVersionsReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Festival.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/EmployeeComments.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/HRInvoice.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/DailyLogin.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UserPerformanceHR.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ClientHolidays.js" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearing.js" />
+                <asp:ScriptReference Path="~/Scripts/US/CoditionAnalysis.js" />
+                <asp:ScriptReference Path="~/Scripts/US/InfinityFeedbackOnshore.js" />
+                <asp:ScriptReference Path="~/Scripts/US/ConditionClearingReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/Dashboard.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/NewDashboard.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/QualityReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/OtherTask.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/SLAReport.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/UpdateDomain.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ProjectNotifications.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/ProjectConfiguration.js" />
+                <asp:ScriptReference Path="~/Scripts/Functions/LogInDetails.js" />
+                <%-- <asp:ScriptReference Path="~/Scripts/Functions/Leaves.js?v=7" />
        <asp:ScriptReference Path="~/Scripts/Functions/Bank.js?v=7" />--%>
 
                 <asp:ScriptReference Path="~/Scripts/Functions/Bank.js" />
             </Scripts>
+
+          <%--  <link href="<%= ResolveUrl("~/Scripts/SweetAlert2/sweetalert2.css") %>" rel="stylesheet" />
+            <script src="<%= ResolveUrl("~/Scripts/SweetAlert2/sweetalert2.all.min.js") %>"></script>--%>
+
         </asp:ToolkitScriptManager>
 
         <div class="wrapper">
@@ -628,8 +632,8 @@
         <!-- AdminLTE for demo purposes -->
         <%--<script src="../Scripts/AI.js?v=1"></script>--%>
 
-    <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
-    <script src="../OperationsBulletin/BulletinNotifier.js?v=6"></script>
-</form>
+        <portal:VersionedScript Src="~/Scripts/SessionHandler.js" runat="server"></portal:VersionedScript>
+        <script src="../OperationsBulletin/BulletinNotifier.js?v=6"></script>
+    </form>
 </body>
 </html>

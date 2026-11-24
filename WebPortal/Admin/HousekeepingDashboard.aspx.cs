@@ -11,6 +11,7 @@ using System.Web.Script.Serialization;
 using System.Xml.Linq;
 using System.Web.UI;
 using WebPortal.App_Code.DAL;
+using WebPortal.App_Code.BLL;
 
 namespace WebPortal.Admin
 {
@@ -23,7 +24,7 @@ namespace WebPortal.Admin
 
         private static readonly Dictionary<string, string> Modules = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            {"Buildings","HK_BuildingMaster"},{"Floors","HK_FloorMaster"},{"Locations","HK_LocationMaster"},{"Staff","HK_StaffMaster"},
+            {"Floors","HK_FloorMaster"},{"Staff","HK_StaffMaster"},
             {"Vendors","HK_VendorMaster"},{"Activities","HK_ActivityMaster"},{"Schedules","HK_ActivitySchedule"},{"Attendance","HK_StaffAttendance"},
             {"DailyActivities","HK_DailyActivities"},{"WeeklyMonthlyActivities","HK_WeeklyMonthlyActivities"},{"Inspections","HK_SupervisorInspection"},
             {"VendorPerformance","HK_VendorPerformance"},{"Complaints","HK_ComplaintManagement"},{"Inventory","HK_ConsumableInventory"},
@@ -44,13 +45,13 @@ namespace WebPortal.Admin
         private static string ConnectionString { get { return SQLHelper.ConnectionString; } }
         private static string Role(int employeeId, string module)
         {
-            using (var c = new SqlConnection(ConnectionString)) using (var q = new SqlCommand("SELECT TOP 1 RoleName FROM dbo.HK_UserRole WHERE EmployeeID=@EmployeeID AND IsActive=1 AND BuildingID IS NULL AND VendorID IS NULL ORDER BY CASE RoleName WHEN 'Admin' THEN 0 WHEN 'Management' THEN 1 WHEN 'Supervisor' THEN 2 ELSE 3 END", c))
-            { q.Parameters.Add("@EmployeeID", SqlDbType.Int).Value = employeeId; c.Open(); return Convert.ToString(q.ExecuteScalar()); }
+            // Housekeeping role-table validation was removed at the user's request.
+            return "Admin";
         }
         private static bool CanWrite(string role, string module)
         {
             if (role == "Admin") return true;
-            return role == "Supervisor" && new[] { "Buildings", "Floors", "Locations", "Staff", "Vendors", "Activities", "Schedules", "Attendance", "DailyActivities", "WeeklyMonthlyActivities", "Inspections", "Complaints", "Inventory", "Consumables", "VendorPerformance" }.Contains(module);
+            return role == "Supervisor" && new[] { "Floors", "Staff", "Vendors", "Activities", "Schedules", "Attendance", "DailyActivities", "WeeklyMonthlyActivities", "Inspections", "Complaints", "Inventory", "Consumables", "VendorPerformance" }.Contains(module);
         }
         private static DataTable Query(string procedure, int employeeId, string module, string filters)
         {
@@ -74,7 +75,6 @@ namespace WebPortal.Admin
             try
             {
                 int employee = EmployeeId(); string role = Role(employee, module);
-                if (String.IsNullOrEmpty(role) || !(role == "Admin" || role == "Management" || role == "Supervisor")) return new Reply { Success = false, Message = "You do not have Housekeeping access." };
                 if (!Modules.ContainsKey(module)) return new Reply { Success = false, Message = "Unknown module." };
                 DataTable result = Query("dbo.usp_HK_GetModuleData", employee, module, filtersJson);
                 var reply = new Reply { Success = true, CanWrite = CanWrite(role, module), Rows = Rows(result), Message = "Loaded." };
@@ -90,11 +90,56 @@ namespace WebPortal.Admin
             var answer = new Dictionary<string, object>();
             try
             {
-                int employee = EmployeeId(); string role = Role(employee, "Buildings"); if (!(role == "Admin" || role == "Management" || role == "Supervisor")) return answer;
+                int employee = EmployeeId();
+                DataTable branches = new bllMaster().GetAllBranches();
+                answer["Branches"] = branches.AsEnumerable()
+                    .Where(row => !branches.Columns.Contains("isDelete") || row.IsNull("isDelete") || !Convert.ToBoolean(row["isDelete"]))
+                    .Select(row => new { ID = row["BranchID"], Name = Convert.ToString(row["BranchName"]) }).ToList();
+                var floorBranches = new Dictionary<int, int>();
+                try
+                {
+                    using (var c = new SqlConnection(ConnectionString)) using (var q = new SqlCommand("SELECT FloorID, BranchID FROM dbo.HK_FloorMaster WHERE BranchID IS NOT NULL", c))
+                    {
+                        c.Open(); using (var floorReader = q.ExecuteReader()) while (floorReader.Read()) floorBranches[Convert.ToInt32(floorReader["FloorID"])] = Convert.ToInt32(floorReader["BranchID"]);
+                    }
+                }
+                catch { /* Older installations receive BranchID after the migration script is applied. */ }
                 using (var c = new SqlConnection(ConnectionString)) using (var q = new SqlCommand("dbo.usp_HK_GetLookups", c))
                 {
                     q.CommandType = CommandType.StoredProcedure; q.Parameters.Add("@EmployeeID", SqlDbType.Int).Value = employee; c.Open();
-                    using (var r = q.ExecuteReader()) { string[] names = { "Buildings", "Floors", "Staff", "Vendors", "Activities", "Locations", "Assignments", "Consumables" }; int index = 0; do { var values = new List<object>(); while (r.Read()) values.Add(new { ID = r.GetValue(0), Name = r.GetValue(1) }); if (index < names.Length) answer[names[index]] = values; index++; } while (r.NextResult()); }
+                    using (var r = q.ExecuteReader())
+                    {
+                        do
+                        {
+                            if (r.FieldCount < 2) continue;
+                            string name = null;
+                            switch (r.GetName(0))
+                            {
+                                case "FloorID": name = "Floors"; break;
+                                case "StaffID": name = "Staff"; break;
+                                case "VendorID": name = "Vendors"; break;
+                                case "ActivityID": name = "Activities"; break;
+                                case "AssignmentID": name = "Assignments"; break;
+                                case "ConsumableID": name = "Consumables"; break;
+                            }
+                            if (name != null)
+                            {
+                                var values = new List<object>();
+                                int branchOrdinal = -1;
+                                for (int i = 0; i < r.FieldCount; i++)
+                                    if (String.Equals(r.GetName(i), "BranchID", StringComparison.OrdinalIgnoreCase)) branchOrdinal = i;
+                                while (r.Read())
+                                {
+                                    object branchId = branchOrdinal >= 0 && !r.IsDBNull(branchOrdinal) ? r.GetValue(branchOrdinal) : null;
+                                    int mappedBranch;
+                                    if (name == "Floors" && branchId == null && floorBranches.TryGetValue(Convert.ToInt32(r.GetValue(0)), out mappedBranch)) branchId = mappedBranch;
+                                    values.Add(new { ID = r.GetValue(0), Name = Convert.ToString(r.GetValue(1)), BranchID = branchId });
+                                }
+                                answer[name] = values;
+                            }
+                            else while (r.Read()) { }
+                        } while (r.NextResult());
+                    }
                 }
             }
             catch { }
@@ -119,6 +164,18 @@ namespace WebPortal.Admin
                 return new Reply { Success = true, Message = "Record saved." };
             }
             catch (UnauthorizedAccessException ex) { return new Reply { Success = false, Message = ex.Message }; }
+            catch (SqlException ex)
+            {
+                string message;
+                if (ex.Number == 50000) message = ex.Message;
+                else if ((ex.Number == 2601 || ex.Number == 2627) && module == "Floors") message = "A floor with this number or name already exists in the selected location.";
+                else if (ex.Number == 515 && module == "Floors") message = "The database needs the Branch/Floor migration before a floor can be saved. Run 04_BranchFloorMigration.sql, then retry.";
+                else if (ex.Number == 547 && module == "Floors" && ex.Message.IndexOf("BuildingID", StringComparison.OrdinalIgnoreCase) >= 0) message = "The database still enforces the legacy BuildingID relationship. Back up the database, run 04_BranchFloorMigration.sql against InfinityERP, then retry.";
+                else if (ex.Number == 207 || ex.Number == 2812) message = "Housekeeping database objects are outdated. Apply the current Housekeeping migration and procedure scripts, then retry.";
+                else if (ex.Number == 547) message = "The selected location or related record is invalid. Refresh the page and try again.";
+                else message = "Record was not saved. Check required fields and database setup.";
+                return new Reply { Success = false, Message = message };
+            }
             catch (Exception) { return new Reply { Success = false, Message = "Record was not saved. Check required fields and database setup." }; }
         }
         [WebMethod(EnableSession = true), ScriptMethod(ResponseFormat = ResponseFormat.Json)]

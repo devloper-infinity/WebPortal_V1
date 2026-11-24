@@ -8,7 +8,7 @@ IF OBJECT_ID('dbo.HK_UserRole','U') IS NULL CREATE TABLE dbo.HK_UserRole
     UserRoleID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     EmployeeID INT NOT NULL,
     RoleName VARCHAR(30) NOT NULL,
-    BuildingID INT NULL,
+    BranchID INT NULL REFERENCES dbo.Branch(BranchID),
     VendorID INT NULL,
     IsActive BIT NOT NULL CONSTRAINT DF_HK_UserRole_Active DEFAULT(1),
     AddedBy INT NOT NULL,
@@ -16,27 +16,16 @@ IF OBJECT_ID('dbo.HK_UserRole','U') IS NULL CREATE TABLE dbo.HK_UserRole
 );
 GO
 
-IF OBJECT_ID('dbo.HK_BuildingMaster','U') IS NULL CREATE TABLE dbo.HK_BuildingMaster
-(
-    BuildingID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    BuildingCode VARCHAR(30) NOT NULL UNIQUE,
-    BuildingName NVARCHAR(150) NOT NULL,
-    Address NVARCHAR(500) NULL,
-    Description NVARCHAR(1000) NULL,
-    IsActive BIT NOT NULL CONSTRAINT DF_HK_Building_Active DEFAULT(1),
-    AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_Building_Added DEFAULT(GETDATE()),
-    UpdatedBy INT NULL, UpdatedDate DATETIME NULL
-);
-GO
 IF OBJECT_ID('dbo.HK_FloorMaster','U') IS NULL CREATE TABLE dbo.HK_FloorMaster
 (
     FloorID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    BuildingID INT NOT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
+    BranchID INT NOT NULL REFERENCES dbo.Branch(BranchID),
     FloorNumber INT NOT NULL, FloorName NVARCHAR(100) NOT NULL, Description NVARCHAR(500) NULL,
     IsActive BIT NOT NULL CONSTRAINT DF_HK_Floor_Active DEFAULT(1),
     AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_Floor_Added DEFAULT(GETDATE()),
     UpdatedBy INT NULL, UpdatedDate DATETIME NULL,
-    CONSTRAINT UQ_HK_Floor UNIQUE(BuildingID, FloorNumber)
+    CONSTRAINT UQ_HK_Floor_Number UNIQUE(BranchID, FloorNumber),
+    CONSTRAINT UQ_HK_Floor_Name UNIQUE(BranchID, FloorName)
 );
 GO
 IF OBJECT_ID('dbo.HK_VendorMaster','U') IS NULL CREATE TABLE dbo.HK_VendorMaster
@@ -58,36 +47,13 @@ IF OBJECT_ID('dbo.HK_StaffMaster','U') IS NULL CREATE TABLE dbo.HK_StaffMaster
     EmployeeID INT NULL, MobileNumber VARCHAR(30) NULL,
     StaffType VARCHAR(10) NOT NULL CONSTRAINT CK_HK_Staff_Type CHECK(StaffType IN('Internal','Vendor')),
     VendorID INT NULL REFERENCES dbo.HK_VendorMaster(VendorID),
-    BuildingID INT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
+    BranchID INT NULL REFERENCES dbo.Branch(BranchID),
     FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
-    SupervisorID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID), ShiftName NVARCHAR(50) NULL, JoiningDate DATE NULL,
+    SupervisorID BIGINT NULL REFERENCES dbo.EmployeeInfo(EmployeeID), ShiftName NVARCHAR(50) NULL, JoiningDate DATE NULL,
     IsActive BIT NOT NULL CONSTRAINT DF_HK_Staff_Active DEFAULT(1),
     AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_Staff_Added DEFAULT(GETDATE()),
     UpdatedBy INT NULL, UpdatedDate DATETIME NULL,
     CONSTRAINT CK_HK_Staff_Vendor CHECK((StaffType='Vendor' AND VendorID IS NOT NULL) OR StaffType='Internal')
-);
-GO
-IF OBJECT_ID('dbo.HK_LocationMaster','U') IS NULL CREATE TABLE dbo.HK_LocationMaster
-(
-    LocationID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    BuildingID INT NOT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
-    FloorID INT NOT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
-    LocationCode VARCHAR(50) NOT NULL, LocationName NVARCHAR(150) NOT NULL,
-    LocationType NVARCHAR(50) NOT NULL, AssignedStaffID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
-    CleaningFrequency VARCHAR(20) NOT NULL CONSTRAINT DF_HK_Location_Frequency DEFAULT('Daily'),
-    IsActive BIT NOT NULL CONSTRAINT DF_HK_Location_Active DEFAULT(1),
-    AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_Location_Added DEFAULT(GETDATE()),
-    UpdatedBy INT NULL, UpdatedDate DATETIME NULL,
-    CONSTRAINT UQ_HK_Location_Code UNIQUE(BuildingID, FloorID, LocationCode)
-);
-GO
-IF OBJECT_ID('dbo.HK_VendorLocation','U') IS NULL CREATE TABLE dbo.HK_VendorLocation
-(
-    VendorLocationID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    VendorID INT NOT NULL REFERENCES dbo.HK_VendorMaster(VendorID),
-    BuildingID INT NOT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
-    FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
-    AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_VendorLocation_Added DEFAULT(GETDATE())
 );
 GO
 IF OBJECT_ID('dbo.HK_ActivityMaster','U') IS NULL CREATE TABLE dbo.HK_ActivityMaster
@@ -107,18 +73,17 @@ IF OBJECT_ID('dbo.HK_ActivitySchedule','U') IS NULL CREATE TABLE dbo.HK_Activity
 (
     ScheduleID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     ActivityID INT NOT NULL REFERENCES dbo.HK_ActivityMaster(ActivityID),
-    BuildingID INT NOT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
+    BranchID INT NOT NULL REFERENCES dbo.Branch(BranchID),
     FloorID INT NOT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
-    LocationID INT NOT NULL REFERENCES dbo.HK_LocationMaster(LocationID),
     StaffID INT NOT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
-    SupervisorID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
+    SupervisorID BIGINT NULL REFERENCES dbo.EmployeeInfo(EmployeeID),
     ScheduleDate DATE NOT NULL, StartTime TIME NULL, EndTime TIME NULL,
     Frequency VARCHAR(10) NOT NULL CHECK(Frequency IN('Daily','Weekly','Monthly')),
     Priority VARCHAR(10) NOT NULL CONSTRAINT DF_HK_Schedule_Priority DEFAULT('Medium'),
     IsActive BIT NOT NULL CONSTRAINT DF_HK_Schedule_Active DEFAULT(1),
     AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_Schedule_Added DEFAULT(GETDATE()),
     UpdatedBy INT NULL, UpdatedDate DATETIME NULL,
-    CONSTRAINT UQ_HK_Schedule UNIQUE(ActivityID, LocationID, StaffID, ScheduleDate, StartTime)
+    CONSTRAINT UQ_HK_Schedule UNIQUE(ActivityID, FloorID, StaffID, ScheduleDate, StartTime)
 );
 GO
 IF OBJECT_ID('dbo.HK_ActivityAssignment','U') IS NULL CREATE TABLE dbo.HK_ActivityAssignment
@@ -126,12 +91,11 @@ IF OBJECT_ID('dbo.HK_ActivityAssignment','U') IS NULL CREATE TABLE dbo.HK_Activi
     AssignmentID INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     ScheduleID INT NOT NULL REFERENCES dbo.HK_ActivitySchedule(ScheduleID),
     ActivityID INT NOT NULL REFERENCES dbo.HK_ActivityMaster(ActivityID),
-    BuildingID INT NOT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
+    BranchID INT NOT NULL REFERENCES dbo.Branch(BranchID),
     FloorID INT NOT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
-    LocationID INT NOT NULL REFERENCES dbo.HK_LocationMaster(LocationID),
     StaffID INT NOT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
     VendorID INT NULL REFERENCES dbo.HK_VendorMaster(VendorID),
-    SupervisorID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
+    SupervisorID BIGINT NULL REFERENCES dbo.EmployeeInfo(EmployeeID),
     ScheduledDate DATE NOT NULL, ScheduledStart TIME NULL, ScheduledEnd TIME NULL,
     ActualStart DATETIME NULL, ActualEnd DATETIME NULL,
     Status VARCHAR(20) NOT NULL CONSTRAINT DF_HK_Assignment_Status DEFAULT('Pending')
@@ -139,7 +103,7 @@ IF OBJECT_ID('dbo.HK_ActivityAssignment','U') IS NULL CREATE TABLE dbo.HK_Activi
     Remarks NVARCHAR(2000) NULL, IsActive BIT NOT NULL CONSTRAINT DF_HK_Assignment_Active DEFAULT(1),
     AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_Assignment_Added DEFAULT(GETDATE()),
     UpdatedBy INT NULL, UpdatedDate DATETIME NULL,
-    CONSTRAINT UQ_HK_Assignment UNIQUE(ScheduleID, LocationID, StaffID, ScheduledDate)
+    CONSTRAINT UQ_HK_Assignment UNIQUE(ScheduleID, FloorID, StaffID, ScheduledDate)
 );
 GO
 IF OBJECT_ID('dbo.HK_ActivityLog','U') IS NULL CREATE TABLE dbo.HK_ActivityLog
@@ -156,7 +120,7 @@ IF OBJECT_ID('dbo.HK_StaffAttendance','U') IS NULL CREATE TABLE dbo.HK_StaffAtte
     AttendanceID BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     StaffID INT NOT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
     AttendanceDate DATE NOT NULL, VendorID INT NULL REFERENCES dbo.HK_VendorMaster(VendorID),
-    BuildingID INT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID), FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
+    BranchID INT NULL REFERENCES dbo.Branch(BranchID), FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
     ShiftName NVARCHAR(50) NULL, LoginTime DATETIME NULL, LogoutTime DATETIME NULL,
     WorkingHours DECIMAL(6,2) NULL, AttendanceStatus VARCHAR(15) NOT NULL,
     IsLate BIT NOT NULL CONSTRAINT DF_HK_Att_Late DEFAULT(0), IsEarlyDeparture BIT NOT NULL CONSTRAINT DF_HK_Att_Early DEFAULT(0),
@@ -173,7 +137,7 @@ IF OBJECT_ID('dbo.HK_Inspection','U') IS NULL CREATE TABLE dbo.HK_Inspection
     AssignmentID INT NOT NULL REFERENCES dbo.HK_ActivityAssignment(AssignmentID),
     InspectionDate DATETIME NOT NULL CONSTRAINT DF_HK_Inspection_Date DEFAULT(GETDATE()),
     StaffID INT NOT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
-    SupervisorID INT NOT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
+    SupervisorID BIGINT NOT NULL REFERENCES dbo.EmployeeInfo(EmployeeID),
     CleanlinessRating TINYINT NOT NULL CHECK(CleanlinessRating BETWEEN 1 AND 5),
     QualityRating TINYINT NOT NULL CHECK(QualityRating BETWEEN 1 AND 5),
     Remarks NVARCHAR(2000) NULL, InspectionStatus VARCHAR(12) NOT NULL CHECK(InspectionStatus IN('Approved','Rejected')),
@@ -186,8 +150,8 @@ IF OBJECT_ID('dbo.HK_Complaint','U') IS NULL CREATE TABLE dbo.HK_Complaint
     ComplaintID BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     ComplaintNo AS ('HKC-' + CONVERT(VARCHAR(20), ComplaintID)) PERSISTED,
     ComplaintDate DATETIME NOT NULL CONSTRAINT DF_HK_Complaint_Date DEFAULT(GETDATE()),
-    BuildingID INT NOT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
-    FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID), LocationID INT NULL REFERENCES dbo.HK_LocationMaster(LocationID),
+    BranchID INT NOT NULL REFERENCES dbo.Branch(BranchID),
+    FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID),
     Category NVARCHAR(80) NOT NULL, Description NVARCHAR(2000) NOT NULL,
     Priority VARCHAR(10) NOT NULL, AssignedStaffID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID),
     VendorID INT NULL REFERENCES dbo.HK_VendorMaster(VendorID), ExpectedResolution DATETIME NULL,
@@ -226,7 +190,7 @@ IF OBJECT_ID('dbo.HK_ConsumableTransaction','U') IS NULL CREATE TABLE dbo.HK_Con
     TransactionDate DATETIME NOT NULL CONSTRAINT DF_HK_ConsumableTxn_Date DEFAULT(GETDATE()),
     TransactionType VARCHAR(6) NOT NULL CHECK(TransactionType IN('In','Out')),
     Quantity DECIMAL(12,2) NOT NULL CHECK(Quantity > 0), VendorID INT NULL REFERENCES dbo.HK_VendorMaster(VendorID),
-    StaffID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID), BuildingID INT NULL REFERENCES dbo.HK_BuildingMaster(BuildingID),
+    StaffID INT NULL REFERENCES dbo.HK_StaffMaster(StaffID), BranchID INT NULL REFERENCES dbo.Branch(BranchID),
     FloorID INT NULL REFERENCES dbo.HK_FloorMaster(FloorID), Remarks NVARCHAR(1000) NULL,
     AddedBy INT NOT NULL, AddedDate DATETIME NOT NULL CONSTRAINT DF_HK_ConsumableTxn_Added DEFAULT(GETDATE())
 );

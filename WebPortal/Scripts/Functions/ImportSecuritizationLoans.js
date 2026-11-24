@@ -1,6 +1,48 @@
 ﻿
 var ExistingLoanList_table;
 var NewLoanList_table;
+var impSercNoticeTimer;
+
+/* Use page content for notices so browser dialog suppression cannot hide them. */
+function impSercEnsureNoticeUI() {
+    if (!document.getElementById("impSercNoticeStyles")) {
+        var style = document.createElement("style");
+        style.id = "impSercNoticeStyles";
+        style.textContent = "#impSercNotice{position:fixed;top:20px;right:20px;z-index:20000;max-width:min(420px,calc(100vw - 40px));padding:14px 18px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.2);color:#fff;font:14px/1.45 Arial,sans-serif;display:none}#impSercNotice.success{background:#218838}#impSercNotice.info{background:#286090}#impSercNotice.warning{background:#a66b00}#impSercNotice.error{background:#b02a37}#impSercBusy{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:19999;padding:11px 18px;border-radius:6px;background:#263746;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);font:14px Arial,sans-serif;display:none}";
+        document.head.appendChild(style);
+    }
+    if (!document.getElementById("impSercNotice")) {
+        var notice = document.createElement("div");
+        notice.id = "impSercNotice";
+        notice.setAttribute("role", "alert");
+        notice.setAttribute("aria-live", "assertive");
+        document.body.appendChild(notice);
+    }
+    if (!document.getElementById("impSercBusy")) {
+        var busy = document.createElement("div");
+        busy.id = "impSercBusy";
+        busy.setAttribute("role", "status");
+        busy.setAttribute("aria-live", "polite");
+        document.body.appendChild(busy);
+    }
+}
+
+function impSercShowMessage(message, type) {
+    impSercEnsureNoticeUI();
+    var notice = document.getElementById("impSercNotice");
+    window.clearTimeout(impSercNoticeTimer);
+    notice.className = type || "info";
+    notice.textContent = message;
+    notice.style.display = "block";
+    impSercNoticeTimer = window.setTimeout(function () { notice.style.display = "none"; }, 5000);
+}
+
+function impSercSetBusy(message) {
+    impSercEnsureNoticeUI();
+    var busy = document.getElementById("impSercBusy");
+    busy.textContent = message || "";
+    busy.style.display = message ? "block" : "none";
+}
 
 
 
@@ -87,8 +129,8 @@ function NewLoanDetails_BindGrid() {
         },
 
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            var details = error && error.responseText ? error.responseText : "Unable to load the new loan list.";
+            impSercShowMessage("Error: " + details, "error");
         }
     });
     return false;
@@ -104,19 +146,13 @@ function btnImportSerc_Upload() {
     var remark = document.getElementById('importSerc_Remark').value;
 
     if (dealNo == "Select") {
-        // alert("Please select Deal #.");
-        Swal.fire({
-            icon: "Validation",
-            title: "warning",
-            text: "Please select Deal #."
-        });
+        impSercShowMessage("Please select Deal #.", "warning");
 
         document.getElementById("importSerc_DealNo").focus();
         return false;
     }
 
     //if (remark == "") {
-    //    alert("Please select remark");
     //    document.getElementById("importSerc_Remark").focus();
     //    return false;
     //}
@@ -134,16 +170,7 @@ function btnImportSerc_Upload() {
         dataType: "json",
 
         beforeSend: function () {
-            Swal.fire({
-                title: "Please wait...",
-                text: "Reading excel file...",
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: function () {
-                    Swal.showLoading();
-                }
-            });
+            impSercSetBusy("Reading Excel file...");
         },
 
         success: function (res) {
@@ -153,17 +180,11 @@ function btnImportSerc_Upload() {
         error: function (xhr) {
             console.log(xhr);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Something went wrong while uploading data."
-            });
+            impSercShowMessage("Something went wrong while uploading data.", "error");
         },
 
         complete: function () {
-            if (Swal.isLoading()) {
-                Swal.close();
-            }
+            impSercSetBusy("");
         }
     });
 
@@ -186,33 +207,19 @@ function btnImportSerc_ClearData() {
 
                 ClearImportSercControls();
 
-                Swal.fire({
-                    icon: "success",
-                    title: "Success",
-                    text: "Data cleared successfully."
-                });
+                impSercShowMessage("Data cleared successfully.", "success");
             }
             else {
 
-                Swal.fire({
-                    icon: "info",
-                    title: "Information",
-                    text: "No data found to clear."
-                });
+                impSercShowMessage("No data found to clear.", "info");
             }
         },
 
         function (error) {
 
-            Swal.close();
-
             console.log(error);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: error.get_message ? error.get_message() : "Something went wrong while clearing data."
-            });
+            impSercShowMessage(error.get_message ? error.get_message() : "Something went wrong while clearing data.", "error");
         }
     );
 
@@ -231,55 +238,32 @@ function btnImportSerc_ImportToDatabase() {
     var remark = document.getElementById('importSerc_Remark').value;
 
     if (dealNo == "Select") {
-        Swal.fire({
-            icon: "warning",
-            title: "Validation",
-            text: "Please select Deal #."
-        });
+        impSercShowMessage("Please select Deal #.", "warning");
 
         document.getElementById("importSerc_DealNo").focus();
         return false;
     }
 
-    Swal.fire({
-        title: "Please wait...",
-        text: "Importing data to database...",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: function () {
-            Swal.showLoading();
-        }
-    });
+    impSercSetBusy("Importing data to database...");
 
     PageMethods.ImportData(
         dealNo,
 
         function (result) {
 
-            Swal.close();
-
-            Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: "Data imported successfully."
-            }).then(() => {
-                // ClearImportSercControls();
-                NewLoanDetails_BindGrid(); // Refresh grid if required
-            });
+            impSercSetBusy("");
+            impSercShowMessage("Data imported successfully.", "success");
+            // ClearImportSercControls();
+            NewLoanDetails_BindGrid(); // Refresh grid if required
         },
 
         function (error) {
 
-            Swal.close();
+            impSercSetBusy("");
 
             console.log(error);
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "Something went wrong while importing data."
-            });
+            impSercShowMessage("Something went wrong while importing data.", "error");
         }
     );
 
@@ -389,8 +373,8 @@ function ExistingLoanDetails_BindGrid() {
         ],
 
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            var details = error && error.responseText ? error.responseText : "Unable to load existing loan details.";
+            impSercShowMessage("Error: " + details, "error");
         }
     });
 
@@ -459,8 +443,8 @@ function ExistingLoanDetails_BindGrid_Core() {
         ],
 
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            var details = error && error.responseText ? error.responseText : "Unable to load existing loan details.";
+            impSercShowMessage("Error: " + details, "error");
         }
     });
 

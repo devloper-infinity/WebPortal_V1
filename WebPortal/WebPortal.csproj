@@ -992,6 +992,8 @@
     <Content Include="Scripts\TrackingSheet\TrackingSheet.js" />
     <Content Include="Scripts\TrackingSheet\TrackingSheetFeedback.js" />
     <Content Include="Scripts\TrackingSheet\ManagerDashboard.js" />
+    <Content Include="Scripts\UIScripts\sweetalert2.all.min.js" />
+    <Content Include="Scripts\UIScripts\sweetalert2.css" />
     <Content Include="Scripts\US\DownloadInvoice.js" />
     <Content Include="Scripts\US\OnshoreDailyLogin.js" />
     <Content Include="Scripts\US\ResetPasswordSegment.js" />
@@ -6697,19 +6699,9 @@
       <DependentUpon>HousekeepingDashboard.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Content Include="Admin\HK_BuildingMaster.aspx" />
-    <Compile Include="Admin\HK_BuildingMaster.aspx.cs">
-      <DependentUpon>HK_BuildingMaster.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
     <Content Include="Admin\HK_FloorMaster.aspx" />
     <Compile Include="Admin\HK_FloorMaster.aspx.cs">
       <DependentUpon>HK_FloorMaster.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Content Include="Admin\HK_LocationMaster.aspx" />
-    <Compile Include="Admin\HK_LocationMaster.aspx.cs">
-      <DependentUpon>HK_LocationMaster.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Content Include="Admin\HK_StaffMaster.aspx" />
@@ -6787,10 +6779,15 @@
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Content Include="Content\Housekeeping.css" />
-    <Content Include="Scripts\Functions\Housekeeping\HK_Common.js" />
+    <Content Include="Scripts\Functions\HK_Common.js" />
     <Content Include="Database\Housekeeping\01_CreateTables.sql" />
     <Content Include="Database\Housekeeping\02_CreateIndexes.sql" />
     <Content Include="Database\Housekeeping\03_Procedures.sql" />
+    <Content Include="Database\Housekeeping\04_BranchFloorMigration.sql" />
+    <Content Include="Database\Housekeeping\05_StaffSupervisorEmployeeMigration.sql" />
+    <Content Include="Database\Housekeeping\06_ScheduleSupervisorEmployeeMigration.sql" />
+    <Content Include="Database\Housekeeping\07_InspectionActivityLookup.sql" />
+    <Content Include="Database\Housekeeping\08_InspectionSupervisorEmployeeMigration.sql" />
     <Content Include="Database\Housekeeping\README.md" />
   </ItemGroup>
 </Project>

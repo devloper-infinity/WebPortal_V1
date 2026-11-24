@@ -3,6 +3,50 @@ var secureID = 0;
 
 var editSectracking_html;
 var editSectracking_table;
+var editSectrackNoticeTimer;
+
+/* In-page notices avoid browser dialogs, which can be suppressed by browsers. */
+function editSectrackEnsureNoticeUI() {
+    if (!document.getElementById("editSectrackNoticeStyles")) {
+        var style = document.createElement("style");
+        style.id = "editSectrackNoticeStyles";
+        style.textContent = "#editSectrackNotice{position:fixed;top:20px;right:20px;z-index:20000;max-width:min(420px,calc(100vw - 40px));padding:14px 18px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.2);color:#fff;font:14px/1.45 Arial,sans-serif;display:none}#editSectrackNotice.success{background:#218838}#editSectrackNotice.warning{background:#a66b00}#editSectrackNotice.error{background:#b02a37}#editSectrackBusy{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:19999;padding:11px 18px;border-radius:6px;background:#263746;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);font:14px Arial,sans-serif;display:none}";
+        document.head.appendChild(style);
+    }
+    if (!document.getElementById("editSectrackNotice")) {
+        var notice = document.createElement("div");
+        notice.id = "editSectrackNotice";
+        notice.setAttribute("role", "alert");
+        notice.setAttribute("aria-live", "assertive");
+        document.body.appendChild(notice);
+    }
+    if (!document.getElementById("editSectrackBusy")) {
+        var busy = document.createElement("div");
+        busy.id = "editSectrackBusy";
+        busy.setAttribute("role", "status");
+        busy.setAttribute("aria-live", "polite");
+        document.body.appendChild(busy);
+    }
+}
+
+function editSectrackNotify(message, type) {
+    editSectrackEnsureNoticeUI();
+    var notice = document.getElementById("editSectrackNotice");
+    window.clearTimeout(editSectrackNoticeTimer);
+    notice.className = type || "warning";
+    notice.textContent = message;
+    notice.style.display = "block";
+    editSectrackNoticeTimer = window.setTimeout(function () {
+        notice.style.display = "none";
+    }, 5000);
+}
+
+function editSectrackSetBusy(message) {
+    editSectrackEnsureNoticeUI();
+    var busy = document.getElementById("editSectrackBusy");
+    busy.textContent = message || "";
+    busy.style.display = message ? "block" : "none";
+}
 
 
 /*---------------- Bind Methods  ----------------*/
@@ -135,8 +179,8 @@ function bindGrid_forEdit() {
         },
 
         error: function (error) {
-            alert('error; ' + eval(error));
-            alert('error; ' + error.responseText);
+            var details = error && error.responseText ? error.responseText : "Unable to load securitization tracking data.";
+            editSectrackNotify("Error: " + details, "error");
         }
     });
     return false;
@@ -253,8 +297,8 @@ function EditSectracking_submit1() {
     var Status = ddlStatus.options[ddlStatus.selectedIndex].value;
 
     function showValidation(message, elementId) {
-
-        Swal.fire({ icon: "warning", title: "Validation", text: message }).then(function () { document.getElementById(elementId).focus(); });
+        editSectrackNotify(message, "warning");
+        document.getElementById(elementId).focus();
         return false;
     }
 
@@ -286,45 +330,35 @@ function EditSectracking_submit1() {
         return showValidation("Please select Status.", "editSectrack_Status");
     }
 
-    Swal.fire({
-        title: "Please wait...",
-        text: "Updating securitization tracking data...",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: function () {
-            Swal.showLoading();
-        }
-    });
+    editSectrackSetBusy("Updating securitization tracking data...");
 
     PageMethods.UpdateSecuritizationRelLetter(secureID, projectid, clientdealname, "", loancount, taskname, requesteddate, sladeliverydate, actualdelivereddate,
         Remark, Status, sladeliverydays, RLSigned, billingHours, CLientNameAddress, RecepientNameAddress, AgencyNameAddress,
 
         function (result) {
 
-            Swal.close();
+            editSectrackSetBusy("");
 
             if (result > 0) {
 
                 secureID = 0;
 
-                Swal.fire({ icon: "success", title: "Success", text: "Data updated successfully!" }).then(function () {
-                    ClearEditSectrackControls();
-                });
+                ClearEditSectrackControls();
+                editSectrackNotify("Data updated successfully!", "success");
 
             } else {
 
-                Swal.fire({ icon: "warning", title: "Already Exists", text: "Data already exists." });
+                editSectrackNotify("Data already exists.", "warning");
             }
         },
 
         function (error) {
 
-            Swal.close();
+            editSectrackSetBusy("");
 
             console.log(error);
 
-            Swal.fire({ icon: "error", title: "Error", text: error.get_message ? error.get_message() : error.responseText || "Something went wrong while updating data." });
+            editSectrackNotify(error.get_message ? error.get_message() : error.responseText || "Something went wrong while updating data.", "error");
         }
     );
 
