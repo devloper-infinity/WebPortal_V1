@@ -106,6 +106,7 @@ namespace WebPortal
             Page page = Context.CurrentHandler as Page;
             if (page != null)
             {
+                page.ClientScript.RegisterClientScriptInclude("ErpAuthorizationClient", page.ResolveUrl("~/Scripts/AuthorizationClient.js"));
                 page.PreRender += ApplyScriptVersions;
                 page.PreRender += ShowMissingChannelAlert;
                 page.PreRender += AddChatWidget;

@@ -43,6 +43,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Authorization.config" />
+    <Content Include="Scripts\AuthorizationClient.js" />
     <Reference Include="AjaxControlToolkit, Version=4.5.7.1213, Culture=neutral, PublicKeyToken=28f01b0e84b6d53e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\AjaxControlToolkit.dll</HintPath>
@@ -5642,6 +5644,7 @@
     <Compile Include="App_Code\EL\Num2Wrd.cs" />
     <Compile Include="App_Code\EL\NumberToText.cs" />
     <Compile Include="App_Code\QueryStringModule.cs" />
+    <Compile Include="Infrastructure\ErpAuthorizationModule.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

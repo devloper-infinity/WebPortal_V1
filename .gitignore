@@ -372,6 +372,10 @@ FodyWeavers.xsd
 # Keep versioned database migrations visible even though this legacy project root is ignored.
 !/WebPortal/
 /WebPortal/*
+!/WebPortal/Authorization.config
+!/WebPortal/Infrastructure/
+!/WebPortal/Infrastructure/ErpAuthorizationModule.cs
+!/WebPortal/Scripts/AuthorizationClient.js
 !/WebPortal/OperationsBulletin/
 !/WebPortal/OperationsBulletin/**
 !/WebPortal/Helpdesk/
@@ -521,6 +525,7 @@ FodyWeavers.xsd
 !/WebPortal/TrackingSheet/ManagerDashboard.Snd.js
 !/WebPortal/Scripts/
 /WebPortal/Scripts/*
+!/WebPortal/Scripts/AuthorizationClient.js
 !/WebPortal/Scripts/Functions/
 /WebPortal/Scripts/Functions/*
 !/WebPortal/Scripts/Functions/UserMapping.js
