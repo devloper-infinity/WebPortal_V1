@@ -316,6 +316,7 @@ function loadOnshoreDailyLogs() {
 
             $('#osdlloginout_table').DataTable({
                 data: data,
+                paging: false,
                 columns: [
                     { data: 'Date' },
                     { data: 'InTime' },

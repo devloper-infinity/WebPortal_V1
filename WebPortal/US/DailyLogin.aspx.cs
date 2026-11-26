@@ -75,7 +75,7 @@ namespace WebPortal.US
 
                 string ReturnValue = new bllUS().AddOnshorelogin(htOnshoreAttendance);
 
-                bool isSuccess = ReturnValue.Trim().Equals("login successfully!", StringComparison.OrdinalIgnoreCase);
+                bool isSuccess = ReturnValue.Trim().Equals("You Have Successfully Logged In!", StringComparison.OrdinalIgnoreCase);
                 var result = new
                 {
                     success = isSuccess,
@@ -107,7 +107,7 @@ namespace WebPortal.US
 
                 string ReturnValue = new bllUS().AddOnshoreLogout(htOnshoreAttendance);
 
-                bool isSuccess = ReturnValue == "log Out successfully!" || ReturnValue == "You Have Successfully Logged Out";
+                bool isSuccess = ReturnValue == "You Have Successfully Logged Out!" || ReturnValue == "You Have Successfully Logged Out";
 
                 var result = new
                 {
@@ -144,7 +144,7 @@ namespace WebPortal.US
                 htOnshoreAttendance.Add("BreakInOutId", breakInOutID);
                 string ReturnValue = new bllUS().AddOnshoreBreakIn(htOnshoreAttendance);
 
-                bool isSuccess = ReturnValue == "Break In successfully!" || ReturnValue == "You Have Successfully Break In";
+                bool isSuccess = ReturnValue == "You Have Successfully Break In!" || ReturnValue == "You Have Successfully Break In";
 
                 var result = new
                 {
@@ -182,7 +182,7 @@ namespace WebPortal.US
 
                 string ReturnValue = new bllUS().AddOnshoreBreakOut(htOnshoreAttendance);
 
-                bool isSuccess = ReturnValue == "Break Out successfully!" || ReturnValue == "You Have Successfully Break Out";
+                bool isSuccess = ReturnValue == "You Have Successfully Break Out!" || ReturnValue == "You Have Successfully Break Out";
 
                 var result = new
                 {
